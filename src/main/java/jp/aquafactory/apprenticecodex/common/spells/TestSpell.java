@@ -60,6 +60,7 @@ public class TestSpell extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        // do nothing.
+        // log test.
+        ApprenticeCodex.LOGGER.debug("Casting spell={} caster={}", spellId, entity.getName().getString());
     }
 }
