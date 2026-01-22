@@ -32,9 +32,9 @@ public class TestBoltProjectileRenderer extends EntityRenderer<TestBoltProjectil
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw - 90.0f));
         poseStack.mulPose(Axis.ZP.rotationDegrees(pitch));
 
-        // 見た目の調整.
+        // 右上に切っ先が向いているアイテムが先端を向くように調整.
         float scale = 1.0f;
-        poseStack.mulPose(Axis.XP.rotationDegrees(90.0f));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0f));
         poseStack.scale(scale, scale, scale);
 
         // ItemRendererで描画.
