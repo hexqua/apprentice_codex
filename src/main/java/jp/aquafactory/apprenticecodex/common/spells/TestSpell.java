@@ -8,9 +8,12 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import java.util.Optional;
@@ -60,7 +63,25 @@ public class TestSpell extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        // log test.
+        if (!level.isClientSide) {
+            // お試しに金の剣を飛ばす.
+            ItemStack item = new ItemStack(Items.GOLDEN_SWORD);
+            TestBoltProjectileEntity proj = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
+
+            proj.setPos(
+                    entity.getX(),
+                    entity.getEyeY() - 0.1,
+                    entity.getZ()
+            );
+
+            // todo: adjust.
+            float speed = 1.8f;
+            float inaccuracy = 0.0f;
+            proj.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0.0f, speed, inaccuracy);
+            level.addFreshEntity(proj);
+        }
+
         ApprenticeCodex.LOGGER.debug("Casting spell={} caster={}", spellId, entity.getName().getString());
+        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }
