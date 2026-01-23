@@ -86,16 +86,13 @@ public class TestSpell extends AbstractSpell {
             var projectile = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
 
             projectile.setDamage(getDamage(spellLevel, entity));
+            projectile.setProjectileVelocity(entity.getLookAngle(), 1.8f);
             projectile.setPos(
                     entity.getX(),
                     entity.getEyeY() - 0.1,
                     entity.getZ()
             );
 
-            // 性能周りの調整(引数が難読化されているのでローカル変数で保持する)
-            var speed = 1.8f;
-            var inaccuracy = 0.0f;
-            projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0.0f, speed, inaccuracy);
             level.addFreshEntity(projectile);
         }
 

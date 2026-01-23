@@ -25,16 +25,16 @@ public class TestBoltProjectileRenderer extends EntityRenderer<TestBoltProjectil
         var stack = entity.getItem();
         if (stack.isEmpty()) return;
 
-        var yaw = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
-        var pitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
+        var motion = entity.getDeltaMovement();
+        var xRot = -((float) (Mth.atan2(motion.horizontalDistance(), motion.y) * (double) (180F / (float) Math.PI)) - 90.0F);
+        var yRot = -((float) (Mth.atan2(motion.z, motion.x) * (double) (180F / (float) Math.PI)) + 90.0F);
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(yaw - 90.0f));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(pitch));
+        poseStack.mulPose(Axis.YP.rotationDegrees(yRot));
+        poseStack.mulPose(Axis.XP.rotationDegrees(xRot));
 
         // 右上に切っ先が向いているアイテムが先端を向くように調整.
-        var scale = 1.0f;
+        poseStack.mulPose(Axis.YP.rotationDegrees(90.0f));
         poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0f));
-        poseStack.scale(scale, scale, scale);
 
         // ItemRendererで描画.
         Minecraft.getInstance().getItemRenderer().renderStatic(

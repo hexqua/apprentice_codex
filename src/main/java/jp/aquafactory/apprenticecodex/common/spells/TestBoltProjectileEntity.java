@@ -14,16 +14,18 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.ThrowableProjectile;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
-public class TestBoltProjectileEntity extends ThrowableProjectile
+public class TestBoltProjectileEntity extends Projectile
 {
     private static final EntityDataAccessor<ItemStack> DATA_ITEM =
             SynchedEntityData.defineId(TestBoltProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
@@ -33,26 +35,40 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
 
     public TestBoltProjectileEntity(EntityType<? extends TestBoltProjectileEntity> type, Level level) {
         super(type, level);
+        setNoGravity(true);
     }
 
     public TestBoltProjectileEntity(EntityType<? extends TestBoltProjectileEntity> type, Level level, LivingEntity owner, ItemStack stack) {
-        super(type, owner, level);
+        super(type, level);
         setItem(stack);
+        setOwner(owner);
+    }
+
+    public void setProjectileVelocity(Vec3 rotation, float speed) {
+        setDeltaMovement(rotation.scale(speed));
     }
 
     @Override
     public void tick() {
         super.tick();
 
+        // クライアントでも動かすことで滑らかにする.
+        setPos(position().add(getDeltaMovement()));
+        ProjectileUtil.rotateTowardsMovement(this, 1);
+
         // noinspection resource
-        if (!level().isClientSide && tickCount > LIFE_TICKS) {
+        if (level().isClientSide) {
+            return;
+        }
+
+        if (tickCount > LIFE_TICKS) {
             discard();
         }
-    }
 
-    @Override
-    protected float getGravity() {
-        return 0.0f;
+        var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+        if (hitresult.getType() != HitResult.Type.MISS  && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
+            onHit(hitresult);
+        }
     }
 
     @Override
