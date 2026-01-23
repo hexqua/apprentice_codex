@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -84,23 +85,28 @@ public class TestSpell extends AbstractSpell {
         if (!level.isClientSide) {
             // お試しに金の剣を飛ばす.
             var item = new ItemStack(Items.GOLDEN_SWORD);
-            var projectile = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
+            for(var count = 0; count < 20; count++){
+                var projectile = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
 
-            // テストで頭上から.
-            var spawnPosition = entity.position().add(0, 2, 0);
+                // テストで頭上から少しランダムにずらす.
+                var spawnPosition = entity.position().add(0, 2, 0).add(getRandomRange(level.random, 4), 0, getRandomRange(level.random, 4));
 
-            // 視線先の対象を狙うようにする.
-            var result = RaycastTools.raycastFromEye(entity, 48);
-            var velocity = result.hitPosition().subtract(spawnPosition).normalize();
-
-            projectile.setDamage(getDamage(spellLevel, entity));
-            projectile.setPos(spawnPosition);
-            projectile.setProjectileVelocity(velocity, 1.8f);
-            projectile.setStandbyTicks(30);
-
-            level.addFreshEntity(projectile);
+                // 視線先の対象を狙うようにする.
+                var result = RaycastTools.raycastFromEye(entity, 48);
+                var velocity = result.hitPosition().subtract(spawnPosition).normalize();
+                var delay = Math.round(level.random.nextFloat() * 5) + 20;
+                projectile.setDamage(getDamage(spellLevel, entity));
+                projectile.setPos(spawnPosition);
+                projectile.setProjectileVelocity(velocity, 1.8f);
+                projectile.setStandbyTicks(delay);
+                level.addFreshEntity(projectile);
+            }
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private double getRandomRange(RandomSource random, double range){
+        return (random.nextDouble() * 2 - 1) * range;
     }
 }
