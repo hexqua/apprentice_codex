@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -85,14 +86,17 @@ public class TestSpell extends AbstractSpell {
             var item = new ItemStack(Items.GOLDEN_SWORD);
             var projectile = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
 
+            // テストで頭上から.
+            var spawnPosition = entity.position().add(0, 2, 0);
+
+            // 視線先の対象を狙うようにする.
+            var result = RaycastTools.raycastFromEye(entity, 48);
+            var velocity = result.hitPosition().subtract(spawnPosition).normalize();
+
             projectile.setDamage(getDamage(spellLevel, entity));
-            projectile.setProjectileVelocity(entity.getLookAngle(), 1.8f);
+            projectile.setPos(spawnPosition);
+            projectile.setProjectileVelocity(velocity, 1.8f);
             projectile.setStandbyTicks(30);
-            projectile.setPos(
-                    entity.getX(),
-                    entity.getEyeY() - 0.1,
-                    entity.getZ()
-            );
 
             level.addFreshEntity(projectile);
         }
