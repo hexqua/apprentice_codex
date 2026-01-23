@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.common.effects.DisintegrateBurstEntity;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.DamageTools;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -12,8 +13,10 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
@@ -27,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class TestBoltProjectileEntity extends Projectile
 {
+    private static final RandomSource RNG = RandomSource.create();
+
     private static final EntityDataAccessor<ItemStack> DATA_ITEM =
             SynchedEntityData.defineId(TestBoltProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
 
@@ -56,14 +61,30 @@ public class TestBoltProjectileEntity extends Projectile
     public void tick() {
         super.tick();
 
-        // クライアントでも動かすことで滑らかにする.
-        if (canShooting()) {
-            setPos(position().add(getDeltaMovement()));
-            ProjectileUtil.rotateTowardsMovement(this, 1);
+        //noinspection resource
+        var level = level();
+
+        // クライアントのみで軌跡を生成.
+        if (level.isClientSide && canShooting()) {
+
+            var radius = 0.2;
+            var speed = 0.05;
+            var count = 3;
+            for( var i = 0; i < count; i++){
+                var pos = position().subtract(getDeltaMovement().scale(RNG.nextDouble()));
+                level.addParticle(
+                        ParticleTypes.END_ROD,
+                        pos.x + getRandomRange(radius),
+                        pos.y + getRandomRange(radius),
+                        pos.z + getRandomRange(radius),
+                        getRandomRange(speed),
+                        getRandomRange(speed),
+                        getRandomRange(speed)
+                );
+            }
         }
 
-        // noinspection resource
-        if (level().isClientSide) {
+        if (level.isClientSide) {
             return;
         }
 
@@ -76,6 +97,9 @@ public class TestBoltProjectileEntity extends Projectile
             if (hitresult.getType() != HitResult.Type.MISS  && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
                 onHit(hitresult);
             }
+
+            move(MoverType.SELF, getDeltaMovement());
+            ProjectileUtil.rotateTowardsMovement(this, 1);
         }
     }
 
@@ -167,6 +191,10 @@ public class TestBoltProjectileEntity extends Projectile
 
     public void setStandbyTicks(int ticks) {
         entityData.set(DATA_STANDBY_TICK, ticks);
+    }
+
+    private double getRandomRange(double range){
+        return (RNG.nextDouble() * 2 - 1) * range;
     }
 
     private void spawnDisintegrate(Vec3 impactPos) {
