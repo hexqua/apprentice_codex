@@ -75,7 +75,7 @@ public class TestSpell extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return super.getCastStartSound();
+        return super.getCastFinishSound();
     }
 
     @Override

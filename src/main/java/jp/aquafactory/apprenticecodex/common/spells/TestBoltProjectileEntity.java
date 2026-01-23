@@ -13,6 +13,8 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -107,8 +109,10 @@ public class TestBoltProjectileEntity extends Projectile
     protected void onHitEntity(@NotNull EntityHitResult hit) {
         super.onHitEntity(hit);
 
-        // noinspection resource
-        if (level().isClientSide) return;
+        var level = level();
+        if (level.isClientSide) {
+            return;
+        }
 
         var target = hit.getEntity();
         var owner = getOwner();
@@ -116,11 +120,7 @@ public class TestBoltProjectileEntity extends Projectile
         if (target instanceof LivingEntity living && target != owner) {
             var source = DamageSources.getGeneralDamageSource(level(), this, owner);
             DamageTools.applyDamage(living, damage, source, SchoolRegistry.ENDER.get(), true, true);
-
-            // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-            var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(0.1));
-            spawnDisintegrate(impactPos);
+            onImpact(level);
             discard();
         }
     }
@@ -128,12 +128,10 @@ public class TestBoltProjectileEntity extends Projectile
     @Override
     protected void onHitBlock(@NotNull BlockHitResult hit) {
         super.onHitBlock(hit);
-        // noinspection resource
-        if (!level().isClientSide) {
-            // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-            var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(0.1));
-            spawnDisintegrate(impactPos);
+
+        var level = level();
+        if (!level.isClientSide) {
+            onImpact(level);
             discard();
         }
     }
@@ -195,6 +193,26 @@ public class TestBoltProjectileEntity extends Projectile
 
     private double getRandomRange(double range){
         return (RNG.nextDouble() * 2 - 1) * range;
+    }
+
+    private void onImpact(Level level) {
+        if (!level.isClientSide) {
+            // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
+            var dir = getDeltaMovement();
+            var impactPos = position().add(dir.scale(0.1));
+            spawnDisintegrate(impactPos);
+
+            var volume = 1.0f;
+            var pitch = 1.0f;
+            level.playSound(
+                    null,
+                    getX(), getY(), getZ(),
+                    SoundEvents.PLAYER_ATTACK_WEAK,
+                    SoundSource.PLAYERS,
+                    volume,
+                    pitch
+            );
+        }
     }
 
     private void spawnDisintegrate(Vec3 impactPos) {
