@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.common.spells;
 
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.effects.DisintegrateBurstEntity;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
@@ -70,7 +71,7 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
 
         if (target instanceof LivingEntity living && target != owner) {
             DamageSource src = DamageSources.getGeneralDamageSource(level(), this, owner);
-            DamageTools.applyDamage(living, DAMAGE, src, true, true);
+            DamageTools.applyDamage(living, DAMAGE, src, SchoolRegistry.ENDER.get(), true, true);
 
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
             Vec3 dir = this.getDeltaMovement();
