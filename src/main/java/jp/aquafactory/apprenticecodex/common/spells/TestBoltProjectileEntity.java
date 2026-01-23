@@ -95,7 +95,7 @@ public class TestBoltProjectileEntity extends Projectile
 
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
             var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(0.5));
+            var impactPos = position().add(dir.scale(0.1));
             spawnDisintegrate(impactPos);
             discard();
         }
@@ -108,7 +108,7 @@ public class TestBoltProjectileEntity extends Projectile
         if (!level().isClientSide) {
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
             var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(0.5));
+            var impactPos = position().add(dir.scale(0.1));
             spawnDisintegrate(impactPos);
             discard();
         }
