@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.effects.DisintegrateBurstEntity;
 import jp.aquafactory.apprenticecodex.common.spells.TestBoltProjectileEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -21,6 +22,16 @@ public class EntityRegistry {
                             .clientTrackingRange(64)
                             .updateInterval(1)
                             .build("test_bolt"));
+
+    public static final RegistryObject<EntityType<DisintegrateBurstEntity>> DISINTEGRATE_BURST =
+            ENTITIES.register("disintegrate_burst",
+                    () -> EntityType.Builder
+                            .<DisintegrateBurstEntity>of(DisintegrateBurstEntity::new, MobCategory.MISC)
+                            .sized(0.01f, 0.01f)
+                            .clientTrackingRange(32)
+                            .updateInterval(10)
+                            .noSave()
+                            .build("disintegrate_burst"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

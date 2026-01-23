@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.spells;
 
-import net.minecraft.core.particles.ParticleTypes;
+import jp.aquafactory.apprenticecodex.common.effects.DisintegrateBurstEntity;
+import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -73,8 +74,7 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
             Vec3 dir = this.getDeltaMovement();
             Vec3 impactPos = this.position().add(dir.scale(0.5));
-
-            spawnDisintegrate(level(), impactPos, dir, 12);
+            spawnDisintegrate(impactPos);
             this.discard();
         }
     }
@@ -88,7 +88,7 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
             Vec3 dir = this.getDeltaMovement();
             Vec3 impactPos = this.position().add(dir.scale(0.5));
-            spawnDisintegrate(level(), impactPos, dir, 12);
+            spawnDisintegrate(impactPos);
             this.discard();
         }
     }
@@ -128,30 +128,17 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
         this.entityData.set(DATA_ITEM, stack.copy());
     }
 
-    private void spawnDisintegrate(Level level, Vec3 impactPos, Vec3 dir, int strength) {
-        if (!(level instanceof ServerLevel server)){
-            return;
+    private void spawnDisintegrate(Vec3 impactPos) {
+        if (!(level() instanceof ServerLevel)) return;
+
+        Vec3 dir = this.getDeltaMovement();
+        if (dir.lengthSqr() < 1.0e-6) {
+            dir = this.getLookAngle();
         }
 
-        Vec3 d = (dir == null || dir.lengthSqr() < 1.0e-6) ? new Vec3(0, 0, 1) : dir.normalize();
-        int countA = Math.max(6, strength);
-        int countB = Math.max(3, strength / 2);
-
-        server.sendParticles(
-                ParticleTypes.END_ROD,
-                impactPos.x, impactPos.y, impactPos.z,
-                countA,
-                0.25, 0.25, 0.25,
-                0.02
-        );
-
-        Vec3 inward = impactPos.add(d.scale(0.15));
-        server.sendParticles(
-                ParticleTypes.ELECTRIC_SPARK,
-                inward.x, inward.y, inward.z,
-                countB,
-                0.10, 0.10, 0.10,
-                0.01
-        );
+        DisintegrateBurstEntity burst = new DisintegrateBurstEntity(EntityRegistry.DISINTEGRATE_BURST.get(), level());
+        burst.setPos(impactPos.x, impactPos.y, impactPos.z);
+        burst.setup(4, 0.2f, 4, dir);
+        level().addFreshEntity(burst);
     }
 }
