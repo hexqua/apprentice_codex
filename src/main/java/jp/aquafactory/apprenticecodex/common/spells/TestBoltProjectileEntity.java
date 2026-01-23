@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.spells;
 
 import jp.aquafactory.apprenticecodex.common.effects.DisintegrateBurstEntity;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.DamageTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -69,7 +70,7 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
         if (target instanceof LivingEntity living && target != owner) {
             // todo: change to Iron's damage.
             DamageSource src = this.damageSources().indirectMagic(this, owner);
-            living.hurt(src, DAMAGE);
+            DamageTools.applyDamage(living, DAMAGE, src, true, true);
 
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
             Vec3 dir = this.getDeltaMovement();
