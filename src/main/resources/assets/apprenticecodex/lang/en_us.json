@@ -1,0 +1,5 @@
+{
+  "death.attack.apprenticecodex.codex_magic_general": "%1$s was killed by magic.",
+  "death.attack.apprenticecodex.codex_magic_general.player": "%1$s was killed by %2$s's magic.",
+  "death.attack.apprenticecodex.codex_magic_general.item": "%1$s was killed by %2$s's %3$s."
+}
