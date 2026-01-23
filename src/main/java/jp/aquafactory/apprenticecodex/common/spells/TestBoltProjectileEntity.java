@@ -30,8 +30,12 @@ public class TestBoltProjectileEntity extends Projectile
     private static final EntityDataAccessor<ItemStack> DATA_ITEM =
             SynchedEntityData.defineId(TestBoltProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
 
+    private static final EntityDataAccessor<Integer> DATA_STANDBY_TICK =
+            SynchedEntityData.defineId(TestBoltProjectileEntity.class, EntityDataSerializers.INT);
+
     private float damage = 0;
     private static final int LIFE_TICKS = 80;
+    private static final int DEFAULT_STANDBY_TICKS = 20;
 
     public TestBoltProjectileEntity(EntityType<? extends TestBoltProjectileEntity> type, Level level) {
         super(type, level);
@@ -53,8 +57,10 @@ public class TestBoltProjectileEntity extends Projectile
         super.tick();
 
         // クライアントでも動かすことで滑らかにする.
-        setPos(position().add(getDeltaMovement()));
-        ProjectileUtil.rotateTowardsMovement(this, 1);
+        if (canShooting()) {
+            setPos(position().add(getDeltaMovement()));
+            ProjectileUtil.rotateTowardsMovement(this, 1);
+        }
 
         // noinspection resource
         if (level().isClientSide) {
@@ -65,9 +71,11 @@ public class TestBoltProjectileEntity extends Projectile
             discard();
         }
 
-        var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitresult.getType() != HitResult.Type.MISS  && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
-            onHit(hitresult);
+        if (canShooting()) {
+            var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+            if (hitresult.getType() != HitResult.Type.MISS  && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
+                onHit(hitresult);
+            }
         }
     }
 
@@ -109,6 +117,7 @@ public class TestBoltProjectileEntity extends Projectile
     @Override
     protected void defineSynchedData() {
         entityData.define(DATA_ITEM, ItemStack.EMPTY);
+        entityData.define(DATA_STANDBY_TICK, DEFAULT_STANDBY_TICKS);
     }
 
     @Override
@@ -146,6 +155,18 @@ public class TestBoltProjectileEntity extends Projectile
 
     public void setDamage(float newDamage) {
         damage = newDamage;
+    }
+
+    private boolean canShooting(){
+        return tickCount >= getStandbyTicks();
+    }
+
+    private int getStandbyTicks() {
+        return this.entityData.get(DATA_STANDBY_TICK);
+    }
+
+    public void setStandbyTicks(int ticks) {
+        entityData.set(DATA_STANDBY_TICK, ticks);
     }
 
     private void spawnDisintegrate(Vec3 impactPos) {

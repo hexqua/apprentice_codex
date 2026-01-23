@@ -87,6 +87,7 @@ public class TestSpell extends AbstractSpell {
 
             projectile.setDamage(getDamage(spellLevel, entity));
             projectile.setProjectileVelocity(entity.getLookAngle(), 1.8f);
+            projectile.setStandbyTicks(30);
             projectile.setPos(
                     entity.getX(),
                     entity.getEyeY() - 0.1,
