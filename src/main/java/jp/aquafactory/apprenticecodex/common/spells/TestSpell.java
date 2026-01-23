@@ -7,8 +7,11 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
+import java.util.List;
 import java.util.Optional;
 
 public class TestSpell extends AbstractSpell {
@@ -30,11 +34,24 @@ public class TestSpell extends AbstractSpell {
             .build();
 
     public TestSpell() {
+        // スペルパワー100 = 1ダメージ.
+        this.baseSpellPower = 600;
+        this.spellPowerPerLevel = 50;
         this.manaCostPerLevel = 10;
-        this.baseSpellPower = 10;
-        this.spellPowerPerLevel = 5;
-        this.castTime = 0;
         this.baseManaCost = 5;
+        this.castTime = 0;
+    }
+    @Override
+    public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
+        return List.of(
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.literal(ApprenticeCodex.NAME)
+        );
+    }
+
+    private float getDamage(int spellLevel, LivingEntity entity) {
+        // スペルパワーはintのため、設定値をそもそも100倍として考える.
+        return getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     @Override
@@ -68,6 +85,7 @@ public class TestSpell extends AbstractSpell {
             ItemStack item = new ItemStack(Items.GOLDEN_SWORD);
             TestBoltProjectileEntity proj = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
 
+            proj.setDamage(getDamage(spellLevel, entity));
             proj.setPos(
                     entity.getX(),
                     entity.getEyeY() - 0.1,

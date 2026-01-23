@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 public class ApprenticeCodex
 {
     public static final String MODID = "apprenticecodex";
+    public static final String NAME = "Apprentice Codex";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public ApprenticeCodex() {

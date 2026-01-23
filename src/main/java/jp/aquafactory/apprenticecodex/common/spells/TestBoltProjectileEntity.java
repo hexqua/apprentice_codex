@@ -30,7 +30,7 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
     private static final EntityDataAccessor<ItemStack> DATA_ITEM =
             SynchedEntityData.defineId(TestBoltProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
 
-    private static final float DAMAGE = 4.0f;
+    private float damage = 0;
     private static final int LIFE_TICKS = 80;
 
     public TestBoltProjectileEntity(EntityType<? extends TestBoltProjectileEntity> type, Level level) {
@@ -71,7 +71,7 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
 
         if (target instanceof LivingEntity living && target != owner) {
             DamageSource src = DamageSources.getGeneralDamageSource(level(), this, owner);
-            DamageTools.applyDamage(living, DAMAGE, src, SchoolRegistry.ENDER.get(), true, true);
+            DamageTools.applyDamage(living, damage, src, SchoolRegistry.ENDER.get(), true, true);
 
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
             Vec3 dir = this.getDeltaMovement();
@@ -106,11 +106,15 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
         if (tag.contains("Item")) {
             setItem(ItemStack.of(tag.getCompound("Item")));
         }
+        if (tag.contains("damage")) {
+            damage = tag.getFloat("damage");
+        }
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
+        tag.putFloat("damage", damage);
         if (!getItem().isEmpty()) {
             tag.put("Item", getItem().save(new CompoundTag()));
         }
@@ -121,13 +125,16 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
-
     public ItemStack getItem() {
         return this.entityData.get(DATA_ITEM);
     }
 
     public void setItem(ItemStack stack) {
         this.entityData.set(DATA_ITEM, stack.copy());
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
     }
 
     private void spawnDisintegrate(Vec3 impactPos) {
