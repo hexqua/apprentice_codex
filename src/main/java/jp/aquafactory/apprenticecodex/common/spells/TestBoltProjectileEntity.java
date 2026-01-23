@@ -12,8 +12,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
@@ -46,10 +44,9 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
     public void tick() {
         super.tick();
 
-        // todo:warning fix.
         // noinspection resource
-        if (!level().isClientSide && this.tickCount > LIFE_TICKS) {
-            this.discard();
+        if (!level().isClientSide && tickCount > LIFE_TICKS) {
+            discard();
         }
     }
 
@@ -62,42 +59,40 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
     protected void onHitEntity(@NotNull EntityHitResult hit) {
         super.onHitEntity(hit);
 
-        // todo:warning fix.
         // noinspection resource
         if (level().isClientSide) return;
 
-        Entity target = hit.getEntity();
-        Entity owner = this.getOwner();
+        var target = hit.getEntity();
+        var owner = getOwner();
 
         if (target instanceof LivingEntity living && target != owner) {
-            DamageSource src = DamageSources.getGeneralDamageSource(level(), this, owner);
-            DamageTools.applyDamage(living, damage, src, SchoolRegistry.ENDER.get(), true, true);
+            var source = DamageSources.getGeneralDamageSource(level(), this, owner);
+            DamageTools.applyDamage(living, damage, source, SchoolRegistry.ENDER.get(), true, true);
 
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-            Vec3 dir = this.getDeltaMovement();
-            Vec3 impactPos = this.position().add(dir.scale(0.5));
+            var dir = getDeltaMovement();
+            var impactPos = position().add(dir.scale(0.5));
             spawnDisintegrate(impactPos);
-            this.discard();
+            discard();
         }
     }
 
     @Override
     protected void onHitBlock(@NotNull BlockHitResult hit) {
         super.onHitBlock(hit);
-        // todo:warning fix.
         // noinspection resource
         if (!level().isClientSide) {
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-            Vec3 dir = this.getDeltaMovement();
-            Vec3 impactPos = this.position().add(dir.scale(0.5));
+            var dir = getDeltaMovement();
+            var impactPos = position().add(dir.scale(0.5));
             spawnDisintegrate(impactPos);
-            this.discard();
+            discard();
         }
     }
 
     @Override
     protected void defineSynchedData() {
-        this.entityData.define(DATA_ITEM, ItemStack.EMPTY);
+        entityData.define(DATA_ITEM, ItemStack.EMPTY);
     }
 
     @Override
@@ -126,28 +121,30 @@ public class TestBoltProjectileEntity extends ThrowableProjectile
     }
 
     public ItemStack getItem() {
-        return this.entityData.get(DATA_ITEM);
+        return entityData.get(DATA_ITEM);
     }
 
     public void setItem(ItemStack stack) {
-        this.entityData.set(DATA_ITEM, stack.copy());
+        entityData.set(DATA_ITEM, stack.copy());
     }
 
-    public void setDamage(float damage) {
-        this.damage = damage;
+    public void setDamage(float newDamage) {
+        damage = newDamage;
     }
 
     private void spawnDisintegrate(Vec3 impactPos) {
-        if (!(level() instanceof ServerLevel)) return;
+        //noinspection resource
+        var level = level();
+        if (!(level instanceof ServerLevel)) return;
 
-        Vec3 dir = this.getDeltaMovement();
+        var dir = getDeltaMovement();
         if (dir.lengthSqr() < 1.0e-6) {
-            dir = this.getLookAngle();
+            dir = getLookAngle();
         }
 
-        DisintegrateBurstEntity burst = new DisintegrateBurstEntity(EntityRegistry.DISINTEGRATE_BURST.get(), level());
+        var burst = new DisintegrateBurstEntity(EntityRegistry.DISINTEGRATE_BURST.get(), level());
         burst.setPos(impactPos.x, impactPos.y, impactPos.z);
         burst.setup(4, 0.2f, 4, dir);
-        level().addFreshEntity(burst);
+        level.addFreshEntity(burst);
     }
 }

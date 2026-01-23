@@ -34,51 +34,52 @@ public class DisintegrateBurstEntity extends Entity {
 
     public DisintegrateBurstEntity(EntityType<?> type, Level level) {
         super(type, level);
-        this.noPhysics = true;
+        noPhysics = true;
     }
 
     public void setup(int lifetimeTicks, float startRadius, int density, Vec3 dir) {
-        this.entityData.set(DATA_LIFETIME, lifetimeTicks);
-        this.entityData.set(DATA_RADIUS, startRadius);
-        this.entityData.set(DATA_DENSITY, density);
+        entityData.set(DATA_LIFETIME, lifetimeTicks);
+        entityData.set(DATA_RADIUS, startRadius);
+        entityData.set(DATA_DENSITY, density);
 
-        Vec3 d = (dir == null || dir.lengthSqr() < 1.0e-6) ? new Vec3(0, 0, 1) : dir.normalize();
-        this.entityData.set(DATA_DIR_X, (float) d.x);
-        this.entityData.set(DATA_DIR_Y, (float) d.y);
-        this.entityData.set(DATA_DIR_Z, (float) d.z);
+        var d = (dir == null || dir.lengthSqr() < 1.0e-6) ? new Vec3(0, 0, 1) : dir.normalize();
+        entityData.set(DATA_DIR_X, (float) d.x);
+        entityData.set(DATA_DIR_Y, (float) d.y);
+        entityData.set(DATA_DIR_Z, (float) d.z);
     }
 
     @Override
     protected void defineSynchedData() {
-        this.entityData.define(DATA_LIFETIME, 8); // 0.4秒
-        this.entityData.define(DATA_RADIUS, 0.35f);
-        this.entityData.define(DATA_DENSITY, 18);
+        entityData.define(DATA_LIFETIME, 8);
+        entityData.define(DATA_RADIUS, 0.35f);
+        entityData.define(DATA_DENSITY, 18);
 
-        this.entityData.define(DATA_DIR_X, 0f);
-        this.entityData.define(DATA_DIR_Y, 0f);
-        this.entityData.define(DATA_DIR_Z, 1f);
+        entityData.define(DATA_DIR_X, 0f);
+        entityData.define(DATA_DIR_Y, 0f);
+        entityData.define(DATA_DIR_Z, 1f);
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        int lifetime = this.entityData.get(DATA_LIFETIME);
-        if (this.tickCount > lifetime) {
-            this.discard();
+        int lifetime = entityData.get(DATA_LIFETIME);
+        if (tickCount > lifetime) {
+            discard();
             return;
         }
 
-        if (!(this.level() instanceof ServerLevel server)) {
+        @SuppressWarnings("resource") var level = level();
+        if (!(level instanceof ServerLevel server)) {
             return;
         }
 
-        float startRadius = this.entityData.get(DATA_RADIUS);
-        float t = (float) this.tickCount / (float) Math.max(1, lifetime);
-        float radius = lerp(startRadius, 0.05f, clamp01(t));
-        int density = this.entityData.get(DATA_DENSITY);
+        var startRadius = entityData.get(DATA_RADIUS);
+        var t = (float) tickCount / (float) Math.max(1, lifetime);
+        var radius = lerp(startRadius, 0.05f, clamp01(t));
+        var density = entityData.get(DATA_DENSITY);
 
-        Vec3 center = this.position();
+        var center = position();
         server.sendParticles(
                 ParticleTypes.END_ROD,
                 center.x, center.y, center.z,

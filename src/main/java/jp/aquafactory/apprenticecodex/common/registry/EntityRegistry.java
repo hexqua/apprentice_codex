@@ -26,7 +26,7 @@ public class EntityRegistry {
     public static final RegistryObject<EntityType<DisintegrateBurstEntity>> DISINTEGRATE_BURST =
             ENTITIES.register("disintegrate_burst",
                     () -> EntityType.Builder
-                            .<DisintegrateBurstEntity>of(DisintegrateBurstEntity::new, MobCategory.MISC)
+                            .of(DisintegrateBurstEntity::new, MobCategory.MISC)
                             .sized(0.01f, 0.01f)
                             .clientTrackingRange(32)
                             .updateInterval(10)

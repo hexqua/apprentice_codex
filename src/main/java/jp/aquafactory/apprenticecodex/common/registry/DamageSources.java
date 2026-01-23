@@ -22,8 +22,7 @@ public class DamageSources {
 
     public static DamageSource getGeneralDamageSource(Level level, Entity projectile, @Nullable Entity owner) {
         var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-
-        Holder<DamageType> holder = reg.getHolder(GENERAL_DAMAGE)
+        var holder = reg.getHolder(GENERAL_DAMAGE)
                 .orElseGet(() -> (Holder.Reference<DamageType>) level.damageSources().genericKill().typeHolder());
 
         return new DamageSource(holder, owner, projectile);

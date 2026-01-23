@@ -24,8 +24,8 @@ public final class KnockbackControl {
 
     @SubscribeEvent
     public static void onKnockback(LivingKnockBackEvent event) {
-        LivingEntity entity = event.getEntity();
-        Integer markedTick = IMMUNE.get(entity);
+        var entity = event.getEntity();
+        var markedTick = IMMUNE.get(entity);
         if (markedTick == null) return;
 
         if (entity.tickCount - markedTick <= 10) {

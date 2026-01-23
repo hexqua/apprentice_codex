@@ -8,14 +8,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
 public class DamageTools {
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
                                       boolean ignoreKnockback, boolean penetrateInvulnerable) {
         if (target instanceof LivingEntity livingTarget) {
             var cachedInvulnerableTime = livingTarget.invulnerableTime;
-            if (penetrateInvulnerable){
+            if (penetrateInvulnerable) {
                 livingTarget.invulnerableTime = 0;
             }
-            if (ignoreKnockback){
+            if (ignoreKnockback) {
                 KnockbackControl.markIgnoreNextKnockback(livingTarget);
             }
 
@@ -36,9 +37,10 @@ public class DamageTools {
 
     private static float getResistAttribute(LivingEntity entity, SchoolType damageSchool) {
         var baseResist = entity.getAttributeValue(AttributeRegistry.SPELL_RESIST.get());
-        if (damageSchool == null)
+        if (damageSchool == null) {
             return 2 - (float) Utils.softCapFormula(baseResist);
-        else
+        } else {
             return 2 - (float) Utils.softCapFormula(damageSchool.getResistanceFor(entity) * baseResist);
+        }
     }
 }

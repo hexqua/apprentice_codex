@@ -12,10 +12,12 @@ public class ApprenticeCodex
 {
     public static final String MODID = "apprenticecodex";
     public static final String NAME = "Apprentice Codex";
+
+    // いずれログを使うため未使用警告を無効化.
+    @SuppressWarnings("unused")
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public ApprenticeCodex() {
-        // 現時点で1.20.1専用アドオンのため、deprecatedを無視する.
         @SuppressWarnings("removal") var bus = FMLJavaModLoadingContext.get().getModEventBus();
         SpellsRegistry.register(bus);
         EntityRegistry.register(bus);

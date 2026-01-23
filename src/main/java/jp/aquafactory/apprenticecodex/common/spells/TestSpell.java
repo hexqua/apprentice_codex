@@ -35,11 +35,11 @@ public class TestSpell extends AbstractSpell {
 
     public TestSpell() {
         // スペルパワー100 = 1ダメージ.
-        this.baseSpellPower = 600;
-        this.spellPowerPerLevel = 50;
-        this.manaCostPerLevel = 10;
-        this.baseManaCost = 5;
-        this.castTime = 0;
+        baseSpellPower = 600;
+        spellPowerPerLevel = 50;
+        manaCostPerLevel = 10;
+        baseManaCost = 5;
+        castTime = 0;
     }
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
@@ -82,24 +82,23 @@ public class TestSpell extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide) {
             // お試しに金の剣を飛ばす.
-            ItemStack item = new ItemStack(Items.GOLDEN_SWORD);
-            TestBoltProjectileEntity proj = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
+            var item = new ItemStack(Items.GOLDEN_SWORD);
+            var projectile = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
 
-            proj.setDamage(getDamage(spellLevel, entity));
-            proj.setPos(
+            projectile.setDamage(getDamage(spellLevel, entity));
+            projectile.setPos(
                     entity.getX(),
                     entity.getEyeY() - 0.1,
                     entity.getZ()
             );
 
-            // todo: adjust.
-            float speed = 1.8f;
-            float inaccuracy = 0.0f;
-            proj.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0.0f, speed, inaccuracy);
-            level.addFreshEntity(proj);
+            // 性能周りの調整(引数が難読化されているのでローカル変数で保持する)
+            var speed = 1.8f;
+            var inaccuracy = 0.0f;
+            projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0.0f, speed, inaccuracy);
+            level.addFreshEntity(projectile);
         }
 
-        ApprenticeCodex.LOGGER.debug("Casting spell={} caster={}", spellId, entity.getName().getString());
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

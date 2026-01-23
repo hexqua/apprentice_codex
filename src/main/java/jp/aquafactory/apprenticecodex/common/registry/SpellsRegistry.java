@@ -13,6 +13,7 @@ public class SpellsRegistry {
             DeferredRegister.create(SpellRegistry.SPELL_REGISTRY_KEY, ApprenticeCodex.MODID);
 
     // Sample Spell.
+    @SuppressWarnings("unused")
     public static final RegistryObject<AbstractSpell> TEST_SPELL =
             SPELLS.register("test_spell", TestSpell::new);
 
