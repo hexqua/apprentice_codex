@@ -73,10 +73,6 @@ public class SkyEdge extends AbstractSpell {
         return baseCount;
     }
 
-    private double getAccuracy(int spellLevel) {
-        return 0.5 + 0.5 * (((double) (getMaxLevel() - spellLevel) / (getMaxLevel() - 1)));
-    }
-
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
@@ -115,13 +111,14 @@ public class SkyEdge extends AbstractSpell {
                 var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
 
                 // 視線先の対象を狙うようにする.
-                var scanRange = 128;
+                var scanRange = 64;
+                var inaccuracy = 0.75;
                 var result = RaycastTools.raycastFromEye(entity, scanRange);
                 var distance = result.hitPosition().subtract(spawnPosition).length();
                 var targetPosition = entity
                         .getEyePosition()
                         .add(entity.getViewVector(1.0f).scale(distance))
-                        .add(generateInaccuracy(spellLevel, level.random));
+                        .add(generateInaccuracy(level.random).scale(inaccuracy));
 
                 var velocity = targetPosition.subtract(spawnPosition).normalize();
                 var delay = Math.round(level.random.nextFloat() * 5) + 10;
@@ -141,13 +138,8 @@ public class SkyEdge extends AbstractSpell {
         return a + (b - a) * t;
     }
 
-    private Vec3 generateInaccuracy(int spellLevel, RandomSource rand){
-        var accuracy = getAccuracy(spellLevel);
-        return new Vec3(getRandomRange(accuracy, rand), getRandomRange(accuracy, rand), getRandomRange(accuracy, rand));
-    }
-
-    private static double getRandomRange(double range, RandomSource rand){
-        return (rand.nextDouble() * 2 - 1) * range;
+    private Vec3 generateInaccuracy(RandomSource rand) {
+        return new Vec3(rand.nextDouble() - 0.5, rand.nextDouble() - 0.5, rand.nextDouble() - 0.5);
     }
 
     private static Vec3 pickSpawnPosition(Level level, LivingEntity caster, Entity collisionContext,
