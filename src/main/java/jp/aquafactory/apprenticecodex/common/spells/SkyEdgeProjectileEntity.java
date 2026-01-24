@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.utility.DamageTools;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -20,10 +21,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,11 +38,13 @@ public class SkyEdgeProjectileEntity extends Projectile
 
     public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level) {
         super(type, level);
+        setViewScale(8);
         setNoGravity(true);
     }
 
     public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level, LivingEntity owner) {
         super(type, level);
+        setViewScale(8);
         setOwner(owner);
         setNoGravity(true);
     }
@@ -106,21 +106,23 @@ public class SkyEdgeProjectileEntity extends Projectile
 
         // 軌跡はクライアントでのみ.
         if (level.isClientSide && canShooting(1)) {
-
-            var radius = 0.2;
-            var speed = 0.05;
-            var count = 3;
-            for( var i = 0; i < count; i++){
-                var pos = position().subtract(getDeltaMovement().scale(RNG.nextDouble()));
-                level.addParticle(
-                        ParticleTypes.ELECTRIC_SPARK,
-                        pos.x + getRandomRange(radius),
-                        pos.y + getRandomRange(radius),
-                        pos.z + getRandomRange(radius),
-                        getRandomRange(speed),
-                        getRandomRange(speed),
-                        getRandomRange(speed)
-                );
+            var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+            if (camPos.distanceToSqr(position()) < 48.0 * 48.0) {
+                var radius = 0.2;
+                var speed = 0.05;
+                var count = 2;
+                for (var i = 0; i < count; i++) {
+                    var pos = position().subtract(getDeltaMovement().scale(RNG.nextDouble()));
+                    level.addParticle(
+                            ParticleTypes.ELECTRIC_SPARK,
+                            pos.x + getRandomRange(radius),
+                            pos.y + getRandomRange(radius),
+                            pos.z + getRandomRange(radius),
+                            getRandomRange(speed),
+                            getRandomRange(speed),
+                            getRandomRange(speed)
+                    );
+                }
             }
         }
     }
@@ -178,6 +180,17 @@ public class SkyEdgeProjectileEntity extends Projectile
     @Override
     public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
+    }
+
+    @Override
+    public @NotNull AABB getBoundingBoxForCulling() {
+        return getBoundingBox().inflate(4.0);
+    }
+
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distanceSqr) {
+        double max = 128.0;
+        return distanceSqr < max * max;
     }
 
     public void setDamage(float newDamage) {

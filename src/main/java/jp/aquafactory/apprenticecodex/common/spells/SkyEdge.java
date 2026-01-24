@@ -37,6 +37,8 @@ public class SkyEdge extends AbstractSpell {
             .setCooldownSeconds(10)
             .build();
 
+    private final int SCAN_RANGE = 128;
+
     public SkyEdge() {
         // スペルパワー100 = 1ダメージ.
         baseSpellPower = 500;
@@ -117,7 +119,7 @@ public class SkyEdge extends AbstractSpell {
                 var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
 
                 // 視線先の対象を狙うようにする.
-                var result = RaycastTools.raycastFromEye(entity, 64);
+                var result = RaycastTools.raycastFromEye(entity, SCAN_RANGE);
                 var distance = result.hitPosition().subtract(spawnPosition).length();
                 var targetPosition = entity
                         .getEyePosition()

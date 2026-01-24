@@ -18,8 +18,9 @@ public class EntityRegistry {
                     () -> EntityType.Builder
                             .<SkyEdgeProjectileEntity>of(SkyEdgeProjectileEntity::new, MobCategory.MISC)
                             .sized(0.25f, 0.25f)
-                            .clientTrackingRange(64)
+                            .clientTrackingRange(128)
                             .updateInterval(1)
+                            .setShouldReceiveVelocityUpdates(true)
                             .build("sky_edge_projectile"));
 
     public static void register(IEventBus bus) {
