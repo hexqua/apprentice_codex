@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 public class ApprenticeCodex
 {
     public static final String MODID = "apprenticecodex";
-    public static final String NAME = "Apprentice Codex";
+    public static final String NAME = "Apprentice's Codex";
 
     // いずれログを使うため未使用警告を無効化.
     @SuppressWarnings("unused")
