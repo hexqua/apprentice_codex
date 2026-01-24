@@ -14,6 +14,5 @@ public class RendererRegistry {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers e) {
         e.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
-        e.registerEntityRenderer(EntityRegistry.DISINTEGRATE_BURST.get(), NoRenderEntityRenderer::new);
     }
 }

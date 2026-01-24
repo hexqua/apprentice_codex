@@ -1,9 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.spells;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import jp.aquafactory.apprenticecodex.common.effects.DisintegrateBurstEntity;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
-import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.DamageTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -53,17 +51,61 @@ public class SkyEdgeProjectileEntity extends Projectile
 
     public void setProjectileVelocity(Vec3 rotation, double speed) {
         setDeltaMovement(rotation.scale(speed));
+        ProjectileUtil.rotateTowardsMovement(this, 1);
     }
 
     @Override
     public void tick() {
-        super.tick();
-
         //noinspection resource
         var level = level();
 
-        // クライアントのみで軌跡を生成.
-        if (level.isClientSide && canShooting()) {
+        // 射出時パーティクル.
+        if (level.isClientSide && firstTick) {
+            // 平面基底を作る.
+            var norm = getLookAngle().normalize();
+            var arbitrary = Math.abs(norm.y) > 0.99 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
+            var u = norm.cross(arbitrary).normalize();
+            var w = norm.cross(u).normalize();
+            var count = 8;
+            for( var i = 0; i < count; i++){
+                var radius = 0.4 + 0.1 * Math.sqrt(level.random.nextDouble());
+                var angle = (Math.PI * 2.0) * i / count + level.random.nextDouble() * 0.05;
+                var a = Math.cos(angle) * radius;
+                var b = Math.sin(angle) * radius;
+                var offset = u.scale(a).add(w.scale(b));
+                var pos = position().add(offset);
+                level.addParticle(
+                        ParticleTypes.END_ROD,
+                        pos.x,
+                        pos.y,
+                        pos.z,
+                        RNG.nextDouble() * 0.015,
+                        RNG.nextDouble() * 0.015,
+                        RNG.nextDouble() * 0.015
+                );
+            }
+        }
+
+        super.tick();
+
+        if (!level.isClientSide) {
+            if (tickCount > LIFE_TICKS) {
+                discard();
+            }
+
+            if (canShooting(0)) {
+                var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+                if (hitresult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
+                    onHit(hitresult);
+                }
+
+                move(MoverType.SELF, getDeltaMovement());
+                ProjectileUtil.rotateTowardsMovement(this, 1);
+            }
+        }
+
+        // 軌跡はクライアントでのみ.
+        if (level.isClientSide && canShooting(1)) {
 
             var radius = 0.2;
             var speed = 0.05;
@@ -71,7 +113,7 @@ public class SkyEdgeProjectileEntity extends Projectile
             for( var i = 0; i < count; i++){
                 var pos = position().subtract(getDeltaMovement().scale(RNG.nextDouble()));
                 level.addParticle(
-                        ParticleTypes.END_ROD,
+                        ParticleTypes.ELECTRIC_SPARK,
                         pos.x + getRandomRange(radius),
                         pos.y + getRandomRange(radius),
                         pos.z + getRandomRange(radius),
@@ -80,24 +122,6 @@ public class SkyEdgeProjectileEntity extends Projectile
                         getRandomRange(speed)
                 );
             }
-        }
-
-        if (level.isClientSide) {
-            return;
-        }
-
-        if (tickCount > LIFE_TICKS) {
-            discard();
-        }
-
-        if (canShooting()) {
-            var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-            if (hitresult.getType() != HitResult.Type.MISS  && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
-                onHit(hitresult);
-            }
-
-            move(MoverType.SELF, getDeltaMovement());
-            ProjectileUtil.rotateTowardsMovement(this, 1);
         }
     }
 
@@ -116,7 +140,7 @@ public class SkyEdgeProjectileEntity extends Projectile
         if (target instanceof LivingEntity living && target != owner) {
             var source = DamageSources.getDamageSource(level(), this, owner, "sky_edge");
             DamageTools.applyDamage(living, damage, source, SchoolRegistry.ENDER.get(), true, true);
-            onImpact(level, 0.5 + level.random.nextDouble() * 0.25);
+            onImpact(level, 0.5 + level.random.nextDouble() * 0.25, true);
             discard();
         }
     }
@@ -127,7 +151,7 @@ public class SkyEdgeProjectileEntity extends Projectile
 
         var level = level();
         if (!level.isClientSide) {
-            onImpact(level, 0.1);
+            onImpact(level, 0.1, false);
             discard();
         }
     }
@@ -160,8 +184,8 @@ public class SkyEdgeProjectileEntity extends Projectile
         damage = newDamage;
     }
 
-    private boolean canShooting(){
-        return tickCount >= getStandbyTicks();
+    private boolean canShooting(int delay){
+        return tickCount >= getStandbyTicks() + delay;
     }
 
     private int getStandbyTicks() {
@@ -176,13 +200,8 @@ public class SkyEdgeProjectileEntity extends Projectile
         return (RNG.nextDouble() * 2 - 1) * range;
     }
 
-    private void onImpact(Level level, double impactDistance) {
+    private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity) {
         if (!level.isClientSide) {
-            // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-            var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(impactDistance));
-            spawnDisintegrate(impactPos);
-
             var volume = 1.0f;
             var pitch = 1.0f;
             level.playSound(
@@ -193,22 +212,30 @@ public class SkyEdgeProjectileEntity extends Projectile
                     volume,
                     pitch
             );
+
+            if (level instanceof ServerLevel server){
+                // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
+                var dir = getDeltaMovement();
+                var impactPos = position().add(dir.scale(impactDistance));
+                server.sendParticles(
+                        ParticleTypes.ENCHANTED_HIT,
+                        impactPos.x, impactPos.y, impactPos.z,
+                        8,
+                        0.2, 0.2, 0.2,
+                        0.25
+                );
+
+                if (isImpactOnEntity) {
+                    server.sendParticles(
+                            ParticleTypes.SWEEP_ATTACK,
+                            impactPos.x, impactPos.y, impactPos.z,
+                            1,
+                            0.05, 0.05, 0.05,
+                            0.0
+                    );
+                }
+
+            }
         }
-    }
-
-    private void spawnDisintegrate(Vec3 impactPos) {
-        //noinspection resource
-        var level = level();
-        if (!(level instanceof ServerLevel)) return;
-
-        var dir = getDeltaMovement();
-        if (dir.lengthSqr() < 1.0e-6) {
-            dir = getLookAngle();
-        }
-
-        var burst = new DisintegrateBurstEntity(EntityRegistry.DISINTEGRATE_BURST.get(), level());
-        burst.setPos(impactPos.x, impactPos.y, impactPos.z);
-        burst.setup(4, 0.2f, 4, dir);
-        level.addFreshEntity(burst);
     }
 }
