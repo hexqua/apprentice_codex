@@ -154,7 +154,7 @@ public class SkyEdgeProjectileEntity extends Projectile
 
         if (CombatTools.isValidCombatTarget(target, owner)) {
             var source = DamageSources.getDamageSource(level(), this, owner, "sky_edge");
-            CombatTools.applyDamage(target, damage, source, SchoolRegistry.LIGHTNING.get());
+            CombatTools.applyDamage(target, damage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             onImpact(level, 0.5 + level.random.nextDouble() * 0.25, true);
             discard();
         }

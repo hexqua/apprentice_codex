@@ -13,6 +13,11 @@ import javax.annotation.Nullable;
 
 public class CombatTools {
 
+    public enum KnockbackTypes {
+        DEFAULT,
+        NO_KNOCKBACK,
+    }
+
     private CombatTools() {
         // do nothing.
     }
@@ -36,8 +41,12 @@ public class CombatTools {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool) {
+    public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
+                                      KnockbackTypes type) {
         if (target instanceof LivingEntity livingTarget) {
+            if (type == KnockbackTypes.NO_KNOCKBACK) {
+                KnockbackControl.markIgnoreNextKnockback(livingTarget);
+            }
             return livingTarget.hurt(source, baseAmount * getResistAttribute(livingTarget, magicSchool));
         } else {
             return target.hurt(source, baseAmount);
