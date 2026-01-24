@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.client.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.client.registry.renderers.NoRenderEntityRenderer;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.SkyEdgeProjectileRenderer;
 import net.minecraftforge.api.distmarker.Dist;

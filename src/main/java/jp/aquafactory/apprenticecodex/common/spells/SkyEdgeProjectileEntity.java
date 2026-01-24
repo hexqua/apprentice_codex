@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.common.spells;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.common.utility.DamageTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -142,7 +141,7 @@ public class SkyEdgeProjectileEntity extends Projectile
 
         if (CombatTools.isValidCombatTarget(target, owner)) {
             var source = DamageSources.getDamageSource(level(), this, owner, "sky_edge");
-            DamageTools.applyDamage(target, damage, source, SchoolRegistry.ENDER.get(), true, true);
+            CombatTools.applyDamage(target, damage, source, SchoolRegistry.LIGHTNING.get());
             onImpact(level, 0.5 + level.random.nextDouble() * 0.25, true);
             discard();
         }

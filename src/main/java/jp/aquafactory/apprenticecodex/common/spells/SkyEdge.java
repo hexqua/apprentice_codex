@@ -18,8 +18,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -36,8 +34,6 @@ public class SkyEdge extends AbstractSpell {
             .setMaxLevel(5)
             .setCooldownSeconds(10)
             .build();
-
-    private final int SCAN_RANGE = 128;
 
     public SkyEdge() {
         // スペルパワー100 = 1ダメージ.
@@ -119,7 +115,8 @@ public class SkyEdge extends AbstractSpell {
                 var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
 
                 // 視線先の対象を狙うようにする.
-                var result = RaycastTools.raycastFromEye(entity, SCAN_RANGE);
+                var scanRange = 128;
+                var result = RaycastTools.raycastFromEye(entity, scanRange);
                 var distance = result.hitPosition().subtract(spawnPosition).length();
                 var targetPosition = entity
                         .getEyePosition()
