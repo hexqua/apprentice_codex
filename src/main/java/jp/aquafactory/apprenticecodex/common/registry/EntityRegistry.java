@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.common.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.effects.DisintegrateBurstEntity;
-import jp.aquafactory.apprenticecodex.common.spells.TestBoltProjectileEntity;
+import jp.aquafactory.apprenticecodex.common.spells.SkyEdgeProjectileEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -14,14 +14,14 @@ public class EntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, ApprenticeCodex.MODID);
 
-    public static final RegistryObject<EntityType<TestBoltProjectileEntity>> TEST_BOLT =
-            ENTITIES.register("test_bolt",
+    public static final RegistryObject<EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
+            ENTITIES.register("sky_edge_projectile",
                     () -> EntityType.Builder
-                            .<TestBoltProjectileEntity>of(TestBoltProjectileEntity::new, MobCategory.MISC)
+                            .<SkyEdgeProjectileEntity>of(SkyEdgeProjectileEntity::new, MobCategory.MISC)
                             .sized(0.25f, 0.25f)
                             .clientTrackingRange(64)
                             .updateInterval(1)
-                            .build("test_bolt"));
+                            .build("sky_edge_projectile"));
 
     public static final RegistryObject<EntityType<DisintegrateBurstEntity>> DISINTEGRATE_BURST =
             ENTITIES.register("disintegrate_burst",

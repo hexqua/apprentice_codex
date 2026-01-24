@@ -1,5 +1,7 @@
 {
-  "death.attack.apprenticecodex.codex_magic_general": "%1$sは魔法によって殺された",
-  "death.attack.apprenticecodex.codex_magic_general.player": "%1$sは%2$sの魔法によって殺された",
-  "death.attack.apprenticecodex.codex_magic_general.item": "%1$sは%2$sの%3$sによって殺された"
+  "spell.apprenticecodex.sky_edge": "スカイエッジ",
+  "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
+
+  "death.attack.apprenticecodex.codex_magic_general": "%1$sは%2$sの魔法によって殺された",
+  "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた"
 }

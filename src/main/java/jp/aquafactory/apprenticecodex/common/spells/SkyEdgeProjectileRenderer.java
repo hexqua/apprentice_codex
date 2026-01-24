@@ -13,13 +13,13 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.jetbrains.annotations.NotNull;
 
-public class TestBoltProjectileRenderer extends EntityRenderer<TestBoltProjectileEntity> {
-    public TestBoltProjectileRenderer(EntityRendererProvider.Context ctx) {
+public class SkyEdgeProjectileRenderer extends EntityRenderer<SkyEdgeProjectileEntity> {
+    public SkyEdgeProjectileRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
     }
 
     @Override
-    public void render(TestBoltProjectileEntity entity, float entityYaw, float partialTicks,
+    public void render(SkyEdgeProjectileEntity entity, float entityYaw, float partialTicks,
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
         var stack = entity.getItem();
@@ -53,7 +53,7 @@ public class TestBoltProjectileRenderer extends EntityRenderer<TestBoltProjectil
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull TestBoltProjectileEntity entity) {
+    public @NotNull ResourceLocation getTextureLocation(@NotNull SkyEdgeProjectileEntity entity) {
         return InventoryMenu.BLOCK_ATLAS;
     }
 }

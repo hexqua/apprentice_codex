@@ -30,32 +30,32 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
-public class TestBoltProjectileEntity extends Projectile
+public class SkyEdgeProjectileEntity extends Projectile
 {
     private static final RandomSource RNG = RandomSource.create();
 
     private static final EntityDataAccessor<ItemStack> DATA_ITEM =
-            SynchedEntityData.defineId(TestBoltProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
+            SynchedEntityData.defineId(SkyEdgeProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
 
     private static final EntityDataAccessor<Integer> DATA_STANDBY_TICK =
-            SynchedEntityData.defineId(TestBoltProjectileEntity.class, EntityDataSerializers.INT);
+            SynchedEntityData.defineId(SkyEdgeProjectileEntity.class, EntityDataSerializers.INT);
 
     private float damage = 0;
     private static final int LIFE_TICKS = 80;
     private static final int DEFAULT_STANDBY_TICKS = 20;
 
-    public TestBoltProjectileEntity(EntityType<? extends TestBoltProjectileEntity> type, Level level) {
+    public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level) {
         super(type, level);
         setNoGravity(true);
     }
 
-    public TestBoltProjectileEntity(EntityType<? extends TestBoltProjectileEntity> type, Level level, LivingEntity owner, ItemStack stack) {
+    public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level, LivingEntity owner, ItemStack stack) {
         super(type, level);
         setItem(stack);
         setOwner(owner);
     }
 
-    public void setProjectileVelocity(Vec3 rotation, float speed) {
+    public void setProjectileVelocity(Vec3 rotation, double speed) {
         setDeltaMovement(rotation.scale(speed));
     }
 
@@ -118,9 +118,9 @@ public class TestBoltProjectileEntity extends Projectile
         var owner = getOwner();
 
         if (target instanceof LivingEntity living && target != owner) {
-            var source = DamageSources.getGeneralDamageSource(level(), this, owner);
+            var source = DamageSources.getDamageSource(level(), this, owner, "sky_edge");
             DamageTools.applyDamage(living, damage, source, SchoolRegistry.ENDER.get(), true, true);
-            onImpact(level);
+            onImpact(level, 0.5 + level.random.nextDouble() * 0.25);
             discard();
         }
     }
@@ -131,7 +131,7 @@ public class TestBoltProjectileEntity extends Projectile
 
         var level = level();
         if (!level.isClientSide) {
-            onImpact(level);
+            onImpact(level, 0.1);
             discard();
         }
     }
@@ -195,11 +195,11 @@ public class TestBoltProjectileEntity extends Projectile
         return (RNG.nextDouble() * 2 - 1) * range;
     }
 
-    private void onImpact(Level level) {
+    private void onImpact(Level level, double impactDistance) {
         if (!level.isClientSide) {
             // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
             var dir = getDeltaMovement();
-            var impactPos = position().add(dir.scale(0.1));
+            var impactPos = position().add(dir.scale(impactDistance));
             spawnDisintegrate(impactPos);
 
             var volume = 1.0f;

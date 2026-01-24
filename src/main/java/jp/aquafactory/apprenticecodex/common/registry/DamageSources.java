@@ -13,16 +13,14 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("removal")
 public class DamageSources {
-    public static final ResourceKey<DamageType> GENERAL_DAMAGE =
-            ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(ApprenticeCodex.MODID, "codex_magic_general"));
-
     private DamageSources() {
         // do nothing.
     }
 
-    public static DamageSource getGeneralDamageSource(Level level, Entity projectile, @Nullable Entity owner) {
+    public static DamageSource getDamageSource(Level level, Entity projectile, @Nullable Entity owner, String typeName) {
         var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-        var holder = reg.getHolder(GENERAL_DAMAGE)
+        var type = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(ApprenticeCodex.MODID, typeName));
+        var holder = reg.getHolder(type)
                 .orElseGet(() -> (Holder.Reference<DamageType>) level.damageSources().genericKill().typeHolder());
 
         return new DamageSource(holder, owner, projectile);

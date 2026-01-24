@@ -3,10 +3,8 @@ package jp.aquafactory.apprenticecodex.common.spells;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.api.spells.CastSource;
-import io.redspace.ironsspellbooks.api.spells.CastType;
-import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
@@ -28,9 +26,8 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 import java.util.Optional;
 
-public class TestSpell extends AbstractSpell {
-    // 現時点で1.20.1専用アドオンのため、deprecatedを無視する.
-    @SuppressWarnings("removal") private final ResourceLocation spellId = new ResourceLocation(ApprenticeCodex.MODID, "test_spell");
+public class SkyEdge extends AbstractSpell {
+    @SuppressWarnings("removal") private final ResourceLocation spellId = new ResourceLocation(ApprenticeCodex.MODID, "sky_edge");
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
@@ -39,7 +36,7 @@ public class TestSpell extends AbstractSpell {
             .setCooldownSeconds(10)
             .build();
 
-    public TestSpell() {
+    public SkyEdge() {
         // スペルパワー100 = 1ダメージ.
         baseSpellPower = 500;
         spellPowerPerLevel = 0;
@@ -93,12 +90,19 @@ public class TestSpell extends AbstractSpell {
     }
     @Override
     public Optional<SoundEvent> getCastStartSound() {
+        // todo:効果音選定.
         return super.getCastStartSound();
     }
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
+        // todo:効果音選定.
         return super.getCastFinishSound();
+    }
+
+    @Override
+    public AnimationHolder getCastStartAnimation() {
+        return SpellAnimations.ANIMATION_CHARGED_CAST;
     }
 
     @Override
@@ -107,7 +111,7 @@ public class TestSpell extends AbstractSpell {
             var item = new ItemStack(Items.GOLDEN_SWORD);
 
             for(var count = 0; count < getProjectileCount(spellLevel, entity); ++count){
-                var projectile = new TestBoltProjectileEntity(EntityRegistry.TEST_BOLT.get(), level, entity, item);
+                var projectile = new SkyEdgeProjectileEntity(EntityRegistry.SKY_EDGE_PROJECTILE.get(), level, entity, item);
                 var dimensions = entity.getDimensions(entity.getPose());
                 var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
 
@@ -115,9 +119,10 @@ public class TestSpell extends AbstractSpell {
                 var result = RaycastTools.raycastFromEye(entity, 48);
                 var velocity = result.hitPosition().subtract(spawnPosition).normalize();
                 var delay = Math.round(level.random.nextFloat() * 5) + 20;
+                var speed = lerp(2.4f, 2.5f, level.random.nextDouble());
                 projectile.setDamage(getDamage(spellLevel, entity));
                 projectile.setPos(spawnPosition);
-                projectile.setProjectileVelocity(velocity, 1.8f);
+                projectile.setProjectileVelocity(velocity, speed);
                 projectile.setStandbyTicks(delay);
                 level.addFreshEntity(projectile);
             }
