@@ -21,7 +21,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -33,9 +32,6 @@ import org.jetbrains.annotations.NotNull;
 public class SkyEdgeProjectileEntity extends Projectile
 {
     private static final RandomSource RNG = RandomSource.create();
-
-    private static final EntityDataAccessor<ItemStack> DATA_ITEM =
-            SynchedEntityData.defineId(SkyEdgeProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
 
     private static final EntityDataAccessor<Integer> DATA_STANDBY_TICK =
             SynchedEntityData.defineId(SkyEdgeProjectileEntity.class, EntityDataSerializers.INT);
@@ -49,10 +45,10 @@ public class SkyEdgeProjectileEntity extends Projectile
         setNoGravity(true);
     }
 
-    public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level, LivingEntity owner, ItemStack stack) {
+    public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level, LivingEntity owner) {
         super(type, level);
-        setItem(stack);
         setOwner(owner);
+        setNoGravity(true);
     }
 
     public void setProjectileVelocity(Vec3 rotation, double speed) {
@@ -138,16 +134,12 @@ public class SkyEdgeProjectileEntity extends Projectile
 
     @Override
     protected void defineSynchedData() {
-        entityData.define(DATA_ITEM, ItemStack.EMPTY);
         entityData.define(DATA_STANDBY_TICK, DEFAULT_STANDBY_TICKS);
     }
 
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("Item")) {
-            setItem(ItemStack.of(tag.getCompound("Item")));
-        }
         if (tag.contains("damage")) {
             damage = tag.getFloat("damage");
         }
@@ -157,22 +149,11 @@ public class SkyEdgeProjectileEntity extends Projectile
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat("damage", damage);
-        if (!getItem().isEmpty()) {
-            tag.put("Item", getItem().save(new CompoundTag()));
-        }
     }
 
     @Override
     public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
-    }
-
-    public ItemStack getItem() {
-        return entityData.get(DATA_ITEM);
-    }
-
-    public void setItem(ItemStack stack) {
-        entityData.set(DATA_ITEM, stack.copy());
     }
 
     public void setDamage(float newDamage) {

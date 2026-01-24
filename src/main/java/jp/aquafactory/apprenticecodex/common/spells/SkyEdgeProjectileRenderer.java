@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.spells;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -11,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class SkyEdgeProjectileRenderer extends EntityRenderer<SkyEdgeProjectileEntity> {
@@ -22,9 +24,7 @@ public class SkyEdgeProjectileRenderer extends EntityRenderer<SkyEdgeProjectileE
     public void render(SkyEdgeProjectileEntity entity, float entityYaw, float partialTicks,
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
-        var stack = entity.getItem();
-        if (stack.isEmpty()) return;
-
+        var stack = new ItemStack(ItemRegistry.SKY_EDGE_SWORD.get());
         var motion = entity.getDeltaMovement();
         var xRot = -((float) (Mth.atan2(motion.horizontalDistance(), motion.y) * (double) (180F / (float) Math.PI)) - 90.0F);
         var yRot = -((float) (Mth.atan2(motion.z, motion.x) * (double) (180F / (float) Math.PI)) + 90.0F);

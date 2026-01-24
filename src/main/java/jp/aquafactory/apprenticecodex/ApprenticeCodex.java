@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex;
 
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -21,5 +22,6 @@ public class ApprenticeCodex
         @SuppressWarnings("removal") var bus = FMLJavaModLoadingContext.get().getModEventBus();
         SpellsRegistry.register(bus);
         EntityRegistry.register(bus);
+        ItemRegistry.ITEMS.register(bus);
     }
 }

@@ -112,10 +112,8 @@ public class SkyEdge extends AbstractSpell {
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide) {
-            var item = new ItemStack(Items.GOLDEN_SWORD);
-
             for(var count = 0; count < getProjectileCount(spellLevel, entity); ++count){
-                var projectile = new SkyEdgeProjectileEntity(EntityRegistry.SKY_EDGE_PROJECTILE.get(), level, entity, item);
+                var projectile = new SkyEdgeProjectileEntity(EntityRegistry.SKY_EDGE_PROJECTILE.get(), level, entity);
                 var dimensions = entity.getDimensions(entity.getPose());
                 var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
 
