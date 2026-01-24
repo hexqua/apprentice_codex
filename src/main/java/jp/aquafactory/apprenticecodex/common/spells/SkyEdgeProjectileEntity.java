@@ -102,6 +102,19 @@ public class SkyEdgeProjectileEntity extends Projectile
                 move(MoverType.SELF, getDeltaMovement());
                 ProjectileUtil.rotateTowardsMovement(this, 1);
             }
+
+            if (isShootingJustTiming()){
+                var volume = 0.75f;
+                var pitch = 1.5f;
+                level.playSound(
+                        null,
+                        getX(), getY(), getZ(),
+                        SoundEvents.SHULKER_SHOOT,
+                        SoundSource.PLAYERS,
+                        volume,
+                        pitch
+                );
+            }
         }
 
         // 軌跡はクライアントでのみ.
@@ -199,6 +212,10 @@ public class SkyEdgeProjectileEntity extends Projectile
 
     private boolean canShooting(int delay){
         return tickCount >= getStandbyTicks() + delay;
+    }
+
+    private boolean isShootingJustTiming(){
+        return tickCount == getStandbyTicks();
     }
 
     private int getStandbyTicks() {
