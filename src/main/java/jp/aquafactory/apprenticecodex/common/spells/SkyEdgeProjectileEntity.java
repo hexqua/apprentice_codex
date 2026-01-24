@@ -34,7 +34,7 @@ public class SkyEdgeProjectileEntity extends Projectile
 
     private float damage = 0;
     private static final int LIFE_TICKS = 20 * 5;
-    private static final int DEFAULT_STANDBY_TICKS = 20;
+    private static final int DEFAULT_STANDBY_TICKS = 10;
 
     public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level) {
         super(type, level);

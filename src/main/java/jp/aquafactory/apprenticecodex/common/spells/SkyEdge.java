@@ -124,7 +124,7 @@ public class SkyEdge extends AbstractSpell {
                         .add(generateInaccuracy(spellLevel, level.random));
 
                 var velocity = targetPosition.subtract(spawnPosition).normalize();
-                var delay = Math.round(level.random.nextFloat() * 5) + 20;
+                var delay = Math.round(level.random.nextFloat() * 5) + 10;
                 var speed = lerp(2.4f, 2.5f, level.random.nextDouble());
                 projectile.setDamage(getDamage(spellLevel, entity));
                 projectile.setPos(spawnPosition);
