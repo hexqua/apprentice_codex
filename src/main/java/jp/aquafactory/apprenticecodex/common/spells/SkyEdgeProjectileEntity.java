@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.spells;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.DamageTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
@@ -136,12 +137,12 @@ public class SkyEdgeProjectileEntity extends Projectile
             return;
         }
 
-        var target = hit.getEntity();
         var owner = getOwner();
+        var target = CombatTools.resolutePartEntity(hit.getEntity());
 
-        if (target instanceof LivingEntity living && target != owner) {
+        if (CombatTools.isValidCombatTarget(target, owner)) {
             var source = DamageSources.getDamageSource(level(), this, owner, "sky_edge");
-            DamageTools.applyDamage(living, damage, source, SchoolRegistry.ENDER.get(), true, true);
+            DamageTools.applyDamage(target, damage, source, SchoolRegistry.ENDER.get(), true, true);
             onImpact(level, 0.5 + level.random.nextDouble() * 0.25, true);
             discard();
         }
