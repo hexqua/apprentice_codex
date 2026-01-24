@@ -3,6 +3,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
     id 'org.spongepowered.mixin' version '0.7.+'
 }
 
@@ -76,9 +77,8 @@ dependencies {
     // mixin.
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    // ISSへの依存を追加.
-    compileOnly fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}:api")
-    runtimeOnly fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}")
+    // ISSへの強依存を追加.
+    implementation fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}")
 
     // ISS前提MOD(2026/1/21時点それぞれ最新,動作確認用のみなのでruntimeOnly)
     runtimeOnly fg.deobf("curse.maven:curios-309927:6418456")
