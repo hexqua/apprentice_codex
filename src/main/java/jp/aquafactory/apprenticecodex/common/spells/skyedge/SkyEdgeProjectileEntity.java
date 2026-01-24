@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.common.spells;
+package jp.aquafactory.apprenticecodex.common.spells.skyedge;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;

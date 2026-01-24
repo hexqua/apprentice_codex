@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.common.spells;
+package jp.aquafactory.apprenticecodex.common.spells.skyedge;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;

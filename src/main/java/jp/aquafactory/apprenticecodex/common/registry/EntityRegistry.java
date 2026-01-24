@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.common.spells.SkyEdgeProjectileEntity;
+import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.eventbus.api.IEventBus;

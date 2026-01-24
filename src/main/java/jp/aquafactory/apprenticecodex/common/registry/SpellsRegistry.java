@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.common.registry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.common.spells.SkyEdge;
+import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
