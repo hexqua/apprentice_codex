@@ -41,7 +41,7 @@ public class SkyEdgeProjectileEntity extends Projectile
             SynchedEntityData.defineId(SkyEdgeProjectileEntity.class, EntityDataSerializers.INT);
 
     private float damage = 0;
-    private static final int LIFE_TICKS = 80;
+    private static final int LIFE_TICKS = 20 * 5;
     private static final int DEFAULT_STANDBY_TICKS = 20;
 
     public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level) {

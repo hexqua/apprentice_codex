@@ -64,14 +64,18 @@ public class SkyEdge extends AbstractSpell {
         var spellPower = getSpellPower(spellLevel, entity);
 
         // レベル4以上は一定パワーで+1、レベル5は更に一定パワーで+2まで許容.
-        if (spellLevel >= 4 && spellPower >= 700) {
+        if (spellLevel >= (getMaxLevel() -1 ) && spellPower >= 700) {
             baseCount += 1;
         }
-        if (spellLevel >= 5 && spellPower >= 900) {
+        if (spellLevel >= getMaxLevel() && spellPower >= 900) {
             baseCount += 1;
         }
 
         return baseCount;
+    }
+
+    private double getAccuracy(int spellLevel) {
+        return 0.5 + 0.5 * (((double) (getMaxLevel() - spellLevel) / (getMaxLevel() - 1)));
     }
 
     @Override
@@ -116,8 +120,14 @@ public class SkyEdge extends AbstractSpell {
                 var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
 
                 // 視線先の対象を狙うようにする.
-                var result = RaycastTools.raycastFromEye(entity, 48);
-                var velocity = result.hitPosition().subtract(spawnPosition).normalize();
+                var result = RaycastTools.raycastFromEye(entity, 64);
+                var distance = result.hitPosition().subtract(spawnPosition).length();
+                var targetPosition = entity
+                        .getEyePosition()
+                        .add(entity.getViewVector(1.0f).scale(distance))
+                        .add(generateInaccuracy(spellLevel, level.random));
+
+                var velocity = targetPosition.subtract(spawnPosition).normalize();
                 var delay = Math.round(level.random.nextFloat() * 5) + 20;
                 var speed = lerp(2.4f, 2.5f, level.random.nextDouble());
                 projectile.setDamage(getDamage(spellLevel, entity));
@@ -133,6 +143,15 @@ public class SkyEdge extends AbstractSpell {
 
     private static double lerp(double a, double b, double t) {
         return a + (b - a) * t;
+    }
+
+    private Vec3 generateInaccuracy(int spellLevel, RandomSource rand){
+        var accuracy = getAccuracy(spellLevel);
+        return new Vec3(getRandomRange(accuracy, rand), getRandomRange(accuracy, rand), getRandomRange(accuracy, rand));
+    }
+
+    private static double getRandomRange(double range, RandomSource rand){
+        return (rand.nextDouble() * 2 - 1) * range;
     }
 
     private static Vec3 pickSpawnPosition(Level level, LivingEntity caster, Entity collisionContext,
