@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -94,14 +95,12 @@ public class SkyEdge extends AbstractSpell {
     }
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        // todo:効果音選定.
-        return super.getCastStartSound();
+        return Optional.of(getSchoolType().getCastSound());
     }
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        // todo:効果音選定.
-        return super.getCastFinishSound();
+        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
     }
 
     @Override

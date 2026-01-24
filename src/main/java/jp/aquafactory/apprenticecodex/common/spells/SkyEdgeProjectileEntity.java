@@ -188,7 +188,7 @@ public class SkyEdgeProjectileEntity extends Projectile
             level.playSound(
                     null,
                     getX(), getY(), getZ(),
-                    SoundEvents.PLAYER_ATTACK_WEAK,
+                    SoundEvents.PLAYER_ATTACK_SWEEP,
                     SoundSource.PLAYERS,
                     volume,
                     pitch
