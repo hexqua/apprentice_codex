@@ -14,6 +14,10 @@ public class ItemRegistry {
             ITEMS.register("sky_edge_sword",
                     () -> new Item(new Item.Properties()));
 
+    public static final RegistryObject<Item> ARCHER_MULTIPLE_BOW =
+            ITEMS.register("archer_multiple_bow",
+                    () -> new Item(new Item.Properties()));
+
     private ItemRegistry() {
         // do nothing.
     }
