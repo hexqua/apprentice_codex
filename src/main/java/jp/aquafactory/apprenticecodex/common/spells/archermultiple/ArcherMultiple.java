@@ -9,7 +9,9 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
+import io.redspace.ironsspellbooks.capabilities.magic.SummonedEntitiesCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -63,6 +65,12 @@ public class ArcherMultiple  extends AbstractSpell {
         return 20;
     }
 
+    private int getSummonTime(){
+        // 20tick = 1秒.
+        // 60秒 = 1分.
+        return 20 * 60 * 2;
+    }
+
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
@@ -99,6 +107,11 @@ public class ArcherMultiple  extends AbstractSpell {
     }
 
     @Override
+    public ICastDataSerializable getEmptyCastData() {
+        return new SummonedEntitiesCastData();
+    }
+
+    @Override
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
         if (SummonManager.recastFinishedHelper(serverPlayer, recastInstance, recastResult, castDataSerializable)) {
             super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
@@ -107,7 +120,23 @@ public class ArcherMultiple  extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        // todo:実装.
+        var recasts = playerMagicData.getPlayerRecasts();
+        if (!recasts.hasRecastForSpell(this)) {
+            var summonedEntitiesCastData = new SummonedEntitiesCastData();
+
+            // todo:仮実装中.
+            var summonTestBow = new ArcherMultipleBowEntity(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), level, entity);
+            summonTestBow.setPos(entity.position());
+            summonTestBow.setXRot(entity.getXRot());
+            summonTestBow.setYRot(entity.getYRot());
+
+            level.addFreshEntity(summonTestBow);
+            SummonManager.initSummon(entity, summonTestBow, getSummonTime(), summonedEntitiesCastData);
+
+            var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getSummonTime(), castSource, summonedEntitiesCastData);
+            recasts.addRecast(recastInstance, playerMagicData);
+        }
+
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }
