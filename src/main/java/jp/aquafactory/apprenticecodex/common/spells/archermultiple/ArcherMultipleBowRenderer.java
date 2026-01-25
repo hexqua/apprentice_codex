@@ -16,6 +16,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class ArcherMultipleBowRenderer extends EntityRenderer<ArcherMultipleBowEntity> {
+
+    private final ItemStack renderItem = new ItemStack(ItemRegistry.ARCHER_MULTIPLE_BOW.get());
+
     public ArcherMultipleBowRenderer(EntityRendererProvider.Context pContext) {
         super(pContext);
     }
@@ -24,7 +27,6 @@ public class ArcherMultipleBowRenderer extends EntityRenderer<ArcherMultipleBowE
     public void render(ArcherMultipleBowEntity entity, float entityYaw, float partialTicks,
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
-        var stack = new ItemStack(ItemRegistry.ARCHER_MULTIPLE_BOW.get());
 
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(-entity.getYRot()));
@@ -34,7 +36,7 @@ public class ArcherMultipleBowRenderer extends EntityRenderer<ArcherMultipleBowE
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0f));
         poseStack.mulPose(Axis.ZP.rotationDegrees(+45.0f));
         Minecraft.getInstance().getItemRenderer().renderStatic(
-                stack,
+                renderItem,
                 ItemDisplayContext.NONE,
                 packedLight,
                 OverlayTexture.NO_OVERLAY,
