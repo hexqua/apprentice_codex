@@ -25,10 +25,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Integer> MAX_SLOT =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
-    @Nullable
     private UUID ownerUUID;
-    @Nullable
+    private UUID priorityTargetUUID;
     private Entity cachedOwner;
+    private Entity cachedPriorityTarget;
 
     public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -59,6 +59,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         if (tag.contains("MaxSlot")) {
             entityData.set(MAX_SLOT, tag.getInt("MaxSlot"));
         }
+        if (tag.hasUUID("PriorityTargetUUID")) {
+            priorityTargetUUID = tag.getUUID("PriorityTargetUUID");
+        }
 
     }
 
@@ -67,6 +70,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         if (ownerUUID != null) {
             tag.putUUID("Owner", ownerUUID);
         }
+        if (priorityTargetUUID != null) {
+            tag.putUUID("PriorityTargetUUID", priorityTargetUUID);
+        }
+
         tag.putInt("Slot", entityData.get(SLOT));
         tag.putInt("MaxSlot", entityData.get(MAX_SLOT));
     }
@@ -74,15 +81,16 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     @Override
     public @Nullable Entity getOwner() {
         @SuppressWarnings("resource") var level = level();
-
         if (cachedOwner != null && !cachedOwner.isRemoved()) {
             return cachedOwner;
-        } else if (ownerUUID != null && level instanceof ServerLevel server) {
+        }
+
+        if (ownerUUID != null && level instanceof ServerLevel server) {
             cachedOwner = server.getEntity(ownerUUID);
             return cachedOwner;
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     public void setSlot(int slot) {
@@ -101,11 +109,28 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         return entityData.get(MAX_SLOT);
     }
 
-    public void setOwner(@Nullable Entity pOwner) {
+    public void setOwner(Entity pOwner) {
         if (pOwner != null) {
             ownerUUID = pOwner.getUUID();
             cachedOwner = pOwner;
         }
+    }
+
+    private Entity getPriorityTarget() {
+        @SuppressWarnings("resource") var level = level();
+        if (cachedPriorityTarget != null && !cachedPriorityTarget.isRemoved()) {
+            return cachedPriorityTarget;
+        }
+        if (priorityTargetUUID != null && level instanceof ServerLevel server) {
+            cachedPriorityTarget = server.getEntity(priorityTargetUUID);
+            return cachedPriorityTarget;
+        }
+
+        return null;
+    }
+
+    public void setPriorityTarget(UUID pTarget) {
+        priorityTargetUUID = pTarget;
     }
 
     @Override
@@ -135,8 +160,22 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             move(net.minecraft.world.entity.MoverType.SELF, step);
         }
 
-        setYRot(owner.getYRot());
-        setXRot(0);
+        if (getPriorityTarget() != null) {
+            var target = getPriorityTarget();
+            var targetCenter = target.position().add(0, target.getBbHeight() / 2, 0);
+            var targetFaceVector = targetCenter.subtract(position()).normalize();
+
+            var yaw = (float) (Mth.atan2(-targetFaceVector.x, targetFaceVector.z) * Mth.RAD_TO_DEG);
+            var xzLen = Math.sqrt(targetFaceVector.x * targetFaceVector.x + targetFaceVector.z * targetFaceVector.z);
+            var pitch = (float) (Mth.atan2(-targetFaceVector.y, xzLen) * Mth.RAD_TO_DEG);
+
+            setYRot(yaw);
+            setXRot(pitch);
+        }else{
+            setYRot(owner.getYRot());
+            setXRot(0);
+        }
+
         setRot(getYRot(), getXRot());
         hasImpulse = true;
     }
@@ -152,9 +191,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         var x = radius * Math.cos(angle);
         var y = radius * Math.sin(angle);
+        var heightAdjust = -0.25;
 
         // 微妙に前傾配置になるようにする.
-        return computeBehindPos(owner, 0.75 - y / 2, x, y);
+        return computeBehindPos(owner, 0.75 - y / 2, x, y + heightAdjust);
     }
 
     private static Vec3 computeBehindPos(LivingEntity owner, double backOffSet, double xOffset, double yOffset) {

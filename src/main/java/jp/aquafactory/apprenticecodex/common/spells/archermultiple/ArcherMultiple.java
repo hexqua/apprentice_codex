@@ -6,15 +6,15 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
-import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
-import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
-import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
-import io.redspace.ironsspellbooks.capabilities.magic.SummonedEntitiesCastData;
+import io.redspace.ironsspellbooks.capabilities.magic.*;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class ArcherMultiple  extends AbstractSpell {
     @SuppressWarnings("removal")
@@ -125,6 +126,22 @@ public class ArcherMultiple  extends AbstractSpell {
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var recasts = playerMagicData.getPlayerRecasts();
+        if (recasts.hasRecastForSpell(this)) {
+            // リキャスト判定時はメッセージをやターゲット関連を出さないようにする.
+            return true;
+        }
+
+        if (!Utils.preCastTargetHelper(level, entity, playerMagicData, this, 64, 1, false)) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.archer_multiple.spell_target_none", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.GREEN)));
+            }
+        }
+        return true;
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var recasts = playerMagicData.getPlayerRecasts();
         if (!recasts.hasRecastForSpell(this)) {
@@ -135,6 +152,14 @@ public class ArcherMultiple  extends AbstractSpell {
             var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
             var summonPosition = entity.getEyePosition().add(back.scale(0.25));
 
+            UUID targetUuid = null;
+            if (playerMagicData.getAdditionalCastData() instanceof TargetEntityCastData castTargetingData) {
+                var targetEntity = castTargetingData.getTarget((ServerLevel) level);
+                if (targetEntity != null){
+                    targetUuid = targetEntity.getUUID();
+                }
+            }
+
             for(var count = 0; count < getSummonCount(); ++count){
                 var summonTestBow = new ArcherMultipleBowEntity(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), level, entity);
                 summonTestBow.setPos(summonPosition);
@@ -142,6 +167,7 @@ public class ArcherMultiple  extends AbstractSpell {
                 summonTestBow.setYRot(entity.getYRot());
                 summonTestBow.setSlot(count);
                 summonTestBow.setMaxSlot(getSummonCount());
+                summonTestBow.setPriorityTarget(targetUuid);
 
                 level.addFreshEntity(summonTestBow);
                 SummonManager.initSummon(entity, summonTestBow, getSummonTime(), summonedEntitiesCastData);
