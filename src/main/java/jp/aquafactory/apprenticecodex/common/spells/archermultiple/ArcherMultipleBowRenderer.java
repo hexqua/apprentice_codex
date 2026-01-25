@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -25,13 +26,9 @@ public class ArcherMultipleBowRenderer extends EntityRenderer<ArcherMultipleBowE
 
         var stack = new ItemStack(ItemRegistry.ARCHER_MULTIPLE_BOW.get());
 
-        // todo:向きを向く実装を入れる(今はスカイエッジから余計なのを抜いただけ)
-        var xRot = .0f;
-        var yRot = .0f;
-
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(yRot));
-        poseStack.mulPose(Axis.XP.rotationDegrees(xRot));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-entity.getYRot()));
+        poseStack.mulPose(Axis.XP.rotationDegrees(entity.getXRot()));
 
         // 左上に発射口が向いているアイテムが先端を向くように調整.
         poseStack.mulPose(Axis.YP.rotationDegrees(90.0f));
