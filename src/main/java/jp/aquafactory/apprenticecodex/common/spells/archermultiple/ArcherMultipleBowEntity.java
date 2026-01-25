@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -15,6 +18,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
+
+    private static final EntityDataAccessor<Integer> SLOT =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Integer> MAX_SLOT =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
     @Nullable
     private UUID ownerUUID;
@@ -34,7 +43,8 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void defineSynchedData() {
-        // do nothing.
+        entityData.define(SLOT, 0);
+        entityData.define(MAX_SLOT, 1);
     }
 
     @Override
@@ -42,6 +52,12 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         if (tag.hasUUID("Owner")) {
             ownerUUID = tag.getUUID("Owner");
             cachedOwner = null;
+        }
+        if (tag.contains("Slot")) {
+            entityData.set(SLOT, tag.getInt("Slot"));
+        }
+        if (tag.contains("MaxSlot")) {
+            entityData.set(MAX_SLOT, tag.getInt("MaxSlot"));
         }
 
     }
@@ -51,6 +67,8 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         if (ownerUUID != null) {
             tag.putUUID("Owner", ownerUUID);
         }
+        tag.putInt("Slot", entityData.get(SLOT));
+        tag.putInt("MaxSlot", entityData.get(MAX_SLOT));
     }
 
     @Override
@@ -65,6 +83,22 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         } else {
             return null;
         }
+    }
+
+    public void setSlot(int slot) {
+        entityData.set(SLOT, slot);
+    }
+
+    public void setMaxSlot(int maxSlot) {
+        entityData.set(MAX_SLOT, maxSlot);
+    }
+
+    private int getSlot() {
+        return entityData.get(SLOT);
+    }
+
+    private int getMaxSlot() {
+        return entityData.get(MAX_SLOT);
     }
 
     public void setOwner(@Nullable Entity pOwner) {
@@ -88,7 +122,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             return;
         }
         
-        var targetPosition = computeBehindPos(owner, 0.75, -1.0, 1.0);
+        var targetPosition = getFormationPosition(owner, getSlot(), getMaxSlot());
         var targetVec = targetPosition.subtract(position());
         var distance = targetVec.length();
         var step = targetVec.normalize().scale(Math.min(0.5, distance));
@@ -107,11 +141,26 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         hasImpulse = true;
     }
 
-    public static Vec3 computeBehindPos(LivingEntity owner, double backOffSet,double xOffset, double yOffset) {
-        var yawDeg = owner.getYRot();
-        var yawRad = yawDeg * Mth.DEG_TO_RAD;
-        var forwardX = -Mth.sin(yawRad);
-        var forwardZ =  Mth.cos(yawRad);
+    private static Vec3 getFormationPosition(LivingEntity owner, int index, int maxIndex) {
+        if (maxIndex <= 1) {
+            return owner.position();
+        }
+
+        // 半円で構築するようにする.
+        var angle = (1 * Math.PI * index) / (maxIndex - 1);
+        var radius = 1.0;
+
+        var x = radius * Math.cos(angle);
+        var y = radius * Math.sin(angle);
+
+        // 微妙に前傾配置になるようにする.
+        return computeBehindPos(owner, 0.75 - y / 2, x, y);
+    }
+
+    private static Vec3 computeBehindPos(LivingEntity owner, double backOffSet, double xOffset, double yOffset) {
+        var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;
+        var forwardX = -Mth.sin(yawAngle);
+        var forwardZ = Mth.cos(yawAngle);
 
         var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
         var right = new Vec3(back.z, 0, -back.x).normalize();
