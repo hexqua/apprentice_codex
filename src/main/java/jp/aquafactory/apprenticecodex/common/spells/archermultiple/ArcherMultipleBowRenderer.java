@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 public class ArcherMultipleBowRenderer extends EntityRenderer<ArcherMultipleBowEntity> {
 
     private final ItemStack renderItem = new ItemStack(ItemRegistry.ARCHER_MULTIPLE_BOW.get());
+    private int lastStage = Integer.MIN_VALUE;
 
     public ArcherMultipleBowRenderer(EntityRendererProvider.Context pContext) {
         super(pContext);
@@ -27,6 +28,11 @@ public class ArcherMultipleBowRenderer extends EntityRenderer<ArcherMultipleBowE
     public void render(ArcherMultipleBowEntity entity, float entityYaw, float partialTicks,
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
+        var stage = entity.getStage();
+        if (stage != lastStage) {
+            renderItem.getOrCreateTag().putInt("Stage", stage);
+            lastStage = stage;
+        }
 
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(-entity.getYRot()));

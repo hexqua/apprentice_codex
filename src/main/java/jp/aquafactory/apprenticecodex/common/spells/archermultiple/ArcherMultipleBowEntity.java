@@ -27,6 +27,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Integer> MAX_SLOT =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
+    private static final EntityDataAccessor<Integer> CHARGE_STAGE =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
+
+
     private UUID ownerUUID;
     private UUID priorityTargetUUID;
     private Entity cachedOwner;
@@ -47,6 +51,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     protected void defineSynchedData() {
         entityData.define(SLOT, 0);
         entityData.define(MAX_SLOT, 1);
+        entityData.define(CHARGE_STAGE, 0);
     }
 
     @Override
@@ -111,6 +116,14 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         return entityData.get(MAX_SLOT);
     }
 
+    public int getStage() {
+        return entityData.get(CHARGE_STAGE);
+    }
+
+    private void setStage(int stage) {
+        entityData.set(CHARGE_STAGE, stage);
+    }
+
     public void setOwner(Entity pOwner) {
         if (pOwner != null) {
             ownerUUID = pOwner.getUUID();
@@ -142,6 +155,12 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         var level = level();
         if (level.isClientSide) {
             return;
+        }
+
+        // todo:アニメテストコード、今は1秒おきに切り替え.
+        if (this.tickCount % 20 == 0) {
+            int next = (getStage() + 1) % 4;
+            setStage(next);
         }
 
         if (!(getOwner() instanceof LivingEntity owner)) {
