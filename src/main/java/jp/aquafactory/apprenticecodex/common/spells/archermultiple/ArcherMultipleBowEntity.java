@@ -205,7 +205,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         var x = radius * Math.cos(angle);
         var y = radius * Math.sin(angle);
-        var heightAdjust = -0.25;
+        var heightAdjust = -0.45;
 
         // 微妙に前傾配置になるようにする.
         return computeBehindPos(owner, 0.75 - y / 2, x, y + heightAdjust);
