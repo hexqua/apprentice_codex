@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -134,44 +136,56 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     }
 
     @Override
-    public void tick(){
+    public void tick() {
         super.tick();
 
-        @SuppressWarnings("resource") var level = level();
-        if(level.isClientSide) {
+        var level = level();
+        if (level.isClientSide) {
             return;
         }
 
-        if(!(getOwner() instanceof LivingEntity owner)) {
+        if (!(getOwner() instanceof LivingEntity owner)) {
             discard();
             return;
         }
-        
-        var targetPosition = getFormationPosition(owner, getSlot(), getMaxSlot());
-        var targetVec = targetPosition.subtract(position());
-        var distance = targetVec.length();
-        var step = targetVec.normalize().scale(Math.min(0.5, distance));
+
+        var formationPosition = getFormationPosition(owner, getSlot(), getMaxSlot());
+        var formationTargetVec = formationPosition.subtract(position());
+        var distance = formationTargetVec.length();
+        var step = formationTargetVec.normalize().scale(Math.min(0.5, distance));
 
         if (distance < 0.01) {
             setDeltaMovement(Vec3.ZERO);
-            setPos(targetPosition.x, targetPosition.y, targetPosition.z);
+            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
         } else {
             setDeltaMovement(step);
             move(net.minecraft.world.entity.MoverType.SELF, step);
         }
 
+        Entity target;
         if (getPriorityTarget() != null) {
-            var target = getPriorityTarget();
-            var targetCenter = target.position().add(0, target.getBbHeight() / 2, 0);
-            var targetFaceVector = targetCenter.subtract(position()).normalize();
+            target = getPriorityTarget();
 
+            // 優先ターゲットがいない場合、ターゲットを外す処理を入れておく.
+            // このTickは自動ターゲットが無くても問題ない.
+            if (target.isRemoved()) {
+                setPriorityTarget(null);
+                target = null;
+            }
+        } else {
+            target = searchAutoTarget(level);
+        }
+
+        if (target != null && target.isAlive()) {
+            var targetPosition = target.position().add(0, target.getBbHeight() / 2, 0);
+            var targetFaceVector = targetPosition.subtract(position()).normalize();
             var yaw = (float) (Mth.atan2(-targetFaceVector.x, targetFaceVector.z) * Mth.RAD_TO_DEG);
             var xzLen = Math.sqrt(targetFaceVector.x * targetFaceVector.x + targetFaceVector.z * targetFaceVector.z);
             var pitch = (float) (Mth.atan2(-targetFaceVector.y, xzLen) * Mth.RAD_TO_DEG);
 
             setYRot(yaw);
             setXRot(pitch);
-        }else{
+        } else {
             setYRot(owner.getYRot());
             setXRot(0);
         }
@@ -207,5 +221,34 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         var behindOffset = back.scale(backOffSet).add(new Vec3(0, yOffset, 0)).add(right.scale(xOffset));
         return owner.getEyePosition().add(behindOffset);
+    }
+
+    private Entity searchAutoTarget(Level level) {
+        if(!(getOwner() instanceof LivingEntity owner)) {
+            return null;
+        }
+
+        // 視線の上下は除外する.
+        var yaw = owner.getYRot();
+        var forward = Vec3.directionFromRotation(0.0f, yaw).normalize();
+
+        // まず背後の対象を強めに取る.
+        var behindTarget = RaycastTools.findNearestEntityInForwardBox(
+                level, this, forward.scale(-1.0),
+                3, 4, 4,
+                e -> CombatTools.isValidCombatTarget(e, owner),
+                true
+        ).orElse(null);
+        if (behindTarget != null) {
+            return behindTarget;
+        }
+
+        // 背後がいなければ正面を見る.
+        return RaycastTools.findNearestEntityInForwardBox(
+                level, this, forward,
+                24, 8, 8,
+                e -> CombatTools.isValidCombatTarget(e, owner),
+                true
+        ).orElse(null);
     }
 }
