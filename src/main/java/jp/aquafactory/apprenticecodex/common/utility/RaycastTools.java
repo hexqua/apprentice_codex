@@ -78,8 +78,8 @@ public class RaycastTools {
     }
 
     public static boolean hasLineOfSight(Level level, Entity source, Entity target) {
-        var from = getRayStart(source);
-        var to = getRayEnd(target);
+        var from = getEntityTargetPosition(source);
+        var to = getEntityTargetPosition(target);
 
         BlockHitResult hit = level.clip(new ClipContext(
                 from, to,
@@ -88,6 +88,11 @@ public class RaycastTools {
                 source
         ));
         return hit.getType() == HitResult.Type.MISS;
+    }
+
+    public static Vec3 getEntityTargetPosition(Entity entity){
+        if (entity instanceof LivingEntity le) return le.getEyePosition();
+        return entity.position().add(0.0, entity.getBbHeight() * 0.5, 0.0);
     }
 
     public static Optional<Entity> findNearestEntityInForwardBox(
@@ -104,7 +109,7 @@ public class RaycastTools {
             return Optional.empty();
         }
 
-        var origin = getRayStart(source);
+        var origin = getEntityTargetPosition(source);
         var forward = (dir.lengthSqr() > 0 ? dir : source.getLookAngle()).normalize();
 
         var worldUp = new Vec3(0, 1, 0);
@@ -126,7 +131,7 @@ public class RaycastTools {
                 )
                 .stream()
                 .filter(e -> {
-                    var p = getRayEnd(e);
+                    var p = getEntityTargetPosition(e);
                     var v = p.subtract(origin);
 
                     var x = v.dot(fixedRight);
@@ -142,15 +147,5 @@ public class RaycastTools {
                 .sorted(Comparator.comparingDouble(e -> e.distanceToSqr(source)))
                 .filter(e -> !blockOcclusion || hasLineOfSight(level, source, e))
                 .findFirst();
-    }
-
-    private static Vec3 getRayStart(Entity e) {
-        if (e instanceof LivingEntity le) return le.getEyePosition();
-        return e.position().add(0.0, e.getBbHeight() * 0.5, 0.0);
-    }
-
-    private static Vec3 getRayEnd(Entity e) {
-        if (e instanceof LivingEntity le) return le.getEyePosition();
-        return e.position().add(0.0, e.getBbHeight() * 0.5, 0.0);
     }
 }

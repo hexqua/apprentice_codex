@@ -8,5 +8,6 @@
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
 
   "death.attack.apprenticecodex.codex_magic_general": "%1$sは%2$sの魔法によって殺された",
-  "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた"
+  "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた",
+  "death.attack.apprenticecodex.archer_multiple": "%1$sは%2$sに蜂の巣にされた"
 }

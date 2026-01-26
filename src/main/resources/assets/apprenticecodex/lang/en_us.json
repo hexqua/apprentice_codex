@@ -8,5 +8,6 @@
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
 
   "death.attack.apprenticecodex.codex_magic_general": "%1$s was killed by %2$s's magic.",
-  "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s."
+  "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
+  "death.attack.apprenticecodex.archer_multiple": "%1$s was riddled with %2$s's arrows."
 }

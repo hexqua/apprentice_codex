@@ -168,6 +168,8 @@ public class ArcherMultiple  extends AbstractSpell {
                 summonTestBow.setSlot(count);
                 summonTestBow.setMaxSlot(getSummonCount());
                 summonTestBow.setPriorityTarget(targetUuid);
+                summonTestBow.setCooldownRandom(level);
+                summonTestBow.setDamage(getDamage(spellLevel, entity));
 
                 level.addFreshEntity(summonTestBow);
                 SummonManager.initSummon(entity, summonTestBow, getSummonTime(), summonedEntitiesCastData);
