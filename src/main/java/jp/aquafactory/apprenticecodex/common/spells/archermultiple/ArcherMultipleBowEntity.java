@@ -50,6 +50,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Float> DAMAGE =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
 
+    private static final EntityDataAccessor<Integer> REST_BULLET_COUNT =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
+
     private UUID ownerUUID;
     private UUID priorityTargetUUID;
     private Entity cachedOwner;
@@ -75,6 +78,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         entityData.define(CURRENT_LOCK_ON_TICK, 0);
         entityData.define(IS_READY_TO_FIRE, false);
         entityData.define(DAMAGE, 0f);
+        entityData.define(REST_BULLET_COUNT, 24);
     }
 
     @Override
@@ -109,6 +113,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         if (tag.contains("Damage")) {
             entityData.set(DAMAGE, tag.getFloat("Damage"));
         }
+        if (tag.contains("RestBulletCount")) {
+            entityData.set(REST_BULLET_COUNT, tag.getInt("RestBulletCount"));
+        }
     }
 
     @Override
@@ -126,6 +133,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         tag.putInt("CooldownTick", entityData.get(CURRENT_COOLDOWN_TICK));
         tag.putInt("CurrentLockOnTick", entityData.get(CURRENT_LOCK_ON_TICK));
         tag.putFloat("Damage", entityData.get(DAMAGE));
+        tag.putInt("RestBulletCount", entityData.get(REST_BULLET_COUNT));
     }
 
     @Override
@@ -171,6 +179,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         entityData.set(DAMAGE, damage);
     }
 
+    public void setRestBulletCount(int count) {
+        entityData.set(REST_BULLET_COUNT, count);
+    }
+
     private int getSlot() {
         return entityData.get(SLOT);
     }
@@ -197,6 +209,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     private float getDamage() {
         return entityData.get(DAMAGE);
+    }
+
+    private int getRestBulletCount() {
+        return entityData.get(REST_BULLET_COUNT);
     }
 
     public int getStage() {
@@ -313,14 +329,21 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             setChargeTick(getChargeTick() + 1);
             if (getChargeTick() >= CHARGE_TICK) {
                 if (!canWaitIFrame || target.invulnerableTime <= 0) {
-                    fire(target, level);
+                    fire(target, level, getRestBulletCount() == 1);
                     setCooldownTick(COOLDOWN_TICK);
                     setChargeTick(0);
                     setReadyToFire(false);
+
+                    if (getRestBulletCount() > 1) {
+                        setRestBulletCount(getRestBulletCount() - 1);
+                    } else {
+                        remove(RemovalReason.DISCARDED);
+                    }
                 }
             }
         } else if (isLockOn && getMaxSlot() > 0) {
-            var interval = CHARGE_TICK + COOLDOWN_TICK;
+            // 1tick増やして連射を最短でできるようにする.
+            var interval = CHARGE_TICK + COOLDOWN_TICK + 1;
             if (owner.tickCount % interval == getSlot() * (interval / getMaxSlot())){
                 setReadyToFire(true);
             }
@@ -329,18 +352,24 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         }
     }
 
-    private void fire(Entity target, Level level) {
+    private void fire(Entity target, Level level, boolean isLastBullet) {
         var currentPosition = RaycastTools.getEntityTargetPosition(this);
         var targetPosition = RaycastTools.getEntityTargetPosition(target);
         var lineVector = targetPosition.subtract(currentPosition);
         var lineLength = lineVector.length();
         var lineDirection = lineVector.normalize();
 
+        var particleType = isLastBullet ? ParticleTypes.END_ROD : ParticleTypes.CRIT;
+        var soundEvent = isLastBullet ? SoundEvents.SHULKER_SHOOT : SoundEvents.ARROW_SHOOT;
+        var damage = getDamage() * (isLastBullet ? 2.0f : 1.0f);
+        var sourceType = isLastBullet ? "archer_multiple_last" : "archer_multiple";
+        var step = isLastBullet ? 0.2 : 0.5;
+
         if (level instanceof ServerLevel server) {
-            for (var step = 0.0; step < lineLength; step += 0.5) {
-                var pos = currentPosition.add(lineDirection.scale(step));
+            for (var offset = 0.0; offset < lineLength; offset += step) {
+                var pos = currentPosition.add(lineDirection.scale(offset));
                 server.sendParticles(
-                        ParticleTypes.CRIT,
+                        particleType,
                         pos.x + server.random.nextDouble() * 0.01 - 0.005,
                         pos.y + server.random.nextDouble() * 0.01 - 0.005,
                         pos.z + server.random.nextDouble() * 0.01 - 0.005,
@@ -353,9 +382,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             }
         }
 
-        var source = DamageSources.getDamageSource(level, this, getOwner(), "archer_multiple");
-        CombatTools.applyDamage(target, getDamage(), source, SchoolRegistry.EVOCATION.get(), CombatTools.KnockbackTypes.DEFAULT);
-        level.playSound(null, getX(), getY(), getZ(), SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS, 0.5f, 1.0f);
+        var source = DamageSources.getDamageSource(level, this, getOwner(), sourceType);
+        CombatTools.applyDamage(target, damage, source, SchoolRegistry.EVOCATION.get(), CombatTools.KnockbackTypes.DEFAULT);
+        level.playSound(null, getX(), getY(), getZ(), soundEvent, SoundSource.PLAYERS, 0.5f, 1.0f);
     }
 
     private static Vec3 getFormationPosition(LivingEntity owner, int index, int maxIndex) {

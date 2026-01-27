@@ -40,12 +40,11 @@ public class ArcherMultiple  extends AbstractSpell {
             .build();
 
     public ArcherMultiple() {
-        // todo:バランス調整.
-        baseSpellPower = 100;
-        spellPowerPerLevel = 0;
+        baseSpellPower = 200;
+        spellPowerPerLevel = 50;
         manaCostPerLevel = 30;
         baseManaCost = 70;
-        castTime = 40;
+        castTime = 30;
     }
 
     @Override
@@ -59,22 +58,19 @@ public class ArcherMultiple  extends AbstractSpell {
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整
-        return 5;
+        return getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getProjectileCount(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整
-        return 20;
+        return 24;
     }
 
     private int getSummonCount(){
+        // 数は総出力ダメージに強く影響するので基本固定.
         return 4;
     }
 
     private int getSummonTime(){
-        // 20tick = 1秒.
-        // 60秒 = 1分.
         return 20 * 60 * 2;
     }
 
@@ -169,6 +165,7 @@ public class ArcherMultiple  extends AbstractSpell {
                 summonTestBow.setMaxSlot(getSummonCount());
                 summonTestBow.setPriorityTarget(targetUuid);
                 summonTestBow.setDamage(getDamage(spellLevel, entity));
+                summonTestBow.setRestBulletCount(getProjectileCount(spellLevel, entity));
 
                 level.addFreshEntity(summonTestBow);
                 SummonManager.initSummon(entity, summonTestBow, getSummonTime(), summonedEntitiesCastData);
