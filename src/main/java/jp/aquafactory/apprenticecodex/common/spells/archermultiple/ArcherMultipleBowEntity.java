@@ -33,18 +33,6 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final int KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET = 60;
     private static final int KEEP_LOCK_ON_TICK_IN_LOST_LOR = 20;
 
-    private static final EntityDataAccessor<Integer> SLOT =
-            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
-
-    private static final EntityDataAccessor<Integer> MAX_SLOT =
-            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
-
-    private static final EntityDataAccessor<Float> DAMAGE =
-            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
-
-    private static final EntityDataAccessor<Integer> REST_BULLET_COUNT =
-            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
-
     private static final EntityDataAccessor<Integer> CHARGE_STAGE =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
@@ -53,6 +41,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private Entity cachedOwner;
     private Entity cachedPriorityTarget;
 
+    private int slot;
+    private int maxSlot;
+    private float damage;
+    private int restBulletCount;
     private int currentChargeTick;
     private int currentCoolDownTick;
     private int currentLockOnTick;
@@ -73,10 +65,6 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void defineSynchedData() {
-        entityData.define(SLOT, 0);
-        entityData.define(MAX_SLOT, 1);
-        entityData.define(DAMAGE, 0f);
-        entityData.define(REST_BULLET_COUNT, 24);
         entityData.define(CHARGE_STAGE, 0);
     }
 
@@ -92,16 +80,16 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         }
 
         if (tag.contains("Slot")) {
-            entityData.set(SLOT, tag.getInt("Slot"));
+            slot = tag.getInt("Slot");
         }
         if (tag.contains("MaxSlot")) {
-            entityData.set(MAX_SLOT, tag.getInt("MaxSlot"));
+            maxSlot = tag.getInt("MaxSlot");
         }
         if (tag.contains("Damage")) {
-            entityData.set(DAMAGE, tag.getFloat("Damage"));
+            damage = tag.getFloat("Damage");
         }
         if (tag.contains("RestBulletCount")) {
-            entityData.set(REST_BULLET_COUNT, tag.getInt("RestBulletCount"));
+            restBulletCount = tag.getInt("RestBulletCount");
         }
     }
 
@@ -114,10 +102,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             tag.putUUID("PriorityTargetUUID", priorityTargetUUID);
         }
 
-        tag.putInt("Slot", entityData.get(SLOT));
-        tag.putInt("MaxSlot", entityData.get(MAX_SLOT));
-        tag.putFloat("Damage", entityData.get(DAMAGE));
-        tag.putInt("RestBulletCount", entityData.get(REST_BULLET_COUNT));
+        tag.putInt("Slot", slot);
+        tag.putInt("MaxSlot", maxSlot);
+        tag.putFloat("Damage", damage);
+        tag.putInt("RestBulletCount", restBulletCount);
     }
 
     @Override
@@ -136,35 +124,19 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     }
 
     public void setSlot(int slot) {
-        entityData.set(SLOT, slot);
+        this.slot = slot;
     }
 
     public void setMaxSlot(int maxSlot) {
-        entityData.set(MAX_SLOT, maxSlot);
+        this.maxSlot = maxSlot;
     }
 
     public void setDamage(float damage) {
-        entityData.set(DAMAGE, damage);
+        this.damage = damage;
     }
 
     public void setRestBulletCount(int count) {
-        entityData.set(REST_BULLET_COUNT, count);
-    }
-
-    private int getSlot() {
-        return entityData.get(SLOT);
-    }
-
-    private int getMaxSlot() {
-        return entityData.get(MAX_SLOT);
-    }
-
-    private float getDamage() {
-        return entityData.get(DAMAGE);
-    }
-
-    private int getRestBulletCount() {
-        return entityData.get(REST_BULLET_COUNT);
+        this.restBulletCount = count;
     }
 
     public int getStage() {
@@ -228,7 +200,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             return;
         }
 
-        var formationPosition = getFormationPosition(owner, getSlot(), getMaxSlot());
+        var formationPosition = getFormationPosition(owner, slot, maxSlot);
         var formationTargetVec = formationPosition.subtract(position());
         var distance = formationTargetVec.length();
         var step = formationTargetVec.normalize().scale(Math.min(0.5, distance));
@@ -313,22 +285,22 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             ++currentChargeTick;
             if (currentChargeTick >= CHARGE_TICK) {
                 if (!canWaitIFrame || target.invulnerableTime <= 0) {
-                    fire(target, level, getRestBulletCount() == 1);
+                    fire(target, level, restBulletCount == 1);
                     currentCoolDownTick = COOLDOWN_TICK;
                     isReadyToFire = false;
                     currentChargeTick = 0;
 
-                    if (getRestBulletCount() > 1) {
-                        setRestBulletCount(getRestBulletCount() - 1);
+                    if (restBulletCount > 1) {
+                        --restBulletCount;
                     } else {
                         remove(RemovalReason.DISCARDED);
                     }
                 }
             }
-        } else if (isLockOn && getMaxSlot() > 0) {
+        } else if (isLockOn && maxSlot > 0) {
             // 1tick増やして連射を最短でできるようにする.
             var interval = CHARGE_TICK + COOLDOWN_TICK + 1;
-            if (owner.tickCount % interval == getSlot() * (interval / getMaxSlot())){
+            if (owner.tickCount % interval == slot * (interval / maxSlot)){
                 isReadyToFire = true;
             }
         } else if (tickCount % 2 == 0 && currentChargeTick > 0){
@@ -348,7 +320,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         var particleType = isLastBullet ? ParticleTypes.END_ROD : ParticleTypes.CRIT;
         var soundEvent = isLastBullet ? SoundEvents.SHULKER_SHOOT : SoundEvents.ARROW_SHOOT;
-        var damage = getDamage() * (isLastBullet ? 2.0f : 1.0f);
+        var damage = this.damage * (isLastBullet ? 2.0f : 1.0f);
         var sourceType = isLastBullet ? "archer_multiple_last" : "archer_multiple";
         var step = isLastBullet ? 0.2 : 0.5;
 
@@ -376,7 +348,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     public void locateCurrentFormationPosition(){
         if ((getOwner() instanceof LivingEntity owner)) {
-            var formationPosition = getFormationPosition(owner, getSlot(), getMaxSlot());
+            var formationPosition = getFormationPosition(owner, slot, maxSlot);
             setPos(formationPosition.x, formationPosition.y, formationPosition.z);
             setYRot(owner.getYRot());
             setXRot(0);
