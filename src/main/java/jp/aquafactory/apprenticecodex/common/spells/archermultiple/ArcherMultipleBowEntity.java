@@ -510,7 +510,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         return RaycastTools.findNearestEntityInForwardBox(
                 level, this, forward,
                 24, 8, 8,
-                e -> CombatTools.isValidCombatTarget(e, owner),
+                e -> CombatTools.isValidCombatTarget(e, owner) && CombatTools.canBeHostileToMe(e, owner),
                 true
         ).orElse(null);
     }
