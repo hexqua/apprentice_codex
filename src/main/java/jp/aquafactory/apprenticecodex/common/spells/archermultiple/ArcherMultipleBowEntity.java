@@ -28,6 +28,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     private static final int CHARGE_TICK = 15;
     private static final int COOLDOWN_TICK = 8;
+    private static final int DELAY_FIRST_AUTO_LOCK_ON_SHOT_TICK = 10;
+    private static final int KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET = 60;
+    private static final int KEEP_LOCK_ON_TICK_IN_LOST_LOR = 20;
 
     private static final EntityDataAccessor<Integer> SLOT =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
@@ -44,6 +47,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Integer> CURRENT_LOCK_ON_TICK =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
+    private static final EntityDataAccessor<Integer> CURRENT_LOST_LOR_TICK =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
+
     private static final EntityDataAccessor<Boolean> IS_READY_TO_FIRE =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.BOOLEAN);
 
@@ -55,8 +61,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     private UUID ownerUUID;
     private UUID priorityTargetUUID;
+    private UUID autoTargetUUID;
     private Entity cachedOwner;
     private Entity cachedPriorityTarget;
+    private Entity cachedAutoTarget;
 
     public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -76,6 +84,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         entityData.define(CURRENT_CHARGE_TICK, 0);
         entityData.define(CURRENT_COOLDOWN_TICK, 0);
         entityData.define(CURRENT_LOCK_ON_TICK, 0);
+        entityData.define(CURRENT_LOST_LOR_TICK, 0);
         entityData.define(IS_READY_TO_FIRE, false);
         entityData.define(DAMAGE, 0f);
         entityData.define(REST_BULLET_COUNT, 24);
@@ -90,6 +99,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         if (tag.hasUUID("PriorityTargetUUID")) {
             priorityTargetUUID = tag.getUUID("PriorityTargetUUID");
             cachedPriorityTarget = null;
+        }
+        if (tag.hasUUID("AutoTargetUUID")) {
+            autoTargetUUID = tag.getUUID("AutoTargetUUID");
+            cachedAutoTarget = null;
         }
 
         if (tag.contains("Slot")) {
@@ -125,6 +138,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         }
         if (priorityTargetUUID != null) {
             tag.putUUID("PriorityTargetUUID", priorityTargetUUID);
+        }
+        if (autoTargetUUID != null) {
+            tag.putUUID("AutoTargetUUID", autoTargetUUID);
         }
 
         tag.putInt("Slot", entityData.get(SLOT));
@@ -171,6 +187,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         entityData.set(CURRENT_LOCK_ON_TICK, tick);
     }
 
+    private void setCurrentLostLORTick(int tick) {
+        entityData.set(CURRENT_LOST_LOR_TICK, tick);
+    }
+
     private void setReadyToFire(boolean isReadyToFire) {
         entityData.set(IS_READY_TO_FIRE, isReadyToFire);
     }
@@ -201,6 +221,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     private int getCurrentLockOnTick() {
         return entityData.get(CURRENT_LOCK_ON_TICK);
+    }
+
+    private int getCurrentLostLORTick() {
+        return entityData.get(CURRENT_LOST_LOR_TICK);
     }
 
     private boolean isReadyToFire() {
@@ -254,6 +278,24 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         cachedPriorityTarget = null;
     }
 
+    private Entity getAutoTarget() {
+        @SuppressWarnings("resource") var level = level();
+        if (cachedAutoTarget != null && !cachedAutoTarget.isRemoved()) {
+            return cachedAutoTarget;
+        }
+        if (autoTargetUUID != null && level instanceof ServerLevel server) {
+            cachedAutoTarget = server.getEntity(autoTargetUUID);
+            return cachedAutoTarget;
+        }
+
+        return null;
+    }
+
+    private void setAutoTarget(UUID pTarget) {
+        autoTargetUUID = pTarget;
+        cachedAutoTarget = null;
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -281,23 +323,44 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             move(net.minecraft.world.entity.MoverType.SELF, step);
         }
 
-        Entity target;
-        boolean canWaitIFrame;
+        if ((getPriorityTarget() == null) && ((getCurrentLockOnTick() >= KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET) || (getAutoTarget() == null))) {
+            if (tickCount % 10 == 0){
+                var newTarget = searchAutoTarget(level);
+                if (newTarget != null && newTarget != getAutoTarget()){
+                    // 新たにロックオンを掴んだ場合のみ初回ディレイが入る.
+                    if (getAutoTarget() != null){
+                        setCooldownTick(DELAY_FIRST_AUTO_LOCK_ON_SHOT_TICK);
+                    }
+                    setAutoTarget(newTarget.getUUID());
+                    setCurrentLockOnTick(0);
+                    setCurrentLostLORTick(0);
+                }
+            }
+        }
+
+        Entity target = null;
+        var canWaitIFrame = false;
         if (getPriorityTarget() != null) {
             target = getPriorityTarget();
-
-            // 手動ターゲット時はIFrameを待てるようにする.
             canWaitIFrame = true;
-
-            // 優先ターゲットがいない場合、ターゲットを外す処理を入れておく.
-            // このTickは自動ターゲットが無くても問題ない.
             if (target.isRemoved()) {
                 setPriorityTarget(null);
                 target = null;
             }
-        } else {
-            target = searchAutoTarget(level);
-            canWaitIFrame = false;
+        } else if (getAutoTarget() != null) {
+            target = getAutoTarget();
+            if (target.isRemoved()){
+                setAutoTarget(null);
+                target = null;
+            } else if (!RaycastTools.hasLineOfSight(level, this, target)){
+                setCurrentLostLORTick(getCurrentLostLORTick() + 1);
+                if (getCurrentLostLORTick() >= KEEP_LOCK_ON_TICK_IN_LOST_LOR){
+                    setAutoTarget(null);
+                    target = null;
+                }
+            } else {
+                setCurrentLostLORTick(0);
+            }
         }
 
         var isLockOn = target != null && target.isAlive();
@@ -316,6 +379,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         }
 
         setRot(getYRot(), getXRot());
+        hasImpulse = true;
 
         if (isLockOn) {
             setCurrentLockOnTick(getCurrentLockOnTick() + 1);
@@ -325,7 +389,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         if (getCooldownTick() > 0) {
             setCooldownTick(getCooldownTick() - 1);
-        } else if (isReadyToFire() && target != null){
+        } else if (isReadyToFire() && target != null && target.isAlive()){
             setChargeTick(getChargeTick() + 1);
             if (getChargeTick() >= CHARGE_TICK) {
                 if (!canWaitIFrame || target.invulnerableTime <= 0) {
@@ -347,8 +411,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             if (owner.tickCount % interval == getSlot() * (interval / getMaxSlot())){
                 setReadyToFire(true);
             }
-        } else {
-            setChargeTick(0);
+        } else if (tickCount % 2 == 0 && getChargeTick() > 0){
+            // ロックオンできてない場合は少しずつ減衰する.
+            setChargeTick(getChargeTick() - 1);
         }
     }
 
@@ -424,19 +489,6 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         // 視線の上下は除外する.
         var yaw = owner.getYRot();
         var forward = Vec3.directionFromRotation(0.0f, yaw).normalize();
-
-        // まず背後の対象を強めに取る.
-        var behindTarget = RaycastTools.findNearestEntityInForwardBox(
-                level, this, forward.scale(-1.0),
-                3, 4, 4,
-                e -> CombatTools.isValidCombatTarget(e, owner),
-                true
-        ).orElse(null);
-        if (behindTarget != null) {
-            return behindTarget;
-        }
-
-        // 背後がいなければ正面を見る.
         return RaycastTools.findNearestEntityInForwardBox(
                 level, this, forward,
                 24, 8, 8,
