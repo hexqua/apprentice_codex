@@ -45,12 +45,14 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Integer> REST_BULLET_COUNT =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
+    private static final EntityDataAccessor<Integer> CHARGE_STAGE =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
+
     private UUID ownerUUID;
     private UUID priorityTargetUUID;
     private Entity cachedOwner;
     private Entity cachedPriorityTarget;
 
-    // todo:チャージ時間は描画に影響するため、その部分のみ同期を行う必要がある.
     private int currentChargeTick;
     private int currentCoolDownTick;
     private int currentLockOnTick;
@@ -75,6 +77,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         entityData.define(MAX_SLOT, 1);
         entityData.define(DAMAGE, 0f);
         entityData.define(REST_BULLET_COUNT, 24);
+        entityData.define(CHARGE_STAGE, 0);
     }
 
     @Override
@@ -165,16 +168,19 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     }
 
     public int getStage() {
+        return entityData.get(CHARGE_STAGE);
+    }
+
+    private void setStageByCurrentCharge(){
         if (currentChargeTick <= 0) {
-            return 0;
+            entityData.set(CHARGE_STAGE, 0);
+        }else if (currentChargeTick <= 6) {
+            entityData.set(CHARGE_STAGE, 1);
+        }else if (currentChargeTick <= 9) {
+            entityData.set(CHARGE_STAGE, 2);
+        }else{
+            entityData.set(CHARGE_STAGE, 3);
         }
-        if (currentChargeTick <= 6) {
-            return 1;
-        }
-        if (currentChargeTick <= 9) {
-            return 2;
-        }
-        return 3;
     }
 
     public void setOwner(Entity pOwner) {
@@ -329,6 +335,8 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             // ロックオンできてない場合は少しずつ減衰する.
             --currentChargeTick;
         }
+
+        setStageByCurrentCharge();
     }
 
     private void fire(Entity target, Level level, boolean isLastBullet) {
