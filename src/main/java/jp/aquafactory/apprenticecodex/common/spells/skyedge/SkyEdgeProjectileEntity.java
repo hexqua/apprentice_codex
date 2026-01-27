@@ -9,9 +9,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -28,14 +25,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class SkyEdgeProjectileEntity extends Projectile
 {
-    private static final RandomSource RNG = RandomSource.create();
-
-    private static final EntityDataAccessor<Integer> DATA_STANDBY_TICK =
-            SynchedEntityData.defineId(SkyEdgeProjectileEntity.class, EntityDataSerializers.INT);
-
-    private float damage = 0;
     private static final int LIFE_TICKS = 20 * 5;
     private static final int DEFAULT_STANDBY_TICKS = 10;
+    private static final RandomSource RNG = RandomSource.create();
+
+    private float damage;
+    private int standbyTick;
 
     public SkyEdgeProjectileEntity(EntityType<? extends SkyEdgeProjectileEntity> type, Level level) {
         super(type, level);
@@ -60,6 +55,7 @@ public class SkyEdgeProjectileEntity extends Projectile
         var level = level();
 
         // 射出時パーティクル.
+        // todo:再ログイン制御がいるかどうか.
         if (level.isClientSide && firstTick) {
             EffectTools.createRingParticleClient(position(), getLookAngle(), 8, level);
         }
@@ -81,7 +77,7 @@ public class SkyEdgeProjectileEntity extends Projectile
                 ProjectileUtil.rotateTowardsMovement(this, 1);
             }
 
-            if (isShootingJustTiming()){
+            if (tickCount == standbyTick){
                 var volume = 0.75f;
                 var pitch = 1.5f;
                 level.playSound(
@@ -151,7 +147,6 @@ public class SkyEdgeProjectileEntity extends Projectile
 
     @Override
     protected void defineSynchedData() {
-        entityData.define(DATA_STANDBY_TICK, DEFAULT_STANDBY_TICKS);
     }
 
     @Override
@@ -160,12 +155,16 @@ public class SkyEdgeProjectileEntity extends Projectile
         if (tag.contains("damage")) {
             damage = tag.getFloat("damage");
         }
+        if (tag.contains("standbyTick")) {
+            standbyTick = tag.getInt("standbyTick");
+        }
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat("damage", damage);
+        tag.putInt("standbyTick", standbyTick);
     }
 
     @Override
@@ -189,19 +188,11 @@ public class SkyEdgeProjectileEntity extends Projectile
     }
 
     private boolean canShooting(int delay){
-        return tickCount >= getStandbyTicks() + delay;
-    }
-
-    private boolean isShootingJustTiming(){
-        return tickCount == getStandbyTicks();
-    }
-
-    private int getStandbyTicks() {
-        return this.entityData.get(DATA_STANDBY_TICK);
+        return tickCount >= standbyTick + delay;
     }
 
     public void setStandbyTicks(int ticks) {
-        entityData.set(DATA_STANDBY_TICK, ticks);
+        standbyTick = ticks;
     }
 
     private double getRandomRange(double range){
