@@ -61,7 +61,7 @@ public class SkyEdgeProjectileEntity extends Projectile
 
         // 射出時パーティクル.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(position(), getLookAngle(), level);
+            EffectTools.createRingParticleClient(position(), getLookAngle(), 8, level);
         }
 
         super.tick();

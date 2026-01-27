@@ -8,14 +8,13 @@ import net.minecraft.world.phys.Vec3;
 public class EffectTools {
     private static final RandomSource RNG = RandomSource.create();
 
-    public static void createRingParticleClient(Vec3 position, Vec3 normal, Level level){
+    public static void createRingParticleClient(Vec3 position, Vec3 normal, int count, Level level){
         // todo:パラメータを増やして汎用性を上げるか検討.
         // 平面基底を作る.
         var norm = normal.normalize();
         var arbitrary = Math.abs(norm.y) > 0.99 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
         var u = norm.cross(arbitrary).normalize();
         var w = norm.cross(u).normalize();
-        var count = 8;
         for( var i = 0; i < count; i++){
             var radius = 0.4 + 0.1 * Math.sqrt(level.random.nextDouble());
             var angle = (Math.PI * 2.0) * i / count + level.random.nextDouble() * 0.05;
