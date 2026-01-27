@@ -26,9 +26,8 @@ import java.util.UUID;
 
 public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
-    private static final int CHARGE_TICK_MAX = 15;
-    private static final int COOLDOWN_TICK_MIN = 20;
-    private static final int COOLDOWN_TICK_MAX = 40;
+    private static final int CHARGE_TICK = 15;
+    private static final int COOLDOWN_TICK = 8;
 
     private static final EntityDataAccessor<Integer> SLOT =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
@@ -36,11 +35,17 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Integer> MAX_SLOT =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
-    private static final EntityDataAccessor<Integer> CHARGE_TICK =
+    private static final EntityDataAccessor<Integer> CURRENT_CHARGE_TICK =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
-    private static final EntityDataAccessor<Integer> COOLDOWN_TICK =
+    private static final EntityDataAccessor<Integer> CURRENT_COOLDOWN_TICK =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Integer> CURRENT_LOCK_ON_TICK =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Boolean> IS_READY_TO_FIRE =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<Float> DAMAGE =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
@@ -65,8 +70,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     protected void defineSynchedData() {
         entityData.define(SLOT, 0);
         entityData.define(MAX_SLOT, 1);
-        entityData.define(CHARGE_TICK, 0);
-        entityData.define(COOLDOWN_TICK, COOLDOWN_TICK_MAX);
+        entityData.define(CURRENT_CHARGE_TICK, 0);
+        entityData.define(CURRENT_COOLDOWN_TICK, 0);
+        entityData.define(CURRENT_LOCK_ON_TICK, 0);
+        entityData.define(IS_READY_TO_FIRE, false);
         entityData.define(DAMAGE, 0f);
     }
 
@@ -78,7 +85,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         }
         if (tag.hasUUID("PriorityTargetUUID")) {
             priorityTargetUUID = tag.getUUID("PriorityTargetUUID");
+            cachedPriorityTarget = null;
         }
+
         if (tag.contains("Slot")) {
             entityData.set(SLOT, tag.getInt("Slot"));
         }
@@ -86,10 +95,16 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             entityData.set(MAX_SLOT, tag.getInt("MaxSlot"));
         }
         if (tag.contains("ChargeTick")) {
-            entityData.set(CHARGE_TICK, tag.getInt("ChargeTick"));
+            entityData.set(CURRENT_CHARGE_TICK, tag.getInt("ChargeTick"));
         }
         if (tag.contains("CooldownTick")) {
-            entityData.set(COOLDOWN_TICK, tag.getInt("CooldownTick"));
+            entityData.set(CURRENT_COOLDOWN_TICK, tag.getInt("CooldownTick"));
+        }
+        if (tag.contains("CurrentLockOnTick")) {
+            entityData.set(CURRENT_LOCK_ON_TICK, tag.getInt("CurrentLockOnTick"));
+        }
+        if (tag.contains("IsReadyToFire")) {
+            entityData.set(IS_READY_TO_FIRE, tag.getBoolean("IsReadyToFire"));
         }
         if (tag.contains("Damage")) {
             entityData.set(DAMAGE, tag.getFloat("Damage"));
@@ -107,8 +122,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         tag.putInt("Slot", entityData.get(SLOT));
         tag.putInt("MaxSlot", entityData.get(MAX_SLOT));
-        tag.putInt("ChargeTick", entityData.get(CHARGE_TICK));
-        tag.putInt("CooldownTick", entityData.get(COOLDOWN_TICK));
+        tag.putInt("ChargeTick", entityData.get(CURRENT_CHARGE_TICK));
+        tag.putInt("CooldownTick", entityData.get(CURRENT_COOLDOWN_TICK));
+        tag.putInt("CurrentLockOnTick", entityData.get(CURRENT_LOCK_ON_TICK));
         tag.putFloat("Damage", entityData.get(DAMAGE));
     }
 
@@ -136,19 +152,23 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     }
 
     private void setChargeTick(int tick) {
-        entityData.set(CHARGE_TICK, tick);
+        entityData.set(CURRENT_CHARGE_TICK, tick);
     }
 
     private void setCooldownTick(int tick) {
-        entityData.set(COOLDOWN_TICK, tick);
+        entityData.set(CURRENT_COOLDOWN_TICK, tick);
+    }
+
+    private void setCurrentLockOnTick(int tick) {
+        entityData.set(CURRENT_LOCK_ON_TICK, tick);
+    }
+
+    private void setReadyToFire(boolean isReadyToFire) {
+        entityData.set(IS_READY_TO_FIRE, isReadyToFire);
     }
 
     public void setDamage(float damage) {
         entityData.set(DAMAGE, damage);
-    }
-
-    public void setCooldownRandom(Level level){
-        setCooldownTick(level.random.nextIntBetweenInclusive(COOLDOWN_TICK_MIN, COOLDOWN_TICK_MAX));
     }
 
     private int getSlot() {
@@ -160,11 +180,19 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     }
 
     private int getChargeTick() {
-        return entityData.get(CHARGE_TICK);
+        return entityData.get(CURRENT_CHARGE_TICK);
     }
 
     private int getCooldownTick() {
-        return entityData.get(COOLDOWN_TICK);
+        return entityData.get(CURRENT_COOLDOWN_TICK);
+    }
+
+    private int getCurrentLockOnTick() {
+        return entityData.get(CURRENT_LOCK_ON_TICK);
+    }
+
+    private boolean isReadyToFire() {
+        return entityData.get(IS_READY_TO_FIRE);
     }
 
     private float getDamage() {
@@ -207,6 +235,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     public void setPriorityTarget(UUID pTarget) {
         priorityTargetUUID = pTarget;
+        cachedPriorityTarget = null;
     }
 
     @Override
@@ -250,7 +279,8 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             target = searchAutoTarget(level);
         }
 
-        if (target != null && target.isAlive()) {
+        var isLockOn = target != null && target.isAlive();
+        if (isLockOn) {
             var targetPosition = target.position().add(0, target.getBbHeight() / 2, 0);
             var targetFaceVector = targetPosition.subtract(position()).normalize();
             var yaw = (float) (Mth.atan2(-targetFaceVector.x, targetFaceVector.z) * Mth.RAD_TO_DEG);
@@ -266,14 +296,26 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         setRot(getYRot(), getXRot());
 
+        if (isLockOn) {
+            setCurrentLockOnTick(getCurrentLockOnTick() + 1);
+        } else {
+            setCurrentLockOnTick(0);
+        }
+
         if (getCooldownTick() > 0) {
             setCooldownTick(getCooldownTick() - 1);
-        } else if (target != null) {
+        } else if (isReadyToFire()){
             setChargeTick(getChargeTick() + 1);
-            if (getChargeTick() >= CHARGE_TICK_MAX) {
+            if (getChargeTick() >= CHARGE_TICK) {
                 fire(target, level);
-                setCooldownTick(level.random.nextIntBetweenInclusive(COOLDOWN_TICK_MIN, COOLDOWN_TICK_MAX));
+                setCooldownTick(COOLDOWN_TICK);
                 setChargeTick(0);
+                setReadyToFire(false);
+            }
+        } else if (isLockOn && getMaxSlot() > 0) {
+            var interval = CHARGE_TICK + COOLDOWN_TICK;
+            if (owner.tickCount % interval == getSlot() * (interval / getMaxSlot())){
+                setReadyToFire(true);
             }
         } else {
             setChargeTick(0);
