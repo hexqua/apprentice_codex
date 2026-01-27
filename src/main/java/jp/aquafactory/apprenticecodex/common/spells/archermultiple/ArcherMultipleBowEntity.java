@@ -266,8 +266,12 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         }
 
         Entity target;
+        boolean canWaitIFrame;
         if (getPriorityTarget() != null) {
             target = getPriorityTarget();
+
+            // 手動ターゲット時はIFrameを待てるようにする.
+            canWaitIFrame = true;
 
             // 優先ターゲットがいない場合、ターゲットを外す処理を入れておく.
             // このTickは自動ターゲットが無くても問題ない.
@@ -277,6 +281,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             }
         } else {
             target = searchAutoTarget(level);
+            canWaitIFrame = false;
         }
 
         var isLockOn = target != null && target.isAlive();
@@ -304,13 +309,15 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         if (getCooldownTick() > 0) {
             setCooldownTick(getCooldownTick() - 1);
-        } else if (isReadyToFire()){
+        } else if (isReadyToFire() && target != null){
             setChargeTick(getChargeTick() + 1);
             if (getChargeTick() >= CHARGE_TICK) {
-                fire(target, level);
-                setCooldownTick(COOLDOWN_TICK);
-                setChargeTick(0);
-                setReadyToFire(false);
+                if (!canWaitIFrame || target.invulnerableTime <= 0) {
+                    fire(target, level);
+                    setCooldownTick(COOLDOWN_TICK);
+                    setChargeTick(0);
+                    setReadyToFire(false);
+                }
             }
         } else if (isLockOn && getMaxSlot() > 0) {
             var interval = CHARGE_TICK + COOLDOWN_TICK;
