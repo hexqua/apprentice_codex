@@ -4,9 +4,9 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraftforge.entity.PartEntity;
 
 import javax.annotation.Nullable;
@@ -51,6 +51,42 @@ public class CombatTools {
         } else {
             return target.hurt(source, baseAmount);
         }
+    }
+
+    public static boolean canBeHostileToMe(Entity target, LivingEntity player) {
+        if (player == null || target == null) return false;
+        if (target == player) return false;
+        if (!target.isAlive()) return false;
+
+        if (player.isAlliedTo(target) || target.isAlliedTo(player)) {
+            return false;
+        }
+        if (target instanceof TamableAnimal tame && tame.isTame() && tame.isOwnedBy(player)) {
+            return false;
+        }
+
+        if (target instanceof Enemy){
+            return true;
+        }
+
+        if (player.getLastHurtByMob() == target){
+            return true;
+        }
+
+        if (target instanceof Mob mob && mob.getTarget() == player){
+            return true;
+        }
+
+        if (target instanceof NeutralMob neutral) {
+            var angerTarget = neutral.getPersistentAngerTarget();
+            if (angerTarget != null && angerTarget.equals(player.getUUID())){
+                return true;
+            }
+
+            return neutral.isAngryAt(player);
+        }
+
+        return false;
     }
 
     private static float getResistAttribute(LivingEntity entity, SchoolType damageSchool) {

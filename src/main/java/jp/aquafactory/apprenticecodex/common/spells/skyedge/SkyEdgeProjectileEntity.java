@@ -1,8 +1,9 @@
-package jp.aquafactory.apprenticecodex.common.spells;
+package jp.aquafactory.apprenticecodex.common.spells.skyedge;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -56,34 +57,11 @@ public class SkyEdgeProjectileEntity extends Projectile
 
     @Override
     public void tick() {
-        //noinspection resource
         var level = level();
 
         // 射出時パーティクル.
         if (level.isClientSide && firstTick) {
-            // 平面基底を作る.
-            var norm = getLookAngle().normalize();
-            var arbitrary = Math.abs(norm.y) > 0.99 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
-            var u = norm.cross(arbitrary).normalize();
-            var w = norm.cross(u).normalize();
-            var count = 8;
-            for( var i = 0; i < count; i++){
-                var radius = 0.4 + 0.1 * Math.sqrt(level.random.nextDouble());
-                var angle = (Math.PI * 2.0) * i / count + level.random.nextDouble() * 0.05;
-                var a = Math.cos(angle) * radius;
-                var b = Math.sin(angle) * radius;
-                var offset = u.scale(a).add(w.scale(b));
-                var pos = position().add(offset);
-                level.addParticle(
-                        ParticleTypes.END_ROD,
-                        pos.x,
-                        pos.y,
-                        pos.z,
-                        RNG.nextDouble() * 0.015,
-                        RNG.nextDouble() * 0.015,
-                        RNG.nextDouble() * 0.015
-                );
-            }
+            EffectTools.createRingParticleClient(position(), getLookAngle(), 8, level);
         }
 
         super.tick();
