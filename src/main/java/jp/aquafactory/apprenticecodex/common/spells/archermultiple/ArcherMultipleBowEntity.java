@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -298,9 +299,15 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     @Override
     public void tick() {
+        var level = level();
+
+        // 射出時パーティクル.
+        if (level.isClientSide && firstTick) {
+            EffectTools.createRingParticleClient(position(), getLookAngle(), level);
+        }
+
         super.tick();
 
-        var level = level();
         if (level.isClientSide) {
             return;
         }
@@ -450,6 +457,17 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         var source = DamageSources.getDamageSource(level, this, getOwner(), sourceType);
         CombatTools.applyDamage(target, damage, source, SchoolRegistry.EVOCATION.get(), CombatTools.KnockbackTypes.DEFAULT);
         level.playSound(null, getX(), getY(), getZ(), soundEvent, SoundSource.PLAYERS, 0.5f, 1.0f);
+    }
+
+    public void locateCurrentFormationPosition(){
+        if ((getOwner() instanceof LivingEntity owner)) {
+            var formationPosition = getFormationPosition(owner, getSlot(), getMaxSlot());
+            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
+            setYRot(owner.getYRot());
+            setXRot(0);
+            setRot(getYRot(), getXRot());
+            hasImpulse = true;
+        }
     }
 
     private static Vec3 getFormationPosition(LivingEntity owner, int index, int maxIndex) {
