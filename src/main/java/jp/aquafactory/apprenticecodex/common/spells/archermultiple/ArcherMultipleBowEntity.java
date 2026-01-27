@@ -32,6 +32,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final int DELAY_FIRST_AUTO_LOCK_ON_SHOT_TICK = 10;
     private static final int KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET = 60;
     private static final int KEEP_LOCK_ON_TICK_IN_LOST_LOR = 20;
+    private static final int KEEP_FIRE_CONTINUE_TICK = 40;
 
     private static final EntityDataAccessor<Integer> CHARGE_STAGE =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
@@ -49,6 +50,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private int currentCoolDownTick;
     private int currentLockOnTick;
     private int currentLostSightTick;
+    private int keepFireContinueTick;
     private boolean isReadyToFire;
     private Entity autoTarget;
 
@@ -226,13 +228,15 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             if (tickCount % 10 == 0){
                 var newTarget = searchAutoTarget(level);
                 if (newTarget != null && newTarget != autoTarget){
-                    // 新たにロックオンを掴んだ場合のみ初回ディレイが入る.
-                    if (autoTarget != null){
+                    // 久々にロックを掴んだらディレイを入れる.
+                    if (keepFireContinueTick == 0){
                         currentCoolDownTick = DELAY_FIRST_AUTO_LOCK_ON_SHOT_TICK;
                     }
+
                     autoTarget = newTarget;
                     currentLockOnTick = 0;
                     currentLostSightTick = 0;
+                    keepFireContinueTick = KEEP_FIRE_CONTINUE_TICK;
                 }
             }
         }
@@ -255,7 +259,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             }
         }
 
-        var isLockOn = target != null && target.isAlive();
+        var isLockOn = target != null;
         if (isLockOn) {
             var targetPosition = target.position().add(0, target.getBbHeight() / 2, 0);
             var targetFaceVector = targetPosition.subtract(position()).normalize();
@@ -275,8 +279,12 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         if (isLockOn) {
             ++currentLockOnTick;
+            keepFireContinueTick = KEEP_FIRE_CONTINUE_TICK;
         } else {
             currentLockOnTick = 0;
+            if (keepFireContinueTick > 0) {
+                --keepFireContinueTick;
+            }
         }
 
         if (currentCoolDownTick > 0) {
