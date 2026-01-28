@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.*;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.EffectRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -15,6 +16,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +48,8 @@ public class CommenceFire extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.recast_count", getBulletCount(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDuration(spellLevel, caster), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
@@ -58,6 +62,11 @@ public class CommenceFire extends AbstractSpell {
     private int getBulletCount(int spellLevel, LivingEntity entity) {
         // todo:バランス調整.
         return 4;
+    }
+
+    private int getDuration(int spellLevel, LivingEntity entity){
+        // todo:バランス調整.
+        return Math.round((20 * 15) * getSpellPower(spellLevel, entity) / 100.0f);
     }
 
     @Override
@@ -77,8 +86,13 @@ public class CommenceFire extends AbstractSpell {
 
     @Override
     public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
-        // todo:再詠唱時は変更する.
-        return super.getEffectiveCastTime(spellLevel, entity);
+        if(isCommenceFireMode(entity)){
+            // 攻撃は詠唱時間固定.
+            return 10;
+        }
+
+        // 通常時はアニメが絡むため、詠唱時間補正は効かない.
+        return getCastTime(spellLevel);
     }
 
     @Override
@@ -112,19 +126,57 @@ public class CommenceFire extends AbstractSpell {
 
     @Override
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
-        // todo:撃ち切った後の後始末を入れる.
+        if (isCommenceFireMode(serverPlayer)) {
+            var modeEffect = EffectRegistry.COMMENCE_FIRE_MODE.get();
+            serverPlayer.removeEffect(modeEffect);
+        }
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var recasts = playerMagicData.getPlayerRecasts();
+        if (!recasts.hasRecastForSpell(this)) {
+            // 初回発動なのにモードを持っていたら消してから処理.
+            // サーバーサイド動作なのでここで消してOK.
+            var modeEffect = EffectRegistry.COMMENCE_FIRE_MODE.get();
+            if (isCommenceFireMode(entity)) {
+                entity.removeEffect(modeEffect);
+            }
+            return true;
+        }
+
+        return true;
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        if (playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
-            var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
-            // 再詠唱.
+        var recasts = playerMagicData.getPlayerRecasts();
+        if (recasts.hasRecastForSpell(this)) {
+            var recast = recasts.getRecastInstance(getSpellId());
+            if(!isCommenceFireMode(entity)){
+                // todo:モードが解除されているのに発動なのでペナルティ.
+            }
+            else{
+                // todo:攻撃.
+            }
         } else {
             // 初回詠唱.
+            var modeTime = getDuration(spellLevel, entity);
+            var castData = new CommenceFireCastData();
+            var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), modeTime, castSource, castData);
+            recasts.addRecast(recastInstance, playerMagicData);
+            entity.addEffect(new MobEffectInstance(EffectRegistry.COMMENCE_FIRE_MODE.get(), modeTime, 0, false, false, true));
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private static boolean isCommenceFireMode(LivingEntity entity) {
+        if (entity == null) {
+            return false;
+        }
+
+        return entity.hasEffect(EffectRegistry.COMMENCE_FIRE_MODE.get());
     }
 
     public class CommenceFireCastData implements ICastDataSerializable {
