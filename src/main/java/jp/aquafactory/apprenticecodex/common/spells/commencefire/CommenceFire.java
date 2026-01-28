@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.*;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
@@ -172,7 +173,10 @@ public class CommenceFire extends AbstractSpell {
                 var range = getRange(spellLevel, entity);
                 var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
                 if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
-                    // todo:ダメージとかエフェクトとか.
+                    // todo:エフェクトとか.
+                    var target = CombatTools.resolutePartEntity(result.hitEntity());
+                    var source = DamageSources.getDamageSource(level, entity, "commence_fire");
+                    CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
                 }
             }
         } else {

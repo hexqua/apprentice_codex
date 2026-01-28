@@ -16,6 +16,15 @@ public class DamageSources {
         // do nothing.
     }
 
+    public static DamageSource getDamageSource(Level level, Entity entity, String typeName) {
+        var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
+        var type = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(ApprenticeCodex.MODID, typeName));
+        var holder = reg.getHolder(type)
+                .orElseGet(() -> (Holder.Reference<DamageType>) level.damageSources().genericKill().typeHolder());
+
+        return new DamageSource(holder, entity);
+    }
+
     public static DamageSource getDamageSource(Level level, Entity projectile, Entity owner, String typeName) {
         var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
         var type = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(ApprenticeCodex.MODID, typeName));
