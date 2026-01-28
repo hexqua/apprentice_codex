@@ -27,10 +27,11 @@ public class RaycastTools {
 
     public record TargetResult(
             TargetType type,
-            Vec3 hitPosition
+            Vec3 hitPosition,
+            Entity hitEntity
     ) {}
 
-    public static TargetResult raycastFromEye(LivingEntity source, double range) {
+    public static TargetResult raycastFromEye(LivingEntity source, double range, Predicate<Entity> predicate) {
         var level = source.level();
 
         var start = source.getEyePosition(1.0F);
@@ -60,21 +61,22 @@ public class RaycastTools {
                 start,
                 effectiveEnd,
                 searchBox,
-                e -> (e instanceof LivingEntity le)
-                        && le.isPickable()
-                        && le != source
+                e -> e != source
+                        && e.isAlive()
+                        && predicate.test(e)
         );
 
-        if (entityHit != null && entityHit.getEntity() instanceof LivingEntity le) {
-            var center = le.getBoundingBox().getCenter();
-            return new TargetResult(TargetType.LIVING_ENTITY, center);
+        if (entityHit != null) {
+            var e = entityHit.getEntity();
+            var center = e.getBoundingBox().getCenter();
+            return new TargetResult(TargetType.LIVING_ENTITY, center, e);
         }
 
         if (blockHit.getType() != HitResult.Type.MISS) {
-            return new TargetResult(TargetType.BLOCK, blockHit.getLocation());
+            return new TargetResult(TargetType.BLOCK, blockHit.getLocation(), null);
         }
 
-        return new TargetResult(TargetType.NONE, end);
+        return new TargetResult(TargetType.NONE, end, null);
     }
 
     public static boolean hasLineOfSight(Level level, Entity source, Entity target) {

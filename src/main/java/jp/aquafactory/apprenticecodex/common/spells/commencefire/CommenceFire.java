@@ -9,6 +9,8 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.*;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -67,6 +69,12 @@ public class CommenceFire extends AbstractSpell {
     private int getDuration(int spellLevel, LivingEntity entity){
         // todo:バランス調整.
         return Math.round((20 * 15) * getSpellPower(spellLevel, entity) / 100.0f);
+    }
+
+    private int getRange(int spellLevel, LivingEntity entity){
+        // todo:バランス調整.
+        // 一旦狙撃イメージで10チャンク.
+        return 16 * 10;
     }
 
     @Override
@@ -155,10 +163,17 @@ public class CommenceFire extends AbstractSpell {
         if (recasts.hasRecastForSpell(this)) {
             var recast = recasts.getRecastInstance(getSpellId());
             if(!isCommenceFireMode(entity)){
-                // todo:モードが解除されているのに発動なのでペナルティ.
-            }
-            else{
-                // todo:攻撃.
+                // モードが解除されているのにリキャストしようとしたため、強制キャンセル.
+                if (entity instanceof ServerPlayer serverPlayer && recast.getRemainingRecasts() > 0) {
+                    MagicData.getPlayerMagicData(serverPlayer).getPlayerRecasts().removeRecast(recast, RecastResult.TIMEOUT);
+                }
+            } else {
+                // 成立(攻撃)
+                var range = getRange(spellLevel, entity);
+                var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
+                if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
+                    // todo:ダメージとかエフェクトとか.
+                }
             }
         } else {
             // 初回詠唱.
