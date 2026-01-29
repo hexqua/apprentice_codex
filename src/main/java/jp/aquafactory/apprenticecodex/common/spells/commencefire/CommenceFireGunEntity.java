@@ -1,5 +1,11 @@
 package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -18,6 +24,8 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
 
     private UUID ownerUUID;
     private Entity cachedOwner;
+    private float damage;
+    private int castingTick;
 
     public CommenceFireGunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -41,6 +49,7 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
             ownerUUID = tag.getUUID("Owner");
             cachedOwner = null;
         }
+        damage = tag.getFloat("Damage");
     }
 
     @Override
@@ -48,6 +57,7 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
         if (ownerUUID != null) {
             tag.putUUID("Owner", ownerUUID);
         }
+        tag.putFloat("Damage", damage);
     }
 
     @Override
@@ -103,6 +113,27 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
         setXRot(0);
         setRot(getYRot(), getXRot());
         hasImpulse = true;
+    }
+
+    public void setDamage(float newDamage){
+        damage = newDamage;
+    }
+
+    public void setCastingTick(int tick){
+        // todo:詠唱中演出.
+        ApprenticeCodex.LOGGER.debug("setCastingTick: {}", tick);
+        castingTick = tick;
+    }
+
+    public void fire(Entity target, Level level){
+        var resoluteTarget = CombatTools.resolutePartEntity(target);
+        var source = DamageSources.getDamageSource(level, getOwner(), "commence_fire");
+        CombatTools.applyDamage(resoluteTarget, damage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
+
+        // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
+        var length = target.position().subtract(position()).length();
+        var normal = getLookAngle().normalize();
+        EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleTypes.ELECTRIC_SPARK, level);
     }
 
     public void locateAimingPosition(){

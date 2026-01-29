@@ -8,7 +8,6 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.*;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
@@ -157,22 +156,33 @@ public class CommenceFire extends AbstractSpell {
     }
 
     @Override
+    public void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        super.onServerCastTick(level, spellLevel, entity, playerMagicData);
+        var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
+        if (summon == null) {
+            return;
+        }
+
+        // 上の判定式で非nullが保証.
+        //noinspection DataFlowIssue
+        summon.setCastingTick(playerMagicData.getCastDurationRemaining());
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
-            // todo:実体を召喚側に移動させる.
             var range = getRange(spellLevel, entity);
             var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
             if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
-                var target = CombatTools.resolutePartEntity(result.hitEntity());
-                var source = DamageSources.getDamageSource(level, entity, "commence_fire");
-                CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
+                var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
+                summon.fire(result.hitEntity(), level);
             }
         } else {
-            // 初回詠唱.
             var castData = new CommenceFireCastData();
             var summonWeapon = new CommenceFireGunEntity(EntityRegistry.COMMENCE_FIRE_GUN.get(), level, entity);
             summonWeapon.locateAimingPosition();
+            summonWeapon.setDamage(getDamage(spellLevel, entity));
             castData.setEntity(summonWeapon);
             level.addFreshEntity(summonWeapon);
 
@@ -180,6 +190,31 @@ public class CommenceFire extends AbstractSpell {
             recasts.addRecast(recastInstance, playerMagicData);
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private CommenceFireGunEntity getCommenceFireEntityFromMagicData(MagicData playerMagicData, Level level){
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return null;
+        }
+
+        if (playerMagicData == null) {
+            return null;
+        }
+
+        var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
+        if (recast == null) {
+            return null;
+        }
+
+        if (!(recast.getCastData() instanceof CommenceFireCastData castData)) {
+            return null;
+        }
+
+        if (!(castData.getEntity(serverLevel) instanceof CommenceFireGunEntity summon)) {
+            return null;
+        }
+
+        return summon;
     }
 
     public class CommenceFireCastData implements ICastDataSerializable {
