@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.common.utility;
 
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -31,6 +33,29 @@ public class EffectTools {
                     RNG.nextDouble() * 0.015,
                     RNG.nextDouble() * 0.015
             );
+        }
+    }
+
+    public static void createLineParticleServer(Vec3 position, Vec3 direction, double length, double step,
+                                                ParticleOptions particle, Level level) {
+        // todo:パラメータを増やして汎用性を上げるか検討.
+        // todo:クライアント版も作る.
+        var normalizedDirection = direction.normalize();
+        if (level instanceof ServerLevel server) {
+            for (var offset = 0.0; offset < length; offset += step) {
+                var pos = position.add(normalizedDirection.scale(offset));
+                server.sendParticles(
+                        particle,
+                        pos.x + server.random.nextDouble() * 0.01 - 0.005,
+                        pos.y + server.random.nextDouble() * 0.01 - 0.005,
+                        pos.z + server.random.nextDouble() * 0.01 - 0.005,
+                        1,
+                        server.random.nextDouble() * 0.1 - 0.05,
+                        server.random.nextDouble() * 0.1 - 0.05,
+                        server.random.nextDouble() * 0.1 - 0.05,
+                        0.01
+                );
+            }
         }
     }
 }
