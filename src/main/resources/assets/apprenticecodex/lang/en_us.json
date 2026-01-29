@@ -5,7 +5,7 @@
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires in the direction of your gaze. It takes time to fire and has no knockback, but it can ignore the target’s invincibility frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking the designated target—or nearby enemies—until it runs out of ammunition.",
-  "spell.apprenticecodex.commence_fire.guide": "Summons a magical gun to the user’s hand. Then, upon use, unleashes a powerful ranged shooting attack.",
+  "spell.apprenticecodex.commence_fire.guide": "Summons a magical gun that follows you. Then, upon use, unleashes a powerful ranged shooting attack.",
 
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
 

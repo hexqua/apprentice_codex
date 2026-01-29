@@ -9,7 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.*;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
-import jp.aquafactory.apprenticecodex.common.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.nbt.CompoundTag;
@@ -17,15 +17,17 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class CommenceFire extends AbstractSpell {
     @SuppressWarnings("removal")
@@ -95,13 +97,22 @@ public class CommenceFire extends AbstractSpell {
 
     @Override
     public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
-        if(isCommenceFireMode(entity)){
-            // 攻撃は詠唱時間固定.
-            return 10;
+        if (entity == null) {
+            return getCastTime(spellLevel);
         }
 
-        // 通常時はアニメが絡むため、詠唱時間補正は効かない.
-        return getCastTime(spellLevel);
+        var magicData = MagicData.getPlayerMagicData(entity);
+        if (magicData == null){
+            return super.getEffectiveCastTime(spellLevel, entity);
+        }
+
+        var recasts = magicData.getPlayerRecasts();
+        if (!recasts.hasRecastForSpell(this)){
+            return super.getEffectiveCastTime(spellLevel, entity);
+        }
+
+        // 射撃は固定値(0.25秒)
+        return 5;
     }
 
     @Override
@@ -124,8 +135,7 @@ public class CommenceFire extends AbstractSpell {
 
     @Override
     public AnimationHolder getCastStartAnimation() {
-        // todo:Recast関係で変えられないので別のところでアニメを再生するか検討.
-        return SpellAnimations.OVERHEAD_MELEE_SWING_ANIMATION;
+        return SpellAnimations.ONE_HANDED_HORIZONTAL_SWING_ANIMATION;
     }
 
     @Override
@@ -135,94 +145,79 @@ public class CommenceFire extends AbstractSpell {
 
     @Override
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
-        if (isCommenceFireMode(serverPlayer)) {
-            var modeEffect = EffectRegistry.COMMENCE_FIRE_MODE.get();
-            serverPlayer.removeEffect(modeEffect);
-        }
-        super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
-    }
-
-    @Override
-    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var recasts = playerMagicData.getPlayerRecasts();
-        if (!recasts.hasRecastForSpell(this)) {
-            // 初回発動なのにモードを持っていたら消してから処理.
-            // サーバーサイド動作なのでここで消してOK.
-            var modeEffect = EffectRegistry.COMMENCE_FIRE_MODE.get();
-            if (isCommenceFireMode(entity)) {
-                entity.removeEffect(modeEffect);
+        if (castDataSerializable instanceof CommenceFireCastData castData) {
+            var serverLevel = serverPlayer.serverLevel();
+            var entity = castData.getEntity(serverLevel);
+            if(entity != null){
+                entity.discard();
             }
-            return true;
         }
 
-        return true;
+        super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
-            var recast = recasts.getRecastInstance(getSpellId());
-            if(!isCommenceFireMode(entity)){
-                // モードが解除されているのにリキャストしようとしたため、強制キャンセル.
-                if (entity instanceof ServerPlayer serverPlayer && recast.getRemainingRecasts() > 0) {
-                    MagicData.getPlayerMagicData(serverPlayer).getPlayerRecasts().removeRecast(recast, RecastResult.TIMEOUT);
-                }
-            } else {
-                // 成立(攻撃)
-                var range = getRange(spellLevel, entity);
-                var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
-                if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
-                    // todo:エフェクトとか.
-                    var target = CombatTools.resolutePartEntity(result.hitEntity());
-                    var source = DamageSources.getDamageSource(level, entity, "commence_fire");
-                    CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
-                }
+            // todo:実体を召喚側に移動させる.
+            var range = getRange(spellLevel, entity);
+            var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
+            if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
+                var target = CombatTools.resolutePartEntity(result.hitEntity());
+                var source = DamageSources.getDamageSource(level, entity, "commence_fire");
+                CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
             }
         } else {
             // 初回詠唱.
-            var modeTime = getDuration(spellLevel, entity);
             var castData = new CommenceFireCastData();
-            var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), modeTime, castSource, castData);
+            var summonWeapon = new CommenceFireGunEntity(EntityRegistry.COMMENCE_FIRE_GUN.get(), level, entity);
+            summonWeapon.locateAimingPosition();
+            castData.setEntity(summonWeapon);
+            level.addFreshEntity(summonWeapon);
+
+            var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDuration(spellLevel, entity), castSource, castData);
             recasts.addRecast(recastInstance, playerMagicData);
-            entity.addEffect(new MobEffectInstance(EffectRegistry.COMMENCE_FIRE_MODE.get(), modeTime, 0, false, false, true));
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 
-    private static boolean isCommenceFireMode(LivingEntity entity) {
-        if (entity == null) {
-            return false;
+    public class CommenceFireCastData implements ICastDataSerializable {
+        private UUID entityId;
+
+        public void setEntity(Entity entity){
+            entityId = entity.getUUID();
         }
 
-        return entity.hasEffect(EffectRegistry.COMMENCE_FIRE_MODE.get());
-    }
+        public Entity getEntity(ServerLevel level){
+            return level.getEntity(entityId);
+        }
 
-    public class CommenceFireCastData implements ICastDataSerializable {
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            // todo: 保存するものを決めて書き込む.
+            friendlyByteBuf.writeUUID(entityId);
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
-            // todo: 保存したものを読み込む.
+            entityId = friendlyByteBuf.readUUID();
         }
 
         @Override
         public void reset() {
-            // do nothing.
+            entityId = null;
         }
 
         @Override
         public CompoundTag serializeNBT() {
-            // todo: NBTシリアライズを調べて対応.
-            return new CompoundTag();
+            var tag = new CompoundTag();
+            tag.putUUID("Entity", entityId);
+            return tag;
         }
 
         @Override
         public void deserializeNBT(CompoundTag nbt) {
-            // todo: NBTデシリアライズを調べて対応.
+            entityId = nbt.getUUID("Entity");
         }
     }
 }

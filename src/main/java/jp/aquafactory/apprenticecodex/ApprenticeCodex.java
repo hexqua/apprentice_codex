@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex;
 
 import com.mojang.logging.LogUtils;
-import jp.aquafactory.apprenticecodex.common.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
@@ -24,6 +23,5 @@ public class ApprenticeCodex
         SpellsRegistry.register(bus);
         EntityRegistry.register(bus);
         ItemRegistry.ITEMS.register(bus);
-        EffectRegistry.EFFECTS.register(bus);
     }
 }
