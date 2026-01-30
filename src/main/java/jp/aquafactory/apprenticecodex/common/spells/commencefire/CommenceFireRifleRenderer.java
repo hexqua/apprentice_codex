@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -11,28 +12,26 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
-public class CommenceFireGunRenderer  extends EntityRenderer<CommenceFireGunEntity> {
-    private final ItemStack renderItem = new ItemStack(Items.CROSSBOW);
+public class CommenceFireRifleRenderer extends EntityRenderer<CommenceFireRifleEntity> {
+    private final ItemStack renderItem = new ItemStack(ItemRegistry.COMMENCE_FIRE_RIFLE.get());
 
-    public CommenceFireGunRenderer(EntityRendererProvider.Context pContext) {
+    public CommenceFireRifleRenderer(EntityRendererProvider.Context pContext) {
         super(pContext);
     }
 
     @Override
-    public void render(CommenceFireGunEntity entity, float entityYaw, float partialTicks,
+    public void render(CommenceFireRifleEntity entity, float entityYaw, float partialTicks,
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
-        // todo:モデル描画にする(今はアーチャーオプションのアイテム描画を使いまわし)
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(-entity.getYRot()));
         poseStack.mulPose(Axis.XP.rotationDegrees(entity.getXRot()));
 
-        // 左上に発射口が向いているアイテムが先端を向くように調整.
-        poseStack.mulPose(Axis.YP.rotationDegrees(90.0f));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(+45.0f));
+        // blockbenchモデルで作ったため、
+        // 180度回転だけで問題なさそう.
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
         Minecraft.getInstance().getItemRenderer().renderStatic(
                 renderItem,
                 ItemDisplayContext.NONE,
@@ -49,7 +48,7 @@ public class CommenceFireGunRenderer  extends EntityRenderer<CommenceFireGunEnti
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull CommenceFireGunEntity pEntity) {
+    public @NotNull ResourceLocation getTextureLocation(@NotNull CommenceFireRifleEntity pEntity) {
         return InventoryMenu.BLOCK_ATLAS;
     }
 }

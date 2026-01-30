@@ -7,7 +7,6 @@ import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -24,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class CommenceFireGunEntity extends Entity implements TraceableEntity {
+public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     private UUID ownerUUID;
     private Entity cachedOwner;
@@ -32,12 +31,12 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
     private float damage;
     private int castingTick;
 
-    public CommenceFireGunEntity(EntityType<?> pEntityType, Level pLevel) {
+    public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         setNoGravity(true);
     }
 
-    public CommenceFireGunEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
+    public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel);
         setOwner(owner);
         setNoGravity(true);
@@ -193,7 +192,7 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
         var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
         var right = new Vec3(back.z, 0, -back.x).normalize();
 
-        var behindOffset = back.scale(-0.7).add(new Vec3(0, 0.3, 0)).add(right.scale(-0.7));
+        var behindOffset = back.scale(-0.3).add(new Vec3(0, 0.2, 0)).add(right.scale(-0.9));
         return owner.getEyePosition().add(behindOffset);
     }
 }

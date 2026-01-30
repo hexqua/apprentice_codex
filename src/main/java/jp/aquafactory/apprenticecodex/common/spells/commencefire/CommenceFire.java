@@ -200,7 +200,7 @@ public class CommenceFire extends AbstractSpell {
             }
         } else {
             var castData = new CommenceFireCastData();
-            var summonWeapon = new CommenceFireGunEntity(EntityRegistry.COMMENCE_FIRE_GUN.get(), level, entity);
+            var summonWeapon = new CommenceFireRifleEntity(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), level, entity);
             summonWeapon.locateAimingPosition();
             summonWeapon.setDamage(getDamage(spellLevel, entity));
             castData.setEntity(summonWeapon);
@@ -213,7 +213,7 @@ public class CommenceFire extends AbstractSpell {
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 
-    private CommenceFireGunEntity getCommenceFireEntityFromMagicData(MagicData playerMagicData, Level level){
+    private CommenceFireRifleEntity getCommenceFireEntityFromMagicData(MagicData playerMagicData, Level level){
         if (!(level instanceof ServerLevel serverLevel)) {
             return null;
         }
@@ -231,7 +231,7 @@ public class CommenceFire extends AbstractSpell {
             return null;
         }
 
-        if (!(castData.getEntity(serverLevel) instanceof CommenceFireGunEntity summon)) {
+        if (!(castData.getEntity(serverLevel) instanceof CommenceFireRifleEntity summon)) {
             return null;
         }
 
