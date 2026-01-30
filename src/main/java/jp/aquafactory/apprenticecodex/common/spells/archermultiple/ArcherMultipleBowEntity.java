@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
@@ -343,7 +344,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         var source = DamageSources.getDamageSource(level, this, getOwner(), sourceType);
         CombatTools.applyDamage(target, damage, source, SchoolRegistry.EVOCATION.get(), CombatTools.KnockbackTypes.DEFAULT);
-        level.playSound(null, getX(), getY(), getZ(), soundEvent, SoundSource.PLAYERS, 0.5f, 1.0f);
+        AudioTools.playSoundFromEntity(level, this, soundEvent, SoundSource.PLAYERS, 0.5f);
     }
 
     public void locateCurrentFormationPosition(){
