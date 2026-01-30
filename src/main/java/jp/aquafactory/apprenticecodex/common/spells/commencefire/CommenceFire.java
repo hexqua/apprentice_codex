@@ -177,9 +177,13 @@ public class CommenceFire extends AbstractSpell {
             return;
         }
 
+        var range = getRange(spellLevel, entity);
+        var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
+
         // 上の判定式で非nullが保証.
         //noinspection DataFlowIssue
         summon.setCastingTick(playerMagicData.getCastDurationRemaining());
+        summon.setLookTarget(result.hitPosition());
     }
 
     @Override

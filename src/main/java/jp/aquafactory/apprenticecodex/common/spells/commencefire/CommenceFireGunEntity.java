@@ -28,6 +28,7 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
 
     private UUID ownerUUID;
     private Entity cachedOwner;
+    private Vec3 aimPosition;
     private float damage;
     private int castingTick;
 
@@ -113,8 +114,19 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
             move(net.minecraft.world.entity.MoverType.SELF, step);
         }
 
-        setYRot(owner.getYRot());
-        setXRot(0);
+        if (aimPosition != null) {
+            var targetFaceVector = aimPosition.subtract(position()).normalize();
+            var yaw = (float) (Mth.atan2(-targetFaceVector.x, targetFaceVector.z) * Mth.RAD_TO_DEG);
+            var xzLen = Math.sqrt(targetFaceVector.x * targetFaceVector.x + targetFaceVector.z * targetFaceVector.z);
+            var pitch = (float) (Mth.atan2(-targetFaceVector.y, xzLen) * Mth.RAD_TO_DEG);
+
+            setYRot(yaw);
+            setXRot(pitch);
+        } else {
+            setYRot(owner.getYRot());
+            setXRot(0);
+        }
+
         setRot(getYRot(), getXRot());
         hasImpulse = true;
     }
@@ -129,28 +141,37 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
         castingTick = tick;
     }
 
+
+    public void setLookTarget(Vec3 target){
+        aimPosition = target;
+    }
+
     public void fire(Entity target, Level level){
         var resoluteTarget = CombatTools.resolutePartEntity(target);
         var source = DamageSources.getDamageSource(level, getOwner(), "commence_fire");
         CombatTools.applyDamage(resoluteTarget, damage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
 
         // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
-        var length = target.position().subtract(position()).length();
-        var normal = getLookAngle().normalize();
+        var targetVec = target.position().subtract(position());
+        var length = targetVec.length();
+        var normal = targetVec.normalize();
         EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleRegistry.TRACER_DOT.get(), level);
 
         // todo:音は恐らく外部素材を使う.
         AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 1.5f, 0.5f, 0.1f);
+        aimPosition = null;
     }
 
     public void fireOnlyEffect(Vec3 target, Level level){
         // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
-        var length = target.subtract(position()).length();
-        var normal = getLookAngle().normalize();
+        var targetVec = target.subtract(position());
+        var length = targetVec.length();
+        var normal = targetVec.normalize();
         EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleRegistry.TRACER_DOT.get(), level);
 
         // todo:音は恐らく外部素材を使う.
         AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 1.5f, 0.5f, 0.1f);
+        aimPosition = null;
     }
 
     public void locateAimingPosition(){
