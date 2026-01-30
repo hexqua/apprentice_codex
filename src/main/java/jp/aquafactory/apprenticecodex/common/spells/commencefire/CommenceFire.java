@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.*;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.nbt.CompoundTag;
@@ -19,6 +20,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -127,6 +130,17 @@ public class CommenceFire extends AbstractSpell {
     }
 
     @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        super.onServerPreCast(level, spellLevel, entity, playerMagicData);
+        var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
+        if (summon != null) {
+            AudioTools.playSoundFromEntity(level, entity, SoundEvents.ARMOR_EQUIP_NETHERITE, SoundSource.PLAYERS, 2.0f);
+        } else {
+            AudioTools.playSoundFromEntity(level, entity, getSchoolType().getCastSound(), SoundSource.PLAYERS, 2.0f);
+        }
+    }
+
+    @Override
     public int getRecastCount(int spellLevel, @Nullable LivingEntity entity) {
         // 初回発動含め弾の数にする.
         return getBulletCount(spellLevel, entity) + 1;
@@ -172,11 +186,13 @@ public class CommenceFire extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
+            var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
             var range = getRange(spellLevel, entity);
             var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
             if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
-                var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
                 summon.fire(result.hitEntity(), level);
+            } else {
+                summon.fireOnlyEffect(result.hitPosition(), level);
             }
         } else {
             var castData = new CommenceFireCastData();
@@ -188,6 +204,7 @@ public class CommenceFire extends AbstractSpell {
 
             var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDuration(spellLevel, entity), castSource, castData);
             recasts.addRecast(recastInstance, playerMagicData);
+            AudioTools.playSoundFromEntity(level, entity, SoundEvents.SHULKER_TELEPORT, SoundSource.PLAYERS, 2.0f);
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
