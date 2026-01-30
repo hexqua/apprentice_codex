@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
+import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import net.minecraft.core.particles.ParticleTypes;
@@ -133,7 +134,7 @@ public class CommenceFireGunEntity extends Entity implements TraceableEntity {
         // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
         var length = target.position().subtract(position()).length();
         var normal = getLookAngle().normalize();
-        EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleTypes.ELECTRIC_SPARK, level);
+        EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleRegistry.TRACER_DOT.get(), level);
     }
 
     public void locateAimingPosition(){

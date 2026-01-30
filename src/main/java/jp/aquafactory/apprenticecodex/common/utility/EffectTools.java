@@ -38,7 +38,12 @@ public class EffectTools {
 
     public static void createLineParticleServer(Vec3 position, Vec3 direction, double length, double step,
                                                 ParticleOptions particle, Level level) {
-        // todo:パラメータを増やして汎用性を上げるか検討.
+        createLineParticleServer(position, direction, length, step, 0, 0, particle, level);
+    }
+
+    public static void createLineParticleServer(Vec3 position, Vec3 direction, double length, double step,
+                                                double randomOffsetRange, double randomSpeed,
+                                                ParticleOptions particle, Level level) {
         // todo:クライアント版も作る.
         var normalizedDirection = direction.normalize();
         if (level instanceof ServerLevel server) {
@@ -46,14 +51,14 @@ public class EffectTools {
                 var pos = position.add(normalizedDirection.scale(offset));
                 server.sendParticles(
                         particle,
-                        pos.x + server.random.nextDouble() * 0.01 - 0.005,
-                        pos.y + server.random.nextDouble() * 0.01 - 0.005,
-                        pos.z + server.random.nextDouble() * 0.01 - 0.005,
+                        pos.x,
+                        pos.y,
+                        pos.z,
                         1,
-                        server.random.nextDouble() * 0.1 - 0.05,
-                        server.random.nextDouble() * 0.1 - 0.05,
-                        server.random.nextDouble() * 0.1 - 0.05,
-                        0.01
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        randomSpeed
                 );
             }
         }

@@ -339,7 +339,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         var damage = this.damage * (isLastBullet ? 2.0f : 1.0f);
         var sourceType = isLastBullet ? "archer_multiple_last" : "archer_multiple";
         var step = isLastBullet ? 0.2 : 0.5;
-        EffectTools.createLineParticleServer(currentPosition, lineDirection, lineLength, step, particleType, level);
+        EffectTools.createLineParticleServer(currentPosition, lineDirection, lineLength, step, 0.01, 0.01, particleType, level);
 
         var source = DamageSources.getDamageSource(level, this, getOwner(), sourceType);
         CombatTools.applyDamage(target, damage, source, SchoolRegistry.EVOCATION.get(), CombatTools.KnockbackTypes.DEFAULT);
