@@ -8,8 +8,8 @@
   "spell.apprenticecodex.commence_fire.guide": "Summons a magical gun that follows you. Then, upon use, unleashes a powerful ranged shooting attack.",
 
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
+  "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
 
-  "effect.apprenticecodex.commence_fire_mode": "Holding Weapon",
 
   "death.attack.apprenticecodex.codex_magic_general": "%1$s was killed by %2$s's magic.",
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",

@@ -1,13 +1,16 @@
 package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -25,11 +28,24 @@ import java.util.UUID;
 
 public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
+    public static final int MAX_RECOIL_TICK = 8;
+
+    private static final EntityDataAccessor<Integer> RECOIL_TICK =
+            SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Float> FIRE_YAW =
+            SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final EntityDataAccessor<Float> FIRE_PITCH =
+            SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.FLOAT);
+
     private UUID ownerUUID;
+
     private Entity cachedOwner;
     private Vec3 aimPosition;
     private float damage;
     private int castingTick;
+    private int recoilTick;
 
     public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -44,7 +60,9 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void defineSynchedData() {
-
+        entityData.define(RECOIL_TICK, 0);
+        entityData.define(FIRE_YAW, 0.0f);
+        entityData.define(FIRE_PITCH, 0.0f);
     }
 
     @Override
@@ -100,6 +118,11 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
             return;
         }
 
+        if (recoilTick > 0) {
+            --recoilTick;
+            entityData.set(RECOIL_TICK, recoilTick);
+        }
+
         var locatePosition = getAimingPosition(owner);
         var targetVec = locatePosition.subtract(position());
         var distance = targetVec.length();
@@ -151,6 +174,9 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         var resoluteTarget = CombatTools.resolutePartEntity(target);
         var source = DamageSources.getDamageSource(level, getOwner(), "commence_fire");
         CombatTools.applyDamage(resoluteTarget, damage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
+        recoilTick = MAX_RECOIL_TICK;
+        entityData.set(RECOIL_TICK, recoilTick);
+        setFireRotationByVector(aimPosition);
 
         // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
         var targetVec = target.position().subtract(position());
@@ -164,6 +190,10 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
     }
 
     public void fireOnlyEffect(Vec3 target, Level level){
+        recoilTick = MAX_RECOIL_TICK;
+        entityData.set(RECOIL_TICK, recoilTick);
+        setFireRotationByVector(aimPosition);
+
         // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
         var targetVec = target.subtract(position());
         var length = targetVec.length();
@@ -184,6 +214,31 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
             setRot(getYRot(), getXRot());
             hasImpulse = true;
         }
+    }
+
+    private void setFireRotationByVector(Vec3 aimPosition){
+        var targetVec = aimPosition.subtract(position());
+        var yaw = (float) (Mth.atan2(-targetVec.x, targetVec.z) * Mth.RAD_TO_DEG);
+        var xzLen = Math.sqrt(targetVec.x * targetVec.x + targetVec.z * targetVec.z);
+        var pitch = (float) (Mth.atan2(-targetVec.y, xzLen) * Mth.RAD_TO_DEG);
+        entityData.set(FIRE_YAW, yaw);
+        entityData.set(FIRE_PITCH, pitch);
+    }
+
+    public float getFireYaw(){
+        return entityData.get(FIRE_YAW);
+    }
+
+    public float getFirePitch(){
+        return entityData.get(FIRE_PITCH);
+    }
+
+    public int getRecoilTick(){
+        return entityData.get(RECOIL_TICK);
+    }
+
+    public boolean duringRecoil(){
+        return recoilTick > 0;
     }
 
     private static Vec3 getAimingPosition(LivingEntity owner) {

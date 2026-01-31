@@ -8,8 +8,7 @@
   "spell.apprenticecodex.commence_fire.guide": "自身に追従する魔法の銃を召喚する。続いて使用することで強力な射撃攻撃を行う。",
 
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
-
-  "effect.apprenticecodex.commence_fire_mode": "魔法銃装備中",
+  "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
 
   "death.attack.apprenticecodex.codex_magic_general": "%1$sは%2$sの魔法によって殺された",
   "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた",

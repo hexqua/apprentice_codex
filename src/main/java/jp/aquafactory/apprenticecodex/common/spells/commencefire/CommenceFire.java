@@ -12,10 +12,12 @@ import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -185,6 +187,21 @@ public class CommenceFire extends AbstractSpell {
         var castTick = playerMagicData.getCastDuration() - playerMagicData.getCastDurationRemaining();
         summon.playCastingReticleEffect(castTick, playerMagicData.getCastDuration(), result.hitPosition(), level);
         summon.setLookTarget(result.hitPosition());
+    }
+
+    @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
+        if (summon != null) {
+            if (summon.duringRecoil()) {
+                if (entity instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.commence_fire.during_recoil", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                }
+                return false;
+            }
+        }
+
+        return super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
     }
 
     @Override
