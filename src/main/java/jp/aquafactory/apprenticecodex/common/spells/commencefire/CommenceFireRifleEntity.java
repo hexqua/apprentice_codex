@@ -171,34 +171,23 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         aimPosition = target;
     }
 
-    public void fire(Entity target, Level level){
+    public void damageTarget(Entity target, Level level){
         var resoluteTarget = CombatTools.resolutePartEntity(target);
         var source = DamageSources.getDamageSource(level, getOwner(), "commence_fire");
         CombatTools.applyDamage(resoluteTarget, damage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
-        recoilTick = MAX_RECOIL_TICK;
-        entityData.set(RECOIL_TICK, recoilTick);
-        setFireRotationByVector(aimPosition);
-
-        // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
-        var targetVec = target.position().subtract(position());
-        var length = targetVec.length();
-        var normal = targetVec.normalize();
-        EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleRegistry.TRACER_DOT.get(), level);
-
-        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
-        aimPosition = null;
     }
 
-    public void fireOnlyEffect(Vec3 target, Level level){
+    public void fire(Vec3 target, Level level) {
         recoilTick = MAX_RECOIL_TICK;
         entityData.set(RECOIL_TICK, recoilTick);
         setFireRotationByVector(aimPosition);
 
         // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
         var targetVec = target.subtract(position());
-        var length = targetVec.length();
         var normal = targetVec.normalize();
-        EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleRegistry.TRACER_DOT.get(), level);
+        var firePosition = position().add(normal.scale(1));
+        var length = targetVec.length() - 1;
+        EffectTools.createLineParticleServer(firePosition, normal, length, 0.1, ParticleRegistry.TRACER_DOT.get(), level);
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
         aimPosition = null;

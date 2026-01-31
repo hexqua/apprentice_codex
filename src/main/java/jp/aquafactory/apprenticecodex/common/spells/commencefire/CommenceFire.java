@@ -213,11 +213,11 @@ public class CommenceFire extends AbstractSpell {
             if (summon != null) {
                 var range = getRange(spellLevel, entity);
                 var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
-                if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
-                    summon.fire(result.hitEntity(), level);
-                } else {
-                    summon.fireOnlyEffect(result.hitPosition(), level);
+                if (result.hitEntity() != null) {
+                    summon.damageTarget(result.hitEntity(), level);
                 }
+
+                summon.fire(result.hitPosition(), level);
             }
         } else {
             var castData = new CommenceFireCastData();
