@@ -134,10 +134,12 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         damage = newDamage;
     }
 
-    public void setCastingTick(int tick){
-        // todo:詠唱中演出.
-        ApprenticeCodex.LOGGER.debug("setCastingTick: {}", tick);
-        castingTick = tick;
+    public void playCastingReticleEffect(int tick, int maxTick, Vec3 aimPosition,Level level) {
+        // todo:発動者以外に見せたくないため、いずれクライアント専用にしつつオーナーにのみ見せるようにする.
+        var radius = 1.0 - tick / (double) maxTick;
+        var count = 20 - Math.round(15 * tick / (float) maxTick);
+        var targetVec = aimPosition.subtract(position());
+        EffectTools.createRingParticleServer(aimPosition, targetVec, radius, count, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
     }
 
 

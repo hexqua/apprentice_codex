@@ -113,8 +113,8 @@ public class CommenceFire extends AbstractSpell {
             return super.getEffectiveCastTime(spellLevel, entity);
         }
 
-        // 射撃は固定値(0.25秒)
-        return 5;
+        // 射撃は固定値(0.5秒)
+        return 10;
     }
 
     @Override
@@ -182,7 +182,8 @@ public class CommenceFire extends AbstractSpell {
 
         // 上の判定式で非nullが保証.
         //noinspection DataFlowIssue
-        summon.setCastingTick(playerMagicData.getCastDurationRemaining());
+        var castTick = playerMagicData.getCastDuration() - playerMagicData.getCastDurationRemaining();
+        summon.playCastingReticleEffect(castTick, playerMagicData.getCastDuration(), result.hitPosition(), level);
         summon.setLookTarget(result.hitPosition());
     }
 
