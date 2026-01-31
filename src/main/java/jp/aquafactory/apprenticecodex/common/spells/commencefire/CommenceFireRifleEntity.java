@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
@@ -184,8 +185,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         var normal = targetVec.normalize();
         EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleRegistry.TRACER_DOT.get(), level);
 
-        // todo:音は恐らく外部素材を使う.
-        AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 1.5f, 0.5f, 0.1f);
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
         aimPosition = null;
     }
 
@@ -200,8 +200,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         var normal = targetVec.normalize();
         EffectTools.createLineParticleServer(position(), normal, length, 0.3, ParticleRegistry.TRACER_DOT.get(), level);
 
-        // todo:音は恐らく外部素材を使う.
-        AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 1.5f, 0.5f, 0.1f);
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
         aimPosition = null;
     }
 

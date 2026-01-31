@@ -12,3 +12,9 @@ Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 ## 注意
 
 - 自分用なので1.20.1専用です.
+
+## License
+
+- Code: MIT (see `LICENSE`).
+- Original assets created for this project: CC0-1.0 (free to use).
+- Third-party assets: see `THIRD_PARTY_NOTICES.md` for the applicable licenses.
