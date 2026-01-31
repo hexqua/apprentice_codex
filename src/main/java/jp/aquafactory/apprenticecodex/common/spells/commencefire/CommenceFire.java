@@ -192,12 +192,15 @@ public class CommenceFire extends AbstractSpell {
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
             var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
-            var range = getRange(spellLevel, entity);
-            var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
-            if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
-                summon.fire(result.hitEntity(), level);
-            } else {
-                summon.fireOnlyEffect(result.hitPosition(), level);
+            // todo:再詠唱があるのに召喚が取れない場合のフォールバックを考える.
+            if (summon != null) {
+                var range = getRange(spellLevel, entity);
+                var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
+                if (result.type() == RaycastTools.TargetType.LIVING_ENTITY) {
+                    summon.fire(result.hitEntity(), level);
+                } else {
+                    summon.fireOnlyEffect(result.hitPosition(), level);
+                }
             }
         } else {
             var castData = new CommenceFireCastData();
