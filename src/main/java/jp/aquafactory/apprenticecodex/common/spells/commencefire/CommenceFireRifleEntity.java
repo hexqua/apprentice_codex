@@ -36,6 +36,21 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     public static final int MAX_RECOIL_TICK = 8;
 
+    private static final EntityDataAccessor<Integer> CASTING_TICK =
+            SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Integer> MAX_CASTING_TICK =
+            SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Float> AIM_X =
+            SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final EntityDataAccessor<Float> AIM_Y =
+            SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final EntityDataAccessor<Float> AIM_Z =
+            SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.FLOAT);
+
     private static final EntityDataAccessor<Integer> RECOIL_TICK =
             SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.INT);
 
@@ -50,7 +65,6 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
     private Entity cachedOwner;
     private Vec3 aimPosition;
     private float damage;
-    private int castingTick;
     private int recoilTick;
 
     public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel) {
@@ -66,6 +80,11 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void defineSynchedData() {
+        entityData.define(CASTING_TICK, 0);
+        entityData.define(MAX_CASTING_TICK, 0);
+        entityData.define(AIM_X, 0.0f);
+        entityData.define(AIM_Y, 0.0f);
+        entityData.define(AIM_Z, 0.0f);
         entityData.define(RECOIL_TICK, 0);
         entityData.define(FIRE_YAW, 0.0f);
         entityData.define(FIRE_PITCH, 0.0f);
@@ -147,6 +166,18 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
         super.tick();
 
+        if (level.isClientSide){
+            var castingTick = entityData.get(CASTING_TICK);
+            if (castingTick > 0){
+                var maxCastingTick = entityData.get(MAX_CASTING_TICK);
+                var targetPosition = new Vec3(entityData.get(AIM_X), entityData.get(AIM_Y), entityData.get(AIM_Z));
+                var targetVec = targetPosition.subtract(position());
+                var radius = 1.0 - castingTick / (double) maxCastingTick;
+                var count = 20 - Math.round(15 * castingTick / (float) maxCastingTick);
+                EffectTools.createRingParticleClient(targetPosition, targetVec, radius, count, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
+            }
+        }
+
         if (level.isClientSide) {
             return;
         }
@@ -195,17 +226,13 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         damage = newDamage;
     }
 
-    public void playCastingReticleEffect(int tick, int maxTick, Vec3 aimPosition,Level level) {
-        // todo:発動者以外に見せたくないため、いずれクライアント専用にしつつオーナーにのみ見せるようにする.
-        var radius = 1.0 - tick / (double) maxTick;
-        var count = 20 - Math.round(15 * tick / (float) maxTick);
-        var targetVec = aimPosition.subtract(position());
-        EffectTools.createRingParticleServer(aimPosition, targetVec, radius, count, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
-    }
-
-
-    public void setLookTarget(Vec3 target){
+    public void setCastingReticleEffect(int tick, int maxTick, Vec3 target) {
         aimPosition = target;
+        entityData.set(CASTING_TICK, tick);
+        entityData.set(MAX_CASTING_TICK, maxTick);
+        entityData.set(AIM_X, (float) target.x);
+        entityData.set(AIM_Y, (float) target.y);
+        entityData.set(AIM_Z, (float) target.z);
     }
 
     public void damageTarget(Entity target, Level level){
@@ -239,6 +266,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
+        entityData.set(CASTING_TICK, 0);
         aimPosition = null;
     }
 

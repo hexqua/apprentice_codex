@@ -185,8 +185,7 @@ public class CommenceFire extends AbstractSpell {
         // 上の判定式で非nullが保証.
         //noinspection DataFlowIssue
         var castTick = playerMagicData.getCastDuration() - playerMagicData.getCastDurationRemaining();
-        summon.playCastingReticleEffect(castTick, playerMagicData.getCastDuration(), result.hitPosition(), level);
-        summon.setLookTarget(result.hitPosition());
+        summon.setCastingReticleEffect(castTick, playerMagicData.getCastDuration(), result.hitPosition());
     }
 
     @Override
