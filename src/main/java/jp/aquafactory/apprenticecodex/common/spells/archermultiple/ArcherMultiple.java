@@ -50,7 +50,7 @@ public class ArcherMultiple  extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.projectile_count", getProjectileCount(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.projectile_count", getProjectileCount()),
                 Component.translatable("ui.irons_spellbooks.summon_count", getSummonCount()),
                 Component.literal(ApprenticeCodex.NAME)
         );
@@ -60,7 +60,7 @@ public class ArcherMultiple  extends AbstractSpell {
         return getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private int getProjectileCount(int spellLevel, LivingEntity entity) {
+    private int getProjectileCount() {
         return 24;
     }
 
@@ -164,7 +164,7 @@ public class ArcherMultiple  extends AbstractSpell {
                 summonTestBow.setMaxSlot(getSummonCount());
                 summonTestBow.setPriorityTarget(targetUuid);
                 summonTestBow.setDamage(getDamage(spellLevel, entity));
-                summonTestBow.setRestBulletCount(getProjectileCount(spellLevel, entity));
+                summonTestBow.setRestBulletCount(getProjectileCount());
                 summonTestBow.locateCurrentFormationPosition();
 
                 level.addFreshEntity(summonTestBow);
