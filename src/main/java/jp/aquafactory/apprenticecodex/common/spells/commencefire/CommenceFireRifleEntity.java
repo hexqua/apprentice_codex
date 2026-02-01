@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
@@ -244,7 +244,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         var source = CombatTools.getDamageSource(level, getOwner(), "commence_fire");
         var headshotRate = headshotPercent / 100.0f;
         var finalDamage = damage * (isHeadShot ? headshotRate : 1);
-        CombatTools.applyDamage(resoluteTarget, finalDamage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
+        CombatTools.applyDamage(resoluteTarget, finalDamage, source, SpellsRegistry.COMMENCE_FIRE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
     }
 
     public void fire(Vec3 target, Level level, HitTypes hitType, boolean isHeadShot) {

@@ -14,15 +14,12 @@ public class SpellsRegistry {
     public static final DeferredRegister<AbstractSpell> SPELLS =
             DeferredRegister.create(SpellRegistry.SPELL_REGISTRY_KEY, ApprenticeCodex.MODID);
 
-    @SuppressWarnings("unused")
     public static final RegistryObject<AbstractSpell> SKY_EDGE =
             SPELLS.register("sky_edge", SkyEdge::new);
 
-    @SuppressWarnings("unused")
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE =
             SPELLS.register("archer_multiple", ArcherMultiple::new);
 
-    @SuppressWarnings("unused")
     public static final RegistryObject<AbstractSpell> COMMENCE_FIRE =
             SPELLS.register("commence_fire", CommenceFire::new);
 

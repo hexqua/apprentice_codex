@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.spells.skyedge;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
@@ -128,7 +129,7 @@ public class SkyEdgeProjectileEntity extends Projectile
 
         if (CombatTools.isValidCombatTarget(target, owner)) {
             var source = CombatTools.getDamageSource(level(), this, owner, "sky_edge");
-            CombatTools.applyDamage(target, damage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applyDamage(target, damage, source, SpellsRegistry.SKY_EDGE.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             onImpact(level, 0.5 + level.random.nextDouble() * 0.25, true);
             discard();
         }
