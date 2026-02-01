@@ -9,6 +9,7 @@
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
+  "ui.apprenticecodex.commence_fire.no_rifle": "銃が見つからない！",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
 
   "death.attack.apprenticecodex.codex_magic_general": "%1$sは%2$sの魔法によって殺された",

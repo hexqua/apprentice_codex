@@ -203,6 +203,16 @@ public class CommenceFire extends AbstractSpell {
                 }
                 return false;
             }
+        } else if(playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.commence_fire.no_rifle", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                if (recast.getRemainingRecasts() > 0) {
+                    playerMagicData.getPlayerRecasts().removeRecast(recast, RecastResult.USED_ALL_RECASTS);
+                }
+            }
+
+            return false;
         }
 
         return super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
@@ -213,7 +223,6 @@ public class CommenceFire extends AbstractSpell {
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
             var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
-            // todo:再詠唱があるのに召喚が取れない場合のフォールバックを考える.
             if (summon != null) {
                 var range = getRange(spellLevel, entity);
                 var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
