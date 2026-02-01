@@ -5,9 +5,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.Optional;
@@ -68,8 +70,15 @@ public class RaycastTools {
 
         if (entityHit != null) {
             var e = entityHit.getEntity();
-            var center = e.getBoundingBox().getCenter();
-            return new TargetResult(TargetType.LIVING_ENTITY, center, e);
+            var hitBox = e.getBoundingBox().inflate(0.1);
+            var dir = look.normalize();
+            var rayHitPosition = rayAabbHit(start, dir, start.distanceTo(effectiveEnd), hitBox);
+            if (rayHitPosition == null) {
+                // 再判定に失敗したら中央にフォールバック.
+                rayHitPosition = e.getBoundingBox().getCenter();
+            }
+
+            return new TargetResult(TargetType.LIVING_ENTITY, rayHitPosition, e);
         }
 
         if (blockHit.getType() != HitResult.Type.MISS) {
@@ -77,6 +86,48 @@ public class RaycastTools {
         }
 
         return new TargetResult(TargetType.NONE, end, null);
+    }
+
+    @Nullable
+    private static Vec3 rayAabbHit(Vec3 start, Vec3 dirNormalized, double maxDistance, AABB box) {
+        var tMin = 0.0;
+        var tMax = maxDistance;
+
+        // 0: x, 1: y, 2: z
+        for (var axis = 0; axis < 3; axis++) {
+            var s = axis == 0 ? start.x : axis == 1 ? start.y : start.z;
+            var d = axis == 0 ? dirNormalized.x : axis == 1 ? dirNormalized.y : dirNormalized.z;
+            var min = axis == 0 ? box.minX : axis == 1 ? box.minY : box.minZ;
+            var max = axis == 0 ? box.maxX : axis == 1 ? box.maxY : box.maxZ;
+
+            if (Math.abs(d) < 1e-9) {
+                if (s < min || s > max) return null;
+                continue;
+            }
+
+            var invD = 1.0 / d;
+            var t1 = (min - s) * invD;
+            var t2 = (max - s) * invD;
+            if (t1 > t2) {
+                var tmp = t1;
+                t1 = t2;
+                t2 = tmp;
+            }
+
+            tMin = Math.max(tMin, t1);
+            tMax = Math.min(tMax, t2);
+
+            if (tMin > tMax) {
+                return null;
+            }
+        }
+
+        var tHit = (tMin > 1e-6) ? tMin : tMax;
+        if (tHit < 0.0 || tHit > maxDistance) {
+            return null;
+        }
+
+        return start.add(dirNormalized.scale(tHit));
     }
 
     public static boolean hasLineOfSight(Level level, Entity source, Entity target) {
