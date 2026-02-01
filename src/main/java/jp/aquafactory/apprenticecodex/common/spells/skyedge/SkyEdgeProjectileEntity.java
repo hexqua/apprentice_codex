@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.common.spells.skyedge;
 
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
@@ -27,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 public class SkyEdgeProjectileEntity extends Projectile
 {
     private static final int LIFE_TICKS = 20 * 5;
-    private static final int DEFAULT_STANDBY_TICKS = 10;
     private static final RandomSource RNG = RandomSource.create();
 
     private float damage;
