@@ -13,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -65,6 +66,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
     private Entity cachedOwner;
     private Vec3 aimPosition;
     private float damage;
+    private int headshotPercent;
     private int recoilTick;
 
     public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel) {
@@ -97,6 +99,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
             cachedOwner = null;
         }
         damage = tag.getFloat("Damage");
+        headshotPercent = tag.getInt("HeadshotPercent");
     }
 
     @Override
@@ -105,6 +108,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
             tag.putUUID("Owner", ownerUUID);
         }
         tag.putFloat("Damage", damage);
+        tag.putInt("HeadshotPercent", headshotPercent);
     }
 
     @Override
@@ -222,8 +226,9 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         hasImpulse = true;
     }
 
-    public void setDamage(float newDamage){
+    public void setDamage(float newDamage, int newHeadshotPercent) {
         damage = newDamage;
+        headshotPercent = newHeadshotPercent;
     }
 
     public void setCastingReticleEffect(int tick, int maxTick, Vec3 target) {
@@ -235,13 +240,15 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         entityData.set(AIM_Z, (float) target.z);
     }
 
-    public void damageTarget(Entity target, Level level){
+    public void damageTarget(Entity target, boolean isHeadShot, Level level) {
         var resoluteTarget = CombatTools.resolutePartEntity(target);
         var source = DamageSources.getDamageSource(level, getOwner(), "commence_fire");
-        CombatTools.applyDamage(resoluteTarget, damage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
+        var headshotRate = headshotPercent / 100.0f;
+        var finalDamage = damage * (isHeadShot ? headshotRate : 1);
+        CombatTools.applyDamage(resoluteTarget, finalDamage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
     }
 
-    public void fire(Vec3 target, Level level, HitTypes hitType) {
+    public void fire(Vec3 target, Level level, HitTypes hitType, boolean isHeadShot) {
         recoilTick = MAX_RECOIL_TICK;
         entityData.set(RECOIL_TICK, recoilTick);
         setFireRotationByVector(aimPosition);
@@ -252,7 +259,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
             var firePosition = position().add(normal.scale(1));
             server.sendParticles(ParticleRegistry.MUZZLE_FLASH.get(), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
 
-            switch (hitType){
+            switch (hitType) {
                 case MISS:
                     // do nothing.
                     break;
@@ -260,8 +267,13 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
                     server.sendParticles(ParticleTypes.SMOKE, target.x, target.y, target.z, 4, .1, .1, .1, .1);
                     break;
                 case ENTITY:
-                    server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 16, .25, .25, .25, .1);
+                    server.sendParticles(ParticleTypes.ENCHANTED_HIT, target.x, target.y, target.z, 16, .25, .25, .25, .1);
                     break;
+            }
+
+            if (isHeadShot) {
+                AudioTools.playSoundFromEntity(level, this, SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 1.0f, 2.0f);
+                server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 24, .35, .35, .35, .2);
             }
         }
 

@@ -58,7 +58,7 @@ public class CommenceFire extends AbstractSpell {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.recast_count", getBulletCount(spellLevel, caster)),
-                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDuration(spellLevel, caster), 1)),
+                Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellLevel, caster)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
@@ -82,6 +82,11 @@ public class CommenceFire extends AbstractSpell {
         // todo:バランス調整.
         // 一旦狙撃イメージで10チャンク.
         return 16 * 10;
+    }
+
+    private int getHeadshotPercent(int spellLevel, LivingEntity entity){
+        // todo:バランス調整.
+        return 200;
     }
 
     @Override
@@ -212,8 +217,9 @@ public class CommenceFire extends AbstractSpell {
             if (summon != null) {
                 var range = getRange(spellLevel, entity);
                 var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
+                var isHeadShot = result.hitEntity() instanceof LivingEntity living && CombatTools.isHeadShot(living, result.hitPosition());
                 if (result.hitEntity() != null) {
-                    summon.damageTarget(result.hitEntity(), level);
+                    summon.damageTarget(result.hitEntity(), isHeadShot, level);
                 }
 
                 var hitType = switch (result.hitType()) {
@@ -221,13 +227,14 @@ public class CommenceFire extends AbstractSpell {
                     case BLOCK -> CommenceFireRifleEntity.HitTypes.BLOCK;
                     case LIVING_ENTITY -> CommenceFireRifleEntity.HitTypes.ENTITY;
                 };
-                summon.fire(result.hitPosition(), level, hitType);
+
+                summon.fire(result.hitPosition(), level, hitType, isHeadShot);
             }
         } else {
             var castData = new CommenceFireCastData();
             var summonWeapon = new CommenceFireRifleEntity(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), level, entity);
             summonWeapon.locateAimingPosition();
-            summonWeapon.setDamage(getDamage(spellLevel, entity));
+            summonWeapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
             castData.setEntity(summonWeapon);
             level.addFreshEntity(summonWeapon);
 

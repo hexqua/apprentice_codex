@@ -7,6 +7,7 @@
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking the designated target—or nearby enemies—until it runs out of ammunition.",
   "spell.apprenticecodex.commence_fire.guide": "Summons a magical gun that follows you. Then, upon use, unleashes a powerful ranged shooting attack.",
 
+  "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
 

@@ -7,6 +7,7 @@
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
   "spell.apprenticecodex.commence_fire.guide": "自身に追従する魔法の銃を召喚する。続いて使用することで強力な射撃攻撃を行う。",
 
+  "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
 
