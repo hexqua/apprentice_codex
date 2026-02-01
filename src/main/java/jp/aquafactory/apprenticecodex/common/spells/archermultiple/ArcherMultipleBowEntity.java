@@ -186,7 +186,16 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     @Override
     public void onClientRemoval(){
         var level = level();
-        EffectTools.createRingParticleClient(position(), getLookAngle(), 8, level);
+        EffectTools.createRingParticleClient(
+                position(),
+                getLookAngle(),
+                0.4f,
+                8,
+                0.015f,
+                0.01,
+                ParticleTypes.END_ROD,
+                level
+        );
         super.onClientRemoval();
     }
 
@@ -197,7 +206,16 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         // 射出時パーティクル.
         // todo:再ログインの制御をするかどうか.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(position(), getLookAngle(), 8, level);
+            EffectTools.createRingParticleClient(
+                    position(),
+                    getLookAngle(),
+                    0.4f,
+                    8,
+                    0.015f,
+                    0.01,
+                    ParticleTypes.END_ROD,
+                    level
+            );
         }
 
         super.tick();

@@ -10,8 +10,9 @@ import net.minecraft.world.phys.Vec3;
 public class EffectTools {
     private static final RandomSource RNG = RandomSource.create();
 
-    public static void createRingParticleClient(Vec3 position, Vec3 normal, int count, Level level){
-        // todo:パラメータを増やして汎用性を上げるか検討.
+    public static void createRingParticleClient(Vec3 position, Vec3 normal, double radius, int count,
+                                                double randomOffsetRange, double randomSpeed,
+                                                ParticleOptions particle, Level level){
         // 平面基底を作る.
         var norm = normal.normalize();
         var arbitrary = Math.abs(norm.y) > 0.99 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
@@ -20,20 +21,25 @@ public class EffectTools {
         var startAngle = RNG.nextDouble() * Math.PI * 2.0;
 
         for( var i = 0; i < count; i++){
-            var radius = 0.4 + 0.1 * Math.sqrt(RNG.nextDouble());
+            var r = radius + 0.1 * Math.sqrt(RNG.nextDouble());
             var angle = startAngle + (Math.PI * 2.0) * i / count + RNG.nextDouble() * 0.05;
-            var a = Math.cos(angle) * radius;
-            var b = Math.sin(angle) * radius;
+            var a = Math.cos(angle) * r;
+            var b = Math.sin(angle) * r;
             var offset = u.scale(a).add(w.scale(b));
-            var pos = position.add(offset);
+            var randomPosition = new Vec3(
+                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2
+            );
+            var pos = position.add(offset).add(randomPosition);
             level.addParticle(
-                    ParticleTypes.END_ROD,
+                    particle,
                     pos.x,
                     pos.y,
                     pos.z,
-                    RNG.nextDouble() * 0.015,
-                    RNG.nextDouble() * 0.015,
-                    RNG.nextDouble() * 0.015
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2
             );
         }
     }
@@ -70,6 +76,29 @@ public class EffectTools {
                         randomSpeed
                 );
             }
+        }
+    }
+
+    public static void createStickParticleClient(Vec3 position, Vec3 normal, double distance, int count,
+                                                double randomOffsetRange, double randomSpeed,
+                                                ParticleOptions particle, Level level){
+        for( var i = 0; i < count; i++){
+            var offset = normal.scale(RNG.nextDouble() * distance - distance / 2);
+            var randomPosition = new Vec3(
+                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2
+            );
+            var pos = position.add(offset).add(randomPosition);
+            level.addParticle(
+                    particle,
+                    pos.x,
+                    pos.y,
+                    pos.z,
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2
+            );
         }
     }
 

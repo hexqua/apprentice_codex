@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
@@ -14,7 +13,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -113,10 +111,42 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
     }
 
     @Override
+    public void onClientRemoval(){
+        var level = level();
+        EffectTools.createStickParticleClient(
+                position(),
+                getLookAngle(),
+                2,
+                16,
+                0.1f,
+                0.02,
+                ParticleTypes.END_ROD, level
+        );
+
+        super.onClientRemoval();
+    }
+
+    @Override
     public void tick() {
+        var level = level();
+
+        // 射出時パーティクル.
+        // todo:再ログイン制御がいるかどうか.
+        if (level.isClientSide && firstTick) {
+            EffectTools.createRingParticleClient(
+                    position(),
+                    getLookAngle(),
+                    0.3f,
+                    12,
+                    0.015f,
+                    0.01,
+                    ParticleTypes.END_ROD,
+                    level
+            );
+        }
+
         super.tick();
 
-        @SuppressWarnings("resource") var level = level();
         if (level.isClientSide) {
             return;
         }
