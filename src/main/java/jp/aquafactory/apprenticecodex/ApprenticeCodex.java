@@ -16,8 +16,8 @@ public class ApprenticeCodex
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public ApprenticeCodex() {
-        @SuppressWarnings("removal") var bus = FMLJavaModLoadingContext.get().getModEventBus();
+    public ApprenticeCodex(FMLJavaModLoadingContext context) {
+        var bus = context.getModEventBus();
         SpellsRegistry.register(bus);
         EntityRegistry.register(bus);
         ItemRegistry.ITEMS.register(bus);
