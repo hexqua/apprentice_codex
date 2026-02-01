@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -51,6 +52,25 @@ public class CompoundPhial extends AbstractSpell {
         return getSpellPower(spellLevel, entity) / 100.0f;
     }
 
+    private int getSplashReducedPercent(int spellLevel, LivingEntity entity) {
+        // todo:バランス調整.
+        return 50;
+    }
+
+    private float getSplashRadius(int spellLevel, LivingEntity entity) {
+        // todo:バランス調整.
+        return 4f;
+    }
+
+    private float getSpeed(int spellLevel, LivingEntity entity) {
+        // todo:バランス調整.
+        return 1.0f;
+    }
+
+    private float getSplashDamage(int spellLevel, LivingEntity entity) {
+        return getDamage(spellLevel, entity) * getSplashReducedPercent(spellLevel, entity) / 100.0f;
+    }
+
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
@@ -87,8 +107,14 @@ public class CompoundPhial extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        // todo:実装.
+        var projectile = new CompoundPhialProjectileEntity(EntityRegistry.COMPOUND_PHIAL_PROJECTILE.get(), level, entity);
 
+        projectile.setPos(entity.getX(), entity.getEyeY() - 0.1, entity.getZ());
+        projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0.0f, getSpeed(spellLevel, entity), 0.0f);
+        projectile.setDamage(getDamage(spellLevel, entity));
+        projectile.setSplashDamage(getSplashDamage(spellLevel, entity));
+        projectile.setSplashRadius(getSplashRadius(spellLevel, entity));
+        level.addFreshEntity(projectile);
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

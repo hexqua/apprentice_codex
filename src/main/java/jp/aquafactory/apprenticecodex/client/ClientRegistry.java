@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -28,6 +29,7 @@ public class ClientRegistry {
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), ArcherMultipleBowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), CommenceFireRifleRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.COMPOUND_PHIAL_PROJECTILE.get(), CompoundPhialProjectileRenderer::new);
     }
 
     @SubscribeEvent

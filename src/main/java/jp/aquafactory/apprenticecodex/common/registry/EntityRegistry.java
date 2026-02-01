@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleEntity;
+import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -42,6 +43,15 @@ public class EntityRegistry {
                             .clientTrackingRange(64)
                             .updateInterval(2)
                             .build("commence_fire_rifle"));
+
+    public static final RegistryObject<EntityType<CompoundPhialProjectileEntity>> COMPOUND_PHIAL_PROJECTILE =
+            ENTITIES.register("compound_phial_projectile",
+                    () -> EntityType.Builder
+                            .<CompoundPhialProjectileEntity>of(CompoundPhialProjectileEntity::new, MobCategory.MISC)
+                            .sized(0.25f, 0.25f)
+                            .clientTrackingRange(48)
+                            .updateInterval(1)
+                            .build("compound_phial_projectile"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
