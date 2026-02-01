@@ -44,41 +44,6 @@ public class EffectTools {
         }
     }
 
-    public static void createRingParticleServer(Vec3 position, Vec3 normal, double radius, int count,
-                                                double randomOffsetRange, double randomSpeed,
-                                                ParticleOptions particle, Level level){
-
-        // todo:いずれクライアント版に諸々移植し、サーバーパーティクル系は消す.
-        // 平面基底を作る.
-        var norm = normal.normalize();
-        var arbitrary = Math.abs(norm.y) > 0.99 ? new Vec3(1, 0, 0) : new Vec3(0, 1, 0);
-        var u = norm.cross(arbitrary).normalize();
-        var w = norm.cross(u).normalize();
-        var startAngle = level.random.nextDouble() * Math.PI * 2.0;
-
-        if (level instanceof ServerLevel server) {
-            for( var i = 0; i < count; i++) {
-                var angle = startAngle + (Math.PI * 2.0) * i / count;
-                var a = Math.cos(angle) * radius;
-                var b = Math.sin(angle) * radius;
-                var offset = u.scale(a).add(w.scale(b));
-                var pos = position.add(offset);
-
-                server.sendParticles(
-                        particle,
-                        pos.x,
-                        pos.y,
-                        pos.z,
-                        1,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        randomSpeed
-                );
-            }
-        }
-    }
-
     public static void createStickParticleClient(Vec3 position, Vec3 normal, double distance, int count,
                                                 double randomOffsetRange, double randomSpeed,
                                                 ParticleOptions particle, Level level){
@@ -100,11 +65,6 @@ public class EffectTools {
                     RNG.nextDouble() * randomSpeed - randomSpeed / 2
             );
         }
-    }
-
-    public static void createLineParticleServer(Vec3 position, Vec3 direction, double length, double step,
-                                                ParticleOptions particle, Level level) {
-        createLineParticleServer(position, direction, length, step, 0, 0, particle, level);
     }
 
     public static void createLineParticleServer(Vec3 position, Vec3 direction, double length, double step,
