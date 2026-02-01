@@ -4,10 +4,16 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.PartEntity;
 
@@ -22,6 +28,24 @@ public class CombatTools {
 
     private CombatTools() {
         // do nothing.
+    }
+
+    public static DamageSource getDamageSource(Level level, Entity entity, String typeName) {
+        var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
+        var type = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, typeName));
+        var holder = reg.getHolder(type)
+                .orElseGet(() -> (Holder.Reference<DamageType>) level.damageSources().genericKill().typeHolder());
+
+        return new DamageSource(holder, entity);
+    }
+
+    public static DamageSource getDamageSource(Level level, Entity projectile, Entity owner, String typeName) {
+        var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
+        var type = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, typeName));
+        var holder = reg.getHolder(type)
+                .orElseGet(() -> (Holder.Reference<DamageType>) level.damageSources().genericKill().typeHolder());
+
+        return new DamageSource(holder, projectile, owner);
     }
 
     public static Entity resolutePartEntity(Entity raw) {

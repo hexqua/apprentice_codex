@@ -11,13 +11,12 @@ public class ApprenticeCodex
 {
     public static final String MODID = "apprenticecodex";
     public static final String NAME = "Apprentice's Codex";
-
-    // いずれログを使うため未使用警告を無効化.
-    @SuppressWarnings("unused")
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public ApprenticeCodex() {
-        @SuppressWarnings("removal") var bus = FMLJavaModLoadingContext.get().getModEventBus();
+    public ApprenticeCodex(FMLJavaModLoadingContext context) {
+        LOGGER.info("Loading {}", NAME);
+
+        var bus = context.getModEventBus();
         SpellsRegistry.register(bus);
         EntityRegistry.register(bus);
         ItemRegistry.ITEMS.register(bus);

@@ -29,11 +29,10 @@ public final class ItemRegistry {
         // do nothing.
     }
 
-    @SuppressWarnings("removal")
     public static void register() {
         ItemProperties.register(
                 ItemRegistry.ARCHER_MULTIPLE_BOW.get(),
-                new ResourceLocation("apprenticecodex", "stage"),
+                ResourceLocation.fromNamespaceAndPath("apprenticecodex", "stage"),
                 (stack, level, living, seed) -> {
                     CompoundTag tag = stack.getTag();
                     int stage = (tag != null) ? tag.getInt("Stage") : 0;

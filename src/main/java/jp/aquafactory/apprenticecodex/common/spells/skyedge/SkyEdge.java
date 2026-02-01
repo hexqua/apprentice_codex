@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class SkyEdge extends AbstractSpell {
-    @SuppressWarnings("removal") private final ResourceLocation spellId = new ResourceLocation(ApprenticeCodex.MODID, "sky_edge");
+    private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sky_edge");
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
