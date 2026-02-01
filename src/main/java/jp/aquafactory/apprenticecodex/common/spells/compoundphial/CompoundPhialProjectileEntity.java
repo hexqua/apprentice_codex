@@ -170,7 +170,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
             var center = target.getBoundingBox().getCenter();
             var distance = position().distanceTo(center) - target.getBbWidth();
             if(distance <= splashRadius) {
-                var scale = 0.5 + 0.5 * distance / (1 - distance / splashRadius);
+                var scale = 0.5 + 0.5 * (1 - distance / splashRadius);
                 var source = CombatTools.getDamageSource(level(), this, owner, "compound_phial");
                 CombatTools.applyDamage(target, Math.round(splashDamage * scale), source, SpellsRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             }
