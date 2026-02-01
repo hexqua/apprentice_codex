@@ -187,8 +187,8 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
 
     private void spawnPotionBurst(Level level) {
         final var color = getColorArray();
-        final var count = 64;
         final float radius = entityData.get(BURST_RADIUS);
+        final var count = Math.round(24 * radius);
 
         var rand = level.getRandom();
         var p = position();

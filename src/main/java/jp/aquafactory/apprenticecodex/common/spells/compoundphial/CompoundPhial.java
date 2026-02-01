@@ -31,7 +31,6 @@ public class CompoundPhial extends AbstractSpell {
 
     public CompoundPhial() {
         // スペルパワー100 = 1ダメージ.
-        // todo:バランス調整.
         baseSpellPower = 100;
         spellPowerPerLevel = 15;
         manaCostPerLevel = 4;
@@ -42,28 +41,26 @@ public class CompoundPhial extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getSplashRadius(spellLevel, caster), 2)),
+                Component.translatable("ui.apprenticecodex.splash_reduce", Utils.stringTruncation(getSplashReducedPercent(spellLevel, caster), 2)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        // todo:バランス調整.
-        return getSpellPower(spellLevel, entity) / 100.0f;
+        return 2 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getSplashReducedPercent(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 50;
+        return 50 + Math.min(50 , Math.round(15 * getSpellPower(spellLevel, entity) / 100.0f));
     }
 
     private float getSplashRadius(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 4f;
+        return 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private float getSpeed(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
+    private float getSpeed() {
         return 1.0f;
     }
 
@@ -110,7 +107,7 @@ public class CompoundPhial extends AbstractSpell {
         var projectile = new CompoundPhialProjectileEntity(EntityRegistry.COMPOUND_PHIAL_PROJECTILE.get(), level, entity);
 
         projectile.setPos(entity.getX(), entity.getEyeY() - 0.1, entity.getZ());
-        projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0.0f, getSpeed(spellLevel, entity), 0.0f);
+        projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0.0f, getSpeed(), 0.0f);
         projectile.setDamage(getDamage(spellLevel, entity));
         projectile.setSplashDamage(getSplashDamage(spellLevel, entity));
         projectile.setSplashRadius(getSplashRadius(spellLevel, entity));
