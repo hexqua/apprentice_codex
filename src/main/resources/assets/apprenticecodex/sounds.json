@@ -1,0 +1,8 @@
+{
+  "rifle": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:rifle"
+    ]
+  }
+}

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.spells.skyedge;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import net.minecraft.client.Minecraft;
@@ -57,7 +58,16 @@ public class SkyEdgeProjectileEntity extends Projectile
         // 射出時パーティクル.
         // todo:再ログイン制御がいるかどうか.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(position(), getLookAngle(), 8, level);
+            EffectTools.createRingParticleClient(
+                    position(),
+                    getLookAngle(),
+                    0.4f,
+                    8,
+                    0.015f,
+                    0.01,
+                    ParticleTypes.END_ROD,
+                    level
+            );
         }
 
         super.tick();
@@ -78,16 +88,7 @@ public class SkyEdgeProjectileEntity extends Projectile
             }
 
             if (tickCount == standbyTick){
-                var volume = 0.75f;
-                var pitch = 1.5f;
-                level.playSound(
-                        null,
-                        getX(), getY(), getZ(),
-                        SoundEvents.SHULKER_SHOOT,
-                        SoundSource.PLAYERS,
-                        volume,
-                        pitch
-                );
+                AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 0.75f, 1.5f);
             }
         }
 
@@ -201,16 +202,7 @@ public class SkyEdgeProjectileEntity extends Projectile
 
     private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity) {
         if (!level.isClientSide) {
-            var volume = 1.0f;
-            var pitch = 1.0f;
-            level.playSound(
-                    null,
-                    getX(), getY(), getZ(),
-                    SoundEvents.PLAYER_ATTACK_SWEEP,
-                    SoundSource.PLAYERS,
-                    volume,
-                    pitch
-            );
+            AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
 
             if (level instanceof ServerLevel server){
                 // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.

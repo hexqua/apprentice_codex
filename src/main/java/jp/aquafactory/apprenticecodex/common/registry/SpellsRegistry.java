@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultiple;
+import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -20,6 +21,10 @@ public class SpellsRegistry {
     @SuppressWarnings("unused")
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE =
             SPELLS.register("archer_multiple", ArcherMultiple::new);
+
+    @SuppressWarnings("unused")
+    public static final RegistryObject<AbstractSpell> COMMENCE_FIRE =
+            SPELLS.register("commence_fire", CommenceFire::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);

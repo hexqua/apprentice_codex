@@ -3,10 +3,12 @@ package jp.aquafactory.apprenticecodex.common.utility;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.PartEntity;
 
 import javax.annotation.Nullable;
@@ -96,5 +98,15 @@ public class CombatTools {
         } else {
             return 2 - (float) Utils.softCapFormula(damageSchool.getResistanceFor(entity) * baseResist);
         }
+    }
+
+    public static boolean isHeadShot(LivingEntity target, Vec3 hitPosition) {
+        // todo:今はLivingEntity全てにしているが、これに制限を入れるかどうかを検討.
+        var height = target.getBoundingBox().getYsize();
+        var headShotMargin = Math.max(height / 3, 0.5);
+        var eyeY = target.getEyeY();
+
+        // 判定は気持ちよさ優先でやや雑に.
+        return (!(hitPosition.y <= eyeY - headShotMargin / 2)) && (!(hitPosition.y >= eyeY + headShotMargin / 2));
     }
 }

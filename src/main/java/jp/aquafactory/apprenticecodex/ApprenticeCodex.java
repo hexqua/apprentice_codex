@@ -1,9 +1,7 @@
 package jp.aquafactory.apprenticecodex;
 
 import com.mojang.logging.LogUtils;
-import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.*;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
@@ -23,5 +21,7 @@ public class ApprenticeCodex
         SpellsRegistry.register(bus);
         EntityRegistry.register(bus);
         ItemRegistry.ITEMS.register(bus);
+        ParticleRegistry.PARTICLES.register(bus);
+        SoundRegistry.register(bus);
     }
 }

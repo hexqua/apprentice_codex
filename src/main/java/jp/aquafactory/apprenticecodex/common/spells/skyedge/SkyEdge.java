@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -113,7 +114,7 @@ public class SkyEdge extends AbstractSpell {
                 // 視線先の対象を狙うようにする.
                 var scanRange = 64;
                 var inaccuracy = 0.75;
-                var result = RaycastTools.raycastFromEye(entity, scanRange);
+                var result = RaycastTools.raycastFromEye(entity, scanRange, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
                 var distance = result.hitPosition().subtract(spawnPosition).length();
                 var targetPosition = entity
                         .getEyePosition()

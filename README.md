@@ -9,6 +9,21 @@ Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 - `mods`配下に`jar`を入れればOKです。
 - 現時点でIron's Spells 'n Spellbooks及びそれの前提MOD以外の前提MODはありません.
 
-## 注意
+## ライセンスや使用について
 
-- 自分用なので1.20.1専用です.
+### 許可(Permissions)
+
+- modpackにはご自由にどうぞ
+- 前提modにするのもご自由にどうぞ
+- リソースパックもご自由にどうぞ
+- スクリーンショット、プレイ動画、動画配信も収益化含めご自由にどうぞ
+
+### 禁止(Restrictions)
+
+- `THIRD_PARTY_NOTICES.md`にある素材のライセンスを破るのはやめてください
+
+### License
+
+- Code: MIT (see `LICENSE`).
+- Original assets created for this project: CC0-1.0 (free to use).
+- Third-party assets: see `THIRD_PARTY_NOTICES.md` for the applicable licenses.

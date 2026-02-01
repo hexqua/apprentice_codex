@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.DamageSources;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
@@ -185,7 +186,16 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     @Override
     public void onClientRemoval(){
         var level = level();
-        EffectTools.createRingParticleClient(position(), getLookAngle(), 8, level);
+        EffectTools.createRingParticleClient(
+                position(),
+                getLookAngle(),
+                0.4f,
+                8,
+                0.015f,
+                0.01,
+                ParticleTypes.END_ROD,
+                level
+        );
         super.onClientRemoval();
     }
 
@@ -196,7 +206,16 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         // 射出時パーティクル.
         // todo:再ログインの制御をするかどうか.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(position(), getLookAngle(), 8, level);
+            EffectTools.createRingParticleClient(
+                    position(),
+                    getLookAngle(),
+                    0.4f,
+                    8,
+                    0.015f,
+                    0.01,
+                    ParticleTypes.END_ROD,
+                    level
+            );
         }
 
         super.tick();
@@ -339,27 +358,11 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         var damage = this.damage * (isLastBullet ? 2.0f : 1.0f);
         var sourceType = isLastBullet ? "archer_multiple_last" : "archer_multiple";
         var step = isLastBullet ? 0.2 : 0.5;
-
-        if (level instanceof ServerLevel server) {
-            for (var offset = 0.0; offset < lineLength; offset += step) {
-                var pos = currentPosition.add(lineDirection.scale(offset));
-                server.sendParticles(
-                        particleType,
-                        pos.x + server.random.nextDouble() * 0.01 - 0.005,
-                        pos.y + server.random.nextDouble() * 0.01 - 0.005,
-                        pos.z + server.random.nextDouble() * 0.01 - 0.005,
-                        1,
-                        server.random.nextDouble() * 0.1 - 0.05,
-                        server.random.nextDouble() * 0.1 - 0.05,
-                        server.random.nextDouble() * 0.1 - 0.05,
-                        0.01
-                );
-            }
-        }
+        EffectTools.createLineParticleServer(currentPosition, lineDirection, lineLength, step, 0.01, 0.01, particleType, level);
 
         var source = DamageSources.getDamageSource(level, this, getOwner(), sourceType);
         CombatTools.applyDamage(target, damage, source, SchoolRegistry.EVOCATION.get(), CombatTools.KnockbackTypes.DEFAULT);
-        level.playSound(null, getX(), getY(), getZ(), soundEvent, SoundSource.PLAYERS, 0.5f, 1.0f);
+        AudioTools.playSoundFromEntity(level, this, soundEvent, SoundSource.PLAYERS, 0.5f);
     }
 
     public void locateCurrentFormationPosition(){
