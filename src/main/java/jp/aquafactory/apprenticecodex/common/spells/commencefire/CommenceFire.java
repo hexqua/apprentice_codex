@@ -34,8 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CommenceFire extends AbstractSpell {
-    @SuppressWarnings("removal")
-    private final ResourceLocation spellId = new ResourceLocation(ApprenticeCodex.MODID, "commence_fire");
+    private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "commence_fire");
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.UNCOMMON)

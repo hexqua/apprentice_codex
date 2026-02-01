@@ -29,8 +29,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class ArcherMultiple  extends AbstractSpell {
-    @SuppressWarnings("removal")
-    private final ResourceLocation spellId = new ResourceLocation(ApprenticeCodex.MODID, "archer_multiple");
+    private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "archer_multiple");
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
