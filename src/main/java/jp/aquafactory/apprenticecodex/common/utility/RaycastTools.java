@@ -26,7 +26,7 @@ public class RaycastTools {
     }
 
     public record TargetResult(
-            TargetType type,
+            TargetType hitType,
             Vec3 hitPosition,
             Entity hitEntity
     ) {}

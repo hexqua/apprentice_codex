@@ -12,8 +12,6 @@ public class ParticleRegistry {
 
     public static final RegistryObject<SimpleParticleType> RETICLE_DOT =
             PARTICLES.register("reticle_dot", () -> new SimpleParticleType(true));
-    public static final RegistryObject<SimpleParticleType> TRACER_DOT =
-            PARTICLES.register("tracer_dot", () -> new SimpleParticleType(true));
     public static final RegistryObject<SimpleParticleType> MUZZLE_FLASH =
             PARTICLES.register("muzzle_flash", () -> new SimpleParticleType(true));
 

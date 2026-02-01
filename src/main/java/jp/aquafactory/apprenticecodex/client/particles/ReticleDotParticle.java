@@ -19,25 +19,23 @@ public class ReticleDotParticle extends TextureSheetParticle {
 
         gravity = 0.0F;
         friction = 1.0F;
-        lifetime = 5;
-        quadSize = 0.04F;
+        lifetime = 4;
+        quadSize = 0.03F;
 
         rCol = 1.0F;
         gCol = 1.0F;
         bCol = 1.0F;
         alpha = BASE_ALPHA;
-
-        // スプライト設定
-        this.pickSprite(sprites);
+        pickSprite(sprites);
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        // フェードアウト.
-        float t = (float) age / lifetime;
-        this.alpha = BASE_ALPHA * (1.0F - t);
+        // フェードアウトをかける(sin)
+        var t = (double) age / lifetime;
+        alpha = BASE_ALPHA * ((float) Math.sin(Math.PI * (1 - t) * 0.5));
     }
 
     @Override

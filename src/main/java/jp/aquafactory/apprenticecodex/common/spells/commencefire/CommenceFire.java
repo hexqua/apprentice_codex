@@ -217,7 +217,12 @@ public class CommenceFire extends AbstractSpell {
                     summon.damageTarget(result.hitEntity(), level);
                 }
 
-                summon.fire(result.hitPosition(), level);
+                var hitType = switch (result.hitType()) {
+                    case NONE -> CommenceFireRifleEntity.HitTypes.MISS;
+                    case BLOCK -> CommenceFireRifleEntity.HitTypes.BLOCK;
+                    case LIVING_ENTITY -> CommenceFireRifleEntity.HitTypes.ENTITY;
+                };
+                summon.fire(result.hitPosition(), level, hitType);
             }
         } else {
             var castData = new CommenceFireCastData();

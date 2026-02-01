@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipl
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -28,6 +29,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
+
+    public enum HitTypes{
+        MISS,
+        BLOCK,
+        ENTITY,
+    }
 
     public static final int MAX_RECOIL_TICK = 8;
 
@@ -177,21 +184,28 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         CombatTools.applyDamage(resoluteTarget, damage, source, SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
     }
 
-    public void fire(Vec3 target, Level level) {
+    public void fire(Vec3 target, Level level, HitTypes hitType) {
         recoilTick = MAX_RECOIL_TICK;
         entityData.set(RECOIL_TICK, recoilTick);
         setFireRotationByVector(aimPosition);
 
-        // todo:重くならないようにクライアントフェーズにエフェクトを送れるようにする(今は仮でサーバー処理)
-        var targetVec = target.subtract(position());
-        var normal = targetVec.normalize();
-        var firePosition = position().add(normal.scale(1));
-        var length = targetVec.length() - 1;
-        EffectTools.createLineParticleServer(firePosition, normal, length, 0.1, ParticleRegistry.TRACER_DOT.get(), level);
-
-        // マズルフラッシュは軽いからサーバーでもよいかも.
         if (level instanceof ServerLevel server) {
+            var targetVec = target.subtract(position());
+            var normal = targetVec.normalize();
+            var firePosition = position().add(normal.scale(1));
             server.sendParticles(ParticleRegistry.MUZZLE_FLASH.get(), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
+
+            switch (hitType){
+                case MISS:
+                    // do nothing.
+                    break;
+                case BLOCK:
+                    server.sendParticles(ParticleTypes.SMOKE, target.x, target.y, target.z, 4, .1, .1, .1, .1);
+                    break;
+                case ENTITY:
+                    server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 16, .25, .25, .25, .1);
+                    break;
+            }
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
