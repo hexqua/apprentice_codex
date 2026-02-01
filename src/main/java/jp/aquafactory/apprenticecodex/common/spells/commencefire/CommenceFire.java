@@ -38,18 +38,17 @@ public class CommenceFire extends AbstractSpell {
     private final ResourceLocation spellId = new ResourceLocation(ApprenticeCodex.MODID, "commence_fire");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.EPIC)
+            .setMinRarity(SpellRarity.UNCOMMON)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
-            .setMaxLevel(3)
+            .setMaxLevel(5)
             .setCooldownSeconds(45)
             .build();
 
     public CommenceFire() {
-        // todo:バランス調整.
         baseSpellPower = 100;
-        spellPowerPerLevel = 100;
-        manaCostPerLevel = 20;
-        baseManaCost = 200;
+        spellPowerPerLevel = 25;
+        manaCostPerLevel = 25;
+        baseManaCost = 150;
         castTime = 40;
     }
 
@@ -63,30 +62,30 @@ public class CommenceFire extends AbstractSpell {
         );
     }
 
+    private float getOverSpellPower(int spellLevel, LivingEntity entity){
+        return getSpellPower(spellLevel, entity) - baseSpellPower;
+    }
+
     private float getDamage(int spellLevel, LivingEntity entity) {
         // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        return getSpellPower(spellLevel, entity) / 100.0f;
+        return 3 * (getSpellPower(spellLevel, entity) / 100.0f);
     }
 
     private int getBulletCount(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 4;
+        return Math.min(10, 4 + Math.round(2 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
     }
 
-    private int getDuration(int spellLevel, LivingEntity entity){
-        // todo:バランス調整.
-        return Math.round((20 * 15) * getSpellPower(spellLevel, entity) / 100.0f);
+    private int getDuration() {
+        return 20 * 10;
     }
 
-    private int getRange(int spellLevel, LivingEntity entity){
-        // todo:バランス調整.
-        // 一旦狙撃イメージで10チャンク.
-        return 16 * 10;
+    private int getRange(){
+        // DMRイメージなので中距離(4チャンク程度)
+        return 16 * 4;
     }
 
-    private int getHeadshotPercent(int spellLevel, LivingEntity entity){
-        // todo:バランス調整.
-        return 200;
+    private int getHeadshotPercent(int spellLevel, LivingEntity entity) {
+        return Math.min(300, 150 + Math.round(25 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
     }
 
     @Override
@@ -184,7 +183,7 @@ public class CommenceFire extends AbstractSpell {
             return;
         }
 
-        var range = getRange(spellLevel, entity);
+        var range = getRange();
         var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
 
         // 上の判定式で非nullが保証.
@@ -224,7 +223,7 @@ public class CommenceFire extends AbstractSpell {
         if (recasts.hasRecastForSpell(this)) {
             var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
             if (summon != null) {
-                var range = getRange(spellLevel, entity);
+                var range = getRange();
                 var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
                 var isHeadShot = result.hitEntity() instanceof LivingEntity living && CombatTools.isHeadShot(living, result.hitPosition());
                 if (result.hitEntity() != null) {
@@ -247,7 +246,7 @@ public class CommenceFire extends AbstractSpell {
             castData.setEntity(summonWeapon);
             level.addFreshEntity(summonWeapon);
 
-            var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDuration(spellLevel, entity), castSource, castData);
+            var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDuration(), castSource, castData);
             recasts.addRecast(recastInstance, playerMagicData);
             AudioTools.playSoundFromEntity(level, entity, SoundEvents.SHULKER_TELEPORT, SoundSource.PLAYERS, 2.0f);
         }
