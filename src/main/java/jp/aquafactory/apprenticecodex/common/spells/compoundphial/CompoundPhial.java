@@ -114,6 +114,7 @@ public class CompoundPhial extends AbstractSpell {
         projectile.setDamage(getDamage(spellLevel, entity));
         projectile.setSplashDamage(getSplashDamage(spellLevel, entity));
         projectile.setSplashRadius(getSplashRadius(spellLevel, entity));
+        projectile.setPotionColorRandom(level);
         level.addFreshEntity(projectile);
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
