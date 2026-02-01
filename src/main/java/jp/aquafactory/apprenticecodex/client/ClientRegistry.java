@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.client.particles.ReticleDotParticle;
 import jp.aquafactory.apprenticecodex.client.particles.TracerDotParticle;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
@@ -34,5 +35,6 @@ public class ClientRegistry {
     public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleRegistry.RETICLE_DOT.get(), ReticleDotParticle.Provider::new);
         event.registerSpriteSet(ParticleRegistry.TRACER_DOT.get(), TracerDotParticle.Provider::new);
+        event.registerSpriteSet(ParticleRegistry.MUZZLE_FLASH.get(), MuzzleFlashParticle.Provider::new);
     }
 }

@@ -189,6 +189,11 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         var length = targetVec.length() - 1;
         EffectTools.createLineParticleServer(firePosition, normal, length, 0.1, ParticleRegistry.TRACER_DOT.get(), level);
 
+        // マズルフラッシュは軽いからサーバーでもよいかも.
+        if (level instanceof ServerLevel server) {
+            server.sendParticles(ParticleRegistry.MUZZLE_FLASH.get(), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
+        }
+
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
         aimPosition = null;
     }
