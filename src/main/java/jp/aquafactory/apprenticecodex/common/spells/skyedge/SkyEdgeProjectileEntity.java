@@ -123,9 +123,8 @@ public class SkyEdgeProjectileEntity extends Projectile
         }
 
         var owner = getOwner();
-        var target = CombatTools.resolutePartEntity(hit.getEntity());
-
-        if (CombatTools.isValidCombatTarget(target, owner)) {
+        if (CombatTools.isValidCombatTarget(hit.getEntity(), owner)) {
+            var target = CombatTools.resolutePartEntity(hit.getEntity());
             var source = CombatTools.getDamageSource(level(), this, owner, "sky_edge");
             CombatTools.applyDamage(target, damage, source, SpellsRegistry.SKY_EDGE.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             onImpact(level, 0.5 + level.random.nextDouble() * 0.25, true);

@@ -154,6 +154,9 @@ public class QuickArms extends AbstractSpell {
             var summonWeapon = new QuickArmsHandgunEntity(EntityRegistry.QUICK_ARMS_HANDGUN.get(), level, entity);
 
             summonWeapon.locateAimingPosition();
+            summonWeapon.setDamage(getDamage(spellLevel, entity));
+            summonWeapon.setRange(getRange());
+
             castData.setEntity(summonWeapon);
             level.addFreshEntity(summonWeapon);
 

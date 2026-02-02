@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.common.spells.quickarms;
 
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -20,6 +22,9 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
     private UUID ownerUUID;
     private Entity cachedOwner;
+
+    private float damage;
+    private float range;
 
     public QuickArmsHandgunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -99,7 +104,18 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
             return;
         }
 
-        // todo:サーバーサイド処理実装.
+        // クイックアームは常に視線先を狙う.
+        if (getOwner() instanceof LivingEntity owner){
+            var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
+
+            var targetVec = aimResult.hitPosition().subtract(position());
+            var yaw = (float) (Mth.atan2(-targetVec.x, targetVec.z) * Mth.RAD_TO_DEG);
+            var xzLen = Math.sqrt(targetVec.x * targetVec.x + targetVec.z * targetVec.z);
+            var pitch = (float) (Mth.atan2(-targetVec.y, xzLen) * Mth.RAD_TO_DEG);
+            setYRot(yaw);
+            setXRot(pitch);
+        }
+
         hasImpulse = true;
     }
 
@@ -114,6 +130,13 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
         }
     }
 
+    public void setDamage(float newDamage) {
+        damage = newDamage;
+    }
+
+    public void setRange(float newRange) {
+        range = newRange;
+    }
 
     private static Vec3 getAimingPosition(LivingEntity owner) {
         var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;

@@ -114,7 +114,7 @@ public class SkyEdge extends AbstractSpell {
                 // 視線先の対象を狙うようにする.
                 var scanRange = 64;
                 var inaccuracy = 0.75;
-                var result = RaycastTools.raycastFromEye(entity, scanRange, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
+                var result = RaycastTools.raycastFromEye(entity, scanRange, e -> CombatTools.isValidCombatTarget(e, entity));
                 var distance = result.hitPosition().subtract(spawnPosition).length();
                 var targetPosition = entity
                         .getEyePosition()

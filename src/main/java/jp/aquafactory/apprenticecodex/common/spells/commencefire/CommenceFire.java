@@ -183,7 +183,7 @@ public class CommenceFire extends AbstractSpell {
         }
 
         var range = getRange();
-        var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
+        var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(e, entity));
 
         // 上の判定式で非nullが保証.
         //noinspection DataFlowIssue
@@ -223,7 +223,7 @@ public class CommenceFire extends AbstractSpell {
             var summon = getCommenceFireEntityFromMagicData(playerMagicData, level);
             if (summon != null) {
                 var range = getRange();
-                var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(e), entity));
+                var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(e, entity));
                 var isHeadShot = result.hitEntity() instanceof LivingEntity living && CombatTools.isHeadShot(living, result.hitPosition());
                 if (result.hitEntity() != null) {
                     summon.damageTarget(result.hitEntity(), isHeadShot, level);
