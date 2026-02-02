@@ -91,6 +91,22 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
         }
     }
 
+    @Override
+    public void onClientRemoval(){
+        var level = level();
+        EffectTools.createStickParticleClient(
+                position(),
+                getLookAngle(),
+                0.2f,
+                8,
+                0.01f,
+                0.01,
+                ParticleTypes.END_ROD,
+                level
+        );
+
+        super.onClientRemoval();
+    }
 
     @Override
     public void tick() {
