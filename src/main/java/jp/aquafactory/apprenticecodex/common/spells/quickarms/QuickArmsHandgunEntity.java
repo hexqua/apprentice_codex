@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.common.spells.quickarms;
 
-import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
@@ -150,8 +150,8 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
             var target = aimResult.hitPosition();
             var targetVec = target.subtract(position());
             var normal = targetVec.normalize();
-            var firePosition = position().add(normal.scale(1));
-            server.sendParticles(ParticleRegistry.MUZZLE_FLASH.get(), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
+            var firePosition = position().add(normal.scale(0.5));
+            server.sendParticles(new MuzzleFlashParticleOptions(0.5f), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
 
             switch (aimResult.hitType()) {
                 case NONE:

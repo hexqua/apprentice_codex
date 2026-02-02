@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.client.particles;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,7 +11,7 @@ public class MuzzleFlashParticle extends TextureSheetParticle {
     private static final float BASE_ALPHA = 0.95F;
 
     protected MuzzleFlashParticle(ClientLevel level, double x, double y, double z,
-                                 double xd, double yd, double zd, SpriteSet sprites) {
+                                  double xd, double yd, double zd, float size, SpriteSet sprites) {
 
         super(level, x, y, z, xd, yd, zd);
         this.xd = xd;
@@ -22,8 +21,8 @@ public class MuzzleFlashParticle extends TextureSheetParticle {
         gravity = 0.0f;
         friction = 1.0f;
         lifetime = 1;
-        quadSize = 0.35f + RNG.nextFloat() * 0.05f;
-        roll = RNG.nextFloat() * (float)Math.PI;
+        quadSize = (0.35f + RNG.nextFloat() * 0.05f) * size;
+        roll = RNG.nextFloat() * (float) Math.PI;
         oRoll = roll;
 
         rCol = 1.0f;
@@ -52,7 +51,7 @@ public class MuzzleFlashParticle extends TextureSheetParticle {
         return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
-    public static class Provider implements ParticleProvider<SimpleParticleType> {
+    public static class Provider implements ParticleProvider<MuzzleFlashParticleOptions> {
         private final SpriteSet sprites;
 
         public Provider(SpriteSet sprites) {
@@ -60,10 +59,11 @@ public class MuzzleFlashParticle extends TextureSheetParticle {
         }
 
         @Override
-        public Particle createParticle(@NotNull SimpleParticleType type, @NotNull ClientLevel level,
+        public Particle createParticle(@NotNull MuzzleFlashParticleOptions options, @NotNull ClientLevel level,
                                        double x, double y, double z,
                                        double xd, double yd, double zd) {
-            return new MuzzleFlashParticle(level, x, y, z, xd, yd, zd, sprites);
+            var size = options.size();
+            return new MuzzleFlashParticle(level, x, y, z, xd, yd, zd, size, sprites);
         }
     }
 }
