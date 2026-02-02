@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -52,6 +53,15 @@ public class EntityRegistry {
                             .clientTrackingRange(48)
                             .updateInterval(1)
                             .build("compound_phial_projectile"));
+
+    public static final RegistryObject<EntityType<QuickArmsHandgunEntity>> QUICK_ARMS_HANDGUN =
+            ENTITIES.register("quick_arms_handgun",
+                    () -> EntityType.Builder
+                            .<QuickArmsHandgunEntity>of(QuickArmsHandgunEntity::new, MobCategory.MISC)
+                            .sized(0.25f, 0.25f)
+                            .clientTrackingRange(48)
+                            .updateInterval(1)
+                            .build("quick_arms_handgun"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

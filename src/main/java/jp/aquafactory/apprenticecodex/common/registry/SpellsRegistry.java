@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultiple;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhial;
+import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -26,6 +27,9 @@ public class SpellsRegistry {
 
     public static final RegistryObject<AbstractSpell> COMPOUND_PHIAL =
             SPELLS.register("compound_phial", CompoundPhial::new);
+
+    public static final RegistryObject<AbstractSpell> QUICK_ARMS =
+            SPELLS.register("quick_arms", QuickArms::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
