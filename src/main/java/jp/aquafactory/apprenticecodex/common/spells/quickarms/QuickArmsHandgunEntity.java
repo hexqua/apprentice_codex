@@ -1,11 +1,16 @@
 package jp.aquafactory.apprenticecodex.common.spells.quickarms;
 
+import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -25,6 +30,9 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
     private float damage;
     private float range;
+
+    private boolean isStandbyFirstFire;
+    private int standbyTick;
 
     public QuickArmsHandgunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -107,7 +115,6 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
         // クイックアームは常に視線先を狙う.
         if (getOwner() instanceof LivingEntity owner){
             var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
-
             var targetVec = aimResult.hitPosition().subtract(position());
             var yaw = (float) (Mth.atan2(-targetVec.x, targetVec.z) * Mth.RAD_TO_DEG);
             var xzLen = Math.sqrt(targetVec.x * targetVec.x + targetVec.z * targetVec.z);
@@ -116,7 +123,51 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
             setXRot(pitch);
         }
 
+        if (standbyTick > 0) {
+            --standbyTick;
+            if (standbyTick == 0 && isStandbyFirstFire) {
+                isStandbyFirstFire = false;
+                fire(level);
+            }
+        }
+
         hasImpulse = true;
+    }
+
+    public void fire(Level level){
+        if (!(getOwner() instanceof LivingEntity owner)){
+            return;
+        }
+
+        var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
+        if (aimResult.hitEntity() != null) {
+            var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
+            var source = CombatTools.getDamageSource(level(), this, getOwner(), "quick_arms_handgun");
+            CombatTools.applyDamage(target, damage, source, SpellsRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+        }
+
+        if (level instanceof ServerLevel server) {
+            var target = aimResult.hitPosition();
+            var targetVec = target.subtract(position());
+            var normal = targetVec.normalize();
+            var firePosition = position().add(normal.scale(1));
+            server.sendParticles(ParticleRegistry.MUZZLE_FLASH.get(), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
+
+            switch (aimResult.hitType()) {
+                case NONE:
+                    // do nothing.
+                    break;
+                case BLOCK:
+                    server.sendParticles(ParticleTypes.SMOKE, target.x, target.y, target.z, 2, .05, .05, .05, .05);
+                    break;
+                case LIVING_ENTITY:
+                    server.sendParticles(ParticleTypes.ENCHANTED_HIT, target.x, target.y, target.z, 6, .15, .15, .15, .1);
+                    break;
+            }
+        }
+
+        // todo:ハンドガン用の音に変える.
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
     }
 
     public void locateAimingPosition(){
@@ -136,6 +187,11 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
     public void setRange(float newRange) {
         range = newRange;
+    }
+
+    public void setFireStandby(int ticks) {
+        isStandbyFirstFire = true;
+        standbyTick = ticks;
     }
 
     private static Vec3 getAimingPosition(LivingEntity owner) {

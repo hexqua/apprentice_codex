@@ -80,6 +80,11 @@ public class QuickArms extends AbstractSpell {
         return 16 * 2;
     }
 
+    private int getFirstDelay(){
+        // todo:バランス調整.
+        return 20;
+    }
+
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
@@ -156,6 +161,7 @@ public class QuickArms extends AbstractSpell {
             summonWeapon.locateAimingPosition();
             summonWeapon.setDamage(getDamage(spellLevel, entity));
             summonWeapon.setRange(getRange());
+            summonWeapon.setFireStandby(getFirstDelay());
 
             castData.setEntity(summonWeapon);
             level.addFreshEntity(summonWeapon);
