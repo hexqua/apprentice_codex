@@ -11,10 +11,12 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -146,13 +148,37 @@ public class QuickArms extends AbstractSpell {
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summon = getQuickArmsEntityFromMagicData(playerMagicData, level);
+        if (summon != null) {
+            if (!summon.canFire()){
+                if (entity instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.quick_arms.during_standby", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                }
+                return false;
+            }
+        } else if(playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.firearm_spell.no_firearm", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                if (recast.getRemainingRecasts() > 0) {
+                    playerMagicData.getPlayerRecasts().removeRecast(recast, RecastResult.USED_ALL_RECASTS);
+                }
+            }
+
+            return false;
+        }
+
+        return super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
             var summon = getQuickArmsEntityFromMagicData(playerMagicData, level);
             if (summon != null) {
-                // todo:射撃処理.
-                ApprenticeCodex.LOGGER.info("QuickArms: Recast");
+                summon.fire(level);
             }
         } else {
             var castData = new QuickArmsCastData();

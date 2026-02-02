@@ -28,7 +28,6 @@ public class QuickArmsHandgunRenderer extends EntityRenderer<QuickArmsHandgunEnt
     public void render(@NotNull QuickArmsHandgunEntity entity, float entityYaw, float partialTicks,
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
-        // todo:諸々挙動を盛り込む(今はコメンスファイアほぼそのまま)
         var yawPitch = calculateYawPitch(entity, partialTicks);
         var yaw = yawPitch.yaw();
         var pitch = yawPitch.pitch();

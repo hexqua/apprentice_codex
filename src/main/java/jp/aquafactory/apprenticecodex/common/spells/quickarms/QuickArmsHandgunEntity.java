@@ -47,7 +47,7 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
     @Override
     protected void defineSynchedData() {
-        // todo:表示に必要なものを諸々同期する.
+        // do nothing.
     }
 
     @Override
@@ -56,6 +56,8 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
             ownerUUID = pCompound.getUUID("OwnerUUID");
             cachedOwner = null;
         }
+        damage = pCompound.getFloat("Damage");
+        range = pCompound.getFloat("Range");
     }
 
     @Override
@@ -63,6 +65,8 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
         if (ownerUUID != null) {
             pCompound.putUUID("OwnerUUID", ownerUUID);
         }
+        pCompound.putFloat("Damage", damage);
+        pCompound.putFloat("Range", range);
     }
 
     @Override
@@ -112,16 +116,20 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
             return;
         }
 
-        // クイックアームは常に視線先を狙う.
-        if (getOwner() instanceof LivingEntity owner){
-            var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
-            var targetVec = aimResult.hitPosition().subtract(position());
-            var yaw = (float) (Mth.atan2(-targetVec.x, targetVec.z) * Mth.RAD_TO_DEG);
-            var xzLen = Math.sqrt(targetVec.x * targetVec.x + targetVec.z * targetVec.z);
-            var pitch = (float) (Mth.atan2(-targetVec.y, xzLen) * Mth.RAD_TO_DEG);
-            setYRot(yaw);
-            setXRot(pitch);
+        if (!(getOwner() instanceof LivingEntity owner)) {
+            discard();
+            return;
         }
+
+        // クイックアームは常に視線先を狙う.
+        var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
+        var targetVec = aimResult.hitPosition().subtract(position());
+        var yaw = (float) (Mth.atan2(-targetVec.x, targetVec.z) * Mth.RAD_TO_DEG);
+        var xzLen = Math.sqrt(targetVec.x * targetVec.x + targetVec.z * targetVec.z);
+        var pitch = (float) (Mth.atan2(-targetVec.y, xzLen) * Mth.RAD_TO_DEG);
+        setYRot(yaw);
+        setXRot(pitch);
+        hasImpulse = true;
 
         if (standbyTick > 0) {
             --standbyTick;
@@ -130,8 +138,6 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
                 fire(level);
             }
         }
-
-        hasImpulse = true;
     }
 
     public void fire(Level level){
@@ -189,6 +195,10 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
     public void setFireStandby(int ticks) {
         isStandbyFirstFire = true;
         standbyTick = ticks;
+    }
+
+    public boolean canFire(){
+        return standbyTick <= 0;
     }
 
     private static Vec3 getAimingPosition(LivingEntity owner) {

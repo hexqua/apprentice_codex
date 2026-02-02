@@ -14,8 +14,9 @@
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
-  "ui.apprenticecodex.commence_fire.no_rifle": "Couldn't find rifle.",
+  "ui.apprenticecodex.firearm_spell.no_firearm": "Couldn't find firearm!",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
+  "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
 
   "death.attack.apprenticecodex.codex_magic_general": "%1$s was killed by %2$s's magic.",
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",

@@ -204,7 +204,7 @@ public class CommenceFire extends AbstractSpell {
         } else if(playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
             if (entity instanceof ServerPlayer serverPlayer) {
                 var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.commence_fire.no_rifle", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.firearm_spell.no_firearm", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
                 if (recast.getRemainingRecasts() > 0) {
                     playerMagicData.getPlayerRecasts().removeRecast(recast, RecastResult.USED_ALL_RECASTS);
                 }
