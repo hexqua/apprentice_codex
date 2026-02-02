@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 
+import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
@@ -256,7 +257,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
             var targetVec = target.subtract(position());
             var normal = targetVec.normalize();
             var firePosition = position().add(normal.scale(1));
-            server.sendParticles(ParticleRegistry.MUZZLE_FLASH.get(), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
+            server.sendParticles(new MuzzleFlashParticleOptions(1.0f), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
 
             switch (hitType) {
                 case MISS:

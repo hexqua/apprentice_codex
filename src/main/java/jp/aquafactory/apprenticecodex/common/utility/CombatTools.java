@@ -62,8 +62,11 @@ public class CombatTools {
         // 例外的に対象にする特殊エンティティを指定.
         if (target instanceof EndCrystal) return true;
 
+        // エンダードラゴン系の解決は内部で行う.
+        var resolvedTarget = resolutePartEntity(target);
+
         // 基本的にはLivingEntityのみを対象.
-        return target instanceof LivingEntity;
+        return resolvedTarget instanceof LivingEntity;
     }
 
     @SuppressWarnings("UnusedReturnValue")

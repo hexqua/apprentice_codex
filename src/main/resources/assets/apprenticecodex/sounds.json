@@ -4,5 +4,11 @@
     "sounds": [
       "apprenticecodex:rifle"
     ]
+  },
+  "handgun": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:handgun"
+    ]
   }
 }
