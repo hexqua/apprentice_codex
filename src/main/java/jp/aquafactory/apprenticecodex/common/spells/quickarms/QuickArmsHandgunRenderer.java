@@ -34,7 +34,7 @@ public class QuickArmsHandgunRenderer extends EntityRenderer<QuickArmsHandgunEnt
         var pitch = yawPitch.pitch();
 
         poseStack.pushPose();
-        poseStack.translate(0.0, -0.2, 0.0);
+        poseStack.translate(0.0, -0.1, 0.0);
         poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
         poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
 

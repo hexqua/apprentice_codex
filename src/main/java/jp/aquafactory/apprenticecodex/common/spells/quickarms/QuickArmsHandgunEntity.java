@@ -148,9 +148,7 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
         if (level instanceof ServerLevel server) {
             var target = aimResult.hitPosition();
-            var targetVec = target.subtract(position());
-            var normal = targetVec.normalize();
-            var firePosition = position().add(normal.scale(0.5));
+            var firePosition = position().add(getLookAngle().scale(0.5));
             server.sendParticles(new MuzzleFlashParticleOptions(0.5f), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
 
             switch (aimResult.hitType()) {
