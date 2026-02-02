@@ -40,15 +40,14 @@ public class QuickArms extends AbstractSpell {
             .setMinRarity(SpellRarity.COMMON)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(10)
-            .setCooldownSeconds(5)
+            .setCooldownSeconds(6)
             .build();
 
     public QuickArms() {
-        // todo:バランス調整.
         baseSpellPower = 100;
         spellPowerPerLevel = 10;
         manaCostPerLevel = 5;
-        baseManaCost = 20;
+        baseManaCost = 30;
         castTime = 0;
     }
 
@@ -63,17 +62,14 @@ public class QuickArms extends AbstractSpell {
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        // todo:バランス調整.
-        return 4;
+        return 4 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getBulletCount(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 2;
+        return 2 + Math.round(2 * getSpellPower(spellLevel, entity) / 100.0f);
     }
 
     private int getDuration() {
-        // todo:バランス調整.
         return 20 * 3;
     }
 
@@ -83,7 +79,6 @@ public class QuickArms extends AbstractSpell {
     }
 
     private int getFirstDelay(){
-        // todo:バランス調整.
         return 20;
     }
 
@@ -104,7 +99,13 @@ public class QuickArms extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(getSchoolType().getCastSound());
+        // 再詠唱で制御できなさそうなのでこちらは音を無しにする.
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<SoundEvent> getCastFinishSound() {
+        return Optional.empty();
     }
 
     @Override
@@ -115,11 +116,6 @@ public class QuickArms extends AbstractSpell {
     @Override
     public AnimationHolder getCastFinishAnimation() {
         return AnimationHolder.pass();
-    }
-
-    @Override
-    public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.empty();
     }
 
     @Override
@@ -179,6 +175,7 @@ public class QuickArms extends AbstractSpell {
             var summon = getQuickArmsEntityFromMagicData(playerMagicData, level);
             if (summon != null) {
                 summon.fire(level);
+                AudioTools.playSoundFromEntity(level, entity, SoundEvents.ARMOR_EQUIP_NETHERITE, SoundSource.PLAYERS, 2.0f);
             }
         } else {
             var castData = new QuickArmsCastData();
@@ -194,7 +191,7 @@ public class QuickArms extends AbstractSpell {
 
             var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDuration(), castSource, castData);
             recasts.addRecast(recastInstance, playerMagicData);
-            AudioTools.playSoundFromEntity(level, entity, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS);
+            AudioTools.playSoundFromEntity(level, entity, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 2.0f);
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
