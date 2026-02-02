@@ -16,6 +16,10 @@ public class SoundRegistry {
             SOUND_EVENTS.register("rifle",
                     () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "rifle")));
 
+    public static final RegistryObject<SoundEvent> HANDGUN =
+            SOUND_EVENTS.register("handgun",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "handgun")));
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }

@@ -164,8 +164,7 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
             }
         }
 
-        // todo:ハンドガン用の音に変える.
-        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.HANDGUN.get(), SoundSource.PLAYERS, 1.0f);
     }
 
     public void locateAimingPosition(){
