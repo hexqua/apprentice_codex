@@ -6,14 +6,21 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -98,10 +105,10 @@ public class QuickArms extends AbstractSpell {
         return SpellAnimations.ANIMATION_INSTANT_CAST;
     }
 
+    @Override
     public AnimationHolder getCastFinishAnimation() {
         return AnimationHolder.pass();
     }
-
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
@@ -115,8 +122,72 @@ public class QuickArms extends AbstractSpell {
     }
 
     @Override
+    public ICastDataSerializable getEmptyCastData() {
+        return new QuickArmsCastData();
+    }
+
+
+    @Override
+    public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
+        if (castDataSerializable instanceof QuickArmsCastData castData) {
+            var serverLevel = serverPlayer.serverLevel();
+            var entity = castData.getEntity(serverLevel);
+            if(entity != null){
+                entity.discard();
+            }
+        }
+
+        super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        // todo:実装.
+        var recasts = playerMagicData.getPlayerRecasts();
+        if (recasts.hasRecastForSpell(this)) {
+            var summon = getQuickArmsEntityFromMagicData(playerMagicData, level);
+            if (summon != null) {
+                // todo:射撃処理.
+                ApprenticeCodex.LOGGER.info("QuickArms: Recast");
+            }
+        } else {
+            var castData = new QuickArmsCastData();
+            var summonWeapon = new QuickArmsHandgunEntity(EntityRegistry.QUICK_ARMS_HANDGUN.get(), level, entity);
+
+            summonWeapon.locateAimingPosition();
+            castData.setEntity(summonWeapon);
+            level.addFreshEntity(summonWeapon);
+
+            var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDuration(), castSource, castData);
+            recasts.addRecast(recastInstance, playerMagicData);
+            AudioTools.playSoundFromEntity(level, entity, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS);
+        }
+        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+
+    private QuickArmsHandgunEntity getQuickArmsEntityFromMagicData(MagicData playerMagicData, Level level){
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return null;
+        }
+
+        if (playerMagicData == null) {
+            return null;
+        }
+
+        var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
+        if (recast == null) {
+            return null;
+        }
+
+        if (!(recast.getCastData() instanceof QuickArmsCastData castData)) {
+            return null;
+        }
+
+        if (!(castData.getEntity(serverLevel) instanceof QuickArmsHandgunEntity summon)) {
+            return null;
+        }
+
+        return summon;
     }
 
     public class QuickArmsCastData implements ICastDataSerializable {

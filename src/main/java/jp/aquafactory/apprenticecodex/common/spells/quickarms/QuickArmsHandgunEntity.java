@@ -4,11 +4,13 @@ import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,19 +84,46 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
             EffectTools.createRingParticleClient(
                     position(),
                     getLookAngle(),
-                    0.3f,
-                    12,
-                    0.015f,
+                    0.2f,
+                    8,
+                    0.01f,
                     0.01,
                     ParticleTypes.END_ROD,
                     level
             );
         }
 
+        super.tick();
+
         if (level.isClientSide) {
             return;
         }
 
         // todo:サーバーサイド処理実装.
+        hasImpulse = true;
+    }
+
+    public void locateAimingPosition(){
+        if ((getOwner() instanceof LivingEntity owner)) {
+            var formationPosition = getAimingPosition(owner);
+            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
+            setYRot(owner.getYRot());
+            setXRot(0);
+            setRot(getYRot(), getXRot());
+            hasImpulse = true;
+        }
+    }
+
+
+    private static Vec3 getAimingPosition(LivingEntity owner) {
+        var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;
+        var forwardX = -Mth.sin(yawAngle);
+        var forwardZ = Mth.cos(yawAngle);
+
+        var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
+        var right = new Vec3(back.z, 0, -back.x).normalize();
+
+        var behindOffset = back.scale(-0.6).add(new Vec3(0, -0.1, 0)).add(right.scale(0.9));
+        return owner.getEyePosition().add(behindOffset);
     }
 }
