@@ -18,7 +18,6 @@
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
 
-  "death.attack.apprenticecodex.codex_magic_general": "%1$s was killed by %2$s's magic.",
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
   "death.attack.apprenticecodex.archer_multiple": "%1$s was riddled with %2$s's arrows.",
   "death.attack.apprenticecodex.commence_fire": "%1$s got their pretty face knocked in by %2$s.",
