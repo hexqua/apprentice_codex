@@ -25,4 +25,17 @@ public class RotationTools {
         var pitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
         return new YawPitch(yaw, pitch);
     }
+
+
+    public static Vec3 calculateBehindPosition(Entity owner, double backOffSet, double xOffset, double yOffset) {
+        var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;
+        var forwardX = -Mth.sin(yawAngle);
+        var forwardZ = Mth.cos(yawAngle);
+
+        var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
+        var right = new Vec3(back.z, 0, -back.x).normalize();
+
+        var behindOffset = back.scale(backOffSet).add(new Vec3(0, yOffset, 0)).add(right.scale(xOffset));
+        return owner.getEyePosition().add(behindOffset);
+    }
 }

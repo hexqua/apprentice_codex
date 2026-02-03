@@ -8,13 +8,11 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -186,7 +184,7 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
     public void locateAimingPosition(){
         if ((getOwner() instanceof LivingEntity owner)) {
-            var formationPosition = getAimingPosition(owner);
+            var formationPosition = RotationTools.calculateBehindPosition(owner, -0.6, 0.9, -0.1);
             setPos(formationPosition.x, formationPosition.y, formationPosition.z);
             setYRot(owner.getYRot());
             setXRot(0);
@@ -210,17 +208,5 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
     public boolean canFire(){
         return standbyTick <= 0;
-    }
-
-    private static Vec3 getAimingPosition(LivingEntity owner) {
-        var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;
-        var forwardX = -Mth.sin(yawAngle);
-        var forwardZ = Mth.cos(yawAngle);
-
-        var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
-        var right = new Vec3(back.z, 0, -back.x).normalize();
-
-        var behindOffset = back.scale(-0.6).add(new Vec3(0, -0.1, 0)).add(right.scale(0.9));
-        return owner.getEyePosition().add(behindOffset);
     }
 }

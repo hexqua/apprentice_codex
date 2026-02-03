@@ -16,7 +16,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -315,14 +314,6 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
     }
 
     private static Vec3 getAimingPosition(LivingEntity owner) {
-        var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;
-        var forwardX = -Mth.sin(yawAngle);
-        var forwardZ = Mth.cos(yawAngle);
-
-        var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
-        var right = new Vec3(back.z, 0, -back.x).normalize();
-
-        var behindOffset = back.scale(-0.3).add(new Vec3(0, 0.2, 0)).add(right.scale(-0.9));
-        return owner.getEyePosition().add(behindOffset);
+        return RotationTools.calculateBehindPosition(owner, -0.3, -0.9, 0.2);
     }
 }

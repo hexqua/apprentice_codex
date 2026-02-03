@@ -10,7 +10,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -383,19 +382,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         var heightAdjust = -0.45;
 
         // 微妙に前傾配置になるようにする.
-        return computeBehindPos(owner, 0.75 - y / 2, x, y + heightAdjust);
-    }
-
-    private static Vec3 computeBehindPos(LivingEntity owner, double backOffSet, double xOffset, double yOffset) {
-        var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;
-        var forwardX = -Mth.sin(yawAngle);
-        var forwardZ = Mth.cos(yawAngle);
-
-        var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
-        var right = new Vec3(back.z, 0, -back.x).normalize();
-
-        var behindOffset = back.scale(backOffSet).add(new Vec3(0, yOffset, 0)).add(right.scale(xOffset));
-        return owner.getEyePosition().add(behindOffset);
+        return RotationTools.calculateBehindPosition(owner, 0.75 - y / 2, x, y + heightAdjust);
     }
 
     private Entity searchAutoTarget(Level level) {

@@ -18,10 +18,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -141,11 +139,6 @@ public class ArcherMultiple  extends AbstractSpell {
         var recasts = playerMagicData.getPlayerRecasts();
         if (!recasts.hasRecastForSpell(this)) {
             var summonedEntitiesCastData = new SummonedEntitiesCastData();
-            var yawAngle = entity.getYRot() * Mth.DEG_TO_RAD;
-            var forwardX = -Mth.sin(yawAngle);
-            var forwardZ = Mth.cos(yawAngle);
-            var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
-            var summonPosition = entity.getEyePosition().add(back.scale(0.25));
 
             UUID targetUuid = null;
             if (playerMagicData.getAdditionalCastData() instanceof TargetEntityCastData castTargetingData) {
@@ -157,15 +150,14 @@ public class ArcherMultiple  extends AbstractSpell {
 
             for(var count = 0; count < getSummonCount(); ++count){
                 var summonTestBow = new ArcherMultipleBowEntity(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), level, entity);
-                summonTestBow.setPos(summonPosition);
                 summonTestBow.setXRot(entity.getXRot());
                 summonTestBow.setYRot(entity.getYRot());
                 summonTestBow.setSlot(count);
                 summonTestBow.setMaxSlot(getSummonCount());
+                summonTestBow.locateCurrentFormationPosition();
                 summonTestBow.setPriorityTarget(targetUuid);
                 summonTestBow.setDamage(getDamage(spellLevel, entity));
                 summonTestBow.setRestBulletCount(getProjectileCount());
-                summonTestBow.locateCurrentFormationPosition();
 
                 level.addFreshEntity(summonTestBow);
                 SummonManager.initSummon(entity, summonTestBow, getSummonTime(), summonedEntitiesCastData);
