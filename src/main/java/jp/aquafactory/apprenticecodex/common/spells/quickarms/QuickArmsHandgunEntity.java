@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.spells.quickarms;
 
 import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
+import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
@@ -8,20 +9,12 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
-public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
-
-    private UUID ownerUUID;
-    private Entity cachedOwner;
+public class QuickArmsHandgunEntity extends SummonWeaponEntity {
 
     private float damage;
     private float range;
@@ -31,13 +24,10 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
     public QuickArmsHandgunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        setNoGravity(true);
     }
 
     public QuickArmsHandgunEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
-        super(pEntityType, pLevel);
-        setOwner(owner);
-        setNoGravity(true);
+        super(pEntityType, pLevel, owner);
     }
 
     @Override
@@ -47,43 +37,16 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
 
     @Override
     protected void readAdditionalSaveData(CompoundTag pCompound) {
-        if (pCompound.hasUUID("OwnerUUID")) {
-            ownerUUID = pCompound.getUUID("OwnerUUID");
-            cachedOwner = null;
-        }
+        super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
         range = pCompound.getFloat("Range");
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
-        if (ownerUUID != null) {
-            pCompound.putUUID("OwnerUUID", ownerUUID);
-        }
+        super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
         pCompound.putFloat("Range", range);
-    }
-
-    @Override
-    public @Nullable Entity getOwner() {
-        @SuppressWarnings("resource") var level = level();
-        if (cachedOwner != null && !cachedOwner.isRemoved()) {
-            return cachedOwner;
-        }
-
-        if (ownerUUID != null && level instanceof ServerLevel server) {
-            cachedOwner = server.getEntity(ownerUUID);
-            return cachedOwner;
-        }
-
-        return null;
-    }
-
-    public void setOwner(Entity pOwner) {
-        if (pOwner != null) {
-            ownerUUID = pOwner.getUUID();
-            cachedOwner = pOwner;
-        }
     }
 
     @Override

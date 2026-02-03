@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 
 import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
+import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
@@ -19,15 +20,13 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
+public class CommenceFireRifleEntity extends SummonWeaponEntity {
 
     public enum HitTypes{
         MISS,
@@ -61,8 +60,6 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Float> FIRE_PITCH =
             SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.FLOAT);
 
-    private UUID ownerUUID;
-
     private Entity cachedOwner;
     private Vec3 aimPosition;
     private float damage;
@@ -71,13 +68,10 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        setNoGravity(true);
     }
 
     public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
-        super(pEntityType, pLevel);
-        setOwner(owner);
-        setNoGravity(true);
+        super(pEntityType, pLevel, owner);
     }
 
     @Override
@@ -94,43 +88,16 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (tag.hasUUID("Owner")) {
-            ownerUUID = tag.getUUID("Owner");
-            cachedOwner = null;
-        }
+        super.readAdditionalSaveData(tag);
         damage = tag.getFloat("Damage");
         headshotPercent = tag.getInt("HeadshotPercent");
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (ownerUUID != null) {
-            tag.putUUID("Owner", ownerUUID);
-        }
+        super.addAdditionalSaveData(tag);
         tag.putFloat("Damage", damage);
         tag.putInt("HeadshotPercent", headshotPercent);
-    }
-
-    @Override
-    public @Nullable Entity getOwner() {
-        @SuppressWarnings("resource") var level = level();
-        if (cachedOwner != null && !cachedOwner.isRemoved()) {
-            return cachedOwner;
-        }
-
-        if (ownerUUID != null && level instanceof ServerLevel server) {
-            cachedOwner = server.getEntity(ownerUUID);
-            return cachedOwner;
-        }
-
-        return null;
-    }
-
-    public void setOwner(Entity pOwner) {
-        if (pOwner != null) {
-            ownerUUID = pOwner.getUUID();
-            cachedOwner = pOwner;
-        }
     }
 
     @Override

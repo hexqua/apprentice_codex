@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 
+import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
@@ -13,15 +14,13 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
+public class ArcherMultipleBowEntity extends SummonWeaponEntity {
 
     private static final int CHARGE_TICK = 15;
     private static final int COOLDOWN_TICK = 8;
@@ -33,9 +32,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Integer> CHARGE_STAGE =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
-    private UUID ownerUUID;
     private UUID priorityTargetUUID;
-    private Entity cachedOwner;
     private Entity cachedPriorityTarget;
 
     private int slot;
@@ -52,13 +49,10 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        setNoGravity(true);
     }
 
     public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
-        super(pEntityType, pLevel);
-        setOwner(owner);
-        setNoGravity(true);
+        super(pEntityType, pLevel, owner);
     }
 
     @Override
@@ -68,10 +62,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (tag.hasUUID("Owner")) {
-            ownerUUID = tag.getUUID("Owner");
-            cachedOwner = null;
-        }
+        super.readAdditionalSaveData(tag);
         if (tag.hasUUID("PriorityTargetUUID")) {
             priorityTargetUUID = tag.getUUID("PriorityTargetUUID");
             cachedPriorityTarget = null;
@@ -93,9 +84,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (ownerUUID != null) {
-            tag.putUUID("Owner", ownerUUID);
-        }
+        super.addAdditionalSaveData(tag);
         if (priorityTargetUUID != null) {
             tag.putUUID("PriorityTargetUUID", priorityTargetUUID);
         }
@@ -104,21 +93,6 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         tag.putInt("MaxSlot", maxSlot);
         tag.putFloat("Damage", damage);
         tag.putInt("RestBulletCount", restBulletCount);
-    }
-
-    @Override
-    public @Nullable Entity getOwner() {
-        @SuppressWarnings("resource") var level = level();
-        if (cachedOwner != null && !cachedOwner.isRemoved()) {
-            return cachedOwner;
-        }
-
-        if (ownerUUID != null && level instanceof ServerLevel server) {
-            cachedOwner = server.getEntity(ownerUUID);
-            return cachedOwner;
-        }
-
-        return null;
     }
 
     public void setSlot(int slot) {
@@ -150,13 +124,6 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             entityData.set(CHARGE_STAGE, 2);
         }else{
             entityData.set(CHARGE_STAGE, 3);
-        }
-    }
-
-    public void setOwner(Entity pOwner) {
-        if (pOwner != null) {
-            ownerUUID = pOwner.getUUID();
-            cachedOwner = pOwner;
         }
     }
 
