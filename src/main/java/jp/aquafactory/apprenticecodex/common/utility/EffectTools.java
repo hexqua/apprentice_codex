@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.common.utility;
 
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -36,21 +35,8 @@ public class EffectTools {
             var a = Math.cos(angle) * r;
             var b = Math.sin(angle) * r;
             var offset = u.scale(a).add(w.scale(b));
-            var randomPosition = new Vec3(
-                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2
-            );
-            var pos = position.add(offset).add(randomPosition);
-            level.addParticle(
-                    particle,
-                    pos.x,
-                    pos.y,
-                    pos.z,
-                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
-                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
-                    RNG.nextDouble() * randomSpeed - randomSpeed / 2
-            );
+            var pos = position.add(offset);
+            createParticleClient(level, particle, pos, randomOffsetRange, randomSpeed);
         }
     }
 
@@ -59,44 +45,19 @@ public class EffectTools {
                                                 ParticleOptions particle, Level level){
         for( var i = 0; i < count; i++){
             var offset = normal.scale(RNG.nextDouble() * distance - distance / 2);
-            var randomPosition = new Vec3(
-                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                    RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2
-            );
-            var pos = position.add(offset).add(randomPosition);
-            level.addParticle(
-                    particle,
-                    pos.x,
-                    pos.y,
-                    pos.z,
-                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
-                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
-                    RNG.nextDouble() * randomSpeed - randomSpeed / 2
-            );
+            createParticleClient(level, particle, position.add(offset), randomOffsetRange, randomSpeed);
         }
     }
 
-    public static void createLineParticleServer(Vec3 position, Vec3 direction, double length, double step,
-                                                double randomOffsetRange, double randomSpeed,
-                                                ParticleOptions particle, Level level) {
-        // todo:クライアント版も作る.
+    public static void createLineParticleClient(Vec3 start, Vec3 end, double step,
+                                                 double randomOffsetRange, double randomSpeed,
+                                                 ParticleOptions particle, Level level) {
+        var direction = end.subtract(start);
+        var length = direction.length();
         var normalizedDirection = direction.normalize();
-        if (level instanceof ServerLevel server) {
-            for (var offset = 0.0; offset < length; offset += step) {
-                var pos = position.add(normalizedDirection.scale(offset));
-                server.sendParticles(
-                        particle,
-                        pos.x,
-                        pos.y,
-                        pos.z,
-                        1,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        randomSpeed
-                );
-            }
+        for (var offset = 0.0; offset < length; offset += step) {
+            var pos = start.add(normalizedDirection.scale(offset));
+            createParticleClient(level, particle, pos, randomOffsetRange, randomSpeed);
         }
     }
 }

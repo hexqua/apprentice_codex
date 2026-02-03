@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -32,6 +33,18 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     private static final EntityDataAccessor<Integer> CHARGE_STAGE =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
+    private static final EntityDataAccessor<Integer> HIT_SEQUENCE =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Float> HIT_POSITION_X =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final EntityDataAccessor<Float> HIT_POSITION_Y =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final EntityDataAccessor<Float> HIT_POSITION_Z =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
+
     private UUID priorityTargetUUID;
     private Entity cachedPriorityTarget;
 
@@ -46,6 +59,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     private int keepFireContinueTick;
     private boolean isReadyToFire;
     private Entity autoTarget;
+    private int currentHitSequence;
 
     public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -58,6 +72,10 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     @Override
     protected void defineSynchedData() {
         entityData.define(CHARGE_STAGE, 0);
+        entityData.define(HIT_SEQUENCE, 0);
+        entityData.define(HIT_POSITION_X, 0.0f);
+        entityData.define(HIT_POSITION_Y, 0.0f);
+        entityData.define(HIT_POSITION_Z, 0.0f);
     }
 
     @Override
@@ -178,6 +196,16 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
                     ParticleTypes.END_ROD,
                     level
             );
+        }
+
+        // ヒットスキャン攻撃のパーティクルは同期パラメータで見る.
+        if (level.isClientSide){
+            var hitSequence = entityData.get(HIT_SEQUENCE);
+            if (currentHitSequence != hitSequence) {
+                currentHitSequence = hitSequence;
+                var hitPosition = new Vec3(entityData.get(HIT_POSITION_X), entityData.get(HIT_POSITION_Y), entityData.get(HIT_POSITION_Z));
+                EffectTools.createLineParticleClient(position(), hitPosition, 0.5, 0.1, 0.1, ParticleTypes.CRIT, level);
+            }
         }
 
         super.tick();
@@ -306,22 +334,25 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     }
 
     private void fire(Entity target, Level level, boolean isLastBullet) {
-        var currentPosition = RaycastTools.getEntityTargetPosition(this);
         var targetPosition = RaycastTools.getEntityTargetPosition(target);
-        var lineVector = targetPosition.subtract(currentPosition);
-        var lineLength = lineVector.length();
-        var lineDirection = lineVector.normalize();
-
-        var particleType = isLastBullet ? ParticleTypes.END_ROD : ParticleTypes.CRIT;
-        var soundEvent = isLastBullet ? SoundEvents.SHULKER_SHOOT : SoundEvents.ARROW_SHOOT;
         var damage = this.damage * (isLastBullet ? 2.0f : 1.0f);
+        var soundEvent = isLastBullet ? SoundEvents.SHULKER_SHOOT : SoundEvents.ARROW_SHOOT;
         var sourceType = isLastBullet ? "archer_multiple_last" : "archer_multiple";
-        var step = isLastBullet ? 0.2 : 0.5;
-        EffectTools.createLineParticleServer(currentPosition, lineDirection, lineLength, step, 0.01, 0.01, particleType, level);
 
         var source = CombatTools.getDamageSource(level, this, getOwner(), sourceType);
         CombatTools.applyDamage(target, damage, source, SpellsRegistry.ARCHER_MULTIPLE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         AudioTools.playSoundFromEntity(level, this, soundEvent, SoundSource.PLAYERS, 0.5f);
+
+        // 最終だけ消滅と同じになるため、サーバー側で送る.
+        if (isLastBullet) {
+            createLineParticleServer(position(), targetPosition, 0.2, 0.01, 0.01, ParticleTypes.END_ROD, level);
+        } else {
+            var sequence = entityData.get(HIT_SEQUENCE);
+            entityData.set(HIT_SEQUENCE, sequence + 1);
+            entityData.set(HIT_POSITION_X, (float) targetPosition.x);
+            entityData.set(HIT_POSITION_Y, (float) targetPosition.y);
+            entityData.set(HIT_POSITION_Z, (float) targetPosition.z);
+        }
     }
 
     public void locateCurrentFormationPosition(){
@@ -366,5 +397,29 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
                 e -> CombatTools.isValidCombatTarget(e, owner) && CombatTools.canBeHostileToMe(e, owner),
                 true
         ).orElse(null);
+    }
+
+    public static void createLineParticleServer(Vec3 start, Vec3 end, double step,
+                                                double randomOffsetRange, double randomSpeed,
+                                                ParticleOptions particle, Level level) {
+        var direction = end.subtract(start);
+        var length = direction.length();
+        var normalizedDirection = direction.normalize();
+        if (level instanceof ServerLevel server) {
+            for (var offset = 0.0; offset < length; offset += step) {
+                var pos = start.add(normalizedDirection.scale(offset));
+                server.sendParticles(
+                        particle,
+                        pos.x,
+                        pos.y,
+                        pos.z,
+                        1,
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        randomSpeed
+                );
+            }
+        }
     }
 }
