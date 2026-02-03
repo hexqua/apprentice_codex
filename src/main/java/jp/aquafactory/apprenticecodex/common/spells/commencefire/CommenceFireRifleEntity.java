@@ -233,15 +233,13 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
         aimPosition = null;
     }
 
-    public void locateAimingPosition(){
+    @Override
+    public Vec3 getStandbyPosition() {
         if ((getOwner() instanceof LivingEntity owner)) {
-            var formationPosition = getAimingPosition(owner);
-            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
-            setYRot(owner.getYRot());
-            setXRot(0);
-            setRot(getYRot(), getXRot());
-            hasImpulse = true;
+            return getAimingPosition(owner);
         }
+
+        return Vec3.ZERO;
     }
 
     private void setFireRotationByVector(Vec3 aimPosition){

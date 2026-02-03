@@ -196,7 +196,6 @@ public class CommenceFire extends AbstractFirearmSpell<CommenceFireRifleEntity> 
     @Override
     public CommenceFireRifleEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData){
         var summonWeapon = new CommenceFireRifleEntity(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), level, entity);
-        summonWeapon.locateAimingPosition();
         summonWeapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;

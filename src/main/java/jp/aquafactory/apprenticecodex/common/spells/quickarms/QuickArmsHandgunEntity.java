@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class QuickArmsHandgunEntity extends SummonWeaponEntity {
@@ -145,15 +146,13 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.HANDGUN.get(), SoundSource.PLAYERS, 1.0f);
     }
 
-    public void locateAimingPosition(){
+    @Override
+    public Vec3 getStandbyPosition() {
         if ((getOwner() instanceof LivingEntity owner)) {
-            var formationPosition = RotationTools.calculateBehindPosition(owner, -0.6, 0.9, -0.1);
-            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
-            setYRot(owner.getYRot());
-            setXRot(0);
-            setRot(getYRot(), getXRot());
-            hasImpulse = true;
+            return RotationTools.calculateBehindPosition(owner, -0.6, 0.9, -0.1);
         }
+
+        return Vec3.ZERO;
     }
 
     public void setDamage(float newDamage) {

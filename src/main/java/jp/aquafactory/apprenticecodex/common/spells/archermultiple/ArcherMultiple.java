@@ -146,12 +146,10 @@ public class ArcherMultiple  extends AbstractSpell {
             }
 
             for(var count = 0; count < getSummonCount(); ++count){
-                var summonTestBow = new ArcherMultipleBowEntity(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), level, entity);
-                summonTestBow.setXRot(entity.getXRot());
-                summonTestBow.setYRot(entity.getYRot());
-                summonTestBow.setSlot(count);
-                summonTestBow.setMaxSlot(getSummonCount());
-                summonTestBow.locateCurrentFormationPosition();
+                var summonTestBow = new ArcherMultipleBowEntity(
+                        EntityRegistry.ARCHER_MULTIPLE_BOW.get(),
+                        level, entity, count, getSummonCount()
+                );
                 summonTestBow.setPriorityTarget(targetEntity);
                 summonTestBow.setDamage(getDamage(spellLevel, entity));
                 summonTestBow.setRestBulletCount(getProjectileCount());

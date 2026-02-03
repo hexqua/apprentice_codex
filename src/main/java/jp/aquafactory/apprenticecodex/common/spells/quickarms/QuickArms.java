@@ -144,7 +144,6 @@ public class QuickArms extends AbstractFirearmSpell<QuickArmsHandgunEntity> {
     @Override
     public QuickArmsHandgunEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData){
         var summonWeapon = new QuickArmsHandgunEntity(EntityRegistry.QUICK_ARMS_HANDGUN.get(), level, entity);
-        summonWeapon.locateAimingPosition();
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange());
         summonWeapon.setFireStandby(getFirstDelay());

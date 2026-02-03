@@ -61,8 +61,11 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         super(pEntityType, pLevel);
     }
 
-    public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
+    public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner,int slot, int maxSlot) {
         super(pEntityType, pLevel, owner);
+        this.slot = Math.min(slot, maxSlot);
+        this.maxSlot = Math.max(maxSlot, 1);
+        setStandbyPosition(owner);
     }
 
     @Override
@@ -98,14 +101,6 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         tag.putInt("MaxSlot", maxSlot);
         tag.putFloat("Damage", damage);
         tag.putInt("RestBulletCount", restBulletCount);
-    }
-
-    public void setSlot(int slot) {
-        this.slot = slot;
-    }
-
-    public void setMaxSlot(int maxSlot) {
-        this.maxSlot = maxSlot;
     }
 
     public void setDamage(float damage) {
@@ -317,15 +312,13 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         }
     }
 
-    public void locateCurrentFormationPosition(){
+    @Override
+    public Vec3 getStandbyPosition() {
         if ((getOwner() instanceof LivingEntity owner)) {
-            var formationPosition = getFormationPosition(owner, slot, maxSlot);
-            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
-            setYRot(owner.getYRot());
-            setXRot(0);
-            setRot(getYRot(), getXRot());
-            hasImpulse = true;
+            return getFormationPosition(owner, slot, maxSlot);
         }
+
+        return Vec3.ZERO;
     }
 
     private static Vec3 getFormationPosition(LivingEntity owner, int index, int maxIndex) {

@@ -29,6 +29,7 @@ public abstract class SummonWeaponEntity extends Entity implements TraceableEnti
         super(pEntityType, pLevel);
         setOwner(owner);
         setNoGravity(true);
+        setStandbyPosition(owner);
     }
 
     @Override
@@ -81,6 +82,17 @@ public abstract class SummonWeaponEntity extends Entity implements TraceableEnti
             move(net.minecraft.world.entity.MoverType.SELF, step);
         }
     }
+
+    protected final void setStandbyPosition(LivingEntity owner){
+        var formationPosition = getStandbyPosition();
+        setPos(formationPosition.x, formationPosition.y, formationPosition.z);
+        setYRot(owner.getYRot());
+        setXRot(0);
+        setRot(getYRot(), getXRot());
+        hasImpulse = true;
+    }
+
+    public abstract Vec3 getStandbyPosition();
 
     public void releaseWeapon(){
         discard();
