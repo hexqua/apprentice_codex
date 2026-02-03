@@ -81,4 +81,8 @@ public abstract class SummonWeaponEntity extends Entity implements TraceableEnti
             move(net.minecraft.world.entity.MoverType.SELF, step);
         }
     }
+
+    public void releaseWeapon(){
+        discard();
+    }
 }
