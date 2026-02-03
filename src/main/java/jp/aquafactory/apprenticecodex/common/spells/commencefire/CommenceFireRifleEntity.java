@@ -135,7 +135,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
         super.tick();
 
         if (level.isClientSide){
-            var castingTick = entityData.get(CASTING_TICK);
+            int castingTick = entityData.get(CASTING_TICK);
             if (castingTick > 0){
                 var maxCastingTick = entityData.get(MAX_CASTING_TICK);
                 var targetPosition = new Vec3(entityData.get(AIM_X), entityData.get(AIM_Y), entityData.get(AIM_Z));
