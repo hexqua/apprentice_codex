@@ -24,8 +24,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 public class CommenceFireRifleEntity extends SummonWeaponEntity {
 
     public enum HitTypes{
@@ -103,7 +101,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
     @Override
     public void onClientRemoval(){
         var level = level();
-        EffectTools.createStickParticleClient(
+        EffectTools.createStickParticle(
                 position(),
                 getLookAngle(),
                 2,
@@ -123,7 +121,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
         // 射出時パーティクル.
         // todo:再ログイン制御がいるかどうか.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(
+            EffectTools.createRingParticle(
                     position(),
                     getLookAngle(),
                     0.3f,
@@ -145,7 +143,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
                 var targetVec = targetPosition.subtract(position());
                 var radius = 1.0 - castingTick / (double) maxCastingTick;
                 var count = 20 - Math.round(15 * castingTick / (float) maxCastingTick);
-                EffectTools.createRingParticleClient(targetPosition, targetVec, radius, count, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
+                EffectTools.createRingParticle(targetPosition, targetVec, radius, count, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
             }
         }
 

@@ -166,7 +166,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     @Override
     public void onClientRemoval(){
         var level = level();
-        EffectTools.createRingParticleClient(
+        EffectTools.createRingParticle(
                 position(),
                 getLookAngle(),
                 0.4f,
@@ -186,7 +186,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         // 射出時パーティクル.
         // todo:再ログインの制御をするかどうか.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(
+            EffectTools.createRingParticle(
                     position(),
                     getLookAngle(),
                     0.4f,
@@ -204,7 +204,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
             if (currentHitSequence != hitSequence) {
                 currentHitSequence = hitSequence;
                 var hitPosition = new Vec3(entityData.get(HIT_POSITION_X), entityData.get(HIT_POSITION_Y), entityData.get(HIT_POSITION_Z));
-                EffectTools.createLineParticleClient(position(), hitPosition, 0.5, 0.1, 0.1, ParticleTypes.CRIT, level);
+                EffectTools.createLineParticle(position(), hitPosition, 0.5, 0.1, 0.1, ParticleTypes.CRIT, level);
             }
         }
 

@@ -56,7 +56,7 @@ public class SkyEdgeProjectileEntity extends Projectile
         // 射出時パーティクル.
         // todo:再ログイン制御がいるかどうか.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(
+            EffectTools.createRingParticle(
                     position(),
                     getLookAngle(),
                     0.4f,
@@ -99,7 +99,7 @@ public class SkyEdgeProjectileEntity extends Projectile
                 var count = 2;
                 for (var i = 0; i < count; i++) {
                     var pos = position().subtract(getDeltaMovement().scale(RNG.nextDouble()));
-                    EffectTools.createParticleClient(level, ParticleTypes.ELECTRIC_SPARK, pos, radius, speed);
+                    EffectTools.createParticle(level, ParticleTypes.ELECTRIC_SPARK, pos, radius, speed);
                 }
             }
         }

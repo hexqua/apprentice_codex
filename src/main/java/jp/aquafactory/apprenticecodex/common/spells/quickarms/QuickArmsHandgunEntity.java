@@ -52,7 +52,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
     @Override
     public void onClientRemoval(){
         var level = level();
-        EffectTools.createStickParticleClient(
+        EffectTools.createStickParticle(
                 position(),
                 getLookAngle(),
                 0.2f,
@@ -72,7 +72,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
 
         // 射出時パーティクル(再ログインで消えるので制御不要)
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(
+            EffectTools.createRingParticle(
                     position(),
                     getLookAngle(),
                     0.2f,
