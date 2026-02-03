@@ -58,7 +58,6 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
     private static final EntityDataAccessor<Float> FIRE_PITCH =
             SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.FLOAT);
 
-    private Entity cachedOwner;
     private Vec3 aimPosition;
     private float damage;
     private int headshotPercent;
@@ -162,17 +161,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
         }
 
         var locatePosition = getAimingPosition(owner);
-        var targetVec = locatePosition.subtract(position());
-        var distance = targetVec.length();
-        var step = targetVec.normalize().scale(Math.min(0.5, distance));
-
-        if (distance < 0.001 || distance > 0.5) {
-            setDeltaMovement(Vec3.ZERO);
-            setPos(locatePosition.x, locatePosition.y, locatePosition.z);
-        } else {
-            setDeltaMovement(step);
-            move(net.minecraft.world.entity.MoverType.SELF, step);
-        }
+        followTargetPosition(locatePosition);
 
         if (aimPosition != null) {
             var targetFaceVector = aimPosition.subtract(position()).normalize();

@@ -220,18 +220,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         }
 
         var formationPosition = getFormationPosition(owner, slot, maxSlot);
-        var formationTargetVec = formationPosition.subtract(position());
-        var distance = formationTargetVec.length();
-        var step = formationTargetVec.normalize().scale(Math.min(0.5, distance));
-
-        if (distance < 0.001 || distance > 0.5) {
-            setDeltaMovement(Vec3.ZERO);
-            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
-        } else {
-            setDeltaMovement(step);
-            move(net.minecraft.world.entity.MoverType.SELF, step);
-        }
-
+        followTargetPosition(formationPosition);
 
         if (getPriorityTarget() != null && (getPriorityTarget().isRemoved() || !getPriorityTarget().isAlive())){
             setPriorityTarget(null);

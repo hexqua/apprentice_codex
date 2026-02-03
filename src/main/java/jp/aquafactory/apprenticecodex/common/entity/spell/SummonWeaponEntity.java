@@ -7,12 +7,15 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public abstract class SummonWeaponEntity extends Entity implements TraceableEntity {
+
+    private static final double FOLLOW_MAX_DISTANCE = 0.5;
 
     // オーナー系を隠すために意図的にprivate.
     private UUID ownerUUID;
@@ -62,6 +65,20 @@ public abstract class SummonWeaponEntity extends Entity implements TraceableEnti
         if (pOwner != null) {
             ownerUUID = pOwner.getUUID();
             cachedOwner = pOwner;
+        }
+    }
+
+    public final void followTargetPosition(Vec3 targetPos){
+        var targetVec = targetPos.subtract(position());
+        var distance = targetVec.length();
+        var step = targetVec.normalize().scale(Math.min(FOLLOW_MAX_DISTANCE, distance));
+
+        if (distance < 0.001 || distance > FOLLOW_MAX_DISTANCE) {
+            setDeltaMovement(Vec3.ZERO);
+            setPos(targetPos.x, targetPos.y, targetPos.z);
+        } else {
+            setDeltaMovement(step);
+            move(net.minecraft.world.entity.MoverType.SELF, step);
         }
     }
 }
