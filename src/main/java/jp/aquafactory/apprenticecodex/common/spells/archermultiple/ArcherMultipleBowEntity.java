@@ -19,8 +19,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 public class ArcherMultipleBowEntity extends SummonWeaponEntity {
 
     private static final int CHARGE_TICK = 15;
@@ -45,9 +43,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     private static final EntityDataAccessor<Float> HIT_POSITION_Z =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
 
-    private UUID priorityTargetUUID;
-    private Entity cachedPriorityTarget;
-
+    private Entity priorityTarget;
     private int slot;
     private int maxSlot;
     private float damage;
@@ -81,11 +77,6 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.hasUUID("PriorityTargetUUID")) {
-            priorityTargetUUID = tag.getUUID("PriorityTargetUUID");
-            cachedPriorityTarget = null;
-        }
-
         if (tag.contains("Slot")) {
             slot = tag.getInt("Slot");
         }
@@ -103,10 +94,6 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        if (priorityTargetUUID != null) {
-            tag.putUUID("PriorityTargetUUID", priorityTargetUUID);
-        }
-
         tag.putInt("Slot", slot);
         tag.putInt("MaxSlot", maxSlot);
         tag.putFloat("Damage", damage);
@@ -145,22 +132,8 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         }
     }
 
-    private Entity getPriorityTarget() {
-        @SuppressWarnings("resource") var level = level();
-        if (cachedPriorityTarget != null && !cachedPriorityTarget.isRemoved()) {
-            return cachedPriorityTarget;
-        }
-        if (priorityTargetUUID != null && level instanceof ServerLevel server) {
-            cachedPriorityTarget = server.getEntity(priorityTargetUUID);
-            return cachedPriorityTarget;
-        }
-
-        return null;
-    }
-
-    public void setPriorityTarget(UUID pTarget) {
-        priorityTargetUUID = pTarget;
-        cachedPriorityTarget = null;
+    public void setPriorityTarget(Entity target) {
+        priorityTarget = target;
     }
 
     @Override
@@ -222,7 +195,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         var formationPosition = getFormationPosition(owner, slot, maxSlot);
         followTargetPosition(formationPosition);
 
-        if (getPriorityTarget() != null && (getPriorityTarget().isRemoved() || !getPriorityTarget().isAlive())){
+        if (priorityTarget != null && (priorityTarget.isRemoved() || !priorityTarget.isAlive())){
             setPriorityTarget(null);
         }
 
@@ -230,7 +203,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
             autoTarget = null;
         }
 
-        if ((getPriorityTarget() == null) && ((currentLockOnTick >= KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET) || (autoTarget == null))) {
+        if ((priorityTarget == null) && ((currentLockOnTick >= KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET) || (autoTarget == null))) {
             if (tickCount % 10 == 0){
                 var newTarget = searchAutoTarget(level);
                 if (newTarget != null && newTarget != autoTarget){
@@ -249,8 +222,8 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
 
         Entity target = null;
         var canWaitIFrame = false;
-        if (getPriorityTarget() != null) {
-            target = getPriorityTarget();
+        if (priorityTarget != null) {
+            target = priorityTarget;
             canWaitIFrame = true;
         } else if (autoTarget != null) {
             target = autoTarget;
