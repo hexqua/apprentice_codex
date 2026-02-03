@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -211,12 +212,9 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
         if (aimPosition != null) {
             var targetFaceVector = aimPosition.subtract(position()).normalize();
-            var yaw = (float) (Mth.atan2(-targetFaceVector.x, targetFaceVector.z) * Mth.RAD_TO_DEG);
-            var xzLen = Math.sqrt(targetFaceVector.x * targetFaceVector.x + targetFaceVector.z * targetFaceVector.z);
-            var pitch = (float) (Mth.atan2(-targetFaceVector.y, xzLen) * Mth.RAD_TO_DEG);
-
-            setYRot(yaw);
-            setXRot(pitch);
+            var yawPitch = RotationTools.calculateYawPitchByDirection(targetFaceVector);
+            setYRot(yawPitch.yaw());
+            setXRot(yawPitch.pitch());
         } else {
             setYRot(owner.getYRot());
             setXRot(0);
@@ -295,11 +293,9 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     private void setFireRotationByVector(Vec3 aimPosition){
         var targetVec = aimPosition.subtract(position());
-        var yaw = (float) (Mth.atan2(-targetVec.x, targetVec.z) * Mth.RAD_TO_DEG);
-        var xzLen = Math.sqrt(targetVec.x * targetVec.x + targetVec.z * targetVec.z);
-        var pitch = (float) (Mth.atan2(-targetVec.y, xzLen) * Mth.RAD_TO_DEG);
-        entityData.set(FIRE_YAW, yaw);
-        entityData.set(FIRE_PITCH, pitch);
+        var yawPitch = RotationTools.calculateYawPitchByDirection(targetVec);
+        entityData.set(FIRE_YAW, yawPitch.yaw());
+        entityData.set(FIRE_PITCH, yawPitch.pitch());
     }
 
     public float getFireYaw(){

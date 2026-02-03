@@ -1,10 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
-import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
-import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
-import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -289,12 +286,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         if (isLockOn) {
             var targetPosition = target.position().add(0, target.getBbHeight() / 2, 0);
             var targetFaceVector = targetPosition.subtract(position()).normalize();
-            var yaw = (float) (Mth.atan2(-targetFaceVector.x, targetFaceVector.z) * Mth.RAD_TO_DEG);
-            var xzLen = Math.sqrt(targetFaceVector.x * targetFaceVector.x + targetFaceVector.z * targetFaceVector.z);
-            var pitch = (float) (Mth.atan2(-targetFaceVector.y, xzLen) * Mth.RAD_TO_DEG);
-
-            setYRot(yaw);
-            setXRot(pitch);
+            var yawPitch = RotationTools.calculateYawPitchByDirection(targetFaceVector);
+            setYRot(yawPitch.yaw());
+            setXRot(yawPitch.pitch());
         } else {
             setYRot(owner.getYRot());
             setXRot(0);

@@ -3,10 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells.quickarms;
 import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
-import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
-import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
-import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -140,11 +137,9 @@ public class QuickArmsHandgunEntity  extends Entity implements TraceableEntity {
         // クイックアームは常に視線先を狙う.
         var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
         var targetVec = aimResult.hitPosition().subtract(position());
-        var yaw = (float) (Mth.atan2(-targetVec.x, targetVec.z) * Mth.RAD_TO_DEG);
-        var xzLen = Math.sqrt(targetVec.x * targetVec.x + targetVec.z * targetVec.z);
-        var pitch = (float) (Mth.atan2(-targetVec.y, xzLen) * Mth.RAD_TO_DEG);
-        setYRot(yaw);
-        setXRot(pitch);
+        var yawPitch = RotationTools.calculateYawPitchByDirection(targetVec);
+        setYRot(yawPitch.yaw());
+        setXRot(yawPitch.pitch());
         hasImpulse = true;
 
         if (standbyTick > 0) {
