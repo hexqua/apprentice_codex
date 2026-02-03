@@ -9,7 +9,6 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
-import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -18,7 +17,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +68,23 @@ public class QuickArms extends AbstractFirearmSpell<QuickArmsHandgunEntity> {
         return 20 * 3;
     }
 
+    @Override
+    public Optional<SoundEvent> getPreFireSound() {
+        return Optional.empty();
+    }
+    @Override
+    public Optional<SoundEvent> getPreSummonSound() {
+        return Optional.empty();
+    }
+    @Override
+    public Optional<SoundEvent> getFireSound() {
+        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
+    }
+    @Override
+    public Optional<SoundEvent> getSummonSound() {
+        return Optional.of(SoundEvents.SHULKER_TELEPORT);
+    }
+
     private int getRange(){
         // ハンドガンイメージなので近距離(2チャンク程度)
         return 16 * 2;
@@ -92,17 +107,6 @@ public class QuickArms extends AbstractFirearmSpell<QuickArmsHandgunEntity> {
     @Override
     public CastType getCastType() {
         return CastType.INSTANT;
-    }
-
-    @Override
-    public Optional<SoundEvent> getCastStartSound() {
-        // 再詠唱で制御できなさそうなのでこちらは音を無しにする.
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.empty();
     }
 
     @Override
@@ -135,7 +139,6 @@ public class QuickArms extends AbstractFirearmSpell<QuickArmsHandgunEntity> {
     @Override
     public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull QuickArmsHandgunEntity weapon){
         weapon.fire(level);
-        AudioTools.playSoundFromEntity(level, entity, SoundEvents.ARMOR_EQUIP_NETHERITE, SoundSource.PLAYERS, 2.0f);
     }
 
     @Override
@@ -146,7 +149,6 @@ public class QuickArms extends AbstractFirearmSpell<QuickArmsHandgunEntity> {
         summonWeapon.setRange(getRange());
         summonWeapon.setFireStandby(getFirstDelay());
         level.addFreshEntity(summonWeapon);
-        AudioTools.playSoundFromEntity(level, entity, SoundEvents.SHULKER_TELEPORT, SoundSource.PLAYERS, 2.0f);
         return summonWeapon;
     }
 }

@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -15,12 +16,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends AbstractSpell {
@@ -35,6 +39,23 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
     public abstract int getBulletCount(int spellLevel, @Nullable LivingEntity entity);
 
     public abstract int getDurationTick();
+
+    @Override
+    public final Optional<SoundEvent> getCastStartSound() {
+        // 再詠唱で制御できなさそうなのでこちらは音を無しにする.
+        return Optional.empty();
+    }
+
+    @Override
+    public final Optional<SoundEvent> getCastFinishSound() {
+        // 再詠唱で制御できなさそうなのでこちらは音を無しにする.
+        return Optional.empty();
+    }
+
+    public abstract Optional<SoundEvent> getPreFireSound();
+    public abstract Optional<SoundEvent> getPreSummonSound();
+    public abstract Optional<SoundEvent> getFireSound();
+    public abstract Optional<SoundEvent> getSummonSound();
 
     @Override
     public final int getRecastCount(int spellLevel, @Nullable LivingEntity entity) {
@@ -88,11 +109,26 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
     public abstract T onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData);
 
     @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        super.onServerPreCast(level, spellLevel, entity, playerMagicData);
+        var summon = getFirearmEntityFromMagicData(playerMagicData, level);
+        if (summon != null) {
+            var sound = getPreFireSound();
+            sound.ifPresent(soundEvent -> AudioTools.playSoundFromEntity(level, entity, soundEvent, SoundSource.PLAYERS, 2.0f));
+        } else {
+            var sound = getPreSummonSound();
+            sound.ifPresent(soundEvent -> AudioTools.playSoundFromEntity(level, entity, soundEvent, SoundSource.PLAYERS, 2.0f));
+        }
+    }
+
+    @Override
     public final void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
             var summon = getFirearmEntityFromMagicData(playerMagicData, level);
             if (summon != null) {
+                var sound = getFireSound();
+                sound.ifPresent(soundEvent -> AudioTools.playSoundFromEntity(level, entity, soundEvent, SoundSource.PLAYERS, 2.0f));
                 onCastWithWeapon(level, spellLevel, entity, playerMagicData, summon);
             } else {
                 ApprenticeCodex.LOGGER.error("Failed to get firearm entity from magic data.");
@@ -104,6 +140,9 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
 
             var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDurationTick(), castSource, castData);
             recasts.addRecast(recastInstance, playerMagicData);
+
+            var sound = getSummonSound();
+            sound.ifPresent(soundEvent -> AudioTools.playSoundFromEntity(level, entity, soundEvent, SoundSource.PLAYERS, 2.0f));
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
