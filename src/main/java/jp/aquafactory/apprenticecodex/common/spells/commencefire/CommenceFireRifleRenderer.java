@@ -30,15 +30,12 @@ public class CommenceFireRifleRenderer extends EntityRenderer<CommenceFireRifleE
         // duringRecoilはサーバー専用のため、クライアントは同期されている方を使う.
         var recoilTick = entity.getRecoilTick();
         var duringRecoil = recoilTick > 0;
-
         var yawPitch = calculateYawPitchForRestoreRecoil(entity, recoilTick, partialTicks);
-        var yaw = yawPitch.yaw();
-        var pitch = yawPitch.pitch();
 
         poseStack.pushPose();
         poseStack.translate(0.0, -0.2, 0.0);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
-        poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-yawPitch.yaw()));
+        poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
 
         // モデルは180度回転させる必要がある.
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));

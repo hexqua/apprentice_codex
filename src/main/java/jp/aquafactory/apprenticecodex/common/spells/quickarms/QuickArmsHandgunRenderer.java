@@ -26,13 +26,10 @@ public class QuickArmsHandgunRenderer extends EntityRenderer<QuickArmsHandgunEnt
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
         var yawPitch = RotationTools.calculateYawPitchByEntity(entity, partialTicks);
-        var yaw = yawPitch.yaw();
-        var pitch = yawPitch.pitch();
-
         poseStack.pushPose();
         poseStack.translate(0.0, -0.1, 0.0);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
-        poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-yawPitch.yaw()));
+        poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
 
         // モデルは180度回転させる必要がある.
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
