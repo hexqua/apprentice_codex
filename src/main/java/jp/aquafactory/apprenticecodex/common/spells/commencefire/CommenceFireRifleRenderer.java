@@ -83,8 +83,8 @@ public class CommenceFireRifleRenderer extends EntityRenderer<CommenceFireRifleE
             return new YawPitch(entity.getFireYaw(), entity.getFirePitch());
         }
 
-        var lerp = recoilTick / (float) (CommenceFireRifleEntity.MAX_RECOIL_TICK - 5);
-        return new YawPitch(Mth.lerp(lerp, yaw, entity.getFireYaw()), Mth.lerp(lerp, pitch, entity.getFirePitch()));
+        var v = recoilTick / (float) (CommenceFireRifleEntity.MAX_RECOIL_TICK - 5);
+        return new YawPitch(Mth.lerp(v, yaw, entity.getFireYaw()), Mth.lerp(v, pitch, entity.getFirePitch()));
 
     }
 
