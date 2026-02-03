@@ -1,10 +1,9 @@
 package jp.aquafactory.apprenticecodex.common.spells.archermultiple;
 
+import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
-import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
-import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
-import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.common.utility.*;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -13,19 +12,14 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
-public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
+public class ArcherMultipleBowEntity extends SummonWeaponEntity {
 
     private static final int CHARGE_TICK = 15;
     private static final int COOLDOWN_TICK = 8;
@@ -37,11 +31,19 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Integer> CHARGE_STAGE =
             SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
-    private UUID ownerUUID;
-    private UUID priorityTargetUUID;
-    private Entity cachedOwner;
-    private Entity cachedPriorityTarget;
+    private static final EntityDataAccessor<Integer> HIT_SEQUENCE =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.INT);
 
+    private static final EntityDataAccessor<Float> HIT_POSITION_X =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final EntityDataAccessor<Float> HIT_POSITION_Y =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final EntityDataAccessor<Float> HIT_POSITION_Z =
+            SynchedEntityData.defineId(ArcherMultipleBowEntity.class, EntityDataSerializers.FLOAT);
+
+    private Entity priorityTarget;
     private int slot;
     private int maxSlot;
     private float damage;
@@ -53,34 +55,31 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     private int keepFireContinueTick;
     private boolean isReadyToFire;
     private Entity autoTarget;
+    private int currentHitSequence;
 
     public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        setNoGravity(true);
     }
 
-    public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
-        super(pEntityType, pLevel);
-        setOwner(owner);
-        setNoGravity(true);
+    public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner,int slot, int maxSlot) {
+        super(pEntityType, pLevel, owner);
+        this.slot = Math.min(slot, maxSlot);
+        this.maxSlot = Math.max(maxSlot, 1);
+        setStandbyPosition(owner);
     }
 
     @Override
     protected void defineSynchedData() {
         entityData.define(CHARGE_STAGE, 0);
+        entityData.define(HIT_SEQUENCE, 0);
+        entityData.define(HIT_POSITION_X, 0.0f);
+        entityData.define(HIT_POSITION_Y, 0.0f);
+        entityData.define(HIT_POSITION_Z, 0.0f);
     }
 
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (tag.hasUUID("Owner")) {
-            ownerUUID = tag.getUUID("Owner");
-            cachedOwner = null;
-        }
-        if (tag.hasUUID("PriorityTargetUUID")) {
-            priorityTargetUUID = tag.getUUID("PriorityTargetUUID");
-            cachedPriorityTarget = null;
-        }
-
+        super.readAdditionalSaveData(tag);
         if (tag.contains("Slot")) {
             slot = tag.getInt("Slot");
         }
@@ -97,40 +96,11 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (ownerUUID != null) {
-            tag.putUUID("Owner", ownerUUID);
-        }
-        if (priorityTargetUUID != null) {
-            tag.putUUID("PriorityTargetUUID", priorityTargetUUID);
-        }
-
+        super.addAdditionalSaveData(tag);
         tag.putInt("Slot", slot);
         tag.putInt("MaxSlot", maxSlot);
         tag.putFloat("Damage", damage);
         tag.putInt("RestBulletCount", restBulletCount);
-    }
-
-    @Override
-    public @Nullable Entity getOwner() {
-        @SuppressWarnings("resource") var level = level();
-        if (cachedOwner != null && !cachedOwner.isRemoved()) {
-            return cachedOwner;
-        }
-
-        if (ownerUUID != null && level instanceof ServerLevel server) {
-            cachedOwner = server.getEntity(ownerUUID);
-            return cachedOwner;
-        }
-
-        return null;
-    }
-
-    public void setSlot(int slot) {
-        this.slot = slot;
-    }
-
-    public void setMaxSlot(int maxSlot) {
-        this.maxSlot = maxSlot;
     }
 
     public void setDamage(float damage) {
@@ -157,35 +127,14 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         }
     }
 
-    public void setOwner(Entity pOwner) {
-        if (pOwner != null) {
-            ownerUUID = pOwner.getUUID();
-            cachedOwner = pOwner;
-        }
-    }
-
-    private Entity getPriorityTarget() {
-        @SuppressWarnings("resource") var level = level();
-        if (cachedPriorityTarget != null && !cachedPriorityTarget.isRemoved()) {
-            return cachedPriorityTarget;
-        }
-        if (priorityTargetUUID != null && level instanceof ServerLevel server) {
-            cachedPriorityTarget = server.getEntity(priorityTargetUUID);
-            return cachedPriorityTarget;
-        }
-
-        return null;
-    }
-
-    public void setPriorityTarget(UUID pTarget) {
-        priorityTargetUUID = pTarget;
-        cachedPriorityTarget = null;
+    public void setPriorityTarget(Entity target) {
+        priorityTarget = target;
     }
 
     @Override
     public void onClientRemoval(){
         var level = level();
-        EffectTools.createRingParticleClient(
+        EffectTools.createRingParticle(
                 position(),
                 getLookAngle(),
                 0.4f,
@@ -205,7 +154,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         // 射出時パーティクル.
         // todo:再ログインの制御をするかどうか.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(
+            EffectTools.createRingParticle(
                     position(),
                     getLookAngle(),
                     0.4f,
@@ -215,6 +164,16 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
                     ParticleTypes.END_ROD,
                     level
             );
+        }
+
+        // ヒットスキャン攻撃のパーティクルは同期パラメータで見る.
+        if (level.isClientSide){
+            var hitSequence = entityData.get(HIT_SEQUENCE);
+            if (currentHitSequence != hitSequence) {
+                currentHitSequence = hitSequence;
+                var hitPosition = new Vec3(entityData.get(HIT_POSITION_X), entityData.get(HIT_POSITION_Y), entityData.get(HIT_POSITION_Z));
+                EffectTools.createLineParticle(position(), hitPosition, 0.5, 0.1, 0.1, ParticleTypes.CRIT, level);
+            }
         }
 
         super.tick();
@@ -229,20 +188,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         }
 
         var formationPosition = getFormationPosition(owner, slot, maxSlot);
-        var formationTargetVec = formationPosition.subtract(position());
-        var distance = formationTargetVec.length();
-        var step = formationTargetVec.normalize().scale(Math.min(0.5, distance));
+        followTargetPosition(formationPosition);
 
-        if (distance < 0.001 || distance > 0.5) {
-            setDeltaMovement(Vec3.ZERO);
-            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
-        } else {
-            setDeltaMovement(step);
-            move(net.minecraft.world.entity.MoverType.SELF, step);
-        }
-
-
-        if (getPriorityTarget() != null && (getPriorityTarget().isRemoved() || !getPriorityTarget().isAlive())){
+        if (priorityTarget != null && (priorityTarget.isRemoved() || !priorityTarget.isAlive())){
             setPriorityTarget(null);
         }
 
@@ -250,7 +198,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
             autoTarget = null;
         }
 
-        if ((getPriorityTarget() == null) && ((currentLockOnTick >= KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET) || (autoTarget == null))) {
+        if ((priorityTarget == null) && ((currentLockOnTick >= KEEP_LOCK_ON_TICK_FOR_CHANGE_TARGET) || (autoTarget == null))) {
             if (tickCount % 10 == 0){
                 var newTarget = searchAutoTarget(level);
                 if (newTarget != null && newTarget != autoTarget){
@@ -269,8 +217,8 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
 
         Entity target = null;
         var canWaitIFrame = false;
-        if (getPriorityTarget() != null) {
-            target = getPriorityTarget();
+        if (priorityTarget != null) {
+            target = priorityTarget;
             canWaitIFrame = true;
         } else if (autoTarget != null) {
             target = autoTarget;
@@ -289,12 +237,9 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         if (isLockOn) {
             var targetPosition = target.position().add(0, target.getBbHeight() / 2, 0);
             var targetFaceVector = targetPosition.subtract(position()).normalize();
-            var yaw = (float) (Mth.atan2(-targetFaceVector.x, targetFaceVector.z) * Mth.RAD_TO_DEG);
-            var xzLen = Math.sqrt(targetFaceVector.x * targetFaceVector.x + targetFaceVector.z * targetFaceVector.z);
-            var pitch = (float) (Mth.atan2(-targetFaceVector.y, xzLen) * Mth.RAD_TO_DEG);
-
-            setYRot(yaw);
-            setXRot(pitch);
+            var yawPitch = RotationTools.calculateYawPitchByDirection(targetFaceVector);
+            setYRot(yawPitch.yaw());
+            setXRot(yawPitch.pitch());
         } else {
             setYRot(owner.getYRot());
             setXRot(0);
@@ -346,33 +291,34 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
     }
 
     private void fire(Entity target, Level level, boolean isLastBullet) {
-        var currentPosition = RaycastTools.getEntityTargetPosition(this);
         var targetPosition = RaycastTools.getEntityTargetPosition(target);
-        var lineVector = targetPosition.subtract(currentPosition);
-        var lineLength = lineVector.length();
-        var lineDirection = lineVector.normalize();
-
-        var particleType = isLastBullet ? ParticleTypes.END_ROD : ParticleTypes.CRIT;
-        var soundEvent = isLastBullet ? SoundEvents.SHULKER_SHOOT : SoundEvents.ARROW_SHOOT;
         var damage = this.damage * (isLastBullet ? 2.0f : 1.0f);
+        var soundEvent = isLastBullet ? SoundEvents.SHULKER_SHOOT : SoundEvents.ARROW_SHOOT;
         var sourceType = isLastBullet ? "archer_multiple_last" : "archer_multiple";
-        var step = isLastBullet ? 0.2 : 0.5;
-        EffectTools.createLineParticleServer(currentPosition, lineDirection, lineLength, step, 0.01, 0.01, particleType, level);
 
         var source = CombatTools.getDamageSource(level, this, getOwner(), sourceType);
         CombatTools.applyDamage(target, damage, source, SpellsRegistry.ARCHER_MULTIPLE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         AudioTools.playSoundFromEntity(level, this, soundEvent, SoundSource.PLAYERS, 0.5f);
+
+        // 最終だけ消滅と同じになるため、サーバー側で送る.
+        if (isLastBullet) {
+            createLineParticleServer(position(), targetPosition, 0.2, 0.01, 0.01, ParticleTypes.END_ROD, level);
+        } else {
+            var sequence = entityData.get(HIT_SEQUENCE);
+            entityData.set(HIT_SEQUENCE, sequence + 1);
+            entityData.set(HIT_POSITION_X, (float) targetPosition.x);
+            entityData.set(HIT_POSITION_Y, (float) targetPosition.y);
+            entityData.set(HIT_POSITION_Z, (float) targetPosition.z);
+        }
     }
 
-    public void locateCurrentFormationPosition(){
+    @Override
+    public Vec3 getStandbyPosition() {
         if ((getOwner() instanceof LivingEntity owner)) {
-            var formationPosition = getFormationPosition(owner, slot, maxSlot);
-            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
-            setYRot(owner.getYRot());
-            setXRot(0);
-            setRot(getYRot(), getXRot());
-            hasImpulse = true;
+            return getFormationPosition(owner, slot, maxSlot);
         }
+
+        return Vec3.ZERO;
     }
 
     private static Vec3 getFormationPosition(LivingEntity owner, int index, int maxIndex) {
@@ -389,19 +335,7 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
         var heightAdjust = -0.45;
 
         // 微妙に前傾配置になるようにする.
-        return computeBehindPos(owner, 0.75 - y / 2, x, y + heightAdjust);
-    }
-
-    private static Vec3 computeBehindPos(LivingEntity owner, double backOffSet, double xOffset, double yOffset) {
-        var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;
-        var forwardX = -Mth.sin(yawAngle);
-        var forwardZ = Mth.cos(yawAngle);
-
-        var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
-        var right = new Vec3(back.z, 0, -back.x).normalize();
-
-        var behindOffset = back.scale(backOffSet).add(new Vec3(0, yOffset, 0)).add(right.scale(xOffset));
-        return owner.getEyePosition().add(behindOffset);
+        return RotationTools.calculateBehindPosition(owner, 0.75 - y / 2, x, y + heightAdjust);
     }
 
     private Entity searchAutoTarget(Level level) {
@@ -418,5 +352,29 @@ public class ArcherMultipleBowEntity extends Entity implements TraceableEntity {
                 e -> CombatTools.isValidCombatTarget(e, owner) && CombatTools.canBeHostileToMe(e, owner),
                 true
         ).orElse(null);
+    }
+
+    public static void createLineParticleServer(Vec3 start, Vec3 end, double step,
+                                                double randomOffsetRange, double randomSpeed,
+                                                ParticleOptions particle, Level level) {
+        var direction = end.subtract(start);
+        var length = direction.length();
+        var normalizedDirection = direction.normalize();
+        if (level instanceof ServerLevel server) {
+            for (var offset = 0.0; offset < length; offset += step) {
+                var pos = start.add(normalizedDirection.scale(offset));
+                server.sendParticles(
+                        particle,
+                        pos.x,
+                        pos.y,
+                        pos.z,
+                        1,
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                        randomSpeed
+                );
+            }
+        }
     }
 }

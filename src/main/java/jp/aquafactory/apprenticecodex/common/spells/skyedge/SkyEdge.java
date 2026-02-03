@@ -10,11 +10,13 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -74,6 +76,14 @@ public class SkyEdge extends AbstractSpell {
         return baseCount;
     }
 
+    private double getRange(){
+        return 64;
+    }
+
+    private double getInaccuracy(){
+        return 0.75;
+    }
+
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
@@ -105,38 +115,25 @@ public class SkyEdge extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        if (!level.isClientSide) {
-            for(var count = 0; count < getProjectileCount(spellLevel, entity); ++count){
-                var projectile = new SkyEdgeProjectileEntity(EntityRegistry.SKY_EDGE_PROJECTILE.get(), level, entity);
-                var dimensions = entity.getDimensions(entity.getPose());
-                var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
+        for(var count = 0; count < getProjectileCount(spellLevel, entity); ++count) {
+            var projectile = new SkyEdgeProjectileEntity(EntityRegistry.SKY_EDGE_PROJECTILE.get(), level, entity);
+            var dimensions = entity.getDimensions(entity.getPose());
+            var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
 
-                // 視線先の対象を狙うようにする.
-                var scanRange = 64;
-                var inaccuracy = 0.75;
-                var result = RaycastTools.raycastFromEye(entity, scanRange, e -> CombatTools.isValidCombatTarget(e, entity));
-                var distance = result.hitPosition().subtract(spawnPosition).length();
-                var targetPosition = entity
-                        .getEyePosition()
-                        .add(entity.getViewVector(1.0f).scale(distance))
-                        .add(generateInaccuracy(level.random).scale(inaccuracy));
-
-                var velocity = targetPosition.subtract(spawnPosition).normalize();
-                var delay = Math.round(level.random.nextFloat() * 5) + 10;
-                var speed = lerp(2.4f, 2.5f, level.random.nextDouble());
-                projectile.setDamage(getDamage(spellLevel, entity));
-                projectile.setPos(spawnPosition);
-                projectile.setProjectileVelocity(velocity, speed);
-                projectile.setStandbyTicks(delay);
-                level.addFreshEntity(projectile);
-            }
+            // 視線先の対象を狙うようにする.
+            var result = RaycastTools.raycastFromEye(entity, getRange(), e -> CombatTools.isValidCombatTarget(e, entity));
+            var targetPosition = result.hitPosition().add(generateInaccuracy(level.random).scale(getInaccuracy()));
+            var velocity = targetPosition.subtract(spawnPosition).normalize();
+            var delay = Math.round(level.random.nextFloat() * 5) + 10;
+            var speed = Mth.lerp(level.random.nextDouble(), 2.4f, 2.5f);
+            projectile.setDamage(getDamage(spellLevel, entity));
+            projectile.setPos(spawnPosition);
+            projectile.setProjectileVelocity(velocity, speed);
+            projectile.setStandbyTicks(delay);
+            level.addFreshEntity(projectile);
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
-    }
-
-    private static double lerp(double a, double b, double t) {
-        return a + (b - a) * t;
     }
 
     private Vec3 generateInaccuracy(RandomSource rand) {
@@ -166,22 +163,14 @@ public class SkyEdge extends AbstractSpell {
     }
 
     private static Vec3 generateCandidate(LivingEntity caster, RandomSource rand) {
-        // 自分の少し後ろ上空に出す(身体向き基準)
-        var yaw = caster.getYRot();
-        var origin = caster.getEyePosition();
-
-        var forward = Vec3.directionFromRotation(0.0f, yaw).normalize();
-        var back = forward.scale(-1.0);
-        var right = new Vec3(back.z, 0, -back.x).normalize();
-
         // 極座標で出す(角度は240度範囲内、始点下方向)
-        var backDist = lerp(0.5, 1.0, rand.nextDouble());
-        var angle = Math.PI * (1.0 + lerp((60.0 / 180.0), (300.0 / 180.0), rand.nextDouble()));
-        var radius = lerp(1.25, 2.0, rand.nextDouble());
-
+        var backDist = Mth.lerp(rand.nextDouble(), 0.5, 1.0);
+        var angle = Math.PI * (1.0 + Mth.lerp(rand.nextDouble(), (60.0 / 180.0), (300.0 / 180.0)));
+        var radius = Mth.lerp(rand.nextDouble(), 1.25, 2.0);
         var up = Math.cos(angle) * radius;
         var side = Math.sin(angle) * radius;
-        return origin.add(back.scale(backDist)).add(0, up, 0).add(right.scale(side));
+
+        return RotationTools.calculateBehindPosition(caster, backDist, side, up);
     }
 
     private static Vec3 tryPushToSafety(Level level, Entity ctx, EntityDimensions dims,

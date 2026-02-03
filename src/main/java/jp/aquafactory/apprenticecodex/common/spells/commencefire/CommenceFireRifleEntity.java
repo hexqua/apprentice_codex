@@ -1,12 +1,14 @@
 package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 
 import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
+import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -15,19 +17,14 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
-public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
+public class CommenceFireRifleEntity extends SummonWeaponEntity {
 
     public enum HitTypes{
         MISS,
@@ -61,9 +58,6 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<Float> FIRE_PITCH =
             SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.FLOAT);
 
-    private UUID ownerUUID;
-
-    private Entity cachedOwner;
     private Vec3 aimPosition;
     private float damage;
     private int headshotPercent;
@@ -71,13 +65,10 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        setNoGravity(true);
     }
 
     public CommenceFireRifleEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
-        super(pEntityType, pLevel);
-        setOwner(owner);
-        setNoGravity(true);
+        super(pEntityType, pLevel, owner);
     }
 
     @Override
@@ -94,49 +85,22 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
 
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (tag.hasUUID("Owner")) {
-            ownerUUID = tag.getUUID("Owner");
-            cachedOwner = null;
-        }
+        super.readAdditionalSaveData(tag);
         damage = tag.getFloat("Damage");
         headshotPercent = tag.getInt("HeadshotPercent");
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (ownerUUID != null) {
-            tag.putUUID("Owner", ownerUUID);
-        }
+        super.addAdditionalSaveData(tag);
         tag.putFloat("Damage", damage);
         tag.putInt("HeadshotPercent", headshotPercent);
     }
 
     @Override
-    public @Nullable Entity getOwner() {
-        @SuppressWarnings("resource") var level = level();
-        if (cachedOwner != null && !cachedOwner.isRemoved()) {
-            return cachedOwner;
-        }
-
-        if (ownerUUID != null && level instanceof ServerLevel server) {
-            cachedOwner = server.getEntity(ownerUUID);
-            return cachedOwner;
-        }
-
-        return null;
-    }
-
-    public void setOwner(Entity pOwner) {
-        if (pOwner != null) {
-            ownerUUID = pOwner.getUUID();
-            cachedOwner = pOwner;
-        }
-    }
-
-    @Override
     public void onClientRemoval(){
         var level = level();
-        EffectTools.createStickParticleClient(
+        EffectTools.createStickParticle(
                 position(),
                 getLookAngle(),
                 2,
@@ -156,7 +120,7 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         // 射出時パーティクル.
         // todo:再ログイン制御がいるかどうか.
         if (level.isClientSide && firstTick) {
-            EffectTools.createRingParticleClient(
+            EffectTools.createRingParticle(
                     position(),
                     getLookAngle(),
                     0.3f,
@@ -171,14 +135,14 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         super.tick();
 
         if (level.isClientSide){
-            var castingTick = entityData.get(CASTING_TICK);
+            int castingTick = entityData.get(CASTING_TICK);
             if (castingTick > 0){
                 var maxCastingTick = entityData.get(MAX_CASTING_TICK);
                 var targetPosition = new Vec3(entityData.get(AIM_X), entityData.get(AIM_Y), entityData.get(AIM_Z));
                 var targetVec = targetPosition.subtract(position());
                 var radius = 1.0 - castingTick / (double) maxCastingTick;
                 var count = 20 - Math.round(15 * castingTick / (float) maxCastingTick);
-                EffectTools.createRingParticleClient(targetPosition, targetVec, radius, count, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
+                EffectTools.createRingParticle(targetPosition, targetVec, radius, count, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
             }
         }
 
@@ -197,26 +161,13 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         }
 
         var locatePosition = getAimingPosition(owner);
-        var targetVec = locatePosition.subtract(position());
-        var distance = targetVec.length();
-        var step = targetVec.normalize().scale(Math.min(0.5, distance));
-
-        if (distance < 0.001 || distance > 0.5) {
-            setDeltaMovement(Vec3.ZERO);
-            setPos(locatePosition.x, locatePosition.y, locatePosition.z);
-        } else {
-            setDeltaMovement(step);
-            move(net.minecraft.world.entity.MoverType.SELF, step);
-        }
+        followTargetPosition(locatePosition);
 
         if (aimPosition != null) {
             var targetFaceVector = aimPosition.subtract(position()).normalize();
-            var yaw = (float) (Mth.atan2(-targetFaceVector.x, targetFaceVector.z) * Mth.RAD_TO_DEG);
-            var xzLen = Math.sqrt(targetFaceVector.x * targetFaceVector.x + targetFaceVector.z * targetFaceVector.z);
-            var pitch = (float) (Mth.atan2(-targetFaceVector.y, xzLen) * Mth.RAD_TO_DEG);
-
-            setYRot(yaw);
-            setXRot(pitch);
+            var yawPitch = RotationTools.calculateYawPitchByDirection(targetFaceVector);
+            setYRot(yawPitch.yaw());
+            setXRot(yawPitch.pitch());
         } else {
             setYRot(owner.getYRot());
             setXRot(0);
@@ -282,24 +233,20 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
         aimPosition = null;
     }
 
-    public void locateAimingPosition(){
+    @Override
+    public Vec3 getStandbyPosition() {
         if ((getOwner() instanceof LivingEntity owner)) {
-            var formationPosition = getAimingPosition(owner);
-            setPos(formationPosition.x, formationPosition.y, formationPosition.z);
-            setYRot(owner.getYRot());
-            setXRot(0);
-            setRot(getYRot(), getXRot());
-            hasImpulse = true;
+            return getAimingPosition(owner);
         }
+
+        return Vec3.ZERO;
     }
 
     private void setFireRotationByVector(Vec3 aimPosition){
         var targetVec = aimPosition.subtract(position());
-        var yaw = (float) (Mth.atan2(-targetVec.x, targetVec.z) * Mth.RAD_TO_DEG);
-        var xzLen = Math.sqrt(targetVec.x * targetVec.x + targetVec.z * targetVec.z);
-        var pitch = (float) (Mth.atan2(-targetVec.y, xzLen) * Mth.RAD_TO_DEG);
-        entityData.set(FIRE_YAW, yaw);
-        entityData.set(FIRE_PITCH, pitch);
+        var yawPitch = RotationTools.calculateYawPitchByDirection(targetVec);
+        entityData.set(FIRE_YAW, yawPitch.yaw());
+        entityData.set(FIRE_PITCH, yawPitch.pitch());
     }
 
     public float getFireYaw(){
@@ -319,14 +266,6 @@ public class CommenceFireRifleEntity extends Entity implements TraceableEntity {
     }
 
     private static Vec3 getAimingPosition(LivingEntity owner) {
-        var yawAngle = owner.getYRot() * Mth.DEG_TO_RAD;
-        var forwardX = -Mth.sin(yawAngle);
-        var forwardZ = Mth.cos(yawAngle);
-
-        var back = new Vec3(-forwardX, 0, -forwardZ).normalize();
-        var right = new Vec3(back.z, 0, -back.x).normalize();
-
-        var behindOffset = back.scale(-0.3).add(new Vec3(0, 0.2, 0)).add(right.scale(-0.9));
-        return owner.getEyePosition().add(behindOffset);
+        return RotationTools.calculateBehindPosition(owner, -0.3, -0.9, 0.2);
     }
 }

@@ -6,33 +6,25 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
-import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
-import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-public class QuickArms extends AbstractSpell {
+public class QuickArms extends AbstractFirearmSpell<QuickArmsHandgunEntity> {
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "quick_arms");
 
@@ -44,6 +36,7 @@ public class QuickArms extends AbstractSpell {
             .build();
 
     public QuickArms() {
+        super(QuickArmsHandgunEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 10;
         manaCostPerLevel = 5;
@@ -65,12 +58,31 @@ public class QuickArms extends AbstractSpell {
         return 4 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private int getBulletCount(int spellLevel, LivingEntity entity) {
+    @Override
+    public int getBulletCount(int spellLevel, LivingEntity entity) {
         return 2 + Math.round(2 * getSpellPower(spellLevel, entity) / 100.0f);
     }
 
-    private int getDuration() {
+    @Override
+    public int getDurationTick() {
         return 20 * 3;
+    }
+
+    @Override
+    public Optional<SoundEvent> getPreFireSound() {
+        return Optional.empty();
+    }
+    @Override
+    public Optional<SoundEvent> getPreSummonSound() {
+        return Optional.empty();
+    }
+    @Override
+    public Optional<SoundEvent> getFireSound() {
+        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
+    }
+    @Override
+    public Optional<SoundEvent> getSummonSound() {
+        return Optional.of(SoundEvents.SHULKER_TELEPORT);
     }
 
     private int getRange(){
@@ -98,17 +110,6 @@ public class QuickArms extends AbstractSpell {
     }
 
     @Override
-    public Optional<SoundEvent> getCastStartSound() {
-        // 再詠唱で制御できなさそうなのでこちらは音を無しにする.
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.empty();
-    }
-
-    @Override
     public AnimationHolder getCastStartAnimation() {
         return SpellAnimations.ANIMATION_INSTANT_CAST;
     }
@@ -119,145 +120,34 @@ public class QuickArms extends AbstractSpell {
     }
 
     @Override
-    public int getRecastCount(int spellLevel, @Nullable LivingEntity entity) {
-        // 初回発動含め弾の数にする.
-        return getBulletCount(spellLevel, entity) + 1;
-    }
-
-    @Override
-    public ICastDataSerializable getEmptyCastData() {
-        return new QuickArmsCastData();
-    }
-
-
-    @Override
-    public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
-        if (castDataSerializable instanceof QuickArmsCastData castData) {
-            var serverLevel = serverPlayer.serverLevel();
-            var entity = castData.getEntity(serverLevel);
-            if(entity != null){
-                entity.discard();
-            }
-        }
-
-        super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
-    }
-
-    @Override
-    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var summon = getQuickArmsEntityFromMagicData(playerMagicData, level);
-        if (summon != null) {
-            if (!summon.canFire()){
-                if (entity instanceof ServerPlayer serverPlayer) {
-                    serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.quick_arms.during_standby", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
-                }
-                return false;
-            }
-        } else if(playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
+    protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull QuickArmsHandgunEntity weapon) {
+        if (!weapon.canFire()){
             if (entity instanceof ServerPlayer serverPlayer) {
-                var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.firearm_spell.no_firearm", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
-                if (recast.getRemainingRecasts() > 0) {
-                    playerMagicData.getPlayerRecasts().removeRecast(recast, RecastResult.USED_ALL_RECASTS);
-                }
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.quick_arms.during_standby", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
-
             return false;
         }
 
-        return super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+        return true;
     }
 
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        var recasts = playerMagicData.getPlayerRecasts();
-        if (recasts.hasRecastForSpell(this)) {
-            var summon = getQuickArmsEntityFromMagicData(playerMagicData, level);
-            if (summon != null) {
-                summon.fire(level);
-                AudioTools.playSoundFromEntity(level, entity, SoundEvents.ARMOR_EQUIP_NETHERITE, SoundSource.PLAYERS, 2.0f);
-            }
-        } else {
-            var castData = new QuickArmsCastData();
-            var summonWeapon = new QuickArmsHandgunEntity(EntityRegistry.QUICK_ARMS_HANDGUN.get(), level, entity);
-
-            summonWeapon.locateAimingPosition();
-            summonWeapon.setDamage(getDamage(spellLevel, entity));
-            summonWeapon.setRange(getRange());
-            summonWeapon.setFireStandby(getFirstDelay());
-
-            castData.setEntity(summonWeapon);
-            level.addFreshEntity(summonWeapon);
-
-            var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity), getDuration(), castSource, castData);
-            recasts.addRecast(recastInstance, playerMagicData);
-            AudioTools.playSoundFromEntity(level, entity, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 2.0f);
-        }
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    protected boolean onPreRecastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        return false;
     }
 
-
-    private QuickArmsHandgunEntity getQuickArmsEntityFromMagicData(MagicData playerMagicData, Level level){
-        if (!(level instanceof ServerLevel serverLevel)) {
-            return null;
-        }
-
-        if (playerMagicData == null) {
-            return null;
-        }
-
-        var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
-        if (recast == null) {
-            return null;
-        }
-
-        if (!(recast.getCastData() instanceof QuickArmsCastData castData)) {
-            return null;
-        }
-
-        if (!(castData.getEntity(serverLevel) instanceof QuickArmsHandgunEntity summon)) {
-            return null;
-        }
-
-        return summon;
+    @Override
+    public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull QuickArmsHandgunEntity weapon){
+        weapon.fire(level);
     }
 
-    public class QuickArmsCastData implements ICastDataSerializable {
-        private UUID entityId;
-
-        public void setEntity(Entity entity){
-            entityId = entity.getUUID();
-        }
-
-        public Entity getEntity(ServerLevel level){
-            return level.getEntity(entityId);
-        }
-
-        @Override
-        public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            friendlyByteBuf.writeUUID(entityId);
-        }
-
-        @Override
-        public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
-            entityId = friendlyByteBuf.readUUID();
-        }
-
-        @Override
-        public void reset() {
-            entityId = null;
-        }
-
-        @Override
-        public CompoundTag serializeNBT() {
-            var tag = new CompoundTag();
-            tag.putUUID("Entity", entityId);
-            return tag;
-        }
-
-        @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            entityId = nbt.getUUID("Entity");
-        }
+    @Override
+    public QuickArmsHandgunEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData){
+        var summonWeapon = new QuickArmsHandgunEntity(EntityRegistry.QUICK_ARMS_HANDGUN.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setRange(getRange());
+        summonWeapon.setFireStandby(getFirstDelay());
+        level.addFreshEntity(summonWeapon);
+        return summonWeapon;
     }
 }

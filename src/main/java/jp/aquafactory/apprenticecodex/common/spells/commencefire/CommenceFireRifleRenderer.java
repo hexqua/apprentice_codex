@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells.commencefire;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -18,8 +19,6 @@ import org.jetbrains.annotations.NotNull;
 public class CommenceFireRifleRenderer extends EntityRenderer<CommenceFireRifleEntity> {
     private final ItemStack renderItem = new ItemStack(ItemRegistry.COMMENCE_FIRE_RIFLE.get());
 
-    private record YawPitch(float yaw, float pitch) {}
-
     public CommenceFireRifleRenderer(EntityRendererProvider.Context pContext) {
         super(pContext);
     }
@@ -31,15 +30,12 @@ public class CommenceFireRifleRenderer extends EntityRenderer<CommenceFireRifleE
         // duringRecoilはサーバー専用のため、クライアントは同期されている方を使う.
         var recoilTick = entity.getRecoilTick();
         var duringRecoil = recoilTick > 0;
-
         var yawPitch = calculateYawPitchForRestoreRecoil(entity, recoilTick, partialTicks);
-        var yaw = yawPitch.yaw();
-        var pitch = yawPitch.pitch();
 
         poseStack.pushPose();
         poseStack.translate(0.0, -0.2, 0.0);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
-        poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-yawPitch.yaw()));
+        poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
 
         // モデルは180度回転させる必要がある.
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
@@ -70,21 +66,19 @@ public class CommenceFireRifleRenderer extends EntityRenderer<CommenceFireRifleE
         return InventoryMenu.BLOCK_ATLAS;
     }
 
-    private static YawPitch calculateYawPitchForRestoreRecoil(CommenceFireRifleEntity entity, int recoilTick, float partialTicks) {
-        var yaw = Mth.rotLerp(partialTicks, entity.yRotO, entity.getYRot());
-        var pitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
-
+    private static RotationTools.YawPitch calculateYawPitchForRestoreRecoil(CommenceFireRifleEntity entity, int recoilTick, float partialTicks) {
+        var rawYawPitch = RotationTools.calculateYawPitchByEntity(entity, partialTicks);
         if(recoilTick <= 0) {
-            return new YawPitch(yaw, pitch);
+            return rawYawPitch;
         }
 
         var recoilAnimationTick = CommenceFireRifleEntity.MAX_RECOIL_TICK - recoilTick + partialTicks;
         if (recoilAnimationTick < 5) {
-            return new YawPitch(entity.getFireYaw(), entity.getFirePitch());
+            return new RotationTools.YawPitch(entity.getFireYaw(), entity.getFirePitch());
         }
 
-        var lerp = recoilTick / (float) (CommenceFireRifleEntity.MAX_RECOIL_TICK - 5);
-        return new YawPitch(Mth.lerp(lerp, yaw, entity.getFireYaw()), Mth.lerp(lerp, pitch, entity.getFirePitch()));
+        var v = recoilTick / (float) (CommenceFireRifleEntity.MAX_RECOIL_TICK - 5);
+        return new RotationTools.YawPitch(Mth.lerp(v, rawYawPitch.yaw(), entity.getFireYaw()), Mth.lerp(v, rawYawPitch.pitch(), entity.getFirePitch()));
 
     }
 

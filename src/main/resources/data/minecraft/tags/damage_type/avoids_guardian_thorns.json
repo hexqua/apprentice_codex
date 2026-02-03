@@ -1,10 +1,5 @@
 {
   "values": [
-    "apprenticecodex:sky_edge",
-    "apprenticecodex:archer_multiple",
-    "apprenticecodex:archer_multiple_last",
-    "apprenticecodex:commence_fire",
-    "apprenticecodex:compound_phial",
-    "apprenticecodex:quick_arms"
+    "#apprenticecodex:ranged_attack"
   ]
 }
