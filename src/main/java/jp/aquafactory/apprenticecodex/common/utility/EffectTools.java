@@ -9,6 +9,17 @@ import net.minecraft.world.phys.Vec3;
 public class EffectTools {
     private static final RandomSource RNG = RandomSource.create();
 
+    public static void createParticleClient(Level level, ParticleOptions particle, Vec3 position, double randomOffsetRange, double randomSpeed){
+        level.addParticle(particle,
+                position.x + RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                position.y + RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                position.z + RNG.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
+                RNG.nextDouble() * randomSpeed - randomSpeed / 2,
+                RNG.nextDouble() * randomSpeed - randomSpeed / 2,
+                RNG.nextDouble() * randomSpeed - randomSpeed / 2
+        );
+    }
+
     public static void createRingParticleClient(Vec3 position, Vec3 normal, double radius, int count,
                                                 double randomOffsetRange, double randomSpeed,
                                                 ParticleOptions particle, Level level){

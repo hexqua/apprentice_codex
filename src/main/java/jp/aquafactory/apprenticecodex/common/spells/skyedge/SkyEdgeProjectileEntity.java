@@ -99,15 +99,7 @@ public class SkyEdgeProjectileEntity extends Projectile
                 var count = 2;
                 for (var i = 0; i < count; i++) {
                     var pos = position().subtract(getDeltaMovement().scale(RNG.nextDouble()));
-                    level.addParticle(
-                            ParticleTypes.ELECTRIC_SPARK,
-                            pos.x + getRandomRange(radius),
-                            pos.y + getRandomRange(radius),
-                            pos.z + getRandomRange(radius),
-                            getRandomRange(speed),
-                            getRandomRange(speed),
-                            getRandomRange(speed)
-                    );
+                    EffectTools.createParticleClient(level, ParticleTypes.ELECTRIC_SPARK, pos, radius, speed);
                 }
             }
         }
@@ -193,37 +185,31 @@ public class SkyEdgeProjectileEntity extends Projectile
         standbyTick = ticks;
     }
 
-    private double getRandomRange(double range){
-        return (RNG.nextDouble() * 2 - 1) * range;
-    }
-
     private void onImpact(Level level, double impactDistance, boolean isImpactOnEntity) {
-        if (!level.isClientSide) {
-            AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
+       AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
 
-            if (level instanceof ServerLevel server){
-                // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
-                var dir = getDeltaMovement();
-                var impactPos = position().add(dir.scale(impactDistance));
+        if (level instanceof ServerLevel server){
+            // 命中位置で演出を出すと手前すぎるので少し進行方向に進める.
+            var dir = getDeltaMovement();
+            var impactPos = position().add(dir.scale(impactDistance));
+            server.sendParticles(
+                    ParticleTypes.ENCHANTED_HIT,
+                    impactPos.x, impactPos.y, impactPos.z,
+                    8,
+                    0.2, 0.2, 0.2,
+                    0.25
+            );
+
+            if (isImpactOnEntity) {
                 server.sendParticles(
-                        ParticleTypes.ENCHANTED_HIT,
+                        ParticleTypes.SWEEP_ATTACK,
                         impactPos.x, impactPos.y, impactPos.z,
-                        8,
-                        0.2, 0.2, 0.2,
-                        0.25
+                        1,
+                        0.05, 0.05, 0.05,
+                        0.0
                 );
-
-                if (isImpactOnEntity) {
-                    server.sendParticles(
-                            ParticleTypes.SWEEP_ATTACK,
-                            impactPos.x, impactPos.y, impactPos.z,
-                            1,
-                            0.05, 0.05, 0.05,
-                            0.0
-                    );
-                }
-
             }
+
         }
     }
 }
