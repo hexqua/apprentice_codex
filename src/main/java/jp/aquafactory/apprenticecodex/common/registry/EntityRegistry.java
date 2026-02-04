@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnemyShotgunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunEntity;
@@ -62,6 +63,15 @@ public class EntityRegistry {
                             .clientTrackingRange(48)
                             .updateInterval(1)
                             .build("quick_arms_handgun"));
+
+    public static final RegistryObject<EntityType<BreachingEnemyShotgunEntity>> BREACHING_ENEMY_SHOTGUN =
+            ENTITIES.register("breaching_enemy_shotgun",
+                    () -> EntityType.Builder
+                            .<BreachingEnemyShotgunEntity>of(BreachingEnemyShotgunEntity::new, MobCategory.MISC)
+                            .sized(0.25f, 0.25f)
+                            .clientTrackingRange(32)
+                            .updateInterval(1)
+                            .build("breaching_enemy_shotgun"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

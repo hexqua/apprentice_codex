@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnemyShotgunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunRenderer;
@@ -32,6 +33,7 @@ public class ClientRegistry {
         event.registerEntityRenderer(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), CommenceFireRifleRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMPOUND_PHIAL_PROJECTILE.get(), CompoundPhialProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.QUICK_ARMS_HANDGUN.get(), QuickArmsHandgunRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
     }
 
     @SubscribeEvent
