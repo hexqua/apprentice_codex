@@ -14,12 +14,15 @@ import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEntity> {
 
@@ -85,6 +88,16 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
     public int getEffectiveCastTime(int spellLevel, @Nullable LivingEntity entity) {
         // 詠唱時間短縮をガン積みしてもかならず10tickは残す.
         return Math.max(super.getEffectiveCastTime(spellLevel, entity), 10);
+    }
+
+    @Override
+    public final Optional<SoundEvent> getCastStartSound() {
+        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
+    }
+
+    @Override
+    public final Optional<SoundEvent> getCastFinishSound() {
+        return Optional.empty();
     }
 
     @Override
