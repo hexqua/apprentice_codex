@@ -7,6 +7,9 @@ import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -21,10 +24,19 @@ import java.util.HashMap;
 
 public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
 
+    public static final int MAX_RECOIL_TICK = 10;
+
+    private static final EntityDataAccessor<Integer> RECOIL_TICK =
+            SynchedEntityData.defineId(BreachingEnemyShotgunEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Boolean> IS_RELEASED =
+            SynchedEntityData.defineId(BreachingEnemyShotgunEntity.class, EntityDataSerializers.BOOLEAN);
+
     private float damage;
     private float range;
     private int count;
-
+    private int recoilTick;
+    private boolean isReleased;
     public BreachingEnemyShotgunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
@@ -35,7 +47,8 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
 
     @Override
     protected void defineSynchedData() {
-        // do nothing.
+        entityData.define(RECOIL_TICK, 0);
+        entityData.define(IS_RELEASED, false);
     }
 
     @Override
@@ -60,10 +73,10 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
         EffectTools.createStickParticle(
                 position(),
                 getLookAngle(),
-                0.2f,
-                8,
-                0.01f,
-                0.01,
+                1.5,
+                12,
+                0.1f,
+                0.02,
                 ParticleTypes.END_ROD,
                 level
         );
@@ -92,6 +105,16 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
         super.tick();
 
         if (level.isClientSide) {
+            return;
+        }
+
+        if (isReleased) {
+            if (recoilTick > 0) {
+                --recoilTick;
+                entityData.set(RECOIL_TICK, recoilTick);
+            } else {
+                releaseWeapon();
+            }
             return;
         }
 
@@ -168,6 +191,10 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             }
         }
 
+        recoilTick = MAX_RECOIL_TICK;
+        entityData.set(RECOIL_TICK, MAX_RECOIL_TICK);
+        entityData.set(IS_RELEASED, true);
+        isReleased = true;
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.SHOTGUN.get(), SoundSource.PLAYERS, 1.0f);
     }
 
@@ -188,5 +215,12 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
     }
     public void setCount(int newCount) {
         count = newCount;
+    }
+
+    public int getRecoilTick() {
+        return entityData.get(RECOIL_TICK);
+    }
+    public boolean getIsReleased() {
+        return entityData.get(IS_RELEASED);
     }
 }

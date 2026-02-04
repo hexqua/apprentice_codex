@@ -127,6 +127,7 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull BreachingEnemyShotgunEntity weapon) {
         if (!cancelled) {
             weapon.fire(level);
+            return CompleteCastTypes.KEEP_WEAPON;
         }
         return CompleteCastTypes.RELEASE_WEAPON;
     }

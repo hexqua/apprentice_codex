@@ -34,6 +34,12 @@ public class BreachingEnemyShotgunRenderer extends EntityRenderer<BreachingEnemy
         // モデルは180度回転させる必要がある.
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
 
+        // 反動中であればZ後退させて少し跳ねる.
+        if (entity.getIsReleased()){
+            poseStack.translate(0.0, 0.0, 0.5);
+            poseStack.mulPose(Axis.XP.rotationDegrees(calculateRecoilUpAngle(20, entity.getRecoilTick(), partialTicks)));
+        }
+
         Minecraft.getInstance().getItemRenderer().renderStatic(
                 renderItem,
                 ItemDisplayContext.NONE,
@@ -52,5 +58,14 @@ public class BreachingEnemyShotgunRenderer extends EntityRenderer<BreachingEnemy
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull BreachingEnemyShotgunEntity pEntity) {
         return InventoryMenu.BLOCK_ATLAS;
+    }
+
+    private static float calculateRecoilUpAngle(float angle, float recoilTick, float partialTicks) {
+        var recoilAnimationTick = BreachingEnemyShotgunEntity.MAX_RECOIL_TICK - recoilTick + partialTicks;
+        if (recoilAnimationTick < 6) {
+            return angle * (1 - recoilAnimationTick / 6);
+        }
+
+        return 0f;
     }
 }
