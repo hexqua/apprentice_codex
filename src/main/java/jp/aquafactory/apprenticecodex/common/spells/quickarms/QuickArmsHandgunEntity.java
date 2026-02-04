@@ -121,7 +121,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         var aimResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this));
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
-            var source = CombatTools.getDamageSource(level(), this, getOwner(), "quick_arms_handgun");
+            var source = CombatTools.getDamageSource(level(), this, getOwner(), "quick_arms");
             CombatTools.applyDamage(target, damage, source, SpellsRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 
