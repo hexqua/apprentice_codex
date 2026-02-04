@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.common.utility;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -32,7 +33,8 @@ public class RaycastTools {
     public record TargetResult(
             TargetType hitType,
             Vec3 hitPosition,
-            Entity hitEntity
+            Entity hitEntity,
+            BlockPos hitBlock
     ) {}
 
     public static TargetResult raycast(Entity source, Vec3 look, double range, double boxWidth, Predicate<Entity> predicate){
@@ -79,14 +81,14 @@ public class RaycastTools {
                 rayHitPosition = e.getBoundingBox().getCenter();
             }
 
-            return new TargetResult(TargetType.LIVING_ENTITY, rayHitPosition, e);
+            return new TargetResult(TargetType.LIVING_ENTITY, rayHitPosition, e, null);
         }
 
         if (blockHit.getType() != HitResult.Type.MISS) {
-            return new TargetResult(TargetType.BLOCK, blockHit.getLocation(), null);
+            return new TargetResult(TargetType.BLOCK, blockHit.getLocation(), null, blockHit.getBlockPos());
         }
 
-        return new TargetResult(TargetType.NONE, end, null);
+        return new TargetResult(TargetType.NONE, end, null, null);
     }
 
     public static TargetResult raycastFromEye(Entity source, double range, double boxWidth, Predicate<Entity> predicate) {

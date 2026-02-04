@@ -5,17 +5,20 @@ import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -140,6 +143,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
         var entities = new HashMap<Integer, Entity>();
         var blockHitPositionList = new ArrayList<Vec3>();
         var entityHitPositionList = new ArrayList<Vec3>();
+        var blockCounts = new HashMap<Long, Integer>();
 
         var baseAngle = getLookAngle();
         for(var i = 0; i < count; i++){
@@ -150,6 +154,10 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
                 // エンダードラゴンは先に解決しておく.
                 counts.merge(hitResult.hitEntity().getId(), 1, Integer::sum);
                 entities.put(hitResult.hitEntity().getId(), CombatTools.resolutePartEntity(hitResult.hitEntity()));
+            }
+
+            if (hitResult.hitBlock() != null){
+                blockCounts.merge(hitResult.hitBlock().asLong(), 1, Integer::sum);
             }
 
             var hitPosition = hitResult.hitPosition();
@@ -188,6 +196,25 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             if (entity instanceof LivingEntity livingEntity){
                 var knockbackDir = livingEntity.position().subtract(position()).normalize().scale(-1);
                 livingEntity.knockback(entry.getValue() * 0.25, knockbackDir.x, knockbackDir.z);
+            }
+        }
+
+        for(var entry : blockCounts.entrySet()){
+            // 半分以上当ててなければブロックへの効果は影響させない.
+            if (entry.getValue() < count / 2){
+                continue;
+            }
+
+            var pos = BlockPos.of(entry.getKey());
+            var state = level.getBlockState(pos);
+            if (state.isAir()){
+                continue;
+            }
+
+            // 試しにドアをぶち破る.
+            if (state.getBlock() instanceof DoorBlock){
+                AudioTools.playSoundFromBlock(level, pos.getCenter(), SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.PLAYERS);
+                level.destroyBlock(pos, true, getOwner());
             }
         }
 
