@@ -10,5 +10,11 @@
     "sounds": [
       "apprenticecodex:handgun"
     ]
+  },
+  "shotgun": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:shotgun"
+    ]
   }
 }

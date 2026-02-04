@@ -29,6 +29,12 @@ public final class ItemRegistry {
             ITEMS.register("quick_arms_handgun",
                     () -> new Item(new Item.Properties()));
 
+    public static final RegistryObject<Item> BREACHING_ENEMY_SHOTGUN =
+            ITEMS.register("breaching_enemy_shotgun",
+                    () -> new Item(new Item.Properties()));
+
+
+
     private ItemRegistry() {
         // do nothing.
     }

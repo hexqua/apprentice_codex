@@ -4,6 +4,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 public class AudioTools {
 
@@ -28,5 +29,16 @@ public class AudioTools {
 
     public static void playSoundFromEntity(Level level, Entity entity,SoundEvent soundEvent,SoundSource soundSource) {
         playSoundFromEntity(level, entity, soundEvent, soundSource, 1.0f);
+    }
+
+    public static void playSoundFromBlock(Level level, Vec3 position, SoundEvent soundEvent, SoundSource soundSource) {
+        level.playSound(
+                null,
+                position.x, position.y, position.z,
+                soundEvent,
+                soundSource,
+                1.0f,
+                1.0f
+        );
     }
 }
