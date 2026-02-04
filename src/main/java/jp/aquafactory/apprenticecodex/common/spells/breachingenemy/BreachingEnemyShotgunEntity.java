@@ -131,10 +131,14 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
                 continue;
             }
 
-            // todo:ダメージの上がり方調整、ノックバック調整.
             var finalDamage = damage * entry.getValue();
             var source = CombatTools.getDamageSource(level(), this, getOwner(), "breaching_enemy");
             CombatTools.applyDamage(entity, finalDamage, source, SpellsRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+
+            if (entity instanceof LivingEntity livingEntity){
+                var knockbackDir = livingEntity.position().subtract(position()).normalize().scale(-1);
+                livingEntity.knockback(entry.getValue() * 0.25, knockbackDir.x, knockbackDir.z);
+            }
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.SHOTGUN.get(), SoundSource.PLAYERS, 1.0f);
