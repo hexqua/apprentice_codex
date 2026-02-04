@@ -137,8 +137,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             CombatTools.applyDamage(entity, finalDamage, source, SpellsRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 
-        // todo:ショットガンの音に差し替える.
-        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.SHOTGUN.get(), SoundSource.PLAYERS, 1.0f);
     }
 
     @Override
