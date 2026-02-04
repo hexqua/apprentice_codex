@@ -36,11 +36,10 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
             .build();
 
     public BreachingEnemy() {
-        // todo:バランス調整.
         super(BreachingEnemyShotgunEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 25;
-        manaCostPerLevel = 10;
+        manaCostPerLevel = 15;
         baseManaCost = 60;
         castTime = 20;
     }
@@ -49,24 +48,23 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.projectile_count", getPellets(spellLevel, caster)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        // todo:バランス調整.
-        return 5;
+        return 1 + 1 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private int getPellets(){
-        // todo:バランス調整.
-        return 10;
+    private int getPellets(int spellLevel, LivingEntity entity){
+        return 4 + Math.round(1.5f * getSpellPower(spellLevel, entity) / 100.0f);
     }
 
     private int getRange(){
-        // ショットガンイメージなので近距離(1チャンク程度)
-        return 16;
+        // ショットガンイメージなので近距離(1チャンク未満)
+        return 10;
     }
 
     @Override
@@ -115,7 +113,7 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
         var summonWeapon = new BreachingEnemyShotgunEntity(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(),level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange());
-        summonWeapon.setCount(getPellets());
+        summonWeapon.setCount(getPellets(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
