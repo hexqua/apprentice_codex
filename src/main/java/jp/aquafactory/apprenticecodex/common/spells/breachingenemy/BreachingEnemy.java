@@ -4,49 +4,61 @@ import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
+import java.util.List;
 
 public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEntity> {
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "breaching_enemy");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.COMMON)
+            .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
-            .setMaxLevel(10)
-            .setCooldownSeconds(6)
+            .setMaxLevel(5)
+            .setCooldownSeconds(8)
             .build();
 
     public BreachingEnemy() {
+        // todo:バランス調整.
         super(BreachingEnemyShotgunEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 10;
-        manaCostPerLevel = 5;
-        baseManaCost = 30;
-        castTime = 0;
-    }
-
-
-    @Override
-    public int getBulletCount(int spellLevel, @Nullable LivingEntity entity) {
-        // todo:実装.
-        return 1;
+        spellPowerPerLevel = 25;
+        manaCostPerLevel = 10;
+        baseManaCost = 60;
+        castTime = 20;
     }
 
     @Override
-    public int getDurationTick() {
-        // todo:実装.
-        return 20 * 5;
+    public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
+        return List.of(
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.literal(ApprenticeCodex.NAME)
+        );
+    }
+
+    private float getDamage(int spellLevel, LivingEntity entity) {
+        // スペルパワーはintのため、設定値をそもそも100倍として考える.
+        // todo:バランス調整.
+        return 5;
+    }
+
+    private int getRange(){
+        // ショットガンイメージなので近距離(1チャンク程度)
+        return 16;
     }
 
     @Override
@@ -61,46 +73,41 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
 
     @Override
     public CastType getCastType() {
-        return CastType.INSTANT;
+        return CastType.LONG;
     }
 
     @Override
-    public Optional<SoundEvent> getPreFireSound() {
-        return Optional.empty();
+    public int getEffectiveCastTime(int spellLevel, @Nullable LivingEntity entity) {
+        // 詠唱時間短縮をガン積みしてもかならず10tickは残す.
+        return Math.max(super.getEffectiveCastTime(spellLevel, entity), 10);
     }
 
     @Override
-    public Optional<SoundEvent> getPreSummonSound() {
-        return Optional.empty();
+    public AnimationHolder getCastStartAnimation() {
+        return SpellAnimations.ANIMATION_INSTANT_CAST;
     }
 
     @Override
-    public Optional<SoundEvent> getFireSound() {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<SoundEvent> getSummonSound() {
-        return Optional.empty();
-    }
-
-    @Override
-    protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull BreachingEnemyShotgunEntity weapon) {
-        return false;
-    }
-
-    @Override
-    protected boolean onPreRecastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        return false;
-    }
-
-    @Override
-    public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull BreachingEnemyShotgunEntity weapon) {
-
+    public AnimationHolder getCastFinishAnimation() {
+        return AnimationHolder.pass();
     }
 
     @Override
     public BreachingEnemyShotgunEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        return null;
+        var summonWeapon = new BreachingEnemyShotgunEntity(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(),level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setRange(getRange());
+        level.addFreshEntity(summonWeapon);
+        return summonWeapon;
+    }
+
+    @Override
+    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull BreachingEnemyShotgunEntity weapon) {
+        return TickCastTypes.KEEP_CASTING;
+    }
+
+    @Override
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull BreachingEnemyShotgunEntity weapon) {
+        return CompleteCastTypes.RELEASE_WEAPON;
     }
 }

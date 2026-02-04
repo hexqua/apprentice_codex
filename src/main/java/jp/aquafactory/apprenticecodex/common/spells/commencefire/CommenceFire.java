@@ -8,7 +8,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
+import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmRecastSpell;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.ChatFormatting;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class CommenceFire extends AbstractFirearmSpell<CommenceFireRifleEntity> {
+public class CommenceFire extends AbstractFirearmRecastSpell<CommenceFireRifleEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "commence_fire");
 
     private final DefaultConfig config = new DefaultConfig()
