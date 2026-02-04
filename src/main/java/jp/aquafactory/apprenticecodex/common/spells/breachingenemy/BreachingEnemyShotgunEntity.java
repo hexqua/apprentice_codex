@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.common.spells.breachingenemy;
 
+import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -14,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
@@ -112,16 +115,40 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
     public void fire(Level level){
         var counts = new HashMap<Integer, Integer>();
         var entities = new HashMap<Integer, Entity>();
+        var blockHitPositionList = new ArrayList<Vec3>();
+        var entityHitPositionList = new ArrayList<Vec3>();
 
         var baseAngle = getLookAngle();
         for(var i = 0; i < count; i++){
             // 散弾処理をするため、所有者ではなくこの武器から判定を飛ばす.
-            var pellet = RaycastTools.randomRotateInCone(baseAngle, 20, level.getRandom());
-            var hitResult = RaycastTools.raycast(this, pellet, range, 0.25, e -> CombatTools.isValidCombatTarget(e, this));
+            var pellet = RaycastTools.randomRotateInCone(baseAngle, 15, level.getRandom());
+            var hitResult = RaycastTools.raycast(this, pellet, range, 0.25, e -> CombatTools.isValidCombatTarget(e, this) && e != getOwner());
             if (hitResult.hitEntity() != null){
                 // エンダードラゴンは先に解決しておく.
                 counts.merge(hitResult.hitEntity().getId(), 1, Integer::sum);
                 entities.put(hitResult.hitEntity().getId(), CombatTools.resolutePartEntity(hitResult.hitEntity()));
+            }
+
+            var hitPosition = hitResult.hitPosition();
+            switch (hitResult.hitType()){
+                case LIVING_ENTITY:
+                    entityHitPositionList.add(hitPosition);
+                    break;
+                case BLOCK:
+                    blockHitPositionList.add(hitPosition);
+                    break;
+            }
+        }
+
+        if (level instanceof ServerLevel server) {
+            var firePosition = position().add(getLookAngle().normalize().scale(1));
+            server.sendParticles(new MuzzleFlashParticleOptions(1.25f), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
+
+            for (var hitPosition : blockHitPositionList) {
+                server.sendParticles(ParticleTypes.SMOKE, hitPosition.x, hitPosition.y, hitPosition.z, 1, 0, 0, 0, 0);
+            }
+            for (var hitPosition : entityHitPositionList) {
+                server.sendParticles(ParticleTypes.ENCHANTED_HIT, hitPosition.x, hitPosition.y, hitPosition.z, 2, .1, .1, .1, .1);
             }
         }
 
