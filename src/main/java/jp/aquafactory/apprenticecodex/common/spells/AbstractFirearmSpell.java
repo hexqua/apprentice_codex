@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ICastDataSerializable;
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import net.minecraft.nbt.CompoundTag;
@@ -45,6 +46,19 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
     public abstract CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull T weapon);
 
     @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        if (getCastType() != CastType.CONTINUOUS && playerMagicData != null) {
+            if (!(playerMagicData.getAdditionalCastData() instanceof FirearmCastData)) {
+                var castData = new FirearmCastData();
+                var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
+                castData.setEntity(summon);
+                playerMagicData.setAdditionalCastData(castData);
+            }
+        }
+        super.onServerPreCast(level, spellLevel, entity, playerMagicData);
+    }
+
+    @Override
     public final void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
         var summon = getFirearmEntityFromMagicData(playerMagicData, level);
         if (summon != null) {
@@ -61,11 +75,13 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
 
     @Override
     public final void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        if (!(playerMagicData.getAdditionalCastData() instanceof FirearmCastData)) {
-            var castData = new FirearmCastData();
-            var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
-            castData.setEntity(summon);
-            playerMagicData.setAdditionalCastData(castData);
+        if (getCastType() == CastType.CONTINUOUS) {
+            if (!(playerMagicData.getAdditionalCastData() instanceof FirearmCastData)) {
+                var castData = new FirearmCastData();
+                var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
+                castData.setEntity(summon);
+                playerMagicData.setAdditionalCastData(castData);
+            }
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
