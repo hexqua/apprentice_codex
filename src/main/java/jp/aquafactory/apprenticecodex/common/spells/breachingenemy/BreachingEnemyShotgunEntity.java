@@ -1,22 +1,26 @@
 package jp.aquafactory.apprenticecodex.common.spells.breachingenemy;
 
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
-import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
-import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
-import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
+import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+
 public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
 
     private float damage;
     private float range;
+    private int count;
 
     public BreachingEnemyShotgunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -36,6 +40,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
         range = pCompound.getFloat("Range");
+        count = pCompound.getInt("Count");
     }
 
     @Override
@@ -43,6 +48,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
         super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
         pCompound.putFloat("Range", range);
+        pCompound.putInt("Count", count);
     }
 
     @Override
@@ -91,13 +97,48 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             return;
         }
 
+        var locatePosition = getStandbyPosition();
+        followTargetPosition(locatePosition);
+
         // ブリーチングエネミーは常に視線先を狙う.
-        var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
+        var aimResult = RaycastTools.raycastFromEye(owner, range, 1, e -> CombatTools.isValidCombatTarget(e, this));
         var targetVec = aimResult.hitPosition().subtract(position());
         var yawPitch = RotationTools.calculateYawPitchByDirection(targetVec);
         setYRot(yawPitch.yaw());
         setXRot(yawPitch.pitch());
         hasImpulse = true;
+    }
+
+    public void fire(Level level){
+        var counts = new HashMap<Integer, Integer>();
+        var entities = new HashMap<Integer, Entity>();
+
+        var baseAngle = getLookAngle();
+        for(var i = 0; i < count; i++){
+            // 散弾処理をするため、所有者ではなくこの武器から判定を飛ばす.
+            var pellet = RaycastTools.randomRotateInCone(baseAngle, 20, level.getRandom());
+            var hitResult = RaycastTools.raycast(this, pellet, range, 0.25, e -> CombatTools.isValidCombatTarget(e, this));
+            if (hitResult.hitEntity() != null){
+                // エンダードラゴンは先に解決しておく.
+                counts.merge(hitResult.hitEntity().getId(), 1, Integer::sum);
+                entities.put(hitResult.hitEntity().getId(), CombatTools.resolutePartEntity(hitResult.hitEntity()));
+            }
+        }
+
+        for(var entry : counts.entrySet()){
+            var entity = entities.get(entry.getKey());
+            if (entity == null){
+                continue;
+            }
+
+            // todo:ダメージの上がり方調整、ノックバック調整.
+            var finalDamage = damage * entry.getValue();
+            var source = CombatTools.getDamageSource(level(), this, getOwner(), "breaching_enemy");
+            CombatTools.applyDamage(entity, finalDamage, source, SpellsRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+        }
+
+        // todo:ショットガンの音に差し替える.
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
     }
 
     @Override
@@ -112,8 +153,10 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
     public void setDamage(float newDamage) {
         damage = newDamage;
     }
-
     public void setRange(float newRange) {
         range = newRange;
+    }
+    public void setCount(int newCount) {
+        count = newCount;
     }
 }

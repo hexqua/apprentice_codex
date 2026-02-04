@@ -56,6 +56,11 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
         return 5;
     }
 
+    private int getPellets(){
+        // todo:バランス調整.
+        return 10;
+    }
+
     private int getRange(){
         // ショットガンイメージなので近距離(1チャンク程度)
         return 16;
@@ -97,6 +102,7 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
         var summonWeapon = new BreachingEnemyShotgunEntity(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(),level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange());
+        summonWeapon.setCount(getPellets());
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
@@ -108,6 +114,9 @@ public class BreachingEnemy extends AbstractFirearmSpell<BreachingEnemyShotgunEn
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull BreachingEnemyShotgunEntity weapon) {
+        if (!cancelled) {
+            weapon.fire(level);
+        }
         return CompleteCastTypes.RELEASE_WEAPON;
     }
 }

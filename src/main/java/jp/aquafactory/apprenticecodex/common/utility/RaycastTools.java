@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.utility;
 
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -33,11 +35,10 @@ public class RaycastTools {
             Entity hitEntity
     ) {}
 
-    public static TargetResult raycastFromEye(LivingEntity source, double range, Predicate<Entity> predicate) {
+    public static TargetResult raycast(Entity source, Vec3 look, double range, double boxWidth, Predicate<Entity> predicate){
         var level = source.level();
 
         var start = source.getEyePosition(1.0F);
-        var look = source.getViewVector(1.0F);
         var end = start.add(look.scale(range));
 
         var blockHit = level.clip(new ClipContext(
@@ -55,7 +56,7 @@ public class RaycastTools {
 
         var searchBox = source.getBoundingBox()
                 .expandTowards(look.scale(range))
-                .inflate(1.0D);
+                .inflate(boxWidth / 2);
 
         var entityHit = ProjectileUtil.getEntityHitResult(
                 level,
@@ -86,6 +87,10 @@ public class RaycastTools {
         }
 
         return new TargetResult(TargetType.NONE, end, null);
+    }
+
+    public static TargetResult raycastFromEye(Entity source, double range, double boxWidth, Predicate<Entity> predicate) {
+        return raycast(source, source.getViewVector(1.0F), range, boxWidth, predicate);
     }
 
     @Nullable
@@ -200,5 +205,28 @@ public class RaycastTools {
                 .sorted(Comparator.comparingDouble(e -> e.distanceToSqr(source)))
                 .filter(e -> !blockOcclusion || hasLineOfSight(level, source, e))
                 .findFirst();
+    }
+
+    public static Vec3 randomRotateInCone(Vec3 dirNormalized, float maxAngleDeg, RandomSource random) {
+        // 度数を計算用のラジアンに変換.
+        var maxAngleRad = maxAngleDeg * ((float) Math.PI / 180f);
+
+        // 円錐内の角度を「面積一様」になるようサンプリング.
+        var u = random.nextDouble();
+        var v = random.nextDouble();
+        var cosMax = Math.cos(maxAngleRad);
+        var cosTheta = Mth.lerp(u, cosMax, 1.0);
+        var sinTheta = Math.sqrt(Math.max(0.0, 1.0 - cosTheta * cosTheta));
+        var phi = 2.0 * Math.PI * v;
+
+        // 回転させる.
+        var up = Math.abs(dirNormalized.y) < 0.999 ? new Vec3(0, 1, 0) : new Vec3(1, 0, 0);
+        var uVec = dirNormalized.cross(up).normalize();
+        var vVec = dirNormalized.cross(uVec).normalize();
+        return
+                uVec.scale(sinTheta * Math.cos(phi))
+                        .add(vVec.scale(sinTheta * Math.sin(phi)))
+                        .add(dirNormalized.scale(cosTheta))
+                        .normalize();
     }
 }

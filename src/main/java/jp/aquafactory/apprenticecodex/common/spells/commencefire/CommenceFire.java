@@ -150,7 +150,7 @@ public class CommenceFire extends AbstractFirearmRecastSpell<CommenceFireRifleEn
         }
 
         var range = getRange();
-        var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(e, entity));
+        var result = RaycastTools.raycastFromEye(entity, range, 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
 
         // 上の判定式で非nullが保証.
         //noinspection DataFlowIssue
@@ -178,7 +178,7 @@ public class CommenceFire extends AbstractFirearmRecastSpell<CommenceFireRifleEn
     @Override
     public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull CommenceFireRifleEntity weapon){
         var range = getRange();
-        var result = RaycastTools.raycastFromEye(entity, range, e -> CombatTools.isValidCombatTarget(e, entity));
+        var result = RaycastTools.raycastFromEye(entity, range, 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
         var isHeadShot = result.hitEntity() instanceof LivingEntity living && CombatTools.isHeadShot(living, result.hitPosition());
         if (result.hitEntity() != null) {
             weapon.damageTarget(result.hitEntity(), isHeadShot, level);

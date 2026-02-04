@@ -121,7 +121,7 @@ public class SkyEdge extends AbstractSpell {
             var spawnPosition = pickSpawnPosition(level, entity, projectile, dimensions, level.random);
 
             // 視線先の対象を狙うようにする.
-            var result = RaycastTools.raycastFromEye(entity, getRange(), e -> CombatTools.isValidCombatTarget(e, entity));
+            var result = RaycastTools.raycastFromEye(entity, getRange(), 1, e -> CombatTools.isValidCombatTarget(e, entity));
             var targetPosition = result.hitPosition().add(generateInaccuracy(level.random).scale(getInaccuracy()));
             var velocity = targetPosition.subtract(spawnPosition).normalize();
             var delay = Math.round(level.random.nextFloat() * 5) + 10;

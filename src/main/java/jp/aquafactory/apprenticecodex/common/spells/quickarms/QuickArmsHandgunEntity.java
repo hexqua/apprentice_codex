@@ -97,7 +97,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         }
 
         // クイックアームは常に視線先を狙う.
-        var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
+        var aimResult = RaycastTools.raycastFromEye(owner, range, 1, e -> CombatTools.isValidCombatTarget(e, this));
         var targetVec = aimResult.hitPosition().subtract(position());
         var yawPitch = RotationTools.calculateYawPitchByDirection(targetVec);
         setYRot(yawPitch.yaw());
@@ -118,7 +118,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
             return;
         }
 
-        var aimResult = RaycastTools.raycastFromEye(owner, range, e -> CombatTools.isValidCombatTarget(e, this));
+        var aimResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this));
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
             var source = CombatTools.getDamageSource(level(), this, getOwner(), "quick_arms_handgun");
