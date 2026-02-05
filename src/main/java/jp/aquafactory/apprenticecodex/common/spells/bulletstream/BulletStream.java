@@ -59,7 +59,7 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
     }
 
     private int getRange() {
-        return 16 * 3;
+        return 16 * 2;
     }
 
     private int getWarmUpBaseDelayTick(){
