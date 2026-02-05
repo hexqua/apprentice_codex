@@ -31,14 +31,13 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(20)
+            .setCooldownSeconds(40)
             .build();
 
     public BulletStream() {
         super(BulletStreamMinigunEntity.class);
-        // todo:バランス調整.
         baseSpellPower = 100;
-        spellPowerPerLevel = 50;
+        spellPowerPerLevel = 25;
         manaCostPerLevel = 10;
         baseManaCost = 20;
         castTime = 200;
@@ -48,34 +47,31 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.apprenticecodex.start_up_time", Utils.timeFromTicks(getWarmUpStartTick(spellLevel,caster), 1)),
+                Component.translatable("ui.apprenticecodex.warm_up_time", Utils.timeFromTicks(getWarmUpFinishTick(spellLevel,caster), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        // todo:バランス調整.
-        return 2;
+        return 1 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getRange() {
-        // todo:バランス調整.
-        return 16 * 4;
+        return 16 * 3;
     }
 
     private int getWarmUpBaseDelayTick(){
-        // todo:バランス調整.
         return 8;
     }
 
-    private int getWarmUpStartDelayTick(){
-        // todo:バランス調整.
-        return 15;
+    private int getWarmUpStartTick(int spellLevel, LivingEntity entity) {
+        return Math.round(Math.max(5f, 30f - 10f * getSpellPower(spellLevel, entity) / 100.0f));
     }
 
-    private int getWarmUpFinishTick(){
-        // todo:バランス調整.
-        return 50;
+    private int getWarmUpFinishTick(int spellLevel, LivingEntity entity){
+        return Math.round(Math.max(20f, 80f - 20f * getSpellPower(spellLevel, entity) / 100.0f));
     }
 
     @Override
@@ -118,7 +114,7 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
         var summonWeapon = new BulletStreamMinigunEntity(EntityRegistry.BULLET_STREAM_MINIGUN.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange());
-        summonWeapon.setTickSettings(getWarmUpBaseDelayTick(), getWarmUpStartDelayTick(), getWarmUpFinishTick());
+        summonWeapon.setTickSettings(getWarmUpBaseDelayTick(), getWarmUpStartTick(spellLevel, entity), getWarmUpFinishTick(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
