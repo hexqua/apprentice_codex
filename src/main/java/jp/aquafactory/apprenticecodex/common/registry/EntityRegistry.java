@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnemyShotgunEntity;
+import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunEntity;
@@ -72,6 +73,15 @@ public class EntityRegistry {
                             .clientTrackingRange(32)
                             .updateInterval(1)
                             .build("breaching_enemy_shotgun"));
+
+    public static final RegistryObject<EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
+            ENTITIES.register("bullet_stream_minigun",
+                    () -> EntityType.Builder
+                            .<BulletStreamMinigunEntity>of(BulletStreamMinigunEntity::new, MobCategory.MISC)
+                            .sized(0.25f, 0.25f)
+                            .clientTrackingRange(64)
+                            .updateInterval(2)
+                            .build("bullet_stream_minigun"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

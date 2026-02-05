@@ -33,7 +33,9 @@ public final class ItemRegistry {
             ITEMS.register("breaching_enemy_shotgun",
                     () -> new Item(new Item.Properties()));
 
-
+    public static final RegistryObject<Item> BULLET_STREAM_MINIGUN =
+            ITEMS.register("bullet_stream_minigun",
+                    () -> new Item(new Item.Properties()));
 
     private ItemRegistry() {
         // do nothing.

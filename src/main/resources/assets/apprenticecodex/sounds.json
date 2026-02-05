@@ -16,5 +16,29 @@
     "sounds": [
       "apprenticecodex:shotgun"
     ]
+  },
+  "minigun_finish": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:minigun_finish"
+    ]
+  },
+  "minigun_loop": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:minigun_loop"
+    ]
+  },
+  "minigun_single": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:minigun_single"
+    ]
+  },
+  "minigun_warmup": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:minigun_warmup"
+    ]
   }
 }

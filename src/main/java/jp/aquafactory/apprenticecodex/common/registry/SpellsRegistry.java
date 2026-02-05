@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultiple;
 import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnemy;
+import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArms;
@@ -34,6 +35,9 @@ public class SpellsRegistry {
 
     public static final RegistryObject<AbstractSpell> BREACHING_ENEMY =
             SPELLS.register("breaching_enemy", BreachingEnemy::new);
+
+    public static final RegistryObject<AbstractSpell> BULLET_STREAM =
+            SPELLS.register("bullet_stream", BulletStream::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
