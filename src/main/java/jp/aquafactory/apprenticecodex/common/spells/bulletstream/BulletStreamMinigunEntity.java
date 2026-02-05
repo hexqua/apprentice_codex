@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.common.spells.bulletstream;
 
 import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
+import jp.aquafactory.apprenticecodex.client.sound.MinigunLoopSound;
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -16,10 +18,15 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class BulletStreamMinigunEntity extends SummonWeaponEntity {
 
     private static final EntityDataAccessor<Boolean> IS_RECOIL_TICK =
+            SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final EntityDataAccessor<Boolean> IS_SOUND_LOOP_MODE =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
 
     private float damage;
@@ -30,8 +37,15 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
     private int warmUpBaseDelay;
     private int warmUpStartTick;
     private int warmUpFinishTick;
+    private boolean isStarted;
     private boolean isReleased;
     private int releasedTick;
+
+    @OnlyIn(Dist.CLIENT)
+    private MinigunLoopSound loopSound;
+
+    @OnlyIn(Dist.CLIENT)
+    private boolean wasFiringClient;
 
     public BulletStreamMinigunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -43,6 +57,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
     @Override
     protected void defineSynchedData() {
         entityData.define(IS_RECOIL_TICK, false);
+        entityData.define(IS_SOUND_LOOP_MODE, false);
     }
 
     @Override
@@ -80,6 +95,25 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
             );
         }
 
+        // ループはクライアント各々で処理する.
+        if (level.isClientSide) {
+            if (!wasFiringClient && entityData.get(IS_SOUND_LOOP_MODE)) {
+                if (loopSound == null || loopSound.isStopped()) {
+                    loopSound = new MinigunLoopSound(
+                            SoundRegistry.MINIGUN_LOOP.get(),
+                            this,
+                            level.random,
+                            () -> entityData.get(IS_SOUND_LOOP_MODE)
+                    );
+
+                    // 直接鳴らす.
+                    Minecraft.getInstance().getSoundManager().play(loopSound);
+                }
+            } else if (loopSound != null && !entityData.get(IS_SOUND_LOOP_MODE)) {
+                loopSound.stopSound();
+            }
+        }
+
         super.tick();
 
         if (level.isClientSide) {
@@ -88,6 +122,11 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
 
         if (isReleased) {
             --releasedTick;
+            if (entityData.get(IS_SOUND_LOOP_MODE) || isStarted) {
+                isStarted = false;
+                entityData.set(IS_SOUND_LOOP_MODE, false);
+                AudioTools.playSoundFromEntity(level, this, SoundRegistry.MINIGUN_FINISH.get(), SoundSource.PLAYERS);
+            }
             if (releasedTick <= 0) {
                 discard();
             }
@@ -97,6 +136,11 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
         if (!(getOwner() instanceof LivingEntity owner)) {
             discard();
             return;
+        }
+
+        if (!isStarted){
+            AudioTools.playSoundFromEntity(level, this, SoundRegistry.MINIGUN_WARMUP.get(), SoundSource.PLAYERS);
+            isStarted = true;
         }
 
         var locatePosition = getStandbyPosition();
@@ -116,14 +160,20 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
                 if (!entityData.get(IS_RECOIL_TICK)) {
                     entityData.set(IS_RECOIL_TICK, true);
                 }
+                if (!entityData.get(IS_SOUND_LOOP_MODE)) {
+                    entityData.set(IS_SOUND_LOOP_MODE, true);
+                }
                 fire(level, true);
             } else if (currentWarmUpDelayTick <= 0) {
-                fire(level, false);
+                fire(level, entityData.get(IS_SOUND_LOOP_MODE));
                 var warmUpTick = currentTick - warmUpStartTick;
                 var warmUpDuration = warmUpFinishTick - warmUpStartTick;
                 var t = Mth.clamp(warmUpTick, 0, warmUpDuration) / (float) warmUpDuration;
                 currentWarmUpDelayTick = Mth.lerpInt(1-t, 0, warmUpBaseDelay);
                 entityData.set(IS_RECOIL_TICK, true);
+                if (currentWarmUpDelayTick <= 2 && !entityData.get(IS_SOUND_LOOP_MODE)) {
+                    entityData.set(IS_SOUND_LOOP_MODE, true);
+                }
             } else {
                 --currentWarmUpDelayTick;
                 if (entityData.get(IS_RECOIL_TICK)) {
@@ -140,7 +190,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
         entityData.set(IS_RECOIL_TICK, false);
     }
 
-    private void fire(Level level, boolean is1tickFire) {
+    private void fire(Level level, boolean isHighSpeedMode) {
         var owner = getOwner();
         var hitResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this) && e != owner);
         if (hitResult.hitEntity() != null) {
@@ -150,7 +200,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
         }
 
         if (level instanceof ServerLevel server) {
-            if (!is1tickFire || (tickCount % 2 == 0)) {
+            if (!isHighSpeedMode || (tickCount % 2 == 0)) {
                 var firePosition = position().add(getLookAngle().normalize().scale(1));
                 server.sendParticles(new MuzzleFlashParticleOptions(1f), firePosition.x, firePosition.y, firePosition.z, 1, .05, .05, .05, 0);
             }
@@ -164,8 +214,9 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
             }
         }
 
-        // todo:音を差し替えつつ、1tick連射になったらループっぽくする.
-        AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
+        if (!isHighSpeedMode) {
+            AudioTools.playSoundFromEntity(level, this, SoundRegistry.MINIGUN_SINGLE.get(), SoundSource.PLAYERS);
+        }
     }
 
     @Override

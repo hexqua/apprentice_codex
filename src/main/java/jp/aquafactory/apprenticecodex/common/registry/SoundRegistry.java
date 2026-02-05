@@ -24,6 +24,22 @@ public class SoundRegistry {
             SOUND_EVENTS.register("shotgun",
                     () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "shotgun")));
 
+    public static final RegistryObject<SoundEvent> MINIGUN_SINGLE =
+            SOUND_EVENTS.register("minigun_single",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "minigun_single")));
+
+    public static final RegistryObject<SoundEvent> MINIGUN_LOOP =
+            SOUND_EVENTS.register("minigun_loop",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "minigun_loop")));
+
+    public static final RegistryObject<SoundEvent> MINIGUN_WARMUP =
+            SOUND_EVENTS.register("minigun_warmup",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "minigun_warmup")));
+
+    public static final RegistryObject<SoundEvent> MINIGUN_FINISH =
+            SOUND_EVENTS.register("minigun_finish",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "minigun_finish")));
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }
