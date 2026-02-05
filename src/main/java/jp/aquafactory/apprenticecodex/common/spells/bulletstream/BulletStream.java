@@ -19,7 +19,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,14 +63,19 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
         return 16 * 4;
     }
 
-    private int getInitialDelay(){
+    private int getWarmUpBaseDelayTick(){
+        // todo:バランス調整.
+        return 8;
+    }
+
+    private int getWarmUpStartDelayTick(){
         // todo:バランス調整.
         return 15;
     }
 
-    private int getWarmUpDelay(){
-        // todo:回転速度上昇ディレイ表現を何かしら別の手段を考える.
-        return 5;
+    private int getWarmUpFinishTick(){
+        // todo:バランス調整.
+        return 50;
     }
 
     @Override
@@ -87,13 +91,6 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
     @Override
     public CastType getCastType() {
         return CastType.CONTINUOUS;
-    }
-
-    @Override
-    public int getEffectiveCastTime(int spellLevel, @Nullable LivingEntity entity) {
-        // スキルパワーで詠唱時間を長くする.
-        // todo:バランス調整
-        return Math.round(super.getEffectiveCastTime(spellLevel, entity) * getSpellPower(spellLevel, entity) / 100.0f);
     }
 
     @Override
@@ -121,7 +118,7 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
         var summonWeapon = new BulletStreamMinigunEntity(EntityRegistry.BULLET_STREAM_MINIGUN.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange());
-        summonWeapon.setTickSettings(getInitialDelay(), getWarmUpDelay());
+        summonWeapon.setTickSettings(getWarmUpBaseDelayTick(), getWarmUpStartDelayTick(), getWarmUpFinishTick());
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }

@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -18,10 +19,11 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
     private float damage;
     private float range;
 
-    private int currentDelay;
-    private int initialDelay;
-    private int nextDelay;
-
+    private int currentTick;
+    private int currentWarmUpDelayTick;
+    private int warmUpBaseDelay;
+    private int warmUpStartTick;
+    private int warmUpFinishTick;
 
     public BulletStreamMinigunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -92,15 +94,18 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
         setXRot(yawPitch.pitch());
         hasImpulse = true;
 
-        if (initialDelay > 0){
-            --initialDelay;
-        } else if (currentDelay >0){
-            --currentDelay;
-        } else {
-            fire(level, nextDelay == 0);
-            currentDelay = nextDelay;
-            if (nextDelay > 0){
-                --nextDelay;
+        ++currentTick;
+        if (currentTick >= warmUpStartTick){
+            if (currentTick >= warmUpFinishTick){
+                fire(level, true);
+            } else if (currentWarmUpDelayTick <= 0) {
+                fire(level, false);
+                var warmUpTick = currentTick - warmUpStartTick;
+                var warmUpDuration = warmUpFinishTick - warmUpStartTick;
+                var t = Mth.clamp(warmUpTick, 0, warmUpDuration) / (float) warmUpDuration;
+                currentWarmUpDelayTick = Mth.lerpInt(1-t, 0, warmUpBaseDelay);
+            } else {
+                --currentWarmUpDelayTick;
             }
         }
     }
@@ -148,9 +153,10 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
     public void setRange(float range) {
         this.range = range;
     }
-    public void setTickSettings(int initialDelay, int nextDelay) {
-        this.initialDelay = initialDelay;
-        this.nextDelay = nextDelay;
+    public void setTickSettings(int warmUpBaseDelay, int warmUpStartTick, int warmUpFinishTick) {
+        this.warmUpBaseDelay = warmUpBaseDelay;
+        this.warmUpStartTick = warmUpStartTick;
+        this.warmUpFinishTick = warmUpFinishTick;
     }
 }
 
