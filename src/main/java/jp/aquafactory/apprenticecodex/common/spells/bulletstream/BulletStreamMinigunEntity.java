@@ -30,6 +30,8 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
     private int warmUpBaseDelay;
     private int warmUpStartTick;
     private int warmUpFinishTick;
+    private boolean isReleased;
+    private int releasedTick;
 
     public BulletStreamMinigunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -84,6 +86,14 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
             return;
         }
 
+        if (isReleased) {
+            --releasedTick;
+            if (releasedTick <= 0) {
+                discard();
+            }
+            return;
+        }
+
         if (!(getOwner() instanceof LivingEntity owner)) {
             discard();
             return;
@@ -121,6 +131,13 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
                 }
             }
         }
+    }
+
+    @Override
+    public void releaseWeapon(){
+        isReleased = true;
+        releasedTick = 10;
+        entityData.set(IS_RECOIL_TICK, false);
     }
 
     private void fire(Level level, boolean is1tickFire) {
