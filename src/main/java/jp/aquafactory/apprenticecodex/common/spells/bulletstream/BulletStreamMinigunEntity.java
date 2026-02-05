@@ -6,6 +6,9 @@ import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -15,6 +18,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public class BulletStreamMinigunEntity extends SummonWeaponEntity {
+
+    private static final EntityDataAccessor<Boolean> IS_RECOIL_TICK =
+            SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
 
     private float damage;
     private float range;
@@ -34,7 +40,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
 
     @Override
     protected void defineSynchedData() {
-        // do nothing.
+        entityData.define(IS_RECOIL_TICK, false);
     }
 
     @Override
@@ -97,6 +103,9 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
         ++currentTick;
         if (currentTick >= warmUpStartTick){
             if (currentTick >= warmUpFinishTick){
+                if (!entityData.get(IS_RECOIL_TICK)) {
+                    entityData.set(IS_RECOIL_TICK, true);
+                }
                 fire(level, true);
             } else if (currentWarmUpDelayTick <= 0) {
                 fire(level, false);
@@ -104,8 +113,12 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
                 var warmUpDuration = warmUpFinishTick - warmUpStartTick;
                 var t = Mth.clamp(warmUpTick, 0, warmUpDuration) / (float) warmUpDuration;
                 currentWarmUpDelayTick = Mth.lerpInt(1-t, 0, warmUpBaseDelay);
+                entityData.set(IS_RECOIL_TICK, true);
             } else {
                 --currentWarmUpDelayTick;
+                if (entityData.get(IS_RECOIL_TICK)) {
+                    entityData.set(IS_RECOIL_TICK, false);
+                }
             }
         }
     }
@@ -157,6 +170,9 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
         this.warmUpBaseDelay = warmUpBaseDelay;
         this.warmUpStartTick = warmUpStartTick;
         this.warmUpFinishTick = warmUpFinishTick;
+    }
+    public boolean getIsRecoilTick() {
+        return entityData.get(IS_RECOIL_TICK);
     }
 }
 
