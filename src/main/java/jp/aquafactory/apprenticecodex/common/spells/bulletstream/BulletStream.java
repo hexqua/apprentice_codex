@@ -64,6 +64,16 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
         return 16 * 4;
     }
 
+    private int getInitialDelay(){
+        // todo:バランス調整.
+        return 15;
+    }
+
+    private int getWarmUpDelay(){
+        // todo:回転速度上昇ディレイ表現を何かしら別の手段を考える.
+        return 5;
+    }
+
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
@@ -103,12 +113,15 @@ public class BulletStream extends AbstractFirearmSpell<BulletStreamMinigunEntity
 
     @Override
     public AnimationHolder getCastFinishAnimation() {
-        return AnimationHolder.pass();
+        return AnimationHolder.none();
     }
 
     @Override
     public BulletStreamMinigunEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new BulletStreamMinigunEntity(EntityRegistry.BULLET_STREAM_MINIGUN.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setRange(getRange());
+        summonWeapon.setTickSettings(getInitialDelay(), getWarmUpDelay());
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
