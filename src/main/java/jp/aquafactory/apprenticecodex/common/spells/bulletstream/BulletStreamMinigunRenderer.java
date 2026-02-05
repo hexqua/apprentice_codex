@@ -31,7 +31,7 @@ public class BulletStreamMinigunRenderer extends EntityRenderer<BulletStreamMini
 
         var yawPitch = RotationTools.calculateYawPitchByEntity(entity, partialTicks);
         poseStack.pushPose();
-        poseStack.translate(0.0, -0.1, 0.0);
+        poseStack.translate(0.0, -0.2, 0.0);
         poseStack.mulPose(Axis.YP.rotationDegrees(-yawPitch.yaw()));
         poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
 
