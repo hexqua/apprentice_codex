@@ -68,6 +68,16 @@ repositories {
     maven {
         url = uri("https://code.redspace.io/releases")
     }
+
+    // GeckoLib
+    maven {
+        name = 'GeckoLib'
+        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroupByRegex("software\\.bernie.*")
+            includeGroup("com.eliotlash.mclib")
+        }
+    }
 }
 
 // 依存解決は基本ココ.
@@ -76,6 +86,10 @@ dependencies {
 
     // mixin.
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    // GeckoLib.
+    implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
+    implementation("com.eliotlash.mclib:mclib:20")
 
     // ISSへの強依存を追加.
     implementation fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}")

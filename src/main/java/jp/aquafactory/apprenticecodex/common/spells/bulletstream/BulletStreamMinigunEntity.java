@@ -20,14 +20,28 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class BulletStreamMinigunEntity extends SummonWeaponEntity {
+public class BulletStreamMinigunEntity extends SummonWeaponEntity implements GeoEntity {
+
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private static final RawAnimation ROTATE = RawAnimation.begin().thenLoop("spin");
+    private static final float MAX_SPIN_ANIMATION_SPEED = 4.0f;
 
     private static final EntityDataAccessor<Boolean> IS_RECOIL_TICK =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<Boolean> IS_SOUND_LOOP_MODE =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final EntityDataAccessor<Float> SPIN_ANIMATION_SPEED =
+            SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.FLOAT);
 
     private float damage;
     private float range;
@@ -44,9 +58,6 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
     @OnlyIn(Dist.CLIENT)
     private MinigunLoopSound loopSound;
 
-    @OnlyIn(Dist.CLIENT)
-    private boolean wasFiringClient;
-
     public BulletStreamMinigunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
@@ -58,6 +69,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
     protected void defineSynchedData() {
         entityData.define(IS_RECOIL_TICK, false);
         entityData.define(IS_SOUND_LOOP_MODE, false);
+        entityData.define(SPIN_ANIMATION_SPEED, 0.0f);
     }
 
     @Override
@@ -97,7 +109,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
 
         // ループはクライアント各々で処理する.
         if (level.isClientSide) {
-            if (!wasFiringClient && entityData.get(IS_SOUND_LOOP_MODE)) {
+            if (entityData.get(IS_SOUND_LOOP_MODE)) {
                 if (loopSound == null || loopSound.isStopped()) {
                     loopSound = new MinigunLoopSound(
                             SoundRegistry.MINIGUN_LOOP.get(),
@@ -181,6 +193,11 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
                 }
             }
         }
+
+        if (currentTick <= warmUpFinishTick) {
+            var currentSpinAnimationSpeed = Mth.lerp(currentTick / (float) warmUpFinishTick, 0.0f, MAX_SPIN_ANIMATION_SPEED);
+            entityData.set(SPIN_ANIMATION_SPEED, currentSpinAnimationSpeed);
+        }
     }
 
     @Override
@@ -241,6 +258,23 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity {
     }
     public boolean getIsRecoilTick() {
         return entityData.get(IS_RECOIL_TICK);
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(new AnimationController<>(
+                this, "main", 0,
+                state -> {
+                    state.setAnimation(ROTATE);
+                    state.getController().setAnimationSpeed(entityData.get(SPIN_ANIMATION_SPEED));
+                    return PlayState.CONTINUE;
+                }
+        ));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
     }
 }
 
