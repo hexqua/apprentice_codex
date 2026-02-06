@@ -10,7 +10,6 @@ import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
-// todo:GeckoLibを使って砲身回転を対応する.
 public class BulletStreamMinigunRenderer extends GeoEntityRenderer<BulletStreamMinigunEntity> {
     private static final RandomSource RNG = RandomSource.create();
 
