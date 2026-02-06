@@ -2,27 +2,20 @@ package jp.aquafactory.apprenticecodex.common.spells.bulletstream;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
-import net.minecraft.client.Minecraft;
+import jp.aquafactory.apprenticecodex.gecko.BulletStreamMinigunModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 // todo:GeckoLibを使って砲身回転を対応する.
-public class BulletStreamMinigunRenderer extends EntityRenderer<BulletStreamMinigunEntity> {
+public class BulletStreamMinigunRenderer extends GeoEntityRenderer<BulletStreamMinigunEntity> {
     private static final RandomSource RNG = RandomSource.create();
-    private final ItemStack renderItem = new ItemStack(ItemRegistry.BULLET_STREAM_MINIGUN.get());
 
     public BulletStreamMinigunRenderer(EntityRendererProvider.Context pContext) {
-        super(pContext);
+        super(pContext, new BulletStreamMinigunModel<>());
     }
 
     @Override
@@ -31,12 +24,8 @@ public class BulletStreamMinigunRenderer extends EntityRenderer<BulletStreamMini
 
         var yawPitch = RotationTools.calculateYawPitchByEntity(entity, partialTicks);
         poseStack.pushPose();
-        poseStack.translate(0.0, -0.2, 0.0);
         poseStack.mulPose(Axis.YP.rotationDegrees(-yawPitch.yaw()));
         poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
-
-        // モデルは180度回転させる必要がある.
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
 
         // リコイル表現はシンプルに.
         if (entity.getIsRecoilTick()) {
@@ -48,24 +37,8 @@ public class BulletStreamMinigunRenderer extends EntityRenderer<BulletStreamMini
             poseStack.mulPose(Axis.YP.rotationDegrees(randomYaw));
         }
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(
-                renderItem,
-                ItemDisplayContext.NONE,
-                packedLight,
-                OverlayTexture.NO_OVERLAY,
-                poseStack,
-                buffer,
-                entity.level(),
-                entity.getId()
-        );
-
-        poseStack.popPose();
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
-    }
-
-    @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull BulletStreamMinigunEntity pEntity) {
-        return InventoryMenu.BLOCK_ATLAS;
+        poseStack.popPose();
     }
 }
 
