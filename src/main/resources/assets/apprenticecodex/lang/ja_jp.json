@@ -6,6 +6,7 @@
   "spell.apprenticecodex.quick_arms": "クイックアーム",
   "spell.apprenticecodex.breaching_enemy": "ブリーチングエネミー",
   "spell.apprenticecodex.bullet_stream": "バレットストリーム",
+  "spell.apprenticecodex.arcane_blast": "アーケインブラスト",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -14,6 +15,7 @@
   "spell.apprenticecodex.quick_arms.guide": "魔法の拳銃を召喚し攻撃する。一定時間以内であれば自壊するまで連射可能。",
   "spell.apprenticecodex.breaching_enemy.guide": "魔法のショットガンを召喚し攻撃する。射程が短いがノックバックが非常に強力。",
   "spell.apprenticecodex.bullet_stream.guide": "魔法のガトリングガンを召喚し攻撃し続ける。ノックバックは無いが、対象の無敵時間を無視することができる。",
+  "spell.apprenticecodex.arcane_blast.guide": "魔力を対象の体内で爆破させる。魔力による攻撃のため防具に阻まれないが、魔の存在に対しては無力。織物の魔術師の魔法のレプリカ。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -30,5 +32,6 @@
   "death.attack.apprenticecodex.compound_phial": "%1$sは%2$sの薬によって溶かされた",
   "death.attack.apprenticecodex.quick_arms": "%1$sは%2$sに撃ち抜かれた",
   "death.attack.apprenticecodex.breaching_enemy": "%1$sの体は%2$sによって破壊された",
-  "death.attack.apprenticecodex.bullet_stream": "%1$sは%2$sによってスイスチーズにされた"
+  "death.attack.apprenticecodex.bullet_stream": "%1$sは%2$sによってスイスチーズにされた",
+  "death.attack.apprenticecodex.arcane_blast": "%1$sは%2$sの魔力によって爆破された"
 }
