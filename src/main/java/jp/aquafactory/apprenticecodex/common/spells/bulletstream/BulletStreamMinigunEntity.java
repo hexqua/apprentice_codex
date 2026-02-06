@@ -32,12 +32,16 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation ROTATE = RawAnimation.begin().thenLoop("spin");
+    private static final float MAX_SPIN_ANIMATION_SPEED = 4.0f;
 
     private static final EntityDataAccessor<Boolean> IS_RECOIL_TICK =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<Boolean> IS_SOUND_LOOP_MODE =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final EntityDataAccessor<Float> SPIN_ANIMATION_SPEED =
+            SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.FLOAT);
 
     private float damage;
     private float range;
@@ -65,6 +69,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     protected void defineSynchedData() {
         entityData.define(IS_RECOIL_TICK, false);
         entityData.define(IS_SOUND_LOOP_MODE, false);
+        entityData.define(SPIN_ANIMATION_SPEED, 0.0f);
     }
 
     @Override
@@ -188,6 +193,11 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
                 }
             }
         }
+
+        if (currentTick <= warmUpFinishTick) {
+            var currentSpinAnimationSpeed = Mth.lerp(currentTick / (float) warmUpFinishTick, 0.0f, MAX_SPIN_ANIMATION_SPEED);
+            entityData.set(SPIN_ANIMATION_SPEED, currentSpinAnimationSpeed);
+        }
     }
 
     @Override
@@ -256,6 +266,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
                 this, "main", 0,
                 state -> {
                     state.setAnimation(ROTATE);
+                    state.getController().setAnimationSpeed(entityData.get(SPIN_ANIMATION_SPEED));
                     return PlayState.CONTINUE;
                 }
         ));
