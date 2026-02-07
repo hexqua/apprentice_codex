@@ -7,6 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static jp.aquafactory.apprenticecodex.client.ClientCastTargetHighlightHandler.getHighlightColor;
 import static jp.aquafactory.apprenticecodex.client.ClientCastTargetHighlightHandler.getHighlightEntityId;
 
 @Mixin(Entity.class)
@@ -19,8 +20,7 @@ public abstract class EntityMixin {
     @Inject(method = "getTeamColor", at = @At(value = "HEAD"), cancellable = true)
     public void changeGlowOutline(CallbackInfoReturnable<Integer> cir) {
         if (getId() == getHighlightEntityId()) {
-            // todo:色はよしなにする.
-            cir.setReturnValue(0xFFFF00);
+            cir.setReturnValue(getHighlightColor());
         }
     }
 }

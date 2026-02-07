@@ -1,6 +1,7 @@
 ﻿{
   "replace": false,
   "values": [
-    "apprenticecodex:compound_phial"
+    "apprenticecodex:compound_phial",
+    "apprenticecodex:arcane_blast"
   ]
 }
