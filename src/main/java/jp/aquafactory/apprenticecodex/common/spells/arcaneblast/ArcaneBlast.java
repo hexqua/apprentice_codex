@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.ICastHighlightSpell;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
@@ -92,8 +93,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        // todo:それっぽい詠唱音を探す.
-        return Optional.of(getSchoolType().getCastSound());
+        return Optional.of(io.redspace.ironsspellbooks.registries.SoundRegistry.BLACK_HOLE_CAST.get());
     }
 
     @Override
@@ -118,9 +118,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
             var target = CombatTools.resolutePartEntity(result.hitEntity());
             var source = CombatTools.getDamageSource(level, entity, "arcane_blast");
             CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-
-            // todo:それっぽい音を探す.
-            AudioTools.playSoundFromEntity(level, target, SoundEvents.AMETHYST_BLOCK_BREAK, SoundSource.PLAYERS);
+            AudioTools.playSoundFromEntity(level, target, SoundRegistry.ARCANE_BLAST.get(), SoundSource.PLAYERS);
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }

@@ -40,6 +40,10 @@ public class SoundRegistry {
             SOUND_EVENTS.register("minigun_finish",
                     () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "minigun_finish")));
 
+    public static final RegistryObject<SoundEvent> ARCANE_BLAST =
+            SOUND_EVENTS.register("arcane_blast",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "arcane_blast")));
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }
