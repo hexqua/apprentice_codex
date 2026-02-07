@@ -13,9 +13,11 @@ import jp.aquafactory.apprenticecodex.common.spells.ICastHighlightSpell;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -128,6 +130,12 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
             var source = CombatTools.getDamageSource(level, entity, "arcane_blast");
             CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
             AudioTools.playSoundFromEntity(level, target, SoundRegistry.ARCANE_BLAST.get(), SoundSource.PLAYERS);
+
+            if (level instanceof ServerLevel server){
+                var position = result.hitEntity().getBoundingBox().getCenter();
+                server.sendParticles(ParticleTypes.END_ROD, position.x, position.y, position.z, 32, 0.5, 0.5, 0.5, 0.05);
+                server.sendParticles(ParticleTypes.FIREWORK, position.x, position.y, position.z, 24, 0.1, 0.1, 0.1, 0.1);
+            }
         }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
