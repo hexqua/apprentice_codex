@@ -1,12 +1,10 @@
 package jp.aquafactory.apprenticecodex.common.spells.bulletstream;
 
 import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticleOptions;
-import jp.aquafactory.apprenticecodex.client.sound.MinigunLoopSound;
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -18,8 +16,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -37,7 +33,8 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     private static final EntityDataAccessor<Boolean> IS_RECOIL_TICK =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
 
-    private static final EntityDataAccessor<Boolean> IS_SOUND_LOOP_MODE =
+    // クライアント処理に流すために公開.
+    public static final EntityDataAccessor<Boolean> IS_SOUND_LOOP_MODE =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<Float> SPIN_ANIMATION_SPEED =
@@ -54,9 +51,6 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     private boolean isStarted;
     private boolean isReleased;
     private int releasedTick;
-
-    @OnlyIn(Dist.CLIENT)
-    private MinigunLoopSound loopSound;
 
     public BulletStreamMinigunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -105,25 +99,6 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
                     ParticleTypes.END_ROD,
                     level
             );
-        }
-
-        // ループはクライアント各々で処理する.
-        if (level.isClientSide) {
-            if (entityData.get(IS_SOUND_LOOP_MODE)) {
-                if (loopSound == null || loopSound.isStopped()) {
-                    loopSound = new MinigunLoopSound(
-                            SoundRegistry.MINIGUN_LOOP.get(),
-                            this,
-                            level.random,
-                            () -> entityData.get(IS_SOUND_LOOP_MODE)
-                    );
-
-                    // 直接鳴らす.
-                    Minecraft.getInstance().getSoundManager().play(loopSound);
-                }
-            } else if (loopSound != null && !entityData.get(IS_SOUND_LOOP_MODE)) {
-                loopSound.stopSound();
-            }
         }
 
         super.tick();
