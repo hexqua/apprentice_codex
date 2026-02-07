@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.client.particles.ReticleDotParticle;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.common.spells.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnemyShotgunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStreamMinigunRenderer;
@@ -36,6 +37,7 @@ public class ClientRegistry {
         event.registerEntityRenderer(EntityRegistry.QUICK_ARMS_HANDGUN.get(), QuickArmsHandgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);
     }
 
     @SubscribeEvent
