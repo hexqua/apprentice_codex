@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.ICastHighlightSpell;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
@@ -19,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -128,7 +130,15 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
             CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
             AudioTools.playSoundFromEntity(level, target, SoundRegistry.ARCANE_BLAST.get(), SoundSource.PLAYERS);
 
-            if (level instanceof ServerLevel server){
+            var currentCharge = entity.getEffect(EffectRegistry.ARCANE_CHARGE.get());
+            if (currentCharge != null){
+                var chargeLevel = Math.min(currentCharge.getAmplifier() + 1, 2);
+                entity.addEffect(new MobEffectInstance(EffectRegistry.ARCANE_CHARGE.get(), 200, chargeLevel, false, false, true));
+            } else {
+                entity.addEffect(new MobEffectInstance(EffectRegistry.ARCANE_CHARGE.get(), 200, 0, false, false, true));
+            }
+
+            if (level instanceof ServerLevel server) {
                 var position = result.hitEntity().getBoundingBox().getCenter();
                 server.sendParticles(ParticleTypes.END_ROD, position.x, position.y, position.z, 32, 0.5, 0.5, 0.5, 0.05);
                 server.sendParticles(ParticleTypes.FIREWORK, position.x, position.y, position.z, 24, 0.1, 0.1, 0.1, 0.1);

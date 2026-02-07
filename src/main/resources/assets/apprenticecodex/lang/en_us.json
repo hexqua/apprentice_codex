@@ -15,7 +15,7 @@
   "spell.apprenticecodex.quick_arms.guide": "Summons a magical handgun and fires bullet. Can fire multiple bullets in a short time.",
   "spell.apprenticecodex.breaching_enemy.guide": "Summons a magical shotgun and fires bullet. Short range, but powerful knockback.",
   "spell.apprenticecodex.bullet_stream.guide": "Summons a magical minigun and keeps firing bullets continuously. No knockback, but can ignore the target’s invincibility frames.",
-  "spell.apprenticecodex.arcane_blast.guide": "Blasts the target with magic power. Can bypass armor, but ineffective like magic user. Replica of the fabric wizard's spell.",
+  "spell.apprenticecodex.arcane_blast.guide": "Blasts the target with magic power and increases spell power. Can bypass armor, but ineffective like magic user. Replica of the fabric wizard's spell.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
@@ -25,6 +25,10 @@
   "ui.apprenticecodex.firearm_spell.no_firearm": "Couldn't find firearm!",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
+
+  "effect.apprenticecodex.arcane_charge": "Arcane Charge",
+
+  "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
 
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
   "death.attack.apprenticecodex.archer_multiple": "%1$s was riddled with %2$s's arrows.",

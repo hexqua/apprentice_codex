@@ -15,7 +15,7 @@
   "spell.apprenticecodex.quick_arms.guide": "魔法の拳銃を召喚し攻撃する。一定時間以内であれば自壊するまで連射可能。",
   "spell.apprenticecodex.breaching_enemy.guide": "魔法のショットガンを召喚し攻撃する。射程が短いがノックバックが非常に強力。",
   "spell.apprenticecodex.bullet_stream.guide": "魔法のガトリングガンを召喚し攻撃し続ける。ノックバックは無いが、対象の無敵時間を無視することができる。",
-  "spell.apprenticecodex.arcane_blast.guide": "魔力を対象の体内で爆破させる。魔力による攻撃のため防具に阻まれないが、魔の存在に対しては無力。織物の魔術師の魔法のレプリカ。",
+  "spell.apprenticecodex.arcane_blast.guide": "魔力を対象の体内で爆破させ、自分の魔力の循環を加速させる。魔力による攻撃のため防具に阻まれないが、魔の存在に対しては無力。織物の魔術師の魔法のレプリカ。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -25,6 +25,10 @@
   "ui.apprenticecodex.firearm_spell.no_firearm": "銃火器が見つからない！",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
   "ui.apprenticecodex.quick_arms.during_standby": "準備中",
+
+  "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
+
+  "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
 
   "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた",
   "death.attack.apprenticecodex.archer_multiple": "%1$sは%2$sに蜂の巣にされた",
