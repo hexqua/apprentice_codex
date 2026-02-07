@@ -8,7 +8,6 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.ICastHighlightSpell;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
@@ -19,7 +18,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,28 +36,27 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
             .setMinRarity(SpellRarity.COMMON)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
             .setMaxLevel(10)
-            .setCooldownSeconds(2)
+            .setCooldownSeconds(1)
             .build();
 
     public ArcaneBlast() {
-        // todo:バランス調整.
-        baseSpellPower = 100;
-        spellPowerPerLevel = 15;
-        manaCostPerLevel = 10;
-        baseManaCost = 60;
+        baseSpellPower = 40;
+        spellPowerPerLevel = 5;
+        baseManaCost = 20;
+        manaCostPerLevel = 4;
         castTime = 30;
     }
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 4;
+        return getSpellPower(spellLevel, entity) /10.0f;
     }
 
     private double getRange(){
