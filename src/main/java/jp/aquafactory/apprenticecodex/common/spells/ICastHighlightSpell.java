@@ -1,7 +1,13 @@
 package jp.aquafactory.apprenticecodex.common.spells;
 
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public interface ICastHighlightSpell {
     double getHighlightRange();
     double getHighlightWidth();
     int getHighlightColor();
+    @Nullable Entity getHighlightEntity(@NotNull Player player, int skillLevel);
 }

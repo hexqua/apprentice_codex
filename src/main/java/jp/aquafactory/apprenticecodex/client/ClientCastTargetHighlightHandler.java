@@ -30,10 +30,10 @@ public class ClientCastTargetHighlightHandler {
                             continue;
                         }
 
-                        var result = RaycastTools.raycastFromEye(event.player, hs.getHighlightRange(), hs.getHighlightWidth(), e -> e.getId() != event.player.getId());
-                        if (result.hitEntity() != null){
+                        var result = hs.getHighlightEntity(event.player, spellData.getCastingSpellLevel());
+                        if (result != null){
                             highlightColor = hs.getHighlightColor();
-                            highlightEntityId = result.hitEntity().getId();
+                            highlightEntityId = result.getId();
                         }
                         break;
                     }

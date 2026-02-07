@@ -19,8 +19,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +79,11 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
         return 0x7733ff;
     }
 
+    @Override
+    @Nullable
+    public Entity getHighlightEntity(@NotNull Player player, int skillLevel) {
+        return RaycastTools.raycastFromEye(player, getRange(), getHighlightWidth(), e -> CombatTools.isValidCombatTarget(e, player)).hitEntity();
+    }
 
     @Override
     public ResourceLocation getSpellResource() {
