@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.common.spells.arcanebeam;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.client.BeamRenderTypes;
 import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -49,7 +50,7 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
         var time = (entity.tickCount + partialTicks) * 0.25f;
 
         // ビーコンのように回転しつつ流れるようにする.
-        var vc = buffer.getBuffer(RenderType.beaconBeam(BEAM_TEX, true));
+        var vc = buffer.getBuffer(BeamRenderTypes.beamNoCull(BEAM_TEX));
         poseStack.pushPose();
         poseStack.mulPose(q);
         poseStack.mulPose(Axis.YP.rotationDegrees((entity.tickCount + partialTicks) * 7.1f));
