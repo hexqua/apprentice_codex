@@ -18,6 +18,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,8 +55,8 @@ public class ArcaneBeam extends AbstractSpell {
         return 1;
     }
 
-    private double getRange(){
-        return 32;
+    private float getRange(){
+        return 32f;
     }
 
     @Override
@@ -101,14 +103,13 @@ public class ArcaneBeam extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!(playerMagicData.getAdditionalCastData() instanceof BeamCastData)) {
             var castData = new BeamCastData();
-            var beam = EntityRegistry.ARCANE_BEAM.get().create(level);
-            if (beam == null) {
-                return;
-            }
+            var beam = new ArcaneBeamEntity(EntityRegistry.ARCANE_BEAM.get(), level, entity);
 
-            beam.moveTo(entity.getX(), entity.getEyeY() - 0.2, entity.getZ(), entity.getYRot(), entity.getXRot());
-            beam.setOwner(entity);
-            beam.setup(0x4433D6FF, 0xFFFFFFFF, 64, 0.1f);
+            var beamPos = calculateBeamPosition(entity);
+            beam.moveTo(beamPos.x, beamPos.y, beamPos.z, entity.getYRot(), entity.getXRot());
+            beam.setDamage(getDamage(spellLevel, entity));
+            beam.setup(0x88AA88FF, 0xFFDDAAFF, getRange(), 0.1f);
+            beam.updateLength(getRange(), level);
             level.addFreshEntity(beam);
 
             castData.setEntity(beam);
@@ -119,17 +120,34 @@ public class ArcaneBeam extends AbstractSpell {
     }
 
     @Override
+    public void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        if (playerMagicData instanceof MagicData && playerMagicData.getAdditionalCastData() instanceof BeamCastData beamData && level instanceof ServerLevel server) {
+            var dataEntity = beamData.getEntity(server);
+            if (dataEntity instanceof ArcaneBeamEntity beam) {
+                var beamPos = calculateBeamPosition(entity);
+                beam.moveTo(beamPos.x, beamPos.y, beamPos.z, entity.getYRot(), entity.getXRot());
+                beam.updateLength(getRange(), level);
+            }
+        }
+
+        super.onServerCastTick(level, spellLevel, entity, playerMagicData);
+    }
+
+    @Override
     public void onServerCastComplete(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled) {
         if (playerMagicData.getAdditionalCastData() instanceof BeamCastData castData && level instanceof ServerLevel serverLevel) {
             var beam = castData.getEntity(serverLevel);
-            if (beam == null) {
-                return;
+            if (beam != null) {
+                beam.discard();
             }
-
-            beam.discard();
         }
 
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
+    }
+
+    private static Vec3 calculateBeamPosition(LivingEntity entity){
+        // ちょっと下にして見えやすくする.
+        return entity.getEyePosition(1.0f).add(0, -0.4, 0).add(entity.getLookAngle().scale(0.75f));
     }
 
     public static class BeamCastData implements ICastDataSerializable {

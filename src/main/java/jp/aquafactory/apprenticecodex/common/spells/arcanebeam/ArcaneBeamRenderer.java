@@ -6,7 +6,6 @@ import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.client.BeamRenderTypes;
 import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -18,7 +17,6 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-// todo:ビームエンティティは絶対汎用性があるので実装が完了したら抽象化して切り出す.
 public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
 
     // バニラのビーコンを使う.
@@ -130,6 +128,24 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
                 x1, y0, z0,  1f, v0,
                 r, g, b, a, packedLight,
                 0f, 0f, -1f);
+
+
+        float u0 = 0f, u1 = 1f, vCap0 = 0f, vCap1 = 1f;
+        addQuad(poseMat, normalMat, consumer,
+                x0, y0, z0, u0, vCap0,
+                x0, y0, z1, u0, vCap1,
+                x1, y0, z1, u1, vCap1,
+                x1, y0, z0, u1, vCap0,
+                r, g, b, a, packedLight,
+                0f, -1f, 0f);
+
+        addQuad(poseMat, normalMat, consumer,
+                x1, y1, z0, u0, vCap0,
+                x1, y1, z1, u0, vCap1,
+                x0, y1, z1, u1, vCap1,
+                x0, y1, z0, u1, vCap0,
+                r, g, b, a, packedLight,
+                0f,  1f, 0f);
     }
 
     private static void addQuad(Matrix4f poseMat, Matrix3f normalMat, VertexConsumer vc,
