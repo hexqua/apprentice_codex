@@ -1,0 +1,32 @@
+package jp.aquafactory.apprenticecodex.client;
+
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
+
+public class BeamRenderTypes extends RenderStateShard {
+    public BeamRenderTypes(String pName, Runnable pSetupState, Runnable pClearState) {
+        super(pName, pSetupState, pClearState);
+    }
+
+    public static RenderType beamNoCull(ResourceLocation tex) {
+        return RenderType.create(
+                "beam_no_cull",
+                DefaultVertexFormat.NEW_ENTITY,
+                VertexFormat.Mode.QUADS,
+                256,
+                false,
+                true,
+                RenderType.CompositeState.builder()
+                        .setShaderState(RenderStateShard.RENDERTYPE_BEACON_BEAM_SHADER)
+                        .setTextureState(new RenderStateShard.TextureStateShard(tex, false, false))
+                        .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                        .setCullState(RenderStateShard.NO_CULL)
+                        .setLightmapState(RenderStateShard.LIGHTMAP)
+                        .setOverlayState(RenderStateShard.OVERLAY)
+                        .createCompositeState(true)
+        );
+    }
+}

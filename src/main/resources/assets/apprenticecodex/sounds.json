@@ -40,5 +40,11 @@
     "sounds": [
       "apprenticecodex:minigun_warmup"
     ]
+  },
+  "arcane_blast": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:arcane_blast"
+    ]
   }
 }

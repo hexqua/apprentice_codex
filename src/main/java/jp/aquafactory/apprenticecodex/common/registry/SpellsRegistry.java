@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.common.registry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.spells.arcanebeam.ArcaneBeam;
+import jp.aquafactory.apprenticecodex.common.spells.arcaneblast.ArcaneBlast;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultiple;
 import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStream;
@@ -38,6 +40,12 @@ public class SpellsRegistry {
 
     public static final RegistryObject<AbstractSpell> BULLET_STREAM =
             SPELLS.register("bullet_stream", BulletStream::new);
+
+    public static final RegistryObject<AbstractSpell> ARCANE_BLAST =
+            SPELLS.register("arcane_blast", ArcaneBlast::new);
+
+    public static final RegistryObject<AbstractSpell> ARCANE_BEAM =
+            SPELLS.register("arcane_beam", ArcaneBeam::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);

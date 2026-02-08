@@ -22,5 +22,6 @@ public class ApprenticeCodex
         ItemRegistry.ITEMS.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
         SoundRegistry.register(bus);
+        EffectRegistry.register(bus);
     }
 }

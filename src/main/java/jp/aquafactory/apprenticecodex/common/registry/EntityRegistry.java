@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.spells.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnemyShotgunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStreamMinigunEntity;
@@ -82,6 +83,15 @@ public class EntityRegistry {
                             .clientTrackingRange(64)
                             .updateInterval(2)
                             .build("bullet_stream_minigun"));
+
+    public static final RegistryObject<EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
+            ENTITIES.register("arcane_beam",
+                    () -> EntityType.Builder
+                            .<ArcaneBeamEntity>of(ArcaneBeamEntity::new, MobCategory.MISC)
+                            .sized(0.25f, 0.25f)
+                            .clientTrackingRange(64)
+                            .updateInterval(1)
+                            .build("arcane_beam"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
