@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.common.spells.compoundphial;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -14,13 +16,16 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Optional;
 
 public class CompoundPhialProjectileEntity extends ThrowableProjectile {
 
@@ -47,10 +52,10 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(POTION_COLOR, 0);
-        entityData.define(BURST_RADIUS, 0.5f);
-        entityData.define(POTION_ITEM, ItemStack.EMPTY);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(POTION_COLOR, 0);
+        builder.define(BURST_RADIUS, 0.5f);
+        builder.define(POTION_ITEM, ItemStack.EMPTY);
     }
 
     @Override
@@ -76,9 +81,9 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
     }
 
     @Override
-    protected float getGravity() {
+    protected double getDefaultGravity() {
         // ちょっと重め.
-        return super.getGravity() * 1.1f;
+        return super.getDefaultGravity() * 1.1;
     }
 
     @Override
@@ -89,9 +94,10 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
         if (level.isClientSide) {
             var p = position();
             var c = getColorArray();
-            level.addParticle(ParticleTypes.ENTITY_EFFECT,
+            var particle = ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, c[0], c[1], c[2]);
+            level.addParticle(particle,
                     p.x, p.y + 0.1, p.z,
-                    c[0], c[1], c[2]);
+                    0.0, 0.0, 0.0);
         }
     }
 
@@ -126,7 +132,8 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
         entityData.set(POTION_COLOR, level.random.nextInt(0xFFFFFF));
 
         var item = new ItemStack(Items.SPLASH_POTION);
-        item.getOrCreateTag().putInt("CustomPotionColor", entityData.get(POTION_COLOR));
+        var contents = new PotionContents(Optional.empty(), Optional.of(entityData.get(POTION_COLOR)), List.of());
+        item.set(DataComponents.POTION_CONTENTS, contents);
         entityData.set(POTION_ITEM, item);
     }
 
@@ -158,7 +165,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
         }
 
         // バニラスプラッシュしつつおまけを追加.
-        var color = PotionUtils.getColor(getPotionItem());
+        var color = entityData.get(POTION_COLOR);
         level.levelEvent(2002, BlockPos.containing(position()), color);
         level.broadcastEntityEvent(this, (byte)3);
 
@@ -201,9 +208,10 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
             var ox = Math.cos(angle) * d;
             var oz = Math.sin(angle) * d;
             var oy = (rand.nextDouble() - 0.5) * radius * 0.4;
-            level.addParticle(ParticleTypes.ENTITY_EFFECT,
+            var particle = ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, color[0], color[1], color[2]);
+            level.addParticle(particle,
                     p.x + ox, p.y + oy, p.z + oz,
-                    color[0], color[1], color[2]);
+                    0.0, 0.0, 0.0);
         }
     }
 }

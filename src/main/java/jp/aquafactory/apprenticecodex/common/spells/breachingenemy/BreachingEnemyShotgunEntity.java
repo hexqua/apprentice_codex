@@ -49,9 +49,9 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(RECOIL_TICK, 0);
-        entityData.define(IS_RELEASED, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RECOIL_TICK, 0);
+        builder.define(IS_RELEASED, false);
     }
 
     @Override

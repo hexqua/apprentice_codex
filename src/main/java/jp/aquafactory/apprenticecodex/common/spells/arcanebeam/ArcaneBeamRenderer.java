@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -92,11 +91,10 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
         // 法線類も渡さないと落ちる.
         var last = poseStack.last();
         var poseMat = last.pose();
-        var normalMat = last.normal();
 
         // Quadを「外向き」で4枚
         //noinspection DuplicatedCode
-        addQuad(poseMat, normalMat, consumer,
+        addQuad(last, poseMat, consumer,
                 x1, y0, z0,  0f, v0,
                 x1, y1, z0,  0f, v1,
                 x1, y1, z1,  1f, v1,
@@ -104,7 +102,7 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
                 r, g, b, a, packedLight,
                 1f,0f,0f);
 
-        addQuad(poseMat, normalMat, consumer,
+        addQuad(last, poseMat, consumer,
                 x0, y0, z1,  0f, v0,
                 x0, y1, z1,  0f, v1,
                 x0, y1, z0,  1f, v1,
@@ -113,7 +111,7 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
                 -1f,0f,0f);
 
         //noinspection DuplicatedCode
-        addQuad(poseMat, normalMat, consumer,
+        addQuad(last, poseMat, consumer,
                 x1, y0, z1,  0f, v0,
                 x1, y1, z1,  0f, v1,
                 x0, y1, z1,  1f, v1,
@@ -121,7 +119,7 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
                 r, g, b, a, packedLight,
                 0f, 0f, 1f);
 
-        addQuad(poseMat, normalMat, consumer,
+        addQuad(last, poseMat, consumer,
                 x0, y0, z0,  0f, v0,
                 x0, y1, z0,  0f, v1,
                 x1, y1, z0,  1f, v1,
@@ -131,7 +129,7 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
 
 
         float u0 = 0f, u1 = 1f, vCap0 = 0f, vCap1 = 1f;
-        addQuad(poseMat, normalMat, consumer,
+        addQuad(last, poseMat, consumer,
                 x0, y0, z0, u0, vCap0,
                 x0, y0, z1, u0, vCap1,
                 x1, y0, z1, u1, vCap1,
@@ -139,7 +137,7 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
                 r, g, b, a, packedLight,
                 0f, -1f, 0f);
 
-        addQuad(poseMat, normalMat, consumer,
+        addQuad(last, poseMat, consumer,
                 x1, y1, z0, u0, vCap0,
                 x1, y1, z1, u0, vCap1,
                 x0, y1, z1, u1, vCap1,
@@ -148,7 +146,7 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
                 0f,  1f, 0f);
     }
 
-    private static void addQuad(Matrix4f poseMat, Matrix3f normalMat, VertexConsumer vc,
+    private static void addQuad(PoseStack.Pose pose, Matrix4f poseMat, VertexConsumer vc,
                                 float x0, float y0, float z0, float u0, float v0,
                                 float x1, float y1, float z1, float u1, float v1,
                                 float x2, float y2, float z2, float u2, float v2,
@@ -157,21 +155,21 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
                                 float nx, float ny, float nz) {
 
         //noinspection DuplicatedCode
-        vc.vertex(poseMat, x0, y0, z0).color(r, g, b, a).uv(u0, v0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        vc.addVertex(poseMat, x0, y0, z0).setColor(r, g, b, a).setUv(u0, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+                .setNormal(pose, nx, ny, nz);
 
-        vc.vertex(poseMat, x1, y1, z1).color(r, g, b, a).uv(u1, v1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        vc.addVertex(poseMat, x1, y1, z1).setColor(r, g, b, a).setUv(u1, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+                .setNormal(pose, nx, ny, nz);
 
         //noinspection DuplicatedCode
-        vc.vertex(poseMat, x2, y2, z2).color(r, g, b, a).uv(u2, v2)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        vc.addVertex(poseMat, x2, y2, z2).setColor(r, g, b, a).setUv(u2, v2)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+                .setNormal(pose, nx, ny, nz);
 
-        vc.vertex(poseMat, x3, y3, z3).color(r, g, b, a).uv(u3, v3)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        vc.addVertex(poseMat, x3, y3, z3).setColor(r, g, b, a).setUv(u3, v3)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+                .setNormal(pose, nx, ny, nz);
     }
 }

@@ -130,12 +130,12 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
             CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
             AudioTools.playSoundFromEntity(level, target, SoundRegistry.ARCANE_BLAST.get(), SoundSource.PLAYERS);
 
-            var currentCharge = entity.getEffect(EffectRegistry.ARCANE_CHARGE.get());
+            var currentCharge = entity.getEffect(EffectRegistry.ARCANE_CHARGE);
             if (currentCharge != null){
                 var chargeLevel = Math.min(currentCharge.getAmplifier() + 1, 2);
-                entity.addEffect(new MobEffectInstance(EffectRegistry.ARCANE_CHARGE.get(), 200, chargeLevel, false, false, true));
+                entity.addEffect(new MobEffectInstance(EffectRegistry.ARCANE_CHARGE, 200, chargeLevel, false, false, true));
             } else {
-                entity.addEffect(new MobEffectInstance(EffectRegistry.ARCANE_CHARGE.get(), 200, 0, false, false, true));
+                entity.addEffect(new MobEffectInstance(EffectRegistry.ARCANE_CHARGE, 200, 0, false, false, true));
             }
 
             if (level instanceof ServerLevel server) {

@@ -77,7 +77,7 @@ public class CommenceFire extends AbstractFirearmRecastSpell<CommenceFireRifleEn
 
     @Override
     public Optional<SoundEvent> getPreFireSound() {
-        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
+        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE.value());
     }
     @Override
     public Optional<SoundEvent> getPreSummonSound() {

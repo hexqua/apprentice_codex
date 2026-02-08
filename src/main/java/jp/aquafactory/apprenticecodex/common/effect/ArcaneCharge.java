@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.common.effect;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -11,20 +13,15 @@ public class ArcaneCharge extends MobEffect {
 
         // ランダムなUUIDを振ってる.
         addAttributeModifier(
-                AttributeRegistry.SPELL_POWER.get(),
-                "a53fcd32-215d-9baf-5e80-6da3971e6f1a",
+                AttributeRegistry.SPELL_POWER,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "arcane_charge_spell_power"),
                 0.15,
-                AttributeModifier.Operation.ADDITION
+                AttributeModifier.Operation.ADD_VALUE
         );
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return false;
-    }
-
-    @Override
-    public double getAttributeModifierValue(int amplifier, AttributeModifier modifier) {
-        return modifier.getAmount() * (amplifier + 1);
     }
 }
