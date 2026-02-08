@@ -9,18 +9,18 @@ import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRif
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileEntity;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class EntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
-            DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, ApprenticeCodex.MODID);
+            DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, ApprenticeCodex.MODID);
 
-    public static final RegistryObject<EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
             ENTITIES.register("sky_edge_projectile",
                     () -> EntityType.Builder
                             .<SkyEdgeProjectileEntity>of(SkyEdgeProjectileEntity::new, MobCategory.MISC)
@@ -30,7 +30,7 @@ public class EntityRegistry {
                             .setShouldReceiveVelocityUpdates(true)
                             .build("sky_edge_projectile"));
 
-    public static final RegistryObject<EntityType<ArcherMultipleBowEntity>> ARCHER_MULTIPLE_BOW =
+    public static final DeferredHolder<EntityType<?>, EntityType<ArcherMultipleBowEntity>> ARCHER_MULTIPLE_BOW =
             ENTITIES.register("archer_multiple_bow",
                     () -> EntityType.Builder
                             .<ArcherMultipleBowEntity>of(ArcherMultipleBowEntity::new, MobCategory.MISC)
@@ -39,7 +39,7 @@ public class EntityRegistry {
                             .updateInterval(4)
                             .build("archer_multiple_bow"));
 
-    public static final RegistryObject<EntityType<CommenceFireRifleEntity>> COMMENCE_FIRE_RIFLE =
+    public static final DeferredHolder<EntityType<?>, EntityType<CommenceFireRifleEntity>> COMMENCE_FIRE_RIFLE =
             ENTITIES.register("commence_fire_rifle",
                     () -> EntityType.Builder
                             .<CommenceFireRifleEntity>of(CommenceFireRifleEntity::new, MobCategory.MISC)
@@ -48,7 +48,7 @@ public class EntityRegistry {
                             .updateInterval(2)
                             .build("commence_fire_rifle"));
 
-    public static final RegistryObject<EntityType<CompoundPhialProjectileEntity>> COMPOUND_PHIAL_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<CompoundPhialProjectileEntity>> COMPOUND_PHIAL_PROJECTILE =
             ENTITIES.register("compound_phial_projectile",
                     () -> EntityType.Builder
                             .<CompoundPhialProjectileEntity>of(CompoundPhialProjectileEntity::new, MobCategory.MISC)
@@ -57,7 +57,7 @@ public class EntityRegistry {
                             .updateInterval(1)
                             .build("compound_phial_projectile"));
 
-    public static final RegistryObject<EntityType<QuickArmsHandgunEntity>> QUICK_ARMS_HANDGUN =
+    public static final DeferredHolder<EntityType<?>, EntityType<QuickArmsHandgunEntity>> QUICK_ARMS_HANDGUN =
             ENTITIES.register("quick_arms_handgun",
                     () -> EntityType.Builder
                             .<QuickArmsHandgunEntity>of(QuickArmsHandgunEntity::new, MobCategory.MISC)
@@ -66,7 +66,7 @@ public class EntityRegistry {
                             .updateInterval(1)
                             .build("quick_arms_handgun"));
 
-    public static final RegistryObject<EntityType<BreachingEnemyShotgunEntity>> BREACHING_ENEMY_SHOTGUN =
+    public static final DeferredHolder<EntityType<?>, EntityType<BreachingEnemyShotgunEntity>> BREACHING_ENEMY_SHOTGUN =
             ENTITIES.register("breaching_enemy_shotgun",
                     () -> EntityType.Builder
                             .<BreachingEnemyShotgunEntity>of(BreachingEnemyShotgunEntity::new, MobCategory.MISC)
@@ -75,7 +75,7 @@ public class EntityRegistry {
                             .updateInterval(1)
                             .build("breaching_enemy_shotgun"));
 
-    public static final RegistryObject<EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
+    public static final DeferredHolder<EntityType<?>, EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
             ENTITIES.register("bullet_stream_minigun",
                     () -> EntityType.Builder
                             .<BulletStreamMinigunEntity>of(BulletStreamMinigunEntity::new, MobCategory.MISC)
@@ -84,7 +84,7 @@ public class EntityRegistry {
                             .updateInterval(2)
                             .build("bullet_stream_minigun"));
 
-    public static final RegistryObject<EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
+    public static final DeferredHolder<EntityType<?>, EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
             ENTITIES.register("arcane_beam",
                     () -> EntityType.Builder
                             .<ArcaneBeamEntity>of(ArcaneBeamEntity::new, MobCategory.MISC)

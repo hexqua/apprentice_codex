@@ -69,12 +69,12 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(CHARGE_STAGE, 0);
-        entityData.define(HIT_SEQUENCE, 0);
-        entityData.define(HIT_POSITION_X, 0.0f);
-        entityData.define(HIT_POSITION_Y, 0.0f);
-        entityData.define(HIT_POSITION_Z, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(CHARGE_STAGE, 0);
+        builder.define(HIT_SEQUENCE, 0);
+        builder.define(HIT_POSITION_X, 0.0f);
+        builder.define(HIT_POSITION_Y, 0.0f);
+        builder.define(HIT_POSITION_Z, 0.0f);
     }
 
     @Override

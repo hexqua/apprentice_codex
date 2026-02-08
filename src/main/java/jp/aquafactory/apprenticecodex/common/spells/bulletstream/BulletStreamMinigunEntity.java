@@ -17,11 +17,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class BulletStreamMinigunEntity extends SummonWeaponEntity implements GeoEntity {
@@ -60,10 +60,10 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(IS_RECOIL_TICK, false);
-        entityData.define(IS_SOUND_LOOP_MODE, false);
-        entityData.define(SPIN_ANIMATION_SPEED, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(IS_RECOIL_TICK, false);
+        builder.define(IS_SOUND_LOOP_MODE, false);
+        builder.define(SPIN_ANIMATION_SPEED, 0.0f);
     }
 
     @Override

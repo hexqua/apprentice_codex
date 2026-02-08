@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -116,7 +117,7 @@ public class ArcaneBeam extends AbstractSpell {
             beam.updateLength(getRange(), level);
 
             var baseDamage = getDamage(spellLevel, entity);
-            var currentCharge = entity.getEffect(EffectRegistry.ARCANE_CHARGE.get());
+            var currentCharge = entity.getEffect(EffectRegistry.ARCANE_CHARGE);
             if (currentCharge != null)
             {
                 var chargeDamageAmplifier = getChargeDamageAmplifier(spellLevel, entity) * (currentCharge.getAmplifier() + 1);
@@ -159,7 +160,7 @@ public class ArcaneBeam extends AbstractSpell {
             }
         }
 
-        entity.removeEffect(EffectRegistry.ARCANE_CHARGE.get());
+        entity.removeEffect(EffectRegistry.ARCANE_CHARGE);
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
     }
 
@@ -195,14 +196,14 @@ public class ArcaneBeam extends AbstractSpell {
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             tag.putUUID("Entity", entityId);
             return tag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             entityId = nbt.getUUID("Entity");
         }
     }

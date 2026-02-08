@@ -32,6 +32,11 @@ repositories {
             includeGroup("com.eliotlash.mclib")
         }
     }
+
+    // Curios
+    maven {
+        url = uri("https://maven.theillusivec4.top/")
+    }
 }
 
 base {
@@ -95,11 +100,10 @@ dependencies {
     implementation "io.redspace:irons_spellbooks:${irons_spells_version}"
 
     // GeckoLib.
-    implementation "software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}"
+    implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
 
     // ISS前提MOD(2026/1/21時点それぞれ最新,動作確認用のみなのでruntimeOnly)
-    runtimeOnly "curse.maven:curios-309927:6418456"
-    runtimeOnly "curse.maven:geckolib-388172:7025129"
+    runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
     runtimeOnly "curse.maven:playeranimator-658587:6024462"
 }
 
@@ -122,12 +126,6 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
 
 sourceSets.main.resources.srcDir generateModMetadata
 neoForge.ideSyncTask generateModMetadata
-
-// mixin.
-mixin {
-    add sourceSets.main, "mixins.${mod_id}.refmap.json"
-    config "mixins.${mod_id}.json"
-}
 
 publishing {
     publications {
