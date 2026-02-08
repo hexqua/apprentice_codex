@@ -10,6 +10,8 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Objects;
+
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class ClientCastTargetHighlightHandler {
     private static int highlightColor = 0xFFFFFF;
@@ -25,8 +27,12 @@ public class ClientCastTargetHighlightHandler {
             if (level != null) {
                 var spellData = ClientMagicData.getSyncedSpellData(event.player);
                 if (spellData.isCasting()) {
-                    for(var spell : SpellsRegistry.SPELLS.getEntries()){
-                        if (!(spell.get() instanceof ICastHighlightSpell hs)){
+                    for(var spellEntry : SpellsRegistry.SPELLS.getEntries()){
+                        var spell = spellEntry.get();
+                        if (!Objects.equals(spellData.getCastingSpellId(), spell.getSpellId())){
+                            continue;
+                        }
+                        if (!(spell instanceof ICastHighlightSpell hs)){
                             continue;
                         }
 
