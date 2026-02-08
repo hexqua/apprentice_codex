@@ -96,7 +96,8 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
 
         var source = CombatTools.getDamageSource(level, this, owner, "arcane_beam");
         for(var entity : entities){
-            CombatTools.applyDamage(entity, damage, source, SpellsRegistry.ARCANE_BEAM.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            // todo:1.20.1でアーケインビームを公開したら戻す.
+            //CombatTools.applyDamage(entity, damage, source, SpellsRegistry.ARCANE_BEAM.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
     }
 

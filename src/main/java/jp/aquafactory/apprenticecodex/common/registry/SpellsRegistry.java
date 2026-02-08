@@ -41,11 +41,13 @@ public class SpellsRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BULLET_STREAM =
             SPELLS.register("bullet_stream", BulletStream::new);
 
+    /* 1.20.1でも完全に対応しきれてない魔法のため、一旦無効化.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCANE_BLAST =
             SPELLS.register("arcane_blast", ArcaneBlast::new);
 
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCANE_BEAM =
             SPELLS.register("arcane_beam", ArcaneBeam::new);
+    */
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
