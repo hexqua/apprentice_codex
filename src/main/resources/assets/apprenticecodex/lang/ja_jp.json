@@ -23,6 +23,7 @@
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
   "ui.apprenticecodex.start_up_time": "起動時間: %s ",
   "ui.apprenticecodex.warm_up_time": "最高速度までの時間: %s ",
+  "ui.apprenticecodex.arcane_charge_damage_multiplier": "チャージレベルにつきダメージ増幅: %d%%",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
   "ui.apprenticecodex.firearm_spell.no_firearm": "銃火器が見つからない！",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",

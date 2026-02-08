@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.common.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -46,13 +47,17 @@ public class ArcaneBeam extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.apprenticecodex.arcane_charge_damage_multiplier", getChargeDamageAmplifier(spellLevel, caster)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 1;
+        return 1 + getSpellPower(spellLevel, entity) / 100.0f;
+    }
+
+    private int getChargeDamageAmplifier(int spellLevel, LivingEntity entity){
+        return 100 + Math.round((getSpellPower(spellLevel, entity) - 100) / 10.0f);
     }
 
     private float getRange(){
@@ -107,9 +112,21 @@ public class ArcaneBeam extends AbstractSpell {
 
             var beamPos = calculateBeamPosition(entity);
             beam.moveTo(beamPos.x, beamPos.y, beamPos.z, entity.getYRot(), entity.getXRot());
-            beam.setDamage(getDamage(spellLevel, entity));
             beam.setup(0x88AA88FF, 0xFFDDAAFF, getRange(), 0.1f);
             beam.updateLength(getRange(), level);
+
+            var baseDamage = getDamage(spellLevel, entity);
+            var currentCharge = entity.getEffect(EffectRegistry.ARCANE_CHARGE.get());
+            if (currentCharge != null)
+            {
+                var chargeDamageAmplifier = getChargeDamageAmplifier(spellLevel, entity) * (currentCharge.getAmplifier() + 1);
+                beam.setDamage(baseDamage * chargeDamageAmplifier / 100.0f);
+            }
+            else
+            {
+                beam.setDamage(baseDamage);
+            }
+
             level.addFreshEntity(beam);
 
             castData.setEntity(beam);
@@ -142,6 +159,7 @@ public class ArcaneBeam extends AbstractSpell {
             }
         }
 
+        entity.removeEffect(EffectRegistry.ARCANE_CHARGE.get());
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
     }
 
