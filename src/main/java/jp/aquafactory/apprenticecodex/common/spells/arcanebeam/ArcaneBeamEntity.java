@@ -2,7 +2,9 @@ package jp.aquafactory.apprenticecodex.common.spells.arcanebeam;
 
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.common.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -57,6 +59,12 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
     public void tick() {
         var level = level();
         super.tick();
+
+        if(level.isClientSide) {
+            var tip = position().add(getLookAngle().normalize().scale(getLength()));
+            EffectTools.createParticle(level, ParticleTypes.END_ROD, tip, getRadius() * 1.5, getRadius() / 3.0f);
+            EffectTools.createParticle(level, ParticleTypes.FIREWORK, tip, getRadius() * 2.5, getRadius() / 2.0f);
+        }
 
         if(level.isClientSide){
             return;
