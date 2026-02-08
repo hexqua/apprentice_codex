@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdge;
+import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjack;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
@@ -46,6 +47,9 @@ public class SpellsRegistry {
 
     public static final RegistryObject<AbstractSpell> ARCANE_BEAM =
             SPELLS.register("arcane_beam", ArcaneBeam::new);
+
+    public static final RegistryObject<AbstractSpell> TINY_LUMBERJACK =
+            SPELLS.register("tiny_lumberjack", TinyLumberjack::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);

@@ -8,6 +8,7 @@
   "spell.apprenticecodex.bullet_stream": "バレットストリーム",
   "spell.apprenticecodex.arcane_blast": "アーケインブラスト",
   "spell.apprenticecodex.arcane_beam": "アーケインビーム",
+  "spell.apprenticecodex.tiny_lumberjack": "タイニーランバージャック",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -18,6 +19,7 @@
   "spell.apprenticecodex.bullet_stream.guide": "魔法のガトリングガンを召喚し攻撃し続ける。ノックバックは無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.arcane_blast.guide": "魔力を対象の体内で爆破させ、自分の魔力の循環を加速させる。魔力による攻撃のため防具に阻まれないが、魔の存在に対しては無力。織物の魔術師の魔法のレプリカ。",
   "spell.apprenticecodex.arcane_beam.guide": "直線上に貫通する魔力の粒子を照射し続ける。循環した魔力を消費することで性能が大幅に上昇する。魔力による攻撃のため防具に阻まれないが、魔の存在に対しては無力。織物の魔術師の魔法のレプリカ。",
+  "spell.apprenticecodex.tiny_lumberjack.guide": "魔法の丸鋸を召喚し、視線の先の対象を切り刻む。大木に向かって使うことで切り倒すこともできる。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -41,5 +43,6 @@
   "death.attack.apprenticecodex.breaching_enemy": "%1$sの体は%2$sによって破壊された",
   "death.attack.apprenticecodex.bullet_stream": "%1$sは%2$sによってスイスチーズにされた",
   "death.attack.apprenticecodex.arcane_blast": "%1$sは%2$sの魔力によって爆破された",
-  "death.attack.apprenticecodex.arcane_beam": "%1$sは%2$sの魔力によって崩壊させられた"
+  "death.attack.apprenticecodex.arcane_beam": "%1$sは%2$sの魔力によって崩壊させられた",
+  "death.attack.apprenticecodex.tiny_lumberjack": "%1$sはバラバラになった"
 }
