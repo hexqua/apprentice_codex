@@ -38,6 +38,10 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
 
     @Override
     public final ICastDataSerializable getEmptyCastData() {
+        return createCastData();
+    }
+
+    protected FirearmCastData createCastData() {
         return new FirearmCastData();
     }
 
@@ -49,7 +53,7 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
     public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
         if (getCastType() != CastType.CONTINUOUS && playerMagicData != null) {
             if (!(playerMagicData.getAdditionalCastData() instanceof FirearmCastData)) {
-                var castData = new FirearmCastData();
+                var castData = createCastData();
                 var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
                 castData.setEntity(summon);
                 playerMagicData.setAdditionalCastData(castData);
@@ -77,7 +81,7 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
     public final void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (getCastType() == CastType.CONTINUOUS) {
             if (!(playerMagicData.getAdditionalCastData() instanceof FirearmCastData)) {
-                var castData = new FirearmCastData();
+                var castData = createCastData();
                 var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
                 castData.setEntity(summon);
                 playerMagicData.setAdditionalCastData(castData);

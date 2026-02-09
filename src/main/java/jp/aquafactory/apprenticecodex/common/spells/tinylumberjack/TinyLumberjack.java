@@ -39,7 +39,7 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackAxeEntity
         spellPowerPerLevel = 5;
         baseManaCost = 20;
         manaCostPerLevel = 4;
-        castTime = 20;
+        castTime = 200;
     }
 
     @Override
