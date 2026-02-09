@@ -13,12 +13,15 @@ import java.util.PriorityQueue;
 
 public class TinyLumberjackJob {
     private static final int[][] OFFSETS = buildOffsets();
+    private static final int LEAF_LOG_RADIUS = 4;
+    private static final int LEAF_LOG_RADIUS_SQR = LEAF_LOG_RADIUS * LEAF_LOG_RADIUS;
 
     private final BlockPos originPos;
     private final int originY;
     private final int logsPerTick;
     private final ArrayDeque<LogNode> logQueue = new ArrayDeque<>();
     private final LongOpenHashSet visitedLogs = new LongOpenHashSet();
+    private final LongOpenHashSet logInfluence = new LongOpenHashSet();
     private final PriorityQueue<LeafNode> leafQueue =
             new PriorityQueue<>(Comparator.comparingInt(LeafNode::distance));
     private final LongOpenHashSet visitedLeaves = new LongOpenHashSet();
@@ -31,6 +34,7 @@ public class TinyLumberjackJob {
         this.logsPerTick = Math.max(1, logsPerTick);
         logQueue.add(new LogNode(this.originPos, 0));
         visitedLogs.add(this.originPos.asLong());
+        addLogInfluence(this.originPos);
     }
 
     public boolean isComplete() {
@@ -96,6 +100,7 @@ public class TinyLumberjackJob {
             }
 
             visitedLogs.add(key);
+            addLogInfluence(mutable);
             logQueue.add(new LogNode(mutable.immutable(), distance + 1));
         }
     }
@@ -140,6 +145,10 @@ public class TinyLumberjackJob {
             return;
         }
 
+        if (!logInfluence.contains(key)) {
+            return;
+        }
+
         var state = level.getBlockState(pos);
         if (!isBreakableLeaf(state)) {
             return;
@@ -159,6 +168,22 @@ public class TinyLumberjackJob {
         }
 
         return true;
+    }
+
+    private void addLogInfluence(BlockPos logPos) {
+        var mutable = new BlockPos.MutableBlockPos();
+        for (int dx = -LEAF_LOG_RADIUS; dx <= LEAF_LOG_RADIUS; dx++) {
+            for (int dy = -LEAF_LOG_RADIUS; dy <= LEAF_LOG_RADIUS; dy++) {
+                for (int dz = -LEAF_LOG_RADIUS; dz <= LEAF_LOG_RADIUS; dz++) {
+                    var distSqr = dx * dx + dy * dy + dz * dz;
+                    if (distSqr > LEAF_LOG_RADIUS_SQR) {
+                        continue;
+                    }
+                    mutable.set(logPos.getX() + dx, logPos.getY() + dy, logPos.getZ() + dz);
+                    logInfluence.add(mutable.asLong());
+                }
+            }
+        }
     }
 
     private static int[][] buildOffsets() {
