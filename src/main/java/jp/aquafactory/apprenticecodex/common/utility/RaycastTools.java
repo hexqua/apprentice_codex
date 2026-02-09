@@ -45,7 +45,7 @@ public class RaycastTools {
         var blockHit = level.clip(new ClipContext(
                 start,
                 end,
-                ClipContext.Block.OUTLINE,
+                ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE,
                 source
         ));
