@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRif
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileEntity;
+import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackAxeEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -83,6 +84,15 @@ public class EntityRegistry {
                             .clientTrackingRange(64)
                             .updateInterval(2)
                             .build("bullet_stream_minigun"));
+
+    public static final RegistryObject<EntityType<TinyLumberjackAxeEntity>> TINY_LUMBERJACK_AXE =
+            ENTITIES.register("tiny_lumberjack_axe",
+                    () -> EntityType.Builder
+                            .<TinyLumberjackAxeEntity>of(TinyLumberjackAxeEntity::new, MobCategory.MISC)
+                            .sized(0.25f, 0.25f)
+                            .clientTrackingRange(48)
+                            .updateInterval(1)
+                            .build("tiny_lumberjack_axe"));
 
     public static final RegistryObject<EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
             ENTITIES.register("arcane_beam",
