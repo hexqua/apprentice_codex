@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,10 +16,11 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
 
     private static final double TARGET_RANGE = 4.0;
     private static final double TARGET_RAYCAST_WIDTH = 0.5;
-    private static final float BASE_BREAK_SPEED = 1.0f / 40.0f;
     private static final double BREAK_START_DISTANCE = 0.2;
-    private static final int MOVE_DURATION_TICKS = 10;
-    private static final double MOVE_TARGET_EPSILON_SQR = 0.001;
+    private static final float BASE_BREAK_SPEED = 1.0f / 40.0f;
+    private static final int MOVE_DURATION_TICKS = 20;
+    private static final double MOVE_TARGET_EPSILON_SQR = 0.0025;
+    private static final int LOGS_PER_TICK = 2;
 
     private @Nullable BlockPos breakTargetPos;
     private @Nullable Vec3 breakTargetHitPos;
@@ -28,6 +30,7 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
     private @Nullable Vec3 moveStartPos;
     private @Nullable Vec3 moveTargetPos;
     private int moveTick;
+    private @Nullable TinyLumberjackJob currentJob;
 
     public TinyLumberjackAxeEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -65,7 +68,7 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
         }
 
         if (isBreaking) {
-            continueBreaking(level, owner);
+            continueBreaking(owner);
             return;
         }
 
@@ -82,8 +85,8 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
                 var hitPosition = result.hitPosition();
                 var distanceBeforeMove = position().distanceTo(hitPosition);
                 if (distanceBeforeMove <= BREAK_START_DISTANCE) {
-                    startBreaking(targetPos, hitPosition);
-                    continueBreaking(level, owner);
+                    startBreaking(level, targetPos, hitPosition);
+                    continueBreaking(owner);
                 } else {
                     moveToTarget(owner, hitPosition);
                 }
@@ -143,33 +146,41 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
         hasImpulse = true;
     }
 
-    private void startBreaking(BlockPos targetPos, Vec3 hitPosition) {
+    private void startBreaking(Level level, BlockPos targetPos, Vec3 hitPosition) {
         breakTargetPos = targetPos;
         breakTargetHitPos = hitPosition;
         breakProgress = 0.0f;
         isBreaking = true;
     }
 
-    private void continueBreaking(Level level, LivingEntity owner) {
+    private void continueBreaking(LivingEntity owner) {
         if (breakTargetPos == null) {
             isBreaking = false;
             returningToStandby = true;
             return;
         }
 
+        var level = level();
+        var targetPos = breakTargetHitPos != null ? breakTargetHitPos : Vec3.atCenterOf(breakTargetPos);
+        moveToTarget(owner, targetPos);
+
+        if (currentJob != null) {
+            if (currentJob.isComplete()) {
+                finishJob();
+            }
+            return;
+        }
+
         var state = level.getBlockState(breakTargetPos);
         if (!state.is(BlockTags.LOGS)) {
-            clearBreakProgress(level);
+            cancelChop(level);
             returningToStandby = true;
             return;
         }
 
-        var targetPos = breakTargetHitPos != null ? breakTargetHitPos : Vec3.atCenterOf(breakTargetPos);
-        moveToTarget(owner, targetPos);
-
         var hardness = state.getDestroySpeed(level, breakTargetPos);
         if (hardness < 0.0f) {
-            clearBreakProgress(level);
+            cancelChop(level);
             returningToStandby = true;
             return;
         }
@@ -180,12 +191,29 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
 
         if (breakProgress >= 1.0f) {
             level.destroyBlock(breakTargetPos, true, owner);
-            clearBreakProgress(level);
-            returningToStandby = true;
+            level.destroyBlockProgress(getId(), breakTargetPos, -1);
+            startJob(level, breakTargetPos);
         }
     }
 
-    private void clearBreakProgress(Level level) {
+    private void startJob(Level level, BlockPos targetPos) {
+        if (level instanceof ServerLevel serverLevel) {
+            currentJob = new TinyLumberjackJob(targetPos, LOGS_PER_TICK);
+            TinyLumberjackJobManager.submit(serverLevel, currentJob);
+        }
+        breakProgress = 0.0f;
+    }
+
+    private void finishJob() {
+        currentJob = null;
+        breakTargetPos = null;
+        breakTargetHitPos = null;
+        breakProgress = 0.0f;
+        isBreaking = false;
+        returningToStandby = true;
+    }
+
+    private void cancelChop(Level level) {
         if (!level.isClientSide && breakTargetPos != null) {
             level.destroyBlockProgress(getId(), breakTargetPos, -1);
         }
@@ -201,8 +229,8 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
 
     @Override
     public void remove(RemovalReason reason) {
-        if (!level().isClientSide) {
-            clearBreakProgress(level());
+        if (!level().isClientSide && currentJob == null && breakTargetPos != null) {
+            level().destroyBlockProgress(getId(), breakTargetPos, -1);
         }
         super.remove(reason);
     }
