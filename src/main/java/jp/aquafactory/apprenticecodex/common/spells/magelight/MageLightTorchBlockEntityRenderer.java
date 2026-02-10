@@ -53,8 +53,9 @@ public class MageLightTorchBlockEntityRenderer implements BlockEntityRenderer<Ma
             var r = level.getRandom();
             var gt = level.getGameTime();
             if ((gt + (h & 31)) % 20 == 0) {
+                // Yは松明分の高さ＋浮かせる高さ＋上下分の高さを考慮.
                 var px = blockEntity.getBlockPos().getX() + 0.5;
-                var py = blockEntity.getBlockPos().getY() + 0.25 + 0.55; // baseLift+火の位置
+                var py = blockEntity.getBlockPos().getY() + 0.5 + 0.25 + baseLift + y;
                 var pz = blockEntity.getBlockPos().getZ() + 0.5;
 
                 level.addParticle(ParticleTypes.FLAME, px, py, pz, 0.0, 0.002, 0.0);
@@ -77,7 +78,7 @@ public class MageLightTorchBlockEntityRenderer implements BlockEntityRenderer<Ma
 
     private void renderBlockModel(BlockState state, Level level, BlockPos pos, PoseStack poseStack,
                                   MultiBufferSource buffer, int packedLight, int packedOverlay) {
-        // Render the model directly so RenderShape.INVISIBLE still shows.
+
         var dispatcher = Minecraft.getInstance().getBlockRenderer();
         var model = dispatcher.getBlockModel(state);
         var modelData = ModelData.EMPTY;

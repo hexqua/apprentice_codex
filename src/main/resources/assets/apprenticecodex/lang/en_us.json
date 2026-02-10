@@ -34,6 +34,7 @@
   "ui.apprenticecodex.firearm_spell.no_firearm": "Couldn't find firearm!",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
+  "ui.apprenticecodex.mage_light.cant_place": "Can't place here",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
 

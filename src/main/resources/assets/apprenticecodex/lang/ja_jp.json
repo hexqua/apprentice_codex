@@ -34,6 +34,7 @@
   "ui.apprenticecodex.firearm_spell.no_firearm": "銃火器が見つからない！",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
   "ui.apprenticecodex.quick_arms.during_standby": "準備中",
+  "ui.apprenticecodex.mage_light.cant_place": "そこには設置できない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
 
