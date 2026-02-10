@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnem
 import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStreamMinigunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackAxeRenderer;
@@ -38,6 +39,7 @@ public class ClientRegistry {
         event.registerEntityRenderer(EntityRegistry.QUICK_ARMS_HANDGUN.get(), QuickArmsHandgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.GRACED_RAIN_CLOUD.get(), GracedRainCloudRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_AXE.get(), TinyLumberjackAxeRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);
     }

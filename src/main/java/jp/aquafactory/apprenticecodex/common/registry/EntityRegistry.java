@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnem
 import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackAxeEntity;
@@ -84,6 +85,15 @@ public class EntityRegistry {
                             .clientTrackingRange(64)
                             .updateInterval(2)
                             .build("bullet_stream_minigun"));
+
+    public static final RegistryObject<EntityType<GracedRainCloudEntity>> GRACED_RAIN_CLOUD =
+            ENTITIES.register("graced_rain_cloud",
+                    () -> EntityType.Builder
+                            .<GracedRainCloudEntity>of(GracedRainCloudEntity::new, MobCategory.MISC)
+                            .sized(0.5f, 0.5f)
+                            .clientTrackingRange(64)
+                            .updateInterval(1)
+                            .build("graced_rain_cloud"));
 
     public static final RegistryObject<EntityType<TinyLumberjackAxeEntity>> TINY_LUMBERJACK_AXE =
             ENTITIES.register("tiny_lumberjack_axe",

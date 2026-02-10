@@ -3,39 +3,44 @@ package jp.aquafactory.apprenticecodex.common.spells.gracedrain;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
+import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
 
-public class GracedRain extends AbstractSpell {
+public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "graced_rain");
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(4)
+            .setCooldownSeconds(20)
             .build();
 
     public GracedRain() {
+        super(GracedRainCloudEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 5;
         baseManaCost = 20;
         manaCostPerLevel = 4;
-        castTime = 20;
+        castTime = 400;
     }
 
     @Override
@@ -47,7 +52,15 @@ public class GracedRain extends AbstractSpell {
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return getSpellPower(spellLevel, entity) /10.0f;
+        return getSpellPower(spellLevel, entity) / 10.0f;
+    }
+
+    private double getTargetRange() {
+        return 16.0;
+    }
+
+    private double getTargetWidth() {
+        return 0.5;
     }
 
     @Override
@@ -67,7 +80,6 @@ public class GracedRain extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        // todo:それっぽい音を割り当てる.
         return Optional.empty();
     }
 
@@ -87,51 +99,32 @@ public class GracedRain extends AbstractSpell {
     }
 
     @Override
-    public final ICastDataSerializable getEmptyCastData() {
-        return new GracedRainCastData();
+    public GracedRainCloudEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var result = RaycastTools.raycastFromEye(entity, getTargetRange(), getTargetWidth(), e -> true);
+        var cloud = new GracedRainCloudEntity(EntityRegistry.GRACED_RAIN_CLOUD.get(), level, entity);
+        if (result.hitEntity() != null) {
+            cloud.setFollowTarget(result.hitEntity());
+        } else {
+            Vec3 basePos;
+            if (result.hitType() == RaycastTools.TargetType.BLOCK && result.hitBlock() != null) {
+                basePos = Vec3.atCenterOf(result.hitBlock());
+            } else {
+                basePos = result.hitPosition();
+            }
+            cloud.setAnchorPosition(GracedRainCloudEntity.toCloudPosition(basePos));
+        }
+
+        level.addFreshEntity(cloud);
+        return cloud;
     }
 
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull GracedRainCloudEntity weapon) {
+        return TickCastTypes.KEEP_CASTING;
     }
 
     @Override
-    public void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
-        super.onServerCastTick(level, spellLevel, entity, playerMagicData);
-    }
-
-    @Override
-    public void onServerCastComplete(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled) {
-        super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
-    }
-
-    public static class GracedRainCastData implements ICastDataSerializable {
-
-        @Override
-        public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            // todo:何を永続化したり同期したりするかを吟味.
-        }
-
-        @Override
-        public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
-            // todo:何を永続化したり同期したりするかを吟味.
-        }
-
-        @Override
-        public void reset() {
-            // do nothing.
-        }
-
-        @Override
-        public CompoundTag serializeNBT() {
-            // todo:何を永続化したり同期したりするかを吟味.
-            return new CompoundTag();
-        }
-
-        @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            // todo:何を永続化したり同期したりするかを吟味.
-        }
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull GracedRainCloudEntity weapon) {
+        return CompleteCastTypes.RELEASE_WEAPON;
     }
 }
