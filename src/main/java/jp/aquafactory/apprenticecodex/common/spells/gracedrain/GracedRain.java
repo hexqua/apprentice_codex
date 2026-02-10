@@ -63,8 +63,8 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
         return 0.5;
     }
 
-    private float getCloudRadius(int spellLevel, LivingEntity entity) {
-        return 2.5f;
+    private int getEffectRadiusBlocks(int spellLevel, LivingEntity entity) {
+        return 2;
     }
 
     private float getCloudThickness(int spellLevel, LivingEntity entity) {
@@ -72,7 +72,7 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
     }
 
     private int getGrowthIntervalTicks(int spellLevel, LivingEntity entity) {
-        return 10;
+        return 1;
     }
 
     @Override
@@ -114,7 +114,7 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
     public GracedRainCloudEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var result = RaycastTools.raycastFromEye(entity, getTargetRange(), getTargetWidth(), e -> true);
         var cloud = new GracedRainCloudEntity(EntityRegistry.GRACED_RAIN_CLOUD.get(), level, entity);
-        cloud.setCloudRadius(getCloudRadius(spellLevel, entity));
+        cloud.setEffectRadiusBlocks(getEffectRadiusBlocks(spellLevel, entity));
         cloud.setCloudThickness(getCloudThickness(spellLevel, entity));
         cloud.setGrowthIntervalTicks(getGrowthIntervalTicks(spellLevel, entity));
         if (result.hitEntity() != null) {

@@ -28,12 +28,13 @@ import java.util.UUID;
 public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     public static final double HEIGHT_OFFSET = 3.0;
-    private static final float DEFAULT_RADIUS = 2.5f;
+    private static final int DEFAULT_EFFECT_RADIUS_BLOCKS = 3;
     private static final float DEFAULT_THICKNESS = 0.8f;
+    private static final float VISUAL_OVERFLOW_BLOCKS = 0.35f;
     private static final int FOLLOW_EFFECT_INTERVAL_TICKS = 20;
 
-    private static final EntityDataAccessor<Float> CLOUD_RADIUS =
-            SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Integer> EFFECT_RADIUS_BLOCKS =
+            SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> CLOUD_THICKNESS =
             SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.FLOAT);
 
@@ -58,7 +59,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     @Override
     protected void defineSynchedData() {
-        entityData.define(CLOUD_RADIUS, DEFAULT_RADIUS);
+        entityData.define(EFFECT_RADIUS_BLOCKS, DEFAULT_EFFECT_RADIUS_BLOCKS);
         entityData.define(CLOUD_THICKNESS, DEFAULT_THICKNESS);
     }
 
@@ -134,21 +135,20 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     private void spawnCloudParticles(Level level) {
         var random = level.getRandom();
         var center = position();
-        var radius = Math.max(0.1f, getCloudRadius());
+        var halfExtent = getVisualHalfExtentBlocks();
         var thickness = Math.max(0.1f, getCloudThickness());
-        var count = Math.max(4, Math.min(40, (int) Math.round(radius * 6.0)));
+        var sideBlocks = getEffectRadiusBlocks() * 2 - 1;
+        var count = Mth.clamp(sideBlocks * sideBlocks, 4, 48);
         var speed = 0.01;
 
         for (var i = 0; i < count; i++) {
-            var angle = random.nextDouble() * Math.PI * 2.0;
-            var distance = Math.sqrt(random.nextDouble()) * radius;
-            var x = center.x + Math.cos(angle) * distance;
-            var z = center.z + Math.sin(angle) * distance;
+            var x = center.x + (random.nextDouble() * 2.0 - 1.0) * halfExtent;
+            var z = center.z + (random.nextDouble() * 2.0 - 1.0) * halfExtent;
             var y = center.y + (random.nextDouble() - 0.5) * thickness;
             var dx = (random.nextDouble() - 0.5) * speed;
             var dy = (random.nextDouble() - 0.5) * speed * 0.2;
             var dz = (random.nextDouble() - 0.5) * speed;
-            level.addParticle(ParticleTypes.CLOUD, x, y, z, dx, dy, dz);
+            level.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, x, y, z, dx, dy, dz);
         }
     }
 
@@ -159,16 +159,15 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
 
         var random = level.getRandom();
         var center = position();
-        var radius = Math.max(0.1f, getCloudRadius());
+        var halfExtent = getVisualHalfExtentBlocks();
         var thickness = Math.max(0.1f, getCloudThickness());
-        var count = Math.max(2, Math.min(16, (int) Math.round(radius * 2.5)));
+        var sideBlocks = getEffectRadiusBlocks() * 2 - 1;
+        var count = Mth.clamp(sideBlocks * 2, 2, 16);
         var baseY = center.y - thickness * 0.5f;
 
         for (var i = 0; i < count; i++) {
-            var angle = random.nextDouble() * Math.PI * 2.0;
-            var distance = Math.sqrt(random.nextDouble()) * radius;
-            var x = center.x + Math.cos(angle) * distance;
-            var z = center.z + Math.sin(angle) * distance;
+            var x = center.x + (random.nextDouble() * 2.0 - 1.0) * halfExtent;
+            var z = center.z + (random.nextDouble() * 2.0 - 1.0) * halfExtent;
             var y = baseY - random.nextDouble() * 0.2;
             var dx = (random.nextDouble() - 0.5) * 0.01;
             var dy = -0.15 - random.nextDouble() * 0.05;
@@ -178,32 +177,38 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     }
 
     private void tryGrowPlant(ServerLevel level) {
-        var target = findFirstBonemealableBlock(level);
-        if (target == null) {
+        var basePos = anchorBlockPos;
+        if (basePos == null) {
             return;
         }
 
-        var state = level.getBlockState(target);
-        if (state.isRandomlyTicking()) {
-            state.randomTick(level, target, level.getRandom());
+        var maxOffset = Math.max(0, getEffectRadiusBlocks() - 1);
+        var baseX = basePos.getX();
+        var baseZ = basePos.getZ();
+        var yStart = Mth.floor(position().y);
+        var yMin = level.getMinBuildHeight();
+        var cursor = new BlockPos.MutableBlockPos();
+        var random = level.getRandom();
+
+        for (int dx = -maxOffset; dx <= maxOffset; dx++) {
+            for (int dz = -maxOffset; dz <= maxOffset; dz++) {
+                var target = findFirstBonemealableBlock(level, baseX + dx, baseZ + dz, yStart, yMin, cursor);
+                if (target == null) {
+                    continue;
+                }
+
+                var state = level.getBlockState(target);
+                if (state.isRandomlyTicking()) {
+                    state.randomTick(level, target, random);
+                }
+            }
         }
     }
 
     @Nullable
-    private BlockPos findFirstBonemealableBlock(ServerLevel level) {
-        var basePos = anchorBlockPos;
-        if (basePos == null) {
-            return null;
-        }
-
-        var x = basePos.getX();
-        var z = basePos.getZ();
-        var yStart = Mth.floor(position().y);
-        var yMin = level.getMinBuildHeight();
-        var cursor = new BlockPos.MutableBlockPos(x, yStart, z);
-
+    private BlockPos findFirstBonemealableBlock(ServerLevel level, int x, int z, int yStart, int yMin, BlockPos.MutableBlockPos cursor) {
         for (var y = yStart; y >= yMin; y--) {
-            cursor.setY(y);
+            cursor.set(x, y, z);
             var state = level.getBlockState(cursor);
             if (state.isAir()) {
                 continue;
@@ -264,20 +269,28 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         return anchorPosition != null ? anchorPosition : position();
     }
 
-    public void setCloudRadius(float radius) {
-        entityData.set(CLOUD_RADIUS, Math.max(0.1f, radius));
-    }
-
     public void setCloudThickness(float thickness) {
         entityData.set(CLOUD_THICKNESS, Math.max(0.1f, thickness));
     }
 
-    public float getCloudRadius() {
-        return entityData.get(CLOUD_RADIUS);
+    public void setEffectRadiusBlocks(int radiusBlocks) {
+        entityData.set(EFFECT_RADIUS_BLOCKS, Math.max(1, radiusBlocks));
+    }
+
+    public int getEffectRadiusBlocks() {
+        return entityData.get(EFFECT_RADIUS_BLOCKS);
     }
 
     public float getCloudThickness() {
         return entityData.get(CLOUD_THICKNESS);
+    }
+
+    private float getEffectHalfExtentBlocks() {
+        return Math.max(0.5f, getEffectRadiusBlocks() - 0.5f);
+    }
+
+    private float getVisualHalfExtentBlocks() {
+        return getEffectHalfExtentBlocks() + VISUAL_OVERFLOW_BLOCKS;
     }
 
     public void setGrowthIntervalTicks(int ticks) {
@@ -309,8 +322,11 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             }
         }
 
-        if (tag.contains("CloudRadius")) {
-            setCloudRadius(tag.getFloat("CloudRadius"));
+        if (tag.contains("EffectRadiusBlocks")) {
+            setEffectRadiusBlocks(tag.getInt("EffectRadiusBlocks"));
+        } else if (tag.contains("CloudRadius")) {
+            var legacyRadius = tag.getFloat("CloudRadius");
+            setEffectRadiusBlocks(Math.max(1, Math.round(legacyRadius + 0.5f)));
         }
 
         if (tag.contains("CloudThickness")) {
@@ -340,7 +356,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             tag.putLong("AnchorBlock", anchorBlockPos.asLong());
         }
 
-        tag.putFloat("CloudRadius", getCloudRadius());
+        tag.putInt("EffectRadiusBlocks", getEffectRadiusBlocks());
         tag.putFloat("CloudThickness", getCloudThickness());
         tag.putInt("GrowthInterval", growthIntervalTicks);
     }
