@@ -71,6 +71,10 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
         return 0.8f;
     }
 
+    private int getGrowthIntervalTicks(int spellLevel, LivingEntity entity) {
+        return 10;
+    }
+
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
@@ -112,12 +116,15 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
         var cloud = new GracedRainCloudEntity(EntityRegistry.GRACED_RAIN_CLOUD.get(), level, entity);
         cloud.setCloudRadius(getCloudRadius(spellLevel, entity));
         cloud.setCloudThickness(getCloudThickness(spellLevel, entity));
+        cloud.setGrowthIntervalTicks(getGrowthIntervalTicks(spellLevel, entity));
         if (result.hitEntity() != null) {
             cloud.setFollowTarget(result.hitEntity());
         } else {
             Vec3 basePos;
             if (result.hitType() == RaycastTools.TargetType.BLOCK && result.hitBlock() != null) {
-                basePos = Vec3.atCenterOf(result.hitBlock());
+                cloud.setAnchorBlock(result.hitBlock());
+                level.addFreshEntity(cloud);
+                return cloud;
             } else {
                 basePos = result.hitPosition();
             }
