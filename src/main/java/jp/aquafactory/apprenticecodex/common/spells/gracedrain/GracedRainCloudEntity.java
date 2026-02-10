@@ -2,7 +2,11 @@ package jp.aquafactory.apprenticecodex.common.spells.gracedrain;
 
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -17,6 +21,13 @@ import java.util.UUID;
 public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     public static final double HEIGHT_OFFSET = 3.0;
+    private static final float DEFAULT_RADIUS = 2.5f;
+    private static final float DEFAULT_THICKNESS = 0.8f;
+
+    private static final EntityDataAccessor<Float> CLOUD_RADIUS =
+            SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> CLOUD_THICKNESS =
+            SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.FLOAT);
 
     private @Nullable UUID followTargetUuid;
     private @Nullable Entity cachedFollowTarget;
@@ -35,7 +46,8 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     @Override
     protected void defineSynchedData() {
-        // do nothing.
+        entityData.define(CLOUD_RADIUS, DEFAULT_RADIUS);
+        entityData.define(CLOUD_THICKNESS, DEFAULT_THICKNESS);
     }
 
     public void setFollowTarget(Entity target) {
@@ -54,9 +66,11 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     @Override
     public void tick() {
+        var level = level();
         super.tick();
 
-        if (level().isClientSide) {
+        if (level.isClientSide) {
+            spawnCloudParticles(level);
             return;
         }
 
@@ -65,15 +79,36 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             return;
         }
 
-        var targetPos = resolveTargetPosition();
+        var targetPos = resolveTargetPosition(level);
         if (targetPos != null) {
             followTargetPosition(targetPos);
         }
     }
 
+    private void spawnCloudParticles(Level level) {
+        var random = level.getRandom();
+        var center = position();
+        var radius = Math.max(0.1f, getCloudRadius());
+        var thickness = Math.max(0.1f, getCloudThickness());
+        var count = Math.max(4, Math.min(40, (int) Math.round(radius * 6.0)));
+        var speed = 0.01;
+
+        for (var i = 0; i < count; i++) {
+            var angle = random.nextDouble() * Math.PI * 2.0;
+            var distance = Math.sqrt(random.nextDouble()) * radius;
+            var x = center.x + Math.cos(angle) * distance;
+            var z = center.z + Math.sin(angle) * distance;
+            var y = center.y + (random.nextDouble() - 0.5) * thickness;
+            var dx = (random.nextDouble() - 0.5) * speed;
+            var dy = (random.nextDouble() - 0.5) * speed * 0.2;
+            var dz = (random.nextDouble() - 0.5) * speed;
+            level.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, x, y, z, dx, dy, dz);
+        }
+    }
+
     @Nullable
-    private Vec3 resolveTargetPosition() {
-        var target = getFollowTarget();
+    private Vec3 resolveTargetPosition(Level level) {
+        var target = getFollowTarget(level);
         if (target != null && !target.isRemoved()) {
             var pos = toCloudPosition(RaycastTools.getEntityTargetPosition(target));
             anchorPosition = pos;
@@ -84,12 +119,12 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     }
 
     @Nullable
-    private Entity getFollowTarget() {
+    private Entity getFollowTarget(Level level) {
         if (cachedFollowTarget != null && !cachedFollowTarget.isRemoved()) {
             return cachedFollowTarget;
         }
 
-        if (followTargetUuid != null && level() instanceof ServerLevel server) {
+        if (followTargetUuid != null && level instanceof ServerLevel server) {
             cachedFollowTarget = server.getEntity(followTargetUuid);
             return cachedFollowTarget;
         }
@@ -104,6 +139,22 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     @Override
     public Vec3 getStandbyPosition() {
         return anchorPosition != null ? anchorPosition : position();
+    }
+
+    public void setCloudRadius(float radius) {
+        entityData.set(CLOUD_RADIUS, Math.max(0.1f, radius));
+    }
+
+    public void setCloudThickness(float thickness) {
+        entityData.set(CLOUD_THICKNESS, Math.max(0.1f, thickness));
+    }
+
+    public float getCloudRadius() {
+        return entityData.get(CLOUD_RADIUS);
+    }
+
+    public float getCloudThickness() {
+        return entityData.get(CLOUD_THICKNESS);
     }
 
     @Override
@@ -122,6 +173,14 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             anchorPosition = new Vec3(x, y, z);
             setPos(x, y, z);
         }
+
+        if (tag.contains("CloudRadius")) {
+            setCloudRadius(tag.getFloat("CloudRadius"));
+        }
+
+        if (tag.contains("CloudThickness")) {
+            setCloudThickness(tag.getFloat("CloudThickness"));
+        }
     }
 
     @Override
@@ -137,5 +196,8 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             tag.putDouble("AnchorY", anchorPosition.y);
             tag.putDouble("AnchorZ", anchorPosition.z);
         }
+
+        tag.putFloat("CloudRadius", getCloudRadius());
+        tag.putFloat("CloudThickness", getCloudThickness());
     }
 }
