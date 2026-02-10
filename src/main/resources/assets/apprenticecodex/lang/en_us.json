@@ -9,6 +9,7 @@
   "spell.apprenticecodex.arcane_blast": "Arcane Blast",
   "spell.apprenticecodex.arcane_beam": "Arcane Beam",
   "spell.apprenticecodex.tiny_lumberjack": "Tiny Lumberjack",
+  "spell.apprenticecodex.graced_rain": "Graced Rain",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires in the direction of your gaze. It takes time to fire and has no knockback, but it can ignore the target’s invincibility frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking the designated target—or nearby enemies—until it runs out of ammunition.",
@@ -20,6 +21,7 @@
   "spell.apprenticecodex.arcane_blast.guide": "Blasts the target with magic power and increases spell power. Can bypass armor, but ineffective like magic user. Replica of the fabric wizard's spell.",
   "spell.apprenticecodex.arcane_beam.guide": "Continuously fires a beam of magic power along a straight line. Increases in power with accumulated magic power. Can bypass armor, but ineffective like magic user. Replica of the fabric wizard's spell.",
   "spell.apprenticecodex.tiny_lumberjack.guide": "Summons a magical buzzsaw and cuts through the target's body. Can be used to cut through trees.",
+  "spell.apprenticecodex.graced_rain.guide": "Summons a healing rain cloud that heals living beings submerged in it. Healing is beneficial to plants.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
@@ -44,5 +46,6 @@
   "death.attack.apprenticecodex.bullet_stream": "%1$s was swiss cheesed by %2$s.",
   "death.attack.apprenticecodex.arcane_blast": "%1$s was blasted by %2$s's arcane power.",
   "death.attack.apprenticecodex.arcane_beam": "%1$s was disintegrated by %2$s's arcane power.",
-  "death.attack.apprenticecodex.tiny_lumberjack": "%1$s went to pieces."
+  "death.attack.apprenticecodex.tiny_lumberjack": "%1$s went to pieces.",
+  "death.attack.apprenticecodex.graced_rain": "The power of grace was too harmful to %1$s."
 }
