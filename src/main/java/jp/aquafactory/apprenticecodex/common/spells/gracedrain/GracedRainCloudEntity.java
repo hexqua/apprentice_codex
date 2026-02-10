@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.common.spells.gracedrain;
 
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -28,6 +30,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     public static final double HEIGHT_OFFSET = 3.0;
     private static final float DEFAULT_RADIUS = 2.5f;
     private static final float DEFAULT_THICKNESS = 0.8f;
+    private static final int FOLLOW_EFFECT_INTERVAL_TICKS = 20;
 
     private static final EntityDataAccessor<Float> CLOUD_RADIUS =
             SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.FLOAT);
@@ -40,6 +43,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     private @Nullable BlockPos anchorBlockPos;
     private int growthIntervalTicks = 40;
     private int growthTick;
+    private int followEffectTick;
 
     public GracedRainCloudEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -108,6 +112,22 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
                 growthTick = 0;
                 tryGrowPlant(serverLevel);
             }
+        }
+
+        var followTarget = getFollowTarget(level);
+        if (followTarget instanceof LivingEntity livingTarget) {
+            if (++followEffectTick >= FOLLOW_EFFECT_INTERVAL_TICKS) {
+                followEffectTick = 0;
+                // todo:数値は後で整理して渡す.
+                if (livingTarget.isInvertedHealAndHarm()) {
+                    var source = CombatTools.getDamageSource(level(), this, getOwner(), "graced_rain");
+                    CombatTools.applyDamage(livingTarget, 1, source, SpellsRegistry.GRACED_RAIN.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                } else {
+                    livingTarget.heal(1.0f);
+                }
+            }
+        } else {
+            followEffectTick = 0;
         }
     }
 
