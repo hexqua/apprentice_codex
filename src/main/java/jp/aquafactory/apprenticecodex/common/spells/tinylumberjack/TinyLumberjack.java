@@ -10,13 +10,17 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity> {
-
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tiny_lumberjack");
-    private static final double TARGET_RAYCAST_WIDTH = 0.5;
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
@@ -89,7 +91,7 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.empty();
+        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
     }
 
     @Override
@@ -114,12 +116,13 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
         summonWeapon.setReachSpeed(getReachSpeed(spellLevel, entity));
         summonWeapon.setToolSpeed(getBreakSpeed(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
+        AudioTools.playSoundFromEntity(level, entity, SoundRegistry.SAW_START.get(), SoundSource.PLAYERS);
         return summonWeapon;
     }
 
     @Override
     public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackSawEntity weapon) {
-        var result = RaycastTools.raycastFromEye(entity, getRange(), TARGET_RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, entity));
+        var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
         weapon.updateOwnerTarget(result);
         return TickCastTypes.KEEP_CASTING;
     }

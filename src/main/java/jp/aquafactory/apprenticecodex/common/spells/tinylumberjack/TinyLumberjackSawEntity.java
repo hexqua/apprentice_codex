@@ -1,12 +1,13 @@
 package jp.aquafactory.apprenticecodex.common.spells.tinylumberjack;
 
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
-import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
-import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,6 +40,8 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
     private float damage;
     private float toolSpeed;
     private int reachSpeed;
+    private boolean isReleased;
+    private int releasedTick;
 
     private @Nullable BlockPos breakTargetPos;
     private @Nullable Vec3 breakTargetHitPos;
@@ -65,11 +68,58 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
     }
 
     @Override
+    public void onClientRemoval() {
+        var level = level();
+        EffectTools.createStickParticle(
+                position(),
+                getLookAngle(),
+                1.5,
+                12,
+                0.1f,
+                0.02,
+                ParticleTypes.END_ROD,
+                level
+        );
+
+        super.onClientRemoval();
+    }
+
+    @Override
+    public void releaseWeapon(){
+        AudioTools.playSoundFromEntity(level(), this, SoundRegistry.SAW_STOP.get(), SoundSource.PLAYERS);
+        isReleased = true;
+        releasedTick = 10;
+    }
+
+    @Override
     public void tick() {
-        @SuppressWarnings("resource") var level = level();
+        var level = level();
+
+        // 射出時パーティクル(再ログインで消えるので制御不要)
+        if (level.isClientSide && firstTick) {
+            EffectTools.createRingParticle(
+                    position(),
+                    getLookAngle(),
+                    0.2f,
+                    8,
+                    0.01f,
+                    0.01,
+                    ParticleTypes.END_ROD,
+                    level
+            );
+        }
+
         super.tick();
 
         if (level.isClientSide) {
+            return;
+        }
+
+        if (isReleased) {
+            --releasedTick;
+            if (releasedTick <= 0) {
+                discard();
+            }
             return;
         }
 
