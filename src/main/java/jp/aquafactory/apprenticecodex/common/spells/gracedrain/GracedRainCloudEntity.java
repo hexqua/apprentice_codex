@@ -9,7 +9,6 @@ import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -22,9 +21,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -32,6 +30,7 @@ import java.util.UUID;
 public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     public static final double HEIGHT_OFFSET = 4.0;
+    private static final double EFFECT_HEIGHT_TOLERANCE = 0.5;
     private static final float CLOUD_THICKNESS = 0.8f;
     private static final float VISUAL_OVERFLOW_BLOCKS = 0.35f;
     private static final int FOLLOW_EFFECT_INTERVAL_TICKS = 20;
@@ -44,9 +43,10 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     private @Nullable Entity cachedFollowTarget;
     private @Nullable Vec3 anchorPosition;
     private @Nullable BlockPos anchorBlockPos;
-    private int growthIntervalTicks = 40;
+    private float healAmount;
+    private int growthIntervalTicks;
     private int growthTick;
-    private int followEffectTick;
+    private int entityEffectTick;
     private int soundTick;
 
     public GracedRainCloudEntity(EntityType<?> entityType, Level level) {
@@ -125,20 +125,10 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             }
         }
 
-        var followTarget = getFollowTarget(level);
-        if (followTarget instanceof LivingEntity livingTarget) {
-            if (++followEffectTick >= FOLLOW_EFFECT_INTERVAL_TICKS) {
-                followEffectTick = 0;
-                // todo:数値は後で整理して渡す.
-                if (livingTarget.isInvertedHealAndHarm()) {
-                    var source = CombatTools.getDamageSource(level(), this, getOwner(), "graced_rain");
-                    CombatTools.applyDamage(livingTarget, 1, source, SpellsRegistry.GRACED_RAIN.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
-                } else {
-                    livingTarget.heal(1.0f);
-                }
-            }
-        } else {
-            followEffectTick = 0;
+        ++entityEffectTick;
+        if (entityEffectTick >= FOLLOW_EFFECT_INTERVAL_TICKS) {
+            entityEffectTick = 0;
+            applyFollowEffect(level);
         }
     }
 
@@ -277,6 +267,10 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         return anchorPosition != null ? anchorPosition : position();
     }
 
+    public void setHealAmount(float healAmount) {
+        this.healAmount = healAmount;
+    }
+
     public void setEffectRadiusBlocks(int radiusBlocks) {
         entityData.set(EFFECT_RADIUS_BLOCKS, Math.max(1, radiusBlocks));
     }
@@ -293,66 +287,32 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         return getEffectHalfExtentBlocks() + VISUAL_OVERFLOW_BLOCKS;
     }
 
-    public void setGrowthIntervalTicks(int ticks) {
-        growthIntervalTicks = Math.max(1, ticks);
-    }
+    private void applyFollowEffect(Level level) {
+        var center = position();
+        var baseY = center.y - HEIGHT_OFFSET;
+        var halfExtent = getEffectHalfExtentBlocks();
+        var box = new AABB(
+                center.x - halfExtent, baseY - EFFECT_HEIGHT_TOLERANCE, center.z - halfExtent,
+                center.x + halfExtent, baseY + EFFECT_HEIGHT_TOLERANCE, center.z + halfExtent
+        );
+        var source = CombatTools.getDamageSource(level, this, getOwner(), "graced_rain");
+        var school = SpellsRegistry.GRACED_RAIN.get().getSchoolType();
 
-    @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
+        for (var target : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
+            var targetY = RaycastTools.getEntityTargetPosition(target).y;
+            if (Math.abs(targetY - baseY) > EFFECT_HEIGHT_TOLERANCE) {
+                continue;
+            }
 
-        if (tag.hasUUID("FollowTarget")) {
-            followTargetUuid = tag.getUUID("FollowTarget");
-            cachedFollowTarget = null;
-        }
-
-        if (tag.contains("AnchorX")) {
-            var x = tag.getDouble("AnchorX");
-            var y = tag.getDouble("AnchorY");
-            var z = tag.getDouble("AnchorZ");
-            anchorPosition = new Vec3(x, y, z);
-            setPos(x, y, z);
-        }
-
-        if (tag.contains("AnchorBlock")) {
-            anchorBlockPos = BlockPos.of(tag.getLong("AnchorBlock"));
-            if (anchorPosition == null) {
-                anchorPosition = toCloudPosition(Vec3.atCenterOf(anchorBlockPos));
-                setPos(anchorPosition.x, anchorPosition.y, anchorPosition.z);
+            if (target.isInvertedHealAndHarm()) {
+                CombatTools.applyDamage(target, healAmount, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            } else {
+                target.heal(healAmount);
             }
         }
-
-        if (tag.contains("EffectRadiusBlocks")) {
-            setEffectRadiusBlocks(tag.getInt("EffectRadiusBlocks"));
-        } else if (tag.contains("CloudRadius")) {
-            var legacyRadius = tag.getFloat("CloudRadius");
-            setEffectRadiusBlocks(Math.max(1, Math.round(legacyRadius + 0.5f)));
-        }
-
-        if (tag.contains("GrowthInterval")) {
-            setGrowthIntervalTicks(tag.getInt("GrowthInterval"));
-        }
     }
 
-    @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-
-        if (followTargetUuid != null) {
-            tag.putUUID("FollowTarget", followTargetUuid);
-        }
-
-        if (anchorPosition != null) {
-            tag.putDouble("AnchorX", anchorPosition.x);
-            tag.putDouble("AnchorY", anchorPosition.y);
-            tag.putDouble("AnchorZ", anchorPosition.z);
-        }
-
-        if (anchorBlockPos != null) {
-            tag.putLong("AnchorBlock", anchorBlockPos.asLong());
-        }
-
-        tag.putInt("EffectRadiusBlocks", getEffectRadiusBlocks());
-        tag.putInt("GrowthInterval", growthIntervalTicks);
+    public void setGrowthIntervalTicks(int ticks) {
+        growthIntervalTicks = Math.max(1, ticks);
     }
 }

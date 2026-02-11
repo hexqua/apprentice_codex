@@ -40,8 +40,8 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
         super(GracedRainCloudEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        baseManaCost = 50;
-        manaCostPerLevel = 25;
+        baseManaCost = 40;
+        manaCostPerLevel = 20;
         castTime = 200;
     }
 
@@ -111,6 +111,7 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
         var cloud = new GracedRainCloudEntity(EntityRegistry.GRACED_RAIN_CLOUD.get(), level, entity);
         cloud.setEffectRadiusBlocks(getEffectRadiusBlocks(spellLevel, entity));
         cloud.setGrowthIntervalTicks(getGrowthIntervalTicks(spellLevel, entity));
+        cloud.setHealAmount(getHealAmount(spellLevel, entity));
         if (result.hitEntity() != null) {
             cloud.setFollowTarget(result.hitEntity());
         } else {
