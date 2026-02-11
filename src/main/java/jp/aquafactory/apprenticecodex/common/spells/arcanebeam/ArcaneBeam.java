@@ -40,7 +40,7 @@ public class ArcaneBeam extends AbstractSpell {
         baseSpellPower = 100;
         spellPowerPerLevel = 25;
         baseManaCost = 5;
-        manaCostPerLevel = 10;
+        manaCostPerLevel = 4;
         castTime = 100;
     }
     @Override

@@ -42,9 +42,9 @@ public class MageLight extends AbstractSpell {
 
     public MageLight() {
         baseSpellPower = 100;
-        spellPowerPerLevel = 0;
-        baseManaCost = 5;
-        manaCostPerLevel = 0;
+        spellPowerPerLevel = 25;
+        baseManaCost = 20;
+        manaCostPerLevel = 4;
         castTime = 0;
     }
 

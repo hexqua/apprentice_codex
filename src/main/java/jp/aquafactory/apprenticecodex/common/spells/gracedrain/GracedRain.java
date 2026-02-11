@@ -40,8 +40,8 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
         super(GracedRainCloudEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        baseManaCost = 40;
-        manaCostPerLevel = 20;
+        baseManaCost = 20;
+        manaCostPerLevel = 15;
         castTime = 200;
     }
 
