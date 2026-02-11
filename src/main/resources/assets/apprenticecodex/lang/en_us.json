@@ -11,6 +11,7 @@
   "entity.apprenticecodex.graced_rain_cloud" : "Graced Rain Cloud",
   "entity.apprenticecodex.tiny_lumberjack_saw" : "Magic Buzzsaw",
   "entity.apprenticecodex.arcane_beam" : "Arcane Beam",
+  "spell.apprenticecodex.personal_shelf": "Personal Shelf",
   
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",
@@ -37,6 +38,7 @@
   "spell.apprenticecodex.tiny_lumberjack.guide": "Summons a magical buzzsaw and cuts through the target's body. Can be used to cut through trees.",
   "spell.apprenticecodex.graced_rain.guide": "Summons a healing rain cloud that heals living beings submerged in it. Healing is beneficial to plants.",
   "spell.apprenticecodex.mage_light.guide": "Summons a magical torch that illuminates the surroundings and place. A magical torch does not require support.",
+  "spell.apprenticecodex.personal_shelf.guide": "Summons a magical chest that can be used to store items. The chest is an interface to individual space. Use while sneaking it will attempt to move items to the chest used.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
@@ -44,11 +46,12 @@
   "ui.apprenticecodex.warm_up_time": "Max warm up time: %s ",
   "ui.apprenticecodex.tree_cut_time": "Minimum Tree cut time: %s ",
   "ui.apprenticecodex.arcane_charge_damage_multiplier": "Damage Amplifier per Level: %d%%",
+  "ui.apprenticecodex.personal_shelf_size": "Storage Stack size: %d",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
   "ui.apprenticecodex.firearm_spell.no_firearm": "Couldn't find firearm!",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
-  "ui.apprenticecodex.mage_light.cant_place": "Can't place here",
+  "ui.apprenticecodex.cant_place": "Can't place here",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
 

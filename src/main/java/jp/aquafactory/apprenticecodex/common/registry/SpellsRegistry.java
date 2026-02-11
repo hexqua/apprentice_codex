@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.common.spells.magelight.MageLight;
+import jp.aquafactory.apprenticecodex.common.spells.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjack;
@@ -58,6 +59,9 @@ public class SpellsRegistry {
 
     public static final RegistryObject<AbstractSpell> MAGE_LIGHT =
             SPELLS.register("mage_light", MageLight::new);
+
+    public static final RegistryObject<AbstractSpell> PERSONAL_SHELF =
+            SPELLS.register("personal_shelf", PersonalShelf::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
