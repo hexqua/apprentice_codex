@@ -51,27 +51,32 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.apprenticecodex.tree_cut_time", Utils.timeFromTicks(getBreakBestTime(spellLevel,caster), 1)),
                 Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 1;
+        return 0.5f + 0.5f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private float getRange(){
         return 6;
     }
 
-    private int getReachSpeed(int spellLevel, LivingEntity entity) {
-        return 10;
+    private int getReachSpeed() {
+        return 15;
     }
 
     private float getBreakSpeed(int spellLevel, LivingEntity entity) {
-        // 鉄ツール相当.
-        return 6f;
+        // 6=鉄ツール相当.
+        return 1f + 0.5f * getSpellPower(spellLevel, entity) / 100.0f;
+    }
+
+    private int getBreakBestTime(int spellLevel, LivingEntity entity){
+        // 原木は大抵硬さ2、適正ツールは補正値30.
+        return Math.round((2 * 30) / getBreakSpeed(spellLevel, entity));
     }
 
     @Override
@@ -113,7 +118,7 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
     public TinyLumberjackSawEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new TinyLumberjackSawEntity(EntityRegistry.TINY_LUMBERJACK_SAW.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
-        summonWeapon.setReachSpeed(getReachSpeed(spellLevel, entity));
+        summonWeapon.setReachSpeed(getReachSpeed());
         summonWeapon.setToolSpeed(getBreakSpeed(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         AudioTools.playSoundFromEntity(level, entity, SoundRegistry.SAW_START.get(), SoundSource.PLAYERS);

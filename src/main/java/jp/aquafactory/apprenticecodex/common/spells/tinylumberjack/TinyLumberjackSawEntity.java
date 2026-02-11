@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.common.spells.tinylumberjack;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
@@ -23,6 +24,8 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.ArrayDeque;
+
 public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEntity {
 
     private enum SawStates {
@@ -36,6 +39,9 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
 
     private static final double BREAK_START_DISTANCE = 0.55;
     private static final int LOGS_PER_TICK = 2;
+    private static final int MAX_LOG_COUNT_FOR_SLOWDOWN = 128;
+    private static final float MAX_BREAK_SLOWDOWN = 8.0f;
+    private static final int[][] LOG_NEIGHBOR_OFFSETS = buildOffsets();
 
     private float damage;
     private float toolSpeed;
@@ -46,6 +52,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
     private @Nullable BlockPos breakTargetPos;
     private @Nullable Vec3 breakTargetHitPos;
     private float breakProgress;
+    private float breakSpeedScale = 1.0f;
     private SawStates sawState = SawStates.IDLE;
     private @Nullable Vec3 moveStartPos;
     private @Nullable Vec3 moveTargetPos;
@@ -172,6 +179,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
                     breakTargetPos = targetPos;
                     breakTargetHitPos = hitPosition;
                     breakProgress = 0.0f;
+                    breakSpeedScale = calculateBreakSpeedScale(level, targetPos);
                     sawState = SawStates.BREAKING;
                 } else {
                     moveToTarget(owner, hitPosition, true);
@@ -253,7 +261,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         }
 
         // ブロックの採掘速度は正しいツールなら硬さ×30.
-        var toolBreakDelta = toolSpeed / (hardness * 30);
+        var toolBreakDelta = (toolSpeed / (hardness * 30)) * breakSpeedScale;
 
         breakProgress = breakProgress + toolBreakDelta;
         var stage = Math.min(9, (int) (breakProgress * 10.0f));
@@ -279,6 +287,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         breakTargetPos = null;
         breakTargetHitPos = null;
         breakProgress = 0.0f;
+        breakSpeedScale = 1.0f;
     }
 
     public void setDamage(float damage) {
@@ -316,5 +325,87 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    private static float calculateBreakSpeedScale(Level level, BlockPos originPos) {
+        int logCount = countConnectedLogs(level, originPos);
+        return computeLogBreakScale(logCount);
+    }
+
+    private static float computeLogBreakScale(int logCount) {
+        if (logCount <= 1) {
+            return 1.0f;
+        }
+
+        int clamped = Math.min(logCount, MAX_LOG_COUNT_FOR_SLOWDOWN);
+        double ratio = (clamped - 1) / (double) (MAX_LOG_COUNT_FOR_SLOWDOWN - 1);
+        double eased = ratio * ratio;
+        double scale = 1.0 / (1.0 + (MAX_BREAK_SLOWDOWN - 1.0) * eased);
+        return (float) scale;
+    }
+
+    private static int countConnectedLogs(Level level, BlockPos originPos) {
+        if (TinyLumberjackSawEntity.MAX_LOG_COUNT_FOR_SLOWDOWN <= 0) {
+            return 0;
+        }
+
+        var origin = originPos.immutable();
+        int originY = origin.getY();
+        var queue = new ArrayDeque<BlockPos>();
+        var visited = new LongOpenHashSet();
+        queue.add(origin);
+        visited.add(origin.asLong());
+
+        int count = 0;
+        var mutable = new BlockPos.MutableBlockPos();
+        while (!queue.isEmpty() && count < TinyLumberjackSawEntity.MAX_LOG_COUNT_FOR_SLOWDOWN) {
+            var pos = queue.poll();
+            if (pos.getY() < originY) {
+                continue;
+            }
+
+            var state = level.getBlockState(pos);
+            if (!state.is(BlockTags.LOGS)) {
+                continue;
+            }
+
+            count++;
+            for (var offset : LOG_NEIGHBOR_OFFSETS) {
+                mutable.setWithOffset(pos, offset[0], offset[1], offset[2]);
+                if (mutable.getY() < originY) {
+                    continue;
+                }
+
+                var key = mutable.asLong();
+                if (visited.contains(key)) {
+                    continue;
+                }
+                visited.add(key);
+
+                var neighborState = level.getBlockState(mutable);
+                if (!neighborState.is(BlockTags.LOGS)) {
+                    continue;
+                }
+                queue.add(mutable.immutable());
+            }
+        }
+
+        return count;
+    }
+
+    private static int[][] buildOffsets() {
+        int[][] offsets = new int[26][3];
+        int idx = 0;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) {
+                        continue;
+                    }
+                    offsets[idx++] = new int[]{dx, dy, dz};
+                }
+            }
+        }
+        return offsets;
     }
 }
