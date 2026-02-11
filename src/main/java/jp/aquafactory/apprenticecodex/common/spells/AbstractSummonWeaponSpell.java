@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends AbstractSpell {
+public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> extends AbstractSpell {
 
     public enum TickCastTypes{
         KEEP_CASTING,
@@ -31,14 +31,18 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
 
     private final Class<T> weaponType;
 
-    protected AbstractFirearmSpell(Class<T> weaponType) {
+    protected AbstractSummonWeaponSpell(Class<T> weaponType) {
         super();
         this.weaponType = weaponType;
     }
 
     @Override
     public final ICastDataSerializable getEmptyCastData() {
-        return new FirearmCastData();
+        return createCastData();
+    }
+
+    protected SummonWeaponSpellCastData createCastData() {
+        return new SummonWeaponSpellCastData();
     }
 
     public abstract T onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData);
@@ -48,8 +52,8 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
     @Override
     public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
         if (getCastType() != CastType.CONTINUOUS && playerMagicData != null) {
-            if (!(playerMagicData.getAdditionalCastData() instanceof FirearmCastData)) {
-                var castData = new FirearmCastData();
+            if (!(playerMagicData.getAdditionalCastData() instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData)) {
+                var castData = createCastData();
                 var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
                 castData.setEntity(summon);
                 playerMagicData.setAdditionalCastData(castData);
@@ -76,8 +80,8 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
     @Override
     public final void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (getCastType() == CastType.CONTINUOUS) {
-            if (!(playerMagicData.getAdditionalCastData() instanceof FirearmCastData)) {
-                var castData = new FirearmCastData();
+            if (!(playerMagicData.getAdditionalCastData() instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData)) {
+                var castData = createCastData();
                 var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
                 castData.setEntity(summon);
                 playerMagicData.setAdditionalCastData(castData);
@@ -109,7 +113,7 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
             return null;
         }
 
-        if (!(playerMagicData.getAdditionalCastData() instanceof FirearmCastData castData)) {
+        if (!(playerMagicData.getAdditionalCastData() instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData castData)) {
             return null;
         }
 
@@ -125,7 +129,7 @@ public abstract class AbstractFirearmSpell<T extends SummonWeaponEntity> extends
         return weaponType.cast(summon);
     }
 
-    public static class FirearmCastData implements ICastDataSerializable {
+    public static class SummonWeaponSpellCastData implements ICastDataSerializable {
         private UUID entityId;
 
         public void setEntity(Entity entity) {

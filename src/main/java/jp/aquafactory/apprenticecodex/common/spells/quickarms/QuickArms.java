@@ -8,7 +8,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmRecastSpell;
+import jp.aquafactory.apprenticecodex.common.spells.AbstractSummonWeaponRecastSpell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class QuickArms extends AbstractFirearmRecastSpell<QuickArmsHandgunEntity> {
+public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunEntity> {
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "quick_arms");
 

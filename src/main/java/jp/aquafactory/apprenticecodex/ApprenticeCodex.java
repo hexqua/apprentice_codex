@@ -19,6 +19,8 @@ public class ApprenticeCodex
         var bus = context.getModEventBus();
         SpellsRegistry.register(bus);
         EntityRegistry.register(bus);
+        BlockRegistry.register(bus);
+        BlockEntityRegistry.register(bus);
         ItemRegistry.ITEMS.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
         SoundRegistry.register(bus);

@@ -46,5 +46,29 @@
     "sounds": [
       "apprenticecodex:arcane_blast"
     ]
+  },
+  "saw_start": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:saw_start"
+    ]
+  },
+  "saw_stop": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:saw_stop"
+    ]
+  },
+  "cloud_rain": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:cloud_rain"
+    ]
+  },
+  "set_mage_light": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:set_mage_light"
+    ]
   }
 }

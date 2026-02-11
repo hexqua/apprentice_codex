@@ -10,8 +10,11 @@ import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnem
 import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhial;
+import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRain;
+import jp.aquafactory.apprenticecodex.common.spells.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdge;
+import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjack;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
@@ -46,6 +49,15 @@ public class SpellsRegistry {
 
     public static final RegistryObject<AbstractSpell> ARCANE_BEAM =
             SPELLS.register("arcane_beam", ArcaneBeam::new);
+
+    public static final RegistryObject<AbstractSpell> TINY_LUMBERJACK =
+            SPELLS.register("tiny_lumberjack", TinyLumberjack::new);
+
+    public static final RegistryObject<AbstractSpell> GRACED_RAIN =
+            SPELLS.register("graced_rain", GracedRain::new);
+
+    public static final RegistryObject<AbstractSpell> MAGE_LIGHT =
+            SPELLS.register("mage_light", MageLight::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);

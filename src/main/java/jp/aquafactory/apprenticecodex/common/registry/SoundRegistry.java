@@ -44,6 +44,22 @@ public class SoundRegistry {
             SOUND_EVENTS.register("arcane_blast",
                     () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "arcane_blast")));
 
+    public static final RegistryObject<SoundEvent> SAW_START =
+            SOUND_EVENTS.register("saw_start",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "saw_start")));
+
+    public static final RegistryObject<SoundEvent> SAW_STOP =
+            SOUND_EVENTS.register("saw_stop",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "saw_stop")));
+
+    public static final RegistryObject<SoundEvent> CLOUD_RAIN =
+            SOUND_EVENTS.register("cloud_rain",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "cloud_rain")));
+
+    public static final RegistryObject<SoundEvent> SET_MAGE_LIGHT_TORCH =
+            SOUND_EVENTS.register("set_mage_light",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "set_mage_light")));
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }

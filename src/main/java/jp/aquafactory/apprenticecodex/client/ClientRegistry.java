@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.client.particles.ReticleDotParticle;
+import jp.aquafactory.apprenticecodex.common.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
@@ -12,8 +13,11 @@ import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnem
 import jp.aquafactory.apprenticecodex.common.spells.bulletstream.BulletStreamMinigunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRifleRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRainCloudRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.magelight.MageLightTorchBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackSawRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
@@ -30,6 +34,7 @@ public class ClientRegistry {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), ArcherMultipleBowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), CommenceFireRifleRenderer::new);
@@ -37,6 +42,8 @@ public class ClientRegistry {
         event.registerEntityRenderer(EntityRegistry.QUICK_ARMS_HANDGUN.get(), QuickArmsHandgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.GRACED_RAIN_CLOUD.get(), GracedRainCloudRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_SAW.get(), TinyLumberjackSawRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);
     }
 
