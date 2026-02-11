@@ -64,6 +64,11 @@
     "sounds": [
       "apprenticecodex:cloud_rain"
     ]
+  },
+  "set_mage_light": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:set_mage_light"
+    ]
   }
-
 }

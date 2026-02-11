@@ -8,13 +8,16 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -29,7 +32,6 @@ import java.util.Optional;
 
 public class MageLight extends AbstractSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mage_light");
-    private static final double PLACE_RANGE = 10.0;
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
@@ -41,7 +43,7 @@ public class MageLight extends AbstractSpell {
     public MageLight() {
         baseSpellPower = 100;
         spellPowerPerLevel = 0;
-        baseManaCost = 10;
+        baseManaCost = 5;
         manaCostPerLevel = 0;
         castTime = 0;
     }
@@ -49,13 +51,13 @@ public class MageLight extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
 
-    private float getDamage(int spellLevel, LivingEntity entity) {
-        return getSpellPower(spellLevel, entity) / 10.0f;
+    private double getRange(int spellLevel, LivingEntity entity){
+        return 8 * getSpellPower(spellLevel, entity) / 100.0;
     }
 
     @Override
@@ -75,8 +77,7 @@ public class MageLight extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        // todo:それっぽい音を割り当てる.
-        return Optional.empty();
+        return Optional.of(SoundRegistry.SET_MAGE_LIGHT_TORCH.get());
     }
 
     @Override
@@ -96,8 +97,7 @@ public class MageLight extends AbstractSpell {
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        // todo:ここに松明を置けるかの判定を先に行わせる.
-        if (findPlacePos(level, entity).isEmpty()) {
+        if (findPlacePos(level, spellLevel, entity).isEmpty()) {
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.mage_light.cant_place", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
@@ -107,21 +107,26 @@ public class MageLight extends AbstractSpell {
         return true;
     }
 
-
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        findPlacePos(level, entity)
+        findPlacePos(level, spellLevel, entity)
                 .ifPresent(pos -> {
                     level.setBlockAndUpdate(pos, BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState());
                     AudioTools.playSoundFromBlock(level, pos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
+
+                    if (level instanceof ServerLevel server) {
+                        var position = pos.getCenter();
+                        server.sendParticles(ParticleTypes.END_ROD, position.x, position.y, position.z, 4, 0.1, 0.1, 0.1, 0.01);
+                        server.sendParticles(ParticleTypes.FIREWORK, position.x, position.y, position.z, 2, 0.1, 0.1, 0.1, 0.02);
+                    }
                 }
         );
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 
-    private Optional<BlockPos> findPlacePos(Level level, LivingEntity entity) {
+    private Optional<BlockPos> findPlacePos(Level level, int spellLevel, LivingEntity entity) {
         var start = entity.getEyePosition(1.0F);
-        var end = start.add(entity.getViewVector(1.0F).scale(PLACE_RANGE));
+        var end = start.add(entity.getViewVector(1.0F).scale(getRange(spellLevel, entity)));
         var hit = level.clip(new ClipContext(
                 start,
                 end,

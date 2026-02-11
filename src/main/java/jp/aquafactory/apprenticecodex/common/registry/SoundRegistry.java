@@ -56,6 +56,10 @@ public class SoundRegistry {
             SOUND_EVENTS.register("cloud_rain",
                     () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "cloud_rain")));
 
+    public static final RegistryObject<SoundEvent> SET_MAGE_LIGHT_TORCH =
+            SOUND_EVENTS.register("set_mage_light",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "set_mage_light")));
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }
