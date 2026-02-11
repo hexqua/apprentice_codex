@@ -10,7 +10,7 @@ import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialP
 import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileEntity;
-import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackAxeEntity;
+import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackSawEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -95,14 +95,14 @@ public class EntityRegistry {
                             .updateInterval(1)
                             .build("graced_rain_cloud"));
 
-    public static final RegistryObject<EntityType<TinyLumberjackAxeEntity>> TINY_LUMBERJACK_AXE =
-            ENTITIES.register("tiny_lumberjack_axe",
+    public static final RegistryObject<EntityType<TinyLumberjackSawEntity>> TINY_LUMBERJACK_SAW =
+            ENTITIES.register("tiny_lumberjack_saw",
                     () -> EntityType.Builder
-                            .<TinyLumberjackAxeEntity>of(TinyLumberjackAxeEntity::new, MobCategory.MISC)
+                            .<TinyLumberjackSawEntity>of(TinyLumberjackSawEntity::new, MobCategory.MISC)
                             .sized(0.25f, 0.25f)
                             .clientTrackingRange(48)
                             .updateInterval(1)
-                            .build("tiny_lumberjack_axe"));
+                            .build("tiny_lumberjack_saw"));
 
     public static final RegistryObject<EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
             ENTITIES.register("arcane_beam",

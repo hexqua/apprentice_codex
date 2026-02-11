@@ -17,7 +17,7 @@ import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRainCloudRe
 import jp.aquafactory.apprenticecodex.common.spells.magelight.MageLightTorchBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileRenderer;
-import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackAxeRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackSawRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
@@ -43,7 +43,7 @@ public class ClientRegistry {
         event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.GRACED_RAIN_CLOUD.get(), GracedRainCloudRenderer::new);
-        event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_AXE.get(), TinyLumberjackAxeRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_SAW.get(), TinyLumberjackSawRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);
     }
 

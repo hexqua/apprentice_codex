@@ -11,8 +11,18 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
+public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEntity {
+
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private static final RawAnimation ROTATE = RawAnimation.begin().thenLoop("spin");
 
     private static final double TARGET_RANGE = 4.0;
     private static final double TARGET_RAYCAST_WIDTH = 0.5;
@@ -32,11 +42,11 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
     private int moveTick;
     private @Nullable TinyLumberjackJob currentJob;
 
-    public TinyLumberjackAxeEntity(EntityType<?> pEntityType, Level pLevel) {
+    public TinyLumberjackSawEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
-    public TinyLumberjackAxeEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
+    public TinyLumberjackSawEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
     }
 
@@ -233,5 +243,21 @@ public class TinyLumberjackAxeEntity extends SummonWeaponEntity {
             level().destroyBlockProgress(getId(), breakTargetPos, -1);
         }
         super.remove(reason);
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(new AnimationController<>(
+                this, "main", 0,
+                state -> {
+                    state.setAnimation(ROTATE);
+                    return PlayState.CONTINUE;
+                }
+        ));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
     }
 }

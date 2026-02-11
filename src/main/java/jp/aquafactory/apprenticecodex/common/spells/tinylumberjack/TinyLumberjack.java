@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackAxeEntity> {
+public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity> {
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tiny_lumberjack");
 
@@ -34,7 +34,7 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackAxeEntity
             .build();
 
     public TinyLumberjack() {
-        super(TinyLumberjackAxeEntity.class);
+        super(TinyLumberjackSawEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 5;
         baseManaCost = 20;
@@ -90,19 +90,19 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackAxeEntity
     }
 
     @Override
-    public TinyLumberjackAxeEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var summonWeapon = new TinyLumberjackAxeEntity(EntityRegistry.TINY_LUMBERJACK_AXE.get(), level, entity);
+    public TinyLumberjackSawEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new TinyLumberjackSawEntity(EntityRegistry.TINY_LUMBERJACK_SAW.get(), level, entity);
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
 
     @Override
-    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackAxeEntity weapon) {
+    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackSawEntity weapon) {
         return TickCastTypes.KEEP_CASTING;
     }
 
     @Override
-    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull TinyLumberjackAxeEntity weapon) {
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull TinyLumberjackSawEntity weapon) {
         return CompleteCastTypes.RELEASE_WEAPON;
     }
 }
