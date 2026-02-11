@@ -11,6 +11,8 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -25,6 +27,7 @@ import java.util.Optional;
 public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity> {
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tiny_lumberjack");
+    private static final double TARGET_RAYCAST_WIDTH = 0.5;
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
@@ -36,9 +39,9 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
     public TinyLumberjack() {
         super(TinyLumberjackSawEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 5;
+        spellPowerPerLevel = 50;
         baseManaCost = 20;
-        manaCostPerLevel = 4;
+        manaCostPerLevel = 10;
         castTime = 200;
     }
 
@@ -51,7 +54,17 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return getSpellPower(spellLevel, entity) / 10.0f;
+        // todo:バランス調整.
+        return 1;
+    }
+
+    private int getReachSpeed(int spellLevel, LivingEntity entity) {
+        return 10;
+    }
+
+    private float getBreakSpeed(int spellLevel, LivingEntity entity) {
+        // 鉄ツール相当.
+        return 6f;
     }
 
     @Override
@@ -92,12 +105,17 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
     @Override
     public TinyLumberjackSawEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new TinyLumberjackSawEntity(EntityRegistry.TINY_LUMBERJACK_SAW.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setReachSpeed(getReachSpeed(spellLevel, entity));
+        summonWeapon.setToolSpeed(getBreakSpeed(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
 
     @Override
     public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackSawEntity weapon) {
+        var result = RaycastTools.raycastRangeAttribute(entity, TARGET_RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, entity));
+        weapon.updateOwnerTarget(result);
         return TickCastTypes.KEEP_CASTING;
     }
 

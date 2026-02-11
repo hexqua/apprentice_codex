@@ -12,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -36,11 +37,11 @@ public class RaycastTools {
             BlockPos hitBlock
     ) {}
 
-    public static TargetResult raycast(Entity source, Vec3 look, double range, double boxWidth, Predicate<Entity> predicate){
+    public static TargetResult raycast(Entity source, Vec3 look, double blockRange, double entityRange, double boxWidth, Predicate<Entity> predicate){
         var level = source.level();
 
         var start = source.getEyePosition(1.0F);
-        var end = start.add(look.scale(range));
+        var end = start.add(look.scale(blockRange));
 
         var blockHit = level.clip(new ClipContext(
                 start,
@@ -56,7 +57,7 @@ public class RaycastTools {
         }
 
         var searchBox = source.getBoundingBox()
-                .expandTowards(look.scale(range))
+                .expandTowards(look.scale(entityRange))
                 .inflate(boxWidth / 2);
 
         var entityHit = ProjectileUtil.getEntityHitResult(
@@ -88,6 +89,17 @@ public class RaycastTools {
         }
 
         return new TargetResult(TargetType.NONE, end, null, null);
+    }
+
+
+    public static TargetResult raycastRangeAttribute(LivingEntity source, double boxWidth, Predicate<Entity> predicate){
+        var blockRange = source.getAttributeValue(ForgeMod.BLOCK_REACH.get());
+        var entityRange = source.getAttributeValue(ForgeMod.ENTITY_REACH.get());
+        return raycast(source, source.getViewVector(1.0F), blockRange, entityRange, boxWidth, predicate);
+    }
+
+    public static TargetResult raycast(Entity source, Vec3 look, double range, double boxWidth, Predicate<Entity> predicate){
+        return raycast(source, look, range, range, boxWidth, predicate);
     }
 
     public static TargetResult raycastFromEye(Entity source, double range, double boxWidth, Predicate<Entity> predicate) {

@@ -10,6 +10,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -24,13 +25,12 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation ROTATE = RawAnimation.begin().thenLoop("spin");
 
-    private static final double TARGET_RANGE = 4.0;
-    private static final double TARGET_RAYCAST_WIDTH = 0.5;
-    private static final double BREAK_START_DISTANCE = 0.2;
-    private static final float BASE_BREAK_SPEED = 1.0f / 40.0f;
-    private static final int MOVE_DURATION_TICKS = 20;
-    private static final double MOVE_TARGET_EPSILON_SQR = 0.0025;
+    private static final double BREAK_START_DISTANCE = 0.5;
     private static final int LOGS_PER_TICK = 2;
+
+    private float damage;
+    private float toolSpeed;
+    private int reachSpeed;
 
     private @Nullable BlockPos breakTargetPos;
     private @Nullable Vec3 breakTargetHitPos;
@@ -40,7 +40,9 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
     private @Nullable Vec3 moveStartPos;
     private @Nullable Vec3 moveTargetPos;
     private int moveTick;
-    private @Nullable TinyLumberjackJob currentJob;
+    private RaycastTools.TargetType targetType = RaycastTools.TargetType.NONE;
+    private Vec3 ownerTargetHitPos = Vec3.ZERO;
+    private @Nullable BlockPos ownerTargetBlockPos;
 
     public TinyLumberjackSawEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -57,7 +59,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
 
     @Override
     public void tick() {
-        var level = level();
+        @SuppressWarnings("resource") var level = level();
         super.tick();
 
         if (level.isClientSide) {
@@ -70,7 +72,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         }
 
         if (returningToStandby) {
-            moveToStandby(owner);
+            moveToTarget(owner, getStandbyPosition());
             if (position().distanceTo(getStandbyPosition()) <= BREAK_START_DISTANCE) {
                 returningToStandby = false;
             }
@@ -78,25 +80,26 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         }
 
         if (isBreaking) {
-            continueBreaking(owner);
+            handleChopping(owner);
             return;
         }
 
-        var result = RaycastTools.raycastFromEye(owner, TARGET_RANGE, TARGET_RAYCAST_WIDTH, e -> e instanceof LivingEntity);
-        if (result.hitType() == RaycastTools.TargetType.LIVING_ENTITY) {
-            moveToTarget(owner, result.hitPosition());
+        if (targetType == RaycastTools.TargetType.LIVING_ENTITY) {
+            moveToTarget(owner, ownerTargetHitPos);
             return;
         }
 
-        if (result.hitType() == RaycastTools.TargetType.BLOCK) {
-            var targetPos = result.hitBlock();
+        if (targetType == RaycastTools.TargetType.BLOCK && ownerTargetBlockPos != null) {
+            var targetPos = ownerTargetBlockPos;
             var state = level.getBlockState(targetPos);
             if (state.is(BlockTags.LOGS)) {
-                var hitPosition = result.hitPosition();
+                var hitPosition = ownerTargetHitPos;
                 var distanceBeforeMove = position().distanceTo(hitPosition);
                 if (distanceBeforeMove <= BREAK_START_DISTANCE) {
-                    startBreaking(level, targetPos, hitPosition);
-                    continueBreaking(owner);
+                    breakTargetPos = targetPos;
+                    breakTargetHitPos = hitPosition;
+                    breakProgress = 0.0f;
+                    isBreaking = true;
                 } else {
                     moveToTarget(owner, hitPosition);
                 }
@@ -104,48 +107,39 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
             }
         }
 
-        moveToStandby(owner);
+        moveToTarget(owner, getStandbyPosition());
     }
 
     @Override
     public Vec3 getStandbyPosition() {
         if (getOwner() instanceof LivingEntity owner) {
-            return calculateAxePosition(owner);
+            return RotationTools.calculateBehindPosition(owner, -0.4, 0.6, -0.7);
         }
 
         return Vec3.ZERO;
     }
 
-    private static Vec3 calculateAxePosition(LivingEntity owner) {
-        return RotationTools.calculateBehindPosition(owner, -0.4, 0.6, -0.4);
-    }
-
-    private void moveToStandby(LivingEntity owner) {
-        moveToTarget(owner, getStandbyPosition());
+    public void updateOwnerTarget(RaycastTools.TargetResult result) {
+        targetType = result.hitType();
+        ownerTargetHitPos = result.hitPosition();
+        ownerTargetBlockPos = result.hitBlock();
     }
 
     private void moveToTarget(LivingEntity owner, Vec3 targetPos) {
-        updateMoveTarget(targetPos);
-        applyMovement(owner);
-    }
-
-    private void updateMoveTarget(Vec3 targetPos) {
-        if (moveTargetPos == null || moveTargetPos.distanceToSqr(targetPos) > MOVE_TARGET_EPSILON_SQR) {
+        if (moveTargetPos == null || moveTargetPos.distanceToSqr(targetPos) > 0.0025) {
             moveStartPos = position();
             moveTargetPos = targetPos;
             moveTick = 0;
         }
-    }
 
-    private void applyMovement(LivingEntity owner) {
         if (moveTargetPos == null || moveStartPos == null) {
             moveStartPos = position();
             moveTargetPos = position();
             moveTick = 0;
         }
 
-        moveTick = Math.min(moveTick + 1, MOVE_DURATION_TICKS);
-        var t = moveTick / (double) MOVE_DURATION_TICKS;
+        moveTick = Math.min(moveTick + 1, reachSpeed);
+        var t = moveTick / (double) Math.max(reachSpeed, 1);
         var eased = 1.0 - (1.0 - t) * (1.0 - t);
         var delta = moveTargetPos.subtract(moveStartPos).scale(eased);
         var newPos = moveStartPos.add(delta);
@@ -156,14 +150,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         hasImpulse = true;
     }
 
-    private void startBreaking(Level level, BlockPos targetPos, Vec3 hitPosition) {
-        breakTargetPos = targetPos;
-        breakTargetHitPos = hitPosition;
-        breakProgress = 0.0f;
-        isBreaking = true;
-    }
-
-    private void continueBreaking(LivingEntity owner) {
+    private void handleChopping(LivingEntity owner) {
         if (breakTargetPos == null) {
             isBreaking = false;
             returningToStandby = true;
@@ -173,13 +160,6 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         var level = level();
         var targetPos = breakTargetHitPos != null ? breakTargetHitPos : Vec3.atCenterOf(breakTargetPos);
         moveToTarget(owner, targetPos);
-
-        if (currentJob != null) {
-            if (currentJob.isComplete()) {
-                finishJob();
-            }
-            return;
-        }
 
         var state = level.getBlockState(breakTargetPos);
         if (!state.is(BlockTags.LOGS)) {
@@ -195,32 +175,24 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
             return;
         }
 
-        breakProgress = Math.min(1.0f, breakProgress + getBreakIncrement(hardness));
+        // ブロックの採掘速度は正しいツールなら硬さ×30.
+        var toolBreakDelta = toolSpeed / (hardness * 30);
+
+        breakProgress = breakProgress + toolBreakDelta;
         var stage = Math.min(9, (int) (breakProgress * 10.0f));
         level.destroyBlockProgress(getId(), breakTargetPos, stage);
 
         if (breakProgress >= 1.0f) {
+            breakProgress = 0.0f;
             level.destroyBlock(breakTargetPos, true, owner);
             level.destroyBlockProgress(getId(), breakTargetPos, -1);
-            startJob(level, breakTargetPos);
-        }
-    }
 
-    private void startJob(Level level, BlockPos targetPos) {
-        if (level instanceof ServerLevel serverLevel) {
-            currentJob = new TinyLumberjackJob(targetPos, LOGS_PER_TICK);
-            TinyLumberjackJobManager.submit(serverLevel, currentJob);
+            // 木こりジョブを開始する.
+            if (level instanceof ServerLevel serverLevel) {
+                // 続けて木こりできるようにジョブは保持しないで管理クラスにわたすだけ.
+                TinyLumberjackJobManager.submit(serverLevel, new TinyLumberjackJob(breakTargetPos, LOGS_PER_TICK));
+            }
         }
-        breakProgress = 0.0f;
-    }
-
-    private void finishJob() {
-        currentJob = null;
-        breakTargetPos = null;
-        breakTargetHitPos = null;
-        breakProgress = 0.0f;
-        isBreaking = false;
-        returningToStandby = true;
     }
 
     private void cancelChop(Level level) {
@@ -233,14 +205,23 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         isBreaking = false;
     }
 
-    private static float getBreakIncrement(float hardness) {
-        return BASE_BREAK_SPEED / Math.max(0.1f, hardness);
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    public void setReachSpeed(int reachSpeed) {
+        this.reachSpeed = reachSpeed;
+    }
+
+    public void setToolSpeed(float toolSpeed) {
+        this.toolSpeed = toolSpeed;
     }
 
     @Override
-    public void remove(RemovalReason reason) {
-        if (!level().isClientSide && currentJob == null && breakTargetPos != null) {
-            level().destroyBlockProgress(getId(), breakTargetPos, -1);
+    public void remove(@NotNull RemovalReason reason) {
+        @SuppressWarnings("resource") var level = level();
+        if (!level.isClientSide && breakTargetPos != null) {
+            level.destroyBlockProgress(getId(), breakTargetPos, -1);
         }
         super.remove(reason);
     }
