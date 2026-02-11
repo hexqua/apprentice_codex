@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.common.spells.tinylumberjack;
 
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RotationTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
@@ -22,10 +24,16 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEntity {
 
+    private enum SawStates {
+        IDLE,
+        RETURNING,
+        BREAKING
+    }
+
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation ROTATE = RawAnimation.begin().thenLoop("spin");
 
-    private static final double BREAK_START_DISTANCE = 0.5;
+    private static final double BREAK_START_DISTANCE = 0.55;
     private static final int LOGS_PER_TICK = 2;
 
     private float damage;
@@ -35,8 +43,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
     private @Nullable BlockPos breakTargetPos;
     private @Nullable Vec3 breakTargetHitPos;
     private float breakProgress;
-    private boolean isBreaking;
-    private boolean returningToStandby;
+    private SawStates sawState = SawStates.IDLE;
     private @Nullable Vec3 moveStartPos;
     private @Nullable Vec3 moveTargetPos;
     private int moveTick;
@@ -71,21 +78,37 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
             return;
         }
 
-        if (returningToStandby) {
-            moveToTarget(owner, getStandbyPosition());
-            if (position().distanceTo(getStandbyPosition()) <= BREAK_START_DISTANCE) {
-                returningToStandby = false;
+        switch (sawState) {
+            case RETURNING -> {
+                moveToTarget(owner, getStandbyPosition(), false);
+                if (position().distanceTo(getStandbyPosition()) <= BREAK_START_DISTANCE) {
+                    sawState = SawStates.IDLE;
+                }
+                return;
             }
-            return;
-        }
-
-        if (isBreaking) {
-            handleChopping(owner);
-            return;
+            case BREAKING -> {
+                handleChopping(owner);
+                return;
+            }
+            case IDLE -> {
+            }
         }
 
         if (targetType == RaycastTools.TargetType.LIVING_ENTITY) {
-            moveToTarget(owner, ownerTargetHitPos);
+            if(tickCount % 2 == 0){
+                var source = CombatTools.getDamageSource(level, this, owner, "tiny_lumberjack");
+                var hitResult = RaycastTools.sampleBeamHits(level,
+                        position(),
+                        position().add(getLookAngle().normalize().scale(1.0)),
+                        1,
+                        0.5,
+                        e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+                );
+                for (var hit : hitResult){
+                    CombatTools.applyDamage(hit, damage, source, SpellsRegistry.TINY_LUMBERJACK.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                }
+            }
+            moveToTarget(owner, ownerTargetHitPos, true);
             return;
         }
 
@@ -99,15 +122,15 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
                     breakTargetPos = targetPos;
                     breakTargetHitPos = hitPosition;
                     breakProgress = 0.0f;
-                    isBreaking = true;
+                    sawState = SawStates.BREAKING;
                 } else {
-                    moveToTarget(owner, hitPosition);
+                    moveToTarget(owner, hitPosition, true);
                 }
                 return;
             }
         }
 
-        moveToTarget(owner, getStandbyPosition());
+        moveToTarget(owner, getStandbyPosition(), false);
     }
 
     @Override
@@ -125,7 +148,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         ownerTargetBlockPos = result.hitBlock();
     }
 
-    private void moveToTarget(LivingEntity owner, Vec3 targetPos) {
+    private void moveToTarget(LivingEntity owner, Vec3 targetPos, boolean moveBackwards) {
         if (moveTargetPos == null || moveTargetPos.distanceToSqr(targetPos) > 0.0025) {
             moveStartPos = position();
             moveTargetPos = targetPos;
@@ -138,40 +161,44 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
             moveTick = 0;
         }
 
-        moveTick = Math.min(moveTick + 1, reachSpeed);
-        var t = moveTick / (double) Math.max(reachSpeed, 1);
-        var eased = 1.0 - (1.0 - t) * (1.0 - t);
-        var delta = moveTargetPos.subtract(moveStartPos).scale(eased);
-        var newPos = moveStartPos.add(delta);
-        setPos(newPos.x, newPos.y, newPos.z);
+        // 所持者の向きを維持.
         setYRot(owner.getYRot());
         setXRot(owner.getXRot());
         setRot(getYRot(), getXRot());
         hasImpulse = true;
+
+        // 歯の先端が当たるように最終目標位置はずらす.
+        var finalPosition = moveBackwards ? moveTargetPos.subtract(getLookAngle().normalize().scale(0.5)) : moveTargetPos;
+
+        moveTick = Math.min(moveTick + 1, reachSpeed);
+        var t = moveTick / (double) Math.max(reachSpeed, 1);
+        var eased = 1.0 - (1.0 - t) * (1.0 - t);
+        var delta = finalPosition.subtract(moveStartPos).scale(eased);
+        var newPos = moveStartPos.add(delta);
+        setPos(newPos.x, newPos.y, newPos.z);
     }
 
     private void handleChopping(LivingEntity owner) {
         if (breakTargetPos == null) {
-            isBreaking = false;
-            returningToStandby = true;
+            sawState = SawStates.RETURNING;
             return;
         }
 
         var level = level();
         var targetPos = breakTargetHitPos != null ? breakTargetHitPos : Vec3.atCenterOf(breakTargetPos);
-        moveToTarget(owner, targetPos);
+        moveToTarget(owner, targetPos, true);
 
         var state = level.getBlockState(breakTargetPos);
         if (!state.is(BlockTags.LOGS)) {
             cancelChop(level);
-            returningToStandby = true;
+            sawState = SawStates.RETURNING;
             return;
         }
 
         var hardness = state.getDestroySpeed(level, breakTargetPos);
         if (hardness < 0.0f) {
             cancelChop(level);
-            returningToStandby = true;
+            sawState = SawStates.RETURNING;
             return;
         }
 
@@ -202,7 +229,6 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         breakTargetPos = null;
         breakTargetHitPos = null;
         breakProgress = 0.0f;
-        isBreaking = false;
     }
 
     public void setDamage(float damage) {

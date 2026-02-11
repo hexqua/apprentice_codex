@@ -16,7 +16,6 @@ public class TinyLumberjackJob {
     private static final int LEAF_LOG_RADIUS = 4;
     private static final int LEAF_LOG_RADIUS_SQR = LEAF_LOG_RADIUS * LEAF_LOG_RADIUS;
 
-    private final BlockPos originPos;
     private final int originY;
     private final int logsPerTick;
     private final ArrayDeque<LogNode> logQueue = new ArrayDeque<>();
@@ -29,12 +28,12 @@ public class TinyLumberjackJob {
     private boolean complete;
 
     public TinyLumberjackJob(BlockPos originPos, int logsPerTick) {
-        this.originPos = originPos.immutable();
+        var originPos1 = originPos.immutable();
         this.originY = originPos.getY();
         this.logsPerTick = Math.max(1, logsPerTick);
-        logQueue.add(new LogNode(this.originPos, 0));
-        visitedLogs.add(this.originPos.asLong());
-        addLogInfluence(this.originPos);
+        logQueue.add(new LogNode(originPos1, 0));
+        visitedLogs.add(originPos1.asLong());
+        addLogInfluence(originPos1);
     }
 
     public boolean isComplete() {
@@ -163,11 +162,7 @@ public class TinyLumberjackJob {
             return false;
         }
 
-        if (state.hasProperty(LeavesBlock.PERSISTENT) && state.getValue(LeavesBlock.PERSISTENT)) {
-            return false;
-        }
-
-        return true;
+        return !state.hasProperty(LeavesBlock.PERSISTENT) || !state.getValue(LeavesBlock.PERSISTENT);
     }
 
     private void addLogInfluence(BlockPos logPos) {
