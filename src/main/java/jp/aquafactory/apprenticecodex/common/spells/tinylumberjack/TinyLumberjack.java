@@ -11,7 +11,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
+import jp.aquafactory.apprenticecodex.common.spells.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity> {
+public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tiny_lumberjack");
 
     private final DefaultConfig config = new DefaultConfig()

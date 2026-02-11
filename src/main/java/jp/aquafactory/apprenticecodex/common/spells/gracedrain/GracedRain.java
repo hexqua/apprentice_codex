@@ -10,7 +10,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
+import jp.aquafactory.apprenticecodex.common.spells.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
+public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "graced_rain");
 
     private final DefaultConfig config = new DefaultConfig()

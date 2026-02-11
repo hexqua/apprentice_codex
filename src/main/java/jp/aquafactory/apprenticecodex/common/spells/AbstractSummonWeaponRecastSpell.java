@@ -27,11 +27,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 
-public abstract class AbstractFirearmRecastSpell<T extends SummonWeaponEntity> extends AbstractSpell {
+public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEntity> extends AbstractSpell {
 
     private final Class<T> weaponType;
 
-    protected AbstractFirearmRecastSpell(Class<T> weaponType) {
+    protected AbstractSummonWeaponRecastSpell(Class<T> weaponType) {
         super();
         this.weaponType = weaponType;
     }
@@ -65,7 +65,7 @@ public abstract class AbstractFirearmRecastSpell<T extends SummonWeaponEntity> e
 
     @Override
     public final ICastDataSerializable getEmptyCastData() {
-        return new FirearmCastData();
+        return new SummonWeaponRecastSpellData();
     }
 
     protected abstract boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull T weapon);
@@ -74,7 +74,7 @@ public abstract class AbstractFirearmRecastSpell<T extends SummonWeaponEntity> e
 
     @Override
     public final void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
-        if (castDataSerializable instanceof FirearmCastData castData) {
+        if (castDataSerializable instanceof AbstractSummonWeaponRecastSpell.SummonWeaponRecastSpellData castData) {
             var serverLevel = serverPlayer.serverLevel();
             var entity = castData.getEntity(serverLevel);
             if (weaponType.isInstance(entity)) {
@@ -134,7 +134,7 @@ public abstract class AbstractFirearmRecastSpell<T extends SummonWeaponEntity> e
                 ApprenticeCodex.LOGGER.error("Failed to get firearm entity from magic data.");
             }
         } else {
-            var castData = new FirearmCastData();
+            var castData = new SummonWeaponRecastSpellData();
             var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
             castData.setEntity(summon);
 
@@ -163,7 +163,7 @@ public abstract class AbstractFirearmRecastSpell<T extends SummonWeaponEntity> e
             return null;
         }
 
-        if (!(recast.getCastData() instanceof FirearmCastData castData)) {
+        if (!(recast.getCastData() instanceof AbstractSummonWeaponRecastSpell.SummonWeaponRecastSpellData castData)) {
             return null;
         }
 
@@ -179,7 +179,7 @@ public abstract class AbstractFirearmRecastSpell<T extends SummonWeaponEntity> e
         return weaponType.cast(summon);
     }
 
-    public static class FirearmCastData implements ICastDataSerializable {
+    public static class SummonWeaponRecastSpellData implements ICastDataSerializable {
         private UUID entityId;
 
         public void setEntity(Entity entity) {
