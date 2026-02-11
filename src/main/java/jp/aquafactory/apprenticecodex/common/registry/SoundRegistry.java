@@ -52,6 +52,10 @@ public class SoundRegistry {
             SOUND_EVENTS.register("saw_stop",
                     () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "saw_stop")));
 
+    public static final RegistryObject<SoundEvent> CLOUD_RAIN =
+            SOUND_EVENTS.register("cloud_rain",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "cloud_rain")));
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }

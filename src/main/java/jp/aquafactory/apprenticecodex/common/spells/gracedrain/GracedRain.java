@@ -11,11 +11,13 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.common.spells.AbstractFirearmSpell;
+import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -28,51 +30,44 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "graced_rain");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.RARE)
+            .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(20)
+            .setCooldownSeconds(8)
             .build();
 
     public GracedRain() {
         super(GracedRainCloudEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 5;
-        baseManaCost = 20;
-        manaCostPerLevel = 4;
-        castTime = 400;
+        spellPowerPerLevel = 50;
+        baseManaCost = 50;
+        manaCostPerLevel = 25;
+        castTime = 200;
     }
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.healing", Utils.stringTruncation(getHealAmount(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getEffectRadiusBlocks(spellLevel, caster), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
 
-    private float getDamage(int spellLevel, LivingEntity entity) {
-        return getSpellPower(spellLevel, entity) / 10.0f;
+    private float getHealAmount(int spellLevel, LivingEntity entity) {
+        return 2f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private double getTargetRange() {
         return 16.0;
     }
 
-    private double getTargetWidth() {
-        return 0.5;
-    }
-
     private int getEffectRadiusBlocks(int spellLevel, LivingEntity entity) {
-        return 2;
-    }
-
-    private float getCloudThickness(int spellLevel, LivingEntity entity) {
-        return 0.8f;
+        return 1 + (int) Math.floor(getSpellPower(spellLevel, entity) / 200.0f);
     }
 
     private int getGrowthIntervalTicks(int spellLevel, LivingEntity entity) {
-        return 1;
+        return Math.max(1, 5 - Math.round(getSpellPower(spellLevel, entity) / 100.0f));
     }
 
     @Override
@@ -92,7 +87,7 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.empty();
+        return Optional.of(SoundEvents.ENCHANTMENT_TABLE_USE);
     }
 
     @Override
@@ -112,10 +107,9 @@ public class GracedRain extends AbstractFirearmSpell<GracedRainCloudEntity> {
 
     @Override
     public GracedRainCloudEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var result = RaycastTools.raycastFromEye(entity, getTargetRange(), getTargetWidth(), e -> true);
+        var result = RaycastTools.raycastFromEye(entity, getTargetRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
         var cloud = new GracedRainCloudEntity(EntityRegistry.GRACED_RAIN_CLOUD.get(), level, entity);
         cloud.setEffectRadiusBlocks(getEffectRadiusBlocks(spellLevel, entity));
-        cloud.setCloudThickness(getCloudThickness(spellLevel, entity));
         cloud.setGrowthIntervalTicks(getGrowthIntervalTicks(spellLevel, entity));
         if (result.hitEntity() != null) {
             cloud.setFollowTarget(result.hitEntity());

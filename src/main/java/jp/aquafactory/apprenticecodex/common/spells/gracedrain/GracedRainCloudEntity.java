@@ -1,7 +1,10 @@
 package jp.aquafactory.apprenticecodex.common.spells.gracedrain;
 
 import jp.aquafactory.apprenticecodex.common.entity.spell.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.common.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.common.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.common.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.common.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
@@ -11,6 +14,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -27,16 +31,14 @@ import java.util.UUID;
 
 public class GracedRainCloudEntity extends SummonWeaponEntity {
 
-    public static final double HEIGHT_OFFSET = 3.0;
-    private static final int DEFAULT_EFFECT_RADIUS_BLOCKS = 3;
-    private static final float DEFAULT_THICKNESS = 0.8f;
+    public static final double HEIGHT_OFFSET = 4.0;
+    private static final float CLOUD_THICKNESS = 0.8f;
     private static final float VISUAL_OVERFLOW_BLOCKS = 0.35f;
     private static final int FOLLOW_EFFECT_INTERVAL_TICKS = 20;
+    private static final int SOUND_INTERVAL_TICKS = 55;
 
     private static final EntityDataAccessor<Integer> EFFECT_RADIUS_BLOCKS =
             SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> CLOUD_THICKNESS =
-            SynchedEntityData.defineId(GracedRainCloudEntity.class, EntityDataSerializers.FLOAT);
 
     private @Nullable UUID followTargetUuid;
     private @Nullable Entity cachedFollowTarget;
@@ -45,6 +47,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     private int growthIntervalTicks = 40;
     private int growthTick;
     private int followEffectTick;
+    private int soundTick;
 
     public GracedRainCloudEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -59,8 +62,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     @Override
     protected void defineSynchedData() {
-        entityData.define(EFFECT_RADIUS_BLOCKS, DEFAULT_EFFECT_RADIUS_BLOCKS);
-        entityData.define(CLOUD_THICKNESS, DEFAULT_THICKNESS);
+        entityData.define(EFFECT_RADIUS_BLOCKS, 1);
     }
 
     public void setFollowTarget(Entity target) {
@@ -103,13 +105,21 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             return;
         }
 
+        // 音はこだわらずに一定周期でフェードイン・アウトが入ったものを鳴らすだけ.
+        --soundTick;
+        if (soundTick <= 0) {
+            AudioTools.playSoundFromEntity(level, this, SoundRegistry.CLOUD_RAIN.get(), SoundSource.PLAYERS, 1.0f, 0.9f, 0.1f);
+            soundTick = SOUND_INTERVAL_TICKS;
+        }
+
         var targetPos = resolveTargetPosition(level);
         if (targetPos != null) {
             followTargetPosition(targetPos);
         }
 
         if (anchorBlockPos != null && level instanceof ServerLevel serverLevel) {
-            if (++growthTick >= Math.max(1, growthIntervalTicks)) {
+            ++growthTick;
+            if (growthTick >= Math.max(1, growthIntervalTicks)) {
                 growthTick = 0;
                 tryGrowPlant(serverLevel);
             }
@@ -136,7 +146,6 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         var random = level.getRandom();
         var center = position();
         var halfExtent = getVisualHalfExtentBlocks();
-        var thickness = Math.max(0.1f, getCloudThickness());
         var sideBlocks = getEffectRadiusBlocks() * 2 - 1;
         var count = Mth.clamp(sideBlocks * sideBlocks, 4, 48);
         var speed = 0.01;
@@ -144,7 +153,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         for (var i = 0; i < count; i++) {
             var x = center.x + (random.nextDouble() * 2.0 - 1.0) * halfExtent;
             var z = center.z + (random.nextDouble() * 2.0 - 1.0) * halfExtent;
-            var y = center.y + (random.nextDouble() - 0.5) * thickness;
+            var y = center.y + (random.nextDouble() - 0.5) * CLOUD_THICKNESS;
             var dx = (random.nextDouble() - 0.5) * speed;
             var dy = (random.nextDouble() - 0.5) * speed * 0.2;
             var dz = (random.nextDouble() - 0.5) * speed;
@@ -160,10 +169,9 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         var random = level.getRandom();
         var center = position();
         var halfExtent = getVisualHalfExtentBlocks();
-        var thickness = Math.max(0.1f, getCloudThickness());
         var sideBlocks = getEffectRadiusBlocks() * 2 - 1;
         var count = Mth.clamp(sideBlocks * 2, 2, 16);
-        var baseY = center.y - thickness * 0.5f;
+        var baseY = center.y - CLOUD_THICKNESS * 0.5f;
 
         for (var i = 0; i < count; i++) {
             var x = center.x + (random.nextDouble() * 2.0 - 1.0) * halfExtent;
@@ -218,11 +226,11 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
                 return null;
             }
 
-            var block = state.getBlock();
-            if (block == Blocks.NETHER_WART || block == Blocks.SUGAR_CANE) {
+            if (state.is(TagRegistry.Blocks.CAN_RECEIVE_GRACED_RAIN)){
                 return cursor.immutable();
             }
 
+            var block = state.getBlock();
             if (block instanceof BonemealableBlock bonemealable
                     && bonemealable.isValidBonemealTarget(level, cursor, state, false)) {
                 return cursor.immutable();
@@ -269,20 +277,12 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         return anchorPosition != null ? anchorPosition : position();
     }
 
-    public void setCloudThickness(float thickness) {
-        entityData.set(CLOUD_THICKNESS, Math.max(0.1f, thickness));
-    }
-
     public void setEffectRadiusBlocks(int radiusBlocks) {
         entityData.set(EFFECT_RADIUS_BLOCKS, Math.max(1, radiusBlocks));
     }
 
     public int getEffectRadiusBlocks() {
         return entityData.get(EFFECT_RADIUS_BLOCKS);
-    }
-
-    public float getCloudThickness() {
-        return entityData.get(CLOUD_THICKNESS);
     }
 
     private float getEffectHalfExtentBlocks() {
@@ -329,10 +329,6 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             setEffectRadiusBlocks(Math.max(1, Math.round(legacyRadius + 0.5f)));
         }
 
-        if (tag.contains("CloudThickness")) {
-            setCloudThickness(tag.getFloat("CloudThickness"));
-        }
-
         if (tag.contains("GrowthInterval")) {
             setGrowthIntervalTicks(tag.getInt("GrowthInterval"));
         }
@@ -357,7 +353,6 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         }
 
         tag.putInt("EffectRadiusBlocks", getEffectRadiusBlocks());
-        tag.putFloat("CloudThickness", getCloudThickness());
         tag.putInt("GrowthInterval", growthIntervalTicks);
     }
 }

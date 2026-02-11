@@ -58,5 +58,12 @@
     "sounds": [
       "apprenticecodex:saw_stop"
     ]
+  },
+  "cloud_rain": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:cloud_rain"
+    ]
   }
+
 }
