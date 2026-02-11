@@ -49,6 +49,7 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
     }
@@ -56,6 +57,10 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
     private float getDamage(int spellLevel, LivingEntity entity) {
         // todo:バランス調整.
         return 1;
+    }
+
+    private float getRange(){
+        return 6;
     }
 
     private int getReachSpeed(int spellLevel, LivingEntity entity) {
@@ -114,7 +119,7 @@ public class TinyLumberjack extends AbstractFirearmSpell<TinyLumberjackSawEntity
 
     @Override
     public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackSawEntity weapon) {
-        var result = RaycastTools.raycastRangeAttribute(entity, TARGET_RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, entity));
+        var result = RaycastTools.raycastFromEye(entity, getRange(), TARGET_RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, entity));
         weapon.updateOwnerTarget(result);
         return TickCastTypes.KEEP_CASTING;
     }
