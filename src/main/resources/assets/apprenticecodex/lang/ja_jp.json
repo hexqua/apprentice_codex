@@ -1,4 +1,17 @@
 {
+  "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
+
+  "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
+  "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",
+  "entity.apprenticecodex.commence_fire_rifle" : "マジックライフル",
+  "entity.apprenticecodex.compound_phial_projectile" : "即席ポーション",
+  "entity.apprenticecodex.quick_arms_handgun" : "マジックハンドガン",
+  "entity.apprenticecodex.breaching_enemy_shotgun" : "マジックショットガン",
+  "entity.apprenticecodex.bullet_stream_minigun" : "マジックガトリングガン",
+  "entity.apprenticecodex.graced_rain_cloud" : "恵みの雨雲",
+  "entity.apprenticecodex.tiny_lumberjack_saw" : "魔法の丸鋸",
+  "entity.apprenticecodex.arcane_beam" : "アーケインビーム",
+
   "spell.apprenticecodex.sky_edge": "スカイエッジ",
   "spell.apprenticecodex.archer_multiple": "アーチャーオプション",
   "spell.apprenticecodex.commence_fire": "コメンスファイア",
@@ -16,7 +29,7 @@
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
   "spell.apprenticecodex.commence_fire.guide": "自身に追従する魔法のライフルを召喚する。続いて使用することで強力な射撃攻撃を行う。",
   "spell.apprenticecodex.compound_phial.guide": "その場で即座にポーションを調合して投擲する。防御力を無視するが、自分にも当たる。",
-  "spell.apprenticecodex.quick_arms.guide": "魔法の拳銃を召喚し攻撃する。一定時間以内であれば自壊するまで連射可能。",
+  "spell.apprenticecodex.quick_arms.guide": "魔法のハンドガンを召喚し攻撃する。一定時間以内であれば自壊するまで連射可能。",
   "spell.apprenticecodex.breaching_enemy.guide": "魔法のショットガンを召喚し攻撃する。射程が短いがノックバックが非常に強力。",
   "spell.apprenticecodex.bullet_stream.guide": "魔法のガトリングガンを召喚し攻撃し続ける。ノックバックは無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.arcane_blast.guide": "魔力を対象の体内で爆破させ、自分の魔力の循環を加速させる。魔力による攻撃のため防具に阻まれないが、魔の存在に対しては無力。織物の魔術師の魔法のレプリカ。",

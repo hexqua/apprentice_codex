@@ -1,4 +1,17 @@
 {
+  "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
+
+  "entity.apprenticecodex.sky_edge_projectile" : "Sky Edge Sword",
+  "entity.apprenticecodex.archer_multiple_bow" : "Archer Multiple Bow",
+  "entity.apprenticecodex.commence_fire_rifle" : "Magic DMR",
+  "entity.apprenticecodex.compound_phial_projectile" : "Instant Phial",
+  "entity.apprenticecodex.quick_arms_handgun" : "Magic Handgun",
+  "entity.apprenticecodex.breaching_enemy_shotgun" : "Magic Shotgun",
+  "entity.apprenticecodex.bullet_stream_minigun" : "Magic Minigun",
+  "entity.apprenticecodex.graced_rain_cloud" : "Graced Rain Cloud",
+  "entity.apprenticecodex.tiny_lumberjack_saw" : "Magic Buzzsaw",
+  "entity.apprenticecodex.arcane_beam" : "Arcane Beam",
+  
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",
   "spell.apprenticecodex.commence_fire": "Commence Fire",
