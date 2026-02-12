@@ -3,10 +3,7 @@ package jp.aquafactory.apprenticecodex.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.client.particles.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.client.particles.ReticleDotParticle;
-import jp.aquafactory.apprenticecodex.common.registry.BlockEntityRegistry;
-import jp.aquafactory.apprenticecodex.common.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.common.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.common.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.common.registry.*;
 import jp.aquafactory.apprenticecodex.common.spells.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.breachingenemy.BreachingEnemyShotgunRenderer;
@@ -15,9 +12,11 @@ import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRif
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.magelight.MageLightTorchBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.personalshelf.PersonalShelfChestBlockRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackSawRenderer;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
@@ -29,12 +28,15 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 public class ClientRegistry {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new));
         event.enqueueWork(ItemRegistry::register);
     }
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityRegistry.PERSONAL_SHELF_CHEST.get(), PersonalShelfChestBlockRenderer::new);
+
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), ArcherMultipleBowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), CommenceFireRifleRenderer::new);
