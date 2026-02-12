@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.common.spells.commencefire.CommenceFireRif
 import jp.aquafactory.apprenticecodex.common.spells.compoundphial.CompoundPhialProjectileRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.magelight.MageLightTorchBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.common.spells.personalshelf.PersonalShelfChestBlockRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.common.spells.tinylumberjack.TinyLumberjackSawRenderer;
@@ -34,6 +35,8 @@ public class ClientRegistry {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityRegistry.PERSONAL_SHELF_CHEST.get(), PersonalShelfChestBlockRenderer::new);
+
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), ArcherMultipleBowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), CommenceFireRifleRenderer::new);
