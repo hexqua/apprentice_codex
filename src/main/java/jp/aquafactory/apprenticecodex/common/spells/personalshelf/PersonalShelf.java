@@ -36,17 +36,17 @@ public class PersonalShelf extends AbstractSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "personal_shelf");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.EPIC)
+            .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
-            .setMaxLevel(3)
+            .setMaxLevel(1)
             .setCooldownSeconds(30)
             .build();
 
     public PersonalShelf() {
         baseSpellPower = 100;
-        spellPowerPerLevel = 100;
+        spellPowerPerLevel = 0;
         baseManaCost = 100;
-        manaCostPerLevel = 100;
+        manaCostPerLevel = 0;
         castTime = 20;
     }
     @Override
