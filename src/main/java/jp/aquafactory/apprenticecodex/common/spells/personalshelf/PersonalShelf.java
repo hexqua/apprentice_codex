@@ -5,11 +5,13 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -23,6 +25,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
@@ -50,8 +53,14 @@ public class PersonalShelf extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
+                Component.translatable("ui.apprenticecodex.personal_shelf_size", Utils.stringTruncation(getSlotCount(spellLevel, caster), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
+    }
+
+    private int getSlotCount(int spellLevel, LivingEntity caster){
+        // todo:バランス調整.
+        return 27;
     }
 
     private double getRange(){
@@ -109,7 +118,9 @@ public class PersonalShelf extends AbstractSpell {
         }
 
         var castData = new PersonalShelfCastData();
-        castData.position = position.get();
+        castData.position = position.get().pos;
+        castData.exportFacing = position.get().facing;
+        castData.exportMode = entity.isShiftKeyDown();
         playerMagicData.setAdditionalCastData(castData);
         return true;
     }
@@ -118,21 +129,28 @@ public class PersonalShelf extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var castData = (PersonalShelfCastData) playerMagicData.getAdditionalCastData();
         if (castData != null) {
-            var targetPosition = castData.position;
-            if (targetPosition != null) {
-                var placeState = level.getBlockState(targetPosition);
+            if (castData.position != null) {
+                var placeState = level.getBlockState(castData.position);
                 if (!placeState.canBeReplaced()) {
                     if (entity instanceof ServerPlayer serverPlayer) {
                         serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_place", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
                     }
-                } else {
-                    // todo:パーソナルシェルフにデータを色々渡すようにする.
-                    level.setBlockAndUpdate(targetPosition, BlockRegistry.PERSONAL_SHELF_CHEST.get().defaultBlockState());
-                    AudioTools.playSoundFromBlock(level, targetPosition.getCenter(), SoundEvents.ENDER_CHEST_CLOSE, SoundSource.BLOCKS);
+                } else if (entity instanceof Player caster) {
+                    level.setBlockAndUpdate(castData.position, BlockRegistry.PERSONAL_SHELF_CHEST.get().defaultBlockState());
+                    var check = level.getBlockEntity(castData.position);
+                    if (check instanceof PersonalShelfChestBlockEntity chestEntity) {
+                        chestEntity.setShelfData(
+                                caster,
+                                getSlotCount(spellLevel, caster),
+                                castData.exportMode,
+                                castData.exportFacing
+                        );
 
-                    if (level instanceof ServerLevel server) {
-                        var position = targetPosition.getCenter();
-                        server.sendParticles(ParticleTypes.REVERSE_PORTAL, position.x, position.y, position.z, 32, 0.5, 0.5, 0.5, 0.05);
+                        var effectCenter = castData.position.getCenter();
+                        AudioTools.playSoundFromBlock(level, effectCenter, SoundEvents.ENDER_CHEST_CLOSE, SoundSource.BLOCKS);
+                        if (level instanceof ServerLevel server) {
+                            server.sendParticles(ParticleTypes.REVERSE_PORTAL, effectCenter.x, effectCenter.y, effectCenter.z, 32, 0.5, 0.5, 0.5, 0.05);
+                        }
                     }
                 }
             }
@@ -154,7 +172,9 @@ public class PersonalShelf extends AbstractSpell {
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
     }
 
-    private Optional<BlockPos> findPlacePos(Level level, LivingEntity entity) {
+    private record PlaceData(BlockPos pos, Direction facing) {}
+
+    private Optional<PlaceData> findPlacePos(Level level, LivingEntity entity) {
         var start = entity.getEyePosition(1.0F);
         var end = start.add(entity.getViewVector(1.0F).scale(getRange()));
         var hit = level.clip(new ClipContext(
@@ -177,25 +197,33 @@ public class PersonalShelf extends AbstractSpell {
             return Optional.empty();
         }
 
-        return Optional.of(placePos);
+        return Optional.of(new PlaceData(placePos, hit.getDirection().getOpposite()));
     }
 
     public static class PersonalShelfCastData implements ICastDataSerializable {
         private BlockPos position;
+        private boolean exportMode;
+        private Direction exportFacing;
 
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
             friendlyByteBuf.writeBlockPos(position);
+            friendlyByteBuf.writeBoolean(exportMode);
+            friendlyByteBuf.writeInt(exportFacing.get3DDataValue());
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
             position = friendlyByteBuf.readBlockPos();
+            exportMode = friendlyByteBuf.readBoolean();
+            exportFacing = Direction.from3DDataValue(friendlyByteBuf.readInt());
         }
 
         @Override
         public void reset() {
             position = null;
+            exportMode = false;
+            exportFacing = null;
         }
 
         @Override
@@ -204,12 +232,16 @@ public class PersonalShelf extends AbstractSpell {
             tag.putInt("PositionX", position.getX());
             tag.putInt("PositionY", position.getY());
             tag.putInt("PositionZ", position.getZ());
+            tag.putBoolean("ExportMode", exportMode);
+            tag.putInt("ExportFacing", exportFacing.get3DDataValue());
             return tag;
         }
 
         @Override
         public void deserializeNBT(CompoundTag nbt) {
             position = new BlockPos(nbt.getInt("PositionX"), nbt.getInt("PositionY"), nbt.getInt("PositionZ"));
+            exportMode = nbt.getBoolean("ExportMode");
+            exportFacing = Direction.from3DDataValue(nbt.getInt("ExportFacing"));
         }
     }
 }

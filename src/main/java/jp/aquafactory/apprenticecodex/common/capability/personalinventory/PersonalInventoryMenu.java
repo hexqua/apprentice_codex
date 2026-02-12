@@ -15,7 +15,8 @@ public class PersonalInventoryMenu extends AbstractContainerMenu {
     private final ItemStackHandler inventory;
     private final BlockPos pos;
 
-    public PersonalInventoryMenu(int id, Inventory playerInventory, ItemStackHandler personalShelf, BlockPos pos) {
+    public PersonalInventoryMenu(int id, Inventory playerInventory, ItemStackHandler personalShelf, BlockPos pos, int slotCount) {
+        // todo:スロット数をインベントリ画面に連動させたりする.
         super(MenuRegistry.PERSONAL_SHELF.get(), id);
         inventory = personalShelf;
         this.pos = pos;
