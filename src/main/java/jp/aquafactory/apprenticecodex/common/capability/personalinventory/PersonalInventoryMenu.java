@@ -12,16 +12,13 @@ import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class PersonalInventoryMenu extends AbstractContainerMenu {
-    private final ItemStackHandler inventory;
     private final BlockPos pos;
 
-    public PersonalInventoryMenu(int id, Inventory playerInventory, ItemStackHandler personalShelf, BlockPos pos, int slotCount) {
-        // todo:スロット数をインベントリ画面に連動させたりする.
+    public PersonalInventoryMenu(int id, Inventory playerInventory, ItemStackHandler personalShelf, BlockPos pos) {
         super(MenuRegistry.PERSONAL_SHELF.get(), id);
-        inventory = personalShelf;
         this.pos = pos;
 
-        // todo:とりあえずラージチェスト表示.
+        // ラージサイズチェスt表示
         var slotIndex = 0;
         for (var row = 0; row < 6; ++row) {
             for (var col = 0; col < 9; ++col) {
@@ -33,6 +30,7 @@ public class PersonalInventoryMenu extends AbstractContainerMenu {
             }
         }
 
+        // インベントリ.
         for (var row = 0; row < 3; ++row) {
             for (var col = 0; col < 9; ++col) {
                 var x = 8 + col * 18;
@@ -41,6 +39,8 @@ public class PersonalInventoryMenu extends AbstractContainerMenu {
                 addSlot(new Slot(playerInventory, col + row * 9 + 9, x, y));
             }
         }
+
+        // ホットバー.
         for (var col = 0; col < 9; ++col) {
             var x = 8 + col * 18;
             var y = 198;

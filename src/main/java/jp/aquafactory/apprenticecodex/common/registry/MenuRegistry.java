@@ -17,7 +17,7 @@ public class MenuRegistry {
     public static final RegistryObject<MenuType<PersonalInventoryMenu>> PERSONAL_SHELF =
             MENUS.register("personal_shelf", () -> IForgeMenuType.create((windowId, inv, data) -> {
                 var shelf = inv.player.getCapability(Capabilities.PERSONAL_INVENTORY).orElseThrow(() -> new IllegalStateException("personal inventory (for Personal Shelf spell) capability missing"));
-                return new PersonalInventoryMenu(windowId, inv, shelf.getHandler(), data.readBlockPos(), data.readInt());
+                return new PersonalInventoryMenu(windowId, inv, shelf.getHandler(), data.readBlockPos());
             }));
 
     public static void register(IEventBus bus) {

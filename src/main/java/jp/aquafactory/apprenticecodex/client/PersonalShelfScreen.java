@@ -9,12 +9,11 @@ import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 public class PersonalShelfScreen extends AbstractContainerScreen<PersonalInventoryMenu> {
-    // todo:専用のGUIを作る(今はバニラのラージチェストを流用)
+    // ラージチェストサイズに決めたのでバニラのUIを使い回す.
     private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
 
     public PersonalShelfScreen(PersonalInventoryMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
-        // todo:テクスチャ作ったら合わせる.
         imageWidth = 176;
         imageHeight = 222;
         inventoryLabelY = imageHeight - 94;

@@ -5,7 +5,6 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
-import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
@@ -53,14 +52,8 @@ public class PersonalShelf extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.apprenticecodex.personal_shelf_size", Utils.stringTruncation(getSlotCount(spellLevel, caster), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
-    }
-
-    private int getSlotCount(int spellLevel, LivingEntity caster){
-        // todo:バランス調整.
-        return 27;
     }
 
     private double getRange(){
@@ -141,7 +134,6 @@ public class PersonalShelf extends AbstractSpell {
                     if (check instanceof PersonalShelfChestBlockEntity chestEntity) {
                         chestEntity.setShelfData(
                                 caster,
-                                getSlotCount(spellLevel, caster),
                                 castData.exportMode,
                                 castData.exportFacing
                         );

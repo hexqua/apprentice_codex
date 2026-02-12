@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.spells.personalshelf;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.common.capability.personalinventory.PersonalInventory;
 import jp.aquafactory.apprenticecodex.common.capability.personalinventory.PersonalInventoryMenu;
 import jp.aquafactory.apprenticecodex.common.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
@@ -29,12 +30,10 @@ import java.util.UUID;
 
 public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuProvider {
 
-    private static final int FALLBACK_UNLOCKED_SLOTS = 9;
     private static final int EXPORT_COOLDOWN_TICK = 20;
 
     @Nullable
     private UUID owner;
-    private int unlockedSlots = FALLBACK_UNLOCKED_SLOTS;
     private boolean isExportMode;
     @Nullable
     private Direction exportFacing;
@@ -55,7 +54,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         var capability = player.getCapability(Capabilities.PERSONAL_INVENTORY);
         if (capability.isPresent()) {
             var shelf = capability.orElseThrow(IllegalStateException::new);
-            return new PersonalInventoryMenu(windowId, inventory, shelf.getHandler(), getBlockPos(), unlockedSlots);
+            return new PersonalInventoryMenu(windowId, inventory, shelf.getHandler(), getBlockPos());
         }
 
         return null;
@@ -66,13 +65,8 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         return owner;
     }
 
-    public int getUnlockedSlots() {
-        return unlockedSlots;
-    }
-
-    public void setShelfData(Player player, int unlockedSlots, boolean isExportMode, @Nullable Direction exportFacing) {
+    public void setShelfData(Player player, boolean isExportMode, @Nullable Direction exportFacing) {
         this.owner = player.getUUID();
-        this.unlockedSlots = unlockedSlots;
         this.isExportMode = isExportMode;
         this.exportFacing = exportFacing;
 
@@ -93,7 +87,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
             tag.putUUID("Owner", owner);
         }
 
-        tag.putInt("UnlockedSlots", unlockedSlots);
         tag.putBoolean("IsExportMode", isExportMode);
 
         if (exportFacing != null) {
@@ -105,7 +98,6 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
     public void load(@NotNull CompoundTag tag) {
         super.load(tag);
         owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
-        unlockedSlots = tag.contains("UnlockedSlots", Tag.TAG_INT) ? tag.getInt("UnlockedSlots") : FALLBACK_UNLOCKED_SLOTS;
         isExportMode = tag.getBoolean("IsExportMode");
         exportFacing = tag.contains("ExportFacing", Tag.TAG_INT) ? Direction.from3DDataValue(tag.getInt("ExportFacing")) : null;
     }
@@ -165,7 +157,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
                     ownerPlayer.getCapability(Capabilities.PERSONAL_INVENTORY)
                             .ifPresent(personalInventory -> {
                                 var source = personalInventory.getHandler();
-                                var slotLimit = Math.min(blockEntity.unlockedSlots, source.getSlots());
+                                var slotLimit = Math.min(PersonalInventory.MAX_SIZE, source.getSlots());
 
                                 for (var i = 0; i < slotLimit; ++i) {
                                     var inSlot = source.getStackInSlot(i);
