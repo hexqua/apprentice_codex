@@ -1,5 +1,6 @@
 {
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
+  "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
 
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
   "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",
@@ -11,6 +12,8 @@
   "entity.apprenticecodex.graced_rain_cloud" : "恵みの雨雲",
   "entity.apprenticecodex.tiny_lumberjack_saw" : "魔法の丸鋸",
   "entity.apprenticecodex.arcane_beam" : "アーケインビーム",
+
+  "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
 
   "spell.apprenticecodex.sky_edge": "スカイエッジ",
   "spell.apprenticecodex.archer_multiple": "アーチャーオプション",

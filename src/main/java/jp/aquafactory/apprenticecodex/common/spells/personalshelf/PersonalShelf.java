@@ -126,8 +126,8 @@ public class PersonalShelf extends AbstractSpell {
                         serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_place", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
                     }
                 } else {
-                    // todo:チェストを置く(今はわかりやすいようにメイジライトを流用)
-                    level.setBlockAndUpdate(targetPosition, BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState());
+                    // todo:パーソナルシェルフにデータを色々渡すようにする.
+                    level.setBlockAndUpdate(targetPosition, BlockRegistry.PERSONAL_SHELF_CHEST.get().defaultBlockState());
                     AudioTools.playSoundFromBlock(level, targetPosition.getCenter(), SoundEvents.ENDER_CHEST_CLOSE, SoundSource.BLOCKS);
 
                     if (level instanceof ServerLevel server) {

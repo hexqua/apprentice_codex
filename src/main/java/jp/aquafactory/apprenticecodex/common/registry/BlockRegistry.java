@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.common.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.spells.magelight.MageLightTorchBlock;
+import jp.aquafactory.apprenticecodex.common.spells.personalshelf.PersonalShelfChestBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -14,6 +15,9 @@ public class BlockRegistry {
 
     public static final RegistryObject<Block> MAGE_LIGHT_TORCH =
             BLOCKS.register("mage_light_torch", MageLightTorchBlock::new);
+
+    public static final RegistryObject<Block> PERSONAL_SHELF_CHEST =
+            BLOCKS.register("personal_shelf_chest", PersonalShelfChestBlock::new);
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

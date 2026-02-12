@@ -1,5 +1,6 @@
 {
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
+  "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
 
   "entity.apprenticecodex.sky_edge_projectile" : "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow" : "Archer Multiple Bow",
@@ -11,7 +12,8 @@
   "entity.apprenticecodex.graced_rain_cloud" : "Graced Rain Cloud",
   "entity.apprenticecodex.tiny_lumberjack_saw" : "Magic Buzzsaw",
   "entity.apprenticecodex.arcane_beam" : "Arcane Beam",
-  "spell.apprenticecodex.personal_shelf": "Personal Shelf",
+
+  "container.apprenticecodex.personal_shelf": "Personal Shelf",
   
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",
@@ -25,6 +27,7 @@
   "spell.apprenticecodex.tiny_lumberjack": "Tiny Lumberjack",
   "spell.apprenticecodex.graced_rain": "Graced Rain",
   "spell.apprenticecodex.mage_light": "Mage Light",
+  "spell.apprenticecodex.personal_shelf": "Personal Shelf",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires in the direction of your gaze. It takes time to fire and has no knockback, but it can ignore the target’s invincibility frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking the designated target—or nearby enemies—until it runs out of ammunition.",
