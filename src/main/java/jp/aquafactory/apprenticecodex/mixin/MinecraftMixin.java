@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static jp.aquafactory.apprenticecodex.client.ClientCastTargetHighlightHandler.getHighlightEntityId;
+import static jp.aquafactory.apprenticecodex.event.ClientCastTargetHighlightEvent.getHighlightEntityId;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {

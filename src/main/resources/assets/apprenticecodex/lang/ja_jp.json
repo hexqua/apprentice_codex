@@ -41,7 +41,7 @@
   "spell.apprenticecodex.tiny_lumberjack.guide": "魔法の丸鋸を召喚し、視線の先の対象を切り刻む。大木に向かって使うことで切り倒すこともできる。",
   "spell.apprenticecodex.graced_rain.guide": "癒やしの効果を持つ雨雲を召喚し、浴びている生命を癒やす。癒やしは植生には栄養となる。",
   "spell.apprenticecodex.mage_light.guide": "周囲を照らす魔法の松明を召喚して設置する。魔法の松明は支えを必要としない。",
-  "spell.apprenticecodex.personal_shelf.guide": "魔法の保管庫を一定時間顕現化させる。保管庫は個々人の空間のインターフェースに過ぎない。スニークしながら使用すると使用したチェストなどに搬出しようとする。",
+  "spell.apprenticecodex.personal_shelf.guide": "魔法の保管庫を一定時間顕現化させる。保管庫は一定時間経過するか離れると消失する。保管庫は個々人の空間のインターフェースに過ぎない。スニークしながら使用すると使用したチェストなどに搬出しようとする。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
