@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgun
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunRenderer;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRenderer;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileRenderer;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherRenderer;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockRenderer;
@@ -37,5 +38,6 @@ public final class RendererRegisterEvent {
         event.registerEntityRenderer(EntityRegistry.GRACED_RAIN_CLOUD.get(), GracedRainCloudRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_SAW.get(), TinyLumberjackSawRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
     }
 }

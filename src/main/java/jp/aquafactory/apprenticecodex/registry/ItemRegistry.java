@@ -33,6 +33,10 @@ public final class ItemRegistry {
             ITEMS.register("breaching_enemy_shotgun",
                     () -> new Item(new Item.Properties()));
 
+    public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER =
+            ITEMS.register("fly_swatter_launcher",
+                    () -> new Item(new Item.Properties()));
+
     private ItemRegistry() {
         // do nothing.
     }
@@ -40,7 +44,7 @@ public final class ItemRegistry {
     public static void register() {
         ItemProperties.register(
                 ItemRegistry.ARCHER_MULTIPLE_BOW.get(),
-                ResourceLocation.fromNamespaceAndPath("apprenticecodex", "stage"),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "stage"),
                 (stack, level, living, seed) -> {
                     CompoundTag tag = stack.getTag();
                     int stage = (tag != null) ? tag.getInt("Stage") : 0;

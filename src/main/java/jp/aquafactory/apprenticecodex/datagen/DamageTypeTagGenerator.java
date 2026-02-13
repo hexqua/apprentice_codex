@@ -61,7 +61,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 GRACED_RAIN,
                 QUICK_ARMS,
                 SKY_EDGE,
-                TINY_LUMBERJACK
+                TINY_LUMBERJACK,
+                FLY_SWATTER
         );
     }
 }
