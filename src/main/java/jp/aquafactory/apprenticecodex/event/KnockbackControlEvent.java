@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.utility;
+package jp.aquafactory.apprenticecodex.event;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 @Mod.EventBusSubscriber
-public final class KnockbackControl {
+public final class KnockbackControlEvent {
 
-    private KnockbackControl() {}
+    private KnockbackControlEvent() {}
 
     private static final Map<LivingEntity, Integer> IMMUNE = new WeakHashMap<>();
 

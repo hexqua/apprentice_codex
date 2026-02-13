@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -70,7 +71,7 @@ public class CombatTools {
                                       KnockbackTypes type) {
         if (target instanceof LivingEntity livingTarget) {
             if (type == KnockbackTypes.NO_KNOCKBACK) {
-                KnockbackControl.markIgnoreNextKnockback(livingTarget);
+                KnockbackControlEvent.markIgnoreNextKnockback(livingTarget);
             }
             return livingTarget.hurt(source, baseAmount * getResistAttribute(livingTarget, magicSchool));
         } else {
