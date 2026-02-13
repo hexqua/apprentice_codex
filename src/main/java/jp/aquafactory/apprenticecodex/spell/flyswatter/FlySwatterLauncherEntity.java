@@ -37,6 +37,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
             SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.FLOAT);
 
     private float damage;
+    private float radius;
     private final List<Entity> lockOnEntityList = new ArrayList<>();
     private int fireIntervalTick;
     private boolean isFiring;
@@ -163,6 +164,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         var projectile = new FlySwatterProjectileEntity(EntityRegistry.FLY_SWATTER_PROJECTILE.get(),level, owner);
         projectile.setPos(position().add(getLookAngle().scale(1f)));
         projectile.setDamage(damage);
+        projectile.setRadius(radius);
         projectile.setProjectileVelocity(getLookAngle(), 1f);
         projectile.setTarget(target);
         level.addFreshEntity(projectile);
@@ -178,6 +180,10 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
 
     public void setDamage(float damage){
         this.damage = damage;
+    }
+
+    public void setRadius(float radius){
+        this.radius = radius;
     }
 
     public void setLockOnEntityList(List<Integer> entityIdList, Level level) {

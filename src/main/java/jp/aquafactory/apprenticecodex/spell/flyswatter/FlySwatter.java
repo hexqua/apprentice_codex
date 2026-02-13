@@ -70,6 +70,11 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
         return 10;
     }
 
+    private float getExplosionRadius(int spellLevel, LivingEntity entity){
+        // todo:バランス調整.
+        return 4.0f;
+    }
+
     private double getRange() {
         return 128;
     }
@@ -127,6 +132,8 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     @Override
     public FlySwatterLauncherEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new FlySwatterLauncherEntity(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setRadius(getExplosionRadius(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
