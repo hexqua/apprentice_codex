@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,9 +27,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.HitResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -109,7 +108,7 @@ public class PersonalShelf extends AbstractSpell {
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var position = findPlacePos(level, entity);
+        var position = BlockTools.findPlacePos(level, entity, getRange());
         if (position.isEmpty()) {
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_place", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
@@ -118,8 +117,8 @@ public class PersonalShelf extends AbstractSpell {
         }
 
         var castData = new PersonalShelfCastData();
-        castData.position = position.get().pos;
-        castData.exportFacing = position.get().facing;
+        castData.position = position.get().pos();
+        castData.exportFacing = position.get().facing();
         castData.exportMode = entity.isShiftKeyDown();
         playerMagicData.setAdditionalCastData(castData);
         return true;
@@ -173,34 +172,6 @@ public class PersonalShelf extends AbstractSpell {
             playerMagicData.setAdditionalCastData(null);
         }
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
-    }
-
-    private record PlaceData(BlockPos pos, Direction facing) {}
-
-    private Optional<PlaceData> findPlacePos(Level level, LivingEntity entity) {
-        var start = entity.getEyePosition(1.0F);
-        var end = start.add(entity.getViewVector(1.0F).scale(getRange()));
-        var hit = level.clip(new ClipContext(
-                start,
-                end,
-                ClipContext.Block.COLLIDER,
-                ClipContext.Fluid.NONE,
-                entity
-        ));
-
-        if (hit.getType() == HitResult.Type.MISS) {
-            return Optional.empty();
-        }
-
-        var hitPos = hit.getBlockPos();
-        var hitState = level.getBlockState(hitPos);
-        var placePos = hitState.canBeReplaced() ? hitPos : hitPos.relative(hit.getDirection());
-        var placeState = level.getBlockState(placePos);
-        if (!placeState.canBeReplaced()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(new PlaceData(placePos, hit.getDirection().getOpposite()));
     }
 
     public static class PersonalShelfCastData implements ICastDataSerializable {
