@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.flyswatter;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
@@ -32,6 +33,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
     private static final EntityDataAccessor<Float> AIM_Z =
             SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.FLOAT);
 
+    private float damage;
     private final List<Entity> lockOnEntityList = new ArrayList<>();
     private int fireIntervalTick;
     private boolean isFiring;
@@ -129,8 +131,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
                 fireIntervalTick = FIRE_INTERVAL_TICK;
                 if (!lockOnEntityList.isEmpty()) {
                     var target = lockOnEntityList.get(0);
-                    // todo: 発射機構をここに組む.
-                    ApprenticeCodex.LOGGER.info("fly swatter target: {}", target.getName().getString());
+                    fire(level, target);
                     lockOnEntityList.remove(0);
                 } else {
                     isFiring = false;
@@ -149,11 +150,30 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         hasImpulse = true;
     }
 
+    private void fire(Level level, Entity target){
+        ApprenticeCodex.LOGGER.info("fly swatter target: {}", target.getName().getString());
+        if (!(getOwner() instanceof LivingEntity owner)){
+            return;
+        }
+
+        // todo:諸々パラメータを仕込んだり演出入れたり.
+        var projectile = new FlySwatterProjectileEntity(EntityRegistry.FLY_SWATTER_PROJECTILE.get(),level, owner);
+        projectile.setPos(position().add(getLookAngle().scale(1f)));
+        projectile.setDamage(damage);
+        projectile.setProjectileVelocity(getLookAngle(), 1f);
+        projectile.setTarget(target);
+        level.addFreshEntity(projectile);
+    }
+
     public void setCastingReticleEffect(int tick, Vec3 target) {
         entityData.set(CASTING_TICK, tick);
         entityData.set(AIM_X, (float) target.x);
         entityData.set(AIM_Y, (float) target.y);
         entityData.set(AIM_Z, (float) target.z);
+    }
+
+    public void setDamage(float damage){
+        this.damage = damage;
     }
 
     public void setLockOnEntityList(List<Integer> entityIdList, Level level) {
