@@ -52,11 +52,15 @@
   "ui.apprenticecodex.warm_up_time": "Max warm up time: %s ",
   "ui.apprenticecodex.tree_cut_time": "Minimum Tree cut time: %s ",
   "ui.apprenticecodex.arcane_charge_damage_multiplier": "Damage Amplifier per Level: %d%%",
+  "ui.apprenticecodex.lock_on_count": "Maximum Lock-on Count: %d",
+  "ui.apprenticecodex.lock_on_time": "Lock-on Duration: %s",
+
+  "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
   "ui.apprenticecodex.firearm_spell.no_firearm": "Couldn't find firearm!",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
-  "ui.apprenticecodex.cant_place": "Can't place here",
+  "ui.apprenticecodex.fly_swatter.lockon_entity": "Lock on to %s...(%d/%d)",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
 

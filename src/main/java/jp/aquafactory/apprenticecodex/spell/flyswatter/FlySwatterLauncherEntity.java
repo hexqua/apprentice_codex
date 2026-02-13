@@ -1,13 +1,42 @@
 package jp.aquafactory.apprenticecodex.spell.flyswatter;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class FlySwatterLauncherEntity extends SummonWeaponEntity {
+
+    private static final int FIRE_START_DELAY_TICK = 10;
+    private static final int FIRE_INTERVAL_TICK = 5;
+
+    private static final EntityDataAccessor<Integer> CASTING_TICK =
+            SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> AIM_X =
+            SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> AIM_Y =
+            SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> AIM_Z =
+            SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.FLOAT);
+
+    private final List<Entity> lockOnEntityList = new ArrayList<>();
+    private int fireIntervalTick;
+    private boolean isFiring;
+    private boolean isReleased;
+
     public FlySwatterLauncherEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
@@ -27,7 +56,119 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
 
     @Override
     protected void defineSynchedData() {
-        // todo:表示同期周りで色々追加する.
+        entityData.define(CASTING_TICK, 0);
+        entityData.define(AIM_X, 0.0f);
+        entityData.define(AIM_Y, 0.0f);
+        entityData.define(AIM_Z, 0.0f);
+    }
+
+    @Override
+    public void onClientRemoval(){
+        var level = level();
+        EffectTools.createStickParticle(
+                position(),
+                getLookAngle(),
+                2,
+                16,
+                0.1f,
+                0.02,
+                ParticleTypes.END_ROD, level
+        );
+
+        super.onClientRemoval();
+    }
+
+    @Override
+    public void releaseWeapon(){
+        isReleased = true;
+    }
+
+    @Override
+    public void tick() {
+        var level = level();
+
+        // 射出時パーティクル.
+        if (level.isClientSide && firstTick) {
+            EffectTools.createRingParticle(
+                    position(),
+                    getLookAngle(),
+                    0.3f,
+                    12,
+                    0.015f,
+                    0.01,
+                    ParticleTypes.END_ROD,
+                    level
+            );
+        }
+
+        super.tick();
+
+        if (level.isClientSide) {
+            int castingTick = entityData.get(CASTING_TICK);
+            if (castingTick > 0) {
+                var targetPosition = new Vec3(entityData.get(AIM_X), entityData.get(AIM_Y), entityData.get(AIM_Z));
+                var targetVec = targetPosition.subtract(position());
+                var reticleDistance = Math.min(4, targetVec.length() - 1);
+                var reticlePosition = position().add(targetVec.normalize().scale(reticleDistance));
+                EffectTools.createRingParticle(reticlePosition, targetVec, 0.25, 16, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
+            }
+        }
+
+        if (level.isClientSide) {
+            return;
+        }
+
+        if (!(getOwner() instanceof LivingEntity owner)) {
+            discard();
+            return;
+        }
+
+        if (isFiring) {
+            --fireIntervalTick;
+            if (fireIntervalTick <= 0) {
+                fireIntervalTick = FIRE_INTERVAL_TICK;
+                if (!lockOnEntityList.isEmpty()) {
+                    var target = lockOnEntityList.get(0);
+                    // todo: 発射機構をここに組む.
+                    ApprenticeCodex.LOGGER.info("fly swatter target: {}", target.getName().getString());
+                    lockOnEntityList.remove(0);
+                } else {
+                    isFiring = false;
+                }
+            }
+        } else if (isReleased) {
+            discard();
+        }
+
+        var locatePosition = getAimingPosition(owner);
+        followTargetPosition(locatePosition);
+
+        setYRot(owner.getYRot());
+        setXRot(owner.getXRot());
+        setRot(getYRot(), getXRot());
+        hasImpulse = true;
+    }
+
+    public void setCastingReticleEffect(int tick, Vec3 target) {
+        entityData.set(CASTING_TICK, tick);
+        entityData.set(AIM_X, (float) target.x);
+        entityData.set(AIM_Y, (float) target.y);
+        entityData.set(AIM_Z, (float) target.z);
+    }
+
+    public void setLockOnEntityList(List<Integer> entityIdList, Level level) {
+        lockOnEntityList.clear();
+        for (var entityId : entityIdList) {
+            var entity = level.getEntity(entityId);
+            if (entity != null && entity.isAlive()){
+                lockOnEntityList.add(entity);
+            }
+        }
+    }
+
+    public void startFiring() {
+        fireIntervalTick = FIRE_START_DELAY_TICK;
+        isFiring = true;
     }
 
     private static Vec3 getAimingPosition(LivingEntity owner) {
