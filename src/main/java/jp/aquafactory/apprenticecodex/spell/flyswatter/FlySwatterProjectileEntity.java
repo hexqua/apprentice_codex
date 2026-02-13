@@ -207,6 +207,14 @@ public class FlySwatterProjectileEntity extends Projectile {
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat("damage", damage);
+        tag.putFloat("radius", radius);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        damage = tag.getFloat("damage");
+        radius = tag.getFloat("radius");
     }
 
     @Override

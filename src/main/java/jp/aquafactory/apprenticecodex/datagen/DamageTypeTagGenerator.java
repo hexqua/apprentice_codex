@@ -44,7 +44,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BULLET_STREAM,
                 GRACED_RAIN,
                 SKY_EDGE,
-                TINY_LUMBERJACK
+                TINY_LUMBERJACK,
+                FLY_SWATTER
         );
 
         // RANGED_ATTACK : 遠距離攻撃扱い(現状はガーディアンのトゲ無効)
