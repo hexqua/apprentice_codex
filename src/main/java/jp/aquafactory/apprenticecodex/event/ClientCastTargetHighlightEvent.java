@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.event;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -12,7 +12,7 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.Objects;
 
 @Mod.EventBusSubscriber(Dist.CLIENT)
-public class ClientCastTargetHighlightEvent {
+public final class ClientCastTargetHighlightEvent {
     private static int highlightColor = 0xFFFFFF;
     private static int highlightEntityId = -1;
 
@@ -26,7 +26,7 @@ public class ClientCastTargetHighlightEvent {
             if (level != null) {
                 var spellData = ClientMagicData.getSyncedSpellData(event.player);
                 if (spellData.isCasting()) {
-                    for(var spellEntry : SpellsRegistry.SPELLS.getEntries()){
+                    for(var spellEntry : SpellRegistry.SPELLS.getEntries()){
                         var spell = spellEntry.get();
                         if (!Objects.equals(spellData.getCastingSpellId(), spell.getSpellId())){
                             continue;

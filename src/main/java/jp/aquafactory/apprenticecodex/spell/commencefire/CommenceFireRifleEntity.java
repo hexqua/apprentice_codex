@@ -4,7 +4,7 @@ import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
@@ -196,7 +196,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
         var source = CombatTools.getDamageSource(level, getOwner(), "commence_fire");
         var headshotRate = headshotPercent / 100.0f;
         var finalDamage = damage * (isHeadShot ? headshotRate : 1);
-        CombatTools.applyDamage(resoluteTarget, finalDamage, source, SpellsRegistry.COMMENCE_FIRE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+        CombatTools.applyDamage(resoluteTarget, finalDamage, source, SpellRegistry.COMMENCE_FIRE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
     }
 
     public void fire(Vec3 target, Level level, HitTypes hitType, boolean isHeadShot) {

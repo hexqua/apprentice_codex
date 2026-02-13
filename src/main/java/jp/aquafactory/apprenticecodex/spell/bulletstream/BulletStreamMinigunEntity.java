@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.bulletstream;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -188,7 +188,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         if (hitResult.hitEntity() != null) {
             var target = hitResult.hitEntity();
             var source = CombatTools.getDamageSource(level, this, owner, "bullet_stream");
-            CombatTools.applyDamage(target, damage, source, SpellsRegistry.BULLET_STREAM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applyDamage(target, damage, source, SpellRegistry.BULLET_STREAM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
 
         if (level instanceof ServerLevel server) {

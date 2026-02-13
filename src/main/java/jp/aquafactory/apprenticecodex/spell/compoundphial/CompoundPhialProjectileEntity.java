@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.compoundphial;
 
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -154,7 +154,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
         if (entity != null && entity.isAlive()) {
             var target = CombatTools.resolutePartEntity(entity);
             var source = CombatTools.getDamageSource(level(), this, owner, "compound_phial");
-            CombatTools.applyDamage(target, impactDamage, source, SpellsRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applyDamage(target, impactDamage, source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 
         // バニラスプラッシュしつつおまけを追加.
@@ -172,7 +172,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
             if(distance <= splashRadius) {
                 var scale = 0.5 + 0.5 * (1 - distance / splashRadius);
                 var source = CombatTools.getDamageSource(level(), this, owner, "compound_phial");
-                CombatTools.applyDamage(target, Math.round(splashDamage * scale), source, SpellsRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                CombatTools.applyDamage(target, Math.round(splashDamage * scale), source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             }
         }
     }

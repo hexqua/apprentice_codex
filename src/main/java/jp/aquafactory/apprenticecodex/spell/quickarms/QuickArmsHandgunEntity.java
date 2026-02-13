@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.quickarms;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -122,7 +122,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
             var source = CombatTools.getDamageSource(level(), this, getOwner(), "quick_arms");
-            CombatTools.applyDamage(target, damage, source, SpellsRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applyDamage(target, damage, source, SpellRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 
         if (level instanceof ServerLevel server) {

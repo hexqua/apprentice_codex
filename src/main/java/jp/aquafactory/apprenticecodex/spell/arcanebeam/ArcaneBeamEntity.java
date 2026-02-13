@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.arcanebeam;
 
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -96,7 +96,7 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
 
         var source = CombatTools.getDamageSource(level, this, owner, "arcane_beam");
         for(var entity : entities){
-            CombatTools.applyDamage(entity, damage, source, SpellsRegistry.ARCANE_BEAM.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applyDamage(entity, damage, source, SpellRegistry.ARCANE_BEAM.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
     }
 

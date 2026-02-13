@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.gracedrain;
 
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -296,7 +296,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
                 center.x + halfExtent, baseY + EFFECT_HEIGHT_TOLERANCE, center.z + halfExtent
         );
         var source = CombatTools.getDamageSource(level, this, getOwner(), "graced_rain");
-        var school = SpellsRegistry.GRACED_RAIN.get().getSchoolType();
+        var school = SpellRegistry.GRACED_RAIN.get().getSchoolType();
 
         for (var target : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
             var targetY = RaycastTools.getEntityTargetPosition(target).y;

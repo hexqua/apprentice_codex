@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.archermultiple;
 
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -297,7 +297,7 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         var sourceType = isLastBullet ? "archer_multiple_last" : "archer_multiple";
 
         var source = CombatTools.getDamageSource(level, this, getOwner(), sourceType);
-        CombatTools.applyDamage(target, damage, source, SpellsRegistry.ARCHER_MULTIPLE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+        CombatTools.applyDamage(target, damage, source, SpellRegistry.ARCHER_MULTIPLE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         AudioTools.playSoundFromEntity(level, this, soundEvent, SoundSource.PLAYERS, 0.5f);
 
         // 最終だけ消滅と同じになるため、サーバー側で送る.

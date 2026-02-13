@@ -8,7 +8,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
-public class ParticleRegistry {
+public final class ParticleRegistry {
     public static final DeferredRegister<ParticleType<?>> PARTICLES =
             DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, "apprenticecodex");
 

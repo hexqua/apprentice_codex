@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.breachingenemy;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -191,7 +191,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
 
             var finalDamage = damage * entry.getValue();
             var source = CombatTools.getDamageSource(level(), this, getOwner(), "breaching_enemy");
-            CombatTools.applyDamage(entity, finalDamage, source, SpellsRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applyDamage(entity, finalDamage, source, SpellRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
 
             if (entity instanceof LivingEntity livingEntity){
                 var knockbackDir = livingEntity.position().subtract(position()).normalize().scale(-1);

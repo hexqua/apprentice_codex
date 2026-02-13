@@ -17,7 +17,7 @@ public class ApprenticeCodex
         LOGGER.info("Loading {}", NAME);
 
         var bus = context.getModEventBus();
-        SpellsRegistry.register(bus);
+        SpellRegistry.register(bus);
         EntityRegistry.register(bus);
         BlockRegistry.register(bus);
         BlockEntityRegistry.register(bus);

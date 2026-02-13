@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.tinylumberjack;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellsRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -163,7 +163,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
                         e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
                 );
                 for (var hit : hitResult){
-                    CombatTools.applyDamage(hit, damage, source, SpellsRegistry.TINY_LUMBERJACK.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                    CombatTools.applyDamage(hit, damage, source, SpellRegistry.TINY_LUMBERJACK.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
                 }
             }
             moveToTarget(owner, ownerTargetHitPos, true);
