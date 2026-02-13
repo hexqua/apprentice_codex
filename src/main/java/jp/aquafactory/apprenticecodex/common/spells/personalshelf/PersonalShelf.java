@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.common.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.common.utility.AudioTools;
@@ -52,8 +53,14 @@ public class PersonalShelf extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
+                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDurationTicks(), 1)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
+    }
+
+    private int getDurationTicks(){
+        return 20 * 30;
     }
 
     private double getRange(){
@@ -136,6 +143,10 @@ public class PersonalShelf extends AbstractSpell {
                                 caster,
                                 castData.exportMode,
                                 castData.exportFacing
+                        );
+                        chestEntity.setLifeData(
+                                getDurationTicks(),
+                                getRange()
                         );
 
                         var effectCenter = castData.position.getCenter();

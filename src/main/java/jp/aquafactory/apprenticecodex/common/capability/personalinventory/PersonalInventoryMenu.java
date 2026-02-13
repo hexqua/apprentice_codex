@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.common.capability.personalinventory;
 
 import jp.aquafactory.apprenticecodex.common.registry.MenuRegistry;
+import jp.aquafactory.apprenticecodex.common.spells.personalshelf.PersonalShelfChestBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -90,5 +91,18 @@ public class PersonalInventoryMenu extends AbstractContainerMenu {
         }
 
         return copy;
+    }
+
+    @Override
+    public void removed(@NotNull Player player) {
+        super.removed(player);
+        var level = player.level();
+
+        if (!level.isClientSide) {
+            var be = level.getBlockEntity(this.pos);
+            if (be instanceof PersonalShelfChestBlockEntity shelf) {
+                shelf.onClosedBy(player, level);
+            }
+        }
     }
 }

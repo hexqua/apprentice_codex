@@ -41,7 +41,7 @@
   "spell.apprenticecodex.tiny_lumberjack.guide": "Summons a magical buzzsaw and cuts through the target's body. Can be used to cut through trees.",
   "spell.apprenticecodex.graced_rain.guide": "Summons a healing rain cloud that heals living beings submerged in it. Healing is beneficial to plants.",
   "spell.apprenticecodex.mage_light.guide": "Summons a magical torch that illuminates the surroundings and place. A magical torch does not require support.",
-  "spell.apprenticecodex.personal_shelf.guide": "Summons a magical chest that can be used to store items. The chest is an interface to individual space. Use while sneaking it will attempt to move items to the chest used.",
+  "spell.apprenticecodex.personal_shelf.guide": "Summons a magical chest that can be used to store items. The chest disappears after a certain period of time or when it is moved away. The chest is an interface to individual space. Use while sneaking it will attempt to move items to the chest used.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
