@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.commencefire;
 
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -193,7 +194,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
 
     public void damageTarget(Entity target, boolean isHeadShot, Level level) {
         var resoluteTarget = CombatTools.resolutePartEntity(target);
-        var source = CombatTools.getDamageSource(level, getOwner(), "commence_fire");
+        var source = CombatTools.getDamageSource(level, getOwner(), DamageTypes.COMMENCE_FIRE);
         var headshotRate = headshotPercent / 100.0f;
         var finalDamage = damage * (isHeadShot ? headshotRate : 1);
         CombatTools.applyDamage(resoluteTarget, finalDamage, source, SpellRegistry.COMMENCE_FIRE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);

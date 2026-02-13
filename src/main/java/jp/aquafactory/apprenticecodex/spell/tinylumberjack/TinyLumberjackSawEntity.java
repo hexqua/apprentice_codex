@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.tinylumberjack;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -154,7 +155,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
 
         if (targetType == RaycastTools.TargetType.LIVING_ENTITY) {
             if(tickCount % 2 == 0){
-                var source = CombatTools.getDamageSource(level, this, owner, "tiny_lumberjack");
+                var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.TINY_LUMBERJACK);
                 var hitResult = RaycastTools.sampleBeamHits(level,
                         position(),
                         position().add(getLookAngle().normalize().scale(1.0)),

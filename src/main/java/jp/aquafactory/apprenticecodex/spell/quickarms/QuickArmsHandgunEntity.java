@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.quickarms;
 
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -121,7 +122,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         var aimResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this));
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
-            var source = CombatTools.getDamageSource(level(), this, getOwner(), "quick_arms");
+            var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.QUICK_ARMS);
             CombatTools.applyDamage(target, damage, source, SpellRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 

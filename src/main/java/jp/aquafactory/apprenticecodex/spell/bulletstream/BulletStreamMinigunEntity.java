@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.bulletstream;
 
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -187,7 +188,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         var hitResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this) && e != owner);
         if (hitResult.hitEntity() != null) {
             var target = hitResult.hitEntity();
-            var source = CombatTools.getDamageSource(level, this, owner, "bullet_stream");
+            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.BULLET_STREAM);
             CombatTools.applyDamage(target, damage, source, SpellRegistry.BULLET_STREAM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
 

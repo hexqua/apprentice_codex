@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.breachingenemy;
 
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -190,7 +191,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             }
 
             var finalDamage = damage * entry.getValue();
-            var source = CombatTools.getDamageSource(level(), this, getOwner(), "breaching_enemy");
+            var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.BREACHING_ENEMY);
             CombatTools.applyDamage(entity, finalDamage, source, SpellRegistry.BREACHING_ENEMY.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
 
             if (entity instanceof LivingEntity livingEntity){

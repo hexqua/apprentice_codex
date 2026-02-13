@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.compoundphial;
 
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
@@ -153,7 +154,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
 
         if (entity != null && entity.isAlive()) {
             var target = CombatTools.resolutePartEntity(entity);
-            var source = CombatTools.getDamageSource(level(), this, owner, "compound_phial");
+            var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.COMPOUND_PHIAL);
             CombatTools.applyDamage(target, impactDamage, source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 
@@ -171,7 +172,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
             var distance = position().distanceTo(center) - target.getBbWidth();
             if(distance <= splashRadius) {
                 var scale = 0.5 + 0.5 * (1 - distance / splashRadius);
-                var source = CombatTools.getDamageSource(level(), this, owner, "compound_phial");
+                var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.COMPOUND_PHIAL);
                 CombatTools.applyDamage(target, Math.round(splashDamage * scale), source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             }
         }

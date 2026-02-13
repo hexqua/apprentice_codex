@@ -3,11 +3,9 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.*;
@@ -30,19 +28,17 @@ public class CombatTools {
         // do nothing.
     }
 
-    public static DamageSource getDamageSource(Level level, Entity entity, String typeName) {
+    public static DamageSource getDamageSource(Level level, Entity entity, ResourceKey<DamageType> damageType) {
         var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-        var type = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, typeName));
-        var holder = reg.getHolder(type)
+        var holder = reg.getHolder(damageType)
                 .orElseGet(() -> (Holder.Reference<DamageType>) level.damageSources().genericKill().typeHolder());
 
         return new DamageSource(holder, entity);
     }
 
-    public static DamageSource getDamageSource(Level level, Entity projectile, Entity owner, String typeName) {
+    public static DamageSource getDamageSource(Level level, Entity projectile, Entity owner, ResourceKey<DamageType> damageType) {
         var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-        var type = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, typeName));
-        var holder = reg.getHolder(type)
+        var holder = reg.getHolder(damageType)
                 .orElseGet(() -> (Holder.Reference<DamageType>) level.damageSources().genericKill().typeHolder());
 
         return new DamageSource(holder, projectile, owner);

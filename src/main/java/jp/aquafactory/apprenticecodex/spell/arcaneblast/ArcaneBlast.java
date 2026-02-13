@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
@@ -126,7 +127,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
         var result = RaycastTools.raycastFromEye(entity, getRange(), getHighlightWidth(), e -> CombatTools.isValidCombatTarget(e, entity));
         if (result.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(result.hitEntity());
-            var source = CombatTools.getDamageSource(level, entity, "arcane_blast");
+            var source = CombatTools.getDamageSource(level, entity, DamageTypes.ARCANE_BLAST);
             CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
             AudioTools.playSoundFromEntity(level, target, SoundRegistry.ARCANE_BLAST.get(), SoundSource.PLAYERS);
 
