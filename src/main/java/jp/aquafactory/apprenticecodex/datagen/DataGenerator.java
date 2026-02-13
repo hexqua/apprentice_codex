@@ -16,6 +16,6 @@ public final class DataGenerator {
         var datapackProvider = new RegistryDataGenerator(output, lookupProvider);
 
         generator.addProvider(event.includeServer(), datapackProvider);
-        generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, lookupProvider, existing));
+        generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
     }
 }
