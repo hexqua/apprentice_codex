@@ -144,8 +144,7 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
                     ++castData.currentLockOnTick;
                     weapon.setCastingReticleEffect(castData.currentLockOnTick, result.hitPosition());
                     if (castData.currentLockOnTick >= getLockOnInterval(spellLevel, entity)) {
-                        // todo:よき音を探す.
-                        AudioTools.playSoundFromEntity(level, weapon, SoundEvents.ILLUSIONER_CAST_SPELL, SoundSource.PLAYERS);
+                        AudioTools.playSoundFromEntity(level, weapon, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 1.5f, 1.5f);
                         castData.lockOnEntityIdList.add(id);
                         castData.currentLockOnId = -1;
                         castData.currentLockOnTick = 0;
