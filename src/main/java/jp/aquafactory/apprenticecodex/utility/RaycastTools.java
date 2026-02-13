@@ -18,11 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class RaycastTools {
-
-    private RaycastTools() {
-        // do nothing.
-    }
+public final class RaycastTools {
+    private RaycastTools() {}
 
     public enum TargetType {
         NONE,

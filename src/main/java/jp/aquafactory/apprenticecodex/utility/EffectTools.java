@@ -5,7 +5,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-public class EffectTools {
+public final class EffectTools {
+    private EffectTools() {}
     private static final RandomSource RNG = RandomSource.create();
 
     public static void createParticle(Level level, ParticleOptions particle, Vec3 position, double randomOffsetRange, double randomSpeed){

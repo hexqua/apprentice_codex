@@ -4,12 +4,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
-public class RotationTools {
+public final class RotationTools {
+    private RotationTools(){}
+    
     public record YawPitch(float yaw, float pitch) {
-    }
-
-    private RotationTools(){
-        // do nothing.
     }
 
     public static YawPitch calculateYawPitchByDirection(final Vec3 direction) {

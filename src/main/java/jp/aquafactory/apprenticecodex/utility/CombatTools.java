@@ -18,15 +18,12 @@ import net.minecraftforge.entity.PartEntity;
 
 import javax.annotation.Nullable;
 
-public class CombatTools {
+public final class CombatTools {
+    private CombatTools() {}
 
     public enum KnockbackTypes {
         DEFAULT,
         NO_KNOCKBACK,
-    }
-
-    private CombatTools() {
-        // do nothing.
     }
 
     public static DamageSource getDamageSource(Level level, Entity entity, ResourceKey<DamageType> damageType) {

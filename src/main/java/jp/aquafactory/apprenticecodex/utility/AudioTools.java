@@ -6,7 +6,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-public class AudioTools {
+public final class AudioTools {
+    private AudioTools() {}
 
     public static void playSoundFromEntity(Level level, Entity entity,SoundEvent soundEvent,SoundSource soundSource, float volume, float pitch, float pitchVariation) {
         level.playSound(
