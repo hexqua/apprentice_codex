@@ -3,7 +3,12 @@ package jp.aquafactory.apprenticecodex.common.spells.tinylumberjack;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -25,15 +30,17 @@ public class TinyLumberjackJob {
             new PriorityQueue<>(Comparator.comparingInt(LeafNode::distance));
     private final LongOpenHashSet visitedLeaves = new LongOpenHashSet();
     private int maxLogDistanceProcessed;
+    private ServerPlayer starter;
     private boolean complete;
 
-    public TinyLumberjackJob(BlockPos originPos, int logsPerTick) {
+    public TinyLumberjackJob(BlockPos originPos, int logsPerTick, ServerPlayer starter) {
         var originPos1 = originPos.immutable();
         this.logsPerTick = Math.max(1, logsPerTick);
         originY = originPos.getY();
         logQueue.add(new LogNode(originPos1, 0));
         visitedLogs.add(originPos1.asLong());
         addLogInfluence(originPos1);
+        this.starter = starter;
     }
 
     public boolean isComplete() {
@@ -57,8 +64,8 @@ public class TinyLumberjackJob {
             var state = level.getBlockState(pos);
             var isLog = state.is(BlockTags.LOGS);
             if (isLog) {
-                level.destroyBlock(pos, true);
-                logsBroken++;
+                breakBlock(level, pos);
+                ++logsBroken;
             }
 
             lastDistance = node.distance();
@@ -123,7 +130,7 @@ public class TinyLumberjackJob {
             var pos = node.pos();
             var state = level.getBlockState(pos);
             if (isBreakableLeaf(state)) {
-                level.destroyBlock(pos, true);
+                breakBlock(level, pos);
             }
 
             enqueueLeafNeighbors(level, pos, node.distance());
@@ -155,6 +162,27 @@ public class TinyLumberjackJob {
 
         visitedLeaves.add(key);
         leafQueue.add(new LeafNode(pos.immutable(), distance));
+    }
+
+    private void breakBlock(ServerLevel level, BlockPos pos) {
+        if (starter != null && !starter.isRemoved()) {
+            var originalItem = starter.getMainHandItem();
+            var state = level.getBlockState(pos);
+            try{
+                // 鉄の斧として伐採する.
+                starter.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_AXE));
+                starter.gameMode.destroyBlock(pos);
+
+                // イベントを呼ばないと破壊演出が出ない.
+                level.levelEvent(2001, pos, Block.getId(state));
+            } finally {
+                // すぐにアイテムをもとに戻す.
+                starter.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
+            }
+        } else {
+            starter = null;
+            level.destroyBlock(pos, true);
+        }
     }
 
     private static boolean isBreakableLeaf(BlockState state) {

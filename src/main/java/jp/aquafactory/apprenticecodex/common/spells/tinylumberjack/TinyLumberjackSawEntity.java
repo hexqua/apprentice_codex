@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.common.utility.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
@@ -273,9 +274,9 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
             level.destroyBlockProgress(getId(), breakTargetPos, -1);
 
             // 木こりジョブを開始する.
-            if (level instanceof ServerLevel serverLevel) {
+            if (level instanceof ServerLevel serverLevel && owner instanceof ServerPlayer player) {
                 // 続けて木こりできるようにジョブは保持しないで管理クラスにわたすだけ.
-                TinyLumberjackJobManager.submit(serverLevel, new TinyLumberjackJob(breakTargetPos, LOGS_PER_TICK));
+                TinyLumberjackJobManager.submit(serverLevel, new TinyLumberjackJob(breakTargetPos, LOGS_PER_TICK, player));
             }
         }
     }
