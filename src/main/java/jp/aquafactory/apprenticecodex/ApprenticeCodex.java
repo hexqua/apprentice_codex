@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex;
 
 import com.mojang.logging.LogUtils;
-import jp.aquafactory.apprenticecodex.common.registry.*;
+import jp.aquafactory.apprenticecodex.registry.*;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
