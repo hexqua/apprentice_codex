@@ -29,8 +29,8 @@ public class TinyLumberjackJob {
 
     public TinyLumberjackJob(BlockPos originPos, int logsPerTick) {
         var originPos1 = originPos.immutable();
-        this.originY = originPos.getY();
         this.logsPerTick = Math.max(1, logsPerTick);
+        originY = originPos.getY();
         logQueue.add(new LogNode(originPos1, 0));
         visitedLogs.add(originPos1.asLong());
         addLogInfluence(originPos1);
@@ -45,8 +45,8 @@ public class TinyLumberjackJob {
             return;
         }
 
-        int logsBroken = 0;
-        int lastDistance = -1;
+        var logsBroken = 0;
+        var lastDistance = -1;
         while (logsBroken < logsPerTick && !logQueue.isEmpty()) {
             var node = logQueue.poll();
             var pos = node.pos();
@@ -72,7 +72,7 @@ public class TinyLumberjackJob {
             maxLogDistanceProcessed = Math.max(maxLogDistanceProcessed, lastDistance);
         }
 
-        int leafDistanceLimit = logQueue.isEmpty() ? Integer.MAX_VALUE : maxLogDistanceProcessed;
+        var leafDistanceLimit = logQueue.isEmpty() ? Integer.MAX_VALUE : maxLogDistanceProcessed;
         processLeaves(level, leafDistanceLimit);
 
         if (logQueue.isEmpty() && leafQueue.isEmpty()) {
@@ -167,9 +167,9 @@ public class TinyLumberjackJob {
 
     private void addLogInfluence(BlockPos logPos) {
         var mutable = new BlockPos.MutableBlockPos();
-        for (int dx = -LEAF_LOG_RADIUS; dx <= LEAF_LOG_RADIUS; dx++) {
-            for (int dy = -LEAF_LOG_RADIUS; dy <= LEAF_LOG_RADIUS; dy++) {
-                for (int dz = -LEAF_LOG_RADIUS; dz <= LEAF_LOG_RADIUS; dz++) {
+        for (var dx = -LEAF_LOG_RADIUS; dx <= LEAF_LOG_RADIUS; ++dx) {
+            for (var dy = -LEAF_LOG_RADIUS; dy <= LEAF_LOG_RADIUS; ++dy) {
+                for (var dz = -LEAF_LOG_RADIUS; dz <= LEAF_LOG_RADIUS; ++dz) {
                     var distSqr = dx * dx + dy * dy + dz * dz;
                     if (distSqr > LEAF_LOG_RADIUS_SQR) {
                         continue;
@@ -182,15 +182,16 @@ public class TinyLumberjackJob {
     }
 
     private static int[][] buildOffsets() {
-        int[][] offsets = new int[26][3];
-        int idx = 0;
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                for (int dz = -1; dz <= 1; dz++) {
+        var offsets = new int[26][3];
+        var index = 0;
+        for (var dx = -1; dx <= 1; ++dx) {
+            for (var dy = -1; dy <= 1; ++dy) {
+                for (var dz = -1; dz <= 1; ++dz) {
                     if (dx == 0 && dy == 0 && dz == 0) {
                         continue;
                     }
-                    offsets[idx++] = new int[]{dx, dy, dz};
+                    offsets[index] = new int[]{dx, dy, dz};
+                    ++index;
                 }
             }
         }
