@@ -165,7 +165,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
 
         // 一応広めに判定を取る.
         var box = new AABB(position(), position()).inflate(splashRadius * 2);
-        var entities = level.getEntitiesOfClass(Entity.class, box, e -> e != entity && e.isAlive());
+        var entities = level.getEntitiesOfClass(Entity.class, box, e -> e != entity && CombatTools.isValidCombatTarget(e, null) && e.isAlive());
 
         for(var target : entities){
             var center = target.getBoundingBox().getCenter();
