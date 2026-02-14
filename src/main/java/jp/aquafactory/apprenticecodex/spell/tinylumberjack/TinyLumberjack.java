@@ -126,10 +126,9 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
     }
 
     @Override
-    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackSawEntity weapon) {
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackSawEntity weapon) {
         var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
         weapon.updateOwnerTarget(result);
-        return TickCastTypes.KEEP_CASTING;
     }
 
     @Override

@@ -20,6 +20,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -190,11 +191,15 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 1.0f, 1.2f);
     }
 
-    public void setCastingReticleEffect(int tick, Vec3 target) {
-        entityData.set(CASTING_TICK, tick);
-        entityData.set(AIM_X, (float) target.x);
-        entityData.set(AIM_Y, (float) target.y);
-        entityData.set(AIM_Z, (float) target.z);
+    public void setCastingReticleEffect(int tick, @Nullable Vec3 target) {
+        if (entityData.get(CASTING_TICK) != tick) {
+            entityData.set(CASTING_TICK, tick);
+            if (target != null) {
+                entityData.set(AIM_X, (float) target.x);
+                entityData.set(AIM_Y, (float) target.y);
+                entityData.set(AIM_Z, (float) target.z);
+            }
+        }
     }
 
     public void setDamage(float damage){

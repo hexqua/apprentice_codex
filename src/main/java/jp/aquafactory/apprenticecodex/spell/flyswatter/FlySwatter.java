@@ -135,8 +135,8 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     }
 
     @Override
-    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull FlySwatterLauncherEntity weapon) {
-        if (playerMagicData.getAdditionalCastData() instanceof FlySwatterCastData castData) {
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull FlySwatterLauncherEntity weapon) {
+        if (playerMagicData.getAdditionalCastData() instanceof FlySwatterCastData castData && castData.lockOnEntityIdList.size() < getLockOnCount(spellLevel, entity)) {
             var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
             if (result.hitEntity() != null) {
                 var id = result.hitEntity().getId();
@@ -155,21 +155,16 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
                             server.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable(
                                     "ui.apprenticecodex.fly_swatter.lockon_entity", result.hitEntity().getName().getString(), castData.lockOnEntityIdList.size(), getLockOnCount(spellLevel, entity), this.getDisplayName(server)).withStyle(ChatFormatting.DARK_AQUA, ChatFormatting.BOLD)));
                         }
-
-                        if (castData.lockOnEntityIdList.size() >= getLockOnCount(spellLevel, entity)) {
-                            return TickCastTypes.CANCEL_CASTING;
-                        }
                     }
                 }
             } else {
+                weapon.setCastingReticleEffect(castData.currentLockOnTick, null);
                 castData.currentLockOnId = -1;
                 castData.currentLockOnTick = 0;
             }
-
-            return TickCastTypes.KEEP_CASTING;
+        } else {
+            weapon.setCastingReticleEffect(0, null);
         }
-
-        return TickCastTypes.CANCEL_CASTING;
     }
 
     @Override

@@ -120,8 +120,7 @@ public class BulletStream extends AbstractSummonWeaponSpell<BulletStreamMinigunE
     }
 
     @Override
-    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull BulletStreamMinigunEntity weapon) {
-        return TickCastTypes.KEEP_CASTING;
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull BulletStreamMinigunEntity weapon) {
     }
 
     @Override
