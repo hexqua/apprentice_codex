@@ -27,6 +27,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public static final TagKey<DamageType> MAGIC_DAMAGE = create("magic_damage");
     public static final TagKey<DamageType> BYPASSES_IFRAME = create("bypasses_iframe");
     public static final TagKey<DamageType> RANGED_ATTACK = create("ranged_attack");
+    public static final TagKey<DamageType> EXPLOSIONS = create("explosions");
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider pProvider) {
@@ -63,6 +64,11 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 QUICK_ARMS,
                 SKY_EDGE,
                 TINY_LUMBERJACK,
+                FLY_SWATTER
+        );
+
+        // EXPLOSIONS : 爆発ダメージ(エンチャ、常にエンドラ有効、ガーディアンのトゲ無効)
+        tag(EXPLOSIONS).add(
                 FLY_SWATTER
         );
     }
