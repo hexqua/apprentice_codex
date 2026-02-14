@@ -46,11 +46,10 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
             .build();
 
     public FlySwatter() {
-        // todo:バランス調整.
         super(FlySwatterLauncherEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        manaCostPerLevel = 5;
+        manaCostPerLevel = 10;
         baseManaCost = 10;
         castTime = 200;
     }
@@ -66,13 +65,12 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 10;
+        return 4 + getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private float getExplosionRadius(int spellLevel, LivingEntity entity){
-        // todo:バランス調整.
-        return 4.0f;
+    private float getExplosionRadius(){
+        // レベルで上がると制御しづらいので固定値.
+        return 3.0f;
     }
 
     private double getRange() {
@@ -80,13 +78,11 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     }
 
     private int getLockOnCount(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 8;
+        return Math.min(8, Math.round(2 * getSpellPower(spellLevel, entity) / 100));
     }
 
     private int getLockOnInterval(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 10;
+        return Math.max(10, 40 - Math.round(10 * getSpellPower(spellLevel, entity) / 100));
     }
 
     @Override
@@ -133,7 +129,7 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     public FlySwatterLauncherEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new FlySwatterLauncherEntity(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
-        summonWeapon.setRadius(getExplosionRadius(spellLevel, entity));
+        summonWeapon.setRadius(getExplosionRadius());
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
@@ -144,7 +140,7 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
             var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
             if (result.hitEntity() != null) {
                 var id = result.hitEntity().getId();
-                if (castData.currentLockOnId != id){
+                if (castData.currentLockOnId != id) {
                     castData.currentLockOnId = id;
                     castData.currentLockOnTick = 0;
                 } else {
@@ -158,6 +154,10 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
                         if (entity instanceof ServerPlayer server) {
                             server.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable(
                                     "ui.apprenticecodex.fly_swatter.lockon_entity", result.hitEntity().getName().getString(), castData.lockOnEntityIdList.size(), getLockOnCount(spellLevel, entity), this.getDisplayName(server)).withStyle(ChatFormatting.DARK_AQUA, ChatFormatting.BOLD)));
+                        }
+
+                        if (castData.lockOnEntityIdList.size() >= getLockOnCount(spellLevel, entity)) {
+                            return TickCastTypes.CANCEL_CASTING;
                         }
                     }
                 }
