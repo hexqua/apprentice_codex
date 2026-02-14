@@ -7,6 +7,8 @@ import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgun
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
@@ -112,6 +114,24 @@ public final class EntityRegistry {
                             .clientTrackingRange(64)
                             .updateInterval(1)
                             .build("arcane_beam"));
+
+    public static final RegistryObject<EntityType<FlySwatterLauncherEntity>> FLY_SWATTER_LAUNCHER =
+            ENTITIES.register("fly_swatter_launcher",
+                    () -> EntityType.Builder
+                            .<FlySwatterLauncherEntity>of(FlySwatterLauncherEntity::new, MobCategory.MISC)
+                            .sized(0.5f, 0.5f)
+                            .clientTrackingRange(128)
+                            .updateInterval(1)
+                            .build("fly_swatter_launcher"));
+
+    public static final RegistryObject<EntityType<FlySwatterProjectileEntity>> FLY_SWATTER_PROJECTILE =
+            ENTITIES.register("fly_swatter_projectile",
+                    () -> EntityType.Builder
+                            .<FlySwatterProjectileEntity>of(FlySwatterProjectileEntity::new, MobCategory.MISC)
+                            .sized(0.25f, 0.25f)
+                            .clientTrackingRange(128)
+                            .updateInterval(1)
+                            .build("fly_swatter_projectile"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

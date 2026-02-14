@@ -36,4 +36,25 @@ public final class RotationTools {
         var behindOffset = back.scale(backOffSet).add(new Vec3(0, yOffset, 0)).add(right.scale(xOffset));
         return owner.getEyePosition().add(behindOffset);
     }
+
+    public static Vec3 steerTowards(Vec3 currentDir, Vec3 targetDir, double maxTurnDeg) {
+        // 度数を計算用のラジアンに変換.
+        var maxTurnRad = maxTurnDeg * ((float) Math.PI / 180f);
+        var dot = Mth.clamp(currentDir.dot(targetDir), -1.0, 1.0);
+        var angle = Math.acos(dot);
+
+        // 極小か追いつける場合.
+        if (angle < 1.0e-6 || angle <= maxTurnRad) {
+            return targetDir;
+        }
+
+        // 目標へ maxTurnRad だけ進める.
+        var t = maxTurnRad / angle;
+
+        // slerp: sin((1-t)a)/sin(a)*v + sin(ta)/sin(a)*u
+        var sinA = Math.sin(angle);
+        var w1 = Math.sin((1.0 - t) * angle) / sinA;
+        var w2 = Math.sin(t * angle) / sinA;
+        return currentDir.scale(w1).add(targetDir.scale(w2)).normalize();
+    }
 }

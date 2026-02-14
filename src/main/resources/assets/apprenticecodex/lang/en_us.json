@@ -12,6 +12,7 @@
   "entity.apprenticecodex.graced_rain_cloud" : "Graced Rain Cloud",
   "entity.apprenticecodex.tiny_lumberjack_saw" : "Magic Buzzsaw",
   "entity.apprenticecodex.arcane_beam" : "Arcane Beam",
+  "entity.apprenticecodex.fly_swatter_launcher" : "Magic Launcher",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   
@@ -28,6 +29,7 @@
   "spell.apprenticecodex.graced_rain": "Graced Rain",
   "spell.apprenticecodex.mage_light": "Mage Light",
   "spell.apprenticecodex.personal_shelf": "Personal Shelf",
+  "spell.apprenticecodex.fly_swatter": "Fly Swatter",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires in the direction of your gaze. It takes time to fire and has no knockback, but it can ignore the target’s invincibility frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking the designated target—or nearby enemies—until it runs out of ammunition.",
@@ -42,6 +44,7 @@
   "spell.apprenticecodex.graced_rain.guide": "Summons a healing rain cloud that heals living beings submerged in it. Healing is beneficial to plants.",
   "spell.apprenticecodex.mage_light.guide": "Summons a magical torch that illuminates the surroundings and place. A magical torch does not require support.",
   "spell.apprenticecodex.personal_shelf.guide": "Summons a magical chest that can be used to store items. The chest disappears after a certain period of time or when it is moved away. The chest is an interface to individual space. Use while sneaking it will attempt to move items to the chest used.",
+  "spell.apprenticecodex.fly_swatter.guide": "Summons a magical launcher that attacks the target captured in the direction of the gaze. Attacks follow the target.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
@@ -49,11 +52,15 @@
   "ui.apprenticecodex.warm_up_time": "Max warm up time: %s ",
   "ui.apprenticecodex.tree_cut_time": "Minimum Tree cut time: %s ",
   "ui.apprenticecodex.arcane_charge_damage_multiplier": "Damage Amplifier per Level: %d%%",
+  "ui.apprenticecodex.lock_on_count": "Maximum Lock-on Count: %d",
+  "ui.apprenticecodex.lock_on_time": "Lock-on Duration: %s",
+
+  "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
   "ui.apprenticecodex.firearm_spell.no_firearm": "Couldn't find firearm!",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
-  "ui.apprenticecodex.cant_place": "Can't place here",
+  "ui.apprenticecodex.fly_swatter.lockon_entity": "Lock on to %s...(%d/%d)",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
 
@@ -69,5 +76,6 @@
   "death.attack.apprenticecodex.arcane_blast": "%1$s was blasted by %2$s's arcane power.",
   "death.attack.apprenticecodex.arcane_beam": "%1$s was disintegrated by %2$s's arcane power.",
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$s went to pieces.",
-  "death.attack.apprenticecodex.graced_rain": "The power of grace was too harmful to %1$s."
+  "death.attack.apprenticecodex.graced_rain": "The power of grace was too harmful to %1$s.",
+  "death.attack.apprenticecodex.fly_swatter": "%1$s was knocked out by %2$s."
 }

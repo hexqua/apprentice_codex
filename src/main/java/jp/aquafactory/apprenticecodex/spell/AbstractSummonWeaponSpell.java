@@ -19,11 +19,6 @@ import java.util.UUID;
 
 public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> extends AbstractSpell {
 
-    public enum TickCastTypes{
-        KEEP_CASTING,
-        CANCEL_CASTING,
-    }
-
     public enum CompleteCastTypes{
         RELEASE_WEAPON,
         KEEP_WEAPON,
@@ -46,7 +41,7 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
     }
 
     public abstract T onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData);
-    public abstract TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull T weapon);
+    public abstract void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull T weapon);
     public abstract CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull T weapon);
 
     @Override
@@ -66,12 +61,7 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
     public final void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
         var summon = getFirearmEntityFromMagicData(playerMagicData, level);
         if (summon != null) {
-            var result = onCastTickWithWeapon(level, spellLevel, entity, playerMagicData, summon);
-            if (result == TickCastTypes.CANCEL_CASTING) {
-                // todo: 継続詠唱タイプの中断方法を調査して対応.
-                super.onServerCastTick(level, spellLevel, entity, playerMagicData);
-                return;
-            }
+            onCastTickWithWeapon(level, spellLevel, entity, playerMagicData, summon);
         }
 
         super.onServerCastTick(level, spellLevel, entity, playerMagicData);

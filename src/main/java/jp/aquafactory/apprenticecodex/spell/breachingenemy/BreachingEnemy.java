@@ -119,8 +119,7 @@ public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShot
     }
 
     @Override
-    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull BreachingEnemyShotgunEntity weapon) {
-        return TickCastTypes.KEEP_CASTING;
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull BreachingEnemyShotgunEntity weapon) {
     }
 
     @Override

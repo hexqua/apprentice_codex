@@ -12,6 +12,7 @@
   "entity.apprenticecodex.graced_rain_cloud" : "恵みの雨雲",
   "entity.apprenticecodex.tiny_lumberjack_saw" : "魔法の丸鋸",
   "entity.apprenticecodex.arcane_beam" : "アーケインビーム",
+  "entity.apprenticecodex.fly_swatter_launcher" : "マジックランチャー",
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
 
@@ -28,6 +29,7 @@
   "spell.apprenticecodex.graced_rain": "恵みの雨",
   "spell.apprenticecodex.mage_light": "メイジライト",
   "spell.apprenticecodex.personal_shelf": "パーソナルシェルフ",
+  "spell.apprenticecodex.fly_swatter": "フライスワッター",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -42,6 +44,7 @@
   "spell.apprenticecodex.graced_rain.guide": "癒やしの効果を持つ雨雲を召喚し、浴びている生命を癒やす。癒やしは植生には栄養となる。",
   "spell.apprenticecodex.mage_light.guide": "周囲を照らす魔法の松明を召喚して設置する。魔法の松明は支えを必要としない。",
   "spell.apprenticecodex.personal_shelf.guide": "魔法の保管庫を一定時間顕現化させる。保管庫は一定時間経過するか離れると消失する。保管庫は個々人の空間のインターフェースに過ぎない。スニークしながら使用すると使用したチェストなどに搬出しようとする。",
+  "spell.apprenticecodex.fly_swatter.guide": "魔法のランチャーを召喚し、視線先に捕捉した対象に向かって攻撃する。攻撃は敵を追尾する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -49,11 +52,15 @@
   "ui.apprenticecodex.warm_up_time": "最高速度までの時間: %s ",
   "ui.apprenticecodex.tree_cut_time": "伐採にかかる最短時間: %s ",
   "ui.apprenticecodex.arcane_charge_damage_multiplier": "チャージレベルにつきダメージ増幅: %d%%",
+  "ui.apprenticecodex.lock_on_count": "最大ロックオン数: %d",
+  "ui.apprenticecodex.lock_on_time": "ロックオンにかかる時間: %s",
+
+  "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
   "ui.apprenticecodex.firearm_spell.no_firearm": "銃火器が見つからない！",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
   "ui.apprenticecodex.quick_arms.during_standby": "準備中",
-  "ui.apprenticecodex.cant_place": "そこには設置できない",
+  "ui.apprenticecodex.fly_swatter.lockon_entity": "%s をロックオン...(%d/%d)",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
 
@@ -69,5 +76,6 @@
   "death.attack.apprenticecodex.arcane_blast": "%1$sは%2$sの魔力によって爆破された",
   "death.attack.apprenticecodex.arcane_beam": "%1$sは%2$sの魔力によって崩壊させられた",
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$sはバラバラになった",
-  "death.attack.apprenticecodex.graced_rain": "%1$sに恵みの力は有害すぎた"
+  "death.attack.apprenticecodex.graced_rain": "%1$sに恵みの力は有害すぎた",
+  "death.attack.apprenticecodex.fly_swatter": "%1$sは%2$sに叩き落された"
 }

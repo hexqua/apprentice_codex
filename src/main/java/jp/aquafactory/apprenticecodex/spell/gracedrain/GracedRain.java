@@ -131,8 +131,7 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
     }
 
     @Override
-    public TickCastTypes onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull GracedRainCloudEntity weapon) {
-        return TickCastTypes.KEEP_CASTING;
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull GracedRainCloudEntity weapon) {
     }
 
     @Override

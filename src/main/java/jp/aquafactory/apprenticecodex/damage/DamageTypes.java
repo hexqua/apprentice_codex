@@ -23,6 +23,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> QUICK_ARMS = register("quick_arms");
     public static final ResourceKey<DamageType> SKY_EDGE = register("sky_edge");
     public static final ResourceKey<DamageType> TINY_LUMBERJACK = register("tiny_lumberjack");
+    public static final ResourceKey<DamageType> FLY_SWATTER = register("fly_swatter");
 
     private static ResourceKey<DamageType> register(String name){
         return ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
@@ -36,6 +37,7 @@ public final class DamageTypes {
         return new DamageType(generateIdWithNamespace(key), DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER, 0f, DamageEffects.HURT, DeathMessageType.DEFAULT);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     public static void generateDamageTypeData(BootstapContext<DamageType> context){
         context.register(ARCANE_BEAM, createTemplate(ARCANE_BEAM));
         context.register(ARCANE_BLAST, createTemplate(ARCANE_BLAST));
@@ -49,5 +51,6 @@ public final class DamageTypes {
         context.register(QUICK_ARMS, createTemplate(QUICK_ARMS));
         context.register(SKY_EDGE, createTemplate(SKY_EDGE));
         context.register(TINY_LUMBERJACK, createTemplate(TINY_LUMBERJACK));
+        context.register(FLY_SWATTER, createTemplate(FLY_SWATTER));
     }
 }

@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
+import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
@@ -61,6 +62,9 @@ public final class SpellRegistry {
 
     public static final RegistryObject<AbstractSpell> PERSONAL_SHELF =
             SPELLS.register("personal_shelf", PersonalShelf::new);
+
+    public static final RegistryObject<AbstractSpell> FLY_SWATTER =
+            SPELLS.register("fly_swatter", FlySwatter::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
