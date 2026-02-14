@@ -35,15 +35,15 @@ public class SkyEdge extends AbstractSpell {
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(5)
-            .setCooldownSeconds(10)
+            .setCooldownSeconds(8)
             .build();
 
     public SkyEdge() {
         // スペルパワー100 = 1ダメージ.
         baseSpellPower = 500;
         spellPowerPerLevel = 0;
-        manaCostPerLevel = 20;
-        baseManaCost = 100;
+        manaCostPerLevel = 15;
+        baseManaCost = 80;
         castTime = 30;
     }
     @Override

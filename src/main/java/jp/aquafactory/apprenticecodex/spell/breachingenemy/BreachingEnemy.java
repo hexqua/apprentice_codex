@@ -55,7 +55,7 @@ public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShot
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        return 1 + 1 * getSpellPower(spellLevel, entity) / 100.0f;
+        return 1 + 3 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getPellets(int spellLevel, LivingEntity entity){

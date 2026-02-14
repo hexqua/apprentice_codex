@@ -34,7 +34,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
             .setMinRarity(SpellRarity.UNCOMMON)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(5)
-            .setCooldownSeconds(45)
+            .setCooldownSeconds(20)
             .build();
 
     public CommenceFire() {

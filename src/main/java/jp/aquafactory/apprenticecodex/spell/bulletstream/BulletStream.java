@@ -31,15 +31,15 @@ public class BulletStream extends AbstractSummonWeaponSpell<BulletStreamMinigunE
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(40)
+            .setCooldownSeconds(20)
             .build();
 
     public BulletStream() {
         super(BulletStreamMinigunEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 25;
-        manaCostPerLevel = 10;
-        baseManaCost = 20;
+        spellPowerPerLevel = 50;
+        manaCostPerLevel = 5;
+        baseManaCost = 10;
         castTime = 200;
     }
 

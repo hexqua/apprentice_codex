@@ -42,16 +42,16 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(40)
+            .setCooldownSeconds(20)
             .build();
 
     public FlySwatter() {
         super(FlySwatterLauncherEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        manaCostPerLevel = 10;
+        manaCostPerLevel = 5;
         baseManaCost = 10;
-        castTime = 200;
+        castTime = 300;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return 4 + getSpellPower(spellLevel, entity) / 100.0f;
+        return 3 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private float getExplosionRadius(){
