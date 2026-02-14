@@ -34,7 +34,7 @@ public class SkyEdgeProjectileRenderer extends EntityRenderer<SkyEdgeProjectileE
         poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
 
         // 右上に切っ先が向いているアイテムが先端を向くように調整.
-        poseStack.mulPose(Axis.YP.rotationDegrees(90.0f));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0f));
         poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0f));
 
         // ItemRendererで描画.
