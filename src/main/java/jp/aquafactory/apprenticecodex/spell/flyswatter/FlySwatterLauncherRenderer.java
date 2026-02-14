@@ -26,7 +26,6 @@ public class FlySwatterLauncherRenderer extends EntityRenderer<FlySwatterLaunche
     public void render(@NotNull FlySwatterLauncherEntity entity, float entityYaw, float partialTicks,
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
-        // todo:実装したら諸々合わせる(今はブリーチングエネミーのまま)
         var yawPitch = RotationTools.calculateYawPitchByEntity(entity, partialTicks);
         poseStack.pushPose();
         poseStack.translate(0.0, -0.1, 0.0);

@@ -13,8 +13,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
-// todo:ミサイルっぽいものを作る(今はシュルカーを流用)
 public class FlySwatterProjectileRenderer extends EntityRenderer<FlySwatterProjectileEntity> {
+    // シュルカーを流用.
     private static final ResourceLocation TEXTURE =
             ResourceLocation.withDefaultNamespace("textures/entity/shulker/spark.png");
 
