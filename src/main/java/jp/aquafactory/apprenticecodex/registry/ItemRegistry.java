@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -36,6 +37,9 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER =
             ITEMS.register("fly_swatter_launcher",
                     () -> new Item(new Item.Properties()));
+
+    public static final RegistryObject<Item> SCARLET_THIRST =
+            ITEMS.register("scarlet_thirst", ScarletThirst::new);
 
     private ItemRegistry() {
         // do nothing.
