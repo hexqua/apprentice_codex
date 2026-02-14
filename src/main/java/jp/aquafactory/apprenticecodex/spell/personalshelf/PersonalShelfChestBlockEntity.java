@@ -189,7 +189,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
             return;
         }
 
-        if (!blockEntity.isExportMode || blockEntity.exportFacing == null) {
+        if (blockEntity.isExportMode && blockEntity.exportFacing != null) {
             blockEntity.exportItem(level, pos);
         }
     }
