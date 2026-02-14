@@ -11,9 +11,13 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -28,15 +32,20 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 public class FlySwatterProjectileEntity extends Projectile {
+    private static final EntityDataAccessor<Integer> STANDBY_TICK =
+            SynchedEntityData.defineId(FlySwatterProjectileEntity.class, EntityDataSerializers.INT);
+
     private static final int LIFE_TICKS = 20 * 10;
     private static final RandomSource RNG = RandomSource.create();
     private static final double ROTATION_DEG = 4;
     private static final double EXPLOSION_KNOCKBACK = 0.5;
     private static final double EXPLOSION_KNOCKBACK_UP = 0.2;
+    private static final int OPEN_AIR_MODE_TICK = 20;
 
     private float damage;
     private float radius;
     private double speed;
+    private int standbyTick;
     private Entity target;
 
     public FlySwatterProjectileEntity(EntityType<? extends Projectile> pEntityType, Level pLevel) {
@@ -58,8 +67,14 @@ public class FlySwatterProjectileEntity extends Projectile {
         ProjectileUtil.rotateTowardsMovement(this, 1);
     }
 
+    public void setOpenAirMode() {
+        setDeltaMovement(getDeltaMovement().scale(0.5));
+        standbyTick = OPEN_AIR_MODE_TICK;
+    }
+
     @Override
     protected void defineSynchedData() {
+        entityData.define(STANDBY_TICK, 0);
     }
 
     @Override
@@ -77,11 +92,30 @@ public class FlySwatterProjectileEntity extends Projectile {
                 onHit(hitresult);
             }
 
-            if (target != null && !target.isRemoved() && target.isAlive()) {
-                var targetPos = target.getBoundingBox().getCenter();
-                var targetVec = targetPos.subtract(position()).normalize();
-                var newAngle = RotationTools.steerTowards(getDeltaMovement(), targetVec, ROTATION_DEG);
-                setDeltaMovement(newAngle.scale(speed));
+            if(standbyTick > 0) {
+                --standbyTick;
+                entityData.set(STANDBY_TICK, standbyTick);
+
+                if(standbyTick == 0) {
+                    var targetPos = target.getBoundingBox().getCenter();
+                    var targetVec = targetPos.subtract(position()).normalize();
+                    setDeltaMovement(targetVec.scale(speed));
+                } else if(target == null || target.isRemoved() || !target.isAlive()){
+                    setDeltaMovement(getDeltaMovement().normalize().scale(speed));
+                    standbyTick = 0;
+                    entityData.set(STANDBY_TICK, standbyTick);
+                } else {
+                    var speed = Mth.lerp(standbyTick / (float)OPEN_AIR_MODE_TICK, 0.0f, 1.0f);
+                    var angle = getDeltaMovement().normalize();
+                    setDeltaMovement(angle.scale(speed));
+                }
+            } else {
+                if (target != null && !target.isRemoved() && target.isAlive()) {
+                    var targetPos = target.getBoundingBox().getCenter();
+                    var targetVec = targetPos.subtract(position()).normalize();
+                    var newAngle = RotationTools.steerTowards(getDeltaMovement(), targetVec, ROTATION_DEG);
+                    setDeltaMovement(newAngle.scale(speed));
+                }
             }
 
             move(MoverType.SELF, getDeltaMovement());
@@ -89,7 +123,7 @@ public class FlySwatterProjectileEntity extends Projectile {
         }
 
         // 軌跡はクライアントでのみ.
-        if (level.isClientSide) {
+        if (level.isClientSide && entityData.get(STANDBY_TICK) == 0 && tickCount > 2) {
             var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
             if (camPos.distanceToSqr(position()) < 32.0 * 32.0) {
                 var count = 8;
@@ -208,6 +242,7 @@ public class FlySwatterProjectileEntity extends Projectile {
         super.addAdditionalSaveData(tag);
         tag.putFloat("damage", damage);
         tag.putFloat("radius", radius);
+        tag.putInt("standbyTick", standbyTick);
     }
 
     @Override
@@ -215,6 +250,7 @@ public class FlySwatterProjectileEntity extends Projectile {
         super.readAdditionalSaveData(tag);
         damage = tag.getFloat("damage");
         radius = tag.getFloat("radius");
+        standbyTick = tag.getInt("standbyTick");
     }
 
     @Override

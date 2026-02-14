@@ -177,7 +177,7 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
         if (playerMagicData.getAdditionalCastData() instanceof FlySwatterCastData castData) {
             if (!castData.lockOnEntityIdList.isEmpty()){
                 weapon.setLockOnEntityList(castData.lockOnEntityIdList, level);
-                weapon.startFiring();
+                weapon.startFiring(level, entity);
             }
         }
 

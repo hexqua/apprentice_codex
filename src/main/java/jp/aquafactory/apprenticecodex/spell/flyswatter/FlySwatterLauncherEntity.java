@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.spell.flyswatter;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -13,10 +12,13 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
 
     private static final int FIRE_START_DELAY_TICK = 10;
     private static final int FIRE_INTERVAL_TICK = 5;
+    private static final float OPEN_AIR_PITCH_DEG = -60f;
 
     private static final EntityDataAccessor<Integer> CASTING_TICK =
             SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.INT);
@@ -40,8 +43,11 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
     private float radius;
     private final List<Entity> lockOnEntityList = new ArrayList<>();
     private int fireIntervalTick;
+    private int fireDelayTick;
     private boolean isFiring;
     private boolean isReleased;
+    private boolean isOpenAir;
+    private float baseXRot;
 
     public FlySwatterLauncherEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -148,25 +154,38 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         var locatePosition = getAimingPosition(owner);
         followTargetPosition(locatePosition);
 
-        setYRot(owner.getYRot());
-        setXRot(owner.getXRot());
+        if (isFiring && isOpenAir) {
+            if(fireDelayTick > 0) {
+                --fireDelayTick;
+            }
+
+            var pitch = Mth.lerp(fireDelayTick / (float) FIRE_START_DELAY_TICK, OPEN_AIR_PITCH_DEG, baseXRot);
+            setYRot(owner.getYRot());
+            setXRot(pitch);
+        } else if (!isReleased) {
+            setYRot(owner.getYRot());
+            setXRot(owner.getXRot());
+        }
+
         setRot(getYRot(), getXRot());
         hasImpulse = true;
     }
 
     private void fire(Level level, Entity target){
-        ApprenticeCodex.LOGGER.info("fly swatter target: {}", target.getName().getString());
         if (!(getOwner() instanceof LivingEntity owner)){
             return;
         }
 
-        // todo:諸々パラメータを仕込んだり演出入れたり.
         var projectile = new FlySwatterProjectileEntity(EntityRegistry.FLY_SWATTER_PROJECTILE.get(),level, owner);
         projectile.setPos(position().add(getLookAngle().scale(1f)));
         projectile.setDamage(damage);
         projectile.setRadius(radius);
         projectile.setProjectileVelocity(getLookAngle(), 1f);
         projectile.setTarget(target);
+        if (isOpenAir){
+            projectile.setOpenAirMode();
+        }
+
         level.addFreshEntity(projectile);
         AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 1.0f, 1.2f);
     }
@@ -196,9 +215,17 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         }
     }
 
-    public void startFiring() {
+    public void startFiring(Level level, LivingEntity owner) {
+        // ガラスの下ならちゃんと屋内判定にしないと自爆するため.
+        var start = owner.getEyePosition();
+        var end = start.add(0, level.getMaxBuildHeight() - start.y, 0);
+        var ctx = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, owner);
+        var hit = level.clip(ctx);
+        isOpenAir = hit.getType() == HitResult.Type.MISS;
         fireIntervalTick = FIRE_START_DELAY_TICK;
+        fireDelayTick = FIRE_START_DELAY_TICK;
         isFiring = true;
+        baseXRot = getXRot();
     }
 
     private static Vec3 getAimingPosition(LivingEntity owner) {
