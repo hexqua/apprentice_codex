@@ -42,9 +42,9 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
         super(TinyLumberjackSawEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        baseManaCost = 15;
-        manaCostPerLevel = 7;
-        castTime = 200;
+        baseManaCost = 10;
+        manaCostPerLevel = 5;
+        castTime = 400;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return 0.5f + 0.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        return 0.5f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private float getRange(){
@@ -71,7 +71,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
 
     private float getBreakSpeed(int spellLevel, LivingEntity entity) {
         // 6=鉄ツール相当.
-        return 1f + 0.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        return 1f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){
