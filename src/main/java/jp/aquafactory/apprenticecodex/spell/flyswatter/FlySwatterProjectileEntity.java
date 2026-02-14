@@ -37,6 +37,9 @@ public class FlySwatterProjectileEntity extends Projectile {
 
     private static final int LIFE_TICKS = 20 * 10;
     private static final RandomSource RNG = RandomSource.create();
+    private static final double SPEED_BASE = 1.5;
+    private static final double SPEED_MAX = 2.5;
+    private static final double SPEED_UP_PER_TICK = 0.01;
     private static final double ROTATION_DEG = 4;
     private static final double EXPLOSION_KNOCKBACK = 0.5;
     private static final double EXPLOSION_KNOCKBACK_UP = 0.2;
@@ -61,8 +64,8 @@ public class FlySwatterProjectileEntity extends Projectile {
         setNoGravity(true);
     }
 
-    public void setProjectileVelocity(Vec3 rotation, double speed) {
-        this.speed = speed;
+    public void setProjectileVelocity(Vec3 rotation) {
+        speed = SPEED_BASE;
         setDeltaMovement(rotation.scale(speed));
         ProjectileUtil.rotateTowardsMovement(this, 1);
     }
@@ -110,6 +113,7 @@ public class FlySwatterProjectileEntity extends Projectile {
                     setDeltaMovement(angle.scale(speed));
                 }
             } else {
+                speed = Mth.clamp(speed + SPEED_UP_PER_TICK, SPEED_BASE, SPEED_MAX);
                 if (target != null && !target.isRemoved() && target.isAlive()) {
                     var targetPos = target.getBoundingBox().getCenter();
                     var targetVec = targetPos.subtract(position()).normalize();

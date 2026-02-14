@@ -181,7 +181,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         projectile.setPos(position().add(getLookAngle().scale(1f)));
         projectile.setDamage(damage);
         projectile.setRadius(radius);
-        projectile.setProjectileVelocity(getLookAngle(), 1f);
+        projectile.setProjectileVelocity(getLookAngle());
         projectile.setTarget(target);
         if (isOpenAir){
             projectile.setOpenAirMode();
