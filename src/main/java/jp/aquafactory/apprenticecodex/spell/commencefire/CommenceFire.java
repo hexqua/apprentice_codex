@@ -138,7 +138,12 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
 
     @Override
     public AnimationHolder getCastStartAnimation() {
-        return SpellAnimations.ONE_HANDED_HORIZONTAL_SWING_ANIMATION;
+        return SpellAnimations.ANIMATION_CONTINUOUS_CAST_ONE_HANDED;
+    }
+
+    @Override
+    public AnimationHolder getCastFinishAnimation() {
+        return AnimationHolder.none();
     }
 
     @Override
