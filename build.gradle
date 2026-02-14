@@ -78,6 +78,11 @@ repositories {
             includeGroup("com.eliotlash.mclib")
         }
     }
+
+    // Curios
+    maven {
+        url = uri("https://maven.theillusivec4.top/")
+    }
 }
 
 // 依存解決は基本ココ.
@@ -90,6 +95,9 @@ dependencies {
     // GeckoLib.
     implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
     implementation("com.eliotlash.mclib:mclib:20")
+
+    // Curios.
+    implementation fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}+${minecraft_version}")
 
     // ISSへの強依存を追加.
     implementation fg.deobf("io.redspace:irons_spellbooks:${irons_spells_version}")

@@ -26,5 +26,6 @@ public class ApprenticeCodex
         SoundRegistry.register(bus);
         EffectRegistry.register(bus);
         MenuRegistry.register(bus);
+        CreativeTabRegistry.register(bus);
     }
 }

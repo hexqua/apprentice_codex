@@ -1,4 +1,10 @@
 {
+  "itemGroup.apprenticecodex.main" : "Apprentice Codex",
+
+  "item.apprenticecodex.scarlet_thirst": "Scarlet Thirst",
+
+  "item.apprenticecodex.scarlet_thirst.desc": "Converts excess health into mana when mana is low.",
+
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
 
