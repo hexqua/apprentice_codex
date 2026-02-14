@@ -110,7 +110,12 @@ public class SkyEdge extends AbstractSpell {
 
     @Override
     public AnimationHolder getCastStartAnimation() {
-        return SpellAnimations.ANIMATION_CHARGED_CAST;
+        return SpellAnimations.ANIMATION_CONTINUOUS_CAST_ONE_HANDED;
+    }
+
+    @Override
+    public AnimationHolder getCastFinishAnimation() {
+        return AnimationHolder.none();
     }
 
     @Override
