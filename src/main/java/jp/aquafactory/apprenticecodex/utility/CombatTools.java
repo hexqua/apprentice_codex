@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -15,6 +16,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.PartEntity;
+import net.minecraftforge.fml.ModList;
 
 import javax.annotation.Nullable;
 
@@ -25,6 +27,9 @@ public final class CombatTools {
         DEFAULT,
         NO_KNOCKBACK,
     }
+
+    private static volatile long lastEpicFightCompatLogMs = 0L;
+    private static final long EPICFIGHT_COMPAT_LOG_COOLDOWN_MS = 10_000L;
 
     public static DamageSource getDamageSource(Level level, Entity entity, ResourceKey<DamageType> damageType) {
         var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
@@ -70,10 +75,47 @@ public final class CombatTools {
             if (type == KnockbackTypes.NO_KNOCKBACK) {
                 KnockbackControlEvent.markIgnoreNextKnockback(livingTarget);
             }
-            return livingTarget.hurt(source, baseAmount * getResistAttribute(livingTarget, magicSchool));
+
+            var amount = baseAmount * getResistAttribute(livingTarget, magicSchool);
+
+            // Epicfight関連は例外握りつぶしを行う.
+            if (isEpicFightLikeEnvironment()) {
+                try {
+                    return livingTarget.hurt(source, amount);
+                } catch (Throwable t) {
+                    logEpicFightCompatOncePerInterval("LivingEntity#hurt", livingTarget, source, amount, t);
+                    return false;
+                }
+            }
+            return livingTarget.hurt(source, amount);
+
         } else {
             return target.hurt(source, baseAmount);
         }
+    }
+
+    private static boolean isEpicFightLikeEnvironment() {
+        // Epicfight及びそれのでかいアドオンを監視.
+        return ModList.get().isLoaded("epicfight") || ModList.get().isLoaded("efn");
+    }
+
+    private static void logEpicFightCompatOncePerInterval(
+            String stage, Entity target, DamageSource source, float amount, Throwable t
+    ) {
+        var now = System.currentTimeMillis();
+        var last = lastEpicFightCompatLogMs;
+
+        if (now - last < EPICFIGHT_COMPAT_LOG_COOLDOWN_MS) {
+            return;
+        }
+
+        lastEpicFightCompatLogMs = now;
+        ApprenticeCodex.LOGGER.warn(
+                "[Compat] Suppressed crash from other mod during {}. " +
+                        "This often happens with EpicFight / EpicFight Nightfall / Connector environments. " +
+                        "target={}, source={}, amount={}",
+                stage, target, source, amount, t
+        );
     }
 
     public static boolean canBeHostileToMe(Entity target, LivingEntity player) {
