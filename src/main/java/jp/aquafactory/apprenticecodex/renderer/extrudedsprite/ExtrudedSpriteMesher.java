@@ -33,10 +33,10 @@ public final class ExtrudedSpriteMesher {
             q.x[2] = 1; q.y[2] = 1; q.z[2] = zFront;
             q.x[3] = 0; q.y[3] = 1; q.z[3] = zFront;
 
-            q.u[0] = 0; q.v[0] = 0;
-            q.u[1] = 1; q.v[1] = 0;
-            q.u[2] = 1; q.v[2] = 1;
-            q.u[3] = 0; q.v[3] = 1;
+            q.u[0] = 0; q.v[0] = 1;
+            q.u[1] = 1; q.v[1] = 1;
+            q.u[2] = 1; q.v[2] = 0;
+            q.u[3] = 0; q.v[3] = 0;
 
             quads.add(q);
         }
@@ -49,10 +49,10 @@ public final class ExtrudedSpriteMesher {
             q.x[2] = 1; q.y[2] = 1; q.z[2] = zBack;
             q.x[3] = 1; q.y[3] = 0; q.z[3] = zBack;
 
-            q.u[0] = 0; q.v[0] = 0;
-            q.u[1] = 0; q.v[1] = 1;
-            q.u[2] = 1; q.v[2] = 1;
-            q.u[3] = 1; q.v[3] = 0;
+            q.u[0] = 0; q.v[0] = 1;
+            q.u[1] = 0; q.v[1] = 0;
+            q.u[2] = 1; q.v[2] = 0;
+            q.u[3] = 1; q.v[3] = 1;
 
             quads.add(q);
         }
@@ -64,8 +64,8 @@ public final class ExtrudedSpriteMesher {
 
                 var x0 = (px)     / (float) w;
                 var x1 = (px + 1) / (float) w;
-                var y0 = (py)     / (float) h;
-                var y1 = (py + 1) / (float) h;
+                var y0 = 1.0f - ((py + 1) / (float) h);
+                var y1 = 1.0f - (py / (float) h);
 
                 var u0 = x0;
                 var u1 = x1;
