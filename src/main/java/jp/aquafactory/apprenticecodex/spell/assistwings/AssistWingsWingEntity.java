@@ -34,10 +34,20 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
     public void onClientRemoval() {
         var level = level();
         EffectTools.createRingParticle(
-                position(),
+                RotationTools.calculateBehindPosition(this, 0, -0.6, -0.2),
                 getLookAngle(),
-                1.5,
-                12,
+                0.2,
+                6,
+                0.1f,
+                0.02,
+                ParticleTypes.END_ROD,
+                level
+        );
+        EffectTools.createRingParticle(
+                RotationTools.calculateBehindPosition(this, 0, +0.6, -0.2),
+                getLookAngle(),
+                0.2,
+                6,
                 0.1f,
                 0.02,
                 ParticleTypes.END_ROD,
@@ -70,9 +80,9 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
 
         if (!owner.isInWaterOrBubble() && !owner.isFallFlying() && !owner.getAbilities().flying &&
                 !owner.onClimbable() && !owner.isPassenger() && !owner.isSwimming() && !owner.onGround()) {
-            var currentMove = owner.getDeltaMovement();
-            if (currentMove.y < 0){
-                // 低速落下ポーション効果を使う.
+            // 低速落下ポーション効果を使う.
+            owner.fallDistance = 0;
+            if (!owner.isShiftKeyDown()){
                 var effect = owner.getEffect(MobEffects.SLOW_FALLING);
                 if (effect == null || effect.getDuration() < 10){
                     owner.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 20, 0, true, false, false));
@@ -104,6 +114,6 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
     }
 
     public Vec3 getBackPosition(LivingEntity owner){
-        return RotationTools.calculateBehindPosition(owner, 0.2, 0, -0.4);
+        return RotationTools.calculateBehindPosition(owner, 0.25, 0, -0.4);
     }
 }
