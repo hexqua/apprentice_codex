@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -77,11 +78,29 @@ public class AssistWings extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        // todo:Capabilityテスト.
         Capabilities.withSpellData(entity, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, spell -> {
-            ++spell.doneJump;
-            ApprenticeCodex.LOGGER.debug("AssistWings: Jump count increased to {}", spell.doneJump);
+            // まずは翼が既にいるかどうかチェック.
+            var wing = level.getEntity(spell.localEntityId);
+            if (wing == null || wing.isRemoved() || !(wing instanceof AssistWingsWingEntity)) {
+                var summonWing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), level, entity);
+                level.addFreshEntity(summonWing);
+                spell.localEntityId = summonWing.getId();
+            }
+
+            // 足をつけていればそのジャンプは空中ジャンプとして処理しない.
+            if (!entity.onGround()) {
+                ++spell.doneJump;
+            }
+
+            // ジャンプ高度は気持ち高め.
+            var jumpHeight = 0.6f + entity.getJumpBoostPower();
+            var currentDelta = entity.getDeltaMovement();
+            entity.setDeltaMovement(currentDelta.x, jumpHeight, currentDelta.z);
+            entity.hasImpulse = true;
+            entity.hurtMarked = true;
+            entity.fallDistance = 0;
         }));
+
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

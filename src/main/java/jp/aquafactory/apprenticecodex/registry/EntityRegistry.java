@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
@@ -132,6 +133,15 @@ public final class EntityRegistry {
                             .clientTrackingRange(128)
                             .updateInterval(1)
                             .build("fly_swatter_projectile"));
+
+    public static final RegistryObject<EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
+            ENTITIES.register("assist_wings_wing",
+                    () -> EntityType.Builder
+                            .<AssistWingsWingEntity>of(AssistWingsWingEntity::new, MobCategory.MISC)
+                            .sized(0.5f, 0.5f)
+                            .clientTrackingRange(16)
+                            .updateInterval(1)
+                            .build("assist_wings_wing"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
