@@ -89,6 +89,6 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
     }
 
     public Vec3 getBackPosition(LivingEntity owner){
-        return RotationTools.calculateBehindPosition(owner, 0.2, 0, -0.8);
+        return RotationTools.calculateBehindPosition(owner, 0.2, 0, -0.4);
     }
 }

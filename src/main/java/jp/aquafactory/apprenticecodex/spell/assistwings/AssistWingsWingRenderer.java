@@ -21,12 +21,26 @@ public class AssistWingsWingRenderer extends EntityRenderer<AssistWingsWingEntit
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
         var yawPitch = RotationTools.calculateYawPitchByEntity(entity, partialTicks);
+        float t = entity.tickCount + partialTicks;
+        float open = 30.0f + (float)Math.sin(t * 0.35f) * 20.0f;
+
         poseStack.pushPose();
-        // todo:翼が羽ばたいているように見えるようにする.
-        poseStack.translate(-0.5, -0.5, - (1.0/16.0) * 0.5);
         poseStack.mulPose(Axis.YP.rotationDegrees(-yawPitch.yaw()));
-        poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
-        ExtrudedSpriteRenderer.render(poseStack, buffer, packedLight,getTextureLocation(entity));
+        {
+            poseStack.pushPose();
+            poseStack.translate(0.15, -0.5, -(1.0f/16.0f) * 0.5f);
+            poseStack.mulPose(Axis.YP.rotationDegrees(+open));
+            ExtrudedSpriteRenderer.render(poseStack, buffer, packedLight, getTextureLocation(entity));
+            poseStack.popPose();
+        }
+        {
+            poseStack.pushPose();
+            poseStack.translate(-0.15, -0.5, -(1.0f/16.0f) * 0.5f);
+            poseStack.mulPose(Axis.YP.rotationDegrees(180-open));
+            ExtrudedSpriteRenderer.render(poseStack, buffer, packedLight, getTextureLocation(entity));
+            poseStack.popPose();
+        }
+
         poseStack.popPose();
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }
