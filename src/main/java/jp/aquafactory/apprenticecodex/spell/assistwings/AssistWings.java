@@ -38,7 +38,7 @@ public class AssistWings extends AbstractSpell {
 
     public AssistWings() {
         baseSpellPower = 100;
-        spellPowerPerLevel = 25;
+        spellPowerPerLevel = 100;
         baseManaCost = 20;
         manaCostPerLevel = 0;
         castTime = 0;
@@ -52,8 +52,7 @@ public class AssistWings extends AbstractSpell {
     }
 
     private int getJumpCount(int spellLevel, LivingEntity entity){
-        // todo:バランス調整.
-        return 5;
+        return 1 + Math.round(getSpellPower(spellLevel, entity) / 100.0f);
     }
 
     @Override
