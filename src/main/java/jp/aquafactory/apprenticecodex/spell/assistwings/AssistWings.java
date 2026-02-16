@@ -88,7 +88,9 @@ public class AssistWings extends AbstractSpell {
             }
 
             // 足をつけていればそのジャンプは空中ジャンプとして処理しない.
-            if (!entity.onGround()) {
+            if (entity.onGround()) {
+                spell.doneJump = 0;
+            } else {
                 ++spell.doneJump;
             }
 

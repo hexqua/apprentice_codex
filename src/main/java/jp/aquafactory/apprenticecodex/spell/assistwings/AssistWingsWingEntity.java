@@ -6,8 +6,11 @@ import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -53,7 +56,7 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
             return;
         }
 
-        if (!(getOwner() instanceof LivingEntity owner)) {
+        if (!(getOwner() instanceof Player owner)) {
             discard();
             return;
         }
@@ -63,6 +66,18 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
 
         if (KeepTick > 0) {
             --KeepTick;
+        }
+
+        if (!owner.isInWaterOrBubble() && !owner.isFallFlying() && !owner.getAbilities().flying &&
+                !owner.onClimbable() && !owner.isPassenger() && !owner.isSwimming() && !owner.onGround()) {
+            var currentMove = owner.getDeltaMovement();
+            if (currentMove.y < 0){
+                // 低速落下ポーション効果を使う.
+                var effect = owner.getEffect(MobEffects.SLOW_FALLING);
+                if (effect == null || effect.getDuration() < 10){
+                    owner.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 20, 0, true, false, false));
+                }
+            }
         }
         
         if (owner.onGround() && KeepTick <= 0) {
