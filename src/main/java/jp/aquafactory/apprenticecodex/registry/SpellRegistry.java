@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeam;
 import jp.aquafactory.apprenticecodex.spell.arcaneblast.ArcaneBlast;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultiple;
+import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWings;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
@@ -65,6 +66,9 @@ public final class SpellRegistry {
 
     public static final RegistryObject<AbstractSpell> FLY_SWATTER =
             SPELLS.register("fly_swatter", FlySwatter::new);
+
+    public static final RegistryObject<AbstractSpell> ASSIST_WINGS =
+            SPELLS.register("assist_wings", AssistWings::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
