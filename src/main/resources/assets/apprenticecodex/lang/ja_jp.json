@@ -72,6 +72,7 @@
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
   "ui.apprenticecodex.quick_arms.during_standby": "準備中",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "%s をロックオン...(%d/%d)",
+  "ui.apprenticecodex.cant_jump_more": "それ以上空中ジャンプできない！",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
 
