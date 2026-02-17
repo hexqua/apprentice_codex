@@ -13,6 +13,8 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -115,6 +117,8 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
     @Override
     public WorldFlatterDrillEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new WorldFlatterDrillEntity(EntityRegistry.WORLD_FLATTER_DRILL.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setReachSpeed(getReachSpeed());
         level.addFreshEntity(summonWeapon);
         AudioTools.playSoundFromEntity(level, entity, SoundRegistry.SAW_START.get(), SoundSource.PLAYERS);
         return summonWeapon;
@@ -122,7 +126,8 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull WorldFlatterDrillEntity weapon) {
-        // todo:挙動実装.
+        var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
+        weapon.updateOwnerTarget(result);
     }
 
     @Override
