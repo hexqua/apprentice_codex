@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
+import jp.aquafactory.apprenticecodex.spell.moonunite.MoonUnite;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
@@ -73,6 +74,9 @@ public final class SpellRegistry {
 
     public static final RegistryObject<AbstractSpell> WORLD_FLATTER =
             SPELLS.register("world_flatter", WorldFlatter::new);
+
+    public static final RegistryObject<AbstractSpell> MOON_UNITE =
+            SPELLS.register("moon_unite", MoonUnite::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);

@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectil
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
+import jp.aquafactory.apprenticecodex.spell.moonunite.MoonUniteKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
@@ -152,6 +153,15 @@ public final class EntityRegistry {
                             .clientTrackingRange(32)
                             .updateInterval(1)
                             .build("world_flatter_drill"));
+
+    public static final RegistryObject<EntityType<MoonUniteKatanaEntity>> MOON_UNITE_KATANA =
+            ENTITIES.register("moon_unite_katana",
+                    () -> EntityType.Builder
+                            .<MoonUniteKatanaEntity>of(MoonUniteKatanaEntity::new, MobCategory.MISC)
+                            .sized(0.5f, 0.5f)
+                            .clientTrackingRange(32)
+                            .updateInterval(1)
+                            .build("moon_unite_katana"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

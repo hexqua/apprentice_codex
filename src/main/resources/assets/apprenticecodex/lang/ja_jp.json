@@ -22,6 +22,7 @@
   "entity.apprenticecodex.fly_swatter_projectile" : "スワッターミサイル",
   "entity.apprenticecodex.assist_wings_wing" : "跳躍補助の翼",
   "entity.apprenticecodex.world_flatter_drill" : "魔法のドリル",
+  "entity.apprenticecodex.moon_unite_katana": "銘刀「結月」",
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
 
@@ -41,6 +42,7 @@
   "spell.apprenticecodex.fly_swatter": "フライスワッター",
   "spell.apprenticecodex.assist_wings": "アシストウィング",
   "spell.apprenticecodex.world_flatter": "ワールドフラッター",
+  "spell.apprenticecodex.moon_unite": "ムーンユナイト",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -58,6 +60,7 @@
   "spell.apprenticecodex.fly_swatter.guide": "魔法のランチャーを召喚し、視線先に捕捉した対象に向かって攻撃する。攻撃は敵を追尾する。",
   "spell.apprenticecodex.assist_wings.guide": "魔法の翼を召喚し、羽ばたいてジャンプする。空中でも魔法力に応じて一定回数のみ発動可能。発動後、着地するまで低速落下となり、落下ダメージを受けない。",
   "spell.apprenticecodex.world_flatter.guide": "魔法のドリルを召喚し、視線の先の対象を穿つ。大地に向かって振るうことで素早く大穴を開けることもできる。",
+  "spell.apprenticecodex.moon_unite.guide": "銘刀「結月」を召喚し、視線の先の対象を斬る。その力は未だ解明されていない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -94,5 +97,6 @@
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$sはバラバラになった",
   "death.attack.apprenticecodex.graced_rain": "%1$sに恵みの力は有害すぎた",
   "death.attack.apprenticecodex.fly_swatter": "%1$sは%2$sに叩き落された",
-  "death.attack.apprenticecodex.world_flatter": "%1$sは%2$sに風穴を開けられた"
+  "death.attack.apprenticecodex.world_flatter": "%1$sは%2$sに風穴を開けられた",
+  "death.attack.apprenticecodex.moon_unite": "%1$sは真っ二つにされた"
 }
