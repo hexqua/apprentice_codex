@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.spell.tinylumberjack;
+package jp.aquafactory.apprenticecodex.spell.worldflatter;
 
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -28,8 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawEntity> {
-    private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tiny_lumberjack");
+public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEntity> {
+    private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "world_flatter");
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
@@ -38,20 +38,20 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
             .setCooldownSeconds(4)
             .build();
 
-    public TinyLumberjack() {
-        super(TinyLumberjackSawEntity.class);
+    public WorldFlatter() {
+        super(WorldFlatterDrillEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
         baseManaCost = 10;
         manaCostPerLevel = 5;
-        castTime = 400;
+        castTime = 200;
     }
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.tree_cut_time", Utils.timeFromTicks(getBreakBestTime(spellLevel,caster), 1)),
+                Component.translatable("ui.apprenticecodex.deepslate_break_time", Utils.timeFromTicks(getBreakBestTime(spellLevel,caster), 1)),
                 Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
                 Component.literal(ApprenticeCodex.NAME)
         );
@@ -62,7 +62,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
     }
 
     private float getRange(){
-        return 6;
+        return 8;
     }
 
     private int getReachSpeed() {
@@ -71,12 +71,12 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
 
     private float getBreakSpeed(int spellLevel, LivingEntity entity) {
         // 6=鉄、9=ネザライト、12=金、効率強化1=+2、効率強化5=+26、効率強化6=+37.
-        return 2f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        return 4f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){
-        // 原木は大抵硬さ2、適正ツールは補正値30.
-        return Math.round((2 * 30) / getBreakSpeed(spellLevel, entity));
+        // 石は1.5、丸石は2、深層岩は3、適正ツールは補正値30.
+        return Math.round((3 * 30) / getBreakSpeed(spellLevel, entity));
     }
 
     @Override
@@ -115,8 +115,8 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
     }
 
     @Override
-    public TinyLumberjackSawEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var summonWeapon = new TinyLumberjackSawEntity(EntityRegistry.TINY_LUMBERJACK_SAW.get(), level, entity);
+    public WorldFlatterDrillEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new WorldFlatterDrillEntity(EntityRegistry.WORLD_FLATTER_DRILL.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setReachSpeed(getReachSpeed());
         summonWeapon.setToolSpeed(getBreakSpeed(spellLevel, entity));
@@ -126,13 +126,13 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
     }
 
     @Override
-    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackSawEntity weapon) {
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull WorldFlatterDrillEntity weapon) {
         var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
-        weapon.updateOwnerTarget(result);
+        weapon.updateOwnerTarget(level, result);
     }
 
     @Override
-    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull TinyLumberjackSawEntity weapon) {
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull WorldFlatterDrillEntity weapon) {
         return CompleteCastTypes.RELEASE_WEAPON;
     }
 }

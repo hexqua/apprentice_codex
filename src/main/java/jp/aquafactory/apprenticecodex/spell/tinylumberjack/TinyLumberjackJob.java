@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.tinylumberjack;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -165,24 +166,7 @@ public class TinyLumberjackJob {
     }
 
     private void breakBlock(ServerLevel level, BlockPos pos) {
-        if (starter != null && !starter.isRemoved()) {
-            var originalItem = starter.getMainHandItem();
-            var state = level.getBlockState(pos);
-            try{
-                // 鉄の斧として伐採する.
-                starter.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_AXE));
-                starter.gameMode.destroyBlock(pos);
-
-                // イベントを呼ばないと破壊演出が出ない.
-                level.levelEvent(2001, pos, Block.getId(state));
-            } finally {
-                // すぐにアイテムをもとに戻す.
-                starter.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
-            }
-        } else {
-            starter = null;
-            level.destroyBlock(pos, true);
-        }
+        BlockTools.breakBlockByPlayerHands(level, starter, pos, new ItemStack(Items.IRON_AXE));
     }
 
     private static boolean isBreakableLeaf(BlockState state) {

@@ -2,9 +2,14 @@ package jp.aquafactory.apprenticecodex.utility;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.HitResult;
 
 import java.util.Optional;
@@ -40,5 +45,27 @@ public final class BlockTools {
         }
 
         return Optional.of(new PlaceData(placePos, hit.getDirection().getOpposite()));
+    }
+
+    public static void breakBlockByPlayerHands(Level level, ServerPlayer player, BlockPos pos, ItemStack dummyTool){
+        if (player != null && !player.isRemoved()) {
+            var originalItem = player.getMainHandItem();
+            var state = level.getBlockState(pos);
+            try{
+                // ダミーツールをもたせる.
+                player.setItemInHand(InteractionHand.MAIN_HAND, dummyTool);
+                var isBroken = player.gameMode.destroyBlock(pos);
+
+                // イベントを呼ばないと破壊演出が出ない.
+                if (isBroken){
+                    level.levelEvent(2001, pos, Block.getId(state));
+                }
+            } finally {
+                // すぐにアイテムをもとに戻す.
+                player.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
+            }
+        } else {
+            level.destroyBlock(pos, true);
+        }
     }
 }

@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
+import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
@@ -69,6 +70,9 @@ public final class SpellRegistry {
 
     public static final RegistryObject<AbstractSpell> ASSIST_WINGS =
             SPELLS.register("assist_wings", AssistWings::new);
+
+    public static final RegistryObject<AbstractSpell> WORLD_FLATTER =
+            SPELLS.register("world_flatter", WorldFlatter::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);

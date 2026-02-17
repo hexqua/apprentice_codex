@@ -24,6 +24,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> SKY_EDGE = register("sky_edge");
     public static final ResourceKey<DamageType> TINY_LUMBERJACK = register("tiny_lumberjack");
     public static final ResourceKey<DamageType> FLY_SWATTER = register("fly_swatter");
+    public static final ResourceKey<DamageType> WORLD_FLATTER = register("world_flatter");
 
     private static ResourceKey<DamageType> register(String name){
         return ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
@@ -52,5 +53,6 @@ public final class DamageTypes {
         context.register(SKY_EDGE, createTemplate(SKY_EDGE));
         context.register(TINY_LUMBERJACK, createTemplate(TINY_LUMBERJACK));
         context.register(FLY_SWATTER, createTemplate(FLY_SWATTER));
+        context.register(WORLD_FLATTER, createTemplate(WORLD_FLATTER));
     }
 }

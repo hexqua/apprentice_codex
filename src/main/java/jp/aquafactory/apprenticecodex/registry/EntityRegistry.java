@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
+import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -142,6 +143,15 @@ public final class EntityRegistry {
                             .clientTrackingRange(16)
                             .updateInterval(1)
                             .build("assist_wings_wing"));
+
+    public static final RegistryObject<EntityType<WorldFlatterDrillEntity>> WORLD_FLATTER_DRILL =
+            ENTITIES.register("world_flatter_drill",
+                    () -> EntityType.Builder
+                            .<WorldFlatterDrillEntity>of(WorldFlatterDrillEntity::new, MobCategory.MISC)
+                            .sized(0.5f, 0.5f)
+                            .clientTrackingRange(32)
+                            .updateInterval(1)
+                            .build("world_flatter_drill"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
