@@ -70,8 +70,8 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
     }
 
     private float getBreakSpeed(int spellLevel, LivingEntity entity) {
-        // 6=鉄ツール相当.
-        return 1f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        // 6=鉄、9=ネザライト、12=金、効率強化1=+2、効率強化5=+26、効率強化6=+37.
+        return 2f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){

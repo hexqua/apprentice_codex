@@ -44,7 +44,7 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
         spellPowerPerLevel = 50;
         baseManaCost = 10;
         manaCostPerLevel = 5;
-        castTime = 400;
+        castTime = 200;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
 
     private float getBreakSpeed(int spellLevel, LivingEntity entity) {
         // 6=鉄、9=ネザライト、12=金、効率強化1=+2、効率強化5=+26、効率強化6=+37.
-        return 6f * getSpellPower(spellLevel, entity) / 100.0f;
+        return 4f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){
