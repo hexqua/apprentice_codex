@@ -3,15 +3,15 @@ package jp.aquafactory.apprenticecodex.spell.worldflatter;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.utility.EffectTools;
-import jp.aquafactory.apprenticecodex.utility.RaycastTools;
-import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -296,12 +296,16 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
             return;
         }
 
+        if (!(owner instanceof ServerPlayer server)) {
+            return;
+        }
+
         for (var pos : breakableBlocks) {
             var state = level.getBlockState(pos);
             if (!canBreakTarget(level, pos, state, representativeState)) {
                 continue;
             }
-            level.destroyBlock(pos, true, owner);
+            BlockTools.breakBlockByPlayerHands(level, server, pos, new ItemStack(Items.IRON_PICKAXE));
         }
 
         resetBreakProgress(level);
