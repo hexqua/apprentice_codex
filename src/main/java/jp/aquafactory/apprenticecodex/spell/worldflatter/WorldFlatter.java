@@ -119,6 +119,7 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
         var summonWeapon = new WorldFlatterDrillEntity(EntityRegistry.WORLD_FLATTER_DRILL.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setReachSpeed(getReachSpeed());
+        summonWeapon.setToolSpeed(getBreakSpeed(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         AudioTools.playSoundFromEntity(level, entity, SoundRegistry.SAW_START.get(), SoundSource.PLAYERS);
         return summonWeapon;
@@ -127,7 +128,7 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull WorldFlatterDrillEntity weapon) {
         var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
-        weapon.updateOwnerTarget(result);
+        weapon.updateOwnerTarget(level, result);
     }
 
     @Override
