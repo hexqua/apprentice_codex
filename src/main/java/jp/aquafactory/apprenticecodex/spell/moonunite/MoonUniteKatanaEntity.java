@@ -3,6 +3,9 @@ package jp.aquafactory.apprenticecodex.spell.moonunite;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -17,6 +20,9 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEntity {
+
+    private static final EntityDataAccessor<Float> ANIMATION_SPEED =
+            SynchedEntityData.defineId(MoonUniteKatanaEntity.class, EntityDataSerializers.FLOAT);
 
     public static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
     public static final RawAnimation ANIM_TO_STANDBY = RawAnimation.begin().thenPlayAndHold("to_standby");
@@ -34,7 +40,7 @@ public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     @Override
     protected void defineSynchedData() {
-        // do nothing.
+        entityData.define(ANIMATION_SPEED, 1.0f);
     }
     @Override
     public void onClientRemoval() {
@@ -59,10 +65,12 @@ public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
         // todo:お試しにアニメ再生.
         if (tickCount == 5){
-            triggerAnim("idle", "A");
+            triggerAnim("main", "standby");
+            entityData.set(ANIMATION_SPEED, 2.0f);
         }
         if (tickCount == 40){
-            triggerAnim("idle", "B");
+            triggerAnim("main", "quickdraw");
+            entityData.set(ANIMATION_SPEED, 7.5f);
         }
 
         if (tickCount == 100){
@@ -99,13 +107,13 @@ public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
 
-        controllerRegistrar.add(new AnimationController<>(this, "idle", state -> {
-            state.getController().setAnimation(ANIM_IDLE);
-            return PlayState.CONTINUE;
-        })
-                .triggerableAnim("A", ANIM_TO_STANDBY)
-                .triggerableAnim("B", ANIM_QUICKDRAW)
-                .setAnimationSpeed(6.0f));
+        controllerRegistrar.add(new AnimationController<>(this, "main", state -> {
+                state.getController().setAnimation(ANIM_IDLE);
+                return PlayState.CONTINUE;
+            })
+            .triggerableAnim("standby", ANIM_TO_STANDBY)
+            .triggerableAnim("quickdraw", ANIM_QUICKDRAW)
+            .setAnimationSpeedHandler(e -> (double)e.entityData.get(ANIMATION_SPEED)));
     }
 
     @Override
