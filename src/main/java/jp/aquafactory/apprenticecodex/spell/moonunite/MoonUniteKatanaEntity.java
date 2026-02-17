@@ -18,7 +18,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEntity {
 
-    public static final RawAnimation ANIM_START = RawAnimation.begin().thenPlayAndHold("idle");
+    public static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
     public static final RawAnimation ANIM_TO_STANDBY = RawAnimation.begin().thenPlayAndHold("to_standby");
     public static final RawAnimation ANIM_QUICKDRAW = RawAnimation.begin().thenPlayAndHold("quickdraw");
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -59,10 +59,15 @@ public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
         // todo:お試しにアニメ再生.
         if (tickCount == 5){
-            triggerAnim("sequence", "A");
+            triggerAnim("idle", "A");
         }
-        if (tickCount == 20){
-            triggerAnim("sequence", "B");
+        if (tickCount == 40){
+            triggerAnim("idle", "B");
+        }
+
+        if (tickCount == 100){
+            discard();
+            return;
         }
 
         followTargetPosition(getStandbyPosition());
@@ -93,16 +98,14 @@ public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
-        controllerRegistrar.add(new AnimationController<>(
-                this,
-                "sequence",
-                state -> {
-                    state.getController().setAnimation(ANIM_START);
-                    return PlayState.CONTINUE;
-                })
-            .triggerableAnim("A", ANIM_TO_STANDBY)
-            .triggerableAnim("B", ANIM_QUICKDRAW)
-        );
+
+        controllerRegistrar.add(new AnimationController<>(this, "idle", state -> {
+            state.getController().setAnimation(ANIM_IDLE);
+            return PlayState.CONTINUE;
+        })
+                .triggerableAnim("A", ANIM_TO_STANDBY)
+                .triggerableAnim("B", ANIM_QUICKDRAW)
+                .setAnimationSpeed(6.0f));
     }
 
     @Override
