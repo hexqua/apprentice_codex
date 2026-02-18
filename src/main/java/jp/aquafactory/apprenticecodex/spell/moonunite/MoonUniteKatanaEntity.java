@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -50,15 +51,7 @@ public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     @Override
-    public void tick() {
-        var level = level();
-
-        super.tick();
-
-        if (level.isClientSide) {
-            return;
-        }
-
+    public void tickOnServer(ServerLevel level) {
         if (!(getOwner() instanceof LivingEntity owner)) {
             discard();
             return;

@@ -103,11 +103,10 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         }
 
         super.tick();
+    }
 
-        if (level.isClientSide) {
-            return;
-        }
-
+    @Override
+    public void tickOnServer(ServerLevel level) {
         if (isReleased) {
             --releasedTick;
             if (entityData.get(IS_SOUND_LOOP_MODE) || isStarted) {

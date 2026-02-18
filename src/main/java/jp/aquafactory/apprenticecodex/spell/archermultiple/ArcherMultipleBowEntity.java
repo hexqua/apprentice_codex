@@ -178,11 +178,10 @@ public class ArcherMultipleBowEntity extends SummonWeaponEntity {
         }
 
         super.tick();
+    }
 
-        if (level.isClientSide) {
-            return;
-        }
-
+    @Override
+    public void tickOnServer(ServerLevel level) {
         if (!(getOwner() instanceof LivingEntity owner)) {
             discard();
             return;

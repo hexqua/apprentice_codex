@@ -119,11 +119,10 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         }
 
         super.tick();
+    }
 
-        if (level.isClientSide) {
-            return;
-        }
-
+    @Override
+    public void tickOnServer(ServerLevel level) {
         if (isReleased) {
             --releasedTick;
             if (releasedTick <= 0) {

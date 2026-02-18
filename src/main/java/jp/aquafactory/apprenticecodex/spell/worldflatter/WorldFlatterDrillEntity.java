@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -104,11 +105,10 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         }
 
         super.tick();
+    }
 
-        if (level.isClientSide) {
-            return;
-        }
-
+    @Override
+    public void tickOnServer(ServerLevel level){
         if (!(getOwner() instanceof LivingEntity owner)) {
             resetBreakProgress(level);
             discard();

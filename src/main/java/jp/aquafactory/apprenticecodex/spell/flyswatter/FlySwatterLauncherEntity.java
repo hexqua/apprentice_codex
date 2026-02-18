@@ -10,6 +10,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -114,8 +115,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
             );
         }
 
-        super.tick();
-
+        // todo:実行順の変化で見え方が変わるかもなので微調整.
         if (level.isClientSide) {
             int castingTick = entityData.get(CASTING_TICK);
             if (castingTick > 0) {
@@ -127,10 +127,11 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
             }
         }
 
-        if (level.isClientSide) {
-            return;
-        }
+        super.tick();
+    }
 
+    @Override
+    public void tickOnServer(ServerLevel level) {
         if (!(getOwner() instanceof LivingEntity owner)) {
             discard();
             return;

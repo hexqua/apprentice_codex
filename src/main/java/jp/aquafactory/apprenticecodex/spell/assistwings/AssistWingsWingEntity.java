@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -58,14 +59,7 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
     }
 
     @Override
-    public void tick() {
-        @SuppressWarnings("resource") var level = level();
-        super.tick();
-
-        if (level.isClientSide) {
-            return;
-        }
-
+    public void tickOnServer(ServerLevel level) {
         if (!(getOwner() instanceof Player owner)) {
             discard();
             return;
@@ -89,7 +83,7 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
                 }
             }
         }
-        
+
         if (owner.onGround() && KeepTick <= 0) {
             Capabilities.withSpellData(owner, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, spell -> {
                 spell.localEntityId = -1;
@@ -102,7 +96,6 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
         setXRot(0);
         setRot(getYRot(), getXRot());
     }
-
 
     @Override
     public Vec3 getStandbyPosition() {
