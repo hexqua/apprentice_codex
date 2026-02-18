@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.spell.moonunite;
+package jp.aquafactory.apprenticecodex.spell.slashblade;
 
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class MoonUnite extends AbstractSummonWeaponSpell<MoonUniteKatanaEntity> {
+public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity> {
 
-    private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "moon_unite");
+    private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "slash_blade");
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
@@ -34,8 +34,8 @@ public class MoonUnite extends AbstractSummonWeaponSpell<MoonUniteKatanaEntity> 
             .setCooldownSeconds(4)
             .build();
 
-    public MoonUnite() {
-        super(MoonUniteKatanaEntity.class);
+    public SlashBlade() {
+        super(SlashBladeKatanaEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
         baseManaCost = 10;
@@ -91,19 +91,19 @@ public class MoonUnite extends AbstractSummonWeaponSpell<MoonUniteKatanaEntity> 
     }
 
     @Override
-    public MoonUniteKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var summonWeapon = new MoonUniteKatanaEntity(EntityRegistry.MOON_UNITE_KATANA.get(), level, entity);
+    public SlashBladeKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new SlashBladeKatanaEntity(EntityRegistry.SLASH_BLADE_KATANA.get(), level, entity);
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
 
     @Override
-    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull MoonUniteKatanaEntity weapon) {
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull SlashBladeKatanaEntity weapon) {
         // todo:色々やる.
     }
 
     @Override
-    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull MoonUniteKatanaEntity weapon) {
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull SlashBladeKatanaEntity weapon) {
         return CompleteCastTypes.KEEP_WEAPON;
     }
 }

@@ -3,7 +3,7 @@
 	"minecraft:geometry": [
 		{
 			"description": {
-				"identifier": "geometry.moon_unite",
+				"identifier": "geometry.slash_blade",
 				"texture_width": 64,
 				"texture_height": 64,
 				"visible_bounds_width": 7,

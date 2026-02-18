@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.spell.moonunite;
+package jp.aquafactory.apprenticecodex.spell.slashblade;
 
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
@@ -21,10 +21,10 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
+public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
 
     private static final EntityDataAccessor<Float> ANIMATION_SPEED =
-            SynchedEntityData.defineId(MoonUniteKatanaEntity.class, EntityDataSerializers.FLOAT);
+            SynchedEntityData.defineId(SlashBladeKatanaEntity.class, EntityDataSerializers.FLOAT);
 
     public static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
     public static final RawAnimation ANIM_TO_STANDBY = RawAnimation.begin().thenPlayAndHold("to_standby");
@@ -32,11 +32,11 @@ public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEnti
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
 
-    public MoonUniteKatanaEntity(EntityType<?> pEntityType, Level pLevel) {
+    public SlashBladeKatanaEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
-    public MoonUniteKatanaEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
+    public SlashBladeKatanaEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
     }
 
