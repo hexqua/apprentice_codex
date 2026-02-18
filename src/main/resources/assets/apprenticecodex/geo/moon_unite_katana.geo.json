@@ -57,6 +57,16 @@
 					]
 				},
 				{
+					"name": "trail_tip",
+					"parent": "blade",
+					"pivot": [0, 30.375, 0.125]
+				},
+				{
+					"name": "trail_root",
+					"parent": "blade",
+					"pivot": [0, 7.875, 0.125]
+				},
+				{
 					"name": "handle",
 					"parent": "katana",
 					"pivot": [0, 5.25, 0],
