@@ -92,15 +92,18 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     @Override
     public void tick() {
+        // todo:実行順の変化で見え方が変わるかもなので微調整.
         var level = level();
-        super.tick();
-
         if (level.isClientSide) {
             spawnCloudParticles(level);
             spawnRainParticles(level);
-            return;
         }
 
+        super.tick();
+    }
+
+    @Override
+    public void tickOnServer(ServerLevel level) {
         if (!(getOwner() instanceof LivingEntity)) {
             discard();
             return;
@@ -118,11 +121,11 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             followTargetPosition(targetPos);
         }
 
-        if (anchorBlockPos != null && level instanceof ServerLevel serverLevel) {
+        if (anchorBlockPos != null) {
             ++growthTick;
             if (growthTick >= Math.max(1, growthIntervalTicks)) {
                 growthTick = 0;
-                tryGrowPlant(serverLevel);
+                tryGrowPlant(level);
             }
         }
 

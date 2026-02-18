@@ -3,25 +3,38 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.function.Supplier;
+
+@SuppressWarnings("DataFlowIssue")
 public final class BlockEntityRegistry {
+    // 1.20.1Forgeだと入れるものがないらしいのでnullに(合わせて警告握りつぶし)
+    private static final com.mojang.datafixers.types.Type<?> NO_DFU = null;
+
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, ApprenticeCodex.MODID);
 
-    public static final RegistryObject<BlockEntityType<MageLightTorchBlockEntity>> MAGE_LIGHT_TORCH =
-            BLOCK_ENTITY_TYPES.register("mage_light_torch",
-                    () -> BlockEntityType.Builder.of(MageLightTorchBlockEntity::new, BlockRegistry.MAGE_LIGHT_TORCH.get())
-                            .build(null));
+    private static <T extends BlockEntity> RegistryObject<BlockEntityType<T>> reg(
+            String id, BlockEntityType.BlockEntitySupplier<T> factory, Supplier<? extends Block> block
+    ) {
+        return BLOCK_ENTITY_TYPES.register(id,
+                () -> BlockEntityType.Builder.of(factory, block.get()).build(NO_DFU));
+    }
 
-    public static final RegistryObject<BlockEntityType<PersonalShelfChestBlockEntity>> PERSONAL_SHELF_CHEST =
-            BLOCK_ENTITY_TYPES.register("personal_shelf_chest",
-                    () -> BlockEntityType.Builder.of(PersonalShelfChestBlockEntity::new, BlockRegistry.PERSONAL_SHELF_CHEST.get())
-                            .build(null));
+    public static final RegistryObject<BlockEntityType<MageLightTorchBlockEntity>> MAGE_LIGHT_TORCH = reg(
+            "mage_light_torch", MageLightTorchBlockEntity::new, BlockRegistry.MAGE_LIGHT_TORCH
+    );
+
+    public static final RegistryObject<BlockEntityType<PersonalShelfChestBlockEntity>> PERSONAL_SHELF_CHEST = reg(
+            "personal_shelf_chest", PersonalShelfChestBlockEntity::new, BlockRegistry.PERSONAL_SHELF_CHEST
+    );
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITY_TYPES.register(eventBus);

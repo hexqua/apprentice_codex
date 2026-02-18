@@ -107,11 +107,10 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
         }
 
         super.tick();
+    }
 
-        if (level.isClientSide) {
-            return;
-        }
-
+    @Override
+    public void tickOnServer(ServerLevel level) {
         if (isReleased) {
             if (recoilTick > 0) {
                 --recoilTick;

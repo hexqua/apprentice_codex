@@ -48,6 +48,22 @@ public abstract class SummonWeaponEntity extends Entity implements TraceableEnti
     }
 
     @Override
+    public void tick(){
+        @SuppressWarnings("resource") var level = level();
+        super.tick();
+
+        if (level.isClientSide) {
+            return;
+        }
+
+        if (level instanceof ServerLevel server) {
+            tickOnServer(server);
+        }
+    }
+
+    abstract public void tickOnServer(ServerLevel level);
+
+    @Override
     public final @Nullable Entity getOwner() {
         @SuppressWarnings("resource") var level = level();
         if (cachedOwner != null && !cachedOwner.isRemoved()) {
