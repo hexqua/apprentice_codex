@@ -27,141 +27,92 @@ public final class EntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, ApprenticeCodex.MODID);
 
+    // ベース.
+    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> reg(
+            String id,
+            EntityType.EntityFactory<T> factory,
+            MobCategory category,
+            float w, float h,
+            int trackingRange,
+            int updateInterval,
+            boolean velocityUpdates
+    ) {
+        return ENTITIES.register(id, () -> {
+            var b = EntityType.Builder.of(factory, category)
+                    .sized(w, h)
+                    .clientTrackingRange(trackingRange)
+                    .updateInterval(updateInterval);
+
+            if (velocityUpdates) b.setShouldReceiveVelocityUpdates(true);
+            return b.build(id);
+        });
+    }
+
+    // テンプレ.
+    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regProjectile(
+            String id, EntityType.EntityFactory<T> factory,
+            int trackingRange, int updateInterval
+    ) {
+        return reg(id, factory, MobCategory.MISC,
+                0.25f, 0.25f,
+                trackingRange, updateInterval,
+                true);
+    }
+
+    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regWeapon(
+            String id, EntityType.EntityFactory<T> factory,
+            int updateInterval
+    ) {
+        return reg(id, factory, MobCategory.MISC,
+                0.5f, 0.5f,
+                32, updateInterval,
+                false);
+    }
+
     public static final RegistryObject<EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
-            ENTITIES.register("sky_edge_projectile",
-                    () -> EntityType.Builder
-                            .<SkyEdgeProjectileEntity>of(SkyEdgeProjectileEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(128)
-                            .updateInterval(1)
-                            .setShouldReceiveVelocityUpdates(true)
-                            .build("sky_edge_projectile"));
+            regProjectile("sky_edge_projectile", SkyEdgeProjectileEntity::new, 128, 1);
 
     public static final RegistryObject<EntityType<ArcherMultipleBowEntity>> ARCHER_MULTIPLE_BOW =
-            ENTITIES.register("archer_multiple_bow",
-                    () -> EntityType.Builder
-                            .<ArcherMultipleBowEntity>of(ArcherMultipleBowEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(64)
-                            .updateInterval(4)
-                            .build("archer_multiple_bow"));
+            regWeapon("archer_multiple_bow", ArcherMultipleBowEntity::new, 1);
 
     public static final RegistryObject<EntityType<CommenceFireRifleEntity>> COMMENCE_FIRE_RIFLE =
-            ENTITIES.register("commence_fire_rifle",
-                    () -> EntityType.Builder
-                            .<CommenceFireRifleEntity>of(CommenceFireRifleEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(64)
-                            .updateInterval(2)
-                            .build("commence_fire_rifle"));
+            regWeapon("commence_fire_rifle", CommenceFireRifleEntity::new, 2);
 
     public static final RegistryObject<EntityType<CompoundPhialProjectileEntity>> COMPOUND_PHIAL_PROJECTILE =
-            ENTITIES.register("compound_phial_projectile",
-                    () -> EntityType.Builder
-                            .<CompoundPhialProjectileEntity>of(CompoundPhialProjectileEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(48)
-                            .updateInterval(1)
-                            .build("compound_phial_projectile"));
+            regProjectile("compound_phial_projectile", CompoundPhialProjectileEntity::new, 48, 1);
 
     public static final RegistryObject<EntityType<QuickArmsHandgunEntity>> QUICK_ARMS_HANDGUN =
-            ENTITIES.register("quick_arms_handgun",
-                    () -> EntityType.Builder
-                            .<QuickArmsHandgunEntity>of(QuickArmsHandgunEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(48)
-                            .updateInterval(1)
-                            .build("quick_arms_handgun"));
+            regWeapon("quick_arms_handgun", QuickArmsHandgunEntity::new, 1);
 
     public static final RegistryObject<EntityType<BreachingEnemyShotgunEntity>> BREACHING_ENEMY_SHOTGUN =
-            ENTITIES.register("breaching_enemy_shotgun",
-                    () -> EntityType.Builder
-                            .<BreachingEnemyShotgunEntity>of(BreachingEnemyShotgunEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(32)
-                            .updateInterval(1)
-                            .build("breaching_enemy_shotgun"));
+            regWeapon("breaching_enemy_shotgun", BreachingEnemyShotgunEntity::new, 1);
 
     public static final RegistryObject<EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
-            ENTITIES.register("bullet_stream_minigun",
-                    () -> EntityType.Builder
-                            .<BulletStreamMinigunEntity>of(BulletStreamMinigunEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(64)
-                            .updateInterval(2)
-                            .build("bullet_stream_minigun"));
+            regWeapon("bullet_stream_minigun", BulletStreamMinigunEntity::new, 1);
 
     public static final RegistryObject<EntityType<GracedRainCloudEntity>> GRACED_RAIN_CLOUD =
-            ENTITIES.register("graced_rain_cloud",
-                    () -> EntityType.Builder
-                            .<GracedRainCloudEntity>of(GracedRainCloudEntity::new, MobCategory.MISC)
-                            .sized(0.5f, 0.5f)
-                            .clientTrackingRange(64)
-                            .updateInterval(1)
-                            .build("graced_rain_cloud"));
+            regWeapon("graced_rain_cloud", GracedRainCloudEntity::new, 1);
 
     public static final RegistryObject<EntityType<TinyLumberjackSawEntity>> TINY_LUMBERJACK_SAW =
-            ENTITIES.register("tiny_lumberjack_saw",
-                    () -> EntityType.Builder
-                            .<TinyLumberjackSawEntity>of(TinyLumberjackSawEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(48)
-                            .updateInterval(1)
-                            .build("tiny_lumberjack_saw"));
+            regWeapon("tiny_lumberjack_saw", TinyLumberjackSawEntity::new, 1);
 
     public static final RegistryObject<EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
-            ENTITIES.register("arcane_beam",
-                    () -> EntityType.Builder
-                            .<ArcaneBeamEntity>of(ArcaneBeamEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(64)
-                            .updateInterval(1)
-                            .build("arcane_beam"));
+            regProjectile("arcane_beam", ArcaneBeamEntity::new, 64, 1);
 
     public static final RegistryObject<EntityType<FlySwatterLauncherEntity>> FLY_SWATTER_LAUNCHER =
-            ENTITIES.register("fly_swatter_launcher",
-                    () -> EntityType.Builder
-                            .<FlySwatterLauncherEntity>of(FlySwatterLauncherEntity::new, MobCategory.MISC)
-                            .sized(0.5f, 0.5f)
-                            .clientTrackingRange(128)
-                            .updateInterval(1)
-                            .build("fly_swatter_launcher"));
+            regWeapon("fly_swatter_launcher", FlySwatterLauncherEntity::new, 1);
 
     public static final RegistryObject<EntityType<FlySwatterProjectileEntity>> FLY_SWATTER_PROJECTILE =
-            ENTITIES.register("fly_swatter_projectile",
-                    () -> EntityType.Builder
-                            .<FlySwatterProjectileEntity>of(FlySwatterProjectileEntity::new, MobCategory.MISC)
-                            .sized(0.25f, 0.25f)
-                            .clientTrackingRange(128)
-                            .updateInterval(1)
-                            .build("fly_swatter_projectile"));
+            regProjectile("fly_swatter_projectile", FlySwatterProjectileEntity::new, 128, 1);
 
     public static final RegistryObject<EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
-            ENTITIES.register("assist_wings_wing",
-                    () -> EntityType.Builder
-                            .<AssistWingsWingEntity>of(AssistWingsWingEntity::new, MobCategory.MISC)
-                            .sized(0.5f, 0.5f)
-                            .clientTrackingRange(16)
-                            .updateInterval(1)
-                            .build("assist_wings_wing"));
+            regWeapon("assist_wings_wing", AssistWingsWingEntity::new, 1);
 
     public static final RegistryObject<EntityType<WorldFlatterDrillEntity>> WORLD_FLATTER_DRILL =
-            ENTITIES.register("world_flatter_drill",
-                    () -> EntityType.Builder
-                            .<WorldFlatterDrillEntity>of(WorldFlatterDrillEntity::new, MobCategory.MISC)
-                            .sized(0.5f, 0.5f)
-                            .clientTrackingRange(32)
-                            .updateInterval(1)
-                            .build("world_flatter_drill"));
+            regWeapon("world_flatter_drill", WorldFlatterDrillEntity::new, 1);
 
     public static final RegistryObject<EntityType<MoonUniteKatanaEntity>> MOON_UNITE_KATANA =
-            ENTITIES.register("moon_unite_katana",
-                    () -> EntityType.Builder
-                            .<MoonUniteKatanaEntity>of(MoonUniteKatanaEntity::new, MobCategory.MISC)
-                            .sized(0.5f, 0.5f)
-                            .clientTrackingRange(32)
-                            .updateInterval(1)
-                            .build("moon_unite_katana"));
+            regWeapon("moon_unite_katana", MoonUniteKatanaEntity::new, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
