@@ -1,0 +1,90 @@
+# AGENTS.md
+
+このファイルは、このリポジトリで作業する人間/AIエージェント向けの共通ルールを定義します。
+
+## 0. 言語ポリシー
+- 本プロジェクトでのやり取り、ドキュメント、レビューコメントは原則として日本語を使用する。
+- ファイルをコミットする際のコミットメッセージは日本語で記述する。
+- 外部資料が英語の場合は、日本語で要点を補足する。
+- ツール仕様などで英語が必須の箇所のみ、必要最小限で英語を使用する。
+
+## 1. 目的
+- プロジェクトの目的: Apprentice's Codex を開発し、主に Iron's Spells 'n Spellbooks 向けの追加コンテンツを提供する。
+- AGENTS.md を置く目的: 人間/AI エージェントの作業手順、品質基準、言語ポリシー（原則日本語）を統一し、再現性のある開発を行う。
+- 技術スタックやバージョンなどの実装条件は「2. 開発環境」に記載する。
+
+## 2. 開発環境
+- 開発対象: Minecraft 1.20.1
+- Mod ローダー: Minecraft Forge 47.4.10
+- 言語/実行環境: Java 17
+- ビルドツール: Gradle Wrapper（`gradlew` / `gradlew.bat`）
+- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.15.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
+- セットアップ手順:
+1. 64bit の Java 17 をインストールし、`java -version` で確認する。
+2. 既定の Java が 17 以外の場合は、ビルド実行前に一時的に `JAVA_HOME` を切り替える。
+3. `gradlew.bat --version` を実行し、JVM が Java 17 であることを確認する。
+4. 必要に応じて IDE の Gradle プロジェクト再読み込みを実施する。
+
+## 3. 実行コマンド
+- PowerShell で Java 17 を一時適用（必要な場合）:
+```powershell
+# 必須: <<REPLACE_WITH_YOUR_JDK17_PATH>> を実際の JDK 17 パスに置換する
+$env:JAVA_HOME='<<REPLACE_WITH_YOUR_JDK17_PATH>>'
+$env:Path="$env:JAVA_HOME\bin;$env:Path"
+java -version
+```
+- ビルド:
+```powershell
+gradlew.bat clean build
+```
+- jar 出力確認:
+```powershell
+Get-ChildItem build\libs\*.jar
+```
+- 想定出力先:
+`build\libs\apprentice_codex-<mod_version>+mc1.20.1.jar`
+- 起動（開発クライアント）:
+```powershell
+gradlew.bat runClient
+```
+- 注記: `runClient` は GUI（Minecraft クライアント）を起動するため、CI やヘッドレス環境では実行しない。
+- Lint/Format:
+`現時点では専用タスク未設定。必要時に追加する。`
+
+## 4. コーディング規約
+- 命名規則: クラス/インターフェースは `PascalCase`、メソッド/フィールド/ローカル変数は `camelCase`、定数は `UPPER_SNAKE_CASE` を使用する。
+- 命名規則: レジストリ名・リソース ID・JSON ファイル名は `snake_case` を使用し、`apprenticecodex` 名前空間を前提にする。
+- 設計方針: 追加要素の登録処理は既存の `registry` パッケージ構成に合わせ、初期化時に一元登録する。
+- 設計方針: データ駆動で表現できる内容は `src/generated/resources` と datagen を優先し、ハードコードを最小化する。
+- コメント方針: コメントは「何をしているか」より「なぜそうするか（意図・理由・制約）」を優先して記載する。
+- コメント方針: 外部 MOD 仕様への依存、ワークアラウンド、クライアント/サーバー差分、実行順依存、魔法値を扱う箇所はコメント必須とする。
+- コメント方針: 複雑な条件分岐、将来の拡張を前提にした設計判断、誤用しやすい API 利用箇所にはコメント推奨とする。
+- コメント方針: 自明な処理の逐語説明コメントは避ける。
+- コメント方針: 実装変更時はコメントも同時に更新し、不要になったコメントは削除する。
+- コメント方針: コメント本文は原則日本語で、短く具体的に記述する。
+- 依存関係追加の方針: 追加・更新するバージョンは `gradle.properties` に集約し、`build.gradle` から参照する。
+- 依存関係追加の方針: 必須依存を追加する場合は `src/main/resources/META-INF/mods.toml` の dependency 定義も更新する。
+- 依存関係追加の方針: 外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を必ず確認する。
+
+## 5. 変更フロー
+1. 変更内容を 1〜2 文で決める（何を、なぜ変えるか）。
+2. 実装する。
+3. `gradlew.bat clean build` が成功することを確認する（ここだけ必須）。
+4. 必要に応じて `gradlew.bat runClient` で動作確認する。
+5. 必要に応じて関連ドキュメントを更新する。
+
+## 6. レビューチェックリスト
+- 必須チェック項目: Java 17 環境で `gradlew.bat clean build` が成功すること。
+- 必須チェック項目: 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
+- 必須チェック項目: サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
+- リグレッション確認: 既存コンテンツの ID 変更や削除による互換性破壊を避ける。
+- リグレッション確認: 依存 MOD バージョン条件を変更した場合、`mods.toml` と `gradle.properties` の整合性を確認する。
+
+## 7. ドキュメント更新
+- コード変更時に更新すべきファイル: `gradle.properties`（バージョン）、`build.gradle`（依存/タスク）、`src/main/resources/META-INF/mods.toml`（依存条件）、`README.md`（仕様/導入手順）、`THIRD_PARTY_NOTICES.md`（ライセンス）。
+- 更新ルール: 実装変更と同一 PR/コミット内で関連ドキュメントを更新し、差分の理由が追跡できる状態にする。
+- 更新ルール: 実行手順や開発フローに影響する変更は `AGENTS.md` も同時更新する。
+
+## 8. 禁止事項
+- 事前合意なしで大規模リファクタをしない。
+- 機密情報をコミットしない。
