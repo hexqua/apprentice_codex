@@ -29,7 +29,9 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEntity {
@@ -39,6 +41,8 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
     private static final double MOB_ATTACH_DISTANCE = 0.25;
     private static final double BLOCK_ATTACH_COMPLETE_DISTANCE_SQR = 0.04;
     private static final double TARGET_CHANGED_EPSILON_SQR = 0.0025;
+    private static final int CRACK_ID_SLOT_BITS = 5;
+    private static final int CRACK_ID_SLOT_COUNT = 1 << CRACK_ID_SLOT_BITS;
 
     private float damage;
     private float toolSpeed;
@@ -54,7 +58,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
     private @Nullable Vec3 breakSideNormal;
     private @Nullable BlockState breakRepresentativeState;
     private float breakProgress;
-    private final Set<BlockPos> crackingBlocks = new LinkedHashSet<>();
+    private final Map<BlockPos, Integer> crackProgressIds = new LinkedHashMap<>();
 
     public WorldFlatterDrillEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -358,29 +362,42 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
     }
 
     private void updateCracks(Level level, Set<BlockPos> currentBlocks, int stage) {
-        for (var pos : crackingBlocks) {
-            if (currentBlocks.contains(pos)) {
+        var iterator = crackProgressIds.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            if (currentBlocks.contains(entry.getKey())) {
                 continue;
             }
-            level.destroyBlockProgress(getId(), pos, -1);
+            level.destroyBlockProgress(entry.getValue(), entry.getKey(), -1);
+            iterator.remove();
         }
 
+        var crackIdBase = getId() << CRACK_ID_SLOT_BITS;
         for (var pos : currentBlocks) {
-            level.destroyBlockProgress(getId(), pos, stage);
+            var crackId = crackProgressIds.computeIfAbsent(pos, ignored -> allocateCrackProgressId(crackIdBase));
+            level.destroyBlockProgress(crackId, pos, stage);
+        }
+    }
+
+    private int allocateCrackProgressId(int crackIdBase) {
+        for (int slot = 0; slot < CRACK_ID_SLOT_COUNT; slot++) {
+            var candidate = crackIdBase + slot;
+            if (!crackProgressIds.containsValue(candidate)) {
+                return candidate;
+            }
         }
 
-        crackingBlocks.clear();
-        crackingBlocks.addAll(currentBlocks);
+        return crackIdBase + CRACK_ID_SLOT_COUNT + crackProgressIds.size();
     }
 
     private void resetBreakProgress(Level level) {
         if (!level.isClientSide) {
-            for (var pos : crackingBlocks) {
-                level.destroyBlockProgress(getId(), pos, -1);
+            for (var entry : crackProgressIds.entrySet()) {
+                level.destroyBlockProgress(entry.getValue(), entry.getKey(), -1);
             }
         }
 
-        crackingBlocks.clear();
+        crackProgressIds.clear();
         breakCenterPos = null;
         breakSideNormal = null;
         breakRepresentativeState = null;
