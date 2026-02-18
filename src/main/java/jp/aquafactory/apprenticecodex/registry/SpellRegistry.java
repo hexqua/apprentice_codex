@@ -23,66 +23,37 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.function.Supplier;
+
+@SuppressWarnings("unused") // 参照しない魔法があっても警告を抑制.
 public final class SpellRegistry {
+    private SpellRegistry() {}
     public static final DeferredRegister<AbstractSpell> SPELLS =
             DeferredRegister.create(io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPELL_REGISTRY_KEY, ApprenticeCodex.MODID);
 
-    public static final RegistryObject<AbstractSpell> SKY_EDGE =
-            SPELLS.register("sky_edge", SkyEdge::new);
+    private static RegistryObject<AbstractSpell> reg(String id, Supplier<? extends AbstractSpell> factory) {
+        return SPELLS.register(id, factory);
+    }
 
-    public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE =
-            SPELLS.register("archer_multiple", ArcherMultiple::new);
-
-    public static final RegistryObject<AbstractSpell> COMMENCE_FIRE =
-            SPELLS.register("commence_fire", CommenceFire::new);
-
-    public static final RegistryObject<AbstractSpell> COMPOUND_PHIAL =
-            SPELLS.register("compound_phial", CompoundPhial::new);
-
-    public static final RegistryObject<AbstractSpell> QUICK_ARMS =
-            SPELLS.register("quick_arms", QuickArms::new);
-
-    public static final RegistryObject<AbstractSpell> BREACHING_ENEMY =
-            SPELLS.register("breaching_enemy", BreachingEnemy::new);
-
-    public static final RegistryObject<AbstractSpell> BULLET_STREAM =
-            SPELLS.register("bullet_stream", BulletStream::new);
-
-    public static final RegistryObject<AbstractSpell> ARCANE_BLAST =
-            SPELLS.register("arcane_blast", ArcaneBlast::new);
-
-    public static final RegistryObject<AbstractSpell> ARCANE_BEAM =
-            SPELLS.register("arcane_beam", ArcaneBeam::new);
-
-    public static final RegistryObject<AbstractSpell> TINY_LUMBERJACK =
-            SPELLS.register("tiny_lumberjack", TinyLumberjack::new);
-
-    public static final RegistryObject<AbstractSpell> GRACED_RAIN =
-            SPELLS.register("graced_rain", GracedRain::new);
-
-    public static final RegistryObject<AbstractSpell> MAGE_LIGHT =
-            SPELLS.register("mage_light", MageLight::new);
-
-    public static final RegistryObject<AbstractSpell> PERSONAL_SHELF =
-            SPELLS.register("personal_shelf", PersonalShelf::new);
-
-    public static final RegistryObject<AbstractSpell> FLY_SWATTER =
-            SPELLS.register("fly_swatter", FlySwatter::new);
-
-    public static final RegistryObject<AbstractSpell> ASSIST_WINGS =
-            SPELLS.register("assist_wings", AssistWings::new);
-
-    public static final RegistryObject<AbstractSpell> WORLD_FLATTER =
-            SPELLS.register("world_flatter", WorldFlatter::new);
-
-    public static final RegistryObject<AbstractSpell> MOON_UNITE =
-            SPELLS.register("moon_unite", MoonUnite::new);
+    public static final RegistryObject<AbstractSpell> SKY_EDGE = reg("sky_edge", SkyEdge::new);
+    public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
+    public static final RegistryObject<AbstractSpell> COMMENCE_FIRE = reg("commence_fire", CommenceFire::new);
+    public static final RegistryObject<AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);
+    public static final RegistryObject<AbstractSpell> QUICK_ARMS = reg("quick_arms", QuickArms::new);
+    public static final RegistryObject<AbstractSpell> BREACHING_ENEMY = reg("breaching_enemy", BreachingEnemy::new);
+    public static final RegistryObject<AbstractSpell> BULLET_STREAM = reg("bullet_stream", BulletStream::new);
+    public static final RegistryObject<AbstractSpell> ARCANE_BLAST = reg("arcane_blast", ArcaneBlast::new);
+    public static final RegistryObject<AbstractSpell> ARCANE_BEAM = reg("arcane_beam", ArcaneBeam::new);
+    public static final RegistryObject<AbstractSpell> TINY_LUMBERJACK = reg("tiny_lumberjack", TinyLumberjack::new);
+    public static final RegistryObject<AbstractSpell> GRACED_RAIN = reg("graced_rain", GracedRain::new);
+    public static final RegistryObject<AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
+    public static final RegistryObject<AbstractSpell> PERSONAL_SHELF = reg("personal_shelf", PersonalShelf::new);
+    public static final RegistryObject<AbstractSpell> FLY_SWATTER = reg("fly_swatter", FlySwatter::new);
+    public static final RegistryObject<AbstractSpell> ASSIST_WINGS = reg("assist_wings", AssistWings::new);
+    public static final RegistryObject<AbstractSpell> WORLD_FLATTER = reg("world_flatter", WorldFlatter::new);
+    public static final RegistryObject<AbstractSpell> MOON_UNITE = reg("moon_unite", MoonUnite::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
-    }
-
-    private SpellRegistry() {
-        // do nothing.
     }
 }
