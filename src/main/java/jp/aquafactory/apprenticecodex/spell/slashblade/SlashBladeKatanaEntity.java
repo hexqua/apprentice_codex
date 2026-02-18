@@ -1,13 +1,20 @@
 package jp.aquafactory.apprenticecodex.spell.slashblade;
 
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -23,6 +30,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
 
+    private static final int STAY_SLASHED_TICK = 10;
+
+    private static final EntityDataAccessor<Boolean> SHOW_TRAIL =
+            SynchedEntityData.defineId(SlashBladeKatanaEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> ANIMATION_SPEED =
             SynchedEntityData.defineId(SlashBladeKatanaEntity.class, EntityDataSerializers.FLOAT);
 
@@ -31,6 +42,11 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     public static final RawAnimation ANIM_QUICKDRAW = RawAnimation.begin().thenPlayAndHold("quickdraw");
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
+    private float damage;
+    private int lifeTick = 0;
+    private int damageTick = 0;
+    private boolean isSlashed = false;
+    private boolean isStandby = false;
 
     public SlashBladeKatanaEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -42,6 +58,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     @Override
     protected void defineSynchedData() {
+        entityData.define(SHOW_TRAIL, false);
         entityData.define(ANIMATION_SPEED, 1.0f);
     }
     @Override
@@ -57,19 +74,29 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
             return;
         }
 
-        // todo:お試しにアニメ再生.
-        if (tickCount == 5){
-            triggerAnim("main", "standby");
-            entityData.set(ANIMATION_SPEED, 2.0f);
-        }
-        if (tickCount == 40){
-            triggerAnim("main", "quickdraw");
-            entityData.set(ANIMATION_SPEED, 7.5f);
+        if (isSlashed) {
+            --lifeTick;
+            if (lifeTick <= 0) {
+                discard();
+                return;
+            }
         }
 
-        if (tickCount == 100){
-            discard();
-            return;
+        if (damageTick > 0) {
+            --damageTick;
+            if (damageTick == 0) {
+                var point = getLookAngle().normalize().scale(0.5);
+                var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.SLASH_BLADE);
+                var hitResult = RaycastTools.hitsSphere(level,
+                        position().add(point),
+                        2,
+                        e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+                );
+                AudioTools.playSoundFromBlock(level, point, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
+                for (var hit : hitResult){
+                    CombatTools.applyDamage(hit, damage, source, SpellRegistry.SLASH_BLADE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+                }
+            }
         }
 
         followTargetPosition(getStandbyPosition());
@@ -78,10 +105,33 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         setRot(getYRot(), getXRot());
     }
 
+    public void setStandby(){
+        triggerAnim("main", "standby");
+        entityData.set(ANIMATION_SPEED, 4.0f);
+        entityData.set(SHOW_TRAIL, false);
+        isStandby = true;
+    }
+
+    public boolean isStandby(){
+        return isStandby;
+    }
+
+    public void slash(){
+        triggerAnim("main", "quickdraw");
+        entityData.set(ANIMATION_SPEED, 7.5f);
+        entityData.set(SHOW_TRAIL, true);
+        damageTick = 3;
+        lifeTick = STAY_SLASHED_TICK;
+        isSlashed = true;
+    }
+
+    public void setDamage(float damage){
+        this.damage = damage;
+    }
+
     @Override
     public boolean isTrailActive() {
-        // todo:お試しに斬撃アニメちょっと前ぐらいに.
-        return tickCount >= 39;
+        return entityData.get(SHOW_TRAIL);
     }
 
     @Override
@@ -92,11 +142,13 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     @Override
     protected void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
+        damage = pCompound.getFloat("Damage");
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
+        pCompound.putFloat("Damage", damage);
     }
 
     @Override

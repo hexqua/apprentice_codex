@@ -240,6 +240,29 @@ public final class RaycastTools {
                         .normalize();
     }
 
+
+    public static Set<Entity> hitsSphere(
+            Level level,
+            Vec3 point,
+            double radius,
+            Predicate<Entity> filter
+    ) {
+        var aabb = new AABB(point, point).inflate(radius + 0.5);
+        var candidates = level.getEntities((Entity) null, aabb, filter);
+        var hits = new HashSet<Entity>();
+
+        for (Entity e : candidates) {
+            var box = e.getBoundingBox().inflate(radius);
+
+            if (box.contains(point)) {
+                hits.add(e);
+                break;
+            }
+        }
+
+        return hits;
+    }
+
     public static Set<Entity> sampleBeamHits(
             Level level,
             Vec3 start,

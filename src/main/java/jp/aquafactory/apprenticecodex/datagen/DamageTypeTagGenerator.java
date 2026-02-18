@@ -47,11 +47,12 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SKY_EDGE,
                 TINY_LUMBERJACK,
                 FLY_SWATTER,
-                WORLD_FLATTER
+                WORLD_FLATTER,
+                SLASH_BLADE
         );
 
         // RANGED_ATTACK : 遠距離攻撃扱い(現状はガーディアンのトゲ無効)
-        // 基本的にはほぼ全て入る.
+        // 基本的にはほぼ全て入る(召喚武器は近接ではない)
         tag(RANGED_ATTACK).add(
                 ARCANE_BEAM,
                 ARCANE_BLAST,
@@ -66,7 +67,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SKY_EDGE,
                 TINY_LUMBERJACK,
                 FLY_SWATTER,
-                WORLD_FLATTER
+                WORLD_FLATTER,
+                SLASH_BLADE
         );
 
         // EXPLOSIONS : 爆発ダメージ(エンチャ、常にエンドラ有効、ガーディアンのトゲ無効)
