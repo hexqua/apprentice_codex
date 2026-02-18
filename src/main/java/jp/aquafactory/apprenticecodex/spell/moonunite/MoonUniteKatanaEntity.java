@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.moonunite;
 
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -19,7 +20,7 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEntity {
+public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
 
     private static final EntityDataAccessor<Float> ANIMATION_SPEED =
             SynchedEntityData.defineId(MoonUniteKatanaEntity.class, EntityDataSerializers.FLOAT);
@@ -82,6 +83,17 @@ public class MoonUniteKatanaEntity extends SummonWeaponEntity implements GeoEnti
         setYRot(owner.getYRot());
         setXRot(0);
         setRot(getYRot(), getXRot());
+    }
+
+    @Override
+    public boolean isTrailActive() {
+        // todo:お試しに斬撃アニメちょっと前ぐらいに.
+        return tickCount >= 39;
+    }
+
+    @Override
+    public int getTrailColorARGB() {
+        return 0xFFDDAAFF;
     }
 
     @Override
