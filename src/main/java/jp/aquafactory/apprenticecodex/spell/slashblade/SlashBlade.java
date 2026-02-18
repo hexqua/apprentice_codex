@@ -121,7 +121,7 @@ public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull SlashBladeKatanaEntity weapon) {
-        weapon.slash();
+        weapon.slash(level);
         return CompleteCastTypes.KEEP_WEAPON;
     }
 }

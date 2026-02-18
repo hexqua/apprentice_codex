@@ -45,7 +45,6 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     private float damage;
     private int lifeTick = 0;
-    private int damageTick = 0;
     private boolean isSlashed = false;
     private boolean isStandby = false;
 
@@ -94,23 +93,6 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
             }
         }
 
-        if (damageTick > 0) {
-            --damageTick;
-            if (damageTick == 0) {
-                var point = getLookAngle().normalize().scale(0.5);
-                var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.SLASH_BLADE);
-                var hitResult = RaycastTools.hitsSphere(level,
-                        position().add(point),
-                        2,
-                        e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
-                );
-                AudioTools.playSoundFromBlock(level, point, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
-                for (var hit : hitResult){
-                    CombatTools.applyDamage(hit, damage, source, SpellRegistry.SLASH_BLADE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-                }
-            }
-        }
-
         followTargetPosition(getStandbyPosition());
         setYRot(owner.getYRot());
         setXRot(0);
@@ -128,13 +110,26 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         return isStandby;
     }
 
-    public void slash(){
+    public void slash(Level level){
         triggerAnim("main", "quickdraw");
         entityData.set(ANIMATION_SPEED, 7.5f);
         entityData.set(SHOW_TRAIL, true);
-        damageTick = 3;
         lifeTick = STAY_SLASHED_TICK;
         isSlashed = true;
+
+        if ((getOwner() instanceof LivingEntity owner)) {
+            var point = getLookAngle().normalize().scale(0.5);
+            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.SLASH_BLADE);
+            var hitResult = RaycastTools.hitsSphere(level,
+                    position().add(point),
+                    2,
+                    e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+            );
+            AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
+            for (var hit : hitResult){
+                CombatTools.applyDamage(hit, damage, source, SpellRegistry.SLASH_BLADE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            }
+        }
     }
 
     public void setDamage(float damage){
