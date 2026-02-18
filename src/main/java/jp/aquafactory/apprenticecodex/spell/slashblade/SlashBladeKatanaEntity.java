@@ -1,13 +1,13 @@
 package jp.aquafactory.apprenticecodex.spell.slashblade;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.renderer.GeoBonePoseCache;
 import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
-import jp.aquafactory.apprenticecodex.utility.AudioTools;
-import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.utility.RaycastTools;
-import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import jp.aquafactory.apprenticecodex.utility.*;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -15,6 +15,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -63,7 +64,18 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     }
     @Override
     public void onClientRemoval() {
-        // todo:消失はちゃんと軸合わせをする.
+        var pose = GeoBonePoseCache.getPrev(getUUID());
+        if (pose != null) {
+            // キャッシュはヨーを考慮できていないのでそれを加味しなおす.
+            var yawDeg = RotationTools.calculateYawPitchByEntity(this, 1.0f).yaw();
+            var yawRad = -yawDeg * Mth.DEG_TO_RAD;
+            var rootLocal = pose.root().subtract(position());
+            var tipLocal  = pose.tip().subtract(position());
+            var rootWorld = rootLocal.yRot(yawRad).add(position());
+            var tipWorld  = tipLocal.yRot(yawRad).add(position());
+            EffectTools.createLineParticle(rootWorld, tipWorld, 0.25, 0.1, 0.01, ParticleTypes.END_ROD, level());
+        }
+
         super.onClientRemoval();
     }
 

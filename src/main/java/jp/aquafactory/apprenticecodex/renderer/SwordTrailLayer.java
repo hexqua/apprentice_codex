@@ -48,8 +48,10 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
 
         var tipPos  = boneWorldPos(tip);
         var rootPos = boneWorldPos(root);
-        var argb = animatable.getTrailColorARGB();
+        //noinspection resource
+        GeoBonePoseCache.put(animatable.getUUID(), tipPos, rootPos, animatable.level().getGameTime());
 
+        var argb = animatable.getTrailColorARGB();
         push(tipHist.computeIfAbsent(animatable.getUUID(), k -> new ArrayDeque<>()), tipPos);
         push(rootHist.computeIfAbsent(animatable.getUUID(), k -> new ArrayDeque<>()), rootPos);
 
