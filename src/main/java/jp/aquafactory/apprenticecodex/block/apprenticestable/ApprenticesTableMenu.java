@@ -64,7 +64,7 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
         inputSlot = addSlot(new Slot(container, INPUT_SLOT, 18, 17) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
-                return true;
+                return isValidInputItem(stack);
             }
         });
         resultSlot = addSlot(new Slot(resultContainer, RESULT_SLOT, 18, 47) {
@@ -114,7 +114,7 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
     }
 
     public boolean hasInputItem() {
-        return inputSlot.hasItem() && !availableSpells.isEmpty();
+        return isValidInputItem(inputSlot.getItem());
     }
 
     @Override
@@ -135,6 +135,10 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
 
     private boolean isValidSpellIndex(int recipeIndex) {
         return recipeIndex >= 0 && recipeIndex < availableSpells.size();
+    }
+
+    private boolean isValidInputItem(ItemStack stack) {
+        return stack.is(ItemRegistry.SCROLL.get());
     }
 
     @Override

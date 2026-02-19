@@ -66,22 +66,32 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
     @Override
     protected void renderBg(@NotNull GuiGraphics gui, float partialTick, int mouseX, int mouseY) {
         gui.blit(APPRENTICES_TABLE_TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
-        var normalizedScrollOffset = totalRowCount() > 3
-                ? Mth.clamp((float) this.scrollOffset / (totalRowCount() - 3), 0, 1)
-                : 0.0F;
-        gui.blit(
-                APPRENTICES_TABLE_TEXTURE,
-                leftPos + SCROLL_BAR_X,
-                (int) (topPos + SCROLL_BAR_Y + normalizedScrollOffset * (SCROLL_BAR_HEIGHT - 15)),
-                imageWidth + (isScrollbarHeld ? 12 : 0),
-                0,
-                12,
-                15
-        );
+        if (shouldShowSpellList()) {
+            var normalizedScrollOffset = totalRowCount() > 3
+                    ? Mth.clamp((float) this.scrollOffset / (totalRowCount() - 3), 0, 1)
+                    : 0.0F;
+            gui.blit(
+                    APPRENTICES_TABLE_TEXTURE,
+                    leftPos + SCROLL_BAR_X,
+                    (int) (topPos + SCROLL_BAR_Y + normalizedScrollOffset * (SCROLL_BAR_HEIGHT - 15)),
+                    imageWidth + (isScrollbarHeld ? 12 : 0),
+                    0,
+                    12,
+                    15
+            );
+        }
         renderSpellList(gui, mouseX, mouseY);
     }
 
     private void renderSpellList(GuiGraphics guiHelper, int mouseX, int mouseY) {
+        if (!shouldShowSpellList()) {
+            isScrollbarHeld = false;
+            for (var spellData : availableSpells) {
+                spellData.button.active = false;
+            }
+            return;
+        }
+
         List<FormattedCharSequence> additionalTooltip = null;
         for (var i = 0; i < availableSpells.size(); ++i) {
             var spellData = availableSpells.get(i);
@@ -108,6 +118,9 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
+        if (!shouldShowSpellList()) {
+            return super.mouseScrolled(mouseX, mouseY, scrollY);
+        }
         var maxOffset = Math.max(availableSpells.size() - 3, 0);
         var newScroll = Mth.clamp(scrollOffset - (int) scrollY, 0, maxOffset);
         if (newScroll != scrollOffset) {
@@ -119,7 +132,8 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        isScrollbarHeld = isHovering(SCROLL_BAR_X, SCROLL_BAR_Y, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, mouseX, mouseY);
+        isScrollbarHeld = shouldShowSpellList()
+                && isHovering(SCROLL_BAR_X, SCROLL_BAR_Y, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, mouseX, mouseY);
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -131,6 +145,9 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (!shouldShowSpellList()) {
+            return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        }
         var maxOffset = totalRowCount() - 3;
         if (isScrollbarHeld && maxOffset > 0) {
             var barStartY = topPos + SCROLL_BAR_Y;
@@ -151,11 +168,18 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
         if (minecraft == null || minecraft.player == null || minecraft.gameMode == null) {
             return;
         }
+        if (!shouldShowSpellList()) {
+            return;
+        }
 
         if (menu.clickMenuButton(minecraft.player, index)) {
             minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, index);
         }
+    }
+
+    private boolean shouldShowSpellList() {
+        return menu.hasInputItem();
     }
 
     public void generateSpellList() {
