@@ -5,7 +5,7 @@
   "item.apprenticecodex.craftsmans_delight": "職人の歓喜",
 
   "item.apprenticecodex.scarlet_thirst.desc": "マナ減少時、余っている体力をマナに変換する",
-  "item.apprenticecodex.craftsmans_delight.desc": "魔法の丸鋸やドリルの効率と性能を上昇させる。",
+  "item.apprenticecodex.craftsmans_delight.desc": "魔法の丸鋸やドリルの効率と性能を上昇させる。\n屈んで使うと魔力を封じ込める。",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
