@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.event;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
 import jp.aquafactory.apprenticecodex.registry.*;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfScreen;
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 public final class ClientSetUpEvent {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.APPRENTICE_DESK.get(), ApprenticeDeskScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new));
         event.enqueueWork(ItemRegistry::register);
     }

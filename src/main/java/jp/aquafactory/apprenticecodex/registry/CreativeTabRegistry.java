@@ -28,6 +28,7 @@ public final class CreativeTabRegistry {
     }
 
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
+        output.accept(ItemRegistry.APPRENTICE_DESK.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
     }
 }
