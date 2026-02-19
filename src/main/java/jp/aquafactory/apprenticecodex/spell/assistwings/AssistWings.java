@@ -46,8 +46,7 @@ public class AssistWings extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.apprenticecodex.jumps_count", Utils.stringTruncation(getJumpCount(spellLevel, caster), 1)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.apprenticecodex.jumps_count", Utils.stringTruncation(getJumpCount(spellLevel, caster), 1))
         );
     }
 

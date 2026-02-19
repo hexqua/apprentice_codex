@@ -48,8 +48,7 @@ public class BulletStream extends AbstractSummonWeaponSpell<BulletStreamMinigunE
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.apprenticecodex.start_up_time", Utils.timeFromTicks(getWarmUpStartTick(spellLevel,caster), 1)),
-                Component.translatable("ui.apprenticecodex.warm_up_time", Utils.timeFromTicks(getWarmUpFinishTick(spellLevel,caster), 1)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.apprenticecodex.warm_up_time", Utils.timeFromTicks(getWarmUpFinishTick(spellLevel,caster), 1))
         );
     }
 

@@ -59,8 +59,7 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.apprenticecodex.lock_on_count", Utils.stringTruncation(getLockOnCount(spellLevel, caster), 1)),
-                Component.translatable("ui.apprenticecodex.lock_on_time", Utils.timeFromTicks(getLockOnInterval(spellLevel, caster), 1)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.apprenticecodex.lock_on_time", Utils.timeFromTicks(getLockOnInterval(spellLevel, caster), 1))
         );
     }
 
