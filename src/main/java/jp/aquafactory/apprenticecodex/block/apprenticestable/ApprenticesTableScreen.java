@@ -18,6 +18,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,6 +85,10 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
     }
 
     private void renderSpellList(GuiGraphics guiHelper, int mouseX, int mouseY) {
+        if (minecraft == null || minecraft.player == null) {
+            return;
+        }
+
         if (!shouldShowSpellList()) {
             isScrollbarHeld = false;
             for (var spellData : availableSpells) {
@@ -101,9 +106,9 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
                 var y = topPos + SPELL_LIST_Y + (i - scrollOffset) * 19;
                 spellData.button.setX(x);
                 spellData.button.setY(y);
-                spellData.draw(this, guiHelper, x, y, mouseX, mouseY);
+                spellData.draw(this, guiHelper, minecraft.player, x, y);
                 if (additionalTooltip == null) {
-                    additionalTooltip = spellData.getTooltip(x, y, mouseX, mouseY);
+                    additionalTooltip = spellData.getTooltip(x, y, minecraft.player, mouseX, mouseY);
                 }
                 spellData.button.active = true;
             } else {
@@ -232,7 +237,7 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
             this.rarity = spell.getRarity(spellLevel);
         }
 
-        void draw(ApprenticesTableScreen screen, GuiGraphics guiHelper, int x, int y, int mouseX, int mouseY) {
+        void draw(ApprenticesTableScreen screen, GuiGraphics guiHelper, Player player, int x, int y) {
             if (index == screen.menu.getSelectedRecipeIndex()) {
                 guiHelper.blit(APPRENTICES_TABLE_TEXTURE, x, y, 0, 204, 108, 19);
             } else {
@@ -243,15 +248,15 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
             guiHelper.blit(texture, x + 108 - 18, y + 1, 0, 0, 16, 16, 16, 16);
 
             var maxWidth = 108 - 20;
-            var text = trimText(font, getDisplayName().withStyle(Style.EMPTY), maxWidth);
+            var text = trimText(font, getDisplayName(player).withStyle(Style.EMPTY), maxWidth);
             var textX = x + 2;
             var textY = y + 3;
             guiHelper.drawWordWrap(font, text, textX, textY, maxWidth, 0xFFFFFF);
         }
 
         @Nullable
-        List<FormattedCharSequence> getTooltip(int x, int y, int mouseX, int mouseY) {
-            var text = getDisplayName();
+        List<FormattedCharSequence> getTooltip(int x, int y, Player player, int mouseX, int mouseY) {
+            var text = getDisplayName(player);
             var textX = x + 2;
             var textY = y + 3;
             if (mouseX >= textX && mouseY >= textY && mouseX < textX + font.width(text) && mouseY < textY + font.lineHeight) {
@@ -269,8 +274,8 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
             return text;
         }
 
-        MutableComponent getDisplayName() {
-            return spell.getDisplayName(minecraft.player);
+        MutableComponent getDisplayName(Player player) {
+            return spell.getDisplayName(player);
         }
     }
 }
