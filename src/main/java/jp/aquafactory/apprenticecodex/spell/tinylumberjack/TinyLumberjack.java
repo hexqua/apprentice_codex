@@ -9,9 +9,11 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -22,13 +24,16 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 
-public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawEntity> {
+public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawEntity> implements ICraftsmansDelightAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tiny_lumberjack");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -70,7 +75,17 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
 
     private float getBreakSpeed(int spellLevel, LivingEntity entity) {
         // 6=鉄、9=ネザライト、12=金、効率強化1=+2、効率強化5=+26、効率強化6=+37.
-        return 2f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        var baseSpeed = 2f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        if (!isCraftsmansDelightBreakSpeedBonusEnabled()) {
+            return baseSpeed;
+        }
+
+        return CraftsmansDelight.applyBreakSpeedBonus(baseSpeed, entity);
+    }
+
+    public static ItemStack createDummyTool(@Nullable LivingEntity entity) {
+        var baseTool = new ItemStack(Items.IRON_AXE);
+        return CraftsmansDelight.applyEnchantsToTool(baseTool, entity);
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){

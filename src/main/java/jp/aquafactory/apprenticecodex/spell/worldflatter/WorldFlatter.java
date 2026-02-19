@@ -9,9 +9,11 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -22,13 +24,16 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 
-public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEntity> {
+public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEntity> implements ICraftsmansDelightAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "world_flatter");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -70,7 +75,17 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
 
     private float getBreakSpeed(int spellLevel, LivingEntity entity) {
         // 6=鉄、9=ネザライト、12=金、効率強化1=+2、効率強化5=+26、効率強化6=+37.
-        return 4f * getSpellPower(spellLevel, entity) / 100.0f;
+        var baseSpeed = 4f * getSpellPower(spellLevel, entity) / 100.0f;
+        if (!isCraftsmansDelightBreakSpeedBonusEnabled()) {
+            return baseSpeed;
+        }
+
+        return CraftsmansDelight.applyBreakSpeedBonus(baseSpeed, entity);
+    }
+
+    public static ItemStack createDummyTool(@Nullable LivingEntity entity) {
+        var baseTool = new ItemStack(Items.IRON_PICKAXE);
+        return CraftsmansDelight.applyEnchantsToTool(baseTool, entity);
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){
@@ -135,3 +150,4 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
         return CompleteCastTypes.RELEASE_WEAPON;
     }
 }
+

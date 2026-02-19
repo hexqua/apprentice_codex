@@ -6,10 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -31,7 +28,7 @@ public class TinyLumberjackJob {
             new PriorityQueue<>(Comparator.comparingInt(LeafNode::distance));
     private final LongOpenHashSet visitedLeaves = new LongOpenHashSet();
     private int maxLogDistanceProcessed;
-    private ServerPlayer starter;
+    private final ServerPlayer starter;
     private boolean complete;
 
     public TinyLumberjackJob(BlockPos originPos, int logsPerTick, ServerPlayer starter) {
@@ -166,7 +163,11 @@ public class TinyLumberjackJob {
     }
 
     private void breakBlock(ServerLevel level, BlockPos pos) {
-        BlockTools.breakBlockByPlayerHands(level, starter, pos, new ItemStack(Items.IRON_AXE));
+        BlockTools.breakBlockByPlayerHands(level, starter, pos, createDummyAxe());
+    }
+
+    private ItemStack createDummyAxe() {
+        return TinyLumberjack.createDummyTool(starter);
     }
 
     private static boolean isBreakableLeaf(BlockState state) {
