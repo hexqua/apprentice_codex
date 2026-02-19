@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.tinylumberjack;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
@@ -270,7 +271,16 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
 
         if (breakProgress >= 1.0f) {
             breakProgress = 0.0f;
-            level.destroyBlock(breakTargetPos, true, owner);
+            if (level instanceof ServerLevel serverLevel && owner instanceof ServerPlayer player) {
+                BlockTools.breakBlockByPlayerHands(
+                        serverLevel,
+                        player,
+                        breakTargetPos,
+                        CraftsmansDelight.createTinyLumberjackTool(player)
+                );
+            } else {
+                level.destroyBlock(breakTargetPos, true, owner);
+            }
             level.destroyBlockProgress(getId(), breakTargetPos, -1);
 
             // 木こりジョブを開始する.

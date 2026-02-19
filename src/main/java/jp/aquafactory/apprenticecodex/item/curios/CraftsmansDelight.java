@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.curios;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -13,13 +14,17 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
@@ -28,6 +33,9 @@ import java.util.List;
 
 public class CraftsmansDelight extends Item implements ICurioItem {
     private static final float ENCHANTMENT_SWITCH_MANA_COST = 100f;
+    private static final float BREAK_SPEED_BONUS_MULTIPLIER = 2.0f;
+    private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
+
     private final String slotIdentifier;
 
     public CraftsmansDelight() {
@@ -37,41 +45,10 @@ public class CraftsmansDelight extends Item implements ICurioItem {
 
     @Override
     public void onEquip(SlotContext slotContext, ItemStack prevStack, ItemStack stack) {
-        var entity = slotContext.entity();
-        //noinspection resource
-        var level = entity.level();
-
-        if (level.isClientSide) {
-            return;
-        }
-
-        ApprenticeCodex.LOGGER.debug("Equip: CraftsmansDelight");
     }
 
     @Override
     public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
-        var entity = slotContext.entity();
-        //noinspection resource
-        var level = entity.level();
-
-        if (level.isClientSide) {
-            return;
-        }
-
-        ApprenticeCodex.LOGGER.debug("Unequip: CraftsmansDelight");
-    }
-
-    @Override
-    public void curioTick(SlotContext slotContext, ItemStack stack) {
-        var entity = slotContext.entity();
-        //noinspection resource
-        var level = entity.level();
-
-        if (level.isClientSide) {
-            return;
-        }
-
-        // TODO: implement ring effect logic.
     }
 
     @Override
@@ -132,6 +109,60 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         stack.enchant(Enchantments.SILK_TOUCH, 1);
     }
 
+    public static boolean isEquippedBy(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return false;
+        }
+
+        return CuriosApi.getCuriosInventory(entity)
+                .map(inventory -> inventory.isEquipped(ItemRegistry.CRAFTSMANS_DELIGHT.get()))
+                .orElse(false);
+    }
+
+    public static float applyBreakSpeedBonus(float breakSpeed, @Nullable LivingEntity entity) {
+        if (!isEquippedBy(entity)) {
+            return breakSpeed;
+        }
+
+        return breakSpeed * BREAK_SPEED_BONUS_MULTIPLIER;
+    }
+
+    public static int applyManaCostDiscount(int manaCost, @Nullable LivingEntity entity) {
+        if (manaCost <= 0 || !isEquippedBy(entity)) {
+            return manaCost;
+        }
+
+        return Math.max(1, Math.round(manaCost * MANA_COST_DISCOUNT_MULTIPLIER));
+    }
+
+    public static ItemStack createTinyLumberjackTool(@Nullable LivingEntity entity) {
+        var dummyTool = new ItemStack(Items.IRON_AXE);
+        if (entity == null) {
+            return dummyTool;
+        }
+
+        var stack = getEquippedStack(entity);
+        if (stack.isEmpty()) {
+            return dummyTool;
+        }
+
+        // 装備中のCraftsmansDelightに付いたエンチャントをダミー斧へ転写する。
+        var enchantments = EnchantmentHelper.getEnchantments(stack);
+        if (!enchantments.isEmpty()) {
+            EnchantmentHelper.setEnchantments(enchantments, dummyTool);
+        }
+
+        return dummyTool;
+    }
+
+    private static ItemStack getEquippedStack(LivingEntity entity) {
+        return CuriosApi.getCuriosInventory(entity)
+                .map(inventory -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
+                        .map(slotResult -> slotResult.stack().copy())
+                        .orElse(ItemStack.EMPTY))
+                .orElse(ItemStack.EMPTY);
+    }
+
     private static boolean consumeManaForSneakUse(Player player, ItemStack stack) {
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData == null || magicData.getMana() < ENCHANTMENT_SWITCH_MANA_COST) {
@@ -139,7 +170,7 @@ public class CraftsmansDelight extends Item implements ICurioItem {
             return false;
         }
 
-        // addManaは内部で結局setを実行しているので-をaddしてもちゃんとマイナスされる.
+        // addManaは内部で最終的にsetを実行しているので、負値を加算すれば消費として機能する。
         magicData.addMana(-ENCHANTMENT_SWITCH_MANA_COST);
         return true;
     }
