@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.apprenticestable.ApprenticesTableMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -19,6 +20,9 @@ public final class MenuRegistry {
                 var shelf = inv.player.getCapability(Capabilities.PERSONAL_INVENTORY).orElseThrow(() -> new IllegalStateException("personal inventory (for Personal Shelf spell) capability missing"));
                 return new PersonalShelfMenu(windowId, inv, shelf.getHandler(), data.readBlockPos());
             }));
+
+    public static final RegistryObject<MenuType<ApprenticesTableMenu>> APPRENTICES_TABLE =
+            MENUS.register("apprentices_table", () -> IForgeMenuType.create((windowId, inv, data) -> new ApprenticesTableMenu(windowId, inv)));
 
     public static void register(IEventBus bus) {
         MENUS.register(bus);
