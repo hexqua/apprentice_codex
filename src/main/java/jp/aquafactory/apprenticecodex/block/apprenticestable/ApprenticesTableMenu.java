@@ -23,6 +23,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class ApprenticesTableMenu extends AbstractContainerMenu {
@@ -168,6 +169,15 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
                         .filter(spell -> SpellConfigManager.getSpellConfigValue(spell, IronConfigParameters.MIN_RARITY).getValue() <= 0)
                         .toList()
         );
+
+        // getDisplayNameのプレイヤーは未解禁時の難読化用なのでソートには使わない.
+        availableSpells.sort(Comparator
+                .comparing(this::getSchoolTypeSortKey)
+                .thenComparing(spell -> spell.getDisplayName(null).getString()));
+    }
+
+    private String getSchoolTypeSortKey(AbstractSpell spell) {
+        return spell.getSchoolType().getId().toString();
     }
 
     @Override
