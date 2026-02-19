@@ -1,6 +1,12 @@
 package jp.aquafactory.apprenticecodex.block.apprenticestable;
 
 import com.google.common.collect.Lists;
+import io.redspace.ironsspellbooks.api.config.IronConfigParameters;
+import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.sounds.SoundEvents;
@@ -15,9 +21,6 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.StonecutterRecipe;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -32,9 +35,7 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
 
     private final ContainerLevelAccess access;
     private final DataSlot selectedRecipeIndex = DataSlot.standalone();
-    private final Level level;
-    private List<StonecutterRecipe> recipes = Lists.newArrayList();
-    private ItemStack input = ItemStack.EMPTY;
+    private final List<AbstractSpell> availableSpells = Lists.newArrayList();
 
     long lastSoundTime;
     final Slot inputSlot;
@@ -59,10 +60,14 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
     public ApprenticesTableMenu(int containerId, Inventory inventory, ContainerLevelAccess containerAccess) {
         super(MenuRegistry.APPRENTICES_TABLE.get(), containerId);
         access = containerAccess;
-        level = inventory.player.level();
 
-        inputSlot = addSlot(new Slot(container, INPUT_SLOT, 20, 33));
-        resultSlot = addSlot(new Slot(resultContainer, RESULT_SLOT, 143, 33) {
+        inputSlot = addSlot(new Slot(container, INPUT_SLOT, 18, 17) {
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return true;
+            }
+        });
+        resultSlot = addSlot(new Slot(resultContainer, RESULT_SLOT, 18, 47) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return false;
@@ -71,24 +76,17 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
             @Override
             public void onTake(@NotNull Player player, @NotNull ItemStack stack) {
                 stack.onCraftedBy(player.level(), player, stack.getCount());
-                ApprenticesTableMenu.this.resultContainer.awardUsedRecipes(player, getRelevantItems());
-                var inputStack = ApprenticesTableMenu.this.inputSlot.remove(1);
-                if (!inputStack.isEmpty()) {
-                    ApprenticesTableMenu.this.setupResultSlot();
-                }
+                ApprenticesTableMenu.this.inputSlot.remove(1);
+                ApprenticesTableMenu.this.setupResultSlot();
 
                 containerAccess.execute((targetLevel, targetPos) -> {
                     var gameTime = targetLevel.getGameTime();
                     if (ApprenticesTableMenu.this.lastSoundTime != gameTime) {
-                        targetLevel.playSound(null, targetPos, SoundEvents.UI_STONECUTTER_TAKE_RESULT, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        targetLevel.playSound(null, targetPos, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
                         ApprenticesTableMenu.this.lastSoundTime = gameTime;
                     }
                 });
                 super.onTake(player, stack);
-            }
-
-            private List<ItemStack> getRelevantItems() {
-                return List.of(ApprenticesTableMenu.this.inputSlot.getItem());
             }
         });
 
@@ -103,22 +101,20 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
         }
 
         addDataSlot(selectedRecipeIndex);
+        selectedRecipeIndex.set(-1);
+        refreshAvailableSpells();
     }
 
     public int getSelectedRecipeIndex() {
         return selectedRecipeIndex.get();
     }
 
-    public List<StonecutterRecipe> getRecipes() {
-        return recipes;
-    }
-
-    public int getNumRecipes() {
-        return recipes.size();
+    public List<AbstractSpell> getAvailableSpells() {
+        return availableSpells;
     }
 
     public boolean hasInputItem() {
-        return inputSlot.hasItem() && !recipes.isEmpty();
+        return inputSlot.hasItem() && !availableSpells.isEmpty();
     }
 
     @Override
@@ -128,46 +124,30 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(@NotNull Player player, int recipeIndex) {
-        if (isValidRecipeIndex(recipeIndex)) {
+        if (isValidSpellIndex(recipeIndex)) {
             selectedRecipeIndex.set(recipeIndex);
             setupResultSlot();
+            return true;
         }
 
-        return true;
+        return false;
     }
 
-    private boolean isValidRecipeIndex(int recipeIndex) {
-        return recipeIndex >= 0 && recipeIndex < recipes.size();
+    private boolean isValidSpellIndex(int recipeIndex) {
+        return recipeIndex >= 0 && recipeIndex < availableSpells.size();
     }
 
     @Override
     public void slotsChanged(@NotNull Container container) {
-        var currentInput = inputSlot.getItem();
-        if (!currentInput.is(input.getItem())) {
-            input = currentInput.copy();
-            setupRecipeList(container, currentInput);
-        }
-    }
-
-    private void setupRecipeList(Container container, ItemStack input) {
-        recipes.clear();
-        selectedRecipeIndex.set(-1);
-        resultSlot.set(ItemStack.EMPTY);
-        if (!input.isEmpty()) {
-            recipes = level.getRecipeManager().getRecipesFor(RecipeType.STONECUTTING, container, level);
-        }
+        setupResultSlot();
     }
 
     void setupResultSlot() {
-        if (!recipes.isEmpty() && isValidRecipeIndex(selectedRecipeIndex.get())) {
-            var recipe = recipes.get(selectedRecipeIndex.get());
-            var result = recipe.assemble(container, level.registryAccess());
-            if (result.isItemEnabled(level.enabledFeatures())) {
-                resultContainer.setRecipeUsed(recipe);
-                resultSlot.set(result);
-            } else {
-                resultSlot.set(ItemStack.EMPTY);
-            }
+        if (hasInputItem() && isValidSpellIndex(selectedRecipeIndex.get())) {
+            var spell = availableSpells.get(selectedRecipeIndex.get());
+            var result = new ItemStack(ItemRegistry.SCROLL.get());
+            ISpellContainer.createScrollContainer(spell, 1, result);
+            resultSlot.set(result);
         } else {
             resultSlot.set(ItemStack.EMPTY);
         }
@@ -175,8 +155,15 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
         broadcastChanges();
     }
 
-    public void registerUpdateListener(Runnable listener) {
-        slotUpdateListener = listener;
+    private void refreshAvailableSpells() {
+        availableSpells.clear();
+        availableSpells.addAll(
+                SpellRegistry.getEnabledSpells()
+                        .stream()
+                        .filter(AbstractSpell::allowCrafting)
+                        .filter(spell -> SpellConfigManager.getSpellConfigValue(spell, IronConfigParameters.MIN_RARITY).getValue() <= 0)
+                        .toList()
+        );
     }
 
     @Override
@@ -203,17 +190,16 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
                 if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, HOTBAR_SLOT_END, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (level.getRecipeManager().getRecipeFor(RecipeType.STONECUTTING, new SimpleContainer(stackInSlot), level).isPresent()) {
+            } else if (slotIndex >= INVENTORY_SLOT_START && slotIndex < HOTBAR_SLOT_END) {
                 if (!moveItemStackTo(stackInSlot, INPUT_SLOT, RESULT_SLOT, false)) {
-                    return ItemStack.EMPTY;
+                    if (slotIndex < INVENTORY_SLOT_END) {
+                        if (!moveItemStackTo(stackInSlot, HOTBAR_SLOT_START, HOTBAR_SLOT_END, false)) {
+                            return ItemStack.EMPTY;
+                        }
+                    } else if (!moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, INVENTORY_SLOT_END, false)) {
+                        return ItemStack.EMPTY;
+                    }
                 }
-            } else if (slotIndex >= INVENTORY_SLOT_START && slotIndex < INVENTORY_SLOT_END) {
-                if (!moveItemStackTo(stackInSlot, HOTBAR_SLOT_START, HOTBAR_SLOT_END, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (slotIndex >= HOTBAR_SLOT_START && slotIndex < HOTBAR_SLOT_END
-                    && !moveItemStackTo(stackInSlot, INVENTORY_SLOT_START, INVENTORY_SLOT_END, false)) {
-                return ItemStack.EMPTY;
             }
 
             if (stackInSlot.isEmpty()) {

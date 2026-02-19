@@ -1,205 +1,252 @@
 package jp.aquafactory.apprenticecodex.block.apprenticestable;
 
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import io.redspace.ironsspellbooks.util.TooltipsUtils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesTableMenu> {
-    private static final ResourceLocation VANILLA_BG_TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/stonecutter.png");
-
-    // Keep custom GUI parameters reachable for future texture swap.
-    @SuppressWarnings("unused")
     private static final ResourceLocation APPRENTICES_TABLE_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/apprentices_table.png");
-    @SuppressWarnings("unused")
-    private static final int SPELL_LIST_X = 89;
-    @SuppressWarnings("unused")
+    private static final int SPELL_LIST_X = 46;
     private static final int SPELL_LIST_Y = 15;
-    @SuppressWarnings("unused")
-    private static final int SCROLL_BAR_X = 199;
-    @SuppressWarnings("unused")
+    private static final int SCROLL_BAR_X = 156;
     private static final int SCROLL_BAR_Y = 15;
-    @SuppressWarnings("unused")
     private static final int SCROLL_BAR_WIDTH = 12;
-    @SuppressWarnings("unused")
     private static final int SCROLL_BAR_HEIGHT = 56;
 
-    private static final int SCROLLER_WIDTH = 12;
-    private static final int SCROLLER_HEIGHT = 15;
-    private static final int RECIPES_COLUMNS = 4;
-    private static final int RECIPES_ROWS = 3;
-    private static final int RECIPES_IMAGE_SIZE_WIDTH = 16;
-    private static final int RECIPES_IMAGE_SIZE_HEIGHT = 18;
-    private static final int SCROLLER_FULL_HEIGHT = 54;
-    private static final int RECIPES_X = 52;
-    private static final int RECIPES_Y = 14;
-
-    private float scrollOffs;
-    private boolean scrolling;
-    private int startIndex;
-    private boolean displayRecipes;
+    private final List<SpellSelectInfo> availableSpells = new ArrayList<>();
+    private int scrollOffset;
+    private boolean isScrollbarHeld;
 
     public ApprenticesTableScreen(ApprenticesTableMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
-        menu.registerUpdateListener(this::containerChanged);
-        --titleLabelY;
+        imageWidth = 176;
+        imageHeight = 166;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        generateSpellList();
+    }
+
+    @Override
+    public void onClose() {
+        resetList();
+        super.onClose();
     }
 
     @Override
     public void render(@NotNull GuiGraphics gui, int mouseX, int mouseY, float partialTick) {
+        renderBackground(gui);
         super.render(gui, mouseX, mouseY, partialTick);
         renderTooltip(gui, mouseX, mouseY);
     }
 
     @Override
     protected void renderBg(@NotNull GuiGraphics gui, float partialTick, int mouseX, int mouseY) {
-        renderBackground(gui);
-        var left = leftPos;
-        var top = topPos;
-        gui.blit(VANILLA_BG_TEXTURE, left, top, 0, 0, imageWidth, imageHeight);
+        gui.blit(APPRENTICES_TABLE_TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        var normalizedScrollOffset = totalRowCount() > 3
+                ? Mth.clamp((float) this.scrollOffset / (totalRowCount() - 3), 0, 1)
+                : 0.0F;
+        gui.blit(
+                APPRENTICES_TABLE_TEXTURE,
+                leftPos + SCROLL_BAR_X,
+                (int) (topPos + SCROLL_BAR_Y + normalizedScrollOffset * (SCROLL_BAR_HEIGHT - 15)),
+                imageWidth + (isScrollbarHeld ? 12 : 0),
+                0,
+                12,
+                15
+        );
+        renderSpellList(gui, mouseX, mouseY);
+    }
 
-        var scrollerOffset = (int) (41.0F * scrollOffs);
-        gui.blit(VANILLA_BG_TEXTURE, left + 119, top + 15 + scrollerOffset, 176 + (isScrollBarActive() ? 0 : 12), 0, SCROLLER_WIDTH, SCROLLER_HEIGHT);
+    private void renderSpellList(GuiGraphics guiHelper, int mouseX, int mouseY) {
+        List<FormattedCharSequence> additionalTooltip = null;
+        for (var i = 0; i < availableSpells.size(); ++i) {
+            var spellData = availableSpells.get(i);
 
-        var recipesLeft = leftPos + RECIPES_X;
-        var recipesTop = topPos + RECIPES_Y;
-        var recipeEnd = startIndex + RECIPES_COLUMNS * RECIPES_ROWS;
-        renderButtons(gui, mouseX, mouseY, recipesLeft, recipesTop, recipeEnd);
-        renderRecipes(gui, recipesLeft, recipesTop, recipeEnd);
+            if (i - scrollOffset >= 0 && i - scrollOffset < 3) {
+                var x = leftPos + SPELL_LIST_X;
+                var y = topPos + SPELL_LIST_Y + (i - scrollOffset) * 19;
+                spellData.button.setX(x);
+                spellData.button.setY(y);
+                spellData.draw(this, guiHelper, x, y, mouseX, mouseY);
+                if (additionalTooltip == null) {
+                    additionalTooltip = spellData.getTooltip(x, y, mouseX, mouseY);
+                }
+                spellData.button.active = true;
+            } else {
+                spellData.button.active = false;
+            }
+        }
+
+        if (additionalTooltip != null) {
+            guiHelper.renderTooltip(font, additionalTooltip, mouseX, mouseY);
+        }
     }
 
     @Override
-    protected void renderTooltip(@NotNull GuiGraphics gui, int mouseX, int mouseY) {
-        super.renderTooltip(gui, mouseX, mouseY);
-        if (!displayRecipes) {
-            return;
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
+        var maxOffset = Math.max(availableSpells.size() - 3, 0);
+        var newScroll = Mth.clamp(scrollOffset - (int) scrollY, 0, maxOffset);
+        if (newScroll != scrollOffset) {
+            scrollOffset = newScroll;
+            return true;
         }
-
-        var recipesLeft = leftPos + RECIPES_X;
-        var recipesTop = topPos + RECIPES_Y;
-        var recipeEnd = startIndex + RECIPES_COLUMNS * RECIPES_ROWS;
-        var recipes = menu.getRecipes();
-
-        for (var recipeIndex = startIndex; recipeIndex < recipeEnd && recipeIndex < menu.getNumRecipes(); ++recipeIndex) {
-            var recipeOffset = recipeIndex - startIndex;
-            var recipeX = recipesLeft + recipeOffset % RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_WIDTH;
-            var recipeY = recipesTop + recipeOffset / RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_HEIGHT + 2;
-            if (mouseX >= recipeX && mouseX < recipeX + RECIPES_IMAGE_SIZE_WIDTH
-                    && mouseY >= recipeY && mouseY < recipeY + RECIPES_IMAGE_SIZE_HEIGHT) {
-                gui.renderTooltip(font, recipes.get(recipeIndex).getResultItem(minecraft.level.registryAccess()), mouseX, mouseY);
-            }
-        }
-    }
-
-    private void renderButtons(GuiGraphics gui, int mouseX, int mouseY, int recipesLeft, int recipesTop, int recipeEnd) {
-        for (var recipeIndex = startIndex; recipeIndex < recipeEnd && recipeIndex < menu.getNumRecipes(); ++recipeIndex) {
-            var recipeOffset = recipeIndex - startIndex;
-            var recipeX = recipesLeft + recipeOffset % RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_WIDTH;
-            var row = recipeOffset / RECIPES_COLUMNS;
-            var recipeY = recipesTop + row * RECIPES_IMAGE_SIZE_HEIGHT + 2;
-            var textureY = imageHeight;
-            if (recipeIndex == menu.getSelectedRecipeIndex()) {
-                textureY += RECIPES_IMAGE_SIZE_HEIGHT;
-            } else if (mouseX >= recipeX && mouseY >= recipeY
-                    && mouseX < recipeX + RECIPES_IMAGE_SIZE_WIDTH && mouseY < recipeY + RECIPES_IMAGE_SIZE_HEIGHT) {
-                textureY += RECIPES_IMAGE_SIZE_HEIGHT * 2;
-            }
-
-            gui.blit(VANILLA_BG_TEXTURE, recipeX, recipeY - 1, 0, textureY, RECIPES_IMAGE_SIZE_WIDTH, RECIPES_IMAGE_SIZE_HEIGHT);
-        }
-    }
-
-    private void renderRecipes(GuiGraphics gui, int recipesLeft, int recipesTop, int recipeEnd) {
-        var recipes = menu.getRecipes();
-
-        for (var recipeIndex = startIndex; recipeIndex < recipeEnd && recipeIndex < menu.getNumRecipes(); ++recipeIndex) {
-            var recipeOffset = recipeIndex - startIndex;
-            var recipeX = recipesLeft + recipeOffset % RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_WIDTH;
-            var row = recipeOffset / RECIPES_COLUMNS;
-            var recipeY = recipesTop + row * RECIPES_IMAGE_SIZE_HEIGHT + 2;
-            gui.renderItem(recipes.get(recipeIndex).getResultItem(minecraft.level.registryAccess()), recipeX, recipeY);
-        }
+        return super.mouseScrolled(mouseX, mouseY, scrollY);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        scrolling = false;
-        if (displayRecipes) {
-            var recipesLeft = leftPos + RECIPES_X;
-            var recipesTop = topPos + RECIPES_Y;
-            var recipeEnd = startIndex + RECIPES_COLUMNS * RECIPES_ROWS;
-
-            for (var recipeIndex = startIndex; recipeIndex < recipeEnd; ++recipeIndex) {
-                var recipeOffset = recipeIndex - startIndex;
-                var insideX = mouseX - (double) (recipesLeft + recipeOffset % RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_WIDTH);
-                var insideY = mouseY - (double) (recipesTop + recipeOffset / RECIPES_COLUMNS * RECIPES_IMAGE_SIZE_HEIGHT);
-                if (insideX >= 0.0D && insideY >= 0.0D
-                        && insideX < RECIPES_IMAGE_SIZE_WIDTH && insideY < RECIPES_IMAGE_SIZE_HEIGHT
-                        && menu.clickMenuButton(minecraft.player, recipeIndex)) {
-                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
-                    minecraft.gameMode.handleInventoryButtonClick(menu.containerId, recipeIndex);
-                    return true;
-                }
-            }
-
-            var scrollBarLeft = leftPos + 119;
-            var scrollBarTop = topPos + 9;
-            if (mouseX >= (double) scrollBarLeft && mouseX < (double) (scrollBarLeft + SCROLLER_WIDTH)
-                    && mouseY >= (double) scrollBarTop && mouseY < (double) (scrollBarTop + SCROLLER_FULL_HEIGHT)) {
-                scrolling = true;
-            }
-        }
-
+        isScrollbarHeld = isHovering(SCROLL_BAR_X, SCROLL_BAR_Y, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT, mouseX, mouseY);
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (scrolling && isScrollBarActive()) {
-            var scrollTop = topPos + RECIPES_Y;
-            var scrollBottom = scrollTop + SCROLLER_FULL_HEIGHT;
-            scrollOffs = ((float) mouseY - (float) scrollTop - 7.5F) / ((float) (scrollBottom - scrollTop) - (float) SCROLLER_HEIGHT);
-            scrollOffs = Mth.clamp(scrollOffs, 0.0F, 1.0F);
-            startIndex = (int) ((double) (scrollOffs * (float) getOffscreenRows()) + 0.5D) * RECIPES_COLUMNS;
-            return true;
-        }
-
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        isScrollbarHeld = false;
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollDelta) {
-        if (isScrollBarActive()) {
-            var offscreenRows = getOffscreenRows();
-            var scrollStep = (float) scrollDelta / (float) offscreenRows;
-            scrollOffs = Mth.clamp(scrollOffs - scrollStep, 0.0F, 1.0F);
-            startIndex = (int) ((double) (scrollOffs * (float) offscreenRows) + 0.5D) * RECIPES_COLUMNS;
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        var maxOffset = totalRowCount() - 3;
+        if (isScrollbarHeld && maxOffset > 0) {
+            var barStartY = topPos + SCROLL_BAR_Y;
+            var barEndY = barStartY + SCROLL_BAR_HEIGHT;
+            var normalized = ((float) mouseY - (float) barStartY - 7.5F) / ((float) (barEndY - barStartY) - 15.0F);
+            normalized = Mth.clamp(normalized, 0.0F, 1.0F);
+            scrollOffset = Math.max((int) ((double) (normalized * (float) maxOffset) + 0.5D), 0);
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    private int totalRowCount() {
+        return availableSpells.size();
+    }
+
+    private void selectSpell(int index) {
+        if (minecraft == null || minecraft.player == null || minecraft.gameMode == null) {
+            return;
         }
 
-        return true;
+        if (menu.clickMenuButton(minecraft.player, index)) {
+            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
+            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, index);
+        }
     }
 
-    private boolean isScrollBarActive() {
-        return displayRecipes && menu.getNumRecipes() > RECIPES_COLUMNS * RECIPES_ROWS;
+    public void generateSpellList() {
+        resetList();
+        if (minecraft == null || minecraft.player == null) {
+            return;
+        }
+
+        var spells = menu.getAvailableSpells();
+        for (var i = 0; i < spells.size(); ++i) {
+            var spell = spells.get(i);
+            if (!spell.isEnabled()) {
+                continue;
+            }
+            var index = i;
+            availableSpells.add(new SpellSelectInfo(
+                    spell,
+                    1,
+                    i,
+                    this.addWidget(
+                            new Button.Builder(spell.getDisplayName(minecraft.player), b -> selectSpell(index))
+                                    .pos(0, 0)
+                                    .size(108, 19)
+                                    .build()
+                    )
+            ));
+        }
     }
 
-    protected int getOffscreenRows() {
-        return (menu.getNumRecipes() + RECIPES_COLUMNS - 1) / RECIPES_COLUMNS - RECIPES_ROWS;
+    private void resetList() {
+        scrollOffset = 0;
+        for (var s : availableSpells) {
+            removeWidget(s.button);
+        }
+        availableSpells.clear();
     }
 
-    private void containerChanged() {
-        displayRecipes = menu.hasInputItem();
-        if (!displayRecipes) {
-            scrollOffs = 0.0F;
-            startIndex = 0;
+    private class SpellSelectInfo {
+        AbstractSpell spell;
+        int spellLevel;
+        SpellRarity rarity;
+        Button button;
+        int index;
+
+        SpellSelectInfo(AbstractSpell spell, int spellLevel, int index, Button button) {
+            this.spell = spell;
+            this.spellLevel = spellLevel;
+            this.index = index;
+            this.button = button;
+            this.rarity = spell.getRarity(spellLevel);
+        }
+
+        void draw(ApprenticesTableScreen screen, GuiGraphics guiHelper, int x, int y, int mouseX, int mouseY) {
+            if (index == screen.menu.getSelectedRecipeIndex()) {
+                guiHelper.blit(APPRENTICES_TABLE_TEXTURE, x, y, 0, 204, 108, 19);
+            } else {
+                guiHelper.blit(APPRENTICES_TABLE_TEXTURE, x, y, 0, 166, 108, 19);
+            }
+
+            var texture = spell.getSpellIconResource();
+            guiHelper.blit(texture, x + 108 - 18, y + 1, 0, 0, 16, 16, 16, 16);
+
+            var maxWidth = 108 - 20;
+            var text = trimText(font, getDisplayName().withStyle(Style.EMPTY), maxWidth);
+            var textX = x + 2;
+            var textY = y + 3;
+            guiHelper.drawWordWrap(font, text, textX, textY, maxWidth, 0xFFFFFF);
+        }
+
+        @Nullable
+        List<FormattedCharSequence> getTooltip(int x, int y, int mouseX, int mouseY) {
+            var text = getDisplayName();
+            var textX = x + 2;
+            var textY = y + 3;
+            if (mouseX >= textX && mouseY >= textY && mouseX < textX + font.width(text) && mouseY < textY + font.lineHeight) {
+                return TooltipsUtils.createSpellDescriptionTooltip(this.spell, font);
+            } else {
+                return null;
+            }
+        }
+
+        private FormattedText trimText(Font font, Component component, int maxWidth) {
+            var text = font.getSplitter().splitLines(component, maxWidth, component.getStyle()).get(0);
+            if (text.getString().length() < component.getString().length()) {
+                text = FormattedText.composite(text, FormattedText.of("..."));
+            }
+            return text;
+        }
+
+        MutableComponent getDisplayName() {
+            return spell.getDisplayName(minecraft.player);
         }
     }
 }
