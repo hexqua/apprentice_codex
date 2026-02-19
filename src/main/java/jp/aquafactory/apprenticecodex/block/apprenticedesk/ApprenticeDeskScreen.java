@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.block.apprenticestable;
+package jp.aquafactory.apprenticecodex.block.apprenticedesk;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesTableMenu> {
-    private static final ResourceLocation APPRENTICES_TABLE_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/apprentices_table.png");
+public class ApprenticeDeskScreen extends AbstractContainerScreen<ApprenticeDeskMenu> {
+    private static final ResourceLocation APPRENTICE_DESK_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/apprentice_desk.png");
     private static final int SPELL_LIST_X = 46;
     private static final int SPELL_LIST_Y = 15;
     private static final int SCROLL_BAR_X = 156;
@@ -39,7 +39,7 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
     private int scrollOffset;
     private boolean isScrollbarHeld;
 
-    public ApprenticesTableScreen(ApprenticesTableMenu menu, Inventory inventory, Component title) {
+    public ApprenticeDeskScreen(ApprenticeDeskMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         imageWidth = 176;
         imageHeight = 166;
@@ -66,13 +66,13 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
 
     @Override
     protected void renderBg(@NotNull GuiGraphics gui, float partialTick, int mouseX, int mouseY) {
-        gui.blit(APPRENTICES_TABLE_TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        gui.blit(APPRENTICE_DESK_TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         if (shouldShowSpellList()) {
             var normalizedScrollOffset = totalRowCount() > 3
                     ? Mth.clamp((float) this.scrollOffset / (totalRowCount() - 3), 0, 1)
                     : 0.0F;
             gui.blit(
-                    APPRENTICES_TABLE_TEXTURE,
+                    APPRENTICE_DESK_TEXTURE,
                     leftPos + SCROLL_BAR_X,
                     (int) (topPos + SCROLL_BAR_Y + normalizedScrollOffset * (SCROLL_BAR_HEIGHT - 15)),
                     imageWidth + (isScrollbarHeld ? 12 : 0),
@@ -237,11 +237,11 @@ public class ApprenticesTableScreen extends AbstractContainerScreen<ApprenticesT
             this.rarity = spell.getRarity(spellLevel);
         }
 
-        void draw(ApprenticesTableScreen screen, GuiGraphics guiHelper, Player player, int x, int y) {
+        void draw(ApprenticeDeskScreen screen, GuiGraphics guiHelper, Player player, int x, int y) {
             if (index == screen.menu.getSelectedRecipeIndex()) {
-                guiHelper.blit(APPRENTICES_TABLE_TEXTURE, x, y, 0, 204, 108, 19);
+                guiHelper.blit(APPRENTICE_DESK_TEXTURE, x, y, 0, 204, 108, 19);
             } else {
-                guiHelper.blit(APPRENTICES_TABLE_TEXTURE, x, y, 0, 166, 108, 19);
+                guiHelper.blit(APPRENTICE_DESK_TEXTURE, x, y, 0, 166, 108, 19);
             }
 
             var texture = spell.getSpellIconResource();

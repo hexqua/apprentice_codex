@@ -32,7 +32,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
     public static final RegistryObject<Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
-    public static final RegistryObject<Item> APPRENTICES_TABLE = block("apprentices_table", BlockRegistry.APPRENTICES_TABLE);
+    public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
 
     public static final RegistryObject<Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);

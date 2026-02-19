@@ -17,11 +17,11 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
-        dropSelf(BlockRegistry.APPRENTICES_TABLE.get());
+        dropSelf(BlockRegistry.APPRENTICE_DESK.get());
     }
 
     @Override
     protected @NotNull Iterable<Block> getKnownBlocks() {
-        return List.of(BlockRegistry.APPRENTICES_TABLE.get());
+        return List.of(BlockRegistry.APPRENTICE_DESK.get());
     }
 }

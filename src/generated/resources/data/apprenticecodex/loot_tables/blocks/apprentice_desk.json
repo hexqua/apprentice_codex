@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "apprenticecodex:apprentices_table"
+          "name": "apprenticecodex:apprentice_desk"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "apprenticecodex:blocks/apprentices_table"
+  "random_sequence": "apprenticecodex:blocks/apprentice_desk"
 }

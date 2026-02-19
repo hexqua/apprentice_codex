@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.apprenticestable.ApprenticesTable;
+import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDesk;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import net.minecraft.world.level.block.Block;
@@ -20,8 +20,8 @@ public final class BlockRegistry {
     public static final RegistryObject<Block> PERSONAL_SHELF_CHEST =
             BLOCKS.register("personal_shelf_chest", PersonalShelfChestBlock::new);
 
-    public static final RegistryObject<Block> APPRENTICES_TABLE =
-            BLOCKS.register("apprentices_table", ApprenticesTable::new);
+    public static final RegistryObject<Block> APPRENTICE_DESK =
+            BLOCKS.register("apprentice_desk", ApprenticeDesk::new);
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

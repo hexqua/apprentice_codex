@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.block.apprenticestable;
+package jp.aquafactory.apprenticecodex.block.apprenticedesk;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,10 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
-public class ApprenticesTable extends HorizontalDirectionalBlock {
-    private static final Component CONTAINER_TITLE = Component.translatable("container.apprenticecodex.apprentices_table");
+public class ApprenticeDesk extends HorizontalDirectionalBlock {
+    private static final Component CONTAINER_TITLE = Component.translatable("container.apprenticecodex.apprentice_desk");
 
-    public ApprenticesTable() {
+    public ApprenticeDesk() {
         super(Properties.copy(Blocks.CRAFTING_TABLE));
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
@@ -46,7 +46,7 @@ public class ApprenticesTable extends HorizontalDirectionalBlock {
     @Nullable
     public MenuProvider getMenuProvider(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos) {
         return new SimpleMenuProvider(
-                (windowId, inventory, player) -> new ApprenticesTableMenu(windowId, inventory, ContainerLevelAccess.create(level, pos)),
+                (windowId, inventory, player) -> new ApprenticeDeskMenu(windowId, inventory, ContainerLevelAccess.create(level, pos)),
                 CONTAINER_TITLE
         );
     }

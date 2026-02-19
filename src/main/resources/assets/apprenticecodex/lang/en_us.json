@@ -7,7 +7,7 @@
 
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
-  "block.apprenticecodex.apprentices_table" : "Apprentice's Table",
+  "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
 
   "entity.apprenticecodex.sky_edge_projectile" : "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow" : "Archer Multiple Bow",
@@ -26,7 +26,7 @@
   "entity.apprenticecodex.slash_blade_katana": "Magic Blade",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
-  "container.apprenticecodex.apprentices_table": "Apprentice's Table",
+  "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
   
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",

@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.block.apprenticestable;
+package jp.aquafactory.apprenticecodex.block.apprenticedesk;
 
 import com.google.common.collect.Lists;
 import io.redspace.ironsspellbooks.api.config.IronConfigParameters;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 import java.util.List;
 
-public class ApprenticesTableMenu extends AbstractContainerMenu {
+public class ApprenticeDeskMenu extends AbstractContainerMenu {
     public static final int INPUT_SLOT = 0;
     public static final int RESULT_SLOT = 1;
     private static final int INVENTORY_SLOT_START = 2;
@@ -47,19 +47,19 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
         @Override
         public void setChanged() {
             super.setChanged();
-            ApprenticesTableMenu.this.slotsChanged(this);
-            ApprenticesTableMenu.this.slotUpdateListener.run();
+            ApprenticeDeskMenu.this.slotsChanged(this);
+            ApprenticeDeskMenu.this.slotUpdateListener.run();
         }
     };
 
     final ResultContainer resultContainer = new ResultContainer();
 
-    public ApprenticesTableMenu(int containerId, Inventory inventory) {
+    public ApprenticeDeskMenu(int containerId, Inventory inventory) {
         this(containerId, inventory, ContainerLevelAccess.NULL);
     }
 
-    public ApprenticesTableMenu(int containerId, Inventory inventory, ContainerLevelAccess containerAccess) {
-        super(MenuRegistry.APPRENTICES_TABLE.get(), containerId);
+    public ApprenticeDeskMenu(int containerId, Inventory inventory, ContainerLevelAccess containerAccess) {
+        super(MenuRegistry.APPRENTICE_DESK.get(), containerId);
         access = containerAccess;
 
         inputSlot = addSlot(new Slot(container, INPUT_SLOT, 18, 17) {
@@ -77,14 +77,14 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
             @Override
             public void onTake(@NotNull Player player, @NotNull ItemStack stack) {
                 stack.onCraftedBy(player.level(), player, stack.getCount());
-                ApprenticesTableMenu.this.inputSlot.remove(1);
-                ApprenticesTableMenu.this.setupResultSlot();
+                ApprenticeDeskMenu.this.inputSlot.remove(1);
+                ApprenticeDeskMenu.this.setupResultSlot();
 
                 containerAccess.execute((targetLevel, targetPos) -> {
                     var gameTime = targetLevel.getGameTime();
-                    if (ApprenticesTableMenu.this.lastSoundTime != gameTime) {
+                    if (ApprenticeDeskMenu.this.lastSoundTime != gameTime) {
                         targetLevel.playSound(null, targetPos, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
-                        ApprenticesTableMenu.this.lastSoundTime = gameTime;
+                        ApprenticeDeskMenu.this.lastSoundTime = gameTime;
                     }
                 });
                 super.onTake(player, stack);
@@ -120,7 +120,7 @@ public class ApprenticesTableMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player player) {
-        return stillValid(access, player, BlockRegistry.APPRENTICES_TABLE.get());
+        return stillValid(access, player, BlockRegistry.APPRENTICE_DESK.get());
     }
 
     @Override

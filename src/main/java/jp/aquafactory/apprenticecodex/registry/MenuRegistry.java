@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.block.apprenticestable.ApprenticesTableMenu;
+import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -21,8 +21,8 @@ public final class MenuRegistry {
                 return new PersonalShelfMenu(windowId, inv, shelf.getHandler(), data.readBlockPos());
             }));
 
-    public static final RegistryObject<MenuType<ApprenticesTableMenu>> APPRENTICES_TABLE =
-            MENUS.register("apprentices_table", () -> IForgeMenuType.create((windowId, inv, data) -> new ApprenticesTableMenu(windowId, inv)));
+    public static final RegistryObject<MenuType<ApprenticeDeskMenu>> APPRENTICE_DESK =
+            MENUS.register("apprentice_desk", () -> IForgeMenuType.create((windowId, inv, data) -> new ApprenticeDeskMenu(windowId, inv)));
 
     public static void register(IEventBus bus) {
         MENUS.register(bus);

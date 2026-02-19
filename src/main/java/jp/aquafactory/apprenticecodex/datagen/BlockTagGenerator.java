@@ -18,6 +18,6 @@ public final class BlockTagGenerator extends BlockTagsProvider {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
-        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(BlockRegistry.APPRENTICES_TABLE.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(BlockRegistry.APPRENTICE_DESK.get());
     }
 }
