@@ -11,8 +11,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -309,7 +307,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
             if (!canBreakTarget(level, pos, state, representativeState)) {
                 continue;
             }
-            BlockTools.breakBlockByPlayerHands(level, server, pos, new ItemStack(Items.IRON_PICKAXE));
+            BlockTools.breakBlockByPlayerHands(level, server, pos, WorldFlatter.createDummyTool(server));
         }
 
         resetBreakProgress(level);

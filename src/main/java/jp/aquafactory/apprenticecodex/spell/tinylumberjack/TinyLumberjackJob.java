@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.tinylumberjack;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -168,7 +167,7 @@ public class TinyLumberjackJob {
     }
 
     private ItemStack createDummyAxe() {
-        return CraftsmansDelight.createTinyLumberjackTool(starter);
+        return TinyLumberjack.createDummyTool(starter);
     }
 
     private static boolean isBreakableLeaf(BlockState state) {

@@ -24,8 +24,11 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -78,6 +81,11 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
         }
 
         return CraftsmansDelight.applyBreakSpeedBonus(baseSpeed, entity);
+    }
+
+    public static ItemStack createDummyTool(@Nullable LivingEntity entity) {
+        var baseTool = new ItemStack(Items.IRON_AXE);
+        return CraftsmansDelight.applyEnchantsToTool(baseTool, entity);
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){

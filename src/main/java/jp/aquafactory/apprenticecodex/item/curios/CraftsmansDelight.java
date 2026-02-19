@@ -18,7 +18,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -135,24 +134,23 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         return Math.max(1, Math.round(manaCost * MANA_COST_DISCOUNT_MULTIPLIER));
     }
 
-    public static ItemStack createTinyLumberjackTool(@Nullable LivingEntity entity) {
-        var dummyTool = new ItemStack(Items.IRON_AXE);
+    public static ItemStack applyEnchantsToTool(ItemStack baseTool, @Nullable LivingEntity entity) {
         if (entity == null) {
-            return dummyTool;
+            return baseTool;
         }
 
         var stack = getEquippedStack(entity);
         if (stack.isEmpty()) {
-            return dummyTool;
+            return baseTool;
         }
 
-        // 装備中のCraftsmansDelightに付いたエンチャントをダミー斧へ転写する。
+        // 装備中の指輪に付いたエンチャントを、魔法側で指定されたツールへ転写する.
         var enchantments = EnchantmentHelper.getEnchantments(stack);
         if (!enchantments.isEmpty()) {
-            EnchantmentHelper.setEnchantments(enchantments, dummyTool);
+            EnchantmentHelper.setEnchantments(enchantments, baseTool);
         }
 
-        return dummyTool;
+        return baseTool;
     }
 
     private static ItemStack getEquippedStack(LivingEntity entity) {
@@ -170,7 +168,7 @@ public class CraftsmansDelight extends Item implements ICurioItem {
             return false;
         }
 
-        // addManaは内部で最終的にsetを実行しているので、負値を加算すれば消費として機能する。
+        // addManaは内部で最終的にsetを実行しているので、負値を加算すれば消費として機能する.
         magicData.addMana(-ENCHANTMENT_SWITCH_MANA_COST);
         return true;
     }
@@ -185,3 +183,4 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         ));
     }
 }
+
