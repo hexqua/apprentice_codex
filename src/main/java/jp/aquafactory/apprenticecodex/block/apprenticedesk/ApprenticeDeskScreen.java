@@ -48,11 +48,13 @@ public class ApprenticeDeskScreen extends AbstractContainerScreen<ApprenticeDesk
     @Override
     protected void init() {
         super.init();
+        menu.slotUpdateListener = this::generateSpellList;
         generateSpellList();
     }
 
     @Override
     public void onClose() {
+        menu.slotUpdateListener = () -> {};
         resetList();
         super.onClose();
     }

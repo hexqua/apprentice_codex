@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
@@ -144,6 +145,10 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
 
     @Override
     public void slotsChanged(@NotNull Container container) {
+        refreshAvailableSpells();
+        if (!isValidSpellIndex(selectedRecipeIndex.get())) {
+            selectedRecipeIndex.set(-1);
+        }
         setupResultSlot();
     }
 
@@ -161,12 +166,13 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
     }
 
     private void refreshAvailableSpells() {
+        var targetMinRarity = getTargetMinRarity();
         availableSpells.clear();
         availableSpells.addAll(
                 SpellRegistry.getEnabledSpells()
                         .stream()
                         .filter(AbstractSpell::allowCrafting)
-                        .filter(spell -> SpellConfigManager.getSpellConfigValue(spell, IronConfigParameters.MIN_RARITY).getValue() <= 0)
+                        .filter(spell -> SpellConfigManager.getSpellConfigValue(spell, IronConfigParameters.MIN_RARITY).getValue() == targetMinRarity)
                         .toList()
         );
 
@@ -174,6 +180,22 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
         availableSpells.sort(Comparator
                 .comparing(this::getSchoolTypeSortKey)
                 .thenComparing(spell -> spell.getDisplayName(null).getString()));
+    }
+
+    private int getTargetMinRarity() {
+        var inputItem = inputSlot.getItem();
+        if (!isValidInputItem(inputItem) || !ISpellContainer.isSpellContainer(inputItem)) {
+            return SpellRarity.COMMON.getValue();
+        }
+
+        var spellContainer = ISpellContainer.get(inputItem);
+        if (spellContainer == null || spellContainer.isEmpty()) {
+            return SpellRarity.COMMON.getValue();
+        }
+
+        // Scroll は 1 スロット構成のため、先頭呪文のレアリティを基準に候補を決定する。
+        var sourceRarityValue = spellContainer.getSpellAtIndex(0).getRarity().getValue();
+        return Math.max(sourceRarityValue - 1, SpellRarity.COMMON.getValue());
     }
 
     private String getSchoolTypeSortKey(AbstractSpell spell) {
