@@ -49,8 +49,7 @@ public class ArcherMultiple  extends AbstractSpell {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.projectile_count", getProjectileCount()),
-                Component.translatable("ui.irons_spellbooks.summon_count", getSummonCount()),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.irons_spellbooks.summon_count", getSummonCount())
         );
     }
 

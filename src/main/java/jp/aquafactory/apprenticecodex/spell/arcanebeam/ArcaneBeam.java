@@ -47,8 +47,7 @@ public class ArcaneBeam extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.arcane_charge_damage_multiplier", getChargeDamageAmplifier(spellLevel, caster)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.apprenticecodex.arcane_charge_damage_multiplier", getChargeDamageAmplifier(spellLevel, caster))
         );
     }
 

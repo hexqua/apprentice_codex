@@ -49,8 +49,7 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.healing", Utils.stringTruncation(getHealAmount(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getEffectRadiusBlocks(spellLevel, caster), 1)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getEffectRadiusBlocks(spellLevel, caster), 1))
         );
     }
 

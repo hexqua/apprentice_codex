@@ -42,8 +42,7 @@ public class CompoundPhial extends AbstractSpell {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getSplashRadius(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.splash_reduce", Utils.stringTruncation(getSplashReducedPercent(spellLevel, caster), 2)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.apprenticecodex.splash_reduce", Utils.stringTruncation(getSplashReducedPercent(spellLevel, caster), 2))
         );
     }
 

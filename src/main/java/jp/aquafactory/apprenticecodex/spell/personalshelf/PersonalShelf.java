@@ -53,8 +53,7 @@ public class PersonalShelf extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDurationTicks(), 1)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1))
         );
     }
 

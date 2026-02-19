@@ -52,8 +52,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.apprenticecodex.tree_cut_time", Utils.timeFromTicks(getBreakBestTime(spellLevel,caster), 1)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1))
         );
     }
 

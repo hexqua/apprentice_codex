@@ -50,8 +50,7 @@ public class SkyEdge extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.projectile_count", getProjectileCount(spellLevel, caster)),
-                Component.literal(ApprenticeCodex.NAME)
+                Component.translatable("ui.irons_spellbooks.projectile_count", getProjectileCount(spellLevel, caster))
         );
     }
 
