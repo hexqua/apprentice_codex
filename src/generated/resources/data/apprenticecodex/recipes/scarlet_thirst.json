@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "V": {
+      "item": "irons_spellbooks:blood_vial"
+    }
+  },
+  "pattern": [
+    "VI ",
+    "I I",
+    " I "
+  ],
+  "result": {
+    "item": "apprenticecodex:scarlet_thirst"
+  },
+  "show_notification": true
+}

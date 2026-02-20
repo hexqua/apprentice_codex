@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": {
+      "item": "minecraft:redstone"
+    },
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "R": {
+      "item": "irons_spellbooks:nature_rune"
+    }
+  },
+  "pattern": [
+    "RI ",
+    "IDI",
+    " I "
+  ],
+  "result": {
+    "item": "apprenticecodex:craftsmans_delight"
+  },
+  "show_notification": true
+}

@@ -26,7 +26,7 @@ public class ApprenticeDesk extends HorizontalDirectionalBlock {
         super(Properties.of()
                 .strength(2.5f)
                 .sound(SoundType.WOOD));
-        
+
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
