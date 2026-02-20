@@ -3,6 +3,7 @@
 
   "item.apprenticecodex.scarlet_thirst": "Scarlet Thirst",
   "item.apprenticecodex.craftsmans_delight": "Craftsman's Delight",
+  "item.apprenticecodex.ender_grimoire": "Ender Grimoire",
 
   "item.apprenticecodex.scarlet_thirst.desc": "Converts excess health into mana when mana is low.",
   "item.apprenticecodex.craftsmans_delight.desc": "Improves efficiency and performance of magic buzzsaw and drill.\nUse while crouching to seal magic power.",
@@ -29,6 +30,7 @@
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
+  "container.apprenticecodex.ender_grimoire_inscription": "Ender Grimoire",
   
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",

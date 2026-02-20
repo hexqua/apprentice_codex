@@ -31,5 +31,6 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.APPRENTICE_DESK.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+        output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
     }
 }

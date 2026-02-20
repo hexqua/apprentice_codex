@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.nbt.CompoundTag;
@@ -39,6 +40,8 @@ public final class ItemRegistry {
             ITEMS.register("scarlet_thirst", ScarletThirst::new);
     public static final RegistryObject<Item> CRAFTSMANS_DELIGHT =
             ITEMS.register("craftsmans_delight", CraftsmansDelight::new);
+    public static final RegistryObject<Item> ENDER_GRIMOIRE =
+            ITEMS.register("ender_grimoire", EnderGrimoire::new);
 
     public static void register() {
         ItemProperties.register(

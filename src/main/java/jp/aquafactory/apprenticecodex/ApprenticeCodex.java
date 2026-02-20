@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex;
 
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.*;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -29,5 +30,6 @@ public class ApprenticeCodex
         MenuRegistry.register(bus);
         CreativeTabRegistry.register(bus);
         CodexSpellStateTypeRegister.register();
+        Networks.register();
     }
 }

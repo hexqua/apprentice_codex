@@ -1,8 +1,9 @@
 package jp.aquafactory.apprenticecodex.capability;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventoryProvider;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellDataProvider;
+import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookDataProvider;
+import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventoryProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -17,6 +18,7 @@ public class CapabilityEvents {
         if (event.getObject() instanceof Player) {
             event.addCapability(PersonalInventoryProvider.ID, new PersonalInventoryProvider());
             event.addCapability(CodexSpellDataProvider.ID, new CodexSpellDataProvider());
+            event.addCapability(EnderGrimoireSpellbookDataProvider.ID, new EnderGrimoireSpellbookDataProvider());
         }
     }
 
@@ -24,17 +26,20 @@ public class CapabilityEvents {
     public static void onPlayerClone(PlayerEvent.Clone event) {
         event.getOriginal().reviveCaps();
 
-        // パーソナルシェルフ:死亡時も引き継ぎが必要.
+        // 基本的にNBT経由で死亡後も継続させる.
         event.getOriginal().getCapability(Capabilities.PERSONAL_INVENTORY).ifPresent(
                 oldInventory -> event.getEntity().getCapability(Capabilities.PERSONAL_INVENTORY).ifPresent(
                         newInventory -> newInventory.deserializeNBT(oldInventory.serializeNBT())
                 )
         );
-
-        // 魔法データ:死亡時も引き継ぐ.
         event.getOriginal().getCapability(Capabilities.SPELL_DATA).ifPresent(
                 oldSpellData -> event.getEntity().getCapability(Capabilities.SPELL_DATA).ifPresent(
                         newSpellData -> newSpellData.loadAll(oldSpellData.saveAll())
+                )
+        );
+        event.getOriginal().getCapability(Capabilities.ENDER_GRIMOIRE_SPELLBOOK).ifPresent(
+                oldData -> event.getEntity().getCapability(Capabilities.ENDER_GRIMOIRE_SPELLBOOK).ifPresent(
+                        newData -> newData.load(oldData.save())
                 )
         );
 
