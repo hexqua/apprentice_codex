@@ -10,11 +10,7 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.Level;
@@ -27,7 +23,10 @@ public class ApprenticeDesk extends HorizontalDirectionalBlock {
     private static final Component CONTAINER_TITLE = Component.translatable("container.apprenticecodex.apprentice_desk");
 
     public ApprenticeDesk() {
-        super(Properties.copy(Blocks.CRAFTING_TABLE));
+        super(Properties.of()
+                .strength(2.5f)
+                .sound(SoundType.WOOD));
+
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 

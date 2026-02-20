@@ -18,7 +18,7 @@ public final class CreativeTabRegistry {
     public static final RegistryObject<CreativeModeTab> MAIN =
             TABS.register("main", () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup." + ApprenticeCodex.MODID + ".main"))
-                    .icon(() -> new ItemStack(ItemRegistry.SKY_EDGE_SWORD.get()))
+                    .icon(() -> new ItemStack(ItemRegistry.APPRENTICE_DESK.get()))
                     .displayItems(CreativeTabRegistry::addItemsToTab)
                     .build()
             );
