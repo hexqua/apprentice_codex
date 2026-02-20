@@ -3,8 +3,8 @@
   "loader": "forge:separate_transforms",
   "base": {
     "textures": {
-      "book": "irons_spellbooks:item/spell_book_models/dragonskin_spell_book",
-      "particle": "irons_spellbooks:item/spell_book_models/dragonskin_spell_book"
+      "book": "apprenticecodex:item/spellbook/ender_grimoire",
+      "particle": "apprenticecodex:item/spellbook/ender_grimoire"
     },
     "parent": "irons_spellbooks:item/template_spell_book_model"
   },
@@ -12,13 +12,13 @@
     "gui": {
       "parent": "item/generated",
       "textures": {
-        "layer0": "irons_spellbooks:item/dragonskin_spell_book"
+        "layer0": "apprenticecodex:item/ender_grimoire"
       }
     },
     "head": {
       "textures": {
-        "book": "irons_spellbooks:item/spell_book_models/dragonskin_spell_book",
-        "particle": "irons_spellbooks:item/spell_book_models/dragonskin_spell_book"
+        "book": "apprenticecodex:item/spellbook/ender_grimoire",
+        "particle": "apprenticecodex:item/spellbook/ender_grimoire"
       },
       "parent": "irons_spellbooks:item/template_spell_book_model_open"
     }
