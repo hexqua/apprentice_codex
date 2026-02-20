@@ -64,6 +64,11 @@ repositories {
         url = uri("https://www.cursemaven.com")
     }
 
+    // JEI
+    maven {
+        url = uri("https://maven.blamejared.com")
+    }
+
     // ISS
     maven {
         url = uri("https://code.redspace.io/releases")
@@ -106,6 +111,9 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:curios-309927:6418456")
     runtimeOnly fg.deobf("curse.maven:geckolib-388172:7025129")
     runtimeOnly fg.deobf("curse.maven:playeranimator-658587:4587214")
+
+    // JEI.
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
 }
 
 tasks.named('processResources', ProcessResources).configure {
