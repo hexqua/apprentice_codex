@@ -49,6 +49,7 @@
   "spell.apprenticecodex.assist_wings": "Assist Wings",
   "spell.apprenticecodex.world_flatter": "World Flatter",
   "spell.apprenticecodex.slash_blade": "Slash Blade",
+  "spell.apprenticecodex.manifestation_grimoire": "Manifestation Grimoire",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires in the direction of your gaze. It takes time to fire and has no knockback, but it can ignore the target’s invincibility frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking the designated target—or nearby enemies—until it runs out of ammunition.",
@@ -67,6 +68,7 @@
   "spell.apprenticecodex.assist_wings.guide": "Summons magical wings that allows jumping by flapping. Can be used in the air but used only a certain number of times depending on magic power. After activation, it will fall slowly until landing and will not take fall damage.",
   "spell.apprenticecodex.world_flatter.guide": "Summons a magical drill that pierces the target in the direction of the gaze. Can also quickly open a large hole by swinging it towards the ground.",
   "spell.apprenticecodex.slash_blade.guide": "Summon a magic blade and strike in an instant. Uninterruptible.",
+  "spell.apprenticecodex.manifestation_grimoire.guide": "Summons a magical book that can be used to cast spells. The book can be used to cast any spell that has been cast into it. The book is linked to the caster's domain.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
