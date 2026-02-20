@@ -48,5 +48,15 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('D', Items.REDSTONE)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.NATURE_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.NATURE_RUNE.get()))
                 .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GRIMOIRE_MANIFEST.get())
+                .pattern(" E ")
+                .pattern("OBO")
+                .pattern(" O ")
+                .define('B', io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get())
+                .define('E', Items.ENDER_EYE)
+                .define('O', Items.OBSIDIAN)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()))
+                .save(recipeWriter);
     }
 }
