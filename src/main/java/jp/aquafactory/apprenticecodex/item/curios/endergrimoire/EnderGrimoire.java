@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item.curios;
+package jp.aquafactory.apprenticecodex.item.curios.endergrimoire;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -19,12 +19,16 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.SlotContext;
@@ -44,20 +48,27 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
             )
     };
 
-    private final int maxSpellSlots;
-
     public EnderGrimoire() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
-        maxSpellSlots = 12;
-    }
-
-    public int getMaxSpellSlots() {
-        return maxSpellSlots;
     }
 
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
-        return true;
+        // 編集画面を開かせるため、右クリック装備は許容しない.
+        return false;
+    }
+
+    @Override
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
+        var stack = player.getItemInHand(usedHand);
+        if (!level.isClientSide) {
+            player.openMenu(new SimpleMenuProvider(
+                    (containerId, inventory, targetPlayer) -> new EnderGrimoireInscriptionMenu(containerId, inventory),
+                    Component.translatable("container.apprenticecodex.ender_grimoire_inscription")
+            ));
+        }
+
+        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
     @Override

@@ -5,7 +5,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
-import jp.aquafactory.apprenticecodex.item.curios.EnderGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
