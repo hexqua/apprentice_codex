@@ -4,6 +4,7 @@
   "item.apprenticecodex.scarlet_thirst": "真紅の渇望",
   "item.apprenticecodex.craftsmans_delight": "職人の歓喜",
   "item.apprenticecodex.ender_grimoire": "エンダーグリモア",
+  "item.apprenticecodex.grimoire_manifest": "グリモア目録",
 
   "item.apprenticecodex.scarlet_thirst.desc": "マナ減少時、余っている体力をマナに変換する",
   "item.apprenticecodex.craftsmans_delight.desc": "魔法の丸鋸やドリルの効率と性能を上昇させる。\n屈んで使うと魔力を封じ込める。",
@@ -49,6 +50,7 @@
   "spell.apprenticecodex.assist_wings": "アシストウィング",
   "spell.apprenticecodex.world_flatter": "ワールドフラッター",
   "spell.apprenticecodex.slash_blade": "一閃",
+  "spell.apprenticecodex.manifestation_grimoire": "魔導書顕現",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -67,6 +69,7 @@
   "spell.apprenticecodex.assist_wings.guide": "魔法の翼を召喚し、羽ばたいてジャンプする。空中でも魔法力に応じて一定回数のみ発動可能。発動後、着地するまで低速落下となり、落下ダメージを受けない。",
   "spell.apprenticecodex.world_flatter.guide": "魔法のドリルを召喚し、視線の先の対象を穿つ。大地に向かって振るうことで素早く大穴を開けることもできる。",
   "spell.apprenticecodex.slash_blade.guide": "魔法の刀を召喚して目の前を一閃する。発動が阻止されることはない。",
+  "spell.apprenticecodex.manifestation_grimoire.guide": "術者の領域と繋がっている魔導書を召喚する。その魔導書に入れた魔法はこの魔法で呼び出すどの魔導書でも扱える。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",

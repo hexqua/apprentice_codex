@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.utility;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 public final class RotationTools {
@@ -56,5 +57,15 @@ public final class RotationTools {
         var w1 = Math.sin((1.0 - t) * angle) / sinA;
         var w2 = Math.sin(t * angle) / sinA;
         return currentDir.scale(w1).add(targetDir.scale(w2)).normalize();
+    }
+
+    public static Vec3 getFlatForward(LivingEntity entity) {
+        var yawDeg = entity.getYRot();
+        var yawRad = yawDeg * Mth.DEG_TO_RAD;
+
+        var x = -Mth.sin(yawRad);
+        var z =  Mth.cos(yawRad);
+
+        return new Vec3(x, 0.0, z).normalize();
     }
 }
