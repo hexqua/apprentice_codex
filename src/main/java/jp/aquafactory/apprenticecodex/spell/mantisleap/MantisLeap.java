@@ -42,17 +42,17 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mantis_leap");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.COMMON)
+            .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
-            .setMaxLevel(5)
+            .setMaxLevel(3)
             .setCooldownSeconds(4)
             .build();
 
     public MantisLeap() {
         super(MantisLeapBladeEntity.class);
-        baseSpellPower = 800;
+        baseSpellPower = 1200;
         spellPowerPerLevel = 400;
-        baseManaCost = 60;
+        baseManaCost = 70;
         manaCostPerLevel = 15;
         castTime = 15;
     }
@@ -70,7 +70,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     }
 
     private double getRange(int spellLevel, LivingEntity entity) {
-        return Math.min(64, 8 + 1.5 * getSpellPower(spellLevel, entity) / 100.0);
+        return Math.min(64, 16 + 1.5 * getSpellPower(spellLevel, entity) / 100.0);
     }
 
     @Override

@@ -150,7 +150,7 @@ public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEnti
 
     @Override
     public int getTrailColorARGB() {
-        return 0xFFDDAAFF;
+        return 0xFF4488FF;
     }
 
     @Override
