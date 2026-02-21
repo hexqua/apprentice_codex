@@ -26,6 +26,7 @@
   "entity.apprenticecodex.fly_swatter_launcher" : "マジックランチャー",
   "entity.apprenticecodex.fly_swatter_projectile" : "スワッターミサイル",
   "entity.apprenticecodex.assist_wings_wing" : "跳躍補助の翼",
+  "entity.apprenticecodex.feather_rush_projectile" : "ラッシュフェザー",
   "entity.apprenticecodex.world_flatter_drill" : "魔法のドリル",
   "entity.apprenticecodex.slash_blade_katana": "魔法の無銘刀",
   "entity.apprenticecodex.feather_rush_wing" : "ラッシュウィング",
@@ -85,6 +86,7 @@
   "ui.apprenticecodex.lock_on_time": "ロックオンにかかる時間: %s",
   "ui.apprenticecodex.jumps_count": "最大ジャンプ数: %d",
   "ui.apprenticecodex.deepslate_break_time": "深層岩採掘にかかる時間: %s ",
+  "ui.apprenticecodex.feather_rpm": "羽のRPM: %d",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -110,6 +112,7 @@
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$sはバラバラになった",
   "death.attack.apprenticecodex.graced_rain": "%1$sに恵みの力は有害すぎた",
   "death.attack.apprenticecodex.fly_swatter": "%1$sは%2$sに叩き落された",
+  "death.attack.apprenticecodex.feather_rush": "%1$sは%2$sの羽根の雨に貫かれた",
   "death.attack.apprenticecodex.world_flatter": "%1$sは%2$sに風穴を開けられた",
   "death.attack.apprenticecodex.slash_blade": "%1$sは真っ二つにされた"
 }

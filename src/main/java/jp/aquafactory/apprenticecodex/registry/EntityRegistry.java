@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgun
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
@@ -108,6 +109,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
             regWeapon("assist_wings_wing", AssistWingsWingEntity::new, 1);
+
+    public static final RegistryObject<EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
+            regProjectile("feather_rush_projectile", FeatherRushProjectileEntity::new, 96, 1);
 
     public static final RegistryObject<EntityType<FeatherRushWingEntity>> FEATHER_RUSH_WING =
             regWeapon("feather_rush_wing", FeatherRushWingEntity::new, 1);

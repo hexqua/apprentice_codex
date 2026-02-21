@@ -26,6 +26,7 @@
   "entity.apprenticecodex.fly_swatter_launcher" : "Magic Launcher",
   "entity.apprenticecodex.fly_swatter_projectile" : "Swatter Missile",
   "entity.apprenticecodex.assist_wings_wing" : "Assist Wings",
+  "entity.apprenticecodex.feather_rush_projectile" : "Rush Feather",
   "entity.apprenticecodex.world_flatter_drill" : "Magic Drill",
   "entity.apprenticecodex.slash_blade_katana": "Magic Blade",
   "entity.apprenticecodex.feather_rush_wing" : "Rush Wings",
@@ -84,6 +85,7 @@
   "ui.apprenticecodex.lock_on_time": "Lock-on Duration: %s",
   "ui.apprenticecodex.jumps_count": "Maximum Jumps Count: %d",
   "ui.apprenticecodex.deepslate_break_time": "Deepslate Break Time: %s",
+  "ui.apprenticecodex.feather_rpm": "Feather RPM: %d",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -109,6 +111,7 @@
   "death.attack.apprenticecodex.tiny_lumberjack": "%1$s went to pieces.",
   "death.attack.apprenticecodex.graced_rain": "The power of grace was too harmful to %1$s.",
   "death.attack.apprenticecodex.fly_swatter": "%1$s was knocked out by %2$s.",
+  "death.attack.apprenticecodex.feather_rush": "%1$s was pierced by %2$s's feather barrage.",
   "death.attack.apprenticecodex.world_flatter": "%2$s punched %1$s in the hole.",
   "death.attack.apprenticecodex.slash_blade": "%1$s was decapitated by %2$s'."
 }
