@@ -33,7 +33,11 @@ $env:JAVA_HOME='<<REPLACE_WITH_YOUR_JDK17_PATH>>'
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
 java -version
 ```
-- ビルド:
+- ビルド（通常確認）:
+```powershell
+gradlew.bat build
+```
+- クリーンビルド（必要時のみ）:
 ```powershell
 gradlew.bat clean build
 ```
@@ -48,6 +52,7 @@ Get-ChildItem build\libs\*.jar
 gradlew.bat runClient
 ```
 - 注記: `runClient` は GUI（Minecraft クライアント）を起動するため、CI やヘッドレス環境では実行しない。
+- 注記: 通常のビルド確認では `clean` を付けない。`clean` 実行後は開発実行環境の再生成（例: `genIntellijRuns`）が必要になる場合がある。
 - Lint/Format:
 `現時点では専用タスク未設定。必要時に追加する。`
 
@@ -69,12 +74,12 @@ gradlew.bat runClient
 ## 5. 変更フロー
 1. 変更内容を 1〜2 文で決める（何を、なぜ変えるか）。
 2. 実装する。
-3. `gradlew.bat clean build` が成功することを確認する（ここだけ必須）。
+3. `gradlew.bat build` が成功することを確認する（ここだけ必須）。
 4. 必要に応じて `gradlew.bat runClient` で動作確認する。
 5. 必要に応じて関連ドキュメントを更新する。
 
 ## 6. レビューチェックリスト
-- 必須チェック項目: Java 17 環境で `gradlew.bat clean build` が成功すること。
+- 必須チェック項目: Java 17 環境で `gradlew.bat build` が成功すること。
 - 必須チェック項目: 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - 必須チェック項目: サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - リグレッション確認: 既存コンテンツの ID 変更や削除による互換性破壊を避ける。
