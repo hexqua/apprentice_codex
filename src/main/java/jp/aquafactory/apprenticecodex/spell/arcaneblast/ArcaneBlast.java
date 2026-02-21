@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
+    private static final double RAYCAST_WIDTH = 0.1;
+
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "arcane_blast");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -66,16 +68,6 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
     }
 
     @Override
-    public double getHighlightRange() {
-        return getRange();
-    }
-
-    @Override
-    public double getHighlightWidth(){
-        return 0.1;
-    }
-
-    @Override
     public int getHighlightColor() {
         return 0x7733ff;
     }
@@ -83,7 +75,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
     @Override
     @Nullable
     public Entity getHighlightEntity(@NotNull Player player, int skillLevel) {
-        return RaycastTools.raycastFromEye(player, getRange(), getHighlightWidth(), e -> CombatTools.isValidCombatTarget(e, player)).hitEntity();
+        return RaycastTools.raycastFromEye(player, getRange(), RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, player)).hitEntity();
     }
 
     @Override
@@ -123,7 +115,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        var result = RaycastTools.raycastFromEye(entity, getRange(), getHighlightWidth(), e -> CombatTools.isValidCombatTarget(e, entity));
+        var result = RaycastTools.raycastFromEye(entity, getRange(), RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, entity));
         if (result.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(result.hitEntity());
             var source = CombatTools.getDamageSource(level, entity, DamageTypes.ARCANE_BLAST);

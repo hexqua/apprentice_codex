@@ -27,6 +27,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> FEATHER_RUSH = register("feather_rush");
     public static final ResourceKey<DamageType> WORLD_FLATTER = register("world_flatter");
     public static final ResourceKey<DamageType> SLASH_BLADE = register("slash_blade");
+    public static final ResourceKey<DamageType> MANTIS_LEAP = register("mantis_leap");
 
     private static ResourceKey<DamageType> register(String name){
         return ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
@@ -58,5 +59,6 @@ public final class DamageTypes {
         context.register(FEATHER_RUSH, createTemplate(FEATHER_RUSH));
         context.register(WORLD_FLATTER, createTemplate(WORLD_FLATTER));
         context.register(SLASH_BLADE, createTemplate(SLASH_BLADE));
+        context.register(MANTIS_LEAP, createTemplate(MANTIS_LEAP));
     }
 }

@@ -6,8 +6,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ICastHighlightSpell {
-    double getHighlightRange();
-    double getHighlightWidth();
     int getHighlightColor();
     @Nullable Entity getHighlightEntity(@NotNull Player player, int skillLevel);
 }

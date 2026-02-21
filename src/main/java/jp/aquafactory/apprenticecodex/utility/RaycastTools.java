@@ -256,7 +256,6 @@ public final class RaycastTools {
 
             if (box.contains(point)) {
                 hits.add(e);
-                break;
             }
         }
 

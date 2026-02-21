@@ -76,5 +76,11 @@
     "sounds": [
       "apprenticecodex:flapped"
     ]
+  },
+  "mantis": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:mantis"
+    ]
   }
 }

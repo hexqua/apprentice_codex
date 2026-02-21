@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
+import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
@@ -121,6 +122,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<SlashBladeKatanaEntity>> SLASH_BLADE_KATANA =
             regWeapon("slash_blade_katana", SlashBladeKatanaEntity::new, 1);
+
+    public static final RegistryObject<EntityType<MantisLeapBladeEntity>> MANTIS_LEAP_BLADE =
+            regWeapon("mantis_leap_blade", MantisLeapBladeEntity::new, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
