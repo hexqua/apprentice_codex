@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.ICastData;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> {
-    private static final double TARGET_STOP_DISTANCE = 0.1;
+    private static final double TARGET_STOP_DISTANCE = 1.0;
     private static final double MIN_LEAP_DISTANCE = 0.25;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mantis_leap");
@@ -70,7 +71,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     }
 
     private double getLeapTicksPerBlock(int spellLevel, LivingEntity entity) {
-        return Math.max(0.75, 2.25 - getSpellPower(spellLevel, entity) / 800.0);
+        return Math.max(0.25, 2.5 - getSpellPower(spellLevel, entity) / 800.0);
     }
 
     private double getLeapArcHeight() {
@@ -143,6 +144,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
             return CompleteCastTypes.RELEASE_WEAPON;
         }
 
+        // サーバー側で移動パラメータを確定する。ここで決まる値が権威状態になる.
         var destination = resolveLeapDestination(spellLevel, entity);
         var started = startLeap(
                 entity,
@@ -158,7 +160,33 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         return CompleteCastTypes.KEEP_WEAPON;
     }
 
+    @Override
+    public void onClientCast(Level level, int spellLevel, LivingEntity entity, ICastData castData) {
+        if (level.isClientSide) {
+            // クライアント予測:
+            // サーバー同期を待ってから動かすと詠唱完了後に硬直感が出るため,
+            // クライアントでも同一式で先行して跳躍を開始する.
+            //
+            // 予測ズレ抑制:
+            // resolveLeapDestination/startLeap の計算内容はサーバーと揃える前提.
+            // 片側だけ変更すると補正ワープが目立つ.
+            var destination = resolveLeapDestination(spellLevel, entity);
+            startLeap(
+                    entity,
+                    destination,
+                    getLeapTicksPerBlock(spellLevel, entity),
+                    getLeapArcHeight(),
+                    // 斬撃はサーバー権威でのみ発火するため、予測時は blade 紐付け不要.
+                    -1
+            );
+        }
+
+        super.onClientCast(level, spellLevel, entity, castData);
+    }
+
     private Vec3 resolveLeapDestination(int spellLevel, LivingEntity caster) {
+        // 着地点解決を共通化し、クライアント予測とサーバー実移動で同じ入力を使う.
+        // これがずれると移動終端での補正頻度が上がり、プレイフィールが悪化する.
         var range = getRange(spellLevel, caster);
         var start = caster.position();
         var look = caster.getLookAngle().normalize();
@@ -209,6 +237,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         var distance = offset.length();
         var durationTicks = Math.max(1, (int) Math.ceil(distance * Math.max(0.0, ticksPerBlock)));
         var safeArcHeight = Math.max(0.0, arcHeight);
+        // 初速も両側で一致させる。1tick目だけでも差があると予測ズレが蓄積しやすい.
         var firstStep = calculateEasedPosition(start, destination, safeArcHeight, 1.0 / durationTicks).subtract(start);
         entity.setDeltaMovement(firstStep);
         entity.hasImpulse = true;
@@ -216,6 +245,8 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         entity.fallDistance = 0;
 
         spellData.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, state -> {
+            // 実際の移動は MantisLeapMovementEvent で毎tick計算する.
+            // ここには再現に必要な最小パラメータだけを保存する.
             state.totalTicks = durationTicks;
             state.elapsedTicks = 0;
             state.startX = start.x;
@@ -226,13 +257,18 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
             state.targetZ = destination.z;
             state.arcHeight = safeArcHeight;
             state.bladeEntityId = bladeEntityId;
+            state.lastDistanceToTargetSq = -1.0;
+            state.stagnantTicks = 0;
             state.noGravityApplied = false;
         });
         return true;
     }
 
     private Vec3 calculateEasedPosition(Vec3 start, Vec3 target, double arcHeight, double progress) {
+        // 進行度は必ず 0..1 に正規化して両側の数値暴れを防ぐ.
         var clamped = Math.max(0.0, Math.min(1.0, progress));
+        // easeOutCubic で終端を減速させ、見た目の「着地時にスッと止まる」感覚を作る.
+        // この式も予測一致のため、サーバー/クライアントで同一実装を維持する.
         var eased = easeOutCubic(clamped);
         var linear = start.lerp(target, eased);
         var arc = 4.0 * arcHeight * clamped * (1.0 - clamped);

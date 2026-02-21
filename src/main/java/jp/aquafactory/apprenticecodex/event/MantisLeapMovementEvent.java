@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Mant
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,6 +16,22 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MantisLeapMovementEvent {
+    private static final int STAGNANT_TICK_LIMIT = 4;
+    private static final double STAGNANT_PROGRESS_EPSILON_SQ = 0.01;
+    private static final double WATCHDOG_MIN_DISTANCE_SQ = 1.0;
+    private static final double[] LANDING_Y_OFFSETS = new double[]{0.0, 0.5, 1.0, -0.5, 1.5, -1.0, 2.0};
+    private static final double[][] LANDING_XZ_OFFSETS = new double[][]{
+            {0.0, 0.0},
+            {0.35, 0.0},
+            {-0.35, 0.0},
+            {0.0, 0.35},
+            {0.0, -0.35},
+            {0.7, 0.0},
+            {-0.7, 0.0},
+            {0.0, 0.7},
+            {0.0, -0.7}
+    };
+
     private MantisLeapMovementEvent() {
     }
 
@@ -25,10 +42,10 @@ public final class MantisLeapMovementEvent {
         }
 
         var player = event.player;
-        if (player.level().isClientSide) {
-            return;
-        }
+        var level = player.level();
 
+        // クライアント側も動作させないと跳躍のズレが大きくなるため、isClientSideで早期リターンをさせない.
+        var isClientSide = level.isClientSide;
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
             return;
@@ -37,7 +54,7 @@ public final class MantisLeapMovementEvent {
         var state = spellData.get(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE);
         if (!isLeapActive(state)) {
             if (isLeapCompleted(state)) {
-                triggerSlash(player, state);
+                finalizeLeap(level, player, state, !isClientSide);
             }
             deactivate(spellData, player, state, true);
             return;
@@ -50,13 +67,19 @@ public final class MantisLeapMovementEvent {
 
         applyNoGravity(spellData, player, state);
 
-        var nextTick = Math.min(state.totalTicks, state.elapsedTicks + 1);
-        var currentProgress = state.elapsedTicks / (double) state.totalTicks;
-        var nextProgress = nextTick / (double) state.totalTicks;
+        var targetPosition = getTargetPosition(state);
+        var currentDistanceSq = player.position().distanceToSqr(targetPosition);
+        var stagnantTicks = calculateStagnantTicks(state, currentDistanceSq);
+        if (stagnantTicks >= STAGNANT_TICK_LIMIT) {
+            finalizeLeap(level, player, state, !isClientSide);
+            deactivate(spellData, player, state, true);
+            return;
+        }
 
-        var currentPosition = calculateEasedPosition(state, currentProgress);
+        var nextTick = Math.min(state.totalTicks, state.elapsedTicks + 1);
+        var nextProgress = nextTick / (double) state.totalTicks;
         var nextPosition = calculateEasedPosition(state, nextProgress);
-        var movement = nextPosition.subtract(currentPosition);
+        var movement = nextPosition.subtract(player.position());
 
         player.fallDistance = 0;
         player.setDeltaMovement(movement);
@@ -64,11 +87,19 @@ public final class MantisLeapMovementEvent {
         player.hurtMarked = true;
 
         if (nextTick >= state.totalTicks) {
-            spellData.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, s -> s.elapsedTicks = s.totalTicks);
+            spellData.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, s -> {
+                s.elapsedTicks = s.totalTicks;
+                s.lastDistanceToTargetSq = currentDistanceSq;
+                s.stagnantTicks = stagnantTicks;
+            });
             return;
         }
 
-        spellData.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, s -> s.elapsedTicks = nextTick);
+        spellData.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, s -> {
+            s.elapsedTicks = nextTick;
+            s.lastDistanceToTargetSq = currentDistanceSq;
+            s.stagnantTicks = stagnantTicks;
+        });
     }
 
     private static boolean isLeapActive(MantisLeapState state) {
@@ -109,15 +140,63 @@ public final class MantisLeapMovementEvent {
         return Math.max(0.0, arcHeight) * 4.0 * progress * (1.0 - progress);
     }
 
-    private static void triggerSlash(Player player, MantisLeapState state) {
+    private static Vec3 getTargetPosition(MantisLeapState state) {
+        return new Vec3(state.targetX, state.targetY, state.targetZ);
+    }
+
+    private static int calculateStagnantTicks(MantisLeapState state, double currentDistanceSq) {
+        if (currentDistanceSq < WATCHDOG_MIN_DISTANCE_SQ || state.lastDistanceToTargetSq < 0.0) {
+            return 0;
+        }
+
+        if (currentDistanceSq <= state.lastDistanceToTargetSq - STAGNANT_PROGRESS_EPSILON_SQ) {
+            return 0;
+        }
+
+        return state.stagnantTicks + 1;
+    }
+
+    private static void triggerSlash(Level level, MantisLeapState state) {
         if (state.bladeEntityId < 0) {
             return;
         }
 
-        var entity = player.level().getEntity(state.bladeEntityId);
+        var entity = level.getEntity(state.bladeEntityId);
         if (entity instanceof MantisLeapBladeEntity blade && !blade.isSlashed()) {
-            blade.slash(player.level());
+            blade.slash(level);
         }
+    }
+
+    private static void finalizeLeap(Level level, Player player, MantisLeapState state, boolean doSlash) {
+        var target = getTargetPosition(state);
+        var landing = findSafeLandingPosition(level, player, target);
+        player.setPos(landing.x, landing.y, landing.z);
+        player.setDeltaMovement(0.0, 0.0, 0.0);
+        player.hasImpulse = true;
+        player.hurtMarked = true;
+        player.fallDistance = 0;
+        if (doSlash) {
+            triggerSlash(level, state);
+        }
+    }
+
+    private static Vec3 findSafeLandingPosition(Level level, Player player, Vec3 target) {
+        var current = player.position();
+        for (var yOffset : LANDING_Y_OFFSETS) {
+            for (var offset : LANDING_XZ_OFFSETS) {
+                var candidate = target.add(offset[0], yOffset, offset[1]);
+                if (canPlaceAt(level, player, current, candidate)) {
+                    return candidate;
+                }
+            }
+        }
+
+        return target;
+    }
+
+    private static boolean canPlaceAt(Level level, Player player, Vec3 from, Vec3 candidate) {
+        var movedBox = player.getBoundingBox().move(candidate.subtract(from));
+        return level.noCollision(player, movedBox);
     }
 
     private static void deactivate(CodexSpellData spellData, Player player, MantisLeapState state, boolean stopMovement) {
@@ -125,7 +204,9 @@ public final class MantisLeapMovementEvent {
                 state.elapsedTicks == 0 &&
                 state.startX == 0.0 && state.startY == 0.0 && state.startZ == 0.0 &&
                 state.targetX == 0.0 && state.targetY == 0.0 && state.targetZ == 0.0 &&
-                state.arcHeight == 0.0 && state.bladeEntityId == -1 && !state.noGravityApplied) {
+                state.arcHeight == 0.0 && state.bladeEntityId == -1 &&
+                state.lastDistanceToTargetSq < 0.0 && state.stagnantTicks == 0 &&
+                !state.noGravityApplied) {
             return;
         }
 
@@ -149,6 +230,8 @@ public final class MantisLeapMovementEvent {
             s.targetZ = 0.0;
             s.arcHeight = 0.0;
             s.bladeEntityId = -1;
+            s.lastDistanceToTargetSq = -1.0;
+            s.stagnantTicks = 0;
             s.noGravityApplied = false;
         });
     }

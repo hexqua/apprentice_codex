@@ -14,6 +14,8 @@ public class MantisLeapState implements ICodexSpellState {
     public double targetZ;
     public double arcHeight;
     public int bladeEntityId = -1;
+    public double lastDistanceToTargetSq = -1.0;
+    public int stagnantTicks;
     public boolean noGravityApplied;
 
     @Override
@@ -29,6 +31,8 @@ public class MantisLeapState implements ICodexSpellState {
         tag.putDouble("targetZ", targetZ);
         tag.putDouble("arcHeight", arcHeight);
         tag.putInt("bladeEntityId", bladeEntityId);
+        tag.putDouble("lastDistanceToTargetSq", lastDistanceToTargetSq);
+        tag.putInt("stagnantTicks", stagnantTicks);
         tag.putBoolean("noGravityApplied", noGravityApplied);
         return tag;
     }
@@ -45,6 +49,8 @@ public class MantisLeapState implements ICodexSpellState {
         targetZ = tag.getDouble("targetZ");
         arcHeight = tag.getDouble("arcHeight");
         bladeEntityId = tag.contains("bladeEntityId") ? tag.getInt("bladeEntityId") : -1;
+        lastDistanceToTargetSq = tag.contains("lastDistanceToTargetSq") ? tag.getDouble("lastDistanceToTargetSq") : -1.0;
+        stagnantTicks = tag.contains("stagnantTicks") ? tag.getInt("stagnantTicks") : 0;
         noGravityApplied = tag.getBoolean("noGravityApplied");
     }
 }

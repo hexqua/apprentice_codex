@@ -120,12 +120,12 @@ public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEnti
         slashed = true;
 
         if (getOwner() instanceof LivingEntity owner) {
-            var point = getLookAngle().normalize().scale(0.75);
+            var point = getLookAngle().normalize().scale(1.5);
             var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.MANTIS_LEAP);
             var hitResult = RaycastTools.hitsSphere(
                     level,
                     position().add(point),
-                    2.5,
+                    3.0,
                     e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
             );
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
