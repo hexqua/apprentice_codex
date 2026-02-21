@@ -17,6 +17,7 @@ public class MantisLeapState implements ICodexSpellState {
     public double lastDistanceToTargetSq = -1.0;
     public int stagnantTicks;
     public boolean noGravityApplied;
+    public long postLeapInvulnerableUntilGameTime;
 
     @Override
     public CompoundTag save() {
@@ -34,6 +35,7 @@ public class MantisLeapState implements ICodexSpellState {
         tag.putDouble("lastDistanceToTargetSq", lastDistanceToTargetSq);
         tag.putInt("stagnantTicks", stagnantTicks);
         tag.putBoolean("noGravityApplied", noGravityApplied);
+        tag.putLong("postLeapInvulnerableUntilGameTime", postLeapInvulnerableUntilGameTime);
         return tag;
     }
 
@@ -52,5 +54,8 @@ public class MantisLeapState implements ICodexSpellState {
         lastDistanceToTargetSq = tag.contains("lastDistanceToTargetSq") ? tag.getDouble("lastDistanceToTargetSq") : -1.0;
         stagnantTicks = tag.contains("stagnantTicks") ? tag.getInt("stagnantTicks") : 0;
         noGravityApplied = tag.getBoolean("noGravityApplied");
+        postLeapInvulnerableUntilGameTime = tag.contains("postLeapInvulnerableUntilGameTime")
+                ? tag.getLong("postLeapInvulnerableUntilGameTime")
+                : 0L;
     }
 }

@@ -35,6 +35,7 @@ import java.util.Optional;
 public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> {
     private static final double TARGET_STOP_DISTANCE = 1.0;
     private static final double MIN_LEAP_DISTANCE = 0.25;
+    private static final int MIN_LEAP_DURATION_TICKS = 10;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mantis_leap");
 
@@ -235,7 +236,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         }
 
         var distance = offset.length();
-        var durationTicks = Math.max(1, (int) Math.ceil(distance * Math.max(0.0, ticksPerBlock)));
+        var durationTicks = Math.max(MIN_LEAP_DURATION_TICKS, (int) Math.ceil(distance * Math.max(0.0, ticksPerBlock)));
         var safeArcHeight = Math.max(0.0, arcHeight);
         // 初速も両側で一致させる。1tick目だけでも差があると予測ズレが蓄積しやすい.
         var firstStep = calculateEasedPosition(start, destination, safeArcHeight, 1.0 / durationTicks).subtract(start);

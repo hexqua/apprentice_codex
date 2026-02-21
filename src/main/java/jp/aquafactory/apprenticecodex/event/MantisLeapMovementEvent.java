@@ -7,15 +7,18 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MantisLeapState;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MantisLeapMovementEvent {
+    private static final int POST_LEAP_INVULNERABLE_TICKS = 20;
     private static final int STAGNANT_TICK_LIMIT = 4;
     private static final double STAGNANT_PROGRESS_EPSILON_SQ = 0.01;
     private static final double WATCHDOG_MIN_DISTANCE_SQ = 1.0;
@@ -52,15 +55,20 @@ public final class MantisLeapMovementEvent {
         }
 
         var state = spellData.get(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE);
+
+        clearExpiredPostLeapInvulnerability(spellData, level, state);
+
         if (!isLeapActive(state)) {
             if (isLeapCompleted(state)) {
                 finalizeLeap(level, player, state, !isClientSide);
+                startPostLeapInvulnerability(spellData, level, state);
             }
             deactivate(spellData, player, state, true);
             return;
         }
 
         if (!player.isAlive() || player.isPassenger()) {
+            startPostLeapInvulnerability(spellData, level, state);
             deactivate(spellData, player, state, true);
             return;
         }
@@ -72,6 +80,7 @@ public final class MantisLeapMovementEvent {
         var stagnantTicks = calculateStagnantTicks(state, currentDistanceSq);
         if (stagnantTicks >= STAGNANT_TICK_LIMIT) {
             finalizeLeap(level, player, state, !isClientSide);
+            startPostLeapInvulnerability(spellData, level, state);
             deactivate(spellData, player, state, true);
             return;
         }
@@ -102,12 +111,43 @@ public final class MantisLeapMovementEvent {
         });
     }
 
+    @SubscribeEvent
+    public static void onLivingAttack(LivingAttackEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+
+        var level = player.level();
+        if (level.isClientSide) {
+            return;
+        }
+
+        // VOID/kill 等の環境要因は対象外とし、モブ由来攻撃のみを無効化する.
+        if (!(event.getSource().getEntity() instanceof Mob)) {
+            return;
+        }
+
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            return;
+        }
+
+        var state = spellData.get(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE);
+        if (isLeapActive(state) || isPostLeapInvulnerable(level, state)) {
+            event.setCanceled(true);
+        }
+    }
+
     private static boolean isLeapActive(MantisLeapState state) {
         return state.totalTicks > 0 && state.elapsedTicks < state.totalTicks;
     }
 
     private static boolean isLeapCompleted(MantisLeapState state) {
         return state.totalTicks > 0 && state.elapsedTicks >= state.totalTicks;
+    }
+
+    private static boolean isPostLeapInvulnerable(Level level, MantisLeapState state) {
+        return state.postLeapInvulnerableUntilGameTime > level.getGameTime();
     }
 
     private static void applyNoGravity(CodexSpellData spellData, Player player, MantisLeapState state) {
@@ -197,6 +237,26 @@ public final class MantisLeapMovementEvent {
     private static boolean canPlaceAt(Level level, Player player, Vec3 from, Vec3 candidate) {
         var movedBox = player.getBoundingBox().move(candidate.subtract(from));
         return level.noCollision(player, movedBox);
+    }
+
+    private static void startPostLeapInvulnerability(CodexSpellData spellData, Level level, MantisLeapState state) {
+        var newUntil = level.getGameTime() + POST_LEAP_INVULNERABLE_TICKS;
+        if (state.postLeapInvulnerableUntilGameTime >= newUntil) {
+            return;
+        }
+
+        spellData.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, s -> s.postLeapInvulnerableUntilGameTime = newUntil);
+    }
+
+    private static void clearExpiredPostLeapInvulnerability(CodexSpellData spellData, Level level, MantisLeapState state) {
+        if (state.postLeapInvulnerableUntilGameTime == 0L) {
+            return;
+        }
+        if (state.postLeapInvulnerableUntilGameTime > level.getGameTime()) {
+            return;
+        }
+
+        spellData.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, s -> s.postLeapInvulnerableUntilGameTime = 0L);
     }
 
     private static void deactivate(CodexSpellData spellData, Player player, MantisLeapState state, boolean stopMovement) {
