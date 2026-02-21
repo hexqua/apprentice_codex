@@ -9,6 +9,8 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
@@ -42,6 +44,7 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
     private static final float RPM_AT_LOW_POWER = 300.0f;
     private static final float RPM_AT_HIGH_POWER = 900.0f;
     private static final float TICKS_PER_MINUTE = 1200.0f;
+    private static final long ACTIVE_TICK_GRACE = 2L;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "feather_rush");
 
@@ -184,11 +187,14 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
     public FeatherRushWingEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWing = new FeatherRushWingEntity(EntityRegistry.FEATHER_RUSH_WING.get(), level, entity);
         level.addFreshEntity(summonWing);
+        markActiveState(level, entity, summonWing);
         return summonWing;
     }
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull FeatherRushWingEntity weapon) {
+        markActiveState(level, entity, weapon);
+
         var burstSettings = getBurstSettings(spellLevel, entity);
         if (weapon.tickCount % burstSettings.fireIntervalTicks() != 0) {
             return;
@@ -215,7 +221,34 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull FeatherRushWingEntity weapon) {
+        clearActiveState(level, entity);
         return CompleteCastTypes.RELEASE_WEAPON;
+    }
+
+    private void markActiveState(Level level, LivingEntity entity, FeatherRushWingEntity wing) {
+        if (level.isClientSide) {
+            return;
+        }
+
+        Capabilities.withSpellData(entity, data -> data.edit(CodexSpellStateTypeRegister.FEATHER_RUSH_STATE, state -> {
+            state.activeUntilGameTime = level.getGameTime() + ACTIVE_TICK_GRACE;
+            state.wingEntityId = wing.getId();
+        }));
+    }
+
+    private void clearActiveState(Level level, LivingEntity entity) {
+        if (level.isClientSide) {
+            return;
+        }
+
+        Capabilities.withSpellData(entity, data -> data.edit(CodexSpellStateTypeRegister.FEATHER_RUSH_STATE, state -> {
+            state.activeUntilGameTime = 0;
+            state.wingEntityId = -1;
+            if (state.noGravityApplied) {
+                entity.setNoGravity(false);
+                state.noGravityApplied = false;
+            }
+        }));
     }
 
     private Vec3 getProjectileSpawnPosition(Level level, FeatherRushWingEntity wing, boolean fromRightWing) {
