@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
@@ -32,7 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> {
+public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> implements ICastHighlightSpell {
+    private static final double RAYCAST_WIDTH = 1.0;
     private static final double TARGET_STOP_DISTANCE = 1.0;
     private static final double MIN_LEAP_DISTANCE = 0.25;
     private static final int MIN_LEAP_DURATION_TICKS = 10;
@@ -69,6 +71,22 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
 
     private double getRange(int spellLevel, LivingEntity entity) {
         return Math.min(64, 8 + 1.5 * getSpellPower(spellLevel, entity) / 100.0);
+    }
+
+    @Override
+    public int getHighlightColor() {
+        return 0x4488FF;
+    }
+
+    @Override
+    @Nullable
+    public Entity getHighlightEntity(@NotNull Player player, int skillLevel) {
+        return RaycastTools.raycastFromEye(
+                player,
+                getRange(skillLevel, player),
+                RAYCAST_WIDTH,
+                e -> CombatTools.isValidCombatTarget(e, player)
+        ).hitEntity();
     }
 
     private double getLeapTicksPerBlock(int spellLevel, LivingEntity entity) {
@@ -192,8 +210,8 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         var start = caster.position();
         var look = caster.getLookAngle().normalize();
 
-        // boxWidthは吸い付きやすさに影響するため、かなり広めに取る.
-        var result = RaycastTools.raycastFromEye(caster, range, 4, e -> CombatTools.isValidCombatTarget(e, caster));
+        // boxWidthは吸い付きやすさに影響するため、ちょっと広めに取る.
+        var result = RaycastTools.raycastFromEye(caster, range, RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, caster));
 
         Vec3 destination;
         if (result.hitType() == RaycastTools.TargetType.LIVING_ENTITY && result.hitEntity() != null) {
