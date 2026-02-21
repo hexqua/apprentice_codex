@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.spell.mantisleap;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
@@ -12,7 +11,9 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
@@ -24,12 +25,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 
-public class MantisLeap extends AbstractSpell {
+public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> {
     private static final double DEFAULT_LEAP_TICKS_PER_BLOCK = 1.0;
     private static final double DEFAULT_LEAP_ARC_HEIGHT = 1.0;
     private static final double TARGET_STOP_DISTANCE = 1.0;
@@ -45,6 +47,7 @@ public class MantisLeap extends AbstractSpell {
             .build();
 
     public MantisLeap() {
+        super(MantisLeapBladeEntity.class);
         baseSpellPower = 600;
         spellPowerPerLevel = 250;
         baseManaCost = 50;
@@ -124,18 +127,37 @@ public class MantisLeap extends AbstractSpell {
     }
 
     @Override
-    public void onServerCastComplete(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled) {
-        if (!cancelled && !level.isClientSide) {
-            var destination = resolveLeapDestination(spellLevel, entity);
-            startLeap(
-                    entity,
-                    destination,
-                    getLeapTicksPerBlock(spellLevel, entity),
-                    getLeapArcHeight(spellLevel, entity)
-            );
+    public MantisLeapBladeEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new MantisLeapBladeEntity(EntityRegistry.MANTIS_LEAP_BLADE.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        level.addFreshEntity(summonWeapon);
+        return summonWeapon;
+    }
+
+    @Override
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull MantisLeapBladeEntity weapon) {
+        weapon.setDamage(getDamage(spellLevel, entity));
+    }
+
+    @Override
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull MantisLeapBladeEntity weapon) {
+        if (cancelled) {
+            return CompleteCastTypes.RELEASE_WEAPON;
         }
 
-        super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
+        var destination = resolveLeapDestination(spellLevel, entity);
+        var started = startLeap(
+                entity,
+                destination,
+                getLeapTicksPerBlock(spellLevel, entity),
+                getLeapArcHeight(spellLevel, entity),
+                weapon.getId()
+        );
+        if (!started) {
+            weapon.slash(level);
+        }
+
+        return CompleteCastTypes.KEEP_WEAPON;
     }
 
     private Vec3 resolveLeapDestination(int spellLevel, LivingEntity caster) {
@@ -172,22 +194,28 @@ public class MantisLeap extends AbstractSpell {
         return start.add(offset.scale(maxDistance / distance));
     }
 
-    private void startLeap(LivingEntity entity, Vec3 destination, double ticksPerBlock, double arcHeight) {
+    private boolean startLeap(LivingEntity entity, Vec3 destination, double ticksPerBlock, double arcHeight, int bladeEntityId) {
+        var spellData = Capabilities.getSpellDataOrNull(entity);
+        if (spellData == null) {
+            return false;
+        }
+
         var start = entity.position();
         var offset = destination.subtract(start);
         if (offset.lengthSqr() < MIN_LEAP_DISTANCE * MIN_LEAP_DISTANCE) {
-            return;
+            return false;
         }
 
         var distance = offset.length();
         var durationTicks = Math.max(1, (int) Math.ceil(distance * Math.max(0.0, ticksPerBlock)));
-        var firstStep = calculateEasedPosition(start, destination, Math.max(0.0, arcHeight), 1.0 / durationTicks).subtract(start);
+        var safeArcHeight = Math.max(0.0, arcHeight);
+        var firstStep = calculateEasedPosition(start, destination, safeArcHeight, 1.0 / durationTicks).subtract(start);
         entity.setDeltaMovement(firstStep);
         entity.hasImpulse = true;
         entity.hurtMarked = true;
         entity.fallDistance = 0;
 
-        Capabilities.withSpellData(entity, data -> data.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, state -> {
+        spellData.edit(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE, state -> {
             state.totalTicks = durationTicks;
             state.elapsedTicks = 0;
             state.startX = start.x;
@@ -196,9 +224,11 @@ public class MantisLeap extends AbstractSpell {
             state.targetX = destination.x;
             state.targetY = destination.y;
             state.targetZ = destination.z;
-            state.arcHeight = Math.max(0.0, arcHeight);
+            state.arcHeight = safeArcHeight;
+            state.bladeEntityId = bladeEntityId;
             state.noGravityApplied = false;
-        }));
+        });
+        return true;
     }
 
     private Vec3 calculateEasedPosition(Vec3 start, Vec3 target, double arcHeight, double progress) {

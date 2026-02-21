@@ -13,6 +13,7 @@ public class MantisLeapState implements ICodexSpellState {
     public double targetY;
     public double targetZ;
     public double arcHeight;
+    public int bladeEntityId = -1;
     public boolean noGravityApplied;
 
     @Override
@@ -27,6 +28,7 @@ public class MantisLeapState implements ICodexSpellState {
         tag.putDouble("targetY", targetY);
         tag.putDouble("targetZ", targetZ);
         tag.putDouble("arcHeight", arcHeight);
+        tag.putInt("bladeEntityId", bladeEntityId);
         tag.putBoolean("noGravityApplied", noGravityApplied);
         return tag;
     }
@@ -42,6 +44,7 @@ public class MantisLeapState implements ICodexSpellState {
         targetY = tag.getDouble("targetY");
         targetZ = tag.getDouble("targetZ");
         arcHeight = tag.getDouble("arcHeight");
+        bladeEntityId = tag.contains("bladeEntityId") ? tag.getInt("bladeEntityId") : -1;
         noGravityApplied = tag.getBoolean("noGravityApplied");
     }
 }

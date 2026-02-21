@@ -1,11 +1,15 @@
-package jp.aquafactory.apprenticecodex.spell.slashblade;
+package jp.aquafactory.apprenticecodex.spell.mantisleap;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.GeoBonePoseCache;
 import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
-import jp.aquafactory.apprenticecodex.utility.*;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -28,30 +32,29 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
+import java.util.List;
 
+public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
     private static final int STAY_SLASHED_TICK = 10;
 
     private static final EntityDataAccessor<Boolean> SHOW_TRAIL =
-            SynchedEntityData.defineId(SlashBladeKatanaEntity.class, EntityDataSerializers.BOOLEAN);
+            SynchedEntityData.defineId(MantisLeapBladeEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> ANIMATION_SPEED =
-            SynchedEntityData.defineId(SlashBladeKatanaEntity.class, EntityDataSerializers.FLOAT);
+            SynchedEntityData.defineId(MantisLeapBladeEntity.class, EntityDataSerializers.FLOAT);
 
     public static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
-    public static final RawAnimation ANIM_TO_STANDBY = RawAnimation.begin().thenPlayAndHold("to_standby");
-    public static final RawAnimation ANIM_QUICKDRAW = RawAnimation.begin().thenPlayAndHold("quickdraw");
+    public static final RawAnimation ANIM_SLASH = RawAnimation.begin().thenPlayAndHold("slash");
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private float damage;
-    private int lifeTick = 0;
-    private boolean isSlashed = false;
-    private boolean isStandby = false;
+    private int lifeTick;
+    private boolean slashed;
 
-    public SlashBladeKatanaEntity(EntityType<?> pEntityType, Level pLevel) {
+    public MantisLeapBladeEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
-    public SlashBladeKatanaEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
+    public MantisLeapBladeEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
     }
 
@@ -60,22 +63,28 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         entityData.define(SHOW_TRAIL, false);
         entityData.define(ANIMATION_SPEED, 1.0f);
     }
+
     @Override
     public void onClientRemoval() {
-        var pose = GeoBonePoseCache.getPrev(getUUID());
-        if (pose != null) {
-            // キャッシュはヨーを考慮できていないのでそれを加味しなおす.
-            var yawDeg = RotationTools.calculateYawPitchByEntity(this, 1.0f).yaw();
-            var yawRad = -yawDeg * Mth.DEG_TO_RAD;
-            var rootLocal = pose.root().subtract(position());
-            var tipLocal  = pose.tip().subtract(position());
-            var rootWorld = rootLocal.yRot(yawRad).add(position());
-            var tipWorld  = tipLocal.yRot(yawRad).add(position());
-            EffectTools.createLineParticle(rootWorld, tipWorld, 0.25, 0.1, 0.01, ParticleTypes.END_ROD, level());
-        }
+        spawnRemovalLineParticle("trail1");
+        spawnRemovalLineParticle("trail2");
         GeoBonePoseCache.remove(getUUID());
-
         super.onClientRemoval();
+    }
+
+    private void spawnRemovalLineParticle(String cacheKey) {
+        var pose = GeoBonePoseCache.getPrev(getUUID(), cacheKey);
+        if (pose == null) {
+            return;
+        }
+
+        var yawDeg = RotationTools.calculateYawPitchByEntity(this, 1.0f).yaw();
+        var yawRad = -yawDeg * Mth.DEG_TO_RAD;
+        var rootLocal = pose.root().subtract(position());
+        var tipLocal = pose.tip().subtract(position());
+        var rootWorld = rootLocal.yRot(yawRad).add(position());
+        var tipWorld = tipLocal.yRot(yawRad).add(position());
+        EffectTools.createLineParticle(rootWorld, tipWorld, 0.25, 0.1, 0.01, ParticleTypes.END_ROD, level());
     }
 
     @Override
@@ -85,12 +94,12 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
             return;
         }
 
-        if (isSlashed) {
+        if (slashed) {
             --lifeTick;
             if (lifeTick <= 0) {
                 discard();
-                return;
             }
+            return;
         }
 
         followTargetPosition(getStandbyPosition());
@@ -99,40 +108,38 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         setRot(getYRot(), getXRot());
     }
 
-    public void setStandby(){
-        triggerAnim("main", "standby");
-        entityData.set(ANIMATION_SPEED, 4.0f);
-        entityData.set(SHOW_TRAIL, false);
-        isStandby = true;
-    }
+    public void slash(Level level) {
+        if (slashed) {
+            return;
+        }
 
-    public boolean isStandby(){
-        return isStandby;
-    }
-
-    public void slash(Level level){
-        triggerAnim("main", "quickdraw");
+        triggerAnim("main", "slash");
         entityData.set(ANIMATION_SPEED, 7.5f);
         entityData.set(SHOW_TRAIL, true);
         lifeTick = STAY_SLASHED_TICK;
-        isSlashed = true;
+        slashed = true;
 
-        if ((getOwner() instanceof LivingEntity owner)) {
+        if (getOwner() instanceof LivingEntity owner) {
             var point = getLookAngle().normalize().scale(0.75);
-            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.SLASH_BLADE);
-            var hitResult = RaycastTools.hitsSphere(level,
+            var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.MANTIS_LEAP);
+            var hitResult = RaycastTools.hitsSphere(
+                    level,
                     position().add(point),
                     2.5,
                     e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
             );
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
-            for (var hit : hitResult){
-                CombatTools.applyDamage(hit, damage, source, SpellRegistry.SLASH_BLADE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            for (var hit : hitResult) {
+                CombatTools.applyDamage(hit, damage, source, SpellRegistry.MANTIS_LEAP.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
             }
         }
     }
 
-    public void setDamage(float damage){
+    public boolean isSlashed() {
+        return slashed;
+    }
+
+    public void setDamage(float damage) {
         this.damage = damage;
     }
 
@@ -144,6 +151,14 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     @Override
     public int getTrailColorARGB() {
         return 0xFFDDAAFF;
+    }
+
+    @Override
+    public List<TrailBonePair> getTrailBonePairs() {
+        return List.of(
+                new TrailBonePair("trail1", "trail_tip1", "trail_root1"),
+                new TrailBonePair("trail2", "trail_tip2", "trail_root2")
+        );
     }
 
     @Override
@@ -160,9 +175,8 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     @Override
     public Vec3 getStandbyPosition() {
-        // 鞘と刀身でセットのため、中央に出す.
         if (getOwner() instanceof LivingEntity owner) {
-            return RotationTools.calculateBehindPosition(owner, 0, 0, -0.75);
+            return RotationTools.calculateBehindPosition(owner, 0.0, 0.0, -0.35);
         }
 
         return Vec3.ZERO;
@@ -170,14 +184,14 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
-
-        controllerRegistrar.add(new AnimationController<>(this, "main", state -> {
-                state.getController().setAnimation(ANIM_IDLE);
-                return PlayState.CONTINUE;
-            })
-            .triggerableAnim("standby", ANIM_TO_STANDBY)
-            .triggerableAnim("quickdraw", ANIM_QUICKDRAW)
-            .setAnimationSpeedHandler(e -> (double)e.entityData.get(ANIMATION_SPEED)));
+        controllerRegistrar.add(
+                new AnimationController<>(this, "main", state -> {
+                    state.getController().setAnimation(ANIM_IDLE);
+                    return PlayState.CONTINUE;
+                })
+                        .triggerableAnim("slash", ANIM_SLASH)
+                        .setAnimationSpeedHandler(e -> (double) e.entityData.get(ANIMATION_SPEED))
+        );
     }
 
     @Override

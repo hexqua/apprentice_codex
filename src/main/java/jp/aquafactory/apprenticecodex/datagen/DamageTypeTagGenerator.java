@@ -48,7 +48,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 TINY_LUMBERJACK,
                 FLY_SWATTER,
                 WORLD_FLATTER,
-                SLASH_BLADE
+                SLASH_BLADE,
+                MANTIS_LEAP
         );
 
         // RANGED_ATTACK : 遠距離攻撃扱い(現状はガーディアンのトゲ無効)
@@ -69,7 +70,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FLY_SWATTER,
                 FEATHER_RUSH,
                 WORLD_FLATTER,
-                SLASH_BLADE
+                SLASH_BLADE,
+                MANTIS_LEAP
         );
 
         // EXPLOSIONS : 爆発ダメージ(エンチャ、常にエンドラ有効、ガーディアンのトゲ無効)

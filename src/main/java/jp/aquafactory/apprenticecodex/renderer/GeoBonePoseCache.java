@@ -7,36 +7,76 @@ import java.util.Map;
 import java.util.UUID;
 
 public final class GeoBonePoseCache {
-    private GeoBonePoseCache(){}
+    private static final String DEFAULT_KEY = "default";
 
-    public record Pose(Vec3 tip, Vec3 root, long gameTime) {}
-    public record PosePair(Pose prev, Pose curr) {}
+    private GeoBonePoseCache() {
+    }
 
-    private static final Map<UUID, PosePair> LAST = new HashMap<>();
+    public record Pose(Vec3 tip, Vec3 root, long gameTime) {
+    }
+
+    public record PosePair(Pose prev, Pose curr) {
+    }
+
+    private static final Map<UUID, Map<String, PosePair>> LAST = new HashMap<>();
 
     public static void put(UUID id, Vec3 tip, Vec3 root, long gameTime) {
-        Pose curr = new Pose(tip, root, gameTime);
-        PosePair pair = LAST.get(id);
+        put(id, DEFAULT_KEY, tip, root, gameTime);
+    }
+
+    public static void put(UUID id, String key, Vec3 tip, Vec3 root, long gameTime) {
+        var curr = new Pose(tip, root, gameTime);
+        var keyed = LAST.computeIfAbsent(id, ignored -> new HashMap<>());
+        var pair = keyed.get(key);
         if (pair == null) {
-            // 初回はprev=currで埋める.
-            LAST.put(id, new PosePair(curr, curr));
-        } else {
-            // 1フレ遅延.
-            LAST.put(id, new PosePair(pair.curr(), curr));
+            keyed.put(key, new PosePair(curr, curr));
+            return;
         }
+
+        keyed.put(key, new PosePair(pair.curr(), curr));
     }
 
     public static Pose getCurr(UUID id) {
-        PosePair p = LAST.get(id);
-        return p == null ? null : p.curr();
+        return getCurr(id, DEFAULT_KEY);
+    }
+
+    public static Pose getCurr(UUID id, String key) {
+        var keyed = LAST.get(id);
+        if (keyed == null) {
+            return null;
+        }
+
+        var pair = keyed.get(key);
+        return pair == null ? null : pair.curr();
     }
 
     public static Pose getPrev(UUID id) {
-        PosePair p = LAST.get(id);
-        return p == null ? null : p.prev();
+        return getPrev(id, DEFAULT_KEY);
+    }
+
+    public static Pose getPrev(UUID id, String key) {
+        var keyed = LAST.get(id);
+        if (keyed == null) {
+            return null;
+        }
+
+        var pair = keyed.get(key);
+        return pair == null ? null : pair.prev();
     }
 
     public static void remove(UUID id) {
         LAST.remove(id);
+    }
+
+    public static void remove(UUID id, String key) {
+        var keyed = LAST.get(id);
+        if (keyed == null) {
+            return;
+        }
+
+        keyed.remove(key);
+        if (keyed.isEmpty()) {
+            LAST.remove(id);
+        }
     }
 }

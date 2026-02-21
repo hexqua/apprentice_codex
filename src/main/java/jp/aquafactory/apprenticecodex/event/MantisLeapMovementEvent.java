@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MantisLeapState;
+import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -35,6 +36,9 @@ public final class MantisLeapMovementEvent {
 
         var state = spellData.get(CodexSpellStateTypeRegister.MANTIS_LEAP_STATE);
         if (!isLeapActive(state)) {
+            if (isLeapCompleted(state)) {
+                triggerSlash(player, state);
+            }
             deactivate(spellData, player, state, true);
             return;
         }
@@ -71,6 +75,10 @@ public final class MantisLeapMovementEvent {
         return state.totalTicks > 0 && state.elapsedTicks < state.totalTicks;
     }
 
+    private static boolean isLeapCompleted(MantisLeapState state) {
+        return state.totalTicks > 0 && state.elapsedTicks >= state.totalTicks;
+    }
+
     private static void applyNoGravity(CodexSpellData spellData, Player player, MantisLeapState state) {
         if (state.noGravityApplied) {
             return;
@@ -101,12 +109,23 @@ public final class MantisLeapMovementEvent {
         return Math.max(0.0, arcHeight) * 4.0 * progress * (1.0 - progress);
     }
 
+    private static void triggerSlash(Player player, MantisLeapState state) {
+        if (state.bladeEntityId < 0) {
+            return;
+        }
+
+        var entity = player.level().getEntity(state.bladeEntityId);
+        if (entity instanceof MantisLeapBladeEntity blade && !blade.isSlashed()) {
+            blade.slash(player.level());
+        }
+    }
+
     private static void deactivate(CodexSpellData spellData, Player player, MantisLeapState state, boolean stopMovement) {
         if (state.totalTicks == 0 &&
                 state.elapsedTicks == 0 &&
                 state.startX == 0.0 && state.startY == 0.0 && state.startZ == 0.0 &&
                 state.targetX == 0.0 && state.targetY == 0.0 && state.targetZ == 0.0 &&
-                state.arcHeight == 0.0 && !state.noGravityApplied) {
+                state.arcHeight == 0.0 && state.bladeEntityId == -1 && !state.noGravityApplied) {
             return;
         }
 
@@ -129,6 +148,7 @@ public final class MantisLeapMovementEvent {
             s.targetY = 0.0;
             s.targetZ = 0.0;
             s.arcHeight = 0.0;
+            s.bladeEntityId = -1;
             s.noGravityApplied = false;
         });
     }
