@@ -49,6 +49,6 @@ public class AssistWingsWingRenderer extends EntityRenderer<AssistWingsWingEntit
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull AssistWingsWingEntity pEntity) {
         // 特殊パス.
-        return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/spell_wing.png");
+        return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/assist_wings_wing.png");
     }
 }
