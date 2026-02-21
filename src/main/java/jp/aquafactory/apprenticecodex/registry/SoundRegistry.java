@@ -29,6 +29,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> SAW_STOP = reg("saw_stop");
     public static final RegistryObject<SoundEvent> CLOUD_RAIN = reg("cloud_rain");
     public static final RegistryObject<SoundEvent> SET_MAGE_LIGHT_TORCH = reg("set_mage_light");
+    public static final RegistryObject<SoundEvent> FLAPPED = reg("flapped");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
