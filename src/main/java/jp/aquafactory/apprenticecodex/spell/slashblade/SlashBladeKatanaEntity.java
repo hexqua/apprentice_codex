@@ -118,11 +118,11 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         isSlashed = true;
 
         if ((getOwner() instanceof LivingEntity owner)) {
-            var point = getLookAngle().normalize().scale(0.5);
+            var point = getLookAngle().normalize().scale(0.75);
             var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.SLASH_BLADE);
             var hitResult = RaycastTools.hitsSphere(level,
                     position().add(point),
-                    2,
+                    2.5,
                     e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
             );
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
