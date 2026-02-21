@@ -70,5 +70,11 @@
     "sounds": [
       "apprenticecodex:set_mage_light"
     ]
+  },
+  "flapped": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:flapped"
+    ]
   }
 }

@@ -10,6 +10,8 @@ import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgun
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunRenderer;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRenderer;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileRenderer;
+import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileRenderer;
+import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudRenderer;
@@ -45,6 +47,8 @@ public final class RendererRegisterEvent {
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), FlySwatterProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ASSIST_WINGS_WING.get(), AssistWingsWingRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_PROJECTILE.get(), FeatherRushProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_WING.get(), FeatherRushWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SLASH_BLADE_KATANA.get(), SlashBladeKatanaRenderer::new);
     }
