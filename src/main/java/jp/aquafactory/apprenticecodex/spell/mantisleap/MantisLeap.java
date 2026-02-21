@@ -32,9 +32,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> {
-    private static final double DEFAULT_LEAP_TICKS_PER_BLOCK = 1.0;
-    private static final double DEFAULT_LEAP_ARC_HEIGHT = 1.0;
-    private static final double TARGET_STOP_DISTANCE = 1.0;
+    private static final double TARGET_STOP_DISTANCE = 0.1;
     private static final double MIN_LEAP_DISTANCE = 0.25;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mantis_leap");
@@ -48,9 +46,9 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
 
     public MantisLeap() {
         super(MantisLeapBladeEntity.class);
-        baseSpellPower = 600;
-        spellPowerPerLevel = 250;
-        baseManaCost = 50;
+        baseSpellPower = 800;
+        spellPowerPerLevel = 400;
+        baseManaCost = 60;
         manaCostPerLevel = 15;
         castTime = 15;
     }
@@ -68,15 +66,15 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     }
 
     private double getRange(int spellLevel, LivingEntity entity) {
-        return Math.min(20, 4 + getSpellPower(spellLevel, entity) / 150.0);
+        return Math.min(64, 8 + 1.5 * getSpellPower(spellLevel, entity) / 100.0);
     }
 
     private double getLeapTicksPerBlock(int spellLevel, LivingEntity entity) {
-        return DEFAULT_LEAP_TICKS_PER_BLOCK;
+        return Math.max(0.75, 2.25 - getSpellPower(spellLevel, entity) / 800.0);
     }
 
-    private double getLeapArcHeight(int spellLevel, LivingEntity entity) {
-        return DEFAULT_LEAP_ARC_HEIGHT;
+    private double getLeapArcHeight() {
+        return 1.5;
     }
 
     @Override
@@ -150,7 +148,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
                 entity,
                 destination,
                 getLeapTicksPerBlock(spellLevel, entity),
-                getLeapArcHeight(spellLevel, entity),
+                getLeapArcHeight(),
                 weapon.getId()
         );
         if (!started) {
@@ -164,7 +162,9 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         var range = getRange(spellLevel, caster);
         var start = caster.position();
         var look = caster.getLookAngle().normalize();
-        var result = RaycastTools.raycastFromEye(caster, range, 0.5, e -> CombatTools.isValidCombatTarget(e, caster));
+
+        // boxWidthは吸い付きやすさに影響するため、かなり広めに取る.
+        var result = RaycastTools.raycastFromEye(caster, range, 4, e -> CombatTools.isValidCombatTarget(e, caster));
 
         Vec3 destination;
         if (result.hitType() == RaycastTools.TargetType.LIVING_ENTITY && result.hitEntity() != null) {
