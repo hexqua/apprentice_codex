@@ -5,9 +5,6 @@ import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -30,7 +27,6 @@ public final class ItemRegistry {
     }
 
     public static final RegistryObject<Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
-    public static final RegistryObject<Item> ARCHER_MULTIPLE_BOW = simple("archer_multiple_bow");
     public static final RegistryObject<Item> COMMENCE_FIRE_RIFLE = simple("commence_fire_rifle");
     public static final RegistryObject<Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
     public static final RegistryObject<Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
@@ -45,16 +41,4 @@ public final class ItemRegistry {
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final RegistryObject<Item> GRIMOIRE_MANIFEST =
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
-
-    public static void register() {
-        ItemProperties.register(
-                ItemRegistry.ARCHER_MULTIPLE_BOW.get(),
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "stage"),
-                (stack, level, living, seed) -> {
-                    CompoundTag tag = stack.getTag();
-                    int stage = (tag != null) ? tag.getInt("Stage") : 0;
-                    return (float) stage;
-                }
-        );
-    }
 }
