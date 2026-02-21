@@ -8,7 +8,7 @@ public class BulletStreamMinigunModel<T extends GeoAnimatable> extends GeoModel<
     private static final ResourceLocation MODEL =
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "geo/bullet_stream_minigun.geo.json");
     private static final ResourceLocation TEX =
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "textures/item/bullet_stream_minigun.png");
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "textures/geo/bullet_stream_minigun.png");
     private static final ResourceLocation ANIM =
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "animations/bullet_stream_minigun.animation.json");
 

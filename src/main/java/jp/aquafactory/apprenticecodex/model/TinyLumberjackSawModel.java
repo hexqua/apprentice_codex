@@ -8,7 +8,7 @@ public class TinyLumberjackSawModel<T extends GeoAnimatable> extends GeoModel<T>
     private static final ResourceLocation MODEL =
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "geo/tiny_lumberjack_saw.geo.json");
     private static final ResourceLocation TEX =
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "textures/item/tiny_lumberjack_saw.png");
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "textures/geo/tiny_lumberjack_saw.png");
     private static final ResourceLocation ANIM =
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "animations/tiny_lumberjack_saw.animation.json");
 
