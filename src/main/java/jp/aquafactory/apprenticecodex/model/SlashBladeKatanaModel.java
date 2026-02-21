@@ -9,7 +9,7 @@ public class SlashBladeKatanaModel<T extends GeoAnimatable> extends GeoModel<T> 
     private static final ResourceLocation MODEL =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "geo/slash_blade_katana.geo.json");
     private static final ResourceLocation TEX =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/item/slash_blade_katana.png");
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/slash_blade_katana.png");
     private static final ResourceLocation ANIM =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "animations/slash_blade_katana.animation.json");
 

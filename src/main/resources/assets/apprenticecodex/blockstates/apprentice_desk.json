@@ -1,8 +1,5 @@
 {
   "variants": {
-    "facing=north": { "model": "apprenticecodex:block/apprentice_desk" },
-    "facing=east": { "model": "apprenticecodex:block/apprentice_desk", "y": 90 },
-    "facing=south": { "model": "apprenticecodex:block/apprentice_desk", "y": 180 },
-    "facing=west": { "model": "apprenticecodex:block/apprentice_desk", "y": 270 }
+    "": { "model": "apprenticecodex:block/apprentice_desk" }
   }
 }
