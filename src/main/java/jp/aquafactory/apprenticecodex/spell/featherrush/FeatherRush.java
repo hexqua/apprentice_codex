@@ -34,9 +34,9 @@ import java.util.Optional;
 
 public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity> {
     private static final double FIRE_SIDE_OFFSET = 0.5;
-    private static final float BACKWARD_YAW_BIAS_DEG = 22.0f;
-    private static final float BACKWARD_YAW_RANDOM_DEG = 28.0f;
-    private static final float BACKWARD_PITCH_RANDOM_DEG = 6.0f;
+    private static final float BACKWARD_YAW_BIAS_DEG = 35.0f;
+    private static final float BACKWARD_YAW_RANDOM_DEG = 45.0f;
+    private static final float BACKWARD_PITCH_RANDOM_DEG = 60.0f;
     private static final int MIN_FIRE_INTERVAL_TICKS = 2;
     private static final int MIN_PROJECTILES_PER_BURST = 2;
     private static final float SPELL_POWER_LOW = 100.0f;
@@ -61,7 +61,7 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
         spellPowerPerLevel = 75;
         baseManaCost = 4;
         manaCostPerLevel = 2;
-        castTime = 200;
+        castTime = 100;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return 3 * getSpellPower(spellLevel, entity) / 100.0f;
+        return 1 + 2.5f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getTargetRpm(int spellLevel, LivingEntity entity) {
@@ -261,9 +261,9 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
         var backwardFlat = RotationTools.getFlatForward(caster).scale(-1);
         var yawBias = fromRightWing ? -BACKWARD_YAW_BIAS_DEG : BACKWARD_YAW_BIAS_DEG;
         var randomYaw = level.random.nextFloat() * BACKWARD_YAW_RANDOM_DEG - BACKWARD_YAW_RANDOM_DEG / 2;
-        var randomPitch = level.random.nextFloat() * BACKWARD_PITCH_RANDOM_DEG - BACKWARD_PITCH_RANDOM_DEG / 2;
+        var randomPitch = level.random.nextFloat() * BACKWARD_PITCH_RANDOM_DEG; // 意図的に上にブレるように.
         var yawRotated = rotateYaw(backwardFlat, yawBias + randomYaw);
-        return rotatePitch(yawRotated, randomPitch).normalize();
+        return rotatePitch(yawRotated, -randomPitch).normalize(); // 意図的に上にブレるように.
     }
 
     private Vec3 rotateYaw(Vec3 direction, float degree) {
