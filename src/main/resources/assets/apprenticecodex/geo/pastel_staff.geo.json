@@ -7,8 +7,8 @@
 				"texture_width": 16,
 				"texture_height": 16,
 				"visible_bounds_width": 2,
-				"visible_bounds_height": 2.5,
-				"visible_bounds_offset": [0, 0.75, 0]
+				"visible_bounds_height": 4.5,
+				"visible_bounds_offset": [0, 1.75, 0]
 			},
 			"bones": [
 				{
@@ -331,10 +331,10 @@
 				{
 					"name": "stone_tint",
 					"parent": "handle",
-					"pivot": [0, 20, 0],
+					"pivot": [0, 20.5, 0],
 					"cubes": [
 						{
-							"origin": [-0.75, 19.25, -0.75],
+							"origin": [-0.75, 19.75, -0.75],
 							"size": [1.5, 1.5, 1.5],
 							"uv": {
 								"north": {"uv": [4, 8], "uv_size": [1.5, 1.5]},
