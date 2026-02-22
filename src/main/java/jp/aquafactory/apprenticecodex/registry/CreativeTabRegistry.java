@@ -33,5 +33,6 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
         output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
+        output.accept(ItemRegistry.PASTEL_STAFF.get());
     }
 }
