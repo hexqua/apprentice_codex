@@ -22,7 +22,9 @@ eclipse
 run
 run-data
 .cache
-.tmp
+
+# Codex-Search
+.tmp*
 
 # Files from Forge MDK
 forge*changelog.txt
