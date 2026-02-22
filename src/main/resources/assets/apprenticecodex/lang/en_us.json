@@ -102,6 +102,7 @@
   "ui.apprenticecodex.fly_swatter.lockon_entity": "Lock on to %s...(%d/%d)",
   "ui.apprenticecodex.cant_jump_more": "Can't air jump more!",
   "ui.apprenticecodex.not_hold_pastel_staff": "The staff to draw out its power isn’t in your hands...",
+  "ui.apprenticecodex.recepted_pastel_magic": "Bound \"%s\" magic to the staff!",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.palette_reception": "Reception Mode",

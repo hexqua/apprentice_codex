@@ -102,6 +102,7 @@
   "ui.apprenticecodex.fly_swatter.lockon_entity": "%s をロックオン...(%d/%d)",
   "ui.apprenticecodex.cant_jump_more": "それ以上空中ジャンプできない！",
   "ui.apprenticecodex.not_hold_pastel_staff": "力を引き出すべき杖が手元にない...",
+  "ui.apprenticecodex.recepted_pastel_magic": "\"%s\"の魔力を杖に封じ込めた！",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",

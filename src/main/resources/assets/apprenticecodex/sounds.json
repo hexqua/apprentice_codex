@@ -88,5 +88,11 @@
     "sounds": [
       "apprenticecodex:palette"
     ]
+  },
+  "absorb": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:absorb"
+    ]
   }
 }
