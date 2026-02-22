@@ -32,6 +32,7 @@
   "entity.apprenticecodex.slash_blade_katana": "Magic Blade",
   "entity.apprenticecodex.feather_rush_wing" : "Rush Wings",
   "entity.apprenticecodex.mantis_leap_blade" : "Mantis Blade",
+  "spell.apprenticecodex.palette_shift": "Palette Shift",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -78,6 +79,7 @@
   "spell.apprenticecodex.manifestation_grimoire.guide": "Summons a grimoire linked to the caster’s domain. Spells stored within it can be used from any grimoire called forth by this spell.",
   "spell.apprenticecodex.feather_rush.guide": "Summons magical wings and beats them to scatter countless feathers. While flapping, you do not fall.",
   "spell.apprenticecodex.mantis_leap.guide": "Summons a pair of magical blades and leaps toward your line of sight to shred the target. The cast cannot be interrupted, and you take no knockback while leaping.",
+  "spell.apprenticecodex.palette_shift.guide": "A latent spell unique to the Pastel Staff. It dyes the staff with the next spell you cast. This spell cannot dye the staff on its own.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",

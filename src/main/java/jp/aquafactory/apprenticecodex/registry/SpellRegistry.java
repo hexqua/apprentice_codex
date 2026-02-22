@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
+import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
@@ -58,6 +59,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
     public static final RegistryObject<AbstractSpell> MANIFESTATION_GRIMOIRE = reg("manifestation_grimoire", ManifestationGrimoire::new);
     public static final RegistryObject<AbstractSpell> MANTIS_LEAP = reg("mantis_leap", MantisLeap::new);
+    public static final RegistryObject<AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);

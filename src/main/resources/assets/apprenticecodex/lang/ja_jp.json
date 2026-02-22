@@ -57,6 +57,7 @@
   "spell.apprenticecodex.manifestation_grimoire": "魔導書顕現",
   "spell.apprenticecodex.feather_rush": "フェザーラッシュ",
   "spell.apprenticecodex.mantis_leap": "マンティスリープ",
+  "spell.apprenticecodex.palette_shift": "パレットシフト",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -78,6 +79,7 @@
   "spell.apprenticecodex.manifestation_grimoire.guide": "術者の領域と繋がっている魔導書を召喚する。その魔導書に入れた魔法はこの魔法で呼び出すどの魔導書でも扱える。",
   "spell.apprenticecodex.feather_rush.guide": "魔法の翼を召喚し、羽ばたいて無数の羽を飛ばす。羽ばたいている間は落下しない。",
   "spell.apprenticecodex.mantis_leap.guide": "魔法の刃を一対召喚し、視線の先へ飛んで切り刻む。発動が阻止されることはなく、跳躍中はノックバックもしない。",
+  "spell.apprenticecodex.palette_shift.guide": "パステルスタッフ固有の潜在魔法。次に振るう魔法でこの杖を染める。この魔法そのもので染めることはできない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
