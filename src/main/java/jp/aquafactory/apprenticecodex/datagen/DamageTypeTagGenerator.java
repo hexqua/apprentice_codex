@@ -27,10 +27,37 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public static final TagKey<DamageType> MAGIC_DAMAGE = create("magic_damage");
     public static final TagKey<DamageType> BYPASSES_IFRAME = create("bypasses_iframe");
     public static final TagKey<DamageType> RANGED_ATTACK = create("ranged_attack");
+    public static final TagKey<DamageType> CODEX_MAGIC = create("codex_magic");
     public static final TagKey<DamageType> EXPLOSIONS = create("explosions");
+
+    private static final TagKey<DamageType> MALUM_CAN_SOUL_SHATTER = TagKey.create(
+            Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath("malum", "can_soul_shatter")
+    );
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider pProvider) {
+        // CODEX_MAGIC: このMODの魔法由来ダメージ全体(Malum互換などで使用)
+        tag(CODEX_MAGIC).add(
+                ARCANE_BEAM,
+                ARCANE_BLAST,
+                ARCHER_MULTIPLE,
+                ARCHER_MULTIPLE_LAST,
+                BREACHING_ENEMY,
+                BULLET_STREAM,
+                COMMENCE_FIRE,
+                COMPOUND_PHIAL,
+                GRACED_RAIN,
+                QUICK_ARMS,
+                SKY_EDGE,
+                TINY_LUMBERJACK,
+                FLY_SWATTER,
+                FEATHER_RUSH,
+                WORLD_FLATTER,
+                SLASH_BLADE,
+                MANTIS_LEAP
+        );
+
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
         tag(MAGIC_DAMAGE).add(
                 ARCANE_BEAM,
@@ -39,7 +66,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 GRACED_RAIN
         );
 
-        // BYPASSES_IFRAME : 無敵時間無効.
+        // BYPASSES_IFRAME: 無敵時間を無視するダメージ.
         tag(BYPASSES_IFRAME).add(
                 ARCHER_MULTIPLE_LAST,
                 BULLET_STREAM,
@@ -52,8 +79,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANTIS_LEAP
         );
 
-        // RANGED_ATTACK : 遠距離攻撃扱い(現状はガーディアンのトゲ無効)
-        // 基本的にはほぼ全て入る(召喚武器は近接ではない)
+        // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効)
         tag(RANGED_ATTACK).add(
                 ARCANE_BEAM,
                 ARCANE_BLAST,
@@ -74,9 +100,12 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANTIS_LEAP
         );
 
-        // EXPLOSIONS : 爆発ダメージ(エンチャ、常にエンドラ有効、ガーディアンのトゲ無効)
+        // EXPLOSIONS: 爆発扱いのダメージ.
         tag(EXPLOSIONS).add(
                 FLY_SWATTER
         );
+
+        // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
+        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC);
     }
 }
