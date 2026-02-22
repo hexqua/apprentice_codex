@@ -17,12 +17,12 @@
 - 開発対象: Minecraft 1.20.1
 - Mod ローダー: Minecraft Forge 47.4.10
 - 言語/実行環境: Java 17
-- ビルドツール: Gradle Wrapper（`gradlew` / `gradlew.bat`）
+- ビルドツール: Gradle Wrapper（`./gradlew` / `./gradlew.bat`）
 - 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.15.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
 - セットアップ手順:
 1. 64bit の Java 17 をインストールし、`java -version` で確認する。
 2. 既定の Java が 17 以外の場合は、ビルド実行前に一時的に `JAVA_HOME` を切り替える。
-3. `gradlew.bat --version` を実行し、JVM が Java 17 であることを確認する。
+3. `./gradlew.bat --version` を実行し、JVM が Java 17 であることを確認する。
 4. 必要に応じて IDE の Gradle プロジェクト再読み込みを実施する。
 
 ## 3. 実行コマンド
@@ -35,11 +35,11 @@ java -version
 ```
 - ビルド（通常確認）:
 ```powershell
-gradlew.bat build
+./gradlew.bat build
 ```
 - クリーンビルド（必要時のみ）:
 ```powershell
-gradlew.bat clean build
+./gradlew.bat clean build
 ```
 - jar 出力確認:
 ```powershell
@@ -49,10 +49,11 @@ Get-ChildItem build\libs\*.jar
 `build\libs\apprentice_codex-<mod_version>+mc1.20.1.jar`
 - 起動（開発クライアント）:
 ```powershell
-gradlew.bat runClient
+./gradlew.bat runClient
 ```
 - 注記: `runClient` は GUI（Minecraft クライアント）を起動するため、CI やヘッドレス環境では実行しない。
 - 注記: 通常のビルド確認では `clean` を付けない。`clean` 実行後は開発実行環境の再生成（例: `genIntellijRuns`）が必要になる場合がある。
+- 注記: 本プロジェクトでは Gradle Wrapper の実行はパス経由を前提にしないため、`./gradlew.bat` を使用する。
 - Lint/Format:
 `現時点では専用タスク未設定。必要時に追加する。`
 
@@ -67,6 +68,7 @@ gradlew.bat runClient
 - コメント方針: 自明な処理の逐語説明コメントは避ける。
 - コメント方針: 実装変更時はコメントも同時に更新し、不要になったコメントは削除する。
 - コメント方針: コメント本文は原則日本語で、短く具体的に記述する。
+- 文字コード方針: テキストファイルは UTF-8（BOM なし）を原則とする。UTF-8 BOM はビルド失敗の要因になるため使用しない。
 - 依存関係追加の方針: 追加・更新するバージョンは `gradle.properties` に集約し、`build.gradle` から参照する。
 - 依存関係追加の方針: 必須依存を追加する場合は `src/main/resources/META-INF/mods.toml` の dependency 定義も更新する。
 - 依存関係追加の方針: 外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を必ず確認する。
@@ -74,12 +76,12 @@ gradlew.bat runClient
 ## 5. 変更フロー
 1. 変更内容を 1〜2 文で決める（何を、なぜ変えるか）。
 2. 実装する。
-3. `gradlew.bat build` が成功することを確認する（ここだけ必須）。
-4. 必要に応じて `gradlew.bat runClient` で動作確認する。
+3. `./gradlew.bat build` が成功することを確認する（ここだけ必須）。
+4. 必要に応じて `./gradlew.bat runClient` で動作確認する。
 5. 必要に応じて関連ドキュメントを更新する。
 
 ## 6. レビューチェックリスト
-- 必須チェック項目: Java 17 環境で `gradlew.bat build` が成功すること。
+- 必須チェック項目: Java 17 環境で `./gradlew.bat build` が成功すること。
 - 必須チェック項目: 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - 必須チェック項目: サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - リグレッション確認: 既存コンテンツの ID 変更や削除による互換性破壊を避ける。
