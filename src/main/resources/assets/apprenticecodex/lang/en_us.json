@@ -13,6 +13,7 @@
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
   "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
+  "item.apprenticecodex.pastel_staff.desc.affinity": "Tinged with %s magic",
 
   "entity.apprenticecodex.sky_edge_projectile" : "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow" : "Archer Multiple Bow",
@@ -100,10 +101,13 @@
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "Lock on to %s...(%d/%d)",
   "ui.apprenticecodex.cant_jump_more": "Can't air jump more!",
+  "ui.apprenticecodex.not_hold_pastel_staff": "The staff to draw out its power isn’t in your hands...",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
+  "effect.apprenticecodex.palette_reception": "Reception Mode",
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
+  "effect.apprenticecodex.palette_reception.description": "The next magic you wield with the Pastel Staff will tint it.",
 
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
   "death.attack.apprenticecodex.archer_multiple": "%1$s was riddled with %2$s's arrows.",
