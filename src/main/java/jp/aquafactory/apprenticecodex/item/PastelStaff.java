@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
@@ -10,6 +12,7 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
+import jp.aquafactory.apprenticecodex.mixin.SchoolTypeAccessor;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import net.minecraft.ChatFormatting;
@@ -17,38 +20,42 @@ import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.registries.ForgeRegistries;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
     public static final String STONE_TINT_COLOR_TAG = "StoneTintColor";
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;
+    public static final double AFFINITY_SPELL_POWER_BONUS = 0.20D;
+    private static final String AFFINITY_MODIFIER_NAME_PREFIX = "apprenticecodex.pastel_staff.affinity.";
+
+    // 規約外の属性 ID を使う拡張学派がある場合はここで明示対応する.
+    // 現状メイン1.20.1環境で使っているアドオンは対応できている.
+    private static final Map<ResourceLocation, ResourceLocation> AFFINITY_POWER_ATTRIBUTE_FALLBACK_MAP =
+            Map.of();
+
     private static final StaffTier PASTEL_STAFF_TIER = new StaffTier(
             3.0F,
             -3.0F,
-            new AttributeContainer(
-                    AttributeRegistry.CAST_TIME_REDUCTION,
-                    0.15D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ),
-            new AttributeContainer(
-                    AttributeRegistry.COOLDOWN_REDUCTION,
-                    0.15D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ),
             new AttributeContainer(
                     AttributeRegistry.SPELL_POWER,
                     0.10D,
@@ -104,6 +111,44 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
         return cache;
     }
 
+    @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        var baseModifiers = super.getAttributeModifiers(slot, stack);
+        if (slot != EquipmentSlot.MAINHAND) {
+            return baseModifiers;
+        }
+
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        // 再計算前に染色前の由来の親和 modifier を取り除く.
+        for (var entry : baseModifiers.entries()) {
+            if (!entry.getValue().getName().startsWith(AFFINITY_MODIFIER_NAME_PREFIX)) {
+                builder.put(entry);
+            }
+        }
+
+        var schoolType = readStoneAffinitySchool(stack);
+        if (schoolType == null) {
+            return builder.build();
+        }
+
+        var powerAttribute = resolveAffinityPowerAttribute(schoolType);
+        if (powerAttribute == null) {
+            return builder.build();
+        }
+
+        var schoolId = schoolType.getId();
+        builder.put(
+                powerAttribute,
+                new AttributeModifier(
+                        createAffinityModifierId(schoolId),
+                        AFFINITY_MODIFIER_NAME_PREFIX + schoolId,
+                        AFFINITY_SPELL_POWER_BONUS,
+                        AttributeModifier.Operation.MULTIPLY_BASE
+                )
+        );
+        return builder.build();
+    }
+
     public int getStoneTintColor(ItemStack stack) {
         return readStoneTintColor(stack);
     }
@@ -157,6 +202,42 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
         }
 
         return ResourceLocation.tryParse(tag.getString(STONE_AFFINITY_SCHOOL_TAG));
+    }
+
+    private static UUID createAffinityModifierId(ResourceLocation schoolId) {
+        return UUID.nameUUIDFromBytes(
+                ("apprenticecodex:pastel_staff_affinity/" + schoolId).getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
+    @Nullable
+    private static Attribute resolveAffinityPowerAttribute(SchoolType schoolType) {
+        if (schoolType instanceof SchoolTypeAccessor accessor) {
+            var supplier = accessor.apprenticecodex$getPowerAttribute();
+            if (supplier != null) {
+                var resolved = supplier.get();
+                if (resolved != null) {
+                    return resolved;
+                }
+            }
+        }
+
+        var schoolId = schoolType.getId();
+        var fallbackAttributeId = AFFINITY_POWER_ATTRIBUTE_FALLBACK_MAP.get(schoolId);
+        if (fallbackAttributeId != null) {
+            var fallback = ForgeRegistries.ATTRIBUTES.getValue(fallbackAttributeId);
+            if (fallback != null) {
+                return fallback;
+            }
+        }
+
+        // 多くの拡張学派は "<school_id>_spell_power" 命名に従うため、最後に規約名を参照する.
+        // 現状これで拾えてる...
+        var guessedAttributeId = ResourceLocation.fromNamespaceAndPath(
+                schoolId.getNamespace(),
+                schoolId.getPath() + "_spell_power"
+        );
+        return ForgeRegistries.ATTRIBUTES.getValue(guessedAttributeId);
     }
 
     @Override
