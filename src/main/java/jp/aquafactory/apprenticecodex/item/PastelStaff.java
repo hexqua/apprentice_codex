@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
@@ -10,21 +12,29 @@ import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
     public static final String STONE_TINT_COLOR_TAG = "StoneTintColor";
+    public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;
     private static final StaffTier PASTEL_STAFF_TIER = new StaffTier(
             3.0F,
@@ -113,6 +123,53 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
 
     public static void writeStoneTintColor(ItemStack stack, int rgb) {
         stack.getOrCreateTag().putInt(STONE_TINT_COLOR_TAG, rgb & 0xFFFFFF);
+    }
+
+    public static void writeStoneAffinitySchool(ItemStack stack, SchoolType schoolType) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+        stack.getOrCreateTag().putString(STONE_AFFINITY_SCHOOL_TAG, schoolType.getId().toString());
+    }
+
+    @Nullable
+    public static SchoolType readStoneAffinitySchool(ItemStack stack) {
+        var schoolId = readStoneAffinitySchoolId(stack);
+        if (schoolId == null) {
+            return null;
+        }
+        return SchoolRegistry.getSchool(schoolId);
+    }
+
+    public static boolean isPastelStaff(ItemStack stack) {
+        return stack != null && !stack.isEmpty() && stack.getItem() instanceof PastelStaff;
+    }
+
+    @Nullable
+    private static ResourceLocation readStoneAffinitySchoolId(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+
+        var tag = stack.getTag();
+        if (tag == null || !tag.contains(STONE_AFFINITY_SCHOOL_TAG, Tag.TAG_STRING)) {
+            return null;
+        }
+
+        return ResourceLocation.tryParse(tag.getString(STONE_AFFINITY_SCHOOL_TAG));
+    }
+
+    @Override
+    public void appendHoverText(ItemStack itemStack, @Nullable Level context, List<Component> lines, TooltipFlag flag) {
+        super.appendHoverText(itemStack, context, lines, flag);
+
+        var schoolType = readStoneAffinitySchool(itemStack);
+        if (schoolType == null) {
+            return;
+        }
+
+        lines.add(Component.translatable("item.apprenticecodex.pastel_staff.desc.affinity", schoolType.getDisplayName())
+                .withStyle(ChatFormatting.GRAY));
     }
 
 }

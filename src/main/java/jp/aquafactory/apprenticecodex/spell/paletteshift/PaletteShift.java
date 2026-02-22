@@ -6,9 +6,16 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.PastelStaff;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -65,8 +72,27 @@ public class PaletteShift extends AbstractSpell {
     }
 
     @Override
+    public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        if (hasPastelStaffInHands(entity)) {
+            return true;
+        }
+
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.not_hold_pastel_staff").withStyle(ChatFormatting.RED)
+            ));
+        }
+        return false;
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        // todo:実装.
+        entity.addEffect(new MobEffectInstance(EffectRegistry.PALETTE_RECEPTION.get(), 20 * 30));
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private static boolean hasPastelStaffInHands(LivingEntity entity) {
+        return PastelStaff.isPastelStaff(entity.getMainHandItem())
+                || PastelStaff.isPastelStaff(entity.getOffhandItem());
     }
 }
