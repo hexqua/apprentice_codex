@@ -21,8 +21,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     }
 
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
-    private static final TagKey<Item> MALUM_STAFF = createTag("malum", "staff");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
+    private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
 
     public ItemTagGenerator(
             PackOutput output,
@@ -36,7 +36,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         tag(IRONS_STAFF).add(ItemRegistry.PASTEL_STAFF.get());
-        tag(MALUM_STAFF).add(ItemRegistry.PASTEL_STAFF.get());
         tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
+        tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
     }
 }
