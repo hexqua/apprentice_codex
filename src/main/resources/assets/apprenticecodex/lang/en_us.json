@@ -5,6 +5,7 @@
   "item.apprenticecodex.craftsmans_delight": "Craftsman's Delight",
   "item.apprenticecodex.ender_grimoire": "Ender Grimoire",
   "item.apprenticecodex.grimoire_manifest": "Grimoire Manifest",
+  "item.apprenticecodex.pastel_staff": "Pastel Staff",
 
   "item.apprenticecodex.scarlet_thirst.desc": "Converts excess health into mana when mana is low.",
   "item.apprenticecodex.craftsmans_delight.desc": "Improves efficiency and performance of magic buzzsaw and drill.\nUse while crouching to seal magic power.",
@@ -12,6 +13,7 @@
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
   "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
+  "item.apprenticecodex.pastel_staff.desc.affinity": "Tinged with %s magic",
 
   "entity.apprenticecodex.sky_edge_projectile" : "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow" : "Archer Multiple Bow",
@@ -31,6 +33,7 @@
   "entity.apprenticecodex.slash_blade_katana": "Magic Blade",
   "entity.apprenticecodex.feather_rush_wing" : "Rush Wings",
   "entity.apprenticecodex.mantis_leap_blade" : "Mantis Blade",
+  "spell.apprenticecodex.palette_shift": "Palette Shift",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -77,6 +80,7 @@
   "spell.apprenticecodex.manifestation_grimoire.guide": "Summons a grimoire linked to the caster’s domain. Spells stored within it can be used from any grimoire called forth by this spell.",
   "spell.apprenticecodex.feather_rush.guide": "Summons magical wings and beats them to scatter countless feathers. While flapping, you do not fall.",
   "spell.apprenticecodex.mantis_leap.guide": "Summons a pair of magical blades and leaps toward your line of sight to shred the target. The cast cannot be interrupted, and you take no knockback while leaping.",
+  "spell.apprenticecodex.palette_shift.guide": "A latent spell unique to the Pastel Staff. It dyes the staff with the next spell you cast. This spell cannot dye the staff on its own.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
@@ -97,10 +101,14 @@
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "Lock on to %s...(%d/%d)",
   "ui.apprenticecodex.cant_jump_more": "Can't air jump more!",
+  "ui.apprenticecodex.not_hold_pastel_staff": "The staff to draw out its power isn’t in your hands...",
+  "ui.apprenticecodex.recepted_pastel_magic": "Bound \"%s\" magic to the staff!",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
+  "effect.apprenticecodex.palette_reception": "Reception Mode",
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
+  "effect.apprenticecodex.palette_reception.description": "The next magic you wield with the Pastel Staff will tint it.",
 
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
   "death.attack.apprenticecodex.archer_multiple": "%1$s was riddled with %2$s's arrows.",

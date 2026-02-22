@@ -82,5 +82,17 @@
     "sounds": [
       "apprenticecodex:mantis"
     ]
+  },
+  "palette": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:palette"
+    ]
+  },
+  "absorb": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:absorb"
+    ]
   }
 }

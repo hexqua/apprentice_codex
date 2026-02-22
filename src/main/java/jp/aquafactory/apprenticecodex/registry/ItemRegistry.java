@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
+import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
@@ -41,4 +42,6 @@ public final class ItemRegistry {
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final RegistryObject<Item> GRIMOIRE_MANIFEST =
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
+    public static final RegistryObject<Item> PASTEL_STAFF =
+            ITEMS.register("pastel_staff", PastelStaff::new);
 }

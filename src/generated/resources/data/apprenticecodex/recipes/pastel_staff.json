@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "P": {
+      "item": "irons_spellbooks:weapon_parts"
+    },
+    "U": {
+      "item": "irons_spellbooks:upgrade_orb"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    " MU",
+    " W ",
+    "P  "
+  ],
+  "result": {
+    "item": "apprenticecodex:pastel_staff"
+  },
+  "show_notification": true
+}
