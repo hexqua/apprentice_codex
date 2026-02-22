@@ -25,7 +25,10 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -38,6 +41,7 @@ import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -47,6 +51,14 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;
     public static final double AFFINITY_SPELL_POWER_BONUS = 0.20D;
     private static final String AFFINITY_MODIFIER_NAME_PREFIX = "apprenticecodex.pastel_staff.affinity.";
+    private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
+    private static final Set<ResourceLocation> ALLOWED_VANILLA_WEAPON_ENCHANTMENTS = Set.of(
+            ResourceLocation.withDefaultNamespace("looting"),
+            ResourceLocation.withDefaultNamespace("knockback"),
+            ResourceLocation.withDefaultNamespace("fortune"),
+            ResourceLocation.withDefaultNamespace("silk_touch")
+    );
 
     // 規約外の属性 ID を使う拡張学派がある場合はここで明示対応する.
     // 現状メイン1.20.1環境で使っているアドオンは対応できている.
@@ -147,6 +159,51 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
                 )
         );
         return builder.build();
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        if (enchantmentId == null) {
+            return false;
+        }
+
+        if (isDurabilityTargetEnchantment(enchantment)) {
+            return false;
+        }
+
+        if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
+            return ALLOWED_VANILLA_WEAPON_ENCHANTMENTS.contains(enchantmentId);
+        }
+
+        return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
+    }
+
+    @Override
+    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+        if (!super.isBookEnchantable(stack, book)) {
+            return false;
+        }
+
+        var enchantments = EnchantmentHelper.getEnchantments(book);
+        if (enchantments.isEmpty()) {
+            return true;
+        }
+
+        return enchantments.keySet().stream()
+                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        // 金ツール相当.
+        return 22;
+    }
+
+    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
+        // エリトラは耐久値を持つが武器/ツール系カテゴリではないため,
+        // ここに付くエンチャントを「耐久値持ちアイテム向け」とみなして除外する.
+        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
     }
 
     public int getStoneTintColor(ItemStack stack) {
