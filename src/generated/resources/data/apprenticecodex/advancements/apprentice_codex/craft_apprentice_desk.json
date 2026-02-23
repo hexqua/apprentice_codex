@@ -1,0 +1,38 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "has_grimoire_manifest": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "apprenticecodex:apprentice_desk"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:apprentice_desk"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_grimoire_manifest"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

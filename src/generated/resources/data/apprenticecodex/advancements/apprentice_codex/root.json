@@ -1,0 +1,30 @@
+{
+  "criteria": {
+    "auto_visible": {
+      "conditions": {},
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "apprenticecodex:textures/gui/advancement_tile_background.png",
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.root.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:sky_edge_sword"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.root.title"
+    }
+  },
+  "requirements": [
+    [
+      "auto_visible"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

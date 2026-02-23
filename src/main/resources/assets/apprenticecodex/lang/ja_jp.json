@@ -133,5 +133,14 @@
   "death.attack.apprenticecodex.world_flatter": "%1$sは%2$sに風穴を開けられた",
   "death.attack.apprenticecodex.slash_blade": "%1$sは真っ二つにされた",
   "death.attack.apprenticecodex.mantis_leap": "%1$sは%2$sによって心停止させられた",
-  "death.attack.apprenticecodex.phalanx_charge": "%1$sは%2$sの裁きを受けた"
+  "death.attack.apprenticecodex.phalanx_charge": "%1$sは%2$sの裁きを受けた",
+
+  "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
+  "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
+  "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.title": "99％のひらめきと1％努力",
+  "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.description": "見習い用の机を作る。",
+  "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.title": "次元連結システムのちょっとした応用",
+  "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.description": "グリモア目録を使ってエンダーグリモアを入手する",
+  "advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.title": "あのバランスのいい杖が！",
+  "advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.description": "パステルスタッフを作る。"
 }

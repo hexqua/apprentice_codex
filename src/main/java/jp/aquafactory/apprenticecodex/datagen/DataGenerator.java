@@ -1,9 +1,12 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraftforge.common.data.ForgeAdvancementProvider;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class DataGenerator {
@@ -22,5 +25,6 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new RecipeGenerator(output));
         generator.addProvider(event.includeServer(), new LootTableGenerator(output));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
+        generator.addProvider(event.includeServer(), new ForgeAdvancementProvider(output, lookupProvider, existing, List.of(new AdvancementGenerator())));
     }
 }
