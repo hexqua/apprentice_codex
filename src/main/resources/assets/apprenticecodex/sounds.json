@@ -100,5 +100,11 @@
     "sounds": [
       "apprenticecodex:phalanx"
     ]
+  },
+  "force_field": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:force_field"
+    ]
   }
 }

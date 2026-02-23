@@ -34,6 +34,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> PALETTE = reg("palette");
     public static final RegistryObject<SoundEvent> ABSORB = reg("absorb");
     public static final RegistryObject<SoundEvent> PHALANX = reg("phalanx");
+    public static final RegistryObject<SoundEvent> FORCE_FIELD = reg("force_field");
 
 
     public static void register(IEventBus modEventBus) {

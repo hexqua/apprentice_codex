@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.phalanxcharge;
 
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import net.minecraft.util.Mth;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -20,14 +22,19 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEntity {
     private static final int SPAWN_POSE_STAY_TICK = 2;
+    private static final int GUARD_FLASH_DURATION_TICKS = 6;
 
     private static final EntityDataAccessor<Integer> ANIMATION_STATE =
+            SynchedEntityData.defineId(PhalanxWeaponryEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> GUARD_FLASH_SERIAL =
             SynchedEntityData.defineId(PhalanxWeaponryEntity.class, EntityDataSerializers.INT);
 
     private static final RawAnimation ANIM_SPAWN = RawAnimation.begin().thenPlayAndHold("spawn");
     private static final RawAnimation ANIM_GUARD_STANCE = RawAnimation.begin().thenPlayAndHold("guard_stance");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private int clientLastFlashSerial = 0;
+    private float clientFlashStartTick = -1.0f;
 
     public PhalanxWeaponryEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -40,6 +47,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     protected void defineSynchedData() {
         entityData.define(ANIMATION_STATE, AnimationState.SPAWN.id);
+        entityData.define(GUARD_FLASH_SERIAL, 0);
     }
 
     @Override
@@ -88,6 +96,42 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    @Override
+    public void onSyncedDataUpdated(@NotNull EntityDataAccessor<?> key) {
+        super.onSyncedDataUpdated(key);
+        //noinspection resource
+        if (!level().isClientSide || !GUARD_FLASH_SERIAL.equals(key)) {
+            return;
+        }
+
+        var serial = entityData.get(GUARD_FLASH_SERIAL);
+        if (serial == clientLastFlashSerial) {
+            return;
+        }
+
+        clientLastFlashSerial = serial;
+        clientFlashStartTick = tickCount;
+    }
+
+    public void triggerGuardFlash(Level level) {
+        if (!level.isClientSide) {
+            entityData.set(GUARD_FLASH_SERIAL, entityData.get(GUARD_FLASH_SERIAL) + 1);
+        }
+    }
+
+    public float getGuardFlashStrength(float partialTick) {
+        //noinspection resource
+        if (!level().isClientSide || clientFlashStartTick < 0.0f) {
+            return 0.0f;
+        }
+
+        var elapsed = (tickCount + partialTick) - clientFlashStartTick;
+        var progress = Mth.clamp(elapsed / GUARD_FLASH_DURATION_TICKS, 0.0f, 1.0f);
+        var inverse = 1.0f - progress;
+        // fade-out に対する easeOutCubic: 1 - easeOut(progress) = (1 - progress)^3
+        return inverse * inverse * inverse;
     }
 
     private enum AnimationState {
