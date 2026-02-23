@@ -273,7 +273,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     private void playThrustEntrySounds(Level level, boolean playThrustSound) {
-        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.TRIDENT_RIPTIDE_2, SoundSource.PLAYERS);
         if (playThrustSound) {
             AudioTools.playSoundFromEntity(level, this, SoundRegistry.THRUST.get(), SoundSource.PLAYERS);
         }
