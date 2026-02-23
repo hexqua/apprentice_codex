@@ -1,17 +1,11 @@
 {
   "parent": "apprenticecodex:apprentice_codex/root",
   "criteria": {
-    "has_grimoire_manifest": {
+    "crafted_pastel_staff": {
       "conditions": {
-        "items": [
-          {
-            "items": [
-              "apprenticecodex:pastel_staff"
-            ]
-          }
-        ]
+        "recipe_id": "apprenticecodex:pastel_staff"
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:recipe_crafted"
     }
   },
   "display": {
@@ -32,7 +26,7 @@
   },
   "requirements": [
     [
-      "has_grimoire_manifest"
+      "crafted_pastel_staff"
     ]
   ],
   "sends_telemetry_event": true

@@ -1,17 +1,11 @@
 {
   "parent": "apprenticecodex:apprentice_codex/root",
   "criteria": {
-    "has_grimoire_manifest": {
+    "crafted_apprentice_desk": {
       "conditions": {
-        "items": [
-          {
-            "items": [
-              "apprenticecodex:apprentice_desk"
-            ]
-          }
-        ]
+        "recipe_id": "apprenticecodex:apprentice_desk"
       },
-      "trigger": "minecraft:inventory_changed"
+      "trigger": "minecraft:recipe_crafted"
     }
   },
   "display": {
@@ -31,7 +25,7 @@
   },
   "requirements": [
     [
-      "has_grimoire_manifest"
+      "crafted_apprentice_desk"
     ]
   ],
   "sends_telemetry_event": true

@@ -9,6 +9,7 @@ import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.advancements.critereon.PlayerPredicate;
 import net.minecraft.advancements.critereon.PlayerTrigger;
+import net.minecraft.advancements.critereon.RecipeCraftedTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -57,7 +58,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         true,
                         true,
                         false)
-                .addCriterion("has_grimoire_manifest", InventoryChangeTrigger.TriggerInstance.hasItems(ItemRegistry.APPRENTICE_DESK.get()))
+                .addCriterion("crafted_apprentice_desk", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.APPRENTICE_DESK.getId()))
                 .save(saver, advancementId("craft_apprentice_desk"), existingFileHelper);
 
         Advancement.Builder.advancement()
@@ -83,7 +84,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         true,
                         true,
                         false)
-                .addCriterion("has_grimoire_manifest", InventoryChangeTrigger.TriggerInstance.hasItems(ItemRegistry.PASTEL_STAFF.get()))
+                .addCriterion("crafted_pastel_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.PASTEL_STAFF.getId()))
                 .save(saver, advancementId("craft_pastel_staff"), existingFileHelper);
     }
 }
