@@ -36,6 +36,8 @@ import java.util.List;
 
 public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
     private static final int STAY_SLASHED_TICK = 10;
+    public static final String TRAIL_1_CACHE_KEY = "trail1";
+    public static final String TRAIL_2_CACHE_KEY = "trail2";
 
     private static final EntityDataAccessor<Boolean> SHOW_TRAIL =
             SynchedEntityData.defineId(MantisLeapBladeEntity.class, EntityDataSerializers.BOOLEAN);
@@ -66,8 +68,8 @@ public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEnti
 
     @Override
     public void onClientRemoval() {
-        spawnRemovalLineParticle("trail1");
-        spawnRemovalLineParticle("trail2");
+        spawnRemovalLineParticle(TRAIL_1_CACHE_KEY);
+        spawnRemovalLineParticle(TRAIL_2_CACHE_KEY);
         GeoBonePoseCache.remove(getUUID());
         super.onClientRemoval();
     }
@@ -156,8 +158,8 @@ public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     public List<TrailBonePair> getTrailBonePairs() {
         return List.of(
-                new TrailBonePair("trail1", "trail_tip1", "trail_root1"),
-                new TrailBonePair("trail2", "trail_tip2", "trail_root2")
+                new TrailBonePair(TRAIL_1_CACHE_KEY, "trail_tip1", "trail_root1"),
+                new TrailBonePair(TRAIL_2_CACHE_KEY, "trail_tip2", "trail_root2")
         );
     }
 

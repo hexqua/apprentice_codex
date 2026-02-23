@@ -20,8 +20,17 @@ public final class RotationTools {
     }
 
     public static YawPitch calculateYawPitchByEntity(Entity entity, float partialTicks) {
-        var yaw = Mth.rotLerp(partialTicks, entity.yRotO, entity.getYRot());
-        var pitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
+        var currentYaw = entity.getYRot();
+        var currentPitch = entity.getXRot();
+        var yawDiff = Math.abs(Mth.wrapDegrees(currentYaw - entity.yRotO));
+        var pitchDiff = Math.abs(currentPitch - entity.xRotO);
+
+        if (entity.tickCount <= 1 && (yawDiff > 1.0f || pitchDiff > 1.0f)) {
+            return new YawPitch(currentYaw, currentPitch);
+        }
+
+        var yaw = Mth.rotLerp(partialTicks, entity.yRotO, currentYaw);
+        var pitch = Mth.lerp(partialTicks, entity.xRotO, currentPitch);
         return new YawPitch(yaw, pitch);
     }
 
