@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.curios;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.compat.Curios;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -29,33 +28,15 @@ public class ScarletThirst extends Item implements ICurioItem {
 
     @Override
     public void onEquip(SlotContext slotContext, ItemStack prevStack, ItemStack stack) {
-        var entity = slotContext.entity();
-        //noinspection resource
-        var level = entity.level();
-
-        if (level.isClientSide) {
-            return;
-        }
-
-        ApprenticeCodex.LOGGER.debug("Equip: ScarletThirst");
     }
 
     @Override
     public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
-        var entity = slotContext.entity();
-        //noinspection resource
-        var level = entity.level();
-        if (level.isClientSide){
-            return;
-        }
-
-        ApprenticeCodex.LOGGER.debug("Unequip: ScarletThirst");
     }
 
     @Override
     public void curioTick(SlotContext slotContext, ItemStack stack) {
         var entity = slotContext.entity();
-        //noinspection resource
         var level = entity.level();
         if (level.isClientSide) {
             return;
