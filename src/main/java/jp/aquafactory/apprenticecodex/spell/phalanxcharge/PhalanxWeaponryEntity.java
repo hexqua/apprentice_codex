@@ -1,12 +1,25 @@
 package jp.aquafactory.apprenticecodex.spell.phalanxcharge;
 
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
-import net.minecraft.util.Mth;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -23,16 +36,34 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEntity {
     private static final int SPAWN_POSE_STAY_TICK = 2;
     private static final int GUARD_FLASH_DURATION_TICKS = 6;
+    private static final int GUARD_EFFECT_REFRESH_TICK = 5;
+    private static final float GUARD_MOVE_SPEED_MULTIPLIER = 0.85f;
+
+    private static final int ATTACK_STANDBY_DURATION_TICKS = 8;
+    private static final int ATTACK_ROTATION_BLEND_TICKS = 5;
+    private static final int THRUST_STAY_TICKS = 8;
 
     private static final EntityDataAccessor<Integer> ANIMATION_STATE =
             SynchedEntityData.defineId(PhalanxWeaponryEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GUARD_FLASH_SERIAL =
             SynchedEntityData.defineId(PhalanxWeaponryEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> ANIMATION_SPEED =
+            SynchedEntityData.defineId(PhalanxWeaponryEntity.class, EntityDataSerializers.FLOAT);
 
     private static final RawAnimation ANIM_SPAWN = RawAnimation.begin().thenPlayAndHold("spawn");
     private static final RawAnimation ANIM_GUARD_STANCE = RawAnimation.begin().thenPlayAndHold("guard_stance");
+    private static final RawAnimation ANIM_ATTACK_STANDBY = RawAnimation.begin().thenPlayAndHold("attack_standby");
+    private static final RawAnimation ANIM_THRUST = RawAnimation.begin().thenPlayAndHold("thrust");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+
+    private float damage;
+    private int attackStandbyTick;
+    private int thrustLifeTick;
+    private boolean thrustResolved;
+    private float attackBlendStartYaw;
+    private float attackBlendStartPitch;
+
     private int clientLastFlashSerial = 0;
     private float clientFlashStartTick = -1.0f;
 
@@ -48,6 +79,33 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     protected void defineSynchedData() {
         entityData.define(ANIMATION_STATE, AnimationState.SPAWN.id);
         entityData.define(GUARD_FLASH_SERIAL, 0);
+        entityData.define(ANIMATION_SPEED, 1.0f);
+    }
+
+    @Override
+    public void onClientRemoval() {
+        var level = level();
+        EffectTools.createRingParticle(
+                position(),
+                new Vec3(0.0, 1.0, 0.0),
+                0.45,
+                12,
+                0.08,
+                0.02,
+                ParticleTypes.END_ROD,
+                level
+        );
+        EffectTools.createStickParticle(
+                position(),
+                new Vec3(0.0, 1.0, 0.0),
+                0.8,
+                8,
+                0.08,
+                0.02,
+                ParticleTypes.FIREWORK,
+                level
+        );
+        super.onClientRemoval();
     }
 
     @Override
@@ -58,14 +116,21 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         }
 
         followTargetPosition(getStandbyPosition());
-        setYRot(owner.getYRot());
-        setXRot(0.0f);
-        setRot(getYRot(), getXRot());
-        hasImpulse = true;
+        var animationState = AnimationState.of(entityData.get(ANIMATION_STATE));
 
-        if (tickCount >= SPAWN_POSE_STAY_TICK && AnimationState.of(entityData.get(ANIMATION_STATE)) == AnimationState.SPAWN) {
-            entityData.set(ANIMATION_STATE, AnimationState.GUARD_STANCE.id);
+        switch (animationState) {
+            case SPAWN -> {
+                applyGuardRotation(owner);
+                if (tickCount >= SPAWN_POSE_STAY_TICK) {
+                    entityData.set(ANIMATION_STATE, AnimationState.GUARD_STANCE.id);
+                }
+            }
+            case GUARD_STANCE -> applyGuardRotation(owner);
+            case ATTACK_STANDBY -> tickAttackStandby(level, owner);
+            case THRUST -> tickThrust(level, owner);
         }
+
+        hasImpulse = true;
     }
 
     @Override
@@ -77,20 +142,133 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         return Vec3.ZERO;
     }
 
+    public void startThrustSequence(float damage) {
+        this.damage = damage;
+        attackStandbyTick = 0;
+        thrustLifeTick = THRUST_STAY_TICKS;
+        thrustResolved = false;
+        attackBlendStartYaw = getYRot();
+        attackBlendStartPitch = getXRot();
+
+        entityData.set(ANIMATION_STATE, AnimationState.ATTACK_STANDBY.id);
+        entityData.set(ANIMATION_SPEED, 1.0f);
+    }
+
+    private void tickAttackStandby(Level level, LivingEntity owner) {
+        attackStandbyTick++;
+        applyAttackStandbyRotation(owner);
+        applyGuardState(owner);
+
+        if (attackStandbyTick < ATTACK_STANDBY_DURATION_TICKS) {
+            return;
+        }
+
+        owner.removeEffect(EffectRegistry.PHALANX_STANCE.get());
+        entityData.set(ANIMATION_STATE, AnimationState.THRUST.id);
+        entityData.set(ANIMATION_SPEED, 4.0f);
+        performThrustAttack(level, owner);
+        thrustResolved = true;
+    }
+
+    private void tickThrust(Level level, LivingEntity owner) {
+        setYRot(owner.getYRot());
+        setXRot(owner.getXRot());
+        setRot(getYRot(), getXRot());
+
+        if (!thrustResolved) {
+            performThrustAttack(level, owner);
+            thrustResolved = true;
+        }
+
+        thrustLifeTick--;
+        if (thrustLifeTick <= 0) {
+            discard();
+        }
+    }
+
+    private void applyGuardRotation(LivingEntity owner) {
+        setYRot(owner.getYRot());
+        setXRot(0.0f);
+        setRot(getYRot(), getXRot());
+    }
+
+    private void applyAttackStandbyRotation(LivingEntity owner) {
+        if (attackStandbyTick > ATTACK_ROTATION_BLEND_TICKS) {
+            setYRot(owner.getYRot());
+            setXRot(owner.getXRot());
+            setRot(getYRot(), getXRot());
+            return;
+        }
+
+        var blendProgress = Mth.clamp(attackStandbyTick / (float) ATTACK_ROTATION_BLEND_TICKS, 0.0f, 1.0f);
+        var blendedYaw = Mth.rotLerp(blendProgress, attackBlendStartYaw, owner.getYRot());
+        var blendedPitch = Mth.lerp(blendProgress, attackBlendStartPitch, owner.getXRot());
+        setYRot(blendedYaw);
+        setXRot(blendedPitch);
+        setRot(getYRot(), getXRot());
+    }
+
+    private void applyGuardState(LivingEntity owner) {
+        var amplifier = PhalanxStance.toAmplifier(GUARD_MOVE_SPEED_MULTIPLIER);
+        owner.addEffect(new MobEffectInstance(
+                EffectRegistry.PHALANX_STANCE.get(),
+                GUARD_EFFECT_REFRESH_TICK,
+                amplifier,
+                false,
+                false,
+                true
+        ));
+    }
+
+    private void performThrustAttack(Level level, LivingEntity owner) {
+        var point = getLookAngle().normalize().scale(1);
+        var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.PHALANX_CHARGE);
+        var hitResult = RaycastTools.hitsSphere(
+                level,
+                position().add(point),
+                2.5,
+                e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+        );
+
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
+        for (var hit : hitResult) {
+            CombatTools.applyDamage(
+                    hit,
+                    damage,
+                    source,
+                    SpellRegistry.PHALANX_CHARGE.get().getSchoolType(),
+                    CombatTools.KnockbackTypes.DEFAULT
+            );
+        }
+    }
+
+    @Override
+    protected void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        damage = pCompound.getFloat("Damage");
+    }
+
+    @Override
+    protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putFloat("Damage", damage);
+    }
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
         controllerRegistrar.add(new AnimationController<>(
                 this, "main", 0,
                 state -> {
                     var animationState = AnimationState.of(entityData.get(ANIMATION_STATE));
-                    if (animationState == AnimationState.SPAWN) {
-                        state.setAnimation(ANIM_SPAWN);
-                    } else {
-                        state.setAnimation(ANIM_GUARD_STANCE);
+                    switch (animationState) {
+                        case SPAWN -> state.setAnimation(ANIM_SPAWN);
+                        case GUARD_STANCE -> state.setAnimation(ANIM_GUARD_STANCE);
+                        case ATTACK_STANDBY -> state.setAnimation(ANIM_ATTACK_STANDBY);
+                        case THRUST -> state.setAnimation(ANIM_THRUST);
                     }
                     return PlayState.CONTINUE;
                 }
-        ));
+        ).setAnimationSpeedHandler(e -> (double) e.entityData.get(ANIMATION_SPEED)));
     }
 
     @Override
@@ -130,13 +308,14 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         var elapsed = (tickCount + partialTick) - clientFlashStartTick;
         var progress = Mth.clamp(elapsed / GUARD_FLASH_DURATION_TICKS, 0.0f, 1.0f);
         var inverse = 1.0f - progress;
-        // fade-out に対する easeOutCubic: 1 - easeOut(progress) = (1 - progress)^3
         return inverse * inverse * inverse;
     }
 
     private enum AnimationState {
         SPAWN(0),
-        GUARD_STANCE(1);
+        GUARD_STANCE(1),
+        ATTACK_STANDBY(2),
+        THRUST(3);
 
         private final int id;
 
@@ -145,7 +324,12 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         }
 
         private static AnimationState of(int rawId) {
-            return rawId == GUARD_STANCE.id ? GUARD_STANCE : SPAWN;
+            return switch (rawId) {
+                case 1 -> GUARD_STANCE;
+                case 2 -> ATTACK_STANDBY;
+                case 3 -> THRUST;
+                default -> SPAWN;
+            };
         }
     }
 }

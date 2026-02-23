@@ -46,6 +46,11 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
         castTime = 200;
     }
 
+    private float getDamage(int spellLevel, LivingEntity entity) {
+        // todo:バランス調整.
+        return 5;
+    }
+
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
@@ -106,8 +111,8 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull PhalanxWeaponryEntity weapon) {
-        clearGuardState(level, entity);
-        return CompleteCastTypes.RELEASE_WEAPON;
+        weapon.startThrustSequence(getDamage(spellLevel, entity));
+        return CompleteCastTypes.KEEP_WEAPON;
     }
 
     private void applyGuardState(Level level, LivingEntity entity) {
@@ -126,11 +131,4 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
         ));
     }
 
-    private void clearGuardState(Level level, LivingEntity entity) {
-        if (level.isClientSide) {
-            return;
-        }
-
-        entity.removeEffect(EffectRegistry.PHALANX_STANCE.get());
-    }
 }
