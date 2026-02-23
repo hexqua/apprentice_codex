@@ -42,8 +42,13 @@ public class ScarletThirst extends Item implements ICurioItem {
             return;
         }
 
-        // 体力がハート2個以下なら動かない.
+        // クルーズが使える最低体力を満たさない場合は発動しない.
         if (entity.getHealth() <= 4f) {
+            return;
+        }
+
+        // クルーズ/パニックともに20tickごとにのみ判定する.
+        if (entity.tickCount % 20 != 0) {
             return;
         }
 
@@ -54,21 +59,23 @@ public class ScarletThirst extends Item implements ICurioItem {
 
         var currentMana = magicData.getMana();
         var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
-        var manaRetio = currentMana / maxMana;
-
-        // クルーズ(常時稼働イメージ、弱め、1秒おき)
-        if (entity.tickCount % 20 == 0 && manaRetio <= 0.5f) {
-            // ハート0.5→50マナ.
-            magicData.addMana(50);
-            drainHealthSilentNoKill(entity, 1f);
-            AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
+        if (maxMana <= 0f) {
+            return;
         }
 
-        // パニック(緊急時稼働イメージ、復帰優先で効率悪め、0.5秒おき)
-        if (entity.tickCount % 10 == 5 && manaRetio <= 0.15f) {
-            // ハート1→100マナ.
-            magicData.addMana(100);
-            drainHealthSilentNoKill(entity, 2f);
+        var manaRatio = currentMana / maxMana;
+
+        // パニックが発動する場合はクルーズを発動させない.
+        if (manaRatio <= 0.15f && entity.getHealth() > 6f) {
+            magicData.addMana(150);
+            drainHealthSilentNoKill(entity, 4f);
+            AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
+            return;
+        }
+
+        if (manaRatio <= 0.5f) {
+            magicData.addMana(50);
+            drainHealthSilentNoKill(entity, 1f);
             AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
         }
     }
