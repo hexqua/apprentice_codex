@@ -1,15 +1,13 @@
 package jp.aquafactory.apprenticecodex.spell.phalanxcharge;
 
-import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
-import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.renderer.GeoBonePoseCache;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
-import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
-import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -45,6 +43,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
 
     private static final int ATTACK_STANDBY_DURATION_TICKS = 8;
     private static final int ATTACK_ROTATION_BLEND_TICKS = 5;
+    private static final int THRUST_BEAM_DELAY_TICKS = 2;
     private static final int THRUST_STAY_TICKS = 8;
 
     private static final EntityDataAccessor<Integer> ANIMATION_STATE =
@@ -62,7 +61,9 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private float damage;
+    private float thrustBeamLength;
     private int attackStandbyTick;
+    private int thrustStateTick;
     private int thrustLifeTick;
     private boolean thrustResolved;
     private float attackBlendStartYaw;
@@ -171,9 +172,11 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         return Vec3.ZERO;
     }
 
-    public void startThrustSequence(float damage) {
+    public void startThrustSequence(float damage, float thrustBeamLength) {
         this.damage = damage;
+        this.thrustBeamLength = thrustBeamLength;
         attackStandbyTick = 0;
+        thrustStateTick = 0;
         thrustLifeTick = THRUST_STAY_TICKS;
         thrustResolved = false;
         attackBlendStartYaw = getYRot();
@@ -195,8 +198,9 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         owner.removeEffect(EffectRegistry.PHALANX_STANCE.get());
         entityData.set(ANIMATION_STATE, AnimationState.THRUST.id);
         entityData.set(ANIMATION_SPEED, 4.0f);
-        performThrustAttack(level, owner);
-        thrustResolved = true;
+        thrustStateTick = 0;
+        thrustResolved = false;
+        playThrustEntrySounds(level);
     }
 
     private void tickThrust(Level level, LivingEntity owner) {
@@ -204,8 +208,9 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         setXRot(owner.getXRot());
         setRot(getYRot(), getXRot());
 
-        if (!thrustResolved) {
-            performThrustAttack(level, owner);
+        thrustStateTick++;
+        if (!thrustResolved && thrustStateTick >= THRUST_BEAM_DELAY_TICKS) {
+            spawnThrustBeam(level, owner);
             thrustResolved = true;
         }
 
@@ -249,38 +254,39 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         ));
     }
 
-    private void performThrustAttack(Level level, LivingEntity owner) {
-        var point = getLookAngle().normalize().scale(1);
-        var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.PHALANX_CHARGE);
-        var hitResult = RaycastTools.hitsSphere(
-                level,
-                position().add(point),
-                2.5,
-                e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
-        );
-
-        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
-        for (var hit : hitResult) {
-            CombatTools.applyDamage(
-                    hit,
-                    damage,
-                    source,
-                    SpellRegistry.PHALANX_CHARGE.get().getSchoolType(),
-                    CombatTools.KnockbackTypes.DEFAULT
-            );
+    private void spawnThrustBeam(Level level, LivingEntity owner) {
+        var look = getLookAngle().normalize();
+        var up = new Vec3(0.0, 1.0, 0.0);
+        var right = look.cross(up);
+        if (right.lengthSqr() < 1.0e-6) {
+            right = Vec3.directionFromRotation(0.0f, getYRot()).normalize().cross(up);
         }
+
+        var beam = new PhalanxChargeBeamEntity(EntityRegistry.PHALANX_CHARGE_BEAM.get(), level, owner);
+        var beamStart = position().add(getLookAngle().scale(0.5)).add(right.normalize().scale(0.25)).add(up.scale(0.1));
+
+        beam.moveTo(beamStart.x, beamStart.y, beamStart.z, getYRot(), getXRot());
+        beam.setup(level, Math.max(0.1f, thrustBeamLength), 0.18f, damage);
+        level.addFreshEntity(beam);
+    }
+
+    private void playThrustEntrySounds(Level level) {
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.THRUST.get(), SoundSource.PLAYERS);
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
+        thrustBeamLength = pCompound.getFloat("ThrustBeamLength");
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
+        pCompound.putFloat("ThrustBeamLength", thrustBeamLength);
     }
 
     @Override

@@ -47,8 +47,11 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
         return 5;
+    }
+
+    private float getBeamLength(int spellLevel, LivingEntity entity) {
+        return 5.0f;
     }
 
     @Override
@@ -111,7 +114,7 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull PhalanxWeaponryEntity weapon) {
-        weapon.startThrustSequence(getDamage(spellLevel, entity));
+        weapon.startThrustSequence(getDamage(spellLevel, entity), getBeamLength(spellLevel, entity));
         return CompleteCastTypes.KEEP_WEAPON;
     }
 

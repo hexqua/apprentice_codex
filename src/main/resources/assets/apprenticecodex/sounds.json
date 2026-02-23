@@ -106,5 +106,11 @@
     "sounds": [
       "apprenticecodex:force_field"
     ]
+  },
+  "thrust": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:thrust"
+    ]
   }
 }
