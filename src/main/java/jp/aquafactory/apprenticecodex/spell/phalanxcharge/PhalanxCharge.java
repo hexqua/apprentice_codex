@@ -60,9 +60,9 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
     public PhalanxCharge() {
         super(PhalanxWeaponryEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 25;
-        baseManaCost = 7;
-        manaCostPerLevel = 1;
+        spellPowerPerLevel = 30;
+        baseManaCost = 10;
+        manaCostPerLevel = 5;
         castTime = 200;
     }
 
@@ -77,11 +77,11 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return 5 * getSpellPower(spellLevel, entity) / 100.0f;
+        return 1 + 4 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private float getBaseBeamLength(int spellLevel, LivingEntity entity) {
-        return 3.0f + getSpellPower(spellLevel, entity) / 100.0f;
+        return 3.5f + getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private int getRequiredChargeTime(){
@@ -98,7 +98,7 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
     }
 
     private int getMaximumChargeRatePercent(int spellLevel, LivingEntity entity){
-        return 100 + Math.round(getSpellPower(spellLevel, entity));
+        return 150 + Math.round(getSpellPower(spellLevel, entity) / 2);
     }
 
     private int getChargeRatePercent(int spellLevel, LivingEntity entity, int castDurationTicks) {
