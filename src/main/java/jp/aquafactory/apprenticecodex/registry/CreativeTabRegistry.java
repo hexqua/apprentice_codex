@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -10,7 +11,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class CreativeTabRegistry {
-    private CreativeTabRegistry(){}
+    private CreativeTabRegistry() {}
 
     public static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ApprenticeCodex.MODID);
@@ -34,5 +35,21 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
         output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
+        addSpellScrollsToTab(output);
+    }
+
+    private static void addSpellScrollsToTab(CreativeModeTab.Output output) {
+        for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
+            var spellResource = spell.getSpellResource();
+            if (spellResource == null || !ApprenticeCodex.MODID.equals(spellResource.getNamespace())) {
+                continue;
+            }
+
+            for (var level = spell.getMinLevel(); level <= spell.getMaxLevel(); ++level) {
+                var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+                ISpellContainer.createScrollContainer(spell, level, scrollStack);
+                output.accept(scrollStack);
+            }
+        }
     }
 }
