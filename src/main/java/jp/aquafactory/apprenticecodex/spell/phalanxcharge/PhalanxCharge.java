@@ -14,10 +14,15 @@ import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,6 +30,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +44,10 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
     private static final int UPPER_ANCHOR_CHARGE_RATE_PERCENT = 400;
     private static final int LOWER_ANCHOR_CHARGE_TIME_TICKS = 50;
     private static final int UPPER_ANCHOR_CHARGE_TIME_TICKS = 80;
+    private static final DustParticleOptions MAX_CHARGE_PARTICLE =
+            new DustParticleOptions(new Vector3f(1.0f, 0.15f, 0.15f), 1.0f);
+    private static final int MAX_CHARGE_PARTICLE_COUNT = 12;
+    private static final double MAX_CHARGE_PARTICLE_SPEED = 0.01D;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "phalanx_charge");
 
@@ -170,6 +180,10 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull PhalanxWeaponryEntity weapon) {
         applyGuardState(level, entity);
+        var castDurationTicks = getCurrentCastDurationTicks(playerMagicData);
+        var maximumCharged = castDurationTicks >= getMaximumChargeTime(spellLevel, entity);
+        playMaxChargeReachedSoundIfNeeded(entity, weapon, maximumCharged);
+        spawnMaxChargeParticlesIfNeeded(level, entity, maximumCharged);
     }
 
     @Override
@@ -184,6 +198,47 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
 
         weapon.startThrustSequence(damage, thrustBeamLength, maximumCharged);
         return CompleteCastTypes.KEEP_WEAPON;
+    }
+
+    private void playMaxChargeReachedSoundIfNeeded(LivingEntity entity, PhalanxWeaponryEntity weapon, boolean maximumCharged) {
+        if (!(entity instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        if (weapon.hasNotifiedMaxChargeReached()) {
+            return;
+        }
+        if (!maximumCharged) {
+            return;
+        }
+
+        serverPlayer.playNotifySound(SoundEvents.BEACON_POWER_SELECT, SoundSource.PLAYERS, 1.0f, 1.0f);
+        weapon.markMaxChargeReachedNotified();
+    }
+
+    private void spawnMaxChargeParticlesIfNeeded(Level level, LivingEntity entity, boolean maximumCharged) {
+        if (!maximumCharged || !(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        //負荷が気になるので間隔を少し開ける.
+        if (entity.tickCount % 3 != 0){
+            return;
+        }
+
+        var horizontalSpread = Math.max(0.2D, entity.getBbWidth() * 0.45D);
+        var verticalSpread = Math.max(0.35D, entity.getBbHeight() * 0.45D);
+        var centerY = entity.getY() + entity.getBbHeight() * 0.5D;
+        serverLevel.sendParticles(
+                MAX_CHARGE_PARTICLE,
+                entity.getX(),
+                centerY,
+                entity.getZ(),
+                MAX_CHARGE_PARTICLE_COUNT,
+                horizontalSpread,
+                verticalSpread,
+                horizontalSpread,
+                MAX_CHARGE_PARTICLE_SPEED
+        );
     }
 
     private void applyGuardState(Level level, LivingEntity entity) {

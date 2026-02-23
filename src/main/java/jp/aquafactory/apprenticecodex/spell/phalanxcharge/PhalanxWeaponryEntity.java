@@ -67,6 +67,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     private int thrustLifeTick;
     private boolean thrustResolved;
     private boolean playMaxChargeThrustSound;
+    private boolean notifiedMaxChargeReached;
     private float attackBlendStartYaw;
     private float attackBlendStartPitch;
 
@@ -186,6 +187,14 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
 
         entityData.set(ANIMATION_STATE, AnimationState.ATTACK_STANDBY.id);
         entityData.set(ANIMATION_SPEED, 1.0f);
+    }
+
+    public boolean hasNotifiedMaxChargeReached() {
+        return notifiedMaxChargeReached;
+    }
+
+    public void markMaxChargeReachedNotified() {
+        notifiedMaxChargeReached = true;
     }
 
     private void tickAttackStandby(Level level, LivingEntity owner) {
