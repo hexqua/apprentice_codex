@@ -39,7 +39,6 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     private static final int SPAWN_POSE_STAY_TICK = 2;
     private static final int GUARD_FLASH_DURATION_TICKS = 6;
     private static final int GUARD_EFFECT_REFRESH_TICK = 5;
-    private static final float GUARD_MOVE_SPEED_MULTIPLIER = 0.85f;
 
     private static final int ATTACK_STANDBY_DURATION_TICKS = 8;
     private static final int ATTACK_ROTATION_BLEND_TICKS = 5;
@@ -254,11 +253,10 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     private void applyGuardState(LivingEntity owner) {
-        var amplifier = PhalanxStance.toAmplifier(GUARD_MOVE_SPEED_MULTIPLIER);
         owner.addEffect(new MobEffectInstance(
                 EffectRegistry.PHALANX_STANCE.get(),
                 GUARD_EFFECT_REFRESH_TICK,
-                amplifier,
+                PhalanxStance.FIXED_AMPLIFIER,
                 false,
                 false,
                 true

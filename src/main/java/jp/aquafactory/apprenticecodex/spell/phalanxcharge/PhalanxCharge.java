@@ -37,7 +37,6 @@ import java.util.Optional;
 
 public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEntity> {
     private static final int GUARD_EFFECT_REFRESH_TICK = 5;
-    private static final float GUARD_MOVE_SPEED_MULTIPLIER = 0.85f;
     private static final int MINIMUM_CHARGE_TIME_TICKS = 20;
     private static final int MAXIMUM_CHARGE_TIME_TICKS = 160;
     private static final int LOWER_ANCHOR_CHARGE_RATE_PERCENT = 200;
@@ -246,11 +245,10 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
             return;
         }
 
-        var amplifier = PhalanxStance.toAmplifier(GUARD_MOVE_SPEED_MULTIPLIER);
         entity.addEffect(new MobEffectInstance(
                 EffectRegistry.PHALANX_STANCE.get(),
                 GUARD_EFFECT_REFRESH_TICK,
-                amplifier,
+                PhalanxStance.FIXED_AMPLIFIER,
                 false,
                 false,
                 true
