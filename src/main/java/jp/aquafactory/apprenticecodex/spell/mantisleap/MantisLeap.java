@@ -16,12 +16,15 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -54,7 +57,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         spellPowerPerLevel = 400;
         baseManaCost = 70;
         manaCostPerLevel = 15;
-        castTime = 15;
+        castTime = 25;
     }
 
     @Override
@@ -70,7 +73,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     }
 
     private double getRange(int spellLevel, LivingEntity entity) {
-        return Math.min(64, 16 + 1.5 * getSpellPower(spellLevel, entity) / 100.0);
+        return Math.min(64, 1.5 * getSpellPower(spellLevel, entity) / 100.0);
     }
 
     @Override
@@ -172,7 +175,10 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
                 getLeapArcHeight(),
                 weapon.getId()
         );
-        if (!started) {
+        if (started) {
+            // サーバー権威の方で跳躍開始成功で音を鳴らす.
+            AudioTools.playSoundFromEntity(level, entity, SoundEvents.HORSE_JUMP, SoundSource.PLAYERS);
+        } else {
             weapon.slash(level);
         }
 
