@@ -48,8 +48,6 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
 
             var tipPos = boneWorldPos(tip);
             var rootPos = boneWorldPos(root);
-            //noinspection resource
-            GeoBonePoseCache.put(uuid, pair.cacheKey(), tipPos, rootPos, animatable.level().getGameTime());
 
             var tips = getHistory(tipHist, uuid, pair.cacheKey());
             var roots = getHistory(rootHist, uuid, pair.cacheKey());
@@ -123,6 +121,5 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
     private void clear(T animatable) {
         tipHist.remove(animatable.getUUID());
         rootHist.remove(animatable.getUUID());
-        GeoBonePoseCache.remove(animatable.getUUID());
     }
 }
