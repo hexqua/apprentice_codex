@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.item.curios;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.compat.Curios;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -10,7 +12,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.SlotContext;
@@ -68,14 +69,14 @@ public class ScarletThirst extends Item implements ICurioItem {
         // パニックが発動する場合はクルーズを発動させない.
         if (manaRatio <= 0.15f && entity.getHealth() > 6f) {
             magicData.addMana(150);
-            drainHealthSilentNoKill(entity, 4f);
+            drainHealthSilentNoKill(player, 4f);
             AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
             return;
         }
 
         if (manaRatio <= 0.5f) {
             magicData.addMana(50);
-            drainHealthSilentNoKill(entity, 1f);
+            drainHealthSilentNoKill(player, 1f);
             AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
         }
     }
@@ -99,9 +100,9 @@ public class ScarletThirst extends Item implements ICurioItem {
         return true;
     }
 
-    private static void drainHealthSilentNoKill(LivingEntity entity, float amount) {
-        var newHp = Math.max(1.0f, entity.getHealth() - amount);
-        // todo:mixinで画面揺れを止める.
-        entity.setHealth(newHp);
+    private static void drainHealthSilentNoKill(ServerPlayer player, float amount) {
+        var newHp = Math.max(1.0f, player.getHealth() - amount);
+        player.setHealth(newHp);
+        Networks.sendToPlayer(player, new SyncScarletThirstHealthPacket(newHp));
     }
 }
