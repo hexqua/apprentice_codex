@@ -66,6 +66,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     private int thrustStateTick;
     private int thrustLifeTick;
     private boolean thrustResolved;
+    private boolean playMaxChargeThrustSound;
     private float attackBlendStartYaw;
     private float attackBlendStartPitch;
 
@@ -172,9 +173,10 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         return Vec3.ZERO;
     }
 
-    public void startThrustSequence(float damage, float thrustBeamLength) {
+    public void startThrustSequence(float damage, float thrustBeamLength, boolean playMaxChargeThrustSound) {
         this.damage = damage;
         this.thrustBeamLength = thrustBeamLength;
+        this.playMaxChargeThrustSound = playMaxChargeThrustSound;
         attackStandbyTick = 0;
         thrustStateTick = 0;
         thrustLifeTick = THRUST_STAY_TICKS;
@@ -200,7 +202,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         entityData.set(ANIMATION_SPEED, 4.0f);
         thrustStateTick = 0;
         thrustResolved = false;
-        playThrustEntrySounds(level);
+        playThrustEntrySounds(level, playMaxChargeThrustSound);
     }
 
     private void tickThrust(Level level, LivingEntity owner) {
@@ -270,9 +272,11 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         level.addFreshEntity(beam);
     }
 
-    private void playThrustEntrySounds(Level level) {
+    private void playThrustEntrySounds(Level level, boolean playThrustSound) {
         AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
-        AudioTools.playSoundFromEntity(level, this, SoundRegistry.THRUST.get(), SoundSource.PLAYERS);
+        if (playThrustSound) {
+            AudioTools.playSoundFromEntity(level, this, SoundRegistry.THRUST.get(), SoundSource.PLAYERS);
+        }
     }
 
     @Override

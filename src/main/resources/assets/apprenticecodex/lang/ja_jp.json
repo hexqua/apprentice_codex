@@ -83,7 +83,7 @@
   "spell.apprenticecodex.feather_rush.guide": "魔法の翼を召喚し、羽ばたいて無数の羽を飛ばす。羽ばたいている間は落下しない。",
   "spell.apprenticecodex.mantis_leap.guide": "魔法の刃を一対召喚し、視線の先へ飛んで切り刻む。発動が阻止されることはなく、跳躍中はノックバックもしない。",
   "spell.apprenticecodex.palette_shift.guide": "パステルスタッフ固有の潜在魔法。次に振るう魔法でこの杖を染める。この魔法そのもので染めることはできない。",
-  "spell.apprenticecodex.phalanx_charge.guide": "魔法の槍と盾を召喚し、即座に盾で防御姿勢を取る。防御姿勢中、槍に魔力を注入し続け、スタンス解除時に鋭く前方を突く。発動中は中断されることはなく、ノックバックもしない。",
+  "spell.apprenticecodex.phalanx_charge.guide": "魔法の槍と盾を召喚し、即座に盾で防御姿勢を取る。防御姿勢中、槍に魔力を注入し続け、スタンス解除時に鋭く前方を突く。発動中は中断されないが、短時間で解除すると突きへ派生しない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -96,6 +96,8 @@
   "ui.apprenticecodex.jumps_count": "最大ジャンプ数: %d",
   "ui.apprenticecodex.deepslate_break_time": "深層岩採掘にかかる時間: %s ",
   "ui.apprenticecodex.feather_rpm": "羽のRPM: %d",
+  "ui.apprenticecodex.maximum_thrust_charge_time": "最大チャージまでの時間: %s",
+  "ui.apprenticecodex.maximum_thrust_charge_rate": "最大チャージ時倍率: %d%%",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",

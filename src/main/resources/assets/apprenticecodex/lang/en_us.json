@@ -83,7 +83,7 @@
   "spell.apprenticecodex.feather_rush.guide": "Summons magical wings and beats them to scatter countless feathers. While flapping, you do not fall.",
   "spell.apprenticecodex.mantis_leap.guide": "Summons a pair of magical blades and leaps toward your line of sight to shred the target. The cast cannot be interrupted, and you take no knockback while leaping.",
   "spell.apprenticecodex.palette_shift.guide": "A latent spell unique to the Pastel Staff. It dyes the staff with the next spell you cast. This spell cannot dye the staff on its own.",
-  "spell.apprenticecodex.phalanx_charge.guide": "Summons a magical spear and shield and immediately assumes a guarding stance. While guarding, you continuously channel mana into the spear; when the stance ends, you thrust sharply forward. The cast cannot be interrupted, and you take no knockback while active.",
+  "spell.apprenticecodex.phalanx_charge.guide": "Summons a magical spear and shield and immediately assumes a guarding stance. While guarding, you continuously channel mana into the spear; when the stance ends, you thrust sharply forward. The cast cannot be interrupted, but releasing too quickly will not transition into the thrust.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
@@ -96,6 +96,8 @@
   "ui.apprenticecodex.jumps_count": "Maximum Jumps Count: %d",
   "ui.apprenticecodex.deepslate_break_time": "Deepslate Break Time: %s",
   "ui.apprenticecodex.feather_rpm": "Feather RPM: %d",
+  "ui.apprenticecodex.maximum_thrust_charge_time": "Maximum Charge Time: %s",
+  "ui.apprenticecodex.maximum_thrust_charge_rate": "Maximum Charge Rate: %d%%",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
