@@ -5,21 +5,29 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import org.joml.Vector3f;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
 
 public class ScarletThirst extends Item implements ICurioItem {
+    private static final DustParticleOptions SCARLET_DUST_PARTICLE =
+            new DustParticleOptions(new Vector3f(1.0f, 0.0f, 0.0f), 1.0f);
+    private static final double SCARLET_DUST_SPEED = 0.02D;
+
     final String slotIdentifier;
 
     public ScarletThirst() {
@@ -70,14 +78,16 @@ public class ScarletThirst extends Item implements ICurioItem {
         if (manaRatio <= 0.15f && entity.getHealth() > 6f) {
             magicData.addMana(100);
             drainHealthSilentNoKill(player, 4f);
-            AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
+            AudioTools.playSoundFromEntity(level, entity, SoundRegistry.THIRST_DRAIN.get(), SoundSource.PLAYERS);
+            spawnScarletDustParticles(player, level, 40);
             return;
         }
 
         if (manaRatio <= 0.5f) {
             magicData.addMana(30);
             drainHealthSilentNoKill(player, 1f);
-            AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
+            AudioTools.playSoundFromEntity(level, entity, SoundRegistry.THIRST_DRAIN.get(), SoundSource.PLAYERS);
+            spawnScarletDustParticles(player, level, 20);
         }
     }
 
@@ -104,5 +114,25 @@ public class ScarletThirst extends Item implements ICurioItem {
         var newHp = Math.max(1.0f, player.getHealth() - amount);
         player.setHealth(newHp);
         Networks.sendToPlayer(player, new SyncScarletThirstHealthPacket(newHp));
+    }
+
+    private static void spawnScarletDustParticles(ServerPlayer player, Level level, int count) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        var horizontalSpread = Math.max(0.25D, player.getBbWidth() * 0.6D);
+        var verticalSpread = Math.max(0.35D, player.getBbHeight() * 0.5D);
+        serverLevel.sendParticles(
+                SCARLET_DUST_PARTICLE,
+                player.getX(),
+                player.getY() + player.getBbHeight() * 0.5D,
+                player.getZ(),
+                count,
+                horizontalSpread,
+                verticalSpread,
+                horizontalSpread,
+                SCARLET_DUST_SPEED
+        );
     }
 }

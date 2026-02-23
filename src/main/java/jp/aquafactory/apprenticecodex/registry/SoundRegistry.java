@@ -36,6 +36,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> PHALANX = reg("phalanx");
     public static final RegistryObject<SoundEvent> FORCE_FIELD = reg("force_field");
     public static final RegistryObject<SoundEvent> THRUST = reg("thrust");
+    public static final RegistryObject<SoundEvent> THIRST_DRAIN = reg("thirst_drain");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
