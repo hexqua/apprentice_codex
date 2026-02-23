@@ -6,9 +6,9 @@
 				"identifier": "geometry.phalanx_weaponry",
 				"texture_width": 64,
 				"texture_height": 64,
-				"visible_bounds_width": 2,
-				"visible_bounds_height": 3.5,
-				"visible_bounds_offset": [0, 1.25, 0]
+				"visible_bounds_width": 3,
+				"visible_bounds_height": 4,
+				"visible_bounds_offset": [0, 1, 0]
 			},
 			"bones": [
 				{
@@ -596,7 +596,7 @@
 				{
 					"name": "spear_blade",
 					"parent": "spear_hand",
-					"pivot": [0, 0, 0],
+					"pivot": [-3, 23, 0],
 					"cubes": [
 						{
 							"origin": [-3.9, 22.25, -0.9],
