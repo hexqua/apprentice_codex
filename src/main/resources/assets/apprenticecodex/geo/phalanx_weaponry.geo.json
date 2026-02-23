@@ -440,6 +440,11 @@
 					]
 				},
 				{
+					"name": "shield_center",
+					"parent": "shield_hand",
+					"pivot": [5.5, 10.5, 0]
+				},
+				{
 					"name": "spear_main",
 					"parent": "all",
 					"pivot": [-3, 11, 0]
@@ -606,6 +611,16 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "spear_bottom",
+					"parent": "spear_hand",
+					"pivot": [-3, 1, 0]
+				},
+				{
+					"name": "spear_top",
+					"parent": "spear_hand",
+					"pivot": [-3, 25, 0]
 				}
 			]
 		}

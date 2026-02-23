@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.renderer.GeoBonePoseCache;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
@@ -34,6 +35,9 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEntity {
+    public static final String SHIELD_CENTER_CACHE_KEY = "shield_center";
+    public static final String SPEAR_LINE_CACHE_KEY = "spear_line";
+
     private static final int SPAWN_POSE_STAY_TICK = 2;
     private static final int GUARD_FLASH_DURATION_TICKS = 6;
     private static final int GUARD_EFFECT_REFRESH_TICK = 5;
@@ -84,28 +88,53 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
 
     @Override
     public void onClientRemoval() {
-        var level = level();
-        EffectTools.createRingParticle(
-                position(),
-                new Vec3(0.0, 1.0, 0.0),
-                0.45,
-                12,
+        spawnShieldRemovalParticle();
+        spawnSpearRemovalParticle();
+        GeoBonePoseCache.remove(getUUID());
+        super.onClientRemoval();
+    }
+
+    private void spawnShieldRemovalParticle() {
+        var pose = GeoBonePoseCache.getPrev(getUUID(), SHIELD_CENTER_CACHE_KEY);
+        if (pose == null) {
+            return;
+        }
+
+        var shieldCenterWorld = toWorldPositionFromCache(pose.tip());
+        EffectTools.createSphereParticle(
+                shieldCenterWorld,
+                0.5,
+                32,
+                0.02,
+                ParticleTypes.END_ROD,
+                level()
+        );
+    }
+
+    private void spawnSpearRemovalParticle() {
+        var pose = GeoBonePoseCache.getPrev(getUUID(), SPEAR_LINE_CACHE_KEY);
+        if (pose == null) {
+            return;
+        }
+
+        var spearBottomWorld = toWorldPositionFromCache(pose.root());
+        var spearTopWorld = toWorldPositionFromCache(pose.tip());
+        EffectTools.createLineParticle(
+                spearBottomWorld,
+                spearTopWorld,
+                0.2,
                 0.08,
                 0.02,
                 ParticleTypes.END_ROD,
-                level
+                level()
         );
-        EffectTools.createStickParticle(
-                position(),
-                new Vec3(0.0, 1.0, 0.0),
-                0.8,
-                8,
-                0.08,
-                0.02,
-                ParticleTypes.FIREWORK,
-                level
-        );
-        super.onClientRemoval();
+    }
+
+    private Vec3 toWorldPositionFromCache(Vec3 cachedPosition) {
+        var yawDeg = RotationTools.calculateYawPitchByEntity(this, 1.0f).yaw();
+        var yawRad = -yawDeg * Mth.DEG_TO_RAD;
+        var localPosition = cachedPosition.subtract(position());
+        return localPosition.yRot(yawRad).add(position());
     }
 
     @Override
