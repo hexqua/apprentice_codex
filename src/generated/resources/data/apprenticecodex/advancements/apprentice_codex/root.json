@@ -1,7 +1,22 @@
 {
   "criteria": {
-    "auto_visible": {
-      "conditions": {},
+    "has_irons_spellbook_advancement": {
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type_specific": {
+                "advancements": {
+                  "irons_spellbooks:irons_spellbooks/spell_book_equip": true
+                },
+                "type": "player"
+              }
+            }
+          }
+        ]
+      },
       "trigger": "minecraft:tick"
     }
   },
@@ -23,7 +38,7 @@
   },
   "requirements": [
     [
-      "auto_visible"
+      "has_irons_spellbook_advancement"
     ]
   ],
   "sends_telemetry_event": true

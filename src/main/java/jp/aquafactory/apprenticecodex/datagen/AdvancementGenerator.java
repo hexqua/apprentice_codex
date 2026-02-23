@@ -3,8 +3,11 @@ package jp.aquafactory.apprenticecodex.datagen;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.advancements.FrameType;
+import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
+import net.minecraft.advancements.critereon.PlayerPredicate;
 import net.minecraft.advancements.critereon.PlayerTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
@@ -16,12 +19,22 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 
 public final class AdvancementGenerator implements ForgeAdvancementProvider.AdvancementGenerator {
+    private static final ResourceLocation IRONS_SPELLBOOK_EQUIP_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "irons_spellbooks/spell_book_equip");
+
     private static ResourceLocation advancementId(String path) {
         return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_codex/" + path);
     }
 
     @Override
     public void generate(HolderLookup.@NotNull Provider registries, @NotNull Consumer<Advancement> saver, @NotNull ExistingFileHelper existingFileHelper) {
+        var ironsSpellbookEquipPredicate = EntityPredicate.wrap(
+                EntityPredicate.Builder.entity()
+                        .subPredicate(PlayerPredicate.Builder.player()
+                                .checkAdvancementDone(IRONS_SPELLBOOK_EQUIP_ADVANCEMENT, true)
+                                .build())
+                        .build()
+        );
+
         var root = Advancement.Builder.advancement()
                 .display(ItemRegistry.SKY_EDGE_SWORD.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.root.title"),
@@ -31,7 +44,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false,
                         false,
                         false)
-                .addCriterion("auto_visible", PlayerTrigger.TriggerInstance.tick())
+                .addCriterion("has_irons_spellbook_advancement", new PlayerTrigger.TriggerInstance(CriteriaTriggers.TICK.getId(), ironsSpellbookEquipPredicate))
                 .save(saver, advancementId("root"), existingFileHelper);
 
         Advancement.Builder.advancement()
