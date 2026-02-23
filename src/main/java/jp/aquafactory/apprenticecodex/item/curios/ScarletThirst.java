@@ -3,23 +3,31 @@ package jp.aquafactory.apprenticecodex.item.curios;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.compat.Curios;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import org.joml.Vector3f;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
 
 public class ScarletThirst extends Item implements ICurioItem {
+    private static final DustParticleOptions SCARLET_DUST_PARTICLE =
+            new DustParticleOptions(new Vector3f(1.0f, 0.0f, 0.0f), 1.0f);
+    private static final double SCARLET_DUST_SPEED = 0.02D;
+
     final String slotIdentifier;
 
     public ScarletThirst() {
@@ -29,40 +37,27 @@ public class ScarletThirst extends Item implements ICurioItem {
 
     @Override
     public void onEquip(SlotContext slotContext, ItemStack prevStack, ItemStack stack) {
-        var entity = slotContext.entity();
-        //noinspection resource
-        var level = entity.level();
-
-        if (level.isClientSide) {
-            return;
-        }
-
-        ApprenticeCodex.LOGGER.debug("Equip: ScarletThirst");
     }
 
     @Override
     public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
-        var entity = slotContext.entity();
-        //noinspection resource
-        var level = entity.level();
-        if (level.isClientSide){
-            return;
-        }
-
-        ApprenticeCodex.LOGGER.debug("Unequip: ScarletThirst");
     }
 
     @Override
     public void curioTick(SlotContext slotContext, ItemStack stack) {
         var entity = slotContext.entity();
-        //noinspection resource
         var level = entity.level();
         if (level.isClientSide) {
             return;
         }
 
-        // 体力がハート2個以下なら動かない.
+        // クルーズが使える最低体力を満たさない場合は発動しない.
         if (entity.getHealth() <= 4f) {
+            return;
+        }
+
+        // クルーズ/パニックともに20tickごとにのみ判定する.
+        if (entity.tickCount % 20 != 0) {
             return;
         }
 
@@ -73,22 +68,26 @@ public class ScarletThirst extends Item implements ICurioItem {
 
         var currentMana = magicData.getMana();
         var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
-        var manaRetio = currentMana / maxMana;
-
-        // クルーズ(常時稼働イメージ、弱め、1秒おき)
-        if (entity.tickCount % 20 == 0 && manaRetio <= 0.5f) {
-            // ハート0.5→50マナ.
-            magicData.addMana(50);
-            drainHealthSilentNoKill(entity, 1f);
-            AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
+        if (maxMana <= 0f) {
+            return;
         }
 
-        // パニック(緊急時稼働イメージ、復帰優先で効率悪め、0.5秒おき)
-        if (entity.tickCount % 10 == 5 && manaRetio <= 0.15f) {
-            // ハート1→100マナ.
+        var manaRatio = currentMana / maxMana;
+
+        // パニックが発動する場合はクルーズを発動させない.
+        if (manaRatio <= 0.15f && entity.getHealth() > 6f) {
             magicData.addMana(100);
-            drainHealthSilentNoKill(entity, 2f);
-            AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
+            drainHealthSilentNoKill(player, 4f);
+            AudioTools.playSoundFromEntity(level, entity, SoundRegistry.THIRST_DRAIN.get(), SoundSource.PLAYERS);
+            spawnScarletDustParticles(player, level, 40);
+            return;
+        }
+
+        if (manaRatio <= 0.5f) {
+            magicData.addMana(30);
+            drainHealthSilentNoKill(player, 1f);
+            AudioTools.playSoundFromEntity(level, entity, SoundRegistry.THIRST_DRAIN.get(), SoundSource.PLAYERS);
+            spawnScarletDustParticles(player, level, 20);
         }
     }
 
@@ -111,9 +110,29 @@ public class ScarletThirst extends Item implements ICurioItem {
         return true;
     }
 
-    private static void drainHealthSilentNoKill(LivingEntity entity, float amount) {
-        var newHp = Math.max(1.0f, entity.getHealth() - amount);
-        // todo:mixinで画面揺れを止める.
-        entity.setHealth(newHp);
+    private static void drainHealthSilentNoKill(ServerPlayer player, float amount) {
+        var newHp = Math.max(1.0f, player.getHealth() - amount);
+        player.setHealth(newHp);
+        Networks.sendToPlayer(player, new SyncScarletThirstHealthPacket(newHp));
+    }
+
+    private static void spawnScarletDustParticles(ServerPlayer player, Level level, int count) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        var horizontalSpread = Math.max(0.25D, player.getBbWidth() * 0.6D);
+        var verticalSpread = Math.max(0.35D, player.getBbHeight() * 0.5D);
+        serverLevel.sendParticles(
+                SCARLET_DUST_PARTICLE,
+                player.getX(),
+                player.getY() + player.getBbHeight() * 0.5D,
+                player.getZ(),
+                count,
+                horizontalSpread,
+                verticalSpread,
+                horizontalSpread,
+                SCARLET_DUST_SPEED
+        );
     }
 }

@@ -108,6 +108,7 @@
   "ui.apprenticecodex.cant_jump_more": "それ以上空中ジャンプできない！",
   "ui.apprenticecodex.not_hold_pastel_staff": "力を引き出すべき杖が手元にない...",
   "ui.apprenticecodex.recepted_pastel_magic": "\"%s\"の魔力を杖に封じ込めた！",
+  "ui.apprenticecodex.unsatisfied_max_mana_for_enchant": "%1$sに魔力を封じ込めるには最大マナが%2$d必要だ！",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",

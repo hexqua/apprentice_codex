@@ -108,6 +108,7 @@
   "ui.apprenticecodex.cant_jump_more": "Can't air jump more!",
   "ui.apprenticecodex.not_hold_pastel_staff": "The staff to draw out its power isn’t in your hands...",
   "ui.apprenticecodex.recepted_pastel_magic": "Bound \"%s\" magic to the staff!",
+  "ui.apprenticecodex.unsatisfied_max_mana_for_enchant": "You need %2$d maximum mana to seal arcane power into %1$s!",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.palette_reception": "Reception Mode",

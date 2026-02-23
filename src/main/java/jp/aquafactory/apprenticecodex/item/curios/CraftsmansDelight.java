@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.curios;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.compat.Curios;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CraftsmansDelight extends Item implements ICurioItem {
-    private static final float ENCHANTMENT_SWITCH_MANA_COST = 100f;
+    private static final float ENCHANTMENT_SWITCH_MANA_COST = 500f;
     private static final float BREAK_SPEED_BONUS_MULTIPLIER = 2.0f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
 
@@ -162,6 +162,12 @@ public class CraftsmansDelight extends Item implements ICurioItem {
     }
 
     private static boolean consumeManaForSneakUse(Player player, ItemStack stack) {
+        var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        if (maxMana < ENCHANTMENT_SWITCH_MANA_COST) {
+            sendUnsatisfiedMaxManaMessage(player, stack);
+            return false;
+        }
+
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData == null || magicData.getMana() < ENCHANTMENT_SWITCH_MANA_COST) {
             sendManaLackMessage(player, stack);
@@ -171,6 +177,20 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         // addManaは内部で最終的にsetを実行しているので、負値を加算すれば消費として機能する.
         magicData.addMana(-ENCHANTMENT_SWITCH_MANA_COST);
         return true;
+    }
+
+    private static void sendUnsatisfiedMaxManaMessage(Player player, ItemStack stack) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                Component.translatable(
+                        "ui.apprenticecodex.unsatisfied_max_mana_for_enchant",
+                        stack.getHoverName(),
+                        Math.round(ENCHANTMENT_SWITCH_MANA_COST)
+                ).withStyle(ChatFormatting.RED)
+        ));
     }
 
     private static void sendManaLackMessage(Player player, ItemStack stack) {
