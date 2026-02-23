@@ -70,7 +70,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     }
 
     private double getRange(int spellLevel, LivingEntity entity) {
-        return Math.min(64, 16 + 1.5 * getSpellPower(spellLevel, entity) / 100.0);
+        return Math.min(64, 1.5 * getSpellPower(spellLevel, entity) / 100.0);
     }
 
     @Override
