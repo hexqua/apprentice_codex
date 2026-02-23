@@ -54,7 +54,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         spellPowerPerLevel = 400;
         baseManaCost = 70;
         manaCostPerLevel = 15;
-        castTime = 15;
+        castTime = 25;
     }
 
     @Override
