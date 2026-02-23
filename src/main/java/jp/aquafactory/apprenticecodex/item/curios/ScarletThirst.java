@@ -68,14 +68,14 @@ public class ScarletThirst extends Item implements ICurioItem {
 
         // パニックが発動する場合はクルーズを発動させない.
         if (manaRatio <= 0.15f && entity.getHealth() > 6f) {
-            magicData.addMana(150);
+            magicData.addMana(100);
             drainHealthSilentNoKill(player, 4f);
             AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
             return;
         }
 
         if (manaRatio <= 0.5f) {
-            magicData.addMana(50);
+            magicData.addMana(30);
             drainHealthSilentNoKill(player, 1f);
             AudioTools.playSoundFromEntity(level, entity, SoundEvents.PLAYER_HURT_DROWN, SoundSource.PLAYERS);
         }
