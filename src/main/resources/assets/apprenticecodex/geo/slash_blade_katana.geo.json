@@ -223,6 +223,16 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "scabbard_top",
+					"parent": "scabbard",
+					"pivot": [0, 31, 0]
+				},
+				{
+					"name": "scabbard_bottom",
+					"parent": "scabbard",
+					"pivot": [0, 8, 0]
 				}
 			]
 		}

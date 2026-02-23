@@ -18,9 +18,13 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 public class SlashBladeKatanaRenderer extends GeoEntityRenderer<SlashBladeKatanaEntity> {
     private static final String TRAIL_TIP_BONE = "trail_tip";
     private static final String TRAIL_ROOT_BONE = "trail_root";
+    private static final String SCABBARD_TOP_BONE = "scabbard_top";
+    private static final String SCABBARD_BOTTOM_BONE = "scabbard_bottom";
 
     private Vec3 trailTipBonePosition;
     private Vec3 trailRootBonePosition;
+    private Vec3 scabbardTopBonePosition;
+    private Vec3 scabbardBottomBonePosition;
 
     public SlashBladeKatanaRenderer(EntityRendererProvider.Context pContext) {
         super(pContext, new SlashBladeKatanaModel<>());
@@ -33,6 +37,8 @@ public class SlashBladeKatanaRenderer extends GeoEntityRenderer<SlashBladeKatana
         var yawPitch = RotationTools.calculateYawPitchByEntity(entity, partialTicks);
         trailTipBonePosition = null;
         trailRootBonePosition = null;
+        scabbardTopBonePosition = null;
+        scabbardBottomBonePosition = null;
 
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(-yawPitch.yaw()));
@@ -50,6 +56,16 @@ public class SlashBladeKatanaRenderer extends GeoEntityRenderer<SlashBladeKatana
                     entity.level().getGameTime()
             );
         }
+
+        if (scabbardTopBonePosition != null && scabbardBottomBonePosition != null) {
+            GeoBonePoseCache.put(
+                    entity.getUUID(),
+                    SlashBladeKatanaEntity.SCABBARD_CACHE_KEY,
+                    scabbardTopBonePosition,
+                    scabbardBottomBonePosition,
+                    entity.level().getGameTime()
+            );
+        }
     }
 
     @Override
@@ -59,6 +75,8 @@ public class SlashBladeKatanaRenderer extends GeoEntityRenderer<SlashBladeKatana
         switch (bone.getName()) {
             case TRAIL_TIP_BONE -> trailTipBonePosition = boneWorldPosition(bone);
             case TRAIL_ROOT_BONE -> trailRootBonePosition = boneWorldPosition(bone);
+            case SCABBARD_TOP_BONE -> scabbardTopBonePosition = boneWorldPosition(bone);
+            case SCABBARD_BOTTOM_BONE -> scabbardBottomBonePosition = boneWorldPosition(bone);
             default -> {
             }
         }

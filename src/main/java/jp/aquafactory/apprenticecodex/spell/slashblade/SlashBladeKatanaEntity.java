@@ -31,6 +31,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
 
     private static final int STAY_SLASHED_TICK = 10;
+    public static final String BLADE_CACHE_KEY = "default";
+    public static final String SCABBARD_CACHE_KEY = "scabbard";
 
     private static final EntityDataAccessor<Boolean> SHOW_TRAIL =
             SynchedEntityData.defineId(SlashBladeKatanaEntity.class, EntityDataSerializers.BOOLEAN);
@@ -62,20 +64,28 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     }
     @Override
     public void onClientRemoval() {
-        var pose = GeoBonePoseCache.getPrev(getUUID());
-        if (pose != null) {
-            // キャッシュはヨーを考慮できていないのでそれを加味しなおす.
-            var yawDeg = RotationTools.calculateYawPitchByEntity(this, 1.0f).yaw();
-            var yawRad = -yawDeg * Mth.DEG_TO_RAD;
-            var rootLocal = pose.root().subtract(position());
-            var tipLocal  = pose.tip().subtract(position());
-            var rootWorld = rootLocal.yRot(yawRad).add(position());
-            var tipWorld  = tipLocal.yRot(yawRad).add(position());
-            EffectTools.createLineParticle(rootWorld, tipWorld, 0.25, 0.1, 0.01, ParticleTypes.END_ROD, level());
-        }
+        spawnRemovalLineParticle(BLADE_CACHE_KEY);
+        spawnRemovalLineParticle(SCABBARD_CACHE_KEY);
         GeoBonePoseCache.remove(getUUID());
 
         super.onClientRemoval();
+    }
+
+    private void spawnRemovalLineParticle(String cacheKey) {
+        var pose = GeoBonePoseCache.getPrev(getUUID(), cacheKey);
+        if (pose == null) {
+            return;
+        }
+
+        // キャッシュはヨーを考慮できていないので補正をかける.
+        // todo:多分共通化した方がよい.
+        var yawDeg = RotationTools.calculateYawPitchByEntity(this, 1.0f).yaw();
+        var yawRad = -yawDeg * Mth.DEG_TO_RAD;
+        var rootLocal = pose.root().subtract(position());
+        var tipLocal = pose.tip().subtract(position());
+        var rootWorld = rootLocal.yRot(yawRad).add(position());
+        var tipWorld = tipLocal.yRot(yawRad).add(position());
+        EffectTools.createLineParticle(rootWorld, tipWorld, 0.25, 0.1, 0.01, ParticleTypes.END_ROD, level());
     }
 
     @Override
