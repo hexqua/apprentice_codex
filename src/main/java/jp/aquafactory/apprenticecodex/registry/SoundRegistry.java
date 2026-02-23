@@ -33,6 +33,8 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> MANTIS = reg("mantis");
     public static final RegistryObject<SoundEvent> PALETTE = reg("palette");
     public static final RegistryObject<SoundEvent> ABSORB = reg("absorb");
+    public static final RegistryObject<SoundEvent> PHALANX = reg("phalanx");
+
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

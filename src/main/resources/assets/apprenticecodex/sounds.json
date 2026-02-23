@@ -94,5 +94,11 @@
     "sounds": [
       "apprenticecodex:absorb"
     ]
+  },
+  "phalanx": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:phalanx"
+    ]
   }
 }
