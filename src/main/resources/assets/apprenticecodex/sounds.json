@@ -94,5 +94,23 @@
     "sounds": [
       "apprenticecodex:absorb"
     ]
+  },
+  "phalanx": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:phalanx"
+    ]
+  },
+  "force_field": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:force_field"
+    ]
+  },
+  "thrust": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:thrust"
+    ]
   }
 }

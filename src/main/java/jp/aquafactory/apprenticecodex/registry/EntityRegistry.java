@@ -14,6 +14,8 @@ import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
+import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
+import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
@@ -125,6 +127,12 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<MantisLeapBladeEntity>> MANTIS_LEAP_BLADE =
             regWeapon("mantis_leap_blade", MantisLeapBladeEntity::new, 1);
+
+    public static final RegistryObject<EntityType<PhalanxWeaponryEntity>> PHALANX_WEAPONRY =
+            regWeapon("phalanx_weaponry", PhalanxWeaponryEntity::new, 1);
+
+    public static final RegistryObject<EntityType<PhalanxChargeBeamEntity>> PHALANX_CHARGE_BEAM =
+            regProjectile("phalanx_charge_beam", PhalanxChargeBeamEntity::new, 64, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

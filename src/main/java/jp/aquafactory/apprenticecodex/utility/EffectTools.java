@@ -20,6 +20,36 @@ public final class EffectTools {
         );
     }
 
+    public static void createSphereParticle(Vec3 position, double radius, int count,
+                                            double randomSpeed, ParticleOptions particle, Level level){
+        if (count <= 0 || radius <= 0.0) {
+            return;
+        }
+
+        for (var i = 0; i < count; i++) {
+            // Cubicで端寄せをする.
+            var outerBias = 1.0 - (RNG.nextDouble() * RNG.nextDouble() * RNG.nextDouble());
+            var offset = randomUnitVector().scale(radius * outerBias);
+            var pos = position.add(offset);
+            level.addParticle(
+                    particle,
+                    pos.x,
+                    pos.y,
+                    pos.z,
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2,
+                    RNG.nextDouble() * randomSpeed - randomSpeed / 2
+            );
+        }
+    }
+
+    private static Vec3 randomUnitVector() {
+        var z = RNG.nextDouble() * 2.0 - 1.0;
+        var theta = RNG.nextDouble() * Math.PI * 2.0;
+        var xy = Math.sqrt(1.0 - z * z);
+        return new Vec3(xy * Math.cos(theta), z, xy * Math.sin(theta));
+    }
+
     public static void createRingParticle(Vec3 position, Vec3 normal, double radius, int count,
                                           double randomOffsetRange, double randomSpeed,
                                           ParticleOptions particle, Level level){

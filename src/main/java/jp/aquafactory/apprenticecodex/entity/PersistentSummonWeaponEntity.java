@@ -13,19 +13,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public abstract class SummonWeaponEntity extends Entity implements TraceableEntity {
+public abstract class PersistentSummonWeaponEntity extends Entity implements TraceableEntity {
 
     private static final double FOLLOW_MAX_DISTANCE = 0.5;
 
-    // オーナー系を隠すために意図的にprivate.
     private UUID ownerUUID;
     private Entity cachedOwner;
 
-    public SummonWeaponEntity(EntityType<?> pEntityType, Level pLevel) {
+    public PersistentSummonWeaponEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
-    public SummonWeaponEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
+    public PersistentSummonWeaponEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel);
         setOwner(owner);
         setNoGravity(true);
@@ -34,14 +33,17 @@ public abstract class SummonWeaponEntity extends Entity implements TraceableEnti
 
     @Override
     protected void readAdditionalSaveData(CompoundTag pCompound) {
-        // SummonWeaponEntity はログアウトをまたぐ所有者復元を許可しない.
-        ownerUUID = null;
-        cachedOwner = null;
+        if (pCompound.hasUUID("OwnerUUID")) {
+            ownerUUID = pCompound.getUUID("OwnerUUID");
+            cachedOwner = null;
+        }
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
-        // SummonWeaponEntity はオーナー情報を永続化しない.
+        if (ownerUUID != null) {
+            pCompound.putUUID("OwnerUUID", ownerUUID);
+        }
     }
 
     @Override

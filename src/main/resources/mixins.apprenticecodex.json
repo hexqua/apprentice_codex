@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "mixins.apprenticecodex.refmap.json",
   "mixins": [
+    "LivingEntityAccessor",
+    "LivingEntityPhalanxGuardMixin",
     "SchoolTypeAccessor"
   ],
   "client": [

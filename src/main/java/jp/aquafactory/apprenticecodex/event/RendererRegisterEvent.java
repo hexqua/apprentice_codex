@@ -19,6 +19,8 @@ import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityR
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeRenderer;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockRenderer;
+import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamRenderer;
+import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryRenderer;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRenderer;
@@ -53,5 +55,7 @@ public final class RendererRegisterEvent {
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SLASH_BLADE_KATANA.get(), SlashBladeKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MANTIS_LEAP_BLADE.get(), MantisLeapBladeRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.PHALANX_WEAPONRY.get(), PhalanxWeaponryRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.PHALANX_CHARGE_BEAM.get(), PhalanxChargeBeamRenderer::new);
     }
 }

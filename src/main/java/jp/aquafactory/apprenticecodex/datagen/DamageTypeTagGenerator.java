@@ -55,7 +55,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FEATHER_RUSH,
                 WORLD_FLATTER,
                 SLASH_BLADE,
-                MANTIS_LEAP
+                MANTIS_LEAP,
+                PHALANX_CHARGE
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -79,7 +80,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANTIS_LEAP
         );
 
-        // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効)
+        // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
         tag(RANGED_ATTACK).add(
                 ARCANE_BEAM,
                 ARCANE_BLAST,
@@ -97,7 +98,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FEATHER_RUSH,
                 WORLD_FLATTER,
                 SLASH_BLADE,
-                MANTIS_LEAP
+                MANTIS_LEAP,
+                PHALANX_CHARGE
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
