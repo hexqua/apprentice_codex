@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.archermultiple;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
-import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleOptions;
@@ -20,7 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-public class ArcherMultipleBowEntity extends SummonWeaponEntity {
+public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
 
     private static final int CHARGE_TICK = 15;
     private static final int COOLDOWN_TICK = 8;
