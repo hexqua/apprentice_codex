@@ -51,7 +51,7 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
     }
 
     private float getBeamLength(int spellLevel, LivingEntity entity) {
-        return 5.0f;
+        return 8.0f;
     }
 
     @Override

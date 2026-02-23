@@ -263,10 +263,10 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         }
 
         var beam = new PhalanxChargeBeamEntity(EntityRegistry.PHALANX_CHARGE_BEAM.get(), level, owner);
-        var beamStart = position().add(getLookAngle().scale(0.5)).add(right.normalize().scale(0.25)).add(up.scale(0.1));
+        var beamStart = position().add(getLookAngle().scale(1.0)).add(right.normalize().scale(0.25)).add(up.scale(0.1));
 
         beam.moveTo(beamStart.x, beamStart.y, beamStart.z, getYRot(), getXRot());
-        beam.setup(level, Math.max(0.1f, thrustBeamLength), 0.18f, damage);
+        beam.setup(level, Math.max(0.1f, thrustBeamLength), 0.5f, damage);
         level.addFreshEntity(beam);
     }
 

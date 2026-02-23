@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class PhalanxChargeBeamEntity extends Entity implements TraceableEntity {
-    public static final int LIFE_TICKS = 10;
+    public static final int LIFE_TICKS = 4;
 
     private static final EntityDataAccessor<Float> LENGTH =
             SynchedEntityData.defineId(PhalanxChargeBeamEntity.class, EntityDataSerializers.FLOAT);

@@ -37,9 +37,12 @@ public class PhalanxChargeBeamRenderer extends EntityRenderer<PhalanxChargeBeamE
         var to = new Vector3f((float) direction.x, (float) direction.y, (float) direction.z);
         var rotation = new Quaternionf().rotationTo(from, to);
 
+        // Cubic.
         var lifeProgress = entity.getLifeProgress(partialTicks);
-        var radiusScale = Mth.lerp(lifeProgress, 1.0f, 1.8f);
-        var alphaScale = Mth.lerp(lifeProgress, 1.0f, 0.2f);
+        lifeProgress = lifeProgress * lifeProgress * lifeProgress;
+
+        var radiusScale = Mth.lerp(lifeProgress, 0.1f, 2f);
+        var alphaScale = Mth.lerp(lifeProgress, 0.75f, 0.1f);
 
         var length = entity.getLength();
         var radius = entity.getRadius() * radiusScale;
