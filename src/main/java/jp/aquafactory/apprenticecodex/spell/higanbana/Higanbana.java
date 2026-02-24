@@ -3,17 +3,29 @@ package jp.aquafactory.apprenticecodex.spell.higanbana;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 
-public class Higanbana extends AbstractSpell {
+public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "higanbana");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -24,11 +36,58 @@ public class Higanbana extends AbstractSpell {
             .build();
 
     public Higanbana() {
+        super(HiganbanaKatanaEntity.class);
+        // todo:バランス調整.
         baseSpellPower = 100;
         spellPowerPerLevel = 100;
         baseManaCost = 35;
         manaCostPerLevel = 5;
         castTime = 0;
+    }
+
+    @Override
+    public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
+        return List.of(
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
+                Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster))
+        );
+    }
+
+    private float getDamage(int spellLevel, LivingEntity entity) {
+        // todo:バランス調整.
+        return 4f;
+    }
+
+    @Override
+    public int getActivateCount(int spellLevel, @Nullable LivingEntity entity) {
+        // todo:バランス調整.
+        return 8;
+    }
+
+    @Override
+    public int getDurationTick() {
+        // todo:バランス調整.
+        return 20 * 6;
+    }
+
+    @Override
+    public Optional<SoundEvent> getPreFireSound() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<SoundEvent> getPreSummonSound() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<SoundEvent> getFireSound() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<SoundEvent> getSummonSound() {
+        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
     }
 
     @Override
@@ -47,17 +106,42 @@ public class Higanbana extends AbstractSpell {
     }
 
     @Override
-    public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.empty();
-    }
-
-    @Override
     public AnimationHolder getCastStartAnimation() {
         return SpellAnimations.ANIMATION_INSTANT_CAST;
     }
 
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    public AnimationHolder getCastFinishAnimation() {
+        return AnimationHolder.pass();
+    }
+
+    @Override
+    protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull HiganbanaKatanaEntity weapon) {
+        return weapon.canSlash();
+    }
+
+    @Override
+    protected boolean onPreRecastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        return false;
+    }
+
+    @Override
+    public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer, @NotNull HiganbanaKatanaEntity weapon) {
+        // 最終Recast直後に消すと斬撃演出が途切れるため、少し待ってから消す.
+        weapon.scheduleRelease(10);
+        return CompleteRecastTypes.KEEP_WEAPON;
+    }
+
+    @Override
+    public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull HiganbanaKatanaEntity weapon) {
+        weapon.slash(level);
+    }
+
+    @Override
+    public HiganbanaKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new HiganbanaKatanaEntity(EntityRegistry.HIGANBANA_KATANA.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        level.addFreshEntity(summonWeapon);
+        return summonWeapon;
     }
 }
