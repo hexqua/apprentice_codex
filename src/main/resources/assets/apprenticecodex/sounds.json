@@ -118,5 +118,11 @@
     "sounds": [
       "apprenticecodex:thirst_drain"
     ]
+  },
+  "slash_drain": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:slash_drain"
+    ]
   }
 }

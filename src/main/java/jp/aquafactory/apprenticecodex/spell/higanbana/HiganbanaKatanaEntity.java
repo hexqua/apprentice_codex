@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.higanbana;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.GeoBonePoseCache;
 import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
@@ -10,12 +11,14 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -24,6 +27,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -34,6 +38,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
     private static final int SLASH_EFFECT_TICK = 10;
+    private static final DustParticleOptions DRAIN_DUST_PARTICLE =
+            new DustParticleOptions(new Vector3f(1.0f, 0.0f, 0.0f), 1.0f);
+    private static final int DRAIN_DUST_COUNT = 20;
+    private static final double DRAIN_DUST_SPEED = 0.02D;
 
     private static final EntityDataAccessor<Boolean> SHOW_TRAIL =
             SynchedEntityData.defineId(HiganbanaKatanaEntity.class, EntityDataSerializers.BOOLEAN);
@@ -139,9 +147,32 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
             );
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
             for (var hit : hitResult) {
-                CombatTools.applyDamage(hit, damage, source, SpellRegistry.HIGANBANA.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+                var applied = CombatTools.applyDamage(hit, damage, source, SpellRegistry.HIGANBANA.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+                if (applied) {
+                    playDrainFeedback(level, owner);
+                }
             }
         }
+    }
+
+    private static void playDrainFeedback(Level level, LivingEntity owner) {
+        AudioTools.playSoundFromEntity(level, owner, SoundRegistry.SLASH_DRAIN.get(), SoundSource.PLAYERS);
+
+        if (!(level instanceof ServerLevel serverLevel) || !(owner instanceof ServerPlayer player)) {
+            return;
+        }
+
+        serverLevel.sendParticles(
+                DRAIN_DUST_PARTICLE,
+                player.getX(),
+                player.getY() + player.getBbHeight() * 0.5D,
+                player.getZ(),
+                DRAIN_DUST_COUNT,
+                Math.max(0.25D, player.getBbWidth() * 0.6D),
+                Math.max(0.35D, player.getBbHeight() * 0.5D),
+                Math.max(0.25D, player.getBbWidth() * 0.6D),
+                DRAIN_DUST_SPEED
+        );
     }
 
     private void triggerSlashAnimation() {
