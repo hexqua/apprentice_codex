@@ -19,8 +19,6 @@ import java.util.Deque;
 import java.util.UUID;
 
 public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> extends GeoRenderLayer<T> {
-    private static final int MAX_POINTS = 12;
-
     private final Object2ObjectMap<UUID, Object2ObjectMap<String, Deque<Vec3>>> tipHist = new Object2ObjectOpenHashMap<>();
     private final Object2ObjectMap<UUID, Object2ObjectMap<String, Deque<Vec3>>> rootHist = new Object2ObjectOpenHashMap<>();
 
@@ -39,6 +37,8 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
 
         var uuid = animatable.getUUID();
         var argb = animatable.getTrailColorARGB();
+        var maxPoints = Math.max(2, animatable.getTrailHistoryTicks());
+        var fadeEasing = animatable.getTrailFadeEasing();
         for (var pair : animatable.getTrailBonePairs()) {
             var tip = model.getBone(pair.tipBone()).orElse(null);
             var root = model.getBone(pair.rootBone()).orElse(null);
@@ -51,9 +51,9 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
 
             var tips = getHistory(tipHist, uuid, pair.cacheKey());
             var roots = getHistory(rootHist, uuid, pair.cacheKey());
-            push(tips, tipPos);
-            push(roots, rootPos);
-            renderRibbon(poseStack, bufferSource, animatable, argb, tips, roots);
+            push(tips, tipPos, maxPoints);
+            push(roots, rootPos, maxPoints);
+            renderRibbon(poseStack, bufferSource, animatable, argb, tips, roots, fadeEasing);
         }
     }
 
@@ -73,7 +73,8 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
                                      Entity entity,
                                      int argb,
                                      Deque<Vec3> tips,
-                                     Deque<Vec3> roots) {
+                                     Deque<Vec3> roots,
+                                     ISwordTrailEntity.TrailFadeEasing fadeEasing) {
         var vc = buffers.getBuffer(RenderType.lightning());
         var epos = entity.position();
         var mat = poseStack.last().pose();
@@ -92,7 +93,7 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
 
         for (var i = 0; i < n - 1; ++i) {
             var timeFade = i / (float) (n - 1);
-            timeFade = timeFade * timeFade;
+            timeFade = fadeEasing.apply(timeFade);
 
             var alphaTip = timeFade;
             var alphaRoot = timeFade * 0.2f;
@@ -116,8 +117,8 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
         }
     }
 
-    private void push(Deque<Vec3> deque, Vec3 value) {
-        if (deque.size() >= MAX_POINTS) {
+    private void push(Deque<Vec3> deque, Vec3 value, int maxPoints) {
+        while (deque.size() >= maxPoints) {
             deque.removeFirst();
         }
         deque.addLast(value);
