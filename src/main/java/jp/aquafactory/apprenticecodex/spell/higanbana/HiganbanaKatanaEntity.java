@@ -37,14 +37,13 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     private static final EntityDataAccessor<Boolean> SHOW_TRAIL =
             SynchedEntityData.defineId(HiganbanaKatanaEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Float> ANIMATION_SPEED =
-            SynchedEntityData.defineId(HiganbanaKatanaEntity.class, EntityDataSerializers.FLOAT);
 
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
     private static final RawAnimation ANIM_SLASH_0TO1 = RawAnimation.begin().thenPlayAndHold("slash_0to1");
     private static final RawAnimation ANIM_SLASH_1TO2 = RawAnimation.begin().thenPlayAndHold("slash_1to2");
     private static final RawAnimation ANIM_SLASH_2TO3 = RawAnimation.begin().thenPlayAndHold("slash_2to3");
-    private static final RawAnimation ANIM_SLASH_3TO0 = RawAnimation.begin().thenPlayAndHold("slash_3to0");
+    private static final RawAnimation ANIM_SLASH_3TO4 = RawAnimation.begin().thenPlayAndHold("slash_3to4");
+    private static final RawAnimation ANIM_SLASH_4TO1 = RawAnimation.begin().thenPlayAndHold("slash_4to1");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -64,7 +63,6 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     @Override
     protected void defineSynchedData() {
         entityData.define(SHOW_TRAIL, false);
-        entityData.define(ANIMATION_SPEED, 1.0f);
     }
 
     @Override
@@ -127,7 +125,6 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
         }
 
         triggerSlashAnimation();
-        entityData.set(ANIMATION_SPEED, 4f);
         entityData.set(SHOW_TRAIL, true);
         slashEffectTick = SLASH_EFFECT_TICK;
 
@@ -152,10 +149,17 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
             case 0 -> triggerAnim("main", "slash_0to1");
             case 1 -> triggerAnim("main", "slash_1to2");
             case 2 -> triggerAnim("main", "slash_2to3");
-            default -> triggerAnim("main", "slash_3to0");
+            case 3 -> triggerAnim("main", "slash_3to4");
+            default -> triggerAnim("main", "slash_4to1");
         }
 
-        slashPhaseIndex = (slashPhaseIndex + 1) % 4;
+        slashPhaseIndex = switch (slashPhaseIndex) {
+            case 0 -> 1;
+            case 1 -> 2;
+            case 2 -> 3;
+            case 3 -> 4;
+            default -> 1;
+        };
     }
 
     public void setDamage(float damage) {
@@ -216,8 +220,9 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
                         .triggerableAnim("slash_0to1", ANIM_SLASH_0TO1)
                         .triggerableAnim("slash_1to2", ANIM_SLASH_1TO2)
                         .triggerableAnim("slash_2to3", ANIM_SLASH_2TO3)
-                        .triggerableAnim("slash_3to0", ANIM_SLASH_3TO0)
-                        .setAnimationSpeedHandler(e -> (double) e.entityData.get(ANIMATION_SPEED))
+                        .triggerableAnim("slash_3to4", ANIM_SLASH_3TO4)
+                        .triggerableAnim("slash_4to1", ANIM_SLASH_4TO1)
+                        .setAnimationSpeedHandler(e -> 7.5) // 変動させないので決め打ちでよい.
         );
     }
 
