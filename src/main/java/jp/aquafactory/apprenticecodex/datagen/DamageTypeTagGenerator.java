@@ -56,7 +56,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 WORLD_FLATTER,
                 SLASH_BLADE,
                 MANTIS_LEAP,
-                PHALANX_CHARGE
+                PHALANX_CHARGE,
+                HIGANBANA
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -64,7 +65,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ARCANE_BEAM,
                 ARCANE_BLAST,
                 COMPOUND_PHIAL,
-                GRACED_RAIN
+                GRACED_RAIN,
+                HIGANBANA
         );
 
         // BYPASSES_IFRAME: 無敵時間を無視するダメージ.
@@ -77,7 +79,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FLY_SWATTER,
                 WORLD_FLATTER,
                 SLASH_BLADE,
-                MANTIS_LEAP
+                MANTIS_LEAP,
+                HIGANBANA
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -99,7 +102,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 WORLD_FLATTER,
                 SLASH_BLADE,
                 MANTIS_LEAP,
-                PHALANX_CHARGE
+                PHALANX_CHARGE,
+                HIGANBANA
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
