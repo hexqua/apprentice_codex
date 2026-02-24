@@ -29,7 +29,7 @@ public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEn
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "higanbana");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.RARE)
+            .setMinRarity(SpellRarity.COMMON)
             .setSchoolResource(SchoolRegistry.BLOOD_RESOURCE)
             .setMaxLevel(5)
             .setCooldownSeconds(4)
@@ -37,11 +37,10 @@ public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEn
 
     public Higanbana() {
         super(HiganbanaKatanaEntity.class);
-        // todo:バランス調整.
         baseSpellPower = 100;
         spellPowerPerLevel = 100;
-        baseManaCost = 35;
-        manaCostPerLevel = 5;
+        baseManaCost = 40;
+        manaCostPerLevel = 20;
         castTime = 0;
     }
 
@@ -54,20 +53,17 @@ public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEn
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 4f;
+        return 2 + getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     @Override
     public int getActivateCount(int spellLevel, @Nullable LivingEntity entity) {
-        // todo:バランス調整.
-        return 8;
+        return Math.min(8, Math.round(getSpellPower(spellLevel, entity) / 100.0f));
     }
 
     @Override
     public int getDurationTick() {
-        // todo:バランス調整.
-        return 20 * 6;
+        return 20 * 5;
     }
 
     @Override
