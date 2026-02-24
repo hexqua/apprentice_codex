@@ -50,7 +50,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.recast_count", getBulletCount(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster)),
                 Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellLevel, caster))
         );
     }
@@ -65,7 +65,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     @Override
-    public int getBulletCount(int spellLevel, LivingEntity entity) {
+    public int getActivateCount(int spellLevel, LivingEntity entity) {
         return Math.min(10, 4 + Math.round(2 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
     }
 
@@ -148,7 +148,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     @Override
     public void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
         super.onServerCastTick(level, spellLevel, entity, playerMagicData);
-        var summon = getFirearmEntityFromMagicData(playerMagicData, level);
+        var summon = getSummonEntityFromMagicData(playerMagicData, level);
         if (summon == null) {
             return;
         }
@@ -177,6 +177,11 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     @Override
     protected boolean onPreRecastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         return false;
+    }
+
+    @Override
+    public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer, @NotNull CommenceFireRifleEntity weapon) {
+        return CompleteRecastTypes.RELEASE_WEAPON;
     }
 
     @Override
