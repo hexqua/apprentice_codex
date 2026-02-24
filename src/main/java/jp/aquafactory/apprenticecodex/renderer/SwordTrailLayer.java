@@ -108,6 +108,11 @@ public class SwordTrailLayer<T extends Entity & GeoEntity & ISwordTrailEntity> e
             vc.vertex(mat, (float) root0.x, (float) root0.y, (float) root0.z).color(r, g, b, aRoot).endVertex();
             vc.vertex(mat, (float) root1.x, (float) root1.y, (float) root1.z).color(r, g, b, aRoot).endVertex();
             vc.vertex(mat, (float) tip1.x, (float) tip1.y, (float) tip1.z).color(r, g, b, aTip).endVertex();
+            // カメラ位置や振り方向による裏面消失を防ぐため、逆順の面も描画する.
+            vc.vertex(mat, (float) tip1.x, (float) tip1.y, (float) tip1.z).color(r, g, b, aTip).endVertex();
+            vc.vertex(mat, (float) root1.x, (float) root1.y, (float) root1.z).color(r, g, b, aRoot).endVertex();
+            vc.vertex(mat, (float) root0.x, (float) root0.y, (float) root0.z).color(r, g, b, aRoot).endVertex();
+            vc.vertex(mat, (float) tip0.x, (float) tip0.y, (float) tip0.z).color(r, g, b, aTip).endVertex();
         }
     }
 
