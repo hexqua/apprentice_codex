@@ -29,6 +29,11 @@ import java.util.UUID;
 
 public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEntity> extends AbstractSpell {
 
+    public enum CompleteRecastTypes{
+        RELEASE_WEAPON,
+        KEEP_WEAPON,
+    }
+
     private final Class<T> weaponType;
 
     protected AbstractSummonWeaponRecastSpell(Class<T> weaponType) {
@@ -36,7 +41,7 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
         this.weaponType = weaponType;
     }
 
-    public abstract int getBulletCount(int spellLevel, @Nullable LivingEntity entity);
+    public abstract int getActivateCount(int spellLevel, @Nullable LivingEntity entity);
 
     public abstract int getDurationTick();
 
@@ -59,8 +64,8 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
 
     @Override
     public final int getRecastCount(int spellLevel, @Nullable LivingEntity entity) {
-        // 初回発動含め弾の数にする.
-        return getBulletCount(spellLevel, entity) + 1;
+        // 初回発動含めて＋１する.
+        return getActivateCount(spellLevel, entity) + 1;
     }
 
     @Override
@@ -71,6 +76,7 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
     protected abstract boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull T weapon);
 
     protected abstract boolean onPreRecastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData);
+    public abstract CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer, @NotNull T weapon);
 
     @Override
     public final void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
@@ -78,7 +84,10 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
             var serverLevel = serverPlayer.serverLevel();
             var entity = castData.getEntity(serverLevel);
             if (weaponType.isInstance(entity)) {
-                weaponType.cast(entity).releaseWeapon();
+                var result = onRecastFinishedWithWeapon(serverLevel, serverPlayer, weaponType.cast(entity));
+                if (result == CompleteRecastTypes.RELEASE_WEAPON){
+                    weaponType.cast(entity).releaseWeapon();
+                }
             }
         }
 
@@ -87,13 +96,13 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var summon = getFirearmEntityFromMagicData(playerMagicData, level);
+        var summon = getSummonEntityFromMagicData(playerMagicData, level);
         if (summon != null) {
             return onPreRecastWithWeapon(level, spellLevel, entity, playerMagicData, summon);
         } else if (playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
             if (entity instanceof ServerPlayer serverPlayer) {
                 var recast = playerMagicData.getPlayerRecasts().getRecastInstance(getSpellId());
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.firearm_spell.no_firearm", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.recast_summon_spell.no_weapon", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
                 if (recast.getRemainingRecasts() > 0) {
                     playerMagicData.getPlayerRecasts().removeRecast(recast, RecastResult.USED_ALL_RECASTS);
                 }
@@ -111,7 +120,7 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
     @Override
     public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
         super.onServerPreCast(level, spellLevel, entity, playerMagicData);
-        var summon = getFirearmEntityFromMagicData(playerMagicData, level);
+        var summon = getSummonEntityFromMagicData(playerMagicData, level);
         if (summon != null) {
             var sound = getPreFireSound();
             sound.ifPresent(soundEvent -> AudioTools.playSoundFromEntity(level, entity, soundEvent, SoundSource.PLAYERS, 2.0f));
@@ -125,13 +134,13 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
     public final void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
-            var summon = getFirearmEntityFromMagicData(playerMagicData, level);
+            var summon = getSummonEntityFromMagicData(playerMagicData, level);
             if (summon != null) {
                 var sound = getFireSound();
                 sound.ifPresent(soundEvent -> AudioTools.playSoundFromEntity(level, entity, soundEvent, SoundSource.PLAYERS, 2.0f));
                 onCastWithWeapon(level, spellLevel, entity, playerMagicData, summon);
             } else {
-                ApprenticeCodex.LOGGER.error("Failed to get firearm entity from magic data.");
+                ApprenticeCodex.LOGGER.error("Failed to get entity from magic data.");
             }
         } else {
             var castData = new SummonWeaponRecastSpellData();
@@ -149,7 +158,7 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
     }
 
 
-    protected final T getFirearmEntityFromMagicData(MagicData playerMagicData, Level level) {
+    protected final T getSummonEntityFromMagicData(MagicData playerMagicData, Level level) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return null;
         }

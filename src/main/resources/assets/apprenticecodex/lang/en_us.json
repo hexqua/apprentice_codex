@@ -104,7 +104,7 @@
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
-  "ui.apprenticecodex.firearm_spell.no_firearm": "Couldn't find firearm!",
+  "ui.apprenticecodex.recast_summon_spell.no_weapon": "Couldn't find weapon!",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
   "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "Lock on to %s...(%d/%d)",
