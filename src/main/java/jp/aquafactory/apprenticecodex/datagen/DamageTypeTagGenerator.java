@@ -25,6 +25,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     }
 
     public static final TagKey<DamageType> MAGIC_DAMAGE = create("magic_damage");
+    public static final TagKey<DamageType> FIRE_DAMAGE = create("fire_damage");
     public static final TagKey<DamageType> BYPASSES_IFRAME = create("bypasses_iframe");
     public static final TagKey<DamageType> RANGED_ATTACK = create("ranged_attack");
     public static final TagKey<DamageType> CODEX_MAGIC = create("codex_magic");
@@ -57,7 +58,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SLASH_BLADE,
                 MANTIS_LEAP,
                 PHALANX_CHARGE,
-                HIGANBANA
+                HIGANBANA,
+                THERMAL_PROCESS
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -67,6 +69,11 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 COMPOUND_PHIAL,
                 GRACED_RAIN,
                 HIGANBANA
+        );
+
+        // FIRE_DAMAGE: 火炎耐性有効.
+        tag(FIRE_DAMAGE).add(
+                THERMAL_PROCESS
         );
 
         // BYPASSES_IFRAME: 無敵時間を無視するダメージ.
@@ -103,7 +110,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SLASH_BLADE,
                 MANTIS_LEAP,
                 PHALANX_CHARGE,
-                HIGANBANA
+                HIGANBANA,
+                THERMAL_PROCESS
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

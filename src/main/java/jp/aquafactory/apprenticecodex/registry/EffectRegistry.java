@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
+import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -20,6 +21,8 @@ public final class EffectRegistry {
             EFFECTS.register("palette_reception", PaletteReception::new);
     public static final RegistryObject<MobEffect> PHALANX_STANCE =
             EFFECTS.register("phalanx_stance", PhalanxStance::new);
+    public static final RegistryObject<MobEffect> THERMAL_PROCESSING =
+            EFFECTS.register("thermal_processing", ThermalProcessing::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);
