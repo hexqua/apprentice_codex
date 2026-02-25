@@ -107,7 +107,7 @@ public class EarthForge extends AbstractSpell {
                 var plan = placementPlan.get();
                 EarthForgeJobManager.submit(
                         serverLevel,
-                        new EarthForgeJob(plan.center(), plan.placeablePositions(), serverLevel.getGameTime())
+                        new EarthForgeJob(plan.center(), plan.placeablePositions(), plan.effectDirection(), serverLevel.getGameTime())
                 );
             }
         }
@@ -129,7 +129,7 @@ public class EarthForge extends AbstractSpell {
             return Optional.empty();
         }
 
-        return Optional.of(new PlacementPlan(centerPos, placeablePositions));
+        return Optional.of(new PlacementPlan(centerPos, placeablePositions, hit.getDirection()));
     }
 
     private Optional<BlockHitResult> raycastTargetBlock(Level level, int spellLevel, LivingEntity entity) {
@@ -193,6 +193,6 @@ public class EarthForge extends AbstractSpell {
         }
     }
 
-    private record PlacementPlan(BlockPos center, List<BlockPos> placeablePositions) {
+    private record PlacementPlan(BlockPos center, List<BlockPos> placeablePositions, Direction effectDirection) {
     }
 }
