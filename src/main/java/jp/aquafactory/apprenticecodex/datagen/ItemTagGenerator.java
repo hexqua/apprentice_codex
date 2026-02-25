@@ -23,6 +23,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
+    private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
 
     public ItemTagGenerator(
             PackOutput output,
@@ -38,5 +39,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(IRONS_STAFF).add(ItemRegistry.PASTEL_STAFF.get());
         tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
         tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
+
+        // 魔法召喚武器はアイテムとして性能を持たずダミーにしか使っていないため、JEIでも表示しないようにする.
+        tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
+                ItemRegistry.SKY_EDGE_SWORD.get(),
+                ItemRegistry.COMMENCE_FIRE_RIFLE.get(),
+                ItemRegistry.QUICK_ARMS_HANDGUN.get(),
+                ItemRegistry.BREACHING_ENEMY_SHOTGUN.get(),
+                ItemRegistry.FLY_SWATTER_LAUNCHER.get(),
+                ItemRegistry.THERMAL_PROCESS_THROWER.get()
+        );
     }
 }
