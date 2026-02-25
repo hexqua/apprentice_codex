@@ -2,7 +2,9 @@ package jp.aquafactory.apprenticecodex.spell.thermalprocess;
 
 import io.redspace.ironsspellbooks.util.ParticleHelper;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
@@ -14,6 +16,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -192,7 +195,32 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         );
 
         for (var target : hits) {
-            CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            var applied = CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            if (!applied || !(target instanceof LivingEntity livingTarget)) {
+                continue;
+            }
+
+            applyOrUpdateThermalProcessing(livingTarget);
+        }
+    }
+
+    private void applyOrUpdateThermalProcessing(LivingEntity target) {
+        var current = target.getEffect(EffectRegistry.THERMAL_PROCESSING.get());
+        var nextAmplifier = current == null
+                ? 0
+                : Math.min(current.getAmplifier() + 1, ThermalProcessing.MAX_AMPLIFIER);
+
+        target.addEffect(new MobEffectInstance(
+                EffectRegistry.THERMAL_PROCESSING.get(),
+                ThermalProcessing.BASE_DURATION_TICKS,
+                nextAmplifier,
+                false,
+                true,
+                true
+        ));
+
+        if (nextAmplifier >= ThermalProcessing.MAX_AMPLIFIER) {
+            target.setSecondsOnFire(ThermalProcessing.IGNITE_TICKS / 20);
         }
     }
 
