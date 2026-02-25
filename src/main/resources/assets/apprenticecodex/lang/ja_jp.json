@@ -106,7 +106,7 @@
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
   "ui.apprenticecodex.recast_summon_spell.no_weapon": "武器が見つからない！",
   "ui.apprenticecodex.commence_fire.during_recoil": "反動が鎮まっていない",
-  "ui.apprenticecodex.quick_arms.during_standby": "準備中",
+  "ui.apprenticecodex.during_standby": "準備中",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "%s をロックオン...(%d/%d)",
   "ui.apprenticecodex.cant_jump_more": "それ以上空中ジャンプできない！",
   "ui.apprenticecodex.not_hold_pastel_staff": "力を引き出すべき杖が手元にない...",

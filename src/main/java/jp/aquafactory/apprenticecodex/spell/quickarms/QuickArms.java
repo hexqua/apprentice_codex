@@ -122,7 +122,7 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull QuickArmsHandgunEntity weapon) {
         if (!weapon.canFire()){
             if (entity instanceof ServerPlayer serverPlayer) {
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.quick_arms.during_standby", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.during_standby", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
             return false;
         }

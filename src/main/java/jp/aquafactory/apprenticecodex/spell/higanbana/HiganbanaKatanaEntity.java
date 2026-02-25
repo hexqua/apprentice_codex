@@ -38,6 +38,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
     private static final int SLASH_EFFECT_TICK = 10;
+    private static final int SLASH_STANDBY_TICK = 5;
     private static final DustParticleOptions DRAIN_DUST_PARTICLE =
             new DustParticleOptions(new Vector3f(1.0f, 0.0f, 0.0f), 1.0f);
     private static final int DRAIN_DUST_COUNT = 20;
@@ -57,6 +58,8 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     private float damage;
     private int slashEffectTick;
+    private int slashStandbyTick;
+    private boolean standbyFirstSlash;
     private int slashPhaseIndex;
     private int releaseDelayTick = -1;
 
@@ -117,6 +120,14 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
             }
         }
 
+        if (slashStandbyTick > 0) {
+            --slashStandbyTick;
+            if (slashStandbyTick == 0 && standbyFirstSlash) {
+                standbyFirstSlash = false;
+                slash(level);
+            }
+        }
+
         followTargetPosition(getStandbyPosition());
         setYRot(owner.getYRot());
         setXRot(0);
@@ -124,7 +135,7 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     public boolean canSlash() {
-        return slashEffectTick <= 0;
+        return slashStandbyTick <= 0;
     }
 
     public void slash(Level level) {
@@ -132,6 +143,11 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
             return;
         }
 
+        performSlash(level);
+        slashStandbyTick = SLASH_STANDBY_TICK;
+    }
+
+    private void performSlash(Level level) {
         triggerSlashAnimation();
         entityData.set(SHOW_TRAIL, true);
         slashEffectTick = SLASH_EFFECT_TICK;
@@ -153,6 +169,17 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
                 }
             }
         }
+    }
+
+    public void setFirstSlashStandby(int ticks) {
+        if (ticks <= 0) {
+            standbyFirstSlash = false;
+            slash(level());
+            return;
+        }
+
+        standbyFirstSlash = true;
+        slashStandbyTick = ticks;
     }
 
     private static void playDrainFeedback(Level level, LivingEntity owner) {
@@ -222,6 +249,8 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     protected void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
+        slashStandbyTick = pCompound.getInt("SlashStandbyTick");
+        standbyFirstSlash = pCompound.getBoolean("StandbyFirstSlash");
         slashPhaseIndex = pCompound.getInt("SlashPhase");
     }
 
@@ -229,6 +258,8 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
+        pCompound.putInt("SlashStandbyTick", slashStandbyTick);
+        pCompound.putBoolean("StandbyFirstSlash", standbyFirstSlash);
         pCompound.putInt("SlashPhase", slashPhaseIndex);
     }
 
