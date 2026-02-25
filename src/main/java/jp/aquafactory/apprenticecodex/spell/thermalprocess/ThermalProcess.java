@@ -3,22 +3,27 @@ package jp.aquafactory.apprenticecodex.spell.thermalprocess;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
 
-public class ThermalProcess  extends AbstractSpell {
+public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThrowerEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "thermal_process");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -29,6 +34,7 @@ public class ThermalProcess  extends AbstractSpell {
             .build();
 
     public ThermalProcess() {
+        super(ThermalProcessThrowerEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
         baseManaCost = 15;
@@ -49,7 +55,7 @@ public class ThermalProcess  extends AbstractSpell {
         return 0.5f + getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private float getRange(int spellLevel, LivingEntity entity){
+    private float getRange(int spellLevel, LivingEntity entity) {
         // todo:バランス調整.
         return 12;
     }
@@ -86,11 +92,24 @@ public class ThermalProcess  extends AbstractSpell {
 
     @Override
     public AnimationHolder getCastFinishAnimation() {
-        return SpellAnimations.FINISH_ANIMATION;
+        return AnimationHolder.none();
     }
 
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    public ThermalProcessThrowerEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new ThermalProcessThrowerEntity(EntityRegistry.THERMAL_PROCESS_THROWER.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setRange(getRange(spellLevel, entity));
+        level.addFreshEntity(summonWeapon);
+        return summonWeapon;
+    }
+
+    @Override
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull ThermalProcessThrowerEntity weapon) {
+    }
+
+    @Override
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull ThermalProcessThrowerEntity weapon) {
+        return CompleteCastTypes.RELEASE_WEAPON;
     }
 }

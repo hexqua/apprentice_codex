@@ -31,6 +31,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> COMMENCE_FIRE_RIFLE = simple("commence_fire_rifle");
     public static final RegistryObject<Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
     public static final RegistryObject<Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
+    public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
 
