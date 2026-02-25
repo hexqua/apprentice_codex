@@ -30,6 +30,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> MANTIS_LEAP = register("mantis_leap");
     public static final ResourceKey<DamageType> PHALANX_CHARGE = register("phalanx_charge");
     public static final ResourceKey<DamageType> HIGANBANA = register("higanbana");
+    public static final ResourceKey<DamageType> THERMAL_PROCESS = register("thermal_process");
 
     private static ResourceKey<DamageType> register(String name){
         return ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
@@ -64,5 +65,6 @@ public final class DamageTypes {
         context.register(MANTIS_LEAP, createTemplate(MANTIS_LEAP));
         context.register(PHALANX_CHARGE, createTemplate(PHALANX_CHARGE));
         context.register(HIGANBANA, createTemplate(HIGANBANA));
+        context.register(THERMAL_PROCESS, createTemplate(THERMAL_PROCESS));
     }
 }
