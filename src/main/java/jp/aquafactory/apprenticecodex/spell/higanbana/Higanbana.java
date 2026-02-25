@@ -11,8 +11,10 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEntity> {
+    private static final int FIRST_SLASH_DELAY_TICK = 5;
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "higanbana");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -113,7 +116,14 @@ public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEn
 
     @Override
     protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull HiganbanaKatanaEntity weapon) {
-        return weapon.canSlash();
+        if (!weapon.canSlash()) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.during_standby", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+            }
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -137,6 +147,7 @@ public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEn
     public HiganbanaKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new HiganbanaKatanaEntity(EntityRegistry.HIGANBANA_KATANA.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setFirstSlashStandby(FIRST_SLASH_DELAY_TICK);
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }

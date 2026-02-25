@@ -106,7 +106,7 @@
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
   "ui.apprenticecodex.recast_summon_spell.no_weapon": "Couldn't find weapon!",
   "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
-  "ui.apprenticecodex.quick_arms.during_standby": "Preparing.",
+  "ui.apprenticecodex.during_standby": "Preparing.",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "Lock on to %s...(%d/%d)",
   "ui.apprenticecodex.cant_jump_more": "Can't air jump more!",
   "ui.apprenticecodex.not_hold_pastel_staff": "The staff to draw out its power isn’t in your hands...",
