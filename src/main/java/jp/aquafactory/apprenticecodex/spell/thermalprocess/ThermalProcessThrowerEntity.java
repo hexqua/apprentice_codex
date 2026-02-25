@@ -104,7 +104,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
                 10,
                 0.04f,
                 0.01,
-                ParticleTypes.FLAME,
+                ParticleTypes.END_ROD,
                 level
         );
         super.onClientRemoval();
@@ -122,7 +122,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
                         8,
                         0.01f,
                         0.01,
-                        ParticleTypes.FLAME,
+                        ParticleTypes.END_ROD,
                         level
                 );
             }
