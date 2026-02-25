@@ -6,10 +6,7 @@ import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.utility.EffectTools;
-import jp.aquafactory.apprenticecodex.utility.RaycastTools;
-import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -17,6 +14,8 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -378,6 +377,8 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         for (var outputStack : outputStacks) {
             spawnProcessedOutput(level, sourceItem, outputStack);
         }
+
+        playItemProcessedEffects(level, sourceItem, processCount);
     }
 
     private List<ItemStack> splitOutputStacks(ItemStack outputPrototype, int totalCount) {
@@ -403,6 +404,22 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         spawned.setDeltaMovement(sourceItem.getDeltaMovement());
         level.addFreshEntity(spawned);
         skipProcessingItemIds.add(spawned.getUUID());
+    }
+
+    private void playItemProcessedEffects(ServerLevel level, ItemEntity sourceItem, int processCount) {
+        var smokeCount = Mth.clamp(4 + processCount * 2, 6, 24);
+        AudioTools.playSoundFromEntity(level, sourceItem, SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL);
+        level.sendParticles(
+                ParticleTypes.SMOKE,
+                sourceItem.getX(),
+                sourceItem.getY() + 0.1,
+                sourceItem.getZ(),
+                smokeCount,
+                0.1,
+                0.05,
+                0.1,
+                0.01
+        );
     }
 
     private void applyOrUpdateThermalProcessing(LivingEntity target) {

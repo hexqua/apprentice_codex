@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -83,12 +84,12 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundRegistry.FIRE_ARROW_CHARGE.get());
+        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
     }
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.empty();
+        return Optional.of(SoundRegistry.FIRE_BREATH_LOOP.get());
     }
 
     @Override
