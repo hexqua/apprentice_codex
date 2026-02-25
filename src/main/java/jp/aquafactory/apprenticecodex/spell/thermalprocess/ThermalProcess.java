@@ -46,7 +46,8 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1)),
+                Component.translatable("ui.apprenticecodex.furnace_item_per_second", Utils.stringTruncation(getBurnItemPerSecond(spellLevel, caster), 1))
         );
     }
 
@@ -58,6 +59,11 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     private float getRange(int spellLevel, LivingEntity entity) {
         // todo:バランス調整.
         return 12;
+    }
+
+    private float getBurnItemPerSecond(int spellLevel, LivingEntity entity) {
+        // todo:バランス調整.
+        return 8;
     }
 
     @Override
@@ -100,6 +106,7 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
         var summonWeapon = new ThermalProcessThrowerEntity(EntityRegistry.THERMAL_PROCESS_THROWER.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange(spellLevel, entity));
+        summonWeapon.setBurnItemPerSecond(getBurnItemPerSecond(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
