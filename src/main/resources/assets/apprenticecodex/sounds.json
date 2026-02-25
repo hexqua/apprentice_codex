@@ -124,5 +124,11 @@
     "sounds": [
       "apprenticecodex:slash_drain"
     ]
+  },
+  "terrain": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:terrain"
+    ]
   }
 }
