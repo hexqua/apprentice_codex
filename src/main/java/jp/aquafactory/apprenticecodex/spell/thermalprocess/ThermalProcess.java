@@ -31,7 +31,7 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.FIRE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(8)
+            .setCooldownSeconds(12)
             .build();
 
     public ThermalProcess() {
@@ -53,18 +53,15 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整(デバフメインなのでダメージは控えめ前提)
         return 0.5f + getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private float getRange(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 12;
+        return 4f + 4f * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     private float getBurnItemPerSecond(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 8;
+        return 4 * getSpellPower(spellLevel, entity) / 100.0f;
     }
 
     @Override
