@@ -44,6 +44,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(3)
             .setCooldownSeconds(8)
+            .setAllowCrafting(false)
             .build();
 
     public MoonLight() {
@@ -60,7 +61,8 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.apprenticecodex.required_full_charge_time", Utils.timeFromTicks(getRequiredChargeTime(spellLevel, caster), 1)),
-                Component.translatable("ui.apprenticecodex.full_charge_power", getFullPowerRate(spellLevel, caster))
+                Component.translatable("ui.apprenticecodex.full_charge_power", getFullPowerRate(spellLevel, caster)),
+                Component.literal("W.I.P.")
         );
     }
 
