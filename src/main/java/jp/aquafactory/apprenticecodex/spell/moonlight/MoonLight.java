@@ -3,18 +3,31 @@ package jp.aquafactory.apprenticecodex.spell.moonlight;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 
-public class MoonLight extends AbstractSpell {
+public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> {
+    private static final int MINIMUM_SLASH_CANCEL_TICK = 40;
+
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "moon_light");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -25,6 +38,7 @@ public class MoonLight extends AbstractSpell {
             .build();
 
     public MoonLight() {
+        super(MoonLightKatanaEntity.class);
         baseSpellPower = 800;
         spellPowerPerLevel = 600;
         baseManaCost = 30;
@@ -32,14 +46,23 @@ public class MoonLight extends AbstractSpell {
         castTime = 200;
     }
 
-    private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
-        return 10f;
+    @Override
+    public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
+        return List.of(
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2))
+        );
     }
 
-    private double getRange(){
-        // todo:バランス調整.
-        return 16;
+    private float getDamage(int spellLevel, LivingEntity entity) {
+        return getSpellPower(spellLevel, entity) / 100.0f;
+    }
+
+    private int getCurrentCastDurationTicks(@Nullable MagicData playerMagicData) {
+        if (playerMagicData == null) {
+            return 0;
+        }
+
+        return Math.max(0, playerMagicData.getCastDuration() - playerMagicData.getCastDurationRemaining());
     }
 
     @Override
@@ -50,6 +73,16 @@ public class MoonLight extends AbstractSpell {
     @Override
     public DefaultConfig getDefaultConfig() {
         return config;
+    }
+
+    @Override
+    public boolean canBeInterrupted(@Nullable Player player) {
+        return false;
+    }
+
+    @Override
+    public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
+        return getCastTime(spellLevel);
     }
 
     @Override
@@ -69,17 +102,36 @@ public class MoonLight extends AbstractSpell {
 
     @Override
     public AnimationHolder getCastStartAnimation() {
-        return AnimationHolder.none();
+        return SpellAnimations.ANIMATION_CONTINUOUS_CAST_ONE_HANDED;
     }
 
     @Override
     public AnimationHolder getCastFinishAnimation() {
-        return SpellAnimations.ANIMATION_INSTANT_CAST;
+        return AnimationHolder.none();
     }
 
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        // todo:実装.
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    public MoonLightKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new MoonLightKatanaEntity(EntityRegistry.MOON_LIGHT_KATANA.get(), level, entity);
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        level.addFreshEntity(summonWeapon);
+        return summonWeapon;
+    }
+
+    @Override
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull MoonLightKatanaEntity weapon) {
+        if (!weapon.isStandby()) {
+            weapon.setStandby();
+        }
+    }
+
+    @Override
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull MoonLightKatanaEntity weapon) {
+        if (cancelled && getCurrentCastDurationTicks(playerMagicData) < MINIMUM_SLASH_CANCEL_TICK) {
+            return CompleteCastTypes.RELEASE_WEAPON;
+        }
+
+        weapon.slash(level);
+        return CompleteCastTypes.KEEP_WEAPON;
     }
 }

@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntit
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
+import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
@@ -129,6 +130,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<SlashBladeKatanaEntity>> SLASH_BLADE_KATANA =
             regWeapon("slash_blade_katana", SlashBladeKatanaEntity::new, 1);
+
+    public static final RegistryObject<EntityType<MoonLightKatanaEntity>> MOON_LIGHT_KATANA =
+            regWeapon("moon_light_katana", MoonLightKatanaEntity::new, 1);
 
     public static final RegistryObject<EntityType<HiganbanaKatanaEntity>> HIGANBANA_KATANA =
             regWeapon("higanbana_katana", HiganbanaKatanaEntity::new, 1);
