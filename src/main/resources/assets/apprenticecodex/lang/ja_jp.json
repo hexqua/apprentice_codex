@@ -110,6 +110,8 @@
   "ui.apprenticecodex.maximum_thrust_charge_time": "最大チャージまでの時間: %s",
   "ui.apprenticecodex.maximum_thrust_charge_rate": "最大チャージ時倍率: %d%%",
   "ui.apprenticecodex.furnace_item_per_second": "1秒間に処理できるアイテム数: %d",
+  "ui.apprenticecodex.required_full_charge_time": "チャージ完了までの時間: %s",
+  "ui.apprenticecodex.full_charge_power": "フルパワー倍率: %d%%",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",

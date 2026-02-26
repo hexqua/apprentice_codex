@@ -41,6 +41,10 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
             SynchedEntityData.defineId(MoonLightKatanaEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> ANIMATION_SPEED =
             SynchedEntityData.defineId(MoonLightKatanaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> CHARGING_EFFECT_ACTIVE =
+            SynchedEntityData.defineId(MoonLightKatanaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> FULLY_CHARGED_EFFECT =
+            SynchedEntityData.defineId(MoonLightKatanaEntity.class, EntityDataSerializers.BOOLEAN);
 
     public static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
     public static final RawAnimation ANIM_TO_STANDBY = RawAnimation.begin().thenPlayAndHold("to_standby");
@@ -65,6 +69,8 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
     protected void defineSynchedData() {
         entityData.define(SHOW_TRAIL, false);
         entityData.define(ANIMATION_SPEED, 1.0f);
+        entityData.define(CHARGING_EFFECT_ACTIVE, false);
+        entityData.define(FULLY_CHARGED_EFFECT, false);
     }
 
     @Override
@@ -126,6 +132,8 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
         triggerAnim("main", "quickdraw");
         entityData.set(ANIMATION_SPEED, 4f);
         entityData.set(SHOW_TRAIL, true);
+        entityData.set(CHARGING_EFFECT_ACTIVE, false);
+        entityData.set(FULLY_CHARGED_EFFECT, false);
         lifeTick = STAY_SLASHED_TICK;
         isSlashed = true;
 
@@ -147,6 +155,22 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     public void setDamage(float damage) {
         this.damage = damage;
+    }
+
+    public void setChargingEffectActive(boolean active) {
+        entityData.set(CHARGING_EFFECT_ACTIVE, active);
+    }
+
+    public boolean isChargingEffectActive() {
+        return entityData.get(CHARGING_EFFECT_ACTIVE);
+    }
+
+    public void setFullyChargedEffect(boolean fullyCharged) {
+        entityData.set(FULLY_CHARGED_EFFECT, fullyCharged);
+    }
+
+    public boolean isFullyChargedEffect() {
+        return entityData.get(FULLY_CHARGED_EFFECT);
     }
 
     @Override

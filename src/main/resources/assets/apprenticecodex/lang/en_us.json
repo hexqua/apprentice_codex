@@ -110,6 +110,8 @@
   "ui.apprenticecodex.maximum_thrust_charge_time": "Maximum Charge Time: %s",
   "ui.apprenticecodex.maximum_thrust_charge_rate": "Maximum Charge Rate: %d%%",
   "ui.apprenticecodex.furnace_item_per_second": "Items processed per second: %d",
+  "ui.apprenticecodex.required_full_charge_time": "Required Full Charge Time: %s",
+  "ui.apprenticecodex.full_charge_power": "Full Charge Power: %d%%",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
