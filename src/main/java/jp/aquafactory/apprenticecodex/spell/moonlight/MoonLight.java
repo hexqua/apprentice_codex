@@ -8,8 +8,6 @@ import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
-import io.redspace.ironsspellbooks.entity.spells.magic_arrow.MagicArrowProjectile;
-import io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
@@ -177,7 +175,6 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         if (castDurationTicks < requiredChargeTime) {
             weapon.setDamage(getDamage(spellLevel, entity));
             weapon.slash(level);
-            launchMagicMissile(level, entity, spellLevel);
             consumeManaWithFloor(playerMagicData, NORMAL_CHARGE_MANA_COST);
             return CompleteCastTypes.KEEP_WEAPON;
         }
@@ -185,7 +182,6 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         var fullPowerRate = getFullPowerRate(spellLevel, entity) / 100.0f;
         weapon.setDamage(getDamage(spellLevel, entity) * fullPowerRate);
         weapon.slash(level);
-        launchMagicArrow(level, entity, spellLevel);
         setManaWithFloor(playerMagicData, 0.0f);
         return CompleteCastTypes.KEEP_WEAPON;
     }
@@ -227,24 +223,6 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         }
 
         level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), soundEvent, SoundSource.PLAYERS, volume, pitch);
-    }
-
-    private void launchMagicMissile(Level level, LivingEntity entity, int spellLevel) {
-        var projectile = new MagicMissileProjectile(level, entity);
-        var spawnPosition = entity.getEyePosition().add(0.0D, -projectile.getBoundingBox().getYsize() * 0.5D, 0.0D);
-        projectile.setPos(spawnPosition);
-        projectile.shoot(entity.getLookAngle());
-        projectile.setDamage(getDamage(spellLevel, entity));
-        level.addFreshEntity(projectile);
-    }
-
-    private void launchMagicArrow(Level level, LivingEntity entity, int spellLevel) {
-        var projectile = new MagicArrowProjectile(level, entity);
-        var spawnPosition = entity.getEyePosition().add(entity.getViewVector(1.0f));
-        projectile.setPos(spawnPosition);
-        projectile.shoot(entity.getLookAngle());
-        projectile.setDamage(getDamage(spellLevel, entity));
-        level.addFreshEntity(projectile);
     }
 
     private void consumeManaWithFloor(@Nullable MagicData playerMagicData, float consumeAmount) {
