@@ -59,7 +59,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANTIS_LEAP,
                 PHALANX_CHARGE,
                 HIGANBANA,
-                THERMAL_PROCESS
+                THERMAL_PROCESS,
+                MOON_LIGHT
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -68,7 +69,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ARCANE_BLAST,
                 COMPOUND_PHIAL,
                 GRACED_RAIN,
-                HIGANBANA
+                HIGANBANA,
+                MOON_LIGHT
         );
 
         // FIRE_DAMAGE: 火炎耐性有効.
@@ -87,7 +89,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 WORLD_FLATTER,
                 SLASH_BLADE,
                 MANTIS_LEAP,
-                HIGANBANA
+                HIGANBANA,
+                MOON_LIGHT
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -111,7 +114,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANTIS_LEAP,
                 PHALANX_CHARGE,
                 HIGANBANA,
-                THERMAL_PROCESS
+                THERMAL_PROCESS,
+                MOON_LIGHT
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

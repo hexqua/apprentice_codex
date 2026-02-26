@@ -36,6 +36,7 @@
   "entity.apprenticecodex.phalanx_weaponry" : "ファランクスウェポン",
   "entity.apprenticecodex.higanbana_katana" : "妖刀『彼岸花』",
   "entity.apprenticecodex.thermal_process_thrower" : "マジックスロワー",
+  "entity.apprenticecodex.moon_light_katana" : "魔刀『月光』",
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
@@ -66,6 +67,7 @@
   "spell.apprenticecodex.higanbana": "彼岸花",
   "spell.apprenticecodex.thermal_process": "サーマルプロセス",
   "spell.apprenticecodex.earth_forge": "アースフォージ",
+  "spell.apprenticecodex.moon_light": "月光",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -92,6 +94,7 @@
   "spell.apprenticecodex.higanbana.guide": "呪力を持つ魔法の刀を召喚する。続いて使用することで連撃を放てる。威力は低いが与えたダメージの100％を回復する。",
   "spell.apprenticecodex.thermal_process.guide": "魔法の火炎放射器を召喚し視線の先を焼き切る。対象を熱し続けることで強力な熱効果を与える。燃やせるアイテムに照射すると処理することができる。周囲や無関係なものを燃やすことはない。",
   "spell.apprenticecodex.earth_forge.guide": "視線先に土ブロックを平面に生成する。スニークをしていると範囲を1ブロックのみに変化させる。",
+  "spell.apprenticecodex.moon_light.guide": "世界の理の外から刀を召喚して一閃する。一閃した刀の魔力は空間を鋭く深く裂く。発動が阻止されることはない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -107,6 +110,8 @@
   "ui.apprenticecodex.maximum_thrust_charge_time": "最大チャージまでの時間: %s",
   "ui.apprenticecodex.maximum_thrust_charge_rate": "最大チャージ時倍率: %d%%",
   "ui.apprenticecodex.furnace_item_per_second": "1秒間に処理できるアイテム数: %d",
+  "ui.apprenticecodex.required_full_charge_time": "チャージ完了までの時間: %s",
+  "ui.apprenticecodex.full_charge_power": "フルパワー倍率: %d%%",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -148,6 +153,7 @@
   "death.attack.apprenticecodex.phalanx_charge": "%1$sは%2$sの裁きを受けた",
   "death.attack.apprenticecodex.higanbana": "%1$sは%2$sの案内で三途の川を渡った",
   "death.attack.apprenticecodex.thermal_process": "%1$sは%2$sによって汚物として消毒された",
+  "death.attack.apprenticecodex.moon_light": "%1$sは%2$sによって存在を消された",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
