@@ -23,6 +23,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +68,11 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
     private float getDamage(int spellLevel, LivingEntity entity) {
         // todo:バランス調整.
         return getSpellPower(spellLevel, entity) / 100.0f;
+    }
+
+    private double getDistance(int spellLevel, LivingEntity entity){
+        // todo:バランス調整.
+        return 24.0;
     }
 
     private int getRequiredChargeTime(int spellLevel, LivingEntity caster) {
@@ -173,8 +179,10 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         }
 
         if (castDurationTicks < requiredChargeTime) {
-            weapon.setDamage(getDamage(spellLevel, entity));
+            var normalChargeDamage = getDamage(spellLevel, entity);
+            weapon.setDamage(normalChargeDamage);
             weapon.slash(level);
+            spawnNormalChargeCut(level, spellLevel, entity, normalChargeDamage);
             consumeManaWithFloor(playerMagicData, NORMAL_CHARGE_MANA_COST);
             return CompleteCastTypes.KEEP_WEAPON;
         }
@@ -184,6 +192,26 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         weapon.slash(level);
         setManaWithFloor(playerMagicData, 0.0f);
         return CompleteCastTypes.KEEP_WEAPON;
+    }
+
+    private void spawnNormalChargeCut(Level level, int spellLevel, LivingEntity caster, float damage) {
+        if (level.isClientSide) {
+            return;
+        }
+
+        var direction = caster.getLookAngle().multiply(1.0, 0.0, 1.0);
+        if (direction.lengthSqr() < 1.0e-6) {
+            direction = Vec3.directionFromRotation(0.0f, caster.getYRot());
+        }
+        direction = direction.normalize();
+
+        var startPosition = caster.position().add(direction.scale(MoonLightChargeCutEntity.START_OFFSET_BLOCKS));
+        var cutArea = new MoonLightChargeCutEntity(EntityRegistry.MOON_LIGHT_CHARGE_CUT.get(), level, caster);
+        cutArea.setPos(startPosition.x, caster.getY(), startPosition.z);
+        cutArea.setYRot(caster.getYRot());
+        cutArea.setXRot(0.0f);
+        cutArea.setup((float) getDistance(spellLevel, caster), damage);
+        level.addFreshEntity(cutArea);
     }
 
     private void onCastTimedOut(Level level, LivingEntity entity, @Nullable MagicData playerMagicData) {
