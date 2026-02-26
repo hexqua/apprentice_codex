@@ -43,7 +43,7 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
             SynchedEntityData.defineId(MoonLightKatanaEntity.class, EntityDataSerializers.FLOAT);
 
     public static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenPlayAndHold("idle");
-    public static final RawAnimation ANIM_TO_STANDBY = RawAnimation.begin().thenPlayAndHold("idle");
+    public static final RawAnimation ANIM_TO_STANDBY = RawAnimation.begin().thenPlayAndHold("to_standby");
     public static final RawAnimation ANIM_QUICKDRAW = RawAnimation.begin().thenPlayAndHold("quickdraw");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -113,7 +113,7 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     public void setStandby() {
         triggerAnim("main", "standby");
-        entityData.set(ANIMATION_SPEED, 1.0f);
+        entityData.set(ANIMATION_SPEED, 1.5f);
         entityData.set(SHOW_TRAIL, false);
         isStandby = true;
     }
@@ -124,7 +124,7 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
 
     public void slash(Level level) {
         triggerAnim("main", "quickdraw");
-        entityData.set(ANIMATION_SPEED, 7.5f);
+        entityData.set(ANIMATION_SPEED, 4f);
         entityData.set(SHOW_TRAIL, true);
         lifeTick = STAY_SLASHED_TICK;
         isSlashed = true;

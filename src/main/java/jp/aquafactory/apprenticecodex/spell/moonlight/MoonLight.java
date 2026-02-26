@@ -27,6 +27,7 @@ import java.util.Optional;
 
 public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> {
     private static final int MINIMUM_SLASH_CANCEL_TICK = 40;
+    private static final int STANDBY_START_DELAY_TICK = 10;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "moon_light");
 
@@ -120,7 +121,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull MoonLightKatanaEntity weapon) {
-        if (!weapon.isStandby()) {
+        if (!weapon.isStandby() && weapon.tickCount >= STANDBY_START_DELAY_TICK) {
             weapon.setStandby();
         }
     }
