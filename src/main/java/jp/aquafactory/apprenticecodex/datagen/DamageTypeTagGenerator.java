@@ -6,6 +6,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -35,6 +36,14 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
             Registries.DAMAGE_TYPE,
             ResourceLocation.fromNamespaceAndPath("malum", "can_soul_shatter")
     );
+
+    @SafeVarargs
+    private void addTagLinks(TagKey<DamageType> target, TagKey<DamageType>... sources) {
+        var appender = tag(target);
+        for (var source : sources) {
+            appender.addTag(source);
+        }
+    }
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider pProvider) {
@@ -125,5 +134,16 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC);
+
+        // バニラダメージタイプタグ.
+        addTagLinks(DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS, EXPLOSIONS);
+        addTagLinks(DamageTypeTags.AVOIDS_GUARDIAN_THORNS, RANGED_ATTACK, EXPLOSIONS);
+        addTagLinks(DamageTypeTags.BYPASSES_ARMOR, MAGIC_DAMAGE);
+        addTagLinks(DamageTypeTags.BYPASSES_COOLDOWN, BYPASSES_IFRAME);
+        addTagLinks(DamageTypeTags.BYPASSES_SHIELD, MAGIC_DAMAGE);
+        addTagLinks(DamageTypeTags.IGNITES_ARMOR_STANDS, FIRE_DAMAGE);
+        addTagLinks(DamageTypeTags.IS_EXPLOSION, EXPLOSIONS);
+        addTagLinks(DamageTypeTags.IS_FIRE, FIRE_DAMAGE);
+        addTagLinks(DamageTypeTags.WITCH_RESISTANT_TO, MAGIC_DAMAGE);
     }
 }
