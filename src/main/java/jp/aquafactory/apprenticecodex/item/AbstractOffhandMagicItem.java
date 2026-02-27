@@ -121,6 +121,10 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
                 .replaceAll("[^a-z0-9._-]", "_");
     }
 
+    // `bonus` ヘルパーは属性参照の受け取り方ごとにオーバーロードしている.
+    // 将来のアイテムで属性の持ち方が異なっても同じ書き味で定義できるようにしている.
+
+    // Forge の RegistryObject や Deferred 登録由来の Supplier をそのまま渡す用途.
     protected static AttributeBonus bonus(
             Supplier<? extends Attribute> attributeSupplier,
             double amount,
@@ -129,6 +133,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return new AttributeBonus(attributeSupplier, amount, operation, null);
     }
 
+    // 既に Attribute 実体を持っているケース向け.
     protected static AttributeBonus bonus(
             Attribute attribute,
             double amount,
@@ -137,6 +142,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return new AttributeBonus(() -> attribute, amount, operation, null);
     }
 
+    // バニラの Attributes.* のような Holder 経由の属性指定向け.
     protected static AttributeBonus bonus(
             Holder<Attribute> attributeHolder,
             double amount,
@@ -145,6 +151,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return new AttributeBonus(attributeHolder::value, amount, operation, null);
     }
 
+    // 属性名の解決が不安定なケースで、UUID シード用キーを明示したい場合の Supplier 版.
     protected static AttributeBonus bonus(
             Supplier<? extends Attribute> attributeSupplier,
             double amount,
@@ -154,6 +161,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return new AttributeBonus(attributeSupplier, amount, operation, key);
     }
 
+    // 属性名の解決が不安定なケースで、UUID シード用キーを明示したい場合の Holder 版.
     protected static AttributeBonus bonus(
             Holder<Attribute> attributeHolder,
             double amount,
@@ -163,6 +171,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return new AttributeBonus(attributeHolder::value, amount, operation, key);
     }
 
+    // 属性名の解決が不安定なケースで、UUID シード用キーを明示したい場合の Attribute 実体版.
     protected static AttributeBonus bonus(
             Attribute attribute,
             double amount,
@@ -172,6 +181,8 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return new AttributeBonus(() -> attribute, amount, operation, key);
     }
 
+    // `key` は UUID 生成のシードに使う任意識別子.
+    // null の場合は属性の登録キーを優先して使用する.
     protected record AttributeBonus(
             Supplier<? extends Attribute> attributeSupplier,
             double amount,
