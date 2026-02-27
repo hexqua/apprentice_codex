@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.recipe.condition;
 
 import com.google.gson.JsonObject;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.crafting.conditions.ICondition;
 import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
@@ -22,7 +22,7 @@ public final class ApprenticeDeskRecipeEnabledCondition implements ICondition {
 
     @Override
     public boolean test(IContext context) {
-        return !ApprenticeCodexServerConfig.disableApprenticeDeskRecipe();
+        return !ApprenticeCodexCommonConfig.disableApprenticeDeskRecipe();
     }
 
     public static final class Serializer implements IConditionSerializer<ApprenticeDeskRecipeEnabledCondition> {
