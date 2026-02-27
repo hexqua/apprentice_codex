@@ -72,7 +72,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
 
     private double getDistance(int spellLevel, LivingEntity entity){
         // todo:バランス調整.
-        return 24.0;
+        return 8.0;
     }
 
     private int getRequiredChargeTime(int spellLevel, LivingEntity caster) {
@@ -199,17 +199,19 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
             return;
         }
 
-        var direction = caster.getLookAngle().multiply(1.0, 0.0, 1.0);
+        var direction = caster.getLookAngle();
         if (direction.lengthSqr() < 1.0e-6) {
-            direction = Vec3.directionFromRotation(0.0f, caster.getYRot());
+            direction = Vec3.directionFromRotation(caster.getXRot(), caster.getYRot());
         }
         direction = direction.normalize();
 
-        var startPosition = caster.position().add(direction.scale(MoonLightChargeCutEntity.START_OFFSET_BLOCKS));
+        var startPosition = caster.position().add(direction.scale(
+                MoonLightChargeCutEntity.START_OFFSET_BLOCKS + MoonLightChargeCutEntity.SURFACE_OFFSET_BLOCKS
+        ));
         var cutArea = new MoonLightChargeCutEntity(EntityRegistry.MOON_LIGHT_CHARGE_CUT.get(), level, caster);
-        cutArea.setPos(startPosition.x, caster.getY(), startPosition.z);
+        cutArea.setPos(startPosition.x, startPosition.y, startPosition.z);
         cutArea.setYRot(caster.getYRot());
-        cutArea.setXRot(0.0f);
+        cutArea.setXRot(caster.getXRot());
         cutArea.setup((float) getDistance(spellLevel, caster), damage);
         level.addFreshEntity(cutArea);
     }
@@ -280,3 +282,4 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         playerMagicData.setMana(Math.max(0.0f, mana));
     }
 }
+

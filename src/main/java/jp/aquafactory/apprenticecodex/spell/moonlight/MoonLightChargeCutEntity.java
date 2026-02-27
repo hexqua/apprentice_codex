@@ -23,12 +23,17 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MoonLightChargeCutEntity extends Entity implements TraceableEntity {
-    public static final int PROCESS_START_DELAY_TICKS = 10;
-    public static final int PROCESS_DURATION_TICKS = 20;
+    public static final int PROCESS_START_DELAY_TICKS = 5;
+    public static final int PROCESS_DURATION_TICKS = 15;
     public static final float START_OFFSET_BLOCKS = 2.0f;
-    public static final float AREA_WIDTH_BLOCKS = 0.5f;
-    public static final float AREA_HEIGHT_BLOCKS = 2.0f;
-    public static final float AREA_HALF_WIDTH_BLOCKS = AREA_WIDTH_BLOCKS * 0.5f;
+    public static final float SURFACE_OFFSET_BLOCKS = 0.02f;
+    public static final float DAMAGE_WIDTH_BLOCKS = 0.9f;
+    public static final float DAMAGE_HALF_WIDTH_BLOCKS = DAMAGE_WIDTH_BLOCKS * 0.5f;
+    public static final float AREA_HEIGHT_BLOCKS = 4.0f;
+    public static final float VISUAL_NEAR_WIDTH_BLOCKS = 0.16f;
+    public static final float VISUAL_NEAR_HALF_WIDTH_BLOCKS = VISUAL_NEAR_WIDTH_BLOCKS * 0.5f;
+    public static final float VISUAL_FAR_WIDTH_BLOCKS = 0.62f;
+    public static final float VISUAL_FAR_HALF_WIDTH_BLOCKS = VISUAL_FAR_WIDTH_BLOCKS * 0.5f;
     public static final float V_NOTCH_ANGLE_DEGREES = 30.0f;
     public static final float MIN_NOTCH_DEPTH = 0.05f;
     public static final float MAX_NOTCH_DEPTH = 4.0f;
@@ -94,17 +99,29 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
             return;
         }
 
-        var processSpeed = maxDistance / Math.max(1, PROCESS_DURATION_TICKS);
+        var elapsedTicks = tickCount - PROCESS_START_DELAY_TICKS;
+        var normalizedProgress = Mth.clamp(
+                elapsedTicks / (float) Math.max(1, PROCESS_DURATION_TICKS),
+                0.0f,
+                1.0f
+        );
+        var easedProgress = easeOutCubic(normalizedProgress);
         var currentDistance = getProcessedDistance();
-        var nextDistance = Math.min(maxDistance, currentDistance + processSpeed);
+        var nextDistance = Math.min(maxDistance, maxDistance * easedProgress);
         if (nextDistance > currentDistance) {
             applyDamageAlongSegment(level, livingOwner, currentDistance, nextDistance);
             setProcessedDistance(nextDistance);
         }
 
-        if (nextDistance >= maxDistance) {
+        if (normalizedProgress >= 1.0f || nextDistance >= maxDistance) {
             discard();
         }
+    }
+
+    private static float easeOutCubic(float value) {
+        var t = Mth.clamp(value, 0.0f, 1.0f);
+        var inverse = 1.0f - t;
+        return 1.0f - inverse * inverse * inverse;
     }
 
     private void applyDamageAlongSegment(Level level, LivingEntity owner, float segmentStart, float segmentEnd) {
@@ -114,12 +131,8 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
 
         var startPos = position();
         var forward = getForwardDirection();
-        var right = new Vec3(-forward.z, 0.0, forward.x);
-        if (right.lengthSqr() < 1.0e-6) {
-            right = new Vec3(1.0, 0.0, 0.0);
-        } else {
-            right = right.normalize();
-        }
+        var right = calculateRightDirection(forward);
+        var up = calculateUpDirection(forward, right);
 
         var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.MOON_LIGHT);
         var school = SpellRegistry.MOON_LIGHT.get().getSchoolType();
@@ -133,7 +146,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
         );
 
         for (var target : candidates) {
-            if (!isInsideSegment(target.getBoundingBox(), startPos, forward, right, segmentStart, segmentEnd)) {
+            if (!isInsideSegment(target.getBoundingBox(), startPos, forward, right, up, segmentStart, segmentEnd)) {
                 continue;
             }
 
@@ -142,28 +155,30 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
         }
     }
 
-    private boolean isInsideSegment(AABB box, Vec3 startPos, Vec3 forward, Vec3 right, double segmentStart, double segmentEnd) {
-        var baseY = startPos.y;
-        if (box.maxY < baseY || box.minY > baseY + AREA_HEIGHT_BLOCKS) {
-            return false;
-        }
-
+    private boolean isInsideSegment(AABB box, Vec3 startPos, Vec3 forward, Vec3 right, Vec3 up, double segmentStart, double segmentEnd) {
         var forwardProjection = projectAabbToAxis(box, forward);
         var rightProjection = projectAabbToAxis(box, right);
+        var upProjection = projectAabbToAxis(box, up);
         var startForwardProjection = startPos.dot(forward);
         var startRightProjection = startPos.dot(right);
+        var startUpProjection = startPos.dot(up);
         var minForward = forwardProjection.min() - startForwardProjection;
         var maxForward = forwardProjection.max() - startForwardProjection;
         var minRight = rightProjection.min() - startRightProjection;
         var maxRight = rightProjection.max() - startRightProjection;
+        var minUp = upProjection.min() - startUpProjection;
+        var maxUp = upProjection.max() - startUpProjection;
 
         var expandedStart = segmentStart - SEGMENT_MARGIN_BLOCKS;
         var expandedEnd = segmentEnd + SEGMENT_MARGIN_BLOCKS;
         if (maxForward < expandedStart || minForward > expandedEnd) {
             return false;
         }
+        if (maxUp < -SEGMENT_MARGIN_BLOCKS || minUp > AREA_HEIGHT_BLOCKS + SEGMENT_MARGIN_BLOCKS) {
+            return false;
+        }
 
-        return maxRight >= -AREA_HALF_WIDTH_BLOCKS && minRight <= AREA_HALF_WIDTH_BLOCKS;
+        return maxRight >= -DAMAGE_HALF_WIDTH_BLOCKS && minRight <= DAMAGE_HALF_WIDTH_BLOCKS;
     }
 
     private ProjectionRange projectAabbToAxis(AABB box, Vec3 axis) {
@@ -177,40 +192,46 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
     }
 
     private Vec3 getForwardDirection() {
-        var direction = Vec3.directionFromRotation(0.0f, getYRot());
+        var direction = Vec3.directionFromRotation(getXRot(), getYRot());
         if (direction.lengthSqr() < 1.0e-6) {
             return new Vec3(0.0, 0.0, 1.0);
         }
         return direction.normalize();
     }
 
-    private void spawnPortalParticlesClient(Level level) {
-        var forward = getForwardDirection();
-        var right = new Vec3(-forward.z, 0.0, forward.x);
+    private static Vec3 calculateRightDirection(Vec3 forward) {
+        // forward と worldUp が平行に近いケースで不安定化するためフォールバックを持つ。
+        var right = new Vec3(0.0, 1.0, 0.0).cross(forward);
         if (right.lengthSqr() < 1.0e-6) {
             right = new Vec3(1.0, 0.0, 0.0);
-        } else {
-            right = right.normalize();
         }
+        return right.normalize();
+    }
+
+    private static Vec3 calculateUpDirection(Vec3 forward, Vec3 right) {
+        var up = forward.cross(right);
+        if (up.lengthSqr() < 1.0e-6) {
+            up = new Vec3(0.0, 1.0, 0.0);
+        }
+        return up.normalize();
+    }
+
+    private void spawnPortalParticlesClient(Level level) {
+        var forward = getForwardDirection();
+        var right = calculateRightDirection(forward);
+        var up = calculateUpDirection(forward, right);
 
         var frontCenter = position().add(forward.scale(getProcessedDistance()));
         var notchDepth = getNotchDepth();
         var frontDepthOffset = forward.scale(-notchDepth);
-        var topY = position().y + AREA_HEIGHT_BLOCKS;
-        var bottomY = position().y;
+        var topOffset = up.scale(AREA_HEIGHT_BLOCKS);
+        var leftOffset = right.scale(-VISUAL_FAR_HALF_WIDTH_BLOCKS);
+        var rightOffset = right.scale(VISUAL_FAR_HALF_WIDTH_BLOCKS);
 
-        var topLeft = new Vec3(
-                frontCenter.x + frontDepthOffset.x - right.x * AREA_HALF_WIDTH_BLOCKS,
-                topY,
-                frontCenter.z + frontDepthOffset.z - right.z * AREA_HALF_WIDTH_BLOCKS
-        );
-        var topRight = new Vec3(
-                frontCenter.x + frontDepthOffset.x + right.x * AREA_HALF_WIDTH_BLOCKS,
-                topY,
-                frontCenter.z + frontDepthOffset.z + right.z * AREA_HALF_WIDTH_BLOCKS
-        );
-        var bottomLeft = new Vec3(topLeft.x, bottomY, topLeft.z);
-        var bottomRight = new Vec3(topRight.x, bottomY, topRight.z);
+        var bottomLeft = frontCenter.add(frontDepthOffset).add(leftOffset);
+        var bottomRight = frontCenter.add(frontDepthOffset).add(rightOffset);
+        var topLeft = bottomLeft.add(topOffset);
+        var topRight = bottomRight.add(topOffset);
 
         spawnPortalEmitter(level, topLeft, forward, 0.025, 0.015);
         spawnPortalEmitter(level, topRight, forward, 0.025, 0.015);
@@ -245,7 +266,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
         if (tanHalf <= 1.0e-4f) {
             return MIN_NOTCH_DEPTH;
         }
-        return Mth.clamp(AREA_HALF_WIDTH_BLOCKS / tanHalf, MIN_NOTCH_DEPTH, MAX_NOTCH_DEPTH);
+        return Mth.clamp(VISUAL_FAR_HALF_WIDTH_BLOCKS / tanHalf, MIN_NOTCH_DEPTH, MAX_NOTCH_DEPTH);
     }
 
     @Override
@@ -272,17 +293,48 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
     @Override
     public @NotNull AABB getBoundingBoxForCulling() {
         var direction = getForwardDirection();
+        var right = calculateRightDirection(direction);
+        var up = calculateUpDirection(direction, right);
         var start = position();
-        var end = start.add(direction.scale(getDistanceBlocks()));
-        var horizontalBounds = new AABB(start, end).inflate(AREA_HALF_WIDTH_BLOCKS + 0.2, 0.0, AREA_HALF_WIDTH_BLOCKS + 0.2);
-        return new AABB(
-                horizontalBounds.minX,
-                start.y,
-                horizontalBounds.minZ,
-                horizontalBounds.maxX,
-                start.y + AREA_HEIGHT_BLOCKS,
-                horizontalBounds.maxZ
-        );
+        var horizontalHalfWidth = Math.max(VISUAL_FAR_HALF_WIDTH_BLOCKS, DAMAGE_HALF_WIDTH_BLOCKS);
+        return createOrientedBounds(
+                start,
+                direction,
+                right,
+                up,
+                getDistanceBlocks(),
+                horizontalHalfWidth,
+                AREA_HEIGHT_BLOCKS
+        ).inflate(0.2);
+    }
+
+    private static AABB createOrientedBounds(Vec3 start, Vec3 forward, Vec3 right, Vec3 up,
+                                             float distance, float halfWidth, float height) {
+        var minX = Double.POSITIVE_INFINITY;
+        var minY = Double.POSITIVE_INFINITY;
+        var minZ = Double.POSITIVE_INFINITY;
+        var maxX = Double.NEGATIVE_INFINITY;
+        var maxY = Double.NEGATIVE_INFINITY;
+        var maxZ = Double.NEGATIVE_INFINITY;
+
+        for (var forwardLength : new double[]{0.0, distance}) {
+            for (var side : new double[]{-halfWidth, halfWidth}) {
+                for (var vertical : new double[]{0.0, height}) {
+                    var point = start
+                            .add(forward.scale(forwardLength))
+                            .add(right.scale(side))
+                            .add(up.scale(vertical));
+                    minX = Math.min(minX, point.x);
+                    minY = Math.min(minY, point.y);
+                    minZ = Math.min(minZ, point.z);
+                    maxX = Math.max(maxX, point.x);
+                    maxY = Math.max(maxY, point.y);
+                    maxZ = Math.max(maxZ, point.z);
+                }
+            }
+        }
+
+        return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     public void setup(float distanceBlocks, float damage) {
