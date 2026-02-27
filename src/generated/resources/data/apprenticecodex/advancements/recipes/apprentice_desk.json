@@ -1,11 +1,6 @@
 {
   "advancements": [
     {
-      "conditions": [
-        {
-          "type": "apprenticecodex:apprentice_desk_recipe_enabled"
-        }
-      ],
       "advancement": {
         "parent": "minecraft:recipes/root",
         "criteria": {
@@ -40,7 +35,12 @@
           ]
         },
         "sends_telemetry_event": false
-      }
+      },
+      "conditions": [
+        {
+          "type": "apprenticecodex:apprentice_desk_recipe_enabled"
+        }
+      ]
     }
   ]
 }

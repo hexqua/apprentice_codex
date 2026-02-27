@@ -21,6 +21,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     }
 
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
+    private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
+    private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
+    private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
@@ -37,8 +40,16 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         tag(IRONS_STAFF).add(ItemRegistry.PASTEL_STAFF.get());
+        tag(IRONS_UPGRADE_WHITELIST).add(ItemRegistry.ENDER_GRIMOIRE.get());
+        tag(CURIOS_SPELLBOOK).add(ItemRegistry.ENDER_GRIMOIRE.get());
         tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
         tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
+
+        // 指輪.
+        tag(CURIOS_RING).add(
+                ItemRegistry.SCARLET_THIRST.get(),
+                ItemRegistry.CRAFTSMANS_DELIGHT.get()
+        );
 
         // 魔法召喚武器はアイテムとして性能を持たずダミーにしか使っていないため、JEIでも表示しないようにする.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
