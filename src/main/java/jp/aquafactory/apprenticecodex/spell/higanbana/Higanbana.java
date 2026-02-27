@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
 import net.minecraft.ChatFormatting;
@@ -58,7 +59,7 @@ public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEn
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = 2 + getSpellPower(spellLevel, entity) / 100.0f;
-        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.HIGANBANA);
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.HIGANBANA);
     }
 
     @Override

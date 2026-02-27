@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.network.chat.Component;
@@ -58,7 +59,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = getSpellPower(spellLevel, entity) / 100.0f;
-        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.MOON_LIGHT);
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MOON_LIGHT);
     }
 
     private double getDistance(int spellLevel, LivingEntity entity) {

@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -62,7 +63,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = 3 * (getSpellPower(spellLevel, entity) / 100.0f);
-        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.COMMENCE_FIRE);
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.COMMENCE_FIRE);
     }
 
     @Override

@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.network.chat.Component;
@@ -55,7 +56,7 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = 0.5f + getSpellPower(spellLevel, entity) / 100.0f;
-        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.THERMAL_PROCESS);
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.THERMAL_PROCESS);
     }
 
     private float getRange(int spellLevel, LivingEntity entity) {

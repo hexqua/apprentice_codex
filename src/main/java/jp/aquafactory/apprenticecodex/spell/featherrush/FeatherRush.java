@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -76,7 +77,7 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         var rawDamage = 1 + 2.5f * getSpellPower(spellLevel, entity) / 100.0f;
-        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.FEATHER_RUSH);
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FEATHER_RUSH);
     }
 
     private int getTargetRpm(int spellLevel, LivingEntity entity) {
