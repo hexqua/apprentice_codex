@@ -24,10 +24,12 @@ import java.util.function.Supplier;
 public abstract class AbstractOffhandMagicItem extends Item implements IPresetSpellContainer {
     private final Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;
+    private final boolean startsWithPresetSpell;
     private final String itemKey;
     private final List<AttributeBonus> offhandBonuses;
     private final Multimap<Attribute, AttributeModifier> offhandModifiers;
 
+    // 既定魔法入りで開始するアイテム向けコンストラクタ.
     protected AbstractOffhandMagicItem(
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
@@ -37,6 +39,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         super(new Item.Properties().stacksTo(1));
         this.configuredSpell = Objects.requireNonNull(configuredSpell);
         this.configuredSpellLevel = configuredSpellLevel;
+        this.startsWithPresetSpell = true;
         this.itemKey = normalizeKeyToken(itemKey);
         this.offhandBonuses = List.copyOf(offhandBonuses);
         this.offhandModifiers = buildOffhandModifiers();
@@ -51,13 +54,39 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         this(configuredSpell, configuredSpellLevel, itemKey, List.of(offhandBonuses));
     }
 
+    // 空スロットで開始し、Imbue による魔法追加だけを受け付けたいアイテム向けコンストラクタ.
+    protected AbstractOffhandMagicItem(
+            String itemKey,
+            List<AttributeBonus> offhandBonuses
+    ) {
+        super(new Item.Properties().stacksTo(1));
+        this.configuredSpell = null;
+        this.configuredSpellLevel = 0;
+        this.startsWithPresetSpell = false;
+        this.itemKey = normalizeKeyToken(itemKey);
+        this.offhandBonuses = List.copyOf(offhandBonuses);
+        this.offhandModifiers = buildOffhandModifiers();
+    }
+
+    protected AbstractOffhandMagicItem(
+            String itemKey,
+            AttributeBonus... offhandBonuses
+    ) {
+        this(itemKey, List.of(offhandBonuses));
+    }
+
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
         if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
-        ISpellContainer.createImbuedContainer(configuredSpell.get(), configuredSpellLevel, itemStack);
+        if (startsWithPresetSpell) {
+            ISpellContainer.createImbuedContainer(configuredSpell.get(), configuredSpellLevel, itemStack);
+            return;
+        }
+
+        ISpellContainer.set(itemStack, ISpellContainer.create(1, true, false));
     }
 
     public SpellData getConfiguredSpellData(ItemStack stack) {
