@@ -56,4 +56,8 @@ public final class ApprenticeCodexServerConfig {
     public static double pastelStaffAmplifyTintedMagicMultiplier() {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
     }
+
+    public static boolean disableApprenticeDeskRecipe() {
+        return ITEMS_CONFIG.disableApprenticeDeskRecipe();
+    }
 }

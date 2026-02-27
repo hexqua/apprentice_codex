@@ -20,6 +20,7 @@ public class ApprenticeCodex
     public ApprenticeCodex(FMLJavaModLoadingContext context) {
         LOGGER.info("Loading {}", NAME);
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
+        RecipeConditionRegistry.register();
 
         var bus = context.getModEventBus();
         SpellRegistry.register(bus);
