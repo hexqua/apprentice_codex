@@ -1,12 +1,14 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
+  "item.apprenticecodex.iron_spell_amplifier": "Iron Spell Amplifier",
+  "item.apprenticecodex.gold_spell_amplifier": "Gold Spell Amplifier",
   "item.apprenticecodex.scarlet_thirst": "Scarlet Thirst",
   "item.apprenticecodex.craftsmans_delight": "Craftsman's Delight",
   "item.apprenticecodex.ender_grimoire": "Ender Grimoire",
   "item.apprenticecodex.grimoire_manifest": "Grimoire Manifest",
   "item.apprenticecodex.pastel_staff": "Pastel Staff",
-  "item.apprenticecodex.empowered_stone": "Empowered Stone",
+  "item.apprenticecodex.photon_siphon": "Photon Siphon",
 
   "item.apprenticecodex.scarlet_thirst.desc": "Converts excess health into mana when mana is low.",
   "item.apprenticecodex.craftsmans_delight.desc": "Improves efficiency and performance of magic buzzsaw and drill.",

@@ -1,12 +1,14 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
+  "item.apprenticecodex.iron_spell_amplifier": "鉄の魔力増幅装置",
+  "item.apprenticecodex.gold_spell_amplifier": "金の魔力増幅装置",
   "item.apprenticecodex.scarlet_thirst": "真紅の渇望",
   "item.apprenticecodex.craftsmans_delight": "職人の歓喜",
   "item.apprenticecodex.ender_grimoire": "エンダーグリモア",
   "item.apprenticecodex.grimoire_manifest": "グリモア目録",
   "item.apprenticecodex.pastel_staff": "パステルスタッフ",
-  "item.apprenticecodex.empowered_stone": "力が込められた石",
+  "item.apprenticecodex.photon_siphon": "フォトンサイフォン",
 
   "item.apprenticecodex.scarlet_thirst.desc": "マナ減少時、余っている体力をマナに変換する",
   "item.apprenticecodex.craftsmans_delight.desc": "魔法の丸鋸やドリルの効率と性能を上昇させる。",
