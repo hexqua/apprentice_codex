@@ -28,8 +28,6 @@ public class MoonLightKatanaRenderer extends GeoEntityRenderer<MoonLightKatanaEn
     private static final String SCABBARD_BOTTOM_BONE = "scabbard_bottom";
     private static final DustParticleOptions CHARGING_PARTICLE =
             new DustParticleOptions(new Vector3f(1.0f, 0.85f, 0.1f), 1.0f);
-    private static final DustParticleOptions FULLY_CHARGED_PARTICLE =
-            new DustParticleOptions(new Vector3f(0.35f, 0.9f, 1.0f), 1.0f);
     private static final int CHARGE_PARTICLE_SEGMENTS = 5;
 
     private Vec3 trailTipBonePosition;
@@ -99,11 +97,10 @@ public class MoonLightKatanaRenderer extends GeoEntityRenderer<MoonLightKatanaEn
 
         var rootWorld = convertCachedBonePositionToWorld(entity, trailRootBonePosition, partialTicks);
         var tipWorld = convertCachedBonePositionToWorld(entity, trailTipBonePosition, partialTicks);
-        var particle = entity.isFullyChargedEffect() ? FULLY_CHARGED_PARTICLE : CHARGING_PARTICLE;
         for (var i = 0; i < CHARGE_PARTICLE_SEGMENTS; i++) {
             var ratio = i / (double) (CHARGE_PARTICLE_SEGMENTS - 1);
             var point = rootWorld.lerp(tipWorld, ratio);
-            entity.level().addParticle(particle, point.x, point.y, point.z, 0.0D, 0.0D, 0.0D);
+            entity.level().addParticle(CHARGING_PARTICLE, point.x, point.y, point.z, 0.0D, 0.0D, 0.0D);
         }
     }
 

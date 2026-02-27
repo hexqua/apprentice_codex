@@ -11,15 +11,11 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -31,66 +27,40 @@ import java.util.List;
 import java.util.Optional;
 
 public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> {
-    private static final int MINIMUM_CHARGE_TICK = 40;
     private static final int STANDBY_START_DELAY_TICK = 10;
-    private static final int NO_CHARGE_MANA_COST = 50;
-    private static final int NORMAL_CHARGE_MANA_COST = 100;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "moon_light");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.LEGENDARY)
+            .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
             .setMaxLevel(3)
             .setCooldownSeconds(8)
-            .setAllowCrafting(false)
             .build();
 
     public MoonLight() {
         super(MoonLightKatanaEntity.class);
         baseSpellPower = 800;
         spellPowerPerLevel = 600;
-        baseManaCost = 30;
-        manaCostPerLevel = 5;
-        castTime = 500;
+        baseManaCost = 80;
+        manaCostPerLevel = 20;
+        castTime = 40;
     }
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.required_full_charge_time", Utils.timeFromTicks(getRequiredChargeTime(spellLevel, caster), 1)),
-                Component.translatable("ui.apprenticecodex.full_charge_power", getFullPowerRate(spellLevel, caster)),
-                Component.literal("W.I.P.")
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getDistance(spellLevel, caster), 1))
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // todo:バランス調整.
         return getSpellPower(spellLevel, entity) / 100.0f;
     }
 
-    private double getDistance(int spellLevel, LivingEntity entity){
-        // todo:バランス調整.
-        return 8.0;
-    }
-
-    private int getRequiredChargeTime(int spellLevel, LivingEntity caster) {
-        // todo:バランス調整.
-        return 300;
-    }
-
-    private int getFullPowerRate(int spellLevel, LivingEntity caster) {
-        // todo:バランス調整.
-        return 1000;
-    }
-
-    private int getCurrentCastDurationTicks(@Nullable MagicData playerMagicData) {
-        if (playerMagicData == null) {
-            return 0;
-        }
-
-        return Math.max(0, playerMagicData.getCastDuration() - playerMagicData.getCastDurationRemaining());
+    private double getDistance(int spellLevel, LivingEntity entity) {
+        return 6 + getSpellPower(spellLevel, entity) / 400.0f;
     }
 
     @Override
@@ -115,7 +85,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
 
     @Override
     public CastType getCastType() {
-        return CastType.CONTINUOUS;
+        return CastType.LONG;
     }
 
     @Override
@@ -152,49 +122,27 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
             weapon.setStandby();
         }
 
-        var castDurationTicks = getCurrentCastDurationTicks(playerMagicData);
-        var requiredChargeTime = getRequiredChargeTime(spellLevel, entity);
         weapon.setChargingEffectActive(true);
-        weapon.setFullyChargedEffect(castDurationTicks > requiredChargeTime);
-        playChargeThresholdSound(level, entity, castDurationTicks, requiredChargeTime);
+        weapon.setFullyChargedEffect(false);
     }
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull MoonLightKatanaEntity weapon) {
-        var castDurationTicks = getCurrentCastDurationTicks(playerMagicData);
-        var requiredChargeTime = getRequiredChargeTime(spellLevel, entity);
         weapon.setChargingEffectActive(false);
         weapon.setFullyChargedEffect(false);
 
-        if (!cancelled) {
-            onCastTimedOut(level, entity, playerMagicData);
+        if (cancelled) {
             return CompleteCastTypes.RELEASE_WEAPON;
         }
 
-        if (castDurationTicks < MINIMUM_CHARGE_TICK) {
-            weapon.setDamage(getDamage(spellLevel, entity));
-            weapon.slash(level);
-            consumeManaWithFloor(playerMagicData, NO_CHARGE_MANA_COST);
-            return CompleteCastTypes.KEEP_WEAPON;
-        }
-
-        if (castDurationTicks < requiredChargeTime) {
-            var normalChargeDamage = getDamage(spellLevel, entity);
-            weapon.setDamage(normalChargeDamage);
-            weapon.slash(level);
-            spawnNormalChargeCut(level, spellLevel, entity, normalChargeDamage);
-            consumeManaWithFloor(playerMagicData, NORMAL_CHARGE_MANA_COST);
-            return CompleteCastTypes.KEEP_WEAPON;
-        }
-
-        var fullPowerRate = getFullPowerRate(spellLevel, entity) / 100.0f;
-        weapon.setDamage(getDamage(spellLevel, entity) * fullPowerRate);
+        var damage = getDamage(spellLevel, entity);
+        weapon.setDamage(damage);
         weapon.slash(level);
-        setManaWithFloor(playerMagicData, 0.0f);
+        spawnChargeCut(level, spellLevel, entity, damage);
         return CompleteCastTypes.KEEP_WEAPON;
     }
 
-    private void spawnNormalChargeCut(Level level, int spellLevel, LivingEntity caster, float damage) {
+    private void spawnChargeCut(Level level, int spellLevel, LivingEntity caster, float damage) {
         if (level.isClientSide) {
             return;
         }
@@ -215,71 +163,4 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         cutArea.setup((float) getDistance(spellLevel, caster), damage);
         level.addFreshEntity(cutArea);
     }
-
-    private void onCastTimedOut(Level level, LivingEntity entity, @Nullable MagicData playerMagicData) {
-        if (level instanceof ServerLevel serverLevel) {
-            var centerY = entity.getY() + entity.getBbHeight() * 0.6D;
-            serverLevel.sendParticles(
-                    ParticleTypes.SMOKE,
-                    entity.getX(),
-                    centerY,
-                    entity.getZ(),
-                    20,
-                    0.25D,
-                    0.2D,
-                    0.25D,
-                    0.02D
-            );
-        }
-
-        playNotifyOrAreaSound(level, entity, SoundEvents.FIRE_EXTINGUISH, 1.0f, 1.0f);
-        reduceManaByHalf(playerMagicData);
-    }
-
-    private void playChargeThresholdSound(Level level, LivingEntity entity, int castDurationTicks, int requiredChargeTime) {
-        if (castDurationTicks == MINIMUM_CHARGE_TICK) {
-            playNotifyOrAreaSound(level, entity, SoundEvents.ITEM_PICKUP, 1.0f, 1.2f);
-        }
-
-        if (castDurationTicks == requiredChargeTime) {
-            playNotifyOrAreaSound(level, entity, SoundEvents.BEACON_ACTIVATE, 1.0f, 1.0f);
-        }
-    }
-
-    private void playNotifyOrAreaSound(Level level, LivingEntity entity, SoundEvent soundEvent, float volume, float pitch) {
-        if (entity instanceof ServerPlayer serverPlayer) {
-            serverPlayer.playNotifySound(soundEvent, SoundSource.PLAYERS, volume, pitch);
-            return;
-        }
-
-        level.playSound(null, entity.getX(), entity.getY(), entity.getZ(), soundEvent, SoundSource.PLAYERS, volume, pitch);
-    }
-
-    private void consumeManaWithFloor(@Nullable MagicData playerMagicData, float consumeAmount) {
-        if (playerMagicData == null || consumeAmount <= 0.0f) {
-            return;
-        }
-
-        var currentMana = Math.max(0.0f, playerMagicData.getMana());
-        var nextMana = Math.max(0.0f, currentMana - consumeAmount);
-        playerMagicData.setMana(nextMana);
-    }
-
-    private void reduceManaByHalf(@Nullable MagicData playerMagicData) {
-        if (playerMagicData == null) {
-            return;
-        }
-
-        var currentMana = Math.max(0.0f, playerMagicData.getMana());
-        playerMagicData.setMana(currentMana * 0.5f);
-    }
-
-    private void setManaWithFloor(@Nullable MagicData playerMagicData, float mana) {
-        if (playerMagicData == null) {
-            return;
-        }
-
-        playerMagicData.setMana(Math.max(0.0f, mana));
-    }
 }
-

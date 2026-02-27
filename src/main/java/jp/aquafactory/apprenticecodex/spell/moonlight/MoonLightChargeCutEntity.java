@@ -38,6 +38,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
     public static final float MIN_NOTCH_DEPTH = 0.05f;
     public static final float MAX_NOTCH_DEPTH = 4.0f;
     private static final int PORTAL_PARTICLE_COUNT_PER_EMITTER = 2;
+    private static final int PORTAL_VERTICAL_EMITTER_COUNT = 7;
     private static final float SEGMENT_MARGIN_BLOCKS = 0.05f;
 
     private static final EntityDataAccessor<Float> DISTANCE_BLOCKS =
@@ -224,19 +225,20 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
         var frontCenter = position().add(forward.scale(getProcessedDistance()));
         var notchDepth = getNotchDepth();
         var frontDepthOffset = forward.scale(-notchDepth);
-        var topOffset = up.scale(AREA_HEIGHT_BLOCKS);
         var leftOffset = right.scale(-VISUAL_FAR_HALF_WIDTH_BLOCKS);
         var rightOffset = right.scale(VISUAL_FAR_HALF_WIDTH_BLOCKS);
 
         var bottomLeft = frontCenter.add(frontDepthOffset).add(leftOffset);
         var bottomRight = frontCenter.add(frontDepthOffset).add(rightOffset);
-        var topLeft = bottomLeft.add(topOffset);
-        var topRight = bottomRight.add(topOffset);
+        var verticalSegments = Math.max(1, PORTAL_VERTICAL_EMITTER_COUNT - 1);
+        for (var i = 0; i <= verticalSegments; ++i) {
+            var ratio = i / (double) verticalSegments;
+            var verticalOffset = up.scale(AREA_HEIGHT_BLOCKS * ratio);
+            var verticalBias = Mth.lerp((float) ratio, -0.015f, 0.015f);
 
-        spawnPortalEmitter(level, topLeft, forward, 0.025, 0.015);
-        spawnPortalEmitter(level, topRight, forward, 0.025, 0.015);
-        spawnPortalEmitter(level, bottomLeft, forward, 0.025, -0.015);
-        spawnPortalEmitter(level, bottomRight, forward, 0.025, -0.015);
+            spawnPortalEmitter(level, bottomLeft.add(verticalOffset), forward, 0.025, verticalBias);
+            spawnPortalEmitter(level, bottomRight.add(verticalOffset), forward, 0.025, verticalBias);
+        }
     }
 
     private void spawnPortalEmitter(Level level, Vec3 origin, Vec3 forward, double lateralScale, double verticalBias) {
