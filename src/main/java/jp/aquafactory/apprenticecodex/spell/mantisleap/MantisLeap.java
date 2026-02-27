@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -69,7 +70,8 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = getSpellPower(spellLevel, entity) / 100.0f;
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.MANTIS_LEAP);
     }
 
     private double getRange(int spellLevel, LivingEntity entity) {

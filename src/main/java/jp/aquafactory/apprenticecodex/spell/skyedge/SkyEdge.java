@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -39,7 +40,6 @@ public class SkyEdge extends AbstractSpell {
             .build();
 
     public SkyEdge() {
-        // スペルパワー100 = 1ダメージ.
         baseSpellPower = 500;
         spellPowerPerLevel = 0;
         manaCostPerLevel = 15;
@@ -55,8 +55,8 @@ public class SkyEdge extends AbstractSpell {
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        return getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = getSpellPower(spellLevel, entity) / 100.0f;
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.SKY_EDGE);
     }
 
     private int getProjectileCount(int spellLevel, LivingEntity entity){

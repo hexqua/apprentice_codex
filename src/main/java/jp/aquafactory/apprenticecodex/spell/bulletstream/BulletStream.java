@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.network.chat.Component;
@@ -53,8 +54,8 @@ public class BulletStream extends AbstractSummonWeaponSpell<BulletStreamMinigunE
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        return 1 * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 1 * getSpellPower(spellLevel, entity) / 100.0f;
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.BULLET_STREAM);
     }
 
     private int getRange() {

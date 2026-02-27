@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -30,7 +31,6 @@ public class CompoundPhial extends AbstractSpell {
             .build();
 
     public CompoundPhial() {
-        // スペルパワー100 = 1ダメージ.
         baseSpellPower = 100;
         spellPowerPerLevel = 15;
         manaCostPerLevel = 4;
@@ -47,8 +47,8 @@ public class CompoundPhial extends AbstractSpell {
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        // スペルパワーはintのため、設定値をそもそも100倍として考える.
-        return 2 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 2 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(ApprenticeCodexServerConfig.DamageMultiplierKey.COMPOUND_PHIAL);
     }
 
     private int getSplashReducedPercent(int spellLevel, LivingEntity entity) {
