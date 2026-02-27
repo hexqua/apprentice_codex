@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex;
 
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.*;
@@ -19,6 +20,7 @@ public class ApprenticeCodex
 
     public ApprenticeCodex(FMLJavaModLoadingContext context) {
         LOGGER.info("Loading {}", NAME);
+        context.registerConfig(ModConfig.Type.COMMON, ApprenticeCodexCommonConfig.SPEC);
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
         RecipeConditionRegistry.register();
 
