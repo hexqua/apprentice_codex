@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.mixin.SchoolTypeAccessor;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
@@ -49,7 +50,6 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     public static final String STONE_TINT_COLOR_TAG = "StoneTintColor";
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;
-    public static final double AFFINITY_SPELL_POWER_BONUS = 0.20D;
     private static final String AFFINITY_MODIFIER_NAME_PREFIX = "apprenticecodex.pastel_staff.affinity.";
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
@@ -149,12 +149,13 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
         }
 
         var schoolId = schoolType.getId();
+        var affinitySpellPowerBonus = ApprenticeCodexServerConfig.pastelStaffAmplifyTintedMagicMultiplier();
         builder.put(
                 powerAttribute,
                 new AttributeModifier(
                         createAffinityModifierId(schoolId),
                         AFFINITY_MODIFIER_NAME_PREFIX + schoolId,
-                        AFFINITY_SPELL_POWER_BONUS,
+                        affinitySpellPowerBonus,
                         AttributeModifier.Operation.MULTIPLY_BASE
                 )
         );

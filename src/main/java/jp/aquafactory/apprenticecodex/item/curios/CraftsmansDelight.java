@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.curios;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.compat.Curios;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
@@ -31,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CraftsmansDelight extends Item implements ICurioItem {
-    private static final float ENCHANTMENT_SWITCH_MANA_COST = 500f;
     private static final float BREAK_SPEED_BONUS_MULTIPLIER = 2.0f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
 
@@ -89,8 +89,9 @@ public class CraftsmansDelight extends Item implements ICurioItem {
 
     private static void applySneakUseEnchantment(ItemStack stack) {
         var enchantments = new HashMap<>(EnchantmentHelper.getEnchantments(stack));
+        var fortuneLevel = ApprenticeCodexServerConfig.craftsmansDelightFortuneLevel();
         if (enchantments.isEmpty()) {
-            stack.enchant(Enchantments.BLOCK_FORTUNE, 3);
+            stack.enchant(Enchantments.BLOCK_FORTUNE, fortuneLevel);
             return;
         }
 
@@ -101,7 +102,7 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         EnchantmentHelper.setEnchantments(enchantments, stack);
 
         if (hasNonFortune) {
-            stack.enchant(Enchantments.BLOCK_FORTUNE, 3);
+            stack.enchant(Enchantments.BLOCK_FORTUNE, fortuneLevel);
             return;
         }
 
@@ -162,24 +163,25 @@ public class CraftsmansDelight extends Item implements ICurioItem {
     }
 
     private static boolean consumeManaForSneakUse(Player player, ItemStack stack) {
+        var requiredMana = ApprenticeCodexServerConfig.craftsmansDelightRequiredMana();
         var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
-        if (maxMana < ENCHANTMENT_SWITCH_MANA_COST) {
-            sendUnsatisfiedMaxManaMessage(player, stack);
+        if (maxMana < requiredMana) {
+            sendUnsatisfiedMaxManaMessage(player, stack, requiredMana);
             return false;
         }
 
         var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData == null || magicData.getMana() < ENCHANTMENT_SWITCH_MANA_COST) {
+        if (magicData == null || magicData.getMana() < requiredMana) {
             sendManaLackMessage(player, stack);
             return false;
         }
 
         // addManaは内部で最終的にsetを実行しているので、負値を加算すれば消費として機能する.
-        magicData.addMana(-ENCHANTMENT_SWITCH_MANA_COST);
+        magicData.addMana(-requiredMana);
         return true;
     }
 
-    private static void sendUnsatisfiedMaxManaMessage(Player player, ItemStack stack) {
+    private static void sendUnsatisfiedMaxManaMessage(Player player, ItemStack stack, float requiredMana) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
@@ -188,7 +190,7 @@ public class CraftsmansDelight extends Item implements ICurioItem {
                 Component.translatable(
                         "ui.apprenticecodex.unsatisfied_max_mana_for_enchant",
                         stack.getHoverName(),
-                        Math.round(ENCHANTMENT_SWITCH_MANA_COST)
+                        Math.round(requiredMana)
                 ).withStyle(ChatFormatting.RED)
         ));
     }
