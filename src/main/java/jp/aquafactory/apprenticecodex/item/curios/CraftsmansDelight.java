@@ -58,6 +58,11 @@ public class CraftsmansDelight extends Item implements ICurioItem {
             tooltips.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            if (ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
+                tooltips.add(Component.literal(" ")
+                        .append(Component.translatable(getDescriptionId() + ".desc_enchant"))
+                        .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            }
         }
 
         return tooltips;
@@ -67,6 +72,11 @@ public class CraftsmansDelight extends Item implements ICurioItem {
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
         if (!player.isShiftKeyDown()) {
+            return super.use(level, player, usedHand);
+        }
+
+        // あくまでも付与を制御するだけなので、既についたものの効果は発揮するのは仕様.
+        if (!ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
             return super.use(level, player, usedHand);
         }
 
