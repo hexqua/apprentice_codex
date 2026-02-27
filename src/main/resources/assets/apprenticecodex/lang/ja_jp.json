@@ -8,7 +8,8 @@
   "item.apprenticecodex.pastel_staff": "パステルスタッフ",
 
   "item.apprenticecodex.scarlet_thirst.desc": "マナ減少時、余っている体力をマナに変換する",
-  "item.apprenticecodex.craftsmans_delight.desc": "魔法の丸鋸やドリルの効率と性能を上昇させる。\n屈んで使うと魔力を封じ込める。",
+  "item.apprenticecodex.craftsmans_delight.desc": "魔法の丸鋸やドリルの効率と性能を上昇させる。",
+  "item.apprenticecodex.craftsmans_delight.desc_enchant": "屈んで使うと魔力を封じ込める。",
   "item.apprenticecodex.pastel_staff.desc.affinity": "%sの魔力で染まっている",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
@@ -110,8 +111,6 @@
   "ui.apprenticecodex.maximum_thrust_charge_time": "最大チャージまでの時間: %s",
   "ui.apprenticecodex.maximum_thrust_charge_rate": "最大チャージ時倍率: %d%%",
   "ui.apprenticecodex.furnace_item_per_second": "1秒間に処理できるアイテム数: %d",
-  "ui.apprenticecodex.required_full_charge_time": "チャージ完了までの時間: %s",
-  "ui.apprenticecodex.full_charge_power": "フルパワー倍率: %d%%",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",

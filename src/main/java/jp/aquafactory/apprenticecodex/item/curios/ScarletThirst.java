@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.curios;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.compat.Curios;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -52,7 +53,7 @@ public class ScarletThirst extends Item implements ICurioItem {
         }
 
         // クルーズが使える最低体力を満たさない場合は発動しない.
-        if (entity.getHealth() <= 4f) {
+        if (entity.getHealth() <= ApprenticeCodexServerConfig.scarletThirstRequiredHealth()) {
             return;
         }
 
@@ -75,17 +76,17 @@ public class ScarletThirst extends Item implements ICurioItem {
         var manaRatio = currentMana / maxMana;
 
         // パニックが発動する場合はクルーズを発動させない.
-        if (manaRatio <= 0.15f && entity.getHealth() > 6f) {
-            magicData.addMana(100);
-            drainHealthSilentNoKill(player, 4f);
+        if (manaRatio <= 0.15f) {
+            magicData.addMana(ApprenticeCodexServerConfig.scarletThirstRecoverEmergencyMana());
+            drainHealthSilentNoKill(player, ApprenticeCodexServerConfig.scarletThirstDrainEmergencyHealth());
             AudioTools.playSoundFromEntity(level, entity, SoundRegistry.THIRST_DRAIN.get(), SoundSource.PLAYERS);
             spawnScarletDustParticles(player, level, 40);
             return;
         }
 
         if (manaRatio <= 0.5f) {
-            magicData.addMana(30);
-            drainHealthSilentNoKill(player, 1f);
+            magicData.addMana(ApprenticeCodexServerConfig.scarletThirstRecoverMana());
+            drainHealthSilentNoKill(player, ApprenticeCodexServerConfig.scarletThirstDrainHealth());
             AudioTools.playSoundFromEntity(level, entity, SoundRegistry.THIRST_DRAIN.get(), SoundSource.PLAYERS);
             spawnScarletDustParticles(player, level, 20);
         }

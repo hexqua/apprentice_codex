@@ -2,9 +2,11 @@ package jp.aquafactory.apprenticecodex;
 
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.*;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
@@ -17,6 +19,8 @@ public class ApprenticeCodex
 
     public ApprenticeCodex(FMLJavaModLoadingContext context) {
         LOGGER.info("Loading {}", NAME);
+        context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
+        RecipeConditionRegistry.register();
 
         var bus = context.getModEventBus();
         SpellRegistry.register(bus);

@@ -9,6 +9,8 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -62,7 +64,8 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return 0.5f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 0.5f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.WORLD_FLATTER);
     }
 
     private float getRange(){

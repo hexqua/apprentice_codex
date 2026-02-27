@@ -9,6 +9,8 @@ import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -64,7 +66,8 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        return 3 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 3 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
+        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FLY_SWATTER);
     }
 
     private float getExplosionRadius(){
