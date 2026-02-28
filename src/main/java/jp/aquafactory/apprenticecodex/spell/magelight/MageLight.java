@@ -110,7 +110,7 @@ public class MageLight extends AbstractSpell {
         findPlacePos(level, spellLevel, entity)
                 .ifPresent(pos -> {
                     level.setBlockAndUpdate(pos, BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState());
-                    AudioTools.playSoundFromBlock(level, pos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
+                    AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
 
                     if (level instanceof ServerLevel server) {
                         var position = pos.getCenter();

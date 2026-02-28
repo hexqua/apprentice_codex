@@ -6,11 +6,19 @@ public final class ApprenticeCodexServerConfig {
     public static final ForgeConfigSpec SPEC;
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
+    private static final ForgeConfigSpec.BooleanValue FORCE_FIELD_CAN_BLOCK_BYPASS_SHIELD;
 
     static {
         var builder = new ForgeConfigSpec.Builder();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
+        builder.push("spell");
+        builder.push("forceField");
+        FORCE_FIELD_CAN_BLOCK_BYPASS_SHIELD = builder
+                .comment("If true, ForceField can block bypass-shield attacks and piercing arrows. (default: false)")
+                .define("canBlockBypassShield", false);
+        builder.pop();
+        builder.pop();
         SPEC = builder.build();
     }
 
@@ -55,5 +63,9 @@ public final class ApprenticeCodexServerConfig {
 
     public static double pastelStaffAmplifyTintedMagicMultiplier() {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
+    }
+
+    public static boolean forceFieldCanBlockBypassShield() {
+        return FORCE_FIELD_CAN_BLOCK_BYPASS_SHIELD.get();
     }
 }
