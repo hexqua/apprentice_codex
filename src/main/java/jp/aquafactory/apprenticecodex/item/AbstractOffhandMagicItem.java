@@ -15,6 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -114,6 +115,12 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 1;
+    }
+
+    @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        // 非耐久アイテムでもエンチャント台/金床で扱えるようにする.
+        return getEnchantmentValue(stack) > 0;
     }
 
     private Multimap<Attribute, AttributeModifier> buildBaseOffhandModifiers() {
