@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ForceFieldState;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -49,8 +50,6 @@ public final class ForceFieldDefenseEvent {
     private static final float AMBIENT_WALL_LIFETIME_SCALE = 0.5f;
     private static final boolean DEFAULT_RENDER_WAVE = true;
     private static final boolean AMBIENT_RENDER_WAVE = false;
-    private static final float SHIELD_BLOCK_VOLUME = 0.95f;
-    private static final float SHIELD_BLOCK_PITCH = 1.0f;
     private static final String DEFLECT_COUNT_TAG = "ApprenticeCodexForceFieldDeflectCount";
     private static final String CAPTURED_TAG = "ApprenticeCodexForceFieldCaptured";
 
@@ -91,7 +90,7 @@ public final class ForceFieldDefenseEvent {
         }
 
         var source = event.getSource();
-        if (!isShieldBlockableIgnoringDirection(source)) {
+        if (!isBlockableByForceField(source)) {
             return;
         }
 
@@ -144,6 +143,10 @@ public final class ForceFieldDefenseEvent {
         }
 
         if (projectile.position().distanceToSqr(caster.position()) > INTERCEPT_RADIUS_SQ) {
+            return false;
+        }
+
+        if (!isProjectileBlockableByForceField(projectile)) {
             return false;
         }
 
@@ -278,9 +281,29 @@ public final class ForceFieldDefenseEvent {
         return true;
     }
 
-    private static boolean isShieldBlockableIgnoringDirection(DamageSource source) {
-        // 貫通エンチャ矢は防御できる(そもそも届く前に弾かれる想定)
-        return !source.is(DamageTypeTags.BYPASSES_SHIELD);
+    private static boolean isBlockableByForceField(DamageSource source) {
+        // 設定次第で盾貫通ダメージと貫通矢を防御対象外にする.
+        if (ApprenticeCodexServerConfig.forceFieldCanBlockBypassShield()) {
+            return true;
+        }
+
+        if (source.is(DamageTypeTags.BYPASSES_SHIELD)) {
+            return false;
+        }
+
+        return !isPiercingArrow(source.getDirectEntity());
+    }
+
+    private static boolean isProjectileBlockableByForceField(Projectile projectile) {
+        if (ApprenticeCodexServerConfig.forceFieldCanBlockBypassShield()) {
+            return true;
+        }
+
+        return !isPiercingArrow(projectile);
+    }
+
+    private static boolean isPiercingArrow(@Nullable Entity entity) {
+        return entity instanceof AbstractArrow arrow && arrow.getPierceLevel() > 0;
     }
 
     private static boolean isMeleeAttack(DamageSource source) {
@@ -427,21 +450,6 @@ public final class ForceFieldDefenseEvent {
             //noinspection resource
             state.lastInterceptGameTime = caster.level().getGameTime();
         }));
-    }
-
-    private static void broadcastDefenseEffect(LivingEntity caster, Vec3 position, Vec3 normal) {
-        broadcastDefenseEffect(
-                caster,
-                position,
-                normal,
-                DEFAULT_WALL_SIZE_SCALE,
-                DEFAULT_WALL_LIFETIME_SCALE,
-                DEFAULT_RENDER_WAVE
-        );
-    }
-
-    private static void broadcastDefenseEffect(LivingEntity caster, Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale) {
-        broadcastDefenseEffect(caster, position, normal, sizeScale, lifetimeScale, DEFAULT_RENDER_WAVE);
     }
 
     private static void broadcastDefenseEffect(LivingEntity caster, Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale,
