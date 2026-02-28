@@ -10,6 +10,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -27,14 +31,29 @@ public final class OffhandMagicItemCastEvent {
         }
 
         var player = event.getEntity();
-        var offhandStack = player.getOffhandItem();
-        if (!(offhandStack.getItem() instanceof AbstractOffhandMagicItem offhandMagicItem)) {
+        var mainhandStack = player.getMainHandItem();
+        if (!(player.getOffhandItem().getItem() instanceof AbstractOffhandMagicItem)) {
             return;
         }
 
-        // 右クリック系の魔法アイテムがメインハンドにある場合は通常処理を優先する.
-        if (isRightClickSpellItem(player.getMainHandItem())) {
+        // メインハンド側に操作優先条件がある場合はオフハンド魔法を割り込ませない。
+        if (hasMainHandRightClickBehavior(player, mainhandStack)) {
             return;
+        }
+
+        var castResult = tryCastOffhandSpell(player);
+        if (castResult == CastResult.NONE) {
+            return;
+        }
+
+        event.setCancellationResult(castResult == CastResult.SUCCESS ? InteractionResult.CONSUME : InteractionResult.FAIL);
+        event.setCanceled(true);
+    }
+
+    private static CastResult tryCastOffhandSpell(Player player) {
+        var offhandStack = player.getOffhandItem();
+        if (!(offhandStack.getItem() instanceof AbstractOffhandMagicItem offhandMagicItem)) {
+            return CastResult.NONE;
         }
 
         if (!ISpellContainer.isSpellContainer(offhandStack)) {
@@ -44,7 +63,7 @@ public final class OffhandMagicItemCastEvent {
         var spellSelectionManager = new SpellSelectionManager(player);
         var selectionOption = spellSelectionManager.getSelection();
         if (selectionOption == null || selectionOption.spellData == SpellData.EMPTY) {
-            return;
+            return CastResult.NONE;
         }
 
         var spellData = selectionOption.spellData;
@@ -60,11 +79,33 @@ public final class OffhandMagicItemCastEvent {
                 SpellSelectionManager.OFFHAND
         );
 
-        event.setCancellationResult(casted ? InteractionResult.CONSUME : InteractionResult.FAIL);
-        event.setCanceled(true);
+        return casted ? CastResult.SUCCESS : CastResult.FAIL;
     }
 
-    private static boolean isRightClickSpellItem(net.minecraft.world.item.ItemStack stack) {
+    private static boolean hasMainHandRightClickBehavior(Player player, ItemStack stack) {
+        // 素手は処理の割り込みがうまくいかないため、オフハンドキャスト対象外にする.
+        if (stack.isEmpty()) {
+            return true;
+        }
+
+        var item = stack.getItem();
+        // クールダウン中でもメインハンド側の操作を優先し、オフハンド魔法は割り込ませない。
+        if (player.getCooldowns().isOnCooldown(item)) {
+            return true;
+        }
+
+        if (isRightClickSpellItem(stack)) {
+            return true;
+        }
+
+        if (stack.isEdible() || item.getUseDuration(stack) > 0) {
+            return true;
+        }
+
+        return hasUseOverride(item);
+    }
+
+    private static boolean isRightClickSpellItem(ItemStack stack) {
         if (stack.isEmpty()) {
             return false;
         }
@@ -74,5 +115,27 @@ public final class OffhandMagicItemCastEvent {
         }
 
         return CastingImplementData.has(stack) && CastingImplementData.get(stack);
+    }
+
+    private static boolean hasUseOverride(Item item) {
+        return ITEM_USE_OVERRIDE_CACHE.get(item.getClass());
+    }
+
+    private static final ClassValue<Boolean> ITEM_USE_OVERRIDE_CACHE = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> itemClass) {
+            try {
+                var useMethod = itemClass.getMethod("use", Level.class, Player.class, InteractionHand.class);
+                return useMethod.getDeclaringClass() != Item.class;
+            } catch (NoSuchMethodException ignored) {
+                return false;
+            }
+        }
+    };
+
+    private enum CastResult {
+        NONE,
+        SUCCESS,
+        FAIL
     }
 }
