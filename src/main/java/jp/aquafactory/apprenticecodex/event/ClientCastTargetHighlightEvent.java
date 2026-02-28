@@ -11,6 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.util.Objects;
 
+// クライアントイベントだがゲームロジックに関わるためclient配下ではない.
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public final class ClientCastTargetHighlightEvent {
     private static int highlightColor = 0xFFFFFF;
