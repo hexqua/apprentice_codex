@@ -15,6 +15,22 @@
   "item.apprenticecodex.craftsmans_delight.desc_enchant": "屈んで使うと魔力を封じ込める。",
   "item.apprenticecodex.pastel_staff.desc.affinity": "%sの魔力で染まっている",
 
+  "enchantment.apprenticecodex.reflux": "還流",
+  "enchantment.apprenticecodex.reservoir": "貯蔵",
+  "enchantment.apprenticecodex.alacrity": "迅速",
+  "enchantment.apprenticecodex.tense": "時制",
+  "enchantment.apprenticecodex.surge": "増幅",
+  "enchantment.apprenticecodex.attunement": "同調",
+  "enchantment.apprenticecodex.transcendence": "超越",
+
+  "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
+  "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",
+  "enchantment.apprenticecodex.alacrity.desc": "魔法のクールダウンを短縮します。",
+  "enchantment.apprenticecodex.tense.desc": "魔法の詠唱時間を短縮します。継続詠唱の魔法は詠唱時間が延長されます。",
+  "enchantment.apprenticecodex.surge.desc": "属性を問わず魔法の力が上昇します。",
+  "enchantment.apprenticecodex.attunement.desc": "注入された魔法の属性の魔法の力が上昇します。",
+  "enchantment.apprenticecodex.transcendence.desc": "注入された魔法のレベルが上昇します。",
+
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
   "block.apprenticecodex.apprentice_desk" : "見習い用の机",
