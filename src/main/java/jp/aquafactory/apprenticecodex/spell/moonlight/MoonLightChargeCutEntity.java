@@ -26,13 +26,13 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MoonLightChargeCutEntity extends Entity implements TraceableEntity {
-    public static final int PROCESS_START_DELAY_TICKS = 5;
+    public static final int PROCESS_START_DELAY_TICKS = 2;
     public static final int PROCESS_DURATION_TICKS = 15;
     public static final float START_OFFSET_BLOCKS = 2.0f;
     public static final float SURFACE_OFFSET_BLOCKS = 0.02f;
     public static final float DAMAGE_WIDTH_BLOCKS = 0.9f;
     public static final float DAMAGE_HALF_WIDTH_BLOCKS = DAMAGE_WIDTH_BLOCKS * 0.5f;
-    public static final float AREA_HEIGHT_BLOCKS = 4.0f;
+    public static final float AREA_HEIGHT_BLOCKS = 6.0f;
     public static final float VISUAL_NEAR_WIDTH_BLOCKS = 0.16f;
     public static final float VISUAL_NEAR_HALF_WIDTH_BLOCKS = VISUAL_NEAR_WIDTH_BLOCKS * 0.5f;
     public static final float VISUAL_FAR_WIDTH_BLOCKS = 0.62f;
