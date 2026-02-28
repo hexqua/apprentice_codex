@@ -41,6 +41,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> TERRAIN = reg("terrain");
     public static final RegistryObject<SoundEvent> FORCE_FIELD_DEFLECT = reg("force_field_deflect");
     public static final RegistryObject<SoundEvent> FORCE_FIELD_ACTIVATE = reg("force_field_activate");
+    public static final RegistryObject<SoundEvent> KATANA_SLASH = reg("katana_slash");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

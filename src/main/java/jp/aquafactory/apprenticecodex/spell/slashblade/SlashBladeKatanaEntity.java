@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.slashblade;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.GeoBonePoseCache;
 import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
@@ -135,6 +136,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
                     2.5,
                     e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
             );
+            AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
             for (var hit : hitResult){
                 CombatTools.applyDamage(hit, damage, source, SpellRegistry.SLASH_BLADE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);

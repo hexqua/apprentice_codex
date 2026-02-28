@@ -142,5 +142,11 @@
     "sounds": [
       "apprenticecodex:force_field_activate"
     ]
+  },
+  "katana_slash": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:katana_slash"
+    ]
   }
 }
