@@ -98,24 +98,32 @@ public final class ForceFieldDefenseEvent {
         event.setCanceled(true);
 
         if (isMeleeAttack(source)) {
-            applyMeleeKnockback(target, source.getEntity());
-            var interceptPosition = getMeleeInterceptPosition(target, source.getEntity());
-            var interceptNormal = getMeleeInterceptNormal(target, source.getEntity());
-            onForceFieldIntercept(
-                    target,
-                    forceField,
-                    interceptPosition,
-                    interceptNormal,
-                    ForceFieldState.INTERCEPT_KIND_MELEE,
-                    MELEE_WALL_SIZE_SCALE,
-                    DEFAULT_WALL_LIFETIME_SCALE
-            );
+            var attackerEntity = source.getEntity();
+            if (isCloseRangeAttack(target, attackerEntity)) {
+                applyMeleeKnockback(target, attackerEntity);
+                var interceptPosition = getMeleeInterceptPosition(target, attackerEntity);
+                var interceptNormal = getMeleeInterceptNormal(target, attackerEntity);
+                onForceFieldIntercept(
+                        target,
+                        forceField,
+                        interceptPosition,
+                        interceptNormal,
+                        ForceFieldState.INTERCEPT_KIND_MELEE,
+                        MELEE_WALL_SIZE_SCALE,
+                        DEFAULT_WALL_LIFETIME_SCALE
+                );
+            } else {
+                var interceptPosition = getRangedInterceptPosition(target, attackerEntity, null);
+                var interceptNormal = getInterceptNormal(target, interceptPosition, attackerEntity, null);
+                onForceFieldIntercept(target, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            }
             return;
         }
 
         var directEntity = source.getDirectEntity();
         if (directEntity instanceof Projectile projectile) {
-            if (neutralizeProjectile(target, forceField, projectile)) {
+            var interceptPosition = getRangedInterceptPosition(target, source.getEntity(), projectile.getDeltaMovement());
+            if (neutralizeProjectile(target, forceField, projectile, interceptPosition, source.getEntity())) {
                 return;
             }
         } else if (tryCounterspellEquivalent(target, forceField.magicData(), directEntity)) {
@@ -125,7 +133,7 @@ public final class ForceFieldDefenseEvent {
             return;
         }
 
-        var fallbackPosition = target.position();
+        var fallbackPosition = getRangedInterceptPosition(target, source.getEntity(), null);
         var fallbackNormal = getInterceptNormal(target, fallbackPosition, source.getEntity(), null);
         onForceFieldIntercept(target, forceField, fallbackPosition, fallbackNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
     }
@@ -154,12 +162,16 @@ public final class ForceFieldDefenseEvent {
     }
 
     private static boolean neutralizeProjectile(LivingEntity caster, ActiveForceField forceField, Projectile projectile) {
+        return neutralizeProjectile(caster, forceField, projectile, projectile.position(), projectile.getOwner());
+    }
+
+    private static boolean neutralizeProjectile(LivingEntity caster, ActiveForceField forceField, Projectile projectile,
+                                                Vec3 interceptPosition, @Nullable Entity attackerEntity) {
         if (projectile.isRemoved()) {
             return false;
         }
 
-        var interceptPosition = projectile.position();
-        var interceptNormal = getInterceptNormal(caster, interceptPosition, projectile.getOwner(), projectile.getDeltaMovement());
+        var interceptNormal = getInterceptNormal(caster, interceptPosition, attackerEntity, projectile.getDeltaMovement());
 
         if (tryCounterspellEquivalent(caster, forceField.magicData(), projectile)) {
             onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
@@ -275,6 +287,16 @@ public final class ForceFieldDefenseEvent {
         return source.getEntity() instanceof LivingEntity && source.getDirectEntity() == source.getEntity();
     }
 
+    private static boolean isCloseRangeAttack(LivingEntity defender, @Nullable Entity attackerEntity) {
+        if (attackerEntity == null) {
+            return true;
+        }
+
+        var defenderCenter = defender.getBoundingBox().getCenter();
+        var attackerCenter = attackerEntity.getBoundingBox().getCenter();
+        return attackerCenter.distanceToSqr(defenderCenter) <= INTERCEPT_RADIUS_SQ;
+    }
+
     private static void applyMeleeKnockback(LivingEntity defender, @Nullable Entity attackerEntity) {
         if (!(attackerEntity instanceof LivingEntity attacker)) {
             return;
@@ -322,6 +344,41 @@ public final class ForceFieldDefenseEvent {
             return new Vec3(0.0, 0.0, 1.0);
         }
         return horizontalDirection.normalize();
+    }
+
+    private static Vec3 getRangedInterceptPosition(LivingEntity defender, @Nullable Entity attackerEntity, @Nullable Vec3 incomingMotion) {
+        var defenderCenter = defender.getBoundingBox().getCenter();
+        Vec3 direction = null;
+        var segmentLength = INTERCEPT_RADIUS;
+
+        if (attackerEntity != null) {
+            var attackerCenter = attackerEntity.getBoundingBox().getCenter();
+            var toAttacker = attackerCenter.subtract(defenderCenter);
+            if (isUsableDirection(toAttacker)) {
+                direction = toAttacker;
+                segmentLength = toAttacker.length();
+            }
+        }
+
+        if (!isUsableDirection(direction) && isUsableDirection(incomingMotion)) {
+            direction = incomingMotion.scale(-1);
+            segmentLength = INTERCEPT_RADIUS;
+        }
+
+        if (!isUsableDirection(direction)) {
+            direction = defender.getLookAngle();
+            segmentLength = INTERCEPT_RADIUS;
+        }
+
+        if (!isUsableDirection(direction)) {
+            return defenderCenter;
+        }
+
+        var interceptDistance = Math.min(INTERCEPT_RADIUS, Math.max(0.0, segmentLength));
+        if (interceptDistance <= 1.0e-4) {
+            return defenderCenter;
+        }
+        return defenderCenter.add(direction.normalize().scale(interceptDistance));
     }
 
     private static void onForceFieldIntercept(LivingEntity caster, ActiveForceField forceField, Vec3 position, Vec3 normal, int interceptKind) {
