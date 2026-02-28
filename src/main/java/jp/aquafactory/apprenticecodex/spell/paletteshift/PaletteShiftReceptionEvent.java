@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.event;
+package jp.aquafactory.apprenticecodex.spell.paletteshift;
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;

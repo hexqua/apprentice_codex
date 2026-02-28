@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.event;
+package jp.aquafactory.apprenticecodex.spell.forcefield;
 
 import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;

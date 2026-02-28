@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.event;
+package jp.aquafactory.apprenticecodex.spell.phalanxcharge;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;

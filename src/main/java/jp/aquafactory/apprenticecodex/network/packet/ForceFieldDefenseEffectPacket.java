@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.event.ForceFieldDefenseEffectRenderEvent;
+import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEffectRenderEvent;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;

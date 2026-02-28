@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.event;
+package jp.aquafactory.apprenticecodex.spell.mantisleap;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
