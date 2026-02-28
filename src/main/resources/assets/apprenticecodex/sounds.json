@@ -148,5 +148,11 @@
     "sounds": [
       "apprenticecodex:katana_slash"
     ]
+  },
+  "moon_light_dimension": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:moon_light_dimension"
+    ]
   }
 }

@@ -1,13 +1,16 @@
 package jp.aquafactory.apprenticecodex.spell.moonlight;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -98,6 +101,10 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
 
         if (tickCount <= PROCESS_START_DELAY_TICKS) {
             return;
+        }
+
+        if (tickCount == PROCESS_START_DELAY_TICKS + 1){
+            AudioTools.playSoundFromEntity(level, this, SoundRegistry.MOON_LIGHT_DIMENSION.get(), SoundSource.PLAYERS);
         }
 
         var elapsedTicks = tickCount - PROCESS_START_DELAY_TICKS;
