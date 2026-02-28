@@ -137,11 +137,13 @@
   "effect.apprenticecodex.palette_reception": "Reception Mode",
   "effect.apprenticecodex.phalanx_stance": "Phalanx Stance",
   "effect.apprenticecodex.thermal_processing": "Thermal Processing",
+  "effect.apprenticecodex.deploy_field": "Deploying Field",
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
   "effect.apprenticecodex.palette_reception.description": "The next magic you wield with the Pastel Staff will tint it.",
   "effect.apprenticecodex.phalanx_stance.description": "The shield of magic that provides a sturdy barrier. More durable than a regular shield.",
   "effect.apprenticecodex.thermal_processing.description": "Being thermally processed. As the level increases, severe debuffs and continuous damage are applied.",
+  "effect.apprenticecodex.deploy_field.description": "Deploying a force field. Consumes mana to deflect attacks and spells.",
 
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
   "death.attack.apprenticecodex.archer_multiple": "%1$s was riddled with %2$s's arrows.",

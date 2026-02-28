@@ -10,6 +10,8 @@ import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.event.ForceFieldDefenseEvent;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class ForceField  extends AbstractSpell {
+public class ForceField extends AbstractSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "force_field");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -45,8 +47,8 @@ public class ForceField  extends AbstractSpell {
         );
     }
 
-    private float getDrainManaPerHit(int spellLevel, LivingEntity entity) {
-        var spellPowerRate = Math.max(1, getSpellPower(spellLevel, entity) / 100.0f);
+    public static float getDrainManaPerHit(int spellLevel, LivingEntity entity) {
+        var spellPowerRate = Math.max(1, SpellRegistry.FORCE_FIELD.get().getSpellPower(spellLevel, entity) / 100.0f);
         var rawDrain = 150 / spellPowerRate;
         return rawDrain * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FORCE_FIELD);
     }
@@ -94,6 +96,7 @@ public class ForceField  extends AbstractSpell {
 
     @Override
     public void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        ForceFieldDefenseEvent.interceptNearbyProjectiles(level, spellLevel, entity, playerMagicData);
         super.onServerCastTick(level, spellLevel, entity, playerMagicData);
     }
 
