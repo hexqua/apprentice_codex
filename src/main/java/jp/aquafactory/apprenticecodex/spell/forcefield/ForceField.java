@@ -38,7 +38,7 @@ public class ForceField extends AbstractSpell {
         spellPowerPerLevel = 20;
         baseManaCost = 15;
         manaCostPerLevel = 0;
-        castTime = 200;
+        castTime = 100;
     }
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
@@ -51,6 +51,12 @@ public class ForceField extends AbstractSpell {
         var spellPowerRate = Math.max(1, SpellRegistry.FORCE_FIELD.get().getSpellPower(spellLevel, entity) / 100.0f);
         var rawDrain = 150 / spellPowerRate;
         return rawDrain * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FORCE_FIELD);
+    }
+
+    @Override
+    public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
+        // スペルパワーでも詠唱時間が伸びるようにする.
+        return Math.round(super.getEffectiveCastTime(spellLevel, entity) * getSpellPower(spellLevel, entity) / 100.0f);
     }
 
 
