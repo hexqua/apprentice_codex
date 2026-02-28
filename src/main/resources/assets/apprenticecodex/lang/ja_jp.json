@@ -2,6 +2,7 @@
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
   "item.apprenticecodex.iron_spell_amplifier": "鉄の魔力増幅装置",
+  "item.apprenticecodex.copper_spell_amplifier": "銅の魔力増幅装置",
   "item.apprenticecodex.gold_spell_amplifier": "金の魔力増幅装置",
   "item.apprenticecodex.scarlet_thirst": "真紅の渇望",
   "item.apprenticecodex.craftsmans_delight": "職人の歓喜",
@@ -190,6 +191,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.description": "パステルスタッフを作る。",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.title": "見習い魔術師のよき相棒",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.description": "鉄の魔力増幅装置を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.title": "もっと腕とかにカッパー巻くとかよ！",
+  "advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.description": "銅の魔力増幅装置を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.title": "鉄の魔法なのに金の方がよいってさ",
   "advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.description": "金の魔力増幅装置を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.title": "全てのオフハンドを過去にする",

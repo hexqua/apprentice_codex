@@ -2,6 +2,7 @@
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
   "item.apprenticecodex.iron_spell_amplifier": "Iron Spell Amplifier",
+  "item.apprenticecodex.copper_spell_amplifier": "Copper Spell Amplifier",
   "item.apprenticecodex.gold_spell_amplifier": "Gold Spell Amplifier",
   "item.apprenticecodex.scarlet_thirst": "Scarlet Thirst",
   "item.apprenticecodex.craftsmans_delight": "Craftsman's Delight",
@@ -190,6 +191,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.description": "Craft Pastel Staff.",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.title": "An Apprentice's Trusted Companion",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.description": "Craft Iron Spell Amplifier",
+  "advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.title": "Wrap More Copper Around Your Arms!",
+  "advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.description": "Craft Copper Spell Amplifier",
   "advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.title": "Gold Beats Iron-Even for Iron Spells",
   "advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.description": "Craft Gold Spell Amplifier",
   "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.title": "This Time, Offhands Collide",
