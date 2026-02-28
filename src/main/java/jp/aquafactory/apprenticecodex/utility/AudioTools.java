@@ -32,14 +32,26 @@ public final class AudioTools {
         playSoundFromEntity(level, entity, soundEvent, soundSource, 1.0f);
     }
 
-    public static void playSoundFromBlock(Level level, Vec3 position, SoundEvent soundEvent, SoundSource soundSource) {
+    public static void playSoundFromPosition(Level level, Vec3 position, SoundEvent soundEvent, SoundSource soundSource, float volume, float pitch, float pitchVariation) {
         level.playSound(
                 null,
                 position.x, position.y, position.z,
                 soundEvent,
                 soundSource,
-                1.0f,
-                1.0f
+                volume,
+                pitch + pitchVariation * level.random.nextFloat() - pitchVariation / 2
         );
+    }
+
+    public static void playSoundFromPosition(Level level, Vec3 position, SoundEvent soundEvent, SoundSource soundSource, float volume, float pitch) {
+        playSoundFromPosition(level, position, soundEvent, soundSource, volume, pitch, 0.2f);
+    }
+
+    public static void playSoundFromPosition(Level level, Vec3 position, SoundEvent soundEvent, SoundSource soundSource, float volume) {
+        playSoundFromPosition(level, position, soundEvent, soundSource, volume, 1.0f);
+    }
+
+    public static void playSoundFromPosition(Level level, Vec3 position, SoundEvent soundEvent, SoundSource soundSource) {
+        playSoundFromPosition(level, position, soundEvent, soundSource, 1.0f);
     }
 }

@@ -34,6 +34,7 @@ public final class ForceFieldDefenseEffectRenderEvent {
     private static final RenderType SHIELD_TRIM_RENDER_TYPE = createAdditiveEntityRenderType("force_field_shield_trim_additive", SHIELD_TRIM_TEXTURE);
     private static final RenderType RIPPLE_RENDER_TYPE = createAdditiveEntityRenderType("force_field_ripple_additive", SHOCKWAVE_TEXTURE);
     private static final int MAX_ACTIVE_EFFECTS = 128;
+    private static final float MIN_EFFECT_SCALE = 0.1f;
     private static final int HOLD_TICKS = 10;
     private static final int FADE_TICKS = 10;
     private static final int TOTAL_TICKS = HOLD_TICKS + FADE_TICKS;
@@ -54,12 +55,27 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     public static void enqueueEffect(Vec3 position, Vec3 normal) {
+        enqueueEffect(position, normal, 1.0f, 1.0f, true);
+    }
+
+    public static void enqueueEffect(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale) {
+        enqueueEffect(position, normal, sizeScale, lifetimeScale, true);
+    }
+
+    public static void enqueueEffect(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
         }
 
-        ACTIVE_EFFECTS.addLast(new ActiveEffect(position, normalizeOrFallback(normal, new Vec3(0, 0, 1)), minecraft.level.getGameTime()));
+        ACTIVE_EFFECTS.addLast(new ActiveEffect(
+                position,
+                normalizeOrFallback(normal, new Vec3(0, 0, 1)),
+                minecraft.level.getGameTime(),
+                sanitizeScale(sizeScale),
+                sanitizeScale(lifetimeScale),
+                renderWave
+        ));
         while (ACTIVE_EFFECTS.size() > MAX_ACTIVE_EFFECTS) {
             ACTIVE_EFFECTS.removeFirst();
         }
@@ -98,12 +114,13 @@ public final class ForceFieldDefenseEffectRenderEvent {
         while (iterator.hasNext()) {
             var effect = iterator.next();
             var age = (float) (gameTime - effect.startGameTime()) + partialTick;
-            if (age >= TOTAL_TICKS) {
+            var normalizedAge = age / effect.lifetimeScale();
+            if (normalizedAge >= TOTAL_TICKS) {
                 iterator.remove();
                 continue;
             }
 
-            renderEffect(poseStack, buffers, effect, age);
+            renderEffect(poseStack, buffers, effect, normalizedAge);
         }
 
         poseStack.popPose();
@@ -124,20 +141,24 @@ public final class ForceFieldDefenseEffectRenderEvent {
         var normal = normalizeOrFallback(effect.normal(), new Vec3(0, 0, 1));
         var tangent = buildTangent(normal);
         var bitangent = normalizeOrFallback(normal.cross(tangent), new Vec3(0, 1, 0));
+        var effectSize = effect.sizeScale();
+        var halfThickness = WALL_THICKNESS * 0.5f * effectSize;
 
         var overlayBuffer = buffers.getBuffer(SHIELD_OVERLAY_RENDER_TYPE);
-        drawFilledHex(poseStack, overlayBuffer, center, normal, tangent, bitangent, WALL_THICKNESS * 0.5f, alpha * 0.75f);
-        drawOuterSide(poseStack, overlayBuffer, center, tangent, bitangent, normal, WALL_THICKNESS * 0.5f, alpha * 0.45f);
+        drawFilledHex(poseStack, overlayBuffer, center, normal, tangent, bitangent, halfThickness, effectSize, alpha * 0.75f);
+        drawOuterSide(poseStack, overlayBuffer, center, tangent, bitangent, normal, halfThickness, effectSize, alpha * 0.45f);
 
         var trimBuffer = buffers.getBuffer(SHIELD_TRIM_RENDER_TYPE);
-        drawTrimRing(poseStack, trimBuffer, center, normal, tangent, bitangent, WALL_THICKNESS * 0.5f, alpha);
+        drawTrimRing(poseStack, trimBuffer, center, normal, tangent, bitangent, halfThickness, effectSize, alpha);
 
-        var rippleBuffer = buffers.getBuffer(RIPPLE_RENDER_TYPE);
-        drawRipple(poseStack, rippleBuffer, center, normal, tangent, bitangent, age, alpha);
+        if (effect.renderWave()) {
+            var rippleBuffer = buffers.getBuffer(RIPPLE_RENDER_TYPE);
+            drawRipple(poseStack, rippleBuffer, center, normal, tangent, bitangent, halfThickness, effectSize, age, alpha);
+        }
     }
 
     private static void drawFilledHex(PoseStack poseStack, VertexConsumer buffer, Vec3 center, Vec3 normal, Vec3 tangent, Vec3 bitangent,
-                                      float halfThickness, float alpha) {
+                                      float halfThickness, float sizeScale, float alpha) {
         var frontCenter = toWorld(center, tangent, bitangent, normal, 0f, 0f, halfThickness);
         var backCenter = toWorld(center, tangent, bitangent, normal, 0f, 0f, -halfThickness);
 
@@ -145,9 +166,13 @@ public final class ForceFieldDefenseEffectRenderEvent {
             var next = (i + 1) % OUTER_HEX_VERTICES.length;
             var currentOuter = OUTER_HEX_VERTICES[i];
             var nextOuter = OUTER_HEX_VERTICES[next];
+            var currentX = currentOuter.x * sizeScale;
+            var currentY = currentOuter.y * sizeScale;
+            var nextX = nextOuter.x * sizeScale;
+            var nextY = nextOuter.y * sizeScale;
 
-            var frontA = toWorld(center, tangent, bitangent, normal, currentOuter.x, currentOuter.y, halfThickness);
-            var frontB = toWorld(center, tangent, bitangent, normal, nextOuter.x, nextOuter.y, halfThickness);
+            var frontA = toWorld(center, tangent, bitangent, normal, currentX, currentY, halfThickness);
+            var frontB = toWorld(center, tangent, bitangent, normal, nextX, nextY, halfThickness);
             addTriangleAsQuad(
                     poseStack,
                     buffer,
@@ -167,8 +192,8 @@ public final class ForceFieldDefenseEffectRenderEvent {
                     normal
             );
 
-            var backA = toWorld(center, tangent, bitangent, normal, currentOuter.x, currentOuter.y, -halfThickness);
-            var backB = toWorld(center, tangent, bitangent, normal, nextOuter.x, nextOuter.y, -halfThickness);
+            var backA = toWorld(center, tangent, bitangent, normal, currentX, currentY, -halfThickness);
+            var backB = toWorld(center, tangent, bitangent, normal, nextX, nextY, -halfThickness);
             addTriangleAsQuad(
                     poseStack,
                     buffer,
@@ -191,19 +216,23 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     private static void drawOuterSide(PoseStack poseStack, VertexConsumer buffer, Vec3 center, Vec3 tangent, Vec3 bitangent, Vec3 normal,
-                                      float halfThickness, float alpha) {
+                                      float halfThickness, float sizeScale, float alpha) {
         for (int i = 0; i < OUTER_HEX_VERTICES.length; i++) {
             var next = (i + 1) % OUTER_HEX_VERTICES.length;
             var currentOuter = OUTER_HEX_VERTICES[i];
             var nextOuter = OUTER_HEX_VERTICES[next];
+            var currentX = currentOuter.x * sizeScale;
+            var currentY = currentOuter.y * sizeScale;
+            var nextX = nextOuter.x * sizeScale;
+            var nextY = nextOuter.y * sizeScale;
 
-            var frontA = toWorld(center, tangent, bitangent, normal, currentOuter.x, currentOuter.y, halfThickness);
-            var frontB = toWorld(center, tangent, bitangent, normal, nextOuter.x, nextOuter.y, halfThickness);
-            var backB = toWorld(center, tangent, bitangent, normal, nextOuter.x, nextOuter.y, -halfThickness);
-            var backA = toWorld(center, tangent, bitangent, normal, currentOuter.x, currentOuter.y, -halfThickness);
+            var frontA = toWorld(center, tangent, bitangent, normal, currentX, currentY, halfThickness);
+            var frontB = toWorld(center, tangent, bitangent, normal, nextX, nextY, halfThickness);
+            var backB = toWorld(center, tangent, bitangent, normal, nextX, nextY, -halfThickness);
+            var backA = toWorld(center, tangent, bitangent, normal, currentX, currentY, -halfThickness);
 
             var sideNormal = normalizeOrFallback(
-                    tangent.scale((currentOuter.x + nextOuter.x) * 0.5f).add(bitangent.scale((currentOuter.y + nextOuter.y) * 0.5f)),
+                    tangent.scale((currentX + nextX) * 0.5f).add(bitangent.scale((currentY + nextY) * 0.5f)),
                     tangent
             );
 
@@ -232,18 +261,26 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     private static void drawTrimRing(PoseStack poseStack, VertexConsumer buffer, Vec3 center, Vec3 normal, Vec3 tangent, Vec3 bitangent,
-                                     float halfThickness, float alpha) {
+                                     float halfThickness, float sizeScale, float alpha) {
         for (int i = 0; i < OUTER_HEX_VERTICES.length; i++) {
             var next = (i + 1) % OUTER_HEX_VERTICES.length;
             var outerCurrent = OUTER_HEX_VERTICES[i];
             var outerNext = OUTER_HEX_VERTICES[next];
             var innerCurrent = INNER_HEX_VERTICES[i];
             var innerNext = INNER_HEX_VERTICES[next];
+            var outerCurrentX = outerCurrent.x * sizeScale;
+            var outerCurrentY = outerCurrent.y * sizeScale;
+            var outerNextX = outerNext.x * sizeScale;
+            var outerNextY = outerNext.y * sizeScale;
+            var innerCurrentX = innerCurrent.x * sizeScale;
+            var innerCurrentY = innerCurrent.y * sizeScale;
+            var innerNextX = innerNext.x * sizeScale;
+            var innerNextY = innerNext.y * sizeScale;
 
-            var frontOuterA = toWorld(center, tangent, bitangent, normal, outerCurrent.x, outerCurrent.y, halfThickness);
-            var frontOuterB = toWorld(center, tangent, bitangent, normal, outerNext.x, outerNext.y, halfThickness);
-            var frontInnerB = toWorld(center, tangent, bitangent, normal, innerNext.x, innerNext.y, halfThickness);
-            var frontInnerA = toWorld(center, tangent, bitangent, normal, innerCurrent.x, innerCurrent.y, halfThickness);
+            var frontOuterA = toWorld(center, tangent, bitangent, normal, outerCurrentX, outerCurrentY, halfThickness);
+            var frontOuterB = toWorld(center, tangent, bitangent, normal, outerNextX, outerNextY, halfThickness);
+            var frontInnerB = toWorld(center, tangent, bitangent, normal, innerNextX, innerNextY, halfThickness);
+            var frontInnerA = toWorld(center, tangent, bitangent, normal, innerCurrentX, innerCurrentY, halfThickness);
 
             addQuad(
                     poseStack,
@@ -267,10 +304,10 @@ public final class ForceFieldDefenseEffectRenderEvent {
                     normal
             );
 
-            var backOuterA = toWorld(center, tangent, bitangent, normal, outerCurrent.x, outerCurrent.y, -halfThickness);
-            var backOuterB = toWorld(center, tangent, bitangent, normal, outerNext.x, outerNext.y, -halfThickness);
-            var backInnerB = toWorld(center, tangent, bitangent, normal, innerNext.x, innerNext.y, -halfThickness);
-            var backInnerA = toWorld(center, tangent, bitangent, normal, innerCurrent.x, innerCurrent.y, -halfThickness);
+            var backOuterA = toWorld(center, tangent, bitangent, normal, outerCurrentX, outerCurrentY, -halfThickness);
+            var backOuterB = toWorld(center, tangent, bitangent, normal, outerNextX, outerNextY, -halfThickness);
+            var backInnerB = toWorld(center, tangent, bitangent, normal, innerNextX, innerNextY, -halfThickness);
+            var backInnerA = toWorld(center, tangent, bitangent, normal, innerCurrentX, innerCurrentY, -halfThickness);
 
             addQuad(
                     poseStack,
@@ -296,7 +333,8 @@ public final class ForceFieldDefenseEffectRenderEvent {
         }
     }
 
-    private static void drawRipple(PoseStack poseStack, VertexConsumer buffer, Vec3 center, Vec3 normal, Vec3 tangent, Vec3 bitangent, float age, float wallAlpha) {
+    private static void drawRipple(PoseStack poseStack, VertexConsumer buffer, Vec3 center, Vec3 normal, Vec3 tangent, Vec3 bitangent,
+                                   float halfThickness, float sizeScale, float age, float wallAlpha) {
         if (age >= RIPPLE_LIFETIME_TICKS) {
             return;
         }
@@ -308,8 +346,8 @@ public final class ForceFieldDefenseEffectRenderEvent {
         }
 
         var eased = 1.0f - (1.0f - progress) * (1.0f - progress);
-        var rippleRadius = Mth.lerp(eased, RIPPLE_MIN_RADIUS, RIPPLE_MAX_RADIUS);
-        var surfaceOffset = WALL_THICKNESS * 0.5f + RIPPLE_SURFACE_OFFSET;
+        var rippleRadius = Mth.lerp(eased, RIPPLE_MIN_RADIUS * sizeScale, RIPPLE_MAX_RADIUS * sizeScale);
+        var surfaceOffset = halfThickness + RIPPLE_SURFACE_OFFSET;
 
         drawRippleOnSurface(poseStack, buffer, center.add(normal.scale(surfaceOffset)), normal, tangent, bitangent, rippleRadius, rippleAlpha);
         drawRippleOnSurface(poseStack, buffer, center.subtract(normal.scale(surfaceOffset)), normal.reverse(), tangent, bitangent, rippleRadius, rippleAlpha);
@@ -431,6 +469,13 @@ public final class ForceFieldDefenseEffectRenderEvent {
         return vector.normalize();
     }
 
+    private static float sanitizeScale(float value) {
+        if (!Float.isFinite(value)) {
+            return 1.0f;
+        }
+        return Math.max(MIN_EFFECT_SCALE, value);
+    }
+
     private static Vec2[] buildHexVertices(float radius) {
         var vertices = new Vec2[6];
         for (int i = 0; i < vertices.length; i++) {
@@ -440,6 +485,7 @@ public final class ForceFieldDefenseEffectRenderEvent {
         return vertices;
     }
 
-    private record ActiveEffect(Vec3 position, Vec3 normal, long startGameTime) {
+    private record ActiveEffect(Vec3 position, Vec3 normal, long startGameTime, float sizeScale, float lifetimeScale,
+                                boolean renderWave) {
     }
 }

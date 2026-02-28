@@ -214,7 +214,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         openers.clear();
         serverLevel.removeBlock(pos, false);
         serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL, pos.getCenter().x, pos.getCenter().y, pos.getCenter().z, 32, 0.2, 0.2, 0.2, 0);
-        AudioTools.playSoundFromBlock(level, pos.getCenter(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS);
+        AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS);
     }
 
     private void exportItem(Level level, BlockPos pos) {

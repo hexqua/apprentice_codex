@@ -6,11 +6,11 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
-import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.event.ForceFieldDefenseEvent;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -71,7 +71,7 @@ public class ForceField extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundRegistry.HOLY_CAST.get());
+        return Optional.of(SoundRegistry.FORCE_FIELD_ACTIVATE.get());
     }
 
     @Override

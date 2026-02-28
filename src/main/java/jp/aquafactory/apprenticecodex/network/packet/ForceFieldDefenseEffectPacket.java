@@ -11,24 +11,42 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class ForceFieldDefenseEffectPacket {
+    private static final float DEFAULT_SIZE_SCALE = 1.0f;
+    private static final float DEFAULT_LIFETIME_SCALE = 1.0f;
+
     private final double x;
     private final double y;
     private final double z;
     private final float normalX;
     private final float normalY;
     private final float normalZ;
+    private final float sizeScale;
+    private final float lifetimeScale;
+    private final boolean renderWave;
 
     public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal) {
-        this(position.x, position.y, position.z, (float) normal.x, (float) normal.y, (float) normal.z);
+        this(position, normal, DEFAULT_SIZE_SCALE, DEFAULT_LIFETIME_SCALE, true);
     }
 
-    private ForceFieldDefenseEffectPacket(double x, double y, double z, float normalX, float normalY, float normalZ) {
+    public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale) {
+        this(position, normal, sizeScale, lifetimeScale, true);
+    }
+
+    public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave) {
+        this(position.x, position.y, position.z, (float) normal.x, (float) normal.y, (float) normal.z, sizeScale, lifetimeScale, renderWave);
+    }
+
+    private ForceFieldDefenseEffectPacket(double x, double y, double z, float normalX, float normalY, float normalZ,
+                                          float sizeScale, float lifetimeScale, boolean renderWave) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.normalX = normalX;
         this.normalY = normalY;
         this.normalZ = normalZ;
+        this.sizeScale = sizeScale;
+        this.lifetimeScale = lifetimeScale;
+        this.renderWave = renderWave;
     }
 
     public static void encode(ForceFieldDefenseEffectPacket packet, FriendlyByteBuf buffer) {
@@ -38,6 +56,9 @@ public class ForceFieldDefenseEffectPacket {
         buffer.writeFloat(packet.normalX);
         buffer.writeFloat(packet.normalY);
         buffer.writeFloat(packet.normalZ);
+        buffer.writeFloat(packet.sizeScale);
+        buffer.writeFloat(packet.lifetimeScale);
+        buffer.writeBoolean(packet.renderWave);
     }
 
     public static ForceFieldDefenseEffectPacket decode(FriendlyByteBuf buffer) {
@@ -47,7 +68,10 @@ public class ForceFieldDefenseEffectPacket {
                 buffer.readDouble(),
                 buffer.readFloat(),
                 buffer.readFloat(),
-                buffer.readFloat()
+                buffer.readFloat(),
+                buffer.readFloat(),
+                buffer.readFloat(),
+                buffer.readBoolean()
         );
     }
 
@@ -67,7 +91,10 @@ public class ForceFieldDefenseEffectPacket {
         private static void handle(ForceFieldDefenseEffectPacket packet) {
             ForceFieldDefenseEffectRenderEvent.enqueueEffect(
                     new Vec3(packet.x, packet.y, packet.z),
-                    new Vec3(packet.normalX, packet.normalY, packet.normalZ)
+                    new Vec3(packet.normalX, packet.normalY, packet.normalZ),
+                    packet.sizeScale,
+                    packet.lifetimeScale,
+                    packet.renderWave
             );
         }
     }

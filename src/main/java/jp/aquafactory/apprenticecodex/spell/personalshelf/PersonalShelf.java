@@ -148,7 +148,7 @@ public class PersonalShelf extends AbstractSpell {
                         );
 
                         var effectCenter = castData.position.getCenter();
-                        AudioTools.playSoundFromBlock(level, effectCenter, SoundEvents.ENDER_CHEST_CLOSE, SoundSource.BLOCKS);
+                        AudioTools.playSoundFromPosition(level, effectCenter, SoundEvents.ENDER_CHEST_CLOSE, SoundSource.BLOCKS);
                         if (level instanceof ServerLevel server) {
                             server.sendParticles(ParticleTypes.REVERSE_PORTAL, effectCenter.x, effectCenter.y, effectCenter.z, 32, 0.5, 0.5, 0.5, 0.05);
                         }

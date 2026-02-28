@@ -130,5 +130,17 @@
     "sounds": [
       "apprenticecodex:terrain"
     ]
+  },
+  "force_field_deflect": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:force_field_deflect"
+    ]
+  },
+  "force_field_activate": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:force_field_activate"
+    ]
   }
 }

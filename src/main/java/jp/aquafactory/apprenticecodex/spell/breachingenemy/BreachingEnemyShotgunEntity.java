@@ -213,7 +213,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
 
             // 試しにドアをぶち破る.
             if (state.getBlock() instanceof DoorBlock){
-                AudioTools.playSoundFromBlock(level, pos.getCenter(), SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.PLAYERS);
+                AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.PLAYERS);
                 level.destroyBlock(pos, true, getOwner());
             }
         }
