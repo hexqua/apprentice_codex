@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
+import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
@@ -72,6 +73,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
     public static final RegistryObject<AbstractSpell> PHALANX_CHARGE = reg("phalanx_charge", PhalanxCharge::new);
     public static final RegistryObject<AbstractSpell> MANA_CHARGE = reg("mana_charge", ManaCharge::new);
+    public static final RegistryObject<AbstractSpell> FORCE_FIELD = reg("force_field", ForceField::new);
 
     // 氷.
     // まだなし...
