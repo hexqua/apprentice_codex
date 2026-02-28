@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.slashblade;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.GeoBonePoseCache;
 import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
@@ -111,7 +112,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     public void setStandby(){
         triggerAnim("main", "standby");
-        entityData.set(ANIMATION_SPEED, 4.0f);
+        entityData.set(ANIMATION_SPEED, 1.5f);
         entityData.set(SHOW_TRAIL, false);
         isStandby = true;
     }
@@ -122,7 +123,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     public void slash(Level level){
         triggerAnim("main", "quickdraw");
-        entityData.set(ANIMATION_SPEED, 7.5f);
+        entityData.set(ANIMATION_SPEED, 5.0f);
         entityData.set(SHOW_TRAIL, true);
         lifeTick = STAY_SLASHED_TICK;
         isSlashed = true;
@@ -135,6 +136,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
                     2.5,
                     e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
             );
+            AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
             for (var hit : hitResult){
                 CombatTools.applyDamage(hit, damage, source, SpellRegistry.SLASH_BLADE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);

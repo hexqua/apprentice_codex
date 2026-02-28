@@ -34,18 +34,18 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "moon_light");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.RARE)
-            .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
+            .setMinRarity(SpellRarity.LEGENDARY)
+            .setSchoolResource(SchoolRegistry.ELDRITCH_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(8)
+            .setCooldownSeconds(12)
             .build();
 
     public MoonLight() {
         super(MoonLightKatanaEntity.class);
-        baseSpellPower = 800;
-        spellPowerPerLevel = 600;
-        baseManaCost = 80;
-        manaCostPerLevel = 20;
+        baseSpellPower = 1200;
+        spellPowerPerLevel = 900;
+        baseManaCost = 120;
+        manaCostPerLevel = 30;
         castTime = 40;
     }
 
@@ -53,7 +53,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getDistance(spellLevel, caster), 1))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getDistance(spellLevel), 1))
         );
     }
 
@@ -62,8 +62,8 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MOON_LIGHT);
     }
 
-    private double getDistance(int spellLevel, LivingEntity entity) {
-        return 6 + getSpellPower(spellLevel, entity) / 400.0f;
+    private double getDistance(int spellLevel) {
+        return 4 + (spellLevel - 1) * 2.5;
     }
 
     @Override
@@ -163,7 +163,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         cutArea.setPos(startPosition.x, startPosition.y, startPosition.z);
         cutArea.setYRot(caster.getYRot());
         cutArea.setXRot(caster.getXRot());
-        cutArea.setup((float) getDistance(spellLevel, caster), damage);
+        cutArea.setup((float) getDistance(spellLevel), damage);
         level.addFreshEntity(cutArea);
     }
 }
