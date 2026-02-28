@@ -97,6 +97,11 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return super.getAttributeModifiers(slot, stack);
     }
 
+    @Override
+    public EquipmentSlot getEquipmentSlot(ItemStack stack) {
+        return EquipmentSlot.OFFHAND;
+    }
+
     private Multimap<Attribute, AttributeModifier> buildOffhandModifiers() {
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         var prefix = "apprenticecodex." + itemKey + ".offhand";
