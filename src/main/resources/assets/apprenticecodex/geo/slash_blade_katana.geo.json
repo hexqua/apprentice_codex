@@ -16,13 +16,18 @@
 					"pivot": [0, 7, 0]
 				},
 				{
-					"name": "p_katana",
+					"name": "katana_animbody",
 					"parent": "all",
 					"pivot": [0, 4, 0]
 				},
 				{
+					"name": "katana_animhand",
+					"parent": "katana_animbody",
+					"pivot": [0, 4, 0]
+				},
+				{
 					"name": "katana",
-					"parent": "p_katana",
+					"parent": "katana_animhand",
 					"pivot": [0, 4, 0]
 				},
 				{
@@ -134,8 +139,18 @@
 					]
 				},
 				{
-					"name": "scabbard",
+					"name": "scabbard_animbody",
 					"parent": "all",
+					"pivot": [0, 10, 0]
+				},
+				{
+					"name": "scabbard_animhand",
+					"parent": "scabbard_animbody",
+					"pivot": [0, 10, 0]
+				},
+				{
+					"name": "scabbard",
+					"parent": "scabbard_animhand",
 					"pivot": [0, 8, 0],
 					"cubes": [
 						{

@@ -111,7 +111,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     public void setStandby(){
         triggerAnim("main", "standby");
-        entityData.set(ANIMATION_SPEED, 4.0f);
+        entityData.set(ANIMATION_SPEED, 1.5f);
         entityData.set(SHOW_TRAIL, false);
         isStandby = true;
     }
@@ -122,7 +122,7 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
 
     public void slash(Level level){
         triggerAnim("main", "quickdraw");
-        entityData.set(ANIMATION_SPEED, 7.5f);
+        entityData.set(ANIMATION_SPEED, 5.0f);
         entityData.set(SHOW_TRAIL, true);
         lifeTick = STAY_SLASHED_TICK;
         isSlashed = true;
