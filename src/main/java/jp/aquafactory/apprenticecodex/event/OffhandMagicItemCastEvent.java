@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.event;
 
 import io.redspace.ironsspellbooks.api.item.CastingImplementData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
-import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.CastingItem;
@@ -42,11 +41,13 @@ public final class OffhandMagicItemCastEvent {
             offhandMagicItem.initializeSpellContainer(offhandStack);
         }
 
-        var spellData = offhandMagicItem.getConfiguredSpellData(offhandStack);
-        if (spellData == SpellData.EMPTY) {
+        var spellSelectionManager = new SpellSelectionManager(player);
+        var selectionOption = spellSelectionManager.getSelection();
+        if (selectionOption == null || selectionOption.spellData == SpellData.EMPTY) {
             return;
         }
 
+        var spellData = selectionOption.spellData;
         var spell = spellData.getSpell();
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         var casted = spell.attemptInitiateCast(
@@ -54,7 +55,7 @@ public final class OffhandMagicItemCastEvent {
                 spellLevel,
                 player.level(),
                 player,
-                CastSource.SWORD,
+                selectionOption.getCastSource(),
                 true,
                 SpellSelectionManager.OFFHAND
         );

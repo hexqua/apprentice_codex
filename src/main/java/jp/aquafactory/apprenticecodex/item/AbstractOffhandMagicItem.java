@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -87,14 +86,6 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         }
 
         ISpellContainer.set(itemStack, ISpellContainer.create(1, true, false));
-    }
-
-    public SpellData getConfiguredSpellData(ItemStack stack) {
-        if (!ISpellContainer.isSpellContainer(stack)) {
-            return SpellData.EMPTY;
-        }
-
-        return ISpellContainer.get(stack).getSpellAtIndex(0);
     }
 
     @Override
