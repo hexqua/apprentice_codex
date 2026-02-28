@@ -8,12 +8,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 public class PhotonSiphon extends AbstractOffhandMagicItem implements UniqueItem {
     public PhotonSiphon() {
-        // todo:専用魔法を作る.
         super(
-                SpellRegistry.MAGE_LIGHT,
+                SpellRegistry.MANA_CHARGE,
                 1,
                 "photon_siphon",
-                bonus(AttributeRegistry.MANA_REGEN, 1.00D, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.MAX_MANA, 100.0D, AttributeModifier.Operation.ADDITION)
         );
     }
 }

@@ -72,6 +72,7 @@
   "spell.apprenticecodex.thermal_process": "サーマルプロセス",
   "spell.apprenticecodex.earth_forge": "アースフォージ",
   "spell.apprenticecodex.moon_light": "月光",
+  "spell.apprenticecodex.mana_charge": "マナチャージ",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -99,6 +100,7 @@
   "spell.apprenticecodex.thermal_process.guide": "魔法の火炎放射器を召喚し視線の先を焼き切る。対象を熱し続けることで強力な熱効果を与える。燃やせるアイテムに照射すると処理することができる。周囲や無関係なものを燃やすことはない。",
   "spell.apprenticecodex.earth_forge.guide": "視線先に土ブロックを平面に生成する。スニークをしていると範囲を1ブロックのみに変化させる。",
   "spell.apprenticecodex.moon_light.guide": "世界の理の外から刀を召喚して一閃する。一閃した刀の魔力は空間を鋭く深く裂く。発動が阻止されることはない。",
+  "spell.apprenticecodex.mana_charge.guide": "使用中、マナを急速に回復する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -114,6 +116,7 @@
   "ui.apprenticecodex.maximum_thrust_charge_time": "最大チャージまでの時間: %s",
   "ui.apprenticecodex.maximum_thrust_charge_rate": "最大チャージ時倍率: %d%%",
   "ui.apprenticecodex.furnace_item_per_second": "1秒間に処理できるアイテム数: %d",
+  "ui.apprenticecodex.mana_recover_speed": "秒間マナ回復: %d",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
