@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.phalanxcharge;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import jp.aquafactory.apprenticecodex.renderer.BeamRenderTypes;
+import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -47,7 +47,7 @@ public class PhalanxChargeBeamRenderer extends EntityRenderer<PhalanxChargeBeamE
         var length = entity.getLength();
         var radius = entity.getRadius() * radiusScale;
         var time = (entity.tickCount + partialTicks) * 0.25f;
-        var beamBuffer = buffer.getBuffer(BeamRenderTypes.beamNoCull(BEAM_TEX));
+        var beamBuffer = buffer.getBuffer(ApprenticeRenderTypes.beamNoCull(BEAM_TEX));
 
         poseStack.pushPose();
         poseStack.mulPose(rotation);

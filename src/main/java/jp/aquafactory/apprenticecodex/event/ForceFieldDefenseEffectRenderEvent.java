@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.event;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
@@ -29,9 +30,9 @@ public final class ForceFieldDefenseEffectRenderEvent {
     private static final ResourceLocation SHIELD_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wall.png");
     private static final ResourceLocation SHIELD_TRIM_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wall_trim.png");
     private static final ResourceLocation SHOCKWAVE_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wave.png");
-    private static final RenderType SHIELD_OVERLAY_RENDER_TYPE = RenderType.entityTranslucent(SHIELD_OVERLAY_TEXTURE);
-    private static final RenderType SHIELD_TRIM_RENDER_TYPE = RenderType.entityTranslucent(SHIELD_TRIM_TEXTURE);
-    private static final RenderType RIPPLE_RENDER_TYPE = RenderType.entityTranslucent(SHOCKWAVE_TEXTURE);
+    private static final RenderType SHIELD_OVERLAY_RENDER_TYPE = createAdditiveEntityRenderType("force_field_shield_overlay_additive", SHIELD_OVERLAY_TEXTURE);
+    private static final RenderType SHIELD_TRIM_RENDER_TYPE = createAdditiveEntityRenderType("force_field_shield_trim_additive", SHIELD_TRIM_TEXTURE);
+    private static final RenderType RIPPLE_RENDER_TYPE = createAdditiveEntityRenderType("force_field_ripple_additive", SHOCKWAVE_TEXTURE);
     private static final int MAX_ACTIVE_EFFECTS = 128;
     private static final int HOLD_TICKS = 10;
     private static final int FADE_TICKS = 10;
@@ -370,8 +371,12 @@ public final class ForceFieldDefenseEffectRenderEvent {
 
     private static void vertex(VertexConsumer buffer, Matrix4f poseMatrix, Matrix3f normalMatrix, Vec3 position, float u, float v,
                                float r, float g, float b, float a, Vec3 normal) {
+        // ONE,ONE 加算合成では alpha が直接フェードに効きにくいため、RGB 側へも反映して減衰させる。
+        var scaledR = r * a;
+        var scaledG = g * a;
+        var scaledB = b * a;
         buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(r, g, b, a)
+                .color(scaledR, scaledG, scaledB, a)
                 .uv(u, v)
                 .overlayCoords(OverlayTexture.NO_OVERLAY)
                 .uv2(LightTexture.FULL_BRIGHT)
@@ -413,6 +418,10 @@ public final class ForceFieldDefenseEffectRenderEvent {
 
     private static float uvFromHex(float value) {
         return 0.5f + (value / (OUTER_RADIUS * 2f));
+    }
+
+    private static RenderType createAdditiveEntityRenderType(String renderTypeName, ResourceLocation texture) {
+        return ApprenticeRenderTypes.additiveEntityNoCull(renderTypeName, texture);
     }
 
     private static Vec3 normalizeOrFallback(Vec3 vector, Vec3 fallback) {
