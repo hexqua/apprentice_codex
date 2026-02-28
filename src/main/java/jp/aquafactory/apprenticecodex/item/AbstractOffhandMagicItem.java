@@ -13,7 +13,6 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
@@ -160,11 +159,11 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
             return offhandModifiers;
         }
 
-        var alacrityLevel = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentRegistry.ALACRITY.get(), stack);
-        var refluxLevel = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentRegistry.REFLUX.get(), stack);
-        var reservoirLevel = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentRegistry.RESERVOIR.get(), stack);
-        var surgeLevel = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentRegistry.SURGE.get(), stack);
-        var tenseLevel = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentRegistry.TENSE.get(), stack);
+        var alacrityLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ALACRITY.get());
+        var refluxLevel = stack.getEnchantmentLevel(EnchantmentRegistry.REFLUX.get());
+        var reservoirLevel = stack.getEnchantmentLevel(EnchantmentRegistry.RESERVOIR.get());
+        var surgeLevel = stack.getEnchantmentLevel(EnchantmentRegistry.SURGE.get());
+        var tenseLevel = stack.getEnchantmentLevel(EnchantmentRegistry.TENSE.get());
 
         if (alacrityLevel <= 0
                 && refluxLevel <= 0
