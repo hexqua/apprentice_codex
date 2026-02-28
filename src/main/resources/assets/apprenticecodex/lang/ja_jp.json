@@ -137,13 +137,11 @@
   "effect.apprenticecodex.palette_reception": "魔力受付モード",
   "effect.apprenticecodex.phalanx_stance": "ファランクススタンス",
   "effect.apprenticecodex.thermal_processing": "熱加工",
-  "effect.apprenticecodex.deploy_field": "フィールド展開中",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
   "effect.apprenticecodex.palette_reception.description": "次にパステルスタッフで振るった魔力で杖を染める。",
   "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。",
   "effect.apprenticecodex.thermal_processing.description": "熱加工を受けている状態。レベルが進行すると強力なデバフとダメージが発生し続ける。",
-  "effect.apprenticecodex.deploy_field.description": "フォースフィールドを展開している状態。マナを消費して攻撃と魔法を弾く。",
 
   "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた",
   "death.attack.apprenticecodex.archer_multiple": "%1$sは%2$sに蜂の巣にされた",
