@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
+import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLight;
@@ -70,6 +71,7 @@ public final class SpellRegistry {
     // 聖.
     public static final RegistryObject<AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
     public static final RegistryObject<AbstractSpell> PHALANX_CHARGE = reg("phalanx_charge", PhalanxCharge::new);
+    public static final RegistryObject<AbstractSpell> MANA_CHARGE = reg("mana_charge", ManaCharge::new);
 
     // 氷.
     // まだなし...

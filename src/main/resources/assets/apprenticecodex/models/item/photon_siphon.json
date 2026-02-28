@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:item/handheld",
+  "loader": "forge:separate_transforms",
+  "base": {
+    "parent": "apprenticecodex:item/photon_siphon_3d"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "apprenticecodex:item/photon_siphon_gui"
+    },
+    "ground": {
+      "parent": "apprenticecodex:item/photon_siphon_gui"
+    },
+    "fixed": {
+      "parent": "apprenticecodex:item/photon_siphon_gui"
+    }
+  }
+}

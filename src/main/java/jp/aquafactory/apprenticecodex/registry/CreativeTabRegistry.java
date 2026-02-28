@@ -30,6 +30,9 @@ public final class CreativeTabRegistry {
 
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
         output.accept(ItemRegistry.APPRENTICE_DESK.get());
+        output.accept(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
+        output.accept(ItemRegistry.GOLD_SPELL_AMPLIFIER.get());
+        output.accept(ItemRegistry.PHOTON_SIPHON.get());
         output.accept(ItemRegistry.PASTEL_STAFF.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
