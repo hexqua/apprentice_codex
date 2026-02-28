@@ -167,5 +167,11 @@
   "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.title": "次元連結システムのちょっとした応用",
   "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.description": "グリモア目録を使ってエンダーグリモアを入手する",
   "advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.title": "あのバランスのいい杖が！",
-  "advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.description": "パステルスタッフを作る。"
+  "advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.description": "パステルスタッフを作る。",
+  "advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.title": "見習い魔術師のよき相棒",
+  "advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.description": "鉄の魔力増幅装置を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.title": "鉄の魔法なのに金の方がよいってさ",
+  "advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.description": "金の魔力増幅装置を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.title": "全てのオフハンドを過去にする",
+  "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.description": "フォトンサイフォンを作る"
 }

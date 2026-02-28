@@ -26,6 +26,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
         return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_codex/" + path);
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public void generate(HolderLookup.@NotNull Provider registries, @NotNull Consumer<Advancement> saver, @NotNull ExistingFileHelper existingFileHelper) {
         var ironsSpellbookEquipPredicate = EntityPredicate.wrap(
@@ -86,5 +87,44 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_pastel_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.PASTEL_STAFF.getId()))
                 .save(saver, advancementId("craft_pastel_staff"), existingFileHelper);
+
+        var ironAmp = Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_iron_spell_amplifier", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.IRON_SPELL_AMPLIFIER.getId()))
+                .save(saver, advancementId("craft_iron_spell_amplifier"), existingFileHelper);
+
+        var goldAmp = Advancement.Builder.advancement()
+                .parent(ironAmp)
+                .display(ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_gold_spell_amplifier", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.GOLD_SPELL_AMPLIFIER.getId()))
+                .save(saver, advancementId("craft_gold_spell_amplifier"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(goldAmp)
+                .display(ItemRegistry.PHOTON_SIPHON.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_photon_siphon", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.PHOTON_SIPHON.getId()))
+                .save(saver, advancementId("craft_photon_siphon"), existingFileHelper);
     }
 }
