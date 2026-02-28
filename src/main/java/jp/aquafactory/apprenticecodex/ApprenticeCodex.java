@@ -4,8 +4,11 @@ import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.*;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -37,5 +40,6 @@ public class ApprenticeCodex
         CreativeTabRegistry.register(bus);
         CodexSpellStateTypeRegister.register();
         Networks.register();
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientModBusEvents.register(bus));
     }
 }

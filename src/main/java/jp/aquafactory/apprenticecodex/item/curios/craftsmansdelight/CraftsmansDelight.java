@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item.curios;
+package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;

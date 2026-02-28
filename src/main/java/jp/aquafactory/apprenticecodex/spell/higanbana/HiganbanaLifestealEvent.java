@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.event;
+package jp.aquafactory.apprenticecodex.spell.higanbana;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;

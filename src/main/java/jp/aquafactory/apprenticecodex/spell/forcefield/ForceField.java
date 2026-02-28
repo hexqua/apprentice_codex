@@ -9,7 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
-import jp.aquafactory.apprenticecodex.event.ForceFieldDefenseEvent;
+import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.network.chat.Component;

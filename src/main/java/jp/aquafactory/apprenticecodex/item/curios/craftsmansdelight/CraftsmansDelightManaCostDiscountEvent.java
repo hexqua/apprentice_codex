@@ -1,8 +1,7 @@
-package jp.aquafactory.apprenticecodex.event;
+package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,8 +10,8 @@ import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
-public final class SpellManaCostEvent {
-    private SpellManaCostEvent() {
+public final class CraftsmansDelightManaCostDiscountEvent {
+    private CraftsmansDelightManaCostDiscountEvent() {
     }
 
     @SubscribeEvent

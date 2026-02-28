@@ -6,7 +6,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
-import jp.aquafactory.apprenticecodex.item.curios.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import net.minecraft.world.item.BlockItem;
