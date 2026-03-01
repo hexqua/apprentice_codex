@@ -25,6 +25,11 @@ public class MinigunSoundHandler {
         }
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
+            // ワールド切り替え/切断直後に static Map に参照が残らないよう即時解放する.
+            if (!playing.isEmpty()) {
+                playing.values().forEach(MinigunLoopSound::stopSound);
+                playing.clear();
+            }
             return;
         }
 
