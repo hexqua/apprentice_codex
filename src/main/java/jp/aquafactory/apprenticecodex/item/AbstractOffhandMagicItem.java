@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -30,6 +31,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
     private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
     private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
     private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
+    private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
     private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
 
     private final Supplier<? extends AbstractSpell> configuredSpell;
@@ -157,6 +159,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
                 || !EnchantmentRegistry.REFLUX.isPresent()
                 || !EnchantmentRegistry.RESERVOIR.isPresent()
                 || !EnchantmentRegistry.SURGE.isPresent()
+                || !EnchantmentRegistry.ATTUNEMENT.isPresent()
                 || !EnchantmentRegistry.TENSE.isPresent()) {
             return offhandModifiers;
         }
@@ -165,12 +168,14 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         var refluxLevel = stack.getEnchantmentLevel(EnchantmentRegistry.REFLUX.get());
         var reservoirLevel = stack.getEnchantmentLevel(EnchantmentRegistry.RESERVOIR.get());
         var surgeLevel = stack.getEnchantmentLevel(EnchantmentRegistry.SURGE.get());
+        var attunementLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ATTUNEMENT.get());
         var tenseLevel = stack.getEnchantmentLevel(EnchantmentRegistry.TENSE.get());
 
         if (alacrityLevel <= 0
                 && refluxLevel <= 0
                 && reservoirLevel <= 0
                 && surgeLevel <= 0
+                && attunementLevel <= 0
                 && tenseLevel <= 0) {
             return offhandModifiers;
         }
@@ -207,6 +212,17 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
                 AttributeModifier.Operation.MULTIPLY_BASE,
                 prefix + ".surge.spell_power"
         );
+        if (attunementLevel > 0) {
+            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
+            var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            addEnchantmentModifier(
+                    builder,
+                    attunementSpellPowerAttribute,
+                    attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    prefix + ".attunement.spell_power"
+            );
+        }
         addEnchantmentModifier(
                 builder,
                 AttributeRegistry.CAST_TIME_REDUCTION.get(),
