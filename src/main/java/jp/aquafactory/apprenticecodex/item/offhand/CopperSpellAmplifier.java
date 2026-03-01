@@ -5,16 +5,17 @@ import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 
-public class GoldSpellAmplifier extends AbstractOffhandMagicItem {
-    public GoldSpellAmplifier() {
+public class CopperSpellAmplifier extends AbstractOffhandMagicItem {
+    public CopperSpellAmplifier() {
         super(
-                "gold_spell_amplifier",
-                bonus(AttributeRegistry.MANA_REGEN, 0.20, AttributeModifier.Operation.MULTIPLY_BASE)
+                "copper_spell_amplifier",
+                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE),
+                bonus(AttributeRegistry.LIGHTNING_SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE)
         );
     }
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return 22;
+        return 14;
     }
 }

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
@@ -46,6 +47,8 @@ public final class ItemRegistry {
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final RegistryObject<Item> IRON_SPELL_AMPLIFIER =
             ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
+    public static final RegistryObject<Item> COPPER_SPELL_AMPLIFIER =
+            ITEMS.register("copper_spell_amplifier", CopperSpellAmplifier::new);
     public static final RegistryObject<Item> GOLD_SPELL_AMPLIFIER =
             ITEMS.register("gold_spell_amplifier", GoldSpellAmplifier::new);
     public static final RegistryObject<Item> PHOTON_SIPHON =

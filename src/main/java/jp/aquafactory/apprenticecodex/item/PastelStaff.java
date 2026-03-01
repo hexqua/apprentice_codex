@@ -13,9 +13,9 @@ import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.mixin.SchoolTypeAccessor;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.Tag;
@@ -41,7 +41,6 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -59,12 +58,6 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             ResourceLocation.withDefaultNamespace("fortune"),
             ResourceLocation.withDefaultNamespace("silk_touch")
     );
-
-    // 規約外の属性 ID を使う拡張学派がある場合はここで明示対応する.
-    // 現状メイン1.20.1環境で使っているアドオンは対応できている.
-    private static final Map<ResourceLocation, ResourceLocation> AFFINITY_POWER_ATTRIBUTE_FALLBACK_MAP =
-            Map.of();
-
     private static final StaffTier PASTEL_STAFF_TIER = new StaffTier(
             3.0F,
             -3.0F,
@@ -143,7 +136,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             return builder.build();
         }
 
-        var powerAttribute = resolveAffinityPowerAttribute(schoolType);
+        var powerAttribute = MagicTools.resolveSchoolPowerAttribute(schoolType);
         if (powerAttribute == null) {
             return builder.build();
         }
@@ -267,37 +260,6 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
                 ("apprenticecodex:pastel_staff_affinity/" + schoolId).getBytes(StandardCharsets.UTF_8)
         );
     }
-
-    @Nullable
-    private static Attribute resolveAffinityPowerAttribute(SchoolType schoolType) {
-        if (schoolType instanceof SchoolTypeAccessor accessor) {
-            var supplier = accessor.apprenticecodex$getPowerAttribute();
-            if (supplier != null) {
-                var resolved = supplier.get();
-                if (resolved != null) {
-                    return resolved;
-                }
-            }
-        }
-
-        var schoolId = schoolType.getId();
-        var fallbackAttributeId = AFFINITY_POWER_ATTRIBUTE_FALLBACK_MAP.get(schoolId);
-        if (fallbackAttributeId != null) {
-            var fallback = ForgeRegistries.ATTRIBUTES.getValue(fallbackAttributeId);
-            if (fallback != null) {
-                return fallback;
-            }
-        }
-
-        // 多くの拡張学派は "<school_id>_spell_power" 命名に従うため、最後に規約名を参照する.
-        // 現状これで拾えてる...
-        var guessedAttributeId = ResourceLocation.fromNamespaceAndPath(
-                schoolId.getNamespace(),
-                schoolId.getPath() + "_spell_power"
-        );
-        return ForgeRegistries.ATTRIBUTES.getValue(guessedAttributeId);
-    }
-
     @Override
     public void appendHoverText(ItemStack itemStack, @Nullable Level context, List<Component> lines, TooltipFlag flag) {
         super.appendHoverText(itemStack, context, lines, flag);

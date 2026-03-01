@@ -101,6 +101,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("crafted_iron_spell_amplifier", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.IRON_SPELL_AMPLIFIER.getId()))
                 .save(saver, advancementId("craft_iron_spell_amplifier"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_copper_spell_amplifier", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.COPPER_SPELL_AMPLIFIER.getId()))
+                .save(saver, advancementId("craft_copper_spell_amplifier"), existingFileHelper);
+
         var goldAmp = Advancement.Builder.advancement()
                 .parent(ironAmp)
                 .display(ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
