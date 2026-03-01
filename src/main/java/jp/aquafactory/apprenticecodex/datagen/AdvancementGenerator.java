@@ -112,7 +112,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .save(saver, advancementId("craft_iron_spell_amplifier"), existingFileHelper);
 
         Advancement.Builder.advancement()
-                .parent(root)
+                .parent(ironAmp)
                 .display(ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.description"),
