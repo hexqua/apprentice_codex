@@ -140,17 +140,18 @@ public class PhalanxChargeBeamRenderer extends EntityRenderer<PhalanxChargeBeamE
                                 float x3, float y3, float z3, float u3, float v3,
                                 float alpha,
                                 float nx, float ny, float nz) {
-        vertexConsumer.vertex(poseMat, x0, y0, z0).color(1.0f, 1.0f, 1.0f, alpha).uv(u0, v0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(FULL_BRIGHT_LIGHT)
-                .normal(normalMat, nx, ny, nz).endVertex();
-        vertexConsumer.vertex(poseMat, x1, y1, z1).color(1.0f, 1.0f, 1.0f, alpha).uv(u1, v1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(FULL_BRIGHT_LIGHT)
-                .normal(normalMat, nx, ny, nz).endVertex();
-        vertexConsumer.vertex(poseMat, x2, y2, z2).color(1.0f, 1.0f, 1.0f, alpha).uv(u2, v2)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(FULL_BRIGHT_LIGHT)
-                .normal(normalMat, nx, ny, nz).endVertex();
-        vertexConsumer.vertex(poseMat, x3, y3, z3).color(1.0f, 1.0f, 1.0f, alpha).uv(u3, v3)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(FULL_BRIGHT_LIGHT)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        var normal = normalMat.transform(new Vector3f(nx, ny, nz));
+        vertexConsumer.addVertex(poseMat, x0, y0, z0).setColor(1.0f, 1.0f, 1.0f, alpha).setUv(u0, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(FULL_BRIGHT_LIGHT)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        vertexConsumer.addVertex(poseMat, x1, y1, z1).setColor(1.0f, 1.0f, 1.0f, alpha).setUv(u1, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(FULL_BRIGHT_LIGHT)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        vertexConsumer.addVertex(poseMat, x2, y2, z2).setColor(1.0f, 1.0f, 1.0f, alpha).setUv(u2, v2)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(FULL_BRIGHT_LIGHT)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        vertexConsumer.addVertex(poseMat, x3, y3, z3).setColor(1.0f, 1.0f, 1.0f, alpha).setUv(u3, v3)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(FULL_BRIGHT_LIGHT)
+                .setNormal(normal.x(), normal.y(), normal.z());
     }
 }

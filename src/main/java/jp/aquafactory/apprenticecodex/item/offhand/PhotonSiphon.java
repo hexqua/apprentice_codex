@@ -13,7 +13,7 @@ public class PhotonSiphon extends AbstractOffhandMagicItem implements UniqueItem
                 SpellRegistry.MANA_CHARGE,
                 1,
                 "photon_siphon",
-                bonus(AttributeRegistry.MAX_MANA, 100.0, AttributeModifier.Operation.ADDITION)
+                bonus(AttributeRegistry.MAX_MANA, 100.0, AttributeModifier.Operation.ADD_VALUE)
         );
     }
 

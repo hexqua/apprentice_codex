@@ -4,25 +4,22 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity.IS_SOUND_LOOP_MODE;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public class MinigunSoundHandler {
     private static final Map<Integer, MinigunLoopSound> playing = new HashMap<>();
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent e) {
-        if (e.phase != TickEvent.Phase.END) {
-            return;
-        }
+    public static void onClientTick(ClientTickEvent.Post ignored) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             // ワールド切り替え/切断直後に static Map に参照が残らないよう即時解放する.
@@ -61,3 +58,4 @@ public class MinigunSoundHandler {
         }
     }
 }
+

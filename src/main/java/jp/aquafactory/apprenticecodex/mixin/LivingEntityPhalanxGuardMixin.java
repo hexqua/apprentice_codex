@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -26,11 +27,14 @@ public abstract class LivingEntityPhalanxGuardMixin {
 
     @Inject(method = "updatingUsingItem", at = @At("HEAD"), cancellable = true)
     private void apprenticecodex$keepVirtualShieldUse(CallbackInfo ci) {
-        if (!((Object) this instanceof Player player)) {
+        // Mixin適用後は this が LivingEntity 実体を指す。明示キャストで静的解析の誤判定を避ける。
+        var self = (LivingEntity) (Object) this;
+        if (!(self instanceof Player)) {
             return;
         }
+        var player = (Player) self;
 
-        if (!player.hasEffect(EffectRegistry.PHALANX_STANCE.get())) {
+        if (!player.hasEffect(net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()))) {
             return;
         }
 
@@ -52,7 +56,10 @@ public abstract class LivingEntityPhalanxGuardMixin {
             return false;
         }
 
-        var tag = stack.getTag();
-        return tag != null && tag.getBoolean(VIRTUAL_SHIELD_TAG);
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return false;
+        }
+        return customData.copyTag().getBoolean(VIRTUAL_SHIELD_TAG);
     }
 }

@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ICastDataSerializable;
+import net.minecraft.core.HolderLookup;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -127,17 +128,24 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
         }
 
         public Entity getEntity(ServerLevel level) {
+            if (entityId == null) {
+                return null;
+            }
             return level.getEntity(entityId);
         }
 
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            friendlyByteBuf.writeUUID(entityId);
+            var hasEntity = entityId != null;
+            friendlyByteBuf.writeBoolean(hasEntity);
+            if (hasEntity) {
+                friendlyByteBuf.writeUUID(entityId);
+            }
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
-            entityId = friendlyByteBuf.readUUID();
+            entityId = friendlyByteBuf.readBoolean() ? friendlyByteBuf.readUUID() : null;
         }
 
         @Override
@@ -146,15 +154,17 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
-            tag.putUUID("Entity", entityId);
+            if (entityId != null) {
+                tag.putUUID("Entity", entityId);
+            }
             return tag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            entityId = nbt.getUUID("Entity");
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            entityId = nbt.hasUUID("Entity") ? nbt.getUUID("Entity") : null;
         }
     }
 }

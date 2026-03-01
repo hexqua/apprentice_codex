@@ -22,6 +22,7 @@ import org.joml.Vector3f;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ScarletThirst extends Item implements ICurioItem {
@@ -29,7 +30,7 @@ public class ScarletThirst extends Item implements ICurioItem {
             new DustParticleOptions(new Vector3f(1.0f, 0.0f, 0.0f), 1.0f);
     private static final double SCARLET_DUST_SPEED = 0.02D;
 
-    final String slotIdentifier;
+    private final String slotIdentifier;
 
     public ScarletThirst() {
         super(new Item.Properties().stacksTo(1));
@@ -52,12 +53,12 @@ public class ScarletThirst extends Item implements ICurioItem {
             return;
         }
 
-        // クルーズが使える最低体力を満たさない場合は発動しない.
+        // 最低体力を下回る間は発動させない。
         if (entity.getHealth() <= ApprenticeCodexServerConfig.scarletThirstRequiredHealth()) {
             return;
         }
 
-        // クルーズ/パニックともに20tickごとにのみ判定する.
+        // 1秒ごとにのみ判定する。
         if (entity.tickCount % 20 != 0) {
             return;
         }
@@ -68,14 +69,14 @@ public class ScarletThirst extends Item implements ICurioItem {
         }
 
         var currentMana = magicData.getMana();
-        var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA);
         if (maxMana <= 0f) {
             return;
         }
 
         var manaRatio = currentMana / maxMana;
 
-        // パニックが発動する場合はクルーズを発動させない.
+        // 緊急回復が発動する場合は通常回復を発動させない。
         if (manaRatio <= 0.15f) {
             magicData.addMana(ApprenticeCodexServerConfig.scarletThirstRecoverEmergencyMana());
             drainHealthSilentNoKill(player, ApprenticeCodexServerConfig.scarletThirstDrainEmergencyHealth());
@@ -93,17 +94,17 @@ public class ScarletThirst extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
-            // Curiosっぽい共通ヘッダ.
-            tooltips.add(Component.empty());
-            tooltips.add(Component.translatable("curios.modifiers." + this.slotIdentifier).withStyle(ChatFormatting.GOLD));
-
-            // 本体.
-            tooltips.add(Component.literal(" ").append(Component.translatable(getDescriptionId() + ".desc")).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            result.add(Component.empty());
+            result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
+            result.add(Component.literal(" ")
+                    .append(Component.translatable(getDescriptionId() + ".desc"))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         }
 
-        return tooltips;
+        return result;
     }
 
     @Override

@@ -9,8 +9,8 @@ public class CopperSpellAmplifier extends AbstractOffhandMagicItem {
     public CopperSpellAmplifier() {
         super(
                 "copper_spell_amplifier",
-                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE),
-                bonus(AttributeRegistry.LIGHTNING_SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
+                bonus(AttributeRegistry.LIGHTNING_SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
         );
     }
 

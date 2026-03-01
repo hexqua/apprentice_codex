@@ -100,7 +100,7 @@ public class ManaCharge extends AbstractSpell{
         if (playerMagicData != null){
             var tick = playerMagicData.getCastDurationRemaining();
             if (tick % 10 == 0){
-                var maxMana = (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+                var maxMana = (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA);
                 var currentMana = playerMagicData.getMana();
                 if (currentMana < maxMana){
                     var rechargeMana = getManaRechargePerSecond(spellLevel, entity) / 2f;

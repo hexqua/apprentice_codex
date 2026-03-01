@@ -61,7 +61,7 @@ public class ApprenticeDeskScreen extends AbstractContainerScreen<ApprenticeDesk
 
     @Override
     public void render(@NotNull GuiGraphics gui, int mouseX, int mouseY, float partialTick) {
-        renderBackground(gui);
+        renderBackground(gui, mouseX, mouseY, partialTick);
         super.render(gui, mouseX, mouseY, partialTick);
         renderTooltip(gui, mouseX, mouseY);
     }
@@ -124,9 +124,9 @@ public class ApprenticeDeskScreen extends AbstractContainerScreen<ApprenticeDesk
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (!shouldShowSpellList()) {
-            return super.mouseScrolled(mouseX, mouseY, scrollY);
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
         var maxOffset = Math.max(availableSpells.size() - 3, 0);
         var newScroll = Mth.clamp(scrollOffset - (int) scrollY, 0, maxOffset);
@@ -134,7 +134,7 @@ public class ApprenticeDeskScreen extends AbstractContainerScreen<ApprenticeDesk
             scrollOffset = newScroll;
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -269,7 +269,7 @@ public class ApprenticeDeskScreen extends AbstractContainerScreen<ApprenticeDesk
         }
 
         private FormattedText trimText(Font font, Component component, int maxWidth) {
-            var text = font.getSplitter().splitLines(component, maxWidth, component.getStyle()).get(0);
+            var text = font.getSplitter().splitLines(component, maxWidth, component.getStyle()).getFirst();
             if (text.getString().length() < component.getString().length()) {
                 text = FormattedText.composite(text, FormattedText.of("..."));
             }

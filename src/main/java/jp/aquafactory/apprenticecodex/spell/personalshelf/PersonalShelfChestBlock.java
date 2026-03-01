@@ -1,9 +1,9 @@
 package jp.aquafactory.apprenticecodex.spell.personalshelf;
 
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
@@ -19,35 +19,36 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class PersonalShelfChestBlock extends BaseEntityBlock {
+    public static final MapCodec<PersonalShelfChestBlock> CODEC = simpleCodec(PersonalShelfChestBlock::new);
     private static final VoxelShape SHAPE =
             Block.box(2, 1, 2, 14, 14, 14);
+
+    public PersonalShelfChestBlock(Properties properties) {
+        super(properties);
+    }
+
     public PersonalShelfChestBlock() {
-        super(Properties.of()
+        this(Properties.of()
                 .strength(4.0f)
                 .noOcclusion()
                 .sound(SoundType.STONE)
                 .lightLevel(s -> 8));
     }
 
-    // 害は無いっぽいので警告握りつぶしをする.
-    @SuppressWarnings("deprecation")
     @Override
     public @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
         return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext ctx) {
         return SHAPE;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public @NotNull VoxelShape getOcclusionShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos) {
         return SHAPE;
@@ -58,17 +59,16 @@ public class PersonalShelfChestBlock extends BaseEntityBlock {
         return new PersonalShelfChestBlockEntity(pos, state);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Player player,
-                                          @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
+    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, Level level, @NotNull BlockPos pos,
+                                                        @NotNull Player player, @NotNull BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
 
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof PersonalShelfChestBlockEntity shelf && player instanceof ServerPlayer server) {
-            NetworkHooks.openScreen(server, shelf, buffer -> buffer.writeBlockPos(pos));
+            server.openMenu(shelf, buffer -> buffer.writeBlockPos(pos));
             return InteractionResult.CONSUME;
         }
 
@@ -82,5 +82,9 @@ public class PersonalShelfChestBlock extends BaseEntityBlock {
                 BlockEntityRegistry.PERSONAL_SHELF_CHEST.get(),
                 PersonalShelfChestBlockEntity::serverTick
         );
+    }
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 }

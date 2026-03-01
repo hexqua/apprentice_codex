@@ -46,9 +46,9 @@ public class PhalanxChargeBeamEntity extends Entity implements TraceableEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(LENGTH, 1.0f);
-        entityData.define(RADIUS, 0.15f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(LENGTH, 1.0f);
+        builder.define(RADIUS, 0.15f);
     }
 
     @Override
@@ -165,3 +165,4 @@ public class PhalanxChargeBeamEntity extends Entity implements TraceableEntity {
         return entityData.get(RADIUS);
     }
 }
+

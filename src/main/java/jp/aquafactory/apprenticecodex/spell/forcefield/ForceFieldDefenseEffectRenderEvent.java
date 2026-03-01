@@ -12,20 +12,21 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 // 引数として明示しないとあとから見た時に数値の意味がわからなくなるため警告は抑止.
 @SuppressWarnings("SameParameterValue")
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ForceFieldDefenseEffectRenderEvent {
     private static final ResourceLocation SHIELD_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wall.png");
     private static final ResourceLocation SHIELD_TRIM_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wall_trim.png");
@@ -82,8 +83,8 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && Minecraft.getInstance().level == null && !ACTIVE_EFFECTS.isEmpty()) {
+    public static void onClientTick(ClientTickEvent.Post event) {
+        if (Minecraft.getInstance().level == null && !ACTIVE_EFFECTS.isEmpty()) {
             ACTIVE_EFFECTS.clear();
         }
     }
@@ -102,7 +103,7 @@ public final class ForceFieldDefenseEffectRenderEvent {
         }
 
         var gameTime = level.getGameTime();
-        var partialTick = event.getPartialTick();
+        var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         var poseStack = event.getPoseStack();
         var cameraPosition = event.getCamera().getPosition();
         var buffers = minecraft.renderBuffers().bufferSource();
@@ -413,13 +414,13 @@ public final class ForceFieldDefenseEffectRenderEvent {
         var scaledR = r * a;
         var scaledG = g * a;
         var scaledB = b * a;
-        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(scaledR, scaledG, scaledB, a)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, (float) normal.x, (float) normal.y, (float) normal.z)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(new Vector3f((float) normal.x, (float) normal.y, (float) normal.z));
+        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(scaledR, scaledG, scaledB, a)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 
     private static Vec3 toWorld(Vec3 center, Vec3 tangent, Vec3 bitangent, Vec3 normal, float x, float y, float z) {
@@ -489,3 +490,4 @@ public final class ForceFieldDefenseEffectRenderEvent {
                                 boolean renderWave) {
     }
 }
+

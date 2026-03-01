@@ -1,20 +1,20 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ScarletThirstServerConfig {
-    private final ForgeConfigSpec.DoubleValue requiredHealth;
-    private final ForgeConfigSpec.DoubleValue drainHealth;
-    private final ForgeConfigSpec.DoubleValue drainEmergencyHealth;
-    private final ForgeConfigSpec.DoubleValue recoverMana;
-    private final ForgeConfigSpec.DoubleValue recoverEmergencyMana;
+    private final ModConfigSpec.DoubleValue requiredHealth;
+    private final ModConfigSpec.DoubleValue drainHealth;
+    private final ModConfigSpec.DoubleValue drainEmergencyHealth;
+    private final ModConfigSpec.DoubleValue recoverMana;
+    private final ModConfigSpec.DoubleValue recoverEmergencyMana;
 
     private ScarletThirstServerConfig(
-            ForgeConfigSpec.DoubleValue requiredHealth,
-            ForgeConfigSpec.DoubleValue drainHealth,
-            ForgeConfigSpec.DoubleValue drainEmergencyHealth,
-            ForgeConfigSpec.DoubleValue recoverMana,
-            ForgeConfigSpec.DoubleValue recoverEmergencyMana
+            ModConfigSpec.DoubleValue requiredHealth,
+            ModConfigSpec.DoubleValue drainHealth,
+            ModConfigSpec.DoubleValue drainEmergencyHealth,
+            ModConfigSpec.DoubleValue recoverMana,
+            ModConfigSpec.DoubleValue recoverEmergencyMana
     ) {
         this.requiredHealth = requiredHealth;
         this.drainHealth = drainHealth;
@@ -23,7 +23,7 @@ public final class ScarletThirstServerConfig {
         this.recoverEmergencyMana = recoverEmergencyMana;
     }
 
-    public static ScarletThirstServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ScarletThirstServerConfig define(ModConfigSpec.Builder builder) {
         builder.comment("Health settings use Minecraft health points (2 = 1 heart).")
                 .push("ScarletThirst");
 
@@ -63,3 +63,4 @@ public final class ScarletThirstServerConfig {
         return recoverEmergencyMana.get().floatValue();
     }
 }
+

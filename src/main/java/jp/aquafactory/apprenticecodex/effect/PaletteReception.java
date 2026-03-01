@@ -7,9 +7,4 @@ public class PaletteReception extends MobEffect {
     public PaletteReception() {
         super(MobEffectCategory.BENEFICIAL, 0xEEDBFF);
     }
-
-    @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        return false;
-    }
 }

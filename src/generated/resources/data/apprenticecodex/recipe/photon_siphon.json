@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "E": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "S": {
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  },
+  "pattern": [
+    "EME",
+    "S S",
+    " S "
+  ],
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:mana_charge",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:photon_siphon"
+  }
+}

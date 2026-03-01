@@ -204,8 +204,8 @@ public class SkyEdge extends AbstractSpell {
     }
 
     private static AABB makeAabbAt(EntityDimensions dims, Vec3 center) {
-        var w = dims.width;
-        var h = dims.height;
+        var w = dims.width();
+        var h = dims.height();
 
         var hw = w / 2.0;
         return new AABB(

@@ -10,6 +10,8 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -21,7 +23,6 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 public class SkyEdgeProjectileEntity extends Projectile
@@ -78,7 +79,7 @@ public class SkyEdgeProjectileEntity extends Projectile
 
             if (canShooting(0)) {
                 var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-                if (hitresult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
+                if (hitresult.getType() != HitResult.Type.MISS) {
                     onHit(hitresult);
                 }
 
@@ -137,7 +138,7 @@ public class SkyEdgeProjectileEntity extends Projectile
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     @Override
@@ -159,8 +160,8 @@ public class SkyEdgeProjectileEntity extends Projectile
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity entity) {
+        return super.getAddEntityPacket(entity);
     }
 
     @Override
@@ -214,3 +215,5 @@ public class SkyEdgeProjectileEntity extends Projectile
         }
     }
 }
+
+

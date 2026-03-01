@@ -3,13 +3,13 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 
@@ -19,20 +19,20 @@ public final class BlockEntityRegistry {
     private static final com.mojang.datafixers.types.Type<?> NO_DFU = null;
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
-            DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, ApprenticeCodex.MODID);
+            DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ApprenticeCodex.MODID);
 
-    private static <T extends BlockEntity> RegistryObject<BlockEntityType<T>> reg(
+    private static <T extends BlockEntity> DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> reg(
             String id, BlockEntityType.BlockEntitySupplier<T> factory, Supplier<? extends Block> block
     ) {
         return BLOCK_ENTITY_TYPES.register(id,
                 () -> BlockEntityType.Builder.of(factory, block.get()).build(NO_DFU));
     }
 
-    public static final RegistryObject<BlockEntityType<MageLightTorchBlockEntity>> MAGE_LIGHT_TORCH = reg(
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MageLightTorchBlockEntity>> MAGE_LIGHT_TORCH = reg(
             "mage_light_torch", MageLightTorchBlockEntity::new, BlockRegistry.MAGE_LIGHT_TORCH
     );
 
-    public static final RegistryObject<BlockEntityType<PersonalShelfChestBlockEntity>> PERSONAL_SHELF_CHEST = reg(
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PersonalShelfChestBlockEntity>> PERSONAL_SHELF_CHEST = reg(
             "personal_shelf_chest", PersonalShelfChestBlockEntity::new, BlockRegistry.PERSONAL_SHELF_CHEST
     );
 
@@ -40,3 +40,4 @@ public final class BlockEntityRegistry {
         BLOCK_ENTITY_TYPES.register(eventBus);
     }
 }
+

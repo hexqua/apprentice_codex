@@ -27,6 +27,7 @@ repo
 
 # Codex-Search
 .tmp*
+tmp
 
 # Files from Forge MDK
 forge*changelog.txt

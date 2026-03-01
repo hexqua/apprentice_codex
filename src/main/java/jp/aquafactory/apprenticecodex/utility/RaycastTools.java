@@ -5,6 +5,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -12,7 +13,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -90,8 +90,8 @@ public final class RaycastTools {
 
 
     public static TargetResult raycastRangeAttribute(LivingEntity source, double boxWidth, Predicate<Entity> predicate){
-        var blockRange = source.getAttributeValue(ForgeMod.BLOCK_REACH.get());
-        var entityRange = source.getAttributeValue(ForgeMod.ENTITY_REACH.get());
+        var blockRange = source instanceof Player player ? player.blockInteractionRange() : 4.5D;
+        var entityRange = source instanceof Player player ? player.entityInteractionRange() : 4.5D;
         return raycast(source, source.getViewVector(1.0F), blockRange, entityRange, boxWidth, predicate);
     }
 
@@ -298,3 +298,4 @@ public final class RaycastTools {
         return hits;
     }
 }
+

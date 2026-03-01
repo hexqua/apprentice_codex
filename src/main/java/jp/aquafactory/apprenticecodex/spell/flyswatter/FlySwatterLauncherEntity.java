@@ -69,11 +69,11 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(CASTING_TICK, 0);
-        entityData.define(AIM_X, 0.0f);
-        entityData.define(AIM_Y, 0.0f);
-        entityData.define(AIM_Z, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(CASTING_TICK, 0);
+        builder.define(AIM_X, 0.0f);
+        builder.define(AIM_Y, 0.0f);
+        builder.define(AIM_Z, 0.0f);
     }
 
     @Override
@@ -238,3 +238,4 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         return RotationTools.calculateBehindPosition(owner, -0.3, -0.9, 0.2);
     }
 }
+

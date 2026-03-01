@@ -47,7 +47,6 @@ public class SlashBladeKatanaRenderer extends GeoEntityRenderer<SlashBladeKatana
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
         poseStack.popPose();
 
-        //noinspection resource
         if (trailTipBonePosition != null && trailRootBonePosition != null) {
             GeoBonePoseCache.put(
                     entity.getUUID(),
@@ -71,7 +70,7 @@ public class SlashBladeKatanaRenderer extends GeoEntityRenderer<SlashBladeKatana
     @Override
     public void renderRecursively(PoseStack poseStack, SlashBladeKatanaEntity animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         switch (bone.getName()) {
             case TRAIL_TIP_BONE -> trailTipBonePosition = boneWorldPosition(bone);
             case TRAIL_ROOT_BONE -> trailRootBonePosition = boneWorldPosition(bone);
@@ -83,7 +82,7 @@ public class SlashBladeKatanaRenderer extends GeoEntityRenderer<SlashBladeKatana
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 

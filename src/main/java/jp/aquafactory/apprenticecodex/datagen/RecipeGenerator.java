@@ -1,43 +1,37 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.common.crafting.ConditionalRecipe;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
 public final class RecipeGenerator extends RecipeProvider {
-    public RecipeGenerator(PackOutput output) {
-        super(output);
-        RecipeConditionRegistry.register();
+    public RecipeGenerator(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+        super(output, registries);
     }
 
-    @SuppressWarnings("DataFlowIssue")
     @Override
-    protected void buildRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
-        ConditionalRecipe.builder()
-                .addCondition(ApprenticeDeskRecipeEnabledCondition.INSTANCE)
-                .addRecipe(consumer -> ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.APPRENTICE_DESK.get())
-                        .pattern("CAC")
-                        .pattern("SSS")
-                        .pattern("F F")
-                        .define('C', Items.COPPER_INGOT)
-                        .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
-                        .define('S', ItemTags.WOODEN_SLABS)
-                        .define('F', ItemTags.WOODEN_FENCES)
-                        .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
-                        .save(consumer, ItemRegistry.APPRENTICE_DESK.getId()))
-                .generateAdvancement()
-                .build(recipeWriter, ItemRegistry.APPRENTICE_DESK.getId());
+    protected void buildRecipes(@NotNull RecipeOutput recipeOutput) {
+        var apprenticeDeskOutput = recipeOutput.withConditions(ApprenticeDeskRecipeEnabledCondition.INSTANCE);
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.APPRENTICE_DESK.get())
+                .pattern("CAC")
+                .pattern("SSS")
+                .pattern("F F")
+                .define('C', Items.COPPER_INGOT)
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
+                .define('S', ItemTags.WOODEN_SLABS)
+                .define('F', ItemTags.WOODEN_FENCES)
+                .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
+                .save(apprenticeDeskOutput, ItemRegistry.APPRENTICE_DESK.getId());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")
@@ -46,7 +40,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('V', io.redspace.ironsspellbooks.registries.ItemRegistry.BLOOD_VIAL.get())
                 .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.BLOOD_VIAL.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.BLOOD_VIAL.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.CRAFTSMANS_DELIGHT.get())
                 .pattern("RI ")
@@ -56,7 +50,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('D', Items.REDSTONE)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.NATURE_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.NATURE_RUNE.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GRIMOIRE_MANIFEST.get())
                 .pattern(" E ")
@@ -66,7 +60,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('E', Items.ENDER_EYE)
                 .define('O', Items.OBSIDIAN)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
@@ -77,7 +71,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('W', ItemTags.PLANKS)
                 .define('P', io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.UPGRADE_ORB.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.UPGRADE_ORB.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.IRON_SPELL_AMPLIFIER.get())
                 .pattern("EAE")
@@ -87,7 +81,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('I', Items.IRON_INGOT)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.COPPER_SPELL_AMPLIFIER.get())
                 .pattern("LAL")
@@ -97,7 +91,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('C', Items.COPPER_INGOT)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.LIGHTNING_BOTTLE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.LIGHTNING_BOTTLE.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GOLD_SPELL_AMPLIFIER.get())
                 .pattern("EAE")
@@ -107,7 +101,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', Items.AMETHYST_CLUSTER)
                 .define('G', Items.GOLD_INGOT)
                 .unlockedBy(getHasName(Items.AMETHYST_CLUSTER), has(Items.AMETHYST_CLUSTER))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PHOTON_SIPHON.get())
                 .pattern("EME")
@@ -117,6 +111,6 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get())
                 .define('S', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
     }
 }

@@ -70,9 +70,9 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DISTANCE_BLOCKS, 0.0f);
-        entityData.define(PROCESSED_DISTANCE, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DISTANCE_BLOCKS, 0.0f);
+        builder.define(PROCESSED_DISTANCE, 0.0f);
     }
 
     @Override
@@ -379,3 +379,4 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity 
 
     private record ProjectionRange(double min, double max) {}
 }
+

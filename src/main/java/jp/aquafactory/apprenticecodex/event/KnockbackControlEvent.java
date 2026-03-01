@@ -1,14 +1,14 @@
 package jp.aquafactory.apprenticecodex.event;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.Map;
 import java.util.WeakHashMap;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public final class KnockbackControlEvent {
 
     private KnockbackControlEvent() {}
@@ -35,3 +35,4 @@ public final class KnockbackControlEvent {
         IMMUNE.remove(entity);
     }
 }
+

@@ -1,0 +1,34 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "has_grimoire_manifest": {
+      "conditions": {
+        "items": [
+          {
+            "items": "apprenticecodex:ender_grimoire"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:ender_grimoire"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_grimoire_manifest"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

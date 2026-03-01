@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_apprentice_desk": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:apprentice_desk"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:apprentice_desk"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_apprentice_desk"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

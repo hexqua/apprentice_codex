@@ -15,8 +15,8 @@ import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.PartEntity;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.neoforge.entity.PartEntity;
+import net.neoforged.fml.ModList;
 
 import javax.annotation.Nullable;
 
@@ -155,7 +155,7 @@ public final class CombatTools {
     }
 
     private static float getResistAttribute(LivingEntity entity, SchoolType damageSchool) {
-        var baseResist = entity.getAttributeValue(AttributeRegistry.SPELL_RESIST.get());
+        var baseResist = entity.getAttributeValue(AttributeRegistry.SPELL_RESIST);
         if (damageSchool == null) {
             return 2 - (float) Utils.softCapFormula(baseResist);
         } else {
@@ -173,3 +173,4 @@ public final class CombatTools {
         return (!(hitPosition.y <= eyeY - headShotMargin / 2)) && (!(hitPosition.y >= eyeY + headShotMargin / 2));
     }
 }
+

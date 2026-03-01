@@ -93,7 +93,7 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
+        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE.value());
     }
 
     @Override

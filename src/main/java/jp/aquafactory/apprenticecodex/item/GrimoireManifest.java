@@ -8,7 +8,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -19,13 +18,18 @@ public class GrimoireManifest extends Item implements IPresetSpellContainer {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack itemStack, Level context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack itemStack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(itemStack, context, lines, flag);
     }
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
         if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+            return;
+        }
+
+        // Datagen時はSpellRegistry未バインドのため、初期呪文の注入をスキップする.
+        if (!SpellRegistry.MANIFESTATION_GRIMOIRE.isBound()) {
             return;
         }
 

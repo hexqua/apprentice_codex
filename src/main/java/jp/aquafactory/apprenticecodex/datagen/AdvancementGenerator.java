@@ -3,8 +3,9 @@ package jp.aquafactory.apprenticecodex.datagen;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.advancements.FrameType;
 import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.advancements.critereon.PlayerPredicate;
@@ -13,22 +14,26 @@ import net.minecraft.advancements.critereon.RecipeCraftedTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.ForgeAdvancementProvider;
+import net.neoforged.neoforge.common.data.AdvancementProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
-public final class AdvancementGenerator implements ForgeAdvancementProvider.AdvancementGenerator {
+public final class AdvancementGenerator implements AdvancementProvider.AdvancementGenerator {
     private static final ResourceLocation IRONS_SPELLBOOK_EQUIP_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "irons_spellbooks/spell_book_equip");
 
     private static ResourceLocation advancementId(String path) {
         return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_codex/" + path);
     }
 
-    @SuppressWarnings("DataFlowIssue")
     @Override
-    public void generate(HolderLookup.@NotNull Provider registries, @NotNull Consumer<Advancement> saver, @NotNull ExistingFileHelper existingFileHelper) {
+    public void generate(
+            HolderLookup.@NotNull Provider registries,
+            @NotNull Consumer<AdvancementHolder> saver,
+            @NotNull ExistingFileHelper existingFileHelper
+    ) {
         var ironsSpellbookEquipPredicate = EntityPredicate.wrap(
                 EntityPredicate.Builder.entity()
                         .subPredicate(PlayerPredicate.Builder.player()
@@ -42,11 +47,16 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.root.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.root.description"),
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/advancement_tile_background.png"),
-                        FrameType.TASK,
+                        AdvancementType.TASK,
                         false,
                         false,
                         false)
-                .addCriterion("has_irons_spellbook_advancement", new PlayerTrigger.TriggerInstance(CriteriaTriggers.TICK.getId(), ironsSpellbookEquipPredicate))
+                .addCriterion(
+                        "has_irons_spellbook_advancement",
+                        CriteriaTriggers.TICK.createCriterion(
+                                new PlayerTrigger.TriggerInstance(Optional.of(ironsSpellbookEquipPredicate))
+                        )
+                )
                 .save(saver, advancementId("root"), existingFileHelper);
 
         Advancement.Builder.advancement()
@@ -55,7 +65,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)
@@ -68,7 +78,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)
@@ -81,7 +91,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.description"),
                         null,
-                        FrameType.CHALLENGE,
+                        AdvancementType.CHALLENGE,
                         true,
                         true,
                         false)
@@ -94,7 +104,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.description"),
                         null,
-                        FrameType.TASK,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)
@@ -107,7 +117,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.description"),
                         null,
-                        FrameType.TASK,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)
@@ -120,7 +130,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.description"),
                         null,
-                        FrameType.TASK,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)
@@ -133,7 +143,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)

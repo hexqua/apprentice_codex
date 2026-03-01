@@ -3,14 +3,16 @@ package jp.aquafactory.apprenticecodex.spell.phalanxcharge;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class PhalanxStanceGuardEvent {
     private static final String VIRTUAL_SHIELD_TAG = "ApprenticeCodexVirtualPhalanxShield";
     private static final int USING_ITEM_FLAG = 1;
@@ -22,12 +24,8 @@ public final class PhalanxStanceGuardEvent {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) {
-            return;
-        }
-
-        var player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
+        var player = event.getEntity();
         if (player.level().isClientSide) {
             return;
         }
@@ -51,7 +49,7 @@ public final class PhalanxStanceGuardEvent {
 
     private static boolean isGuardActive(Player player) {
         return player.isAlive() &&
-                player.hasEffect(EffectRegistry.PHALANX_STANCE.get()) &&
+                player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get())) &&
                 !player.isPassenger();
     }
 
@@ -81,15 +79,20 @@ public final class PhalanxStanceGuardEvent {
             return false;
         }
 
-        var tag = stack.getTag();
-        return tag != null && tag.getBoolean(VIRTUAL_SHIELD_TAG);
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return false;
+        }
+        return customData.copyTag().getBoolean(VIRTUAL_SHIELD_TAG);
     }
 
     private static ItemStack createVirtualShield() {
         var stack = new ItemStack(Items.SHIELD);
-        var tag = stack.getOrCreateTag();
-        tag.putBoolean(VIRTUAL_SHIELD_TAG, true);
-        tag.putBoolean("Unbreakable", true);
+        net.minecraft.world.item.component.CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putBoolean(VIRTUAL_SHIELD_TAG, true);
+            tag.putBoolean("Unbreakable", true);
+        });
         return stack;
     }
 }
+

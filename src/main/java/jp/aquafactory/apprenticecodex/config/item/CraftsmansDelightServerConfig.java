@@ -1,23 +1,23 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class CraftsmansDelightServerConfig {
-    private final ForgeConfigSpec.BooleanValue canImbueEnchantment;
-    private final ForgeConfigSpec.DoubleValue requiredMana;
-    private final ForgeConfigSpec.IntValue fortuneLevel;
+    private final ModConfigSpec.BooleanValue canImbueEnchantment;
+    private final ModConfigSpec.DoubleValue requiredMana;
+    private final ModConfigSpec.IntValue fortuneLevel;
 
     private CraftsmansDelightServerConfig(
-            ForgeConfigSpec.BooleanValue canImbueEnchantment,
-            ForgeConfigSpec.DoubleValue requiredMana,
-            ForgeConfigSpec.IntValue fortuneLevel
+            ModConfigSpec.BooleanValue canImbueEnchantment,
+            ModConfigSpec.DoubleValue requiredMana,
+            ModConfigSpec.IntValue fortuneLevel
     ) {
         this.canImbueEnchantment = canImbueEnchantment;
         this.requiredMana = requiredMana;
         this.fortuneLevel = fortuneLevel;
     }
 
-    public static CraftsmansDelightServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static CraftsmansDelightServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("CraftsmansDelight");
 
         var canImbueEnchantment = builder.define("canImbueEnchantment", true);
@@ -44,3 +44,4 @@ public final class CraftsmansDelightServerConfig {
         return fortuneLevel.get();
     }
 }
+

@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -87,7 +88,7 @@ public class PaletteShift extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        entity.addEffect(new MobEffectInstance(EffectRegistry.PALETTE_RECEPTION.get(), 20 * 30));
+        entity.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PALETTE_RECEPTION.get()), 20 * 30));
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 

@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 final class ItemsServerConfig {
     private final ScarletThirstServerConfig scarletThirstConfig;
@@ -20,7 +20,7 @@ final class ItemsServerConfig {
         this.pastelStaffConfig = pastelStaffConfig;
     }
 
-    static ItemsServerConfig define(ForgeConfigSpec.Builder builder) {
+    static ItemsServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("Items");
         var scarletThirstConfig = ScarletThirstServerConfig.define(builder);
         var craftsmansDelightConfig = CraftsmansDelightServerConfig.define(builder);
@@ -70,3 +70,4 @@ final class ItemsServerConfig {
         return pastelStaffConfig.amplifyTintedMagicMultiplier();
     }
 }
+

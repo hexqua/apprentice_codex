@@ -1,0 +1,45 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_gold_spell_amplifier",
+  "criteria": {
+    "crafted_photon_siphon": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:photon_siphon"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [
+            {
+              "id": "apprenticecodex:mana_charge",
+              "index": 0,
+              "level": 1,
+              "locked": true
+            }
+          ],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:photon_siphon"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_photon_siphon"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

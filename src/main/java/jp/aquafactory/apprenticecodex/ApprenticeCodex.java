@@ -6,12 +6,24 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.registry.*;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
+import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.registry.AttachmentRegistry;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.slf4j.Logger;
 
 @Mod(ApprenticeCodex.MODID)
@@ -21,26 +33,31 @@ public class ApprenticeCodex
     public static final String NAME = "Apprentice's Codex";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public ApprenticeCodex(FMLJavaModLoadingContext context) {
+    public ApprenticeCodex(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("Loading {}", NAME);
-        context.registerConfig(ModConfig.Type.COMMON, ApprenticeCodexCommonConfig.SPEC);
-        context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
-        RecipeConditionRegistry.register();
 
-        var bus = context.getModEventBus();
-        SpellRegistry.register(bus);
-        EntityRegistry.register(bus);
-        BlockRegistry.register(bus);
-        BlockEntityRegistry.register(bus);
-        ItemRegistry.ITEMS.register(bus);
-        ParticleRegistry.PARTICLES.register(bus);
-        SoundRegistry.register(bus);
-        EffectRegistry.register(bus);
-        EnchantmentRegistry.register(bus);
-        MenuRegistry.register(bus);
-        CreativeTabRegistry.register(bus);
+        modContainer.registerConfig(ModConfig.Type.COMMON, ApprenticeCodexCommonConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
+
+        BlockRegistry.register(modEventBus);
+        ItemRegistry.ITEMS.register(modEventBus);
+        BlockEntityRegistry.register(modEventBus);
+        EntityRegistry.register(modEventBus);
+        EffectRegistry.register(modEventBus);
+        SpellRegistry.register(modEventBus);
+        SoundRegistry.register(modEventBus);
+        MenuRegistry.register(modEventBus);
+        CreativeTabRegistry.register(modEventBus);
+        ParticleRegistry.PARTICLES.register(modEventBus);
+        RecipeConditionRegistry.register(modEventBus);
+        AttachmentRegistry.register(modEventBus);
+
         CodexSpellStateTypeRegister.register();
-        Networks.register();
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientModBusEvents.register(bus));
+        Networks.register(modEventBus);
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            ClientModBusEvents.register(modEventBus);
+        }
     }
 }
+

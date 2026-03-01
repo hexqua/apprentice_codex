@@ -1,55 +1,47 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.item.weapons.ExtendedSwordItem;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.item.UniqueItem;
-import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
-import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import javax.annotation.Nullable;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Consumer;
 
 public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
     public static final String STONE_TINT_COLOR_TAG = "StoneTintColor";
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;
-    private static final String AFFINITY_MODIFIER_NAME_PREFIX = "apprenticecodex.pastel_staff.affinity.";
+
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final Set<ResourceLocation> ALLOWED_VANILLA_WEAPON_ENCHANTMENTS = Set.of(
@@ -58,20 +50,19 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             ResourceLocation.withDefaultNamespace("fortune"),
             ResourceLocation.withDefaultNamespace("silk_touch")
     );
-    private static final StaffTier PASTEL_STAFF_TIER = new StaffTier(
-            3.0F,
-            -3.0F,
-            new AttributeContainer(
-                    AttributeRegistry.SPELL_POWER,
-                    0.10D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            )
+
+    private static final double BASE_STAFF_SPELL_POWER_BONUS = 0.10D;
+    private static final StaffTier PASTEL_STAFF_WEAPON_TIER = new StaffTier(3.0F, -3.0F);
+    private static final String AFFINITY_MODIFIER_PATH_PREFIX = "pastel_staff_affinity_";
+    private static final ResourceLocation BASE_SPELL_POWER_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
+            "apprenticecodex",
+            "pastel_staff_base_spell_power"
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public PastelStaff() {
-        super(new Item.Properties().stacksTo(1), PASTEL_STAFF_TIER);
+        super(new Item.Properties().stacksTo(1).attributes(ExtendedSwordItem.createAttributes(PASTEL_STAFF_WEAPON_TIER)));
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -81,28 +72,17 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new ClientStaffItemExtensions() {
-            private PastelStaffRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new PastelStaffRenderer();
-                }
-
-                return renderer;
-            }
-        });
-    }
-
-    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
     }
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
         if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+            return;
+        }
+
+        // Datagen時はSpellRegistry未バインドのため、初期呪文の注入をスキップする.
+        if (!SpellRegistry.PALETTE_SHIFT.isBound()) {
             return;
         }
 
@@ -117,47 +97,52 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != EquipmentSlot.MAINHAND) {
-            return baseModifiers;
-        }
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var baseModifiers = super.getDefaultAttributeModifiers(stack);
+        var builder = ItemAttributeModifiers.builder();
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        // 再計算前に染色前の由来の親和 modifier を取り除く.
-        for (var entry : baseModifiers.entries()) {
-            if (!entry.getValue().getName().startsWith(AFFINITY_MODIFIER_NAME_PREFIX)) {
-                builder.put(entry);
+        for (var entry : baseModifiers.modifiers()) {
+            var idPath = entry.modifier().id().getPath();
+            if (!idPath.startsWith(AFFINITY_MODIFIER_PATH_PREFIX)
+                    && !entry.modifier().id().equals(BASE_SPELL_POWER_MODIFIER_ID)) {
+                builder.add(entry.attribute(), entry.modifier(), entry.slot());
             }
         }
 
-        var schoolType = readStoneAffinitySchool(stack);
-        if (schoolType == null) {
-            return builder.build();
-        }
-
-        var powerAttribute = MagicTools.resolveSchoolPowerAttribute(schoolType);
-        if (powerAttribute == null) {
-            return builder.build();
-        }
-
-        var schoolId = schoolType.getId();
-        var affinitySpellPowerBonus = ApprenticeCodexServerConfig.pastelStaffAmplifyTintedMagicMultiplier();
-        builder.put(
-                powerAttribute,
+        builder.add(
+                AttributeRegistry.SPELL_POWER,
                 new AttributeModifier(
-                        createAffinityModifierId(schoolId),
-                        AFFINITY_MODIFIER_NAME_PREFIX + schoolId,
-                        affinitySpellPowerBonus,
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
+                        BASE_SPELL_POWER_MODIFIER_ID,
+                        BASE_STAFF_SPELL_POWER_BONUS,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
+
+        var schoolType = readStoneAffinitySchool(stack);
+        if (schoolType != null) {
+            var powerAttribute = MagicTools.resolveSchoolPowerAttribute(schoolType);
+            if (powerAttribute != null) {
+                var schoolId = schoolType.getId();
+                var affinitySpellPowerBonus = ApprenticeCodexServerConfig.pastelStaffAmplifyTintedMagicMultiplier();
+                builder.add(
+                        BuiltInRegistries.ATTRIBUTE.wrapAsHolder(powerAttribute),
+                        new AttributeModifier(
+                                createAffinityModifierId(schoolId),
+                                affinitySpellPowerBonus,
+                                AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                        ),
+                        EquipmentSlotGroup.MAINHAND
+                );
+            }
+        }
+
         return builder.build();
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
         if (enchantmentId == null) {
             return false;
         }
@@ -170,7 +155,12 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             return ALLOWED_VANILLA_WEAPON_ENCHANTMENTS.contains(enchantmentId);
         }
 
-        return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
+        return enchantment.value().isSupportedItem(new ItemStack(Items.DIAMOND_SWORD));
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -179,25 +169,21 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
-        return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+        return enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        // 金ツール相当.
         return 22;
     }
 
-    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
-        // エリトラは耐久値を持つが武器/ツール系カテゴリではないため,
-        // ここに付くエンチャントを「耐久値持ちアイテム向け」とみなして除外する.
-        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
+    private static boolean isDurabilityTargetEnchantment(Holder<Enchantment> enchantment) {
+        return enchantment.value().isSupportedItem(DURABILITY_ENCHANTMENT_PROBE_STACK);
     }
 
     public int getStoneTintColor(ItemStack stack) {
@@ -209,8 +195,13 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             return DEFAULT_STONE_TINT_COLOR;
         }
 
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(STONE_TINT_COLOR_TAG, Tag.TAG_ANY_NUMERIC)) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return DEFAULT_STONE_TINT_COLOR;
+        }
+
+        var tag = customData.copyTag();
+        if (!tag.contains(STONE_TINT_COLOR_TAG, Tag.TAG_ANY_NUMERIC)) {
             return DEFAULT_STONE_TINT_COLOR;
         }
 
@@ -218,17 +209,21 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     }
 
     public static void writeStoneTintColor(ItemStack stack, int rgb) {
-        stack.getOrCreateTag().putInt(STONE_TINT_COLOR_TAG, rgb & 0xFFFFFF);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(STONE_TINT_COLOR_TAG, rgb & 0xFFFFFF));
     }
 
     public static void writeStoneAffinitySchool(ItemStack stack, SchoolType schoolType) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
-        stack.getOrCreateTag().putString(STONE_AFFINITY_SCHOOL_TAG, schoolType.getId().toString());
+
+        CustomData.update(
+                DataComponents.CUSTOM_DATA,
+                stack,
+                tag -> tag.putString(STONE_AFFINITY_SCHOOL_TAG, schoolType.getId().toString())
+        );
     }
 
-    @Nullable
     public static SchoolType readStoneAffinitySchool(ItemStack stack) {
         var schoolId = readStoneAffinitySchoolId(stack);
         if (schoolId == null) {
@@ -241,27 +236,33 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
         return stack != null && !stack.isEmpty() && stack.getItem() instanceof PastelStaff;
     }
 
-    @Nullable
     private static ResourceLocation readStoneAffinitySchoolId(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return null;
         }
 
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(STONE_AFFINITY_SCHOOL_TAG, Tag.TAG_STRING)) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return null;
+        }
+
+        var tag = customData.copyTag();
+        if (!tag.contains(STONE_AFFINITY_SCHOOL_TAG, Tag.TAG_STRING)) {
             return null;
         }
 
         return ResourceLocation.tryParse(tag.getString(STONE_AFFINITY_SCHOOL_TAG));
     }
 
-    private static UUID createAffinityModifierId(ResourceLocation schoolId) {
-        return UUID.nameUUIDFromBytes(
-                ("apprenticecodex:pastel_staff_affinity/" + schoolId).getBytes(StandardCharsets.UTF_8)
+    private static ResourceLocation createAffinityModifierId(ResourceLocation schoolId) {
+        return ResourceLocation.fromNamespaceAndPath(
+                "apprenticecodex",
+                AFFINITY_MODIFIER_PATH_PREFIX + schoolId.getNamespace() + "_" + schoolId.getPath()
         );
     }
+
     @Override
-    public void appendHoverText(ItemStack itemStack, @Nullable Level context, List<Component> lines, TooltipFlag flag) {
+    public void appendHoverText(ItemStack itemStack, Item.TooltipContext context, List<Component> lines, TooltipFlag flag) {
         super.appendHoverText(itemStack, context, lines, flag);
 
         var schoolType = readStoneAffinitySchool(itemStack);
@@ -272,5 +273,4 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
         lines.add(Component.translatable("item.apprenticecodex.pastel_staff.desc.affinity", schoolType.getDisplayName())
                 .withStyle(ChatFormatting.GRAY));
     }
-
 }

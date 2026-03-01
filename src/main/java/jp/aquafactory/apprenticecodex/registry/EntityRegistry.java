@@ -25,19 +25,19 @@ import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class EntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
-            DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, ApprenticeCodex.MODID);
+            DeferredRegister.create(Registries.ENTITY_TYPE, ApprenticeCodex.MODID);
 
     // ベース.
-    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> reg(
+    private static <T extends net.minecraft.world.entity.Entity> DeferredHolder<EntityType<?>, EntityType<T>> reg(
             String id,
             EntityType.EntityFactory<T> factory,
             MobCategory category,
@@ -58,7 +58,7 @@ public final class EntityRegistry {
     }
 
     // テンプレ.
-    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regProjectile(
+    private static <T extends net.minecraft.world.entity.Entity> DeferredHolder<EntityType<?>, EntityType<T>> regProjectile(
             String id, EntityType.EntityFactory<T> factory,
             int trackingRange, int updateInterval
     ) {
@@ -68,7 +68,7 @@ public final class EntityRegistry {
                 true);
     }
 
-    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regWeapon(
+    private static <T extends net.minecraft.world.entity.Entity> DeferredHolder<EntityType<?>, EntityType<T>> regWeapon(
             String id, EntityType.EntityFactory<T> factory,
             int updateInterval
     ) {
@@ -78,79 +78,80 @@ public final class EntityRegistry {
                 false);
     }
 
-    public static final RegistryObject<EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
             regProjectile("sky_edge_projectile", SkyEdgeProjectileEntity::new, 128, 1);
 
-    public static final RegistryObject<EntityType<ArcherMultipleBowEntity>> ARCHER_MULTIPLE_BOW =
+    public static final DeferredHolder<EntityType<?>, EntityType<ArcherMultipleBowEntity>> ARCHER_MULTIPLE_BOW =
             regWeapon("archer_multiple_bow", ArcherMultipleBowEntity::new, 1);
 
-    public static final RegistryObject<EntityType<CommenceFireRifleEntity>> COMMENCE_FIRE_RIFLE =
+    public static final DeferredHolder<EntityType<?>, EntityType<CommenceFireRifleEntity>> COMMENCE_FIRE_RIFLE =
             regWeapon("commence_fire_rifle", CommenceFireRifleEntity::new, 2);
 
-    public static final RegistryObject<EntityType<CompoundPhialProjectileEntity>> COMPOUND_PHIAL_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<CompoundPhialProjectileEntity>> COMPOUND_PHIAL_PROJECTILE =
             regProjectile("compound_phial_projectile", CompoundPhialProjectileEntity::new, 48, 1);
 
-    public static final RegistryObject<EntityType<QuickArmsHandgunEntity>> QUICK_ARMS_HANDGUN =
+    public static final DeferredHolder<EntityType<?>, EntityType<QuickArmsHandgunEntity>> QUICK_ARMS_HANDGUN =
             regWeapon("quick_arms_handgun", QuickArmsHandgunEntity::new, 1);
 
-    public static final RegistryObject<EntityType<BreachingEnemyShotgunEntity>> BREACHING_ENEMY_SHOTGUN =
+    public static final DeferredHolder<EntityType<?>, EntityType<BreachingEnemyShotgunEntity>> BREACHING_ENEMY_SHOTGUN =
             regWeapon("breaching_enemy_shotgun", BreachingEnemyShotgunEntity::new, 1);
 
-    public static final RegistryObject<EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
+    public static final DeferredHolder<EntityType<?>, EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
             regWeapon("bullet_stream_minigun", BulletStreamMinigunEntity::new, 1);
 
-    public static final RegistryObject<EntityType<ThermalProcessThrowerEntity>> THERMAL_PROCESS_THROWER =
+    public static final DeferredHolder<EntityType<?>, EntityType<ThermalProcessThrowerEntity>> THERMAL_PROCESS_THROWER =
             regWeapon("thermal_process_thrower", ThermalProcessThrowerEntity::new, 1);
 
-    public static final RegistryObject<EntityType<GracedRainCloudEntity>> GRACED_RAIN_CLOUD =
+    public static final DeferredHolder<EntityType<?>, EntityType<GracedRainCloudEntity>> GRACED_RAIN_CLOUD =
             regWeapon("graced_rain_cloud", GracedRainCloudEntity::new, 1);
 
-    public static final RegistryObject<EntityType<TinyLumberjackSawEntity>> TINY_LUMBERJACK_SAW =
+    public static final DeferredHolder<EntityType<?>, EntityType<TinyLumberjackSawEntity>> TINY_LUMBERJACK_SAW =
             regWeapon("tiny_lumberjack_saw", TinyLumberjackSawEntity::new, 1);
 
-    public static final RegistryObject<EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
+    public static final DeferredHolder<EntityType<?>, EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
             regProjectile("arcane_beam", ArcaneBeamEntity::new, 64, 1);
 
-    public static final RegistryObject<EntityType<FlySwatterLauncherEntity>> FLY_SWATTER_LAUNCHER =
+    public static final DeferredHolder<EntityType<?>, EntityType<FlySwatterLauncherEntity>> FLY_SWATTER_LAUNCHER =
             regWeapon("fly_swatter_launcher", FlySwatterLauncherEntity::new, 1);
 
-    public static final RegistryObject<EntityType<FlySwatterProjectileEntity>> FLY_SWATTER_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<FlySwatterProjectileEntity>> FLY_SWATTER_PROJECTILE =
             regProjectile("fly_swatter_projectile", FlySwatterProjectileEntity::new, 128, 1);
 
-    public static final RegistryObject<EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
+    public static final DeferredHolder<EntityType<?>, EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
             regWeapon("assist_wings_wing", AssistWingsWingEntity::new, 1);
 
-    public static final RegistryObject<EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
             regProjectile("feather_rush_projectile", FeatherRushProjectileEntity::new, 96, 1);
 
-    public static final RegistryObject<EntityType<FeatherRushWingEntity>> FEATHER_RUSH_WING =
+    public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushWingEntity>> FEATHER_RUSH_WING =
             regWeapon("feather_rush_wing", FeatherRushWingEntity::new, 1);
 
-    public static final RegistryObject<EntityType<WorldFlatterDrillEntity>> WORLD_FLATTER_DRILL =
+    public static final DeferredHolder<EntityType<?>, EntityType<WorldFlatterDrillEntity>> WORLD_FLATTER_DRILL =
             regWeapon("world_flatter_drill", WorldFlatterDrillEntity::new, 1);
 
-    public static final RegistryObject<EntityType<SlashBladeKatanaEntity>> SLASH_BLADE_KATANA =
+    public static final DeferredHolder<EntityType<?>, EntityType<SlashBladeKatanaEntity>> SLASH_BLADE_KATANA =
             regWeapon("slash_blade_katana", SlashBladeKatanaEntity::new, 1);
 
-    public static final RegistryObject<EntityType<MoonLightKatanaEntity>> MOON_LIGHT_KATANA =
+    public static final DeferredHolder<EntityType<?>, EntityType<MoonLightKatanaEntity>> MOON_LIGHT_KATANA =
             regWeapon("moon_light_katana", MoonLightKatanaEntity::new, 1);
 
-    public static final RegistryObject<EntityType<MoonLightChargeCutEntity>> MOON_LIGHT_CHARGE_CUT =
+    public static final DeferredHolder<EntityType<?>, EntityType<MoonLightChargeCutEntity>> MOON_LIGHT_CHARGE_CUT =
             regProjectile("moon_light_charge_cut", MoonLightChargeCutEntity::new, 64, 1);
 
-    public static final RegistryObject<EntityType<HiganbanaKatanaEntity>> HIGANBANA_KATANA =
+    public static final DeferredHolder<EntityType<?>, EntityType<HiganbanaKatanaEntity>> HIGANBANA_KATANA =
             regWeapon("higanbana_katana", HiganbanaKatanaEntity::new, 1);
 
-    public static final RegistryObject<EntityType<MantisLeapBladeEntity>> MANTIS_LEAP_BLADE =
+    public static final DeferredHolder<EntityType<?>, EntityType<MantisLeapBladeEntity>> MANTIS_LEAP_BLADE =
             regWeapon("mantis_leap_blade", MantisLeapBladeEntity::new, 1);
 
-    public static final RegistryObject<EntityType<PhalanxWeaponryEntity>> PHALANX_WEAPONRY =
+    public static final DeferredHolder<EntityType<?>, EntityType<PhalanxWeaponryEntity>> PHALANX_WEAPONRY =
             regWeapon("phalanx_weaponry", PhalanxWeaponryEntity::new, 1);
 
-    public static final RegistryObject<EntityType<PhalanxChargeBeamEntity>> PHALANX_CHARGE_BEAM =
+    public static final DeferredHolder<EntityType<?>, EntityType<PhalanxChargeBeamEntity>> PHALANX_CHARGE_BEAM =
             regProjectile("phalanx_charge_beam", PhalanxChargeBeamEntity::new, 64, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
     }
 }
+

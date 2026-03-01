@@ -16,7 +16,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
@@ -117,7 +117,9 @@ public class EnderGrimoireInscriptionMenu extends AbstractContainerMenu {
                 var scrollContainer = ISpellContainer.get(scrollStack);
                 if (scrollContainer != null) {
                     var spellData = scrollContainer.getSpellAtIndex(0);
-                    if (spellData != SpellData.EMPTY && !MinecraftForge.EVENT_BUS.post(new InscribeSpellEvent(player, spellData))) {
+                    var event = new InscribeSpellEvent(player, spellData);
+                    NeoForge.EVENT_BUS.post(event);
+                    if (spellData != SpellData.EMPTY && !event.isCanceled()) {
                         doInscription();
                     }
                 }
@@ -189,7 +191,7 @@ public class EnderGrimoireInscriptionMenu extends AbstractContainerMenu {
         }
 
         var edited = new boolean[]{false};
-        serverPlayer.getCapability(Capabilities.ENDER_GRIMOIRE_SPELLBOOK).ifPresent(data -> {
+        Capabilities.getEnderGrimoireSpellbook(serverPlayer).ifPresent(data -> {
             var mutable = data.getSpellContainer().mutableCopy();
             edited[0] = editor.test(mutable);
             if (edited[0]) {
@@ -253,3 +255,4 @@ public class EnderGrimoireInscriptionMenu extends AbstractContainerMenu {
         resultContainer.removeItemNoUpdate(1);
     }
 }
+

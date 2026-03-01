@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -16,7 +17,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -24,7 +24,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -68,9 +70,9 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(IS_ATTACKING, false);
-        entityData.define(RANGE_SYNC, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(IS_ATTACKING, false);
+        builder.define(RANGE_SYNC, 0.0f);
     }
 
     @Override
@@ -316,8 +318,8 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
             return 0;
         }
 
-        var singleInput = new SimpleContainer(inputStack.copyWithCount(1));
-        var outputPerInput = recipe.get().assemble(singleInput, level.registryAccess());
+        var singleInput = new SingleRecipeInput(inputStack.copyWithCount(1));
+        var outputPerInput = recipe.get().value().assemble(singleInput, level.registryAccess());
         if (outputPerInput.isEmpty()) {
             return 0;
         }
@@ -327,9 +329,9 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         return processCount;
     }
 
-    private Optional<? extends AbstractCookingRecipe> findProcessingRecipe(ServerLevel level, ItemStack inputStack) {
+    private Optional<RecipeHolder<? extends AbstractCookingRecipe>> findProcessingRecipe(ServerLevel level, ItemStack inputStack) {
         var recipeManager = level.getRecipeManager();
-        var input = new SimpleContainer(inputStack.copyWithCount(1));
+        var input = new SingleRecipeInput(inputStack.copyWithCount(1));
 
         // Priority: blasting -> smelting -> smoking
         var blasting = recipeManager.getRecipeFor(RecipeType.BLASTING, input, level);
@@ -423,13 +425,14 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
     }
 
     private void applyOrUpdateThermalProcessing(LivingEntity target) {
-        var current = target.getEffect(EffectRegistry.THERMAL_PROCESSING.get());
+        var thermalProcessing = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_PROCESSING.get());
+        var current = target.getEffect(thermalProcessing);
         var nextAmplifier = current == null
                 ? 0
                 : Math.min(current.getAmplifier() + 1, ThermalProcessing.MAX_AMPLIFIER);
 
         target.addEffect(new MobEffectInstance(
-                EffectRegistry.THERMAL_PROCESSING.get(),
+                thermalProcessing,
                 ThermalProcessing.BASE_DURATION_TICKS,
                 nextAmplifier,
                 false,
@@ -438,7 +441,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         ));
 
         if (nextAmplifier >= ThermalProcessing.MAX_AMPLIFIER) {
-            target.setSecondsOnFire(ThermalProcessing.IGNITE_TICKS / 20);
+            target.igniteForSeconds(ThermalProcessing.IGNITE_TICKS / 20.0f);
         }
     }
 
@@ -505,3 +508,4 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         return synced > 0 ? synced : range;
     }
 }
+

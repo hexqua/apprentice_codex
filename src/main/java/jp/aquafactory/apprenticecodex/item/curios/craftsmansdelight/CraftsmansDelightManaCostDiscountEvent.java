@@ -5,11 +5,11 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.Nullable;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class CraftsmansDelightManaCostDiscountEvent {
     private CraftsmansDelightManaCostDiscountEvent() {
     }
@@ -44,3 +44,4 @@ public final class CraftsmansDelightManaCostDiscountEvent {
         return null;
     }
 }
+

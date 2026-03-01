@@ -5,10 +5,10 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class EnderGrimoireSpellSelectionEvents {
     private EnderGrimoireSpellSelectionEvents() {
     }
@@ -21,7 +21,7 @@ public final class EnderGrimoireSpellSelectionEvents {
             return;
         }
 
-        player.getCapability(Capabilities.ENDER_GRIMOIRE_SPELLBOOK).ifPresent(data -> {
+        Capabilities.getEnderGrimoireSpellbook(player).ifPresent(data -> {
             var activeSpells = data.getSpellContainer().getActiveSpells();
             for (int i = 0; i < activeSpells.size(); ++i) {
                 event.addSelectionOption(activeSpells.get(i).spellData(), Curios.SPELLBOOK_SLOT, i);
@@ -29,3 +29,4 @@ public final class EnderGrimoireSpellSelectionEvents {
         });
     }
 }
+

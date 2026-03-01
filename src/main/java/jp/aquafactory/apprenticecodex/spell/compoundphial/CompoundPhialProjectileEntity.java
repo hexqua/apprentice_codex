@@ -4,6 +4,8 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -15,7 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -24,20 +26,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CompoundPhialProjectileEntity extends ThrowableProjectile {
-
     private static final EntityDataAccessor<Integer> POTION_COLOR =
             SynchedEntityData.defineId(CompoundPhialProjectileEntity.class, EntityDataSerializers.INT);
-
     private static final EntityDataAccessor<Float> BURST_RADIUS =
             SynchedEntityData.defineId(CompoundPhialProjectileEntity.class, EntityDataSerializers.FLOAT);
-
     private static final EntityDataAccessor<ItemStack> POTION_ITEM =
             SynchedEntityData.defineId(CompoundPhialProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
 
     private float impactDamage;
     private float splashDamage;
     private float splashRadius;
-
 
     public CompoundPhialProjectileEntity(EntityType<? extends CompoundPhialProjectileEntity> entityType, Level level) {
         super(entityType, level);
@@ -48,22 +46,22 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(POTION_COLOR, 0);
-        entityData.define(BURST_RADIUS, 0.5f);
-        entityData.define(POTION_ITEM, ItemStack.EMPTY);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(POTION_COLOR, 0);
+        builder.define(BURST_RADIUS, 0.5f);
+        builder.define(POTION_ITEM, ItemStack.EMPTY);
     }
 
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        if(tag.contains("impactDamage")) {
+        if (tag.contains("impactDamage")) {
             impactDamage = tag.getFloat("impactDamage");
         }
-        if(tag.contains("splashDamage")) {
+        if (tag.contains("splashDamage")) {
             splashDamage = tag.getFloat("splashDamage");
         }
-        if(tag.contains("splashRadius")) {
+        if (tag.contains("splashRadius")) {
             splashRadius = tag.getFloat("splashRadius");
         }
     }
@@ -77,22 +75,27 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
     }
 
     @Override
-    protected float getGravity() {
-        // ちょっと重め.
-        return super.getGravity() * 1.1f;
+    protected double getDefaultGravity() {
+        return super.getDefaultGravity() * 1.1;
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        @SuppressWarnings("resource") var level = level();
+        var level = level();
         if (level.isClientSide) {
             var p = position();
             var c = getColorArray();
-            level.addParticle(ParticleTypes.ENTITY_EFFECT,
-                    p.x, p.y + 0.1, p.z,
-                    c[0], c[1], c[2]);
+            level.addParticle(
+                    ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, c[0], c[1], c[2]),
+                    p.x,
+                    p.y + 0.1,
+                    p.z,
+                    0.0,
+                    0.0,
+                    0.0
+            );
         }
     }
 
@@ -101,7 +104,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
         super.handleEntityEvent(id);
         var level = level();
 
-        if (!level.isClientSide){
+        if (!level.isClientSide) {
             return;
         }
 
@@ -123,15 +126,15 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
         entityData.set(BURST_RADIUS, splashRadius);
     }
 
-    public void setPotionColorRandom(Level level){
+    public void setPotionColorRandom(Level level) {
         entityData.set(POTION_COLOR, level.random.nextInt(0xFFFFFF));
 
         var item = new ItemStack(Items.SPLASH_POTION);
-        item.getOrCreateTag().putInt("CustomPotionColor", entityData.get(POTION_COLOR));
+        CustomData.update(DataComponents.CUSTOM_DATA, item, tag -> tag.putInt("CustomPotionColor", entityData.get(POTION_COLOR)));
         entityData.set(POTION_ITEM, item);
     }
 
-    public ItemStack getPotionItem(){
+    public ItemStack getPotionItem() {
         return entityData.get(POTION_ITEM);
     }
 
@@ -158,19 +161,17 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
             CombatTools.applyDamage(target, impactDamage, source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 
-        // バニラスプラッシュしつつおまけを追加.
-        var color = PotionUtils.getColor(getPotionItem());
+        var color = entityData.get(POTION_COLOR);
         level.levelEvent(2002, BlockPos.containing(position()), color);
-        level.broadcastEntityEvent(this, (byte)3);
+        level.broadcastEntityEvent(this, (byte) 3);
 
-        // 一応広めに判定を取る.
         var box = new AABB(position(), position()).inflate(splashRadius * 2);
         var entities = level.getEntitiesOfClass(Entity.class, box, e -> e != entity && CombatTools.isValidCombatTarget(e, null) && e.isAlive());
 
-        for(var target : entities){
+        for (var target : entities) {
             var center = target.getBoundingBox().getCenter();
             var distance = position().distanceTo(center) - target.getBbWidth();
-            if(distance <= splashRadius) {
+            if (distance <= splashRadius) {
                 var scale = 0.5 + 0.5 * (1 - distance / splashRadius);
                 var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.COMPOUND_PHIAL);
                 CombatTools.applyDamage(target, Math.round(splashDamage * scale), source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
@@ -196,15 +197,20 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
         var startAngle = rand.nextDouble() * Math.PI * 2;
 
         for (var i = 0; i < count; i++) {
-            // できる限り範囲がわかりやすいように端に散りやすくする.
             var angle = startAngle + Math.PI * 2 * i / count + rand.nextDouble() * 0.05;
-            var d = radius * (0.75 +Math.sqrt(rand.nextDouble()) * 0.25);
+            var d = radius * (0.75 + Math.sqrt(rand.nextDouble()) * 0.25);
             var ox = Math.cos(angle) * d;
             var oz = Math.sin(angle) * d;
             var oy = (rand.nextDouble() - 0.5) * radius * 0.4;
-            level.addParticle(ParticleTypes.ENTITY_EFFECT,
-                    p.x + ox, p.y + oy, p.z + oz,
-                    color[0], color[1], color[2]);
+            level.addParticle(
+                    ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, color[0], color[1], color[2]),
+                    p.x + ox,
+                    p.y + oy,
+                    p.z + oz,
+                    0.0,
+                    0.0,
+                    0.0
+            );
         }
     }
 }

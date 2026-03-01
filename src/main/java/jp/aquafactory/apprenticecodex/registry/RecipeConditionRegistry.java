@@ -1,20 +1,25 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import com.mojang.serialization.MapCodec;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
-import net.minecraftforge.common.crafting.CraftingHelper;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public final class RecipeConditionRegistry {
-    private static boolean initialized;
+    private static final DeferredRegister<MapCodec<? extends ICondition>> CONDITION_CODECS =
+            DeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, ApprenticeCodex.MODID);
+
+    static {
+        CONDITION_CODECS.register("apprentice_desk_recipe_enabled", () -> ApprenticeDeskRecipeEnabledCondition.CODEC);
+    }
 
     private RecipeConditionRegistry() {
     }
 
-    public static void register() {
-        if (initialized) {
-            return;
-        }
-
-        CraftingHelper.register(ApprenticeDeskRecipeEnabledCondition.Serializer.INSTANCE);
-        initialized = true;
+    public static void register(IEventBus modEventBus) {
+        CONDITION_CODECS.register(modEventBus);
     }
 }

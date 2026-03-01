@@ -1,0 +1,22 @@
+{
+  "anvil_cost": 2,
+  "description": {
+    "translate": "enchantment.apprenticecodex.attunement"
+  },
+  "exclusive_set": "#apprenticecodex:exclusive_set/surge_attunement_transcendence",
+  "max_cost": {
+    "base": 25,
+    "per_level_above_first": 11
+  },
+  "max_level": 5,
+  "min_cost": {
+    "base": 5,
+    "per_level_above_first": 11
+  },
+  "primary_items": "#apprenticecodex:offhand_magic_enchantable",
+  "slots": [
+    "offhand"
+  ],
+  "supported_items": "#apprenticecodex:offhand_magic_enchantable",
+  "weight": 5
+}

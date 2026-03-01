@@ -17,13 +17,12 @@ public final class ExtrudedSpriteRenderer {
         var pose = poseStack.last();
         for (var q : mesh.quads) {
             for (var i = 0; i < 4; ++i) {
-                vc.vertex(pose.pose(), q.x[i], q.y[i], q.z[i])
-                        .color(255, 255, 255, 255)
-                        .uv(q.u[i], q.v[i])
-                        .overlayCoords(OverlayTexture.NO_OVERLAY)
-                        .uv2(packedLight)
-                        .normal(pose.normal(), q.nx, q.ny, q.nz)
-                        .endVertex();
+                vc.addVertex(pose.pose(), q.x[i], q.y[i], q.z[i])
+                        .setColor(255, 255, 255, 255)
+                        .setUv(q.u[i], q.v[i])
+                        .setOverlay(OverlayTexture.NO_OVERLAY)
+                        .setLight(packedLight)
+                        .setNormal(pose, q.nx, q.ny, q.nz);
             }
         }
     }

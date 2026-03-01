@@ -1,15 +1,13 @@
 package jp.aquafactory.apprenticecodex.item.curios.endergrimoire;
 
-import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookSync;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import top.theillusivec4.curios.api.event.CurioChangeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class EnderGrimoireSpellbookSyncEvents {
     private EnderGrimoireSpellbookSyncEvents() {
     }
@@ -31,21 +29,6 @@ public final class EnderGrimoireSpellbookSyncEvents {
     @SubscribeEvent
     public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-            EnderGrimoireSpellbookSync.syncToClient(serverPlayer);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onCurioChanged(CurioChangeEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-        if (!Curios.SPELLBOOK_SLOT.equals(event.getIdentifier())) {
-            return;
-        }
-
-        // EnderGrimoireはISpellContainerを直接持たないため、装備変更時に明示同期して選択情報を更新する.
-        if (event.getFrom().getItem() instanceof EnderGrimoire || event.getTo().getItem() instanceof EnderGrimoire) {
             EnderGrimoireSpellbookSync.syncToClient(serverPlayer);
         }
     }

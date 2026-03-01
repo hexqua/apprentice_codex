@@ -49,11 +49,11 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(COLOR_ARGB_OUTER, 0xAA33D6FF);
-        entityData.define(COLOR_ARGB_INNER, 0xFFFFFFFF);
-        entityData.define(LENGTH, 1.0f);
-        entityData.define(RADIUS, 1.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(COLOR_ARGB_OUTER, 0xAA33D6FF);
+        builder.define(COLOR_ARGB_INNER, 0xFFFFFFFF);
+        builder.define(LENGTH, 1.0f);
+        builder.define(RADIUS, 1.0f);
     }
 
     @Override
@@ -176,3 +176,4 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
     }
 
 }
+

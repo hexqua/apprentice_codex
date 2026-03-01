@@ -1,35 +1,48 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class SyncScarletThirstHealthPacket implements CustomPacketPayload {
+    public static final Type<SyncScarletThirstHealthPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_scarlet_thirst_health"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncScarletThirstHealthPacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncScarletThirstHealthPacket::decode);
 
-public class SyncScarletThirstHealthPacket {
     private final float health;
 
     public SyncScarletThirstHealthPacket(float health) {
         this.health = health;
     }
 
-    public static void encode(SyncScarletThirstHealthPacket packet, FriendlyByteBuf buffer) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    private static void encode(SyncScarletThirstHealthPacket packet, FriendlyByteBuf buffer) {
         buffer.writeFloat(packet.health);
     }
 
-    public static SyncScarletThirstHealthPacket decode(FriendlyByteBuf buffer) {
+    private static SyncScarletThirstHealthPacket decode(FriendlyByteBuf buffer) {
         return new SyncScarletThirstHealthPacket(buffer.readFloat());
     }
 
-    public static void handle(SyncScarletThirstHealthPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(SyncScarletThirstHealthPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     @OnlyIn(Dist.CLIENT)

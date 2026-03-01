@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -25,11 +26,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEntity {
@@ -82,10 +83,10 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(ANIMATION_STATE, AnimationState.SPAWN.id);
-        entityData.define(GUARD_FLASH_SERIAL, 0);
-        entityData.define(ANIMATION_SPEED, 1.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(ANIMATION_STATE, AnimationState.SPAWN.id);
+        builder.define(GUARD_FLASH_SERIAL, 0);
+        builder.define(ANIMATION_SPEED, 1.0f);
     }
 
     @Override
@@ -205,7 +206,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
             return;
         }
 
-        owner.removeEffect(EffectRegistry.PHALANX_STANCE.get());
+        owner.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()));
         entityData.set(ANIMATION_STATE, AnimationState.THRUST.id);
         entityData.set(ANIMATION_SPEED, 4.0f);
         thrustStateTick = 0;
@@ -254,7 +255,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
 
     private void applyGuardState(LivingEntity owner) {
         owner.addEffect(new MobEffectInstance(
-                EffectRegistry.PHALANX_STANCE.get(),
+                BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()),
                 GUARD_EFFECT_REFRESH_TICK,
                 PhalanxStance.FIXED_AMPLIFIER,
                 false,
@@ -280,7 +281,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     private void playThrustEntrySounds(Level level, boolean playThrustSound) {
-        AudioTools.playSoundFromEntity(level, this, SoundEvents.TRIDENT_RIPTIDE_2, SoundSource.PLAYERS);
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.TRIDENT_RIPTIDE_2.value(), SoundSource.PLAYERS);
         if (playThrustSound) {
             AudioTools.playSoundFromEntity(level, this, SoundRegistry.THRUST.get(), SoundSource.PLAYERS);
         }
@@ -379,3 +380,4 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         }
     }
 }
+

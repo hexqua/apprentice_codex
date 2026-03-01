@@ -22,11 +22,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
@@ -59,9 +59,9 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(SHOW_TRAIL, false);
-        entityData.define(ANIMATION_SPEED, 1.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(SHOW_TRAIL, false);
+        builder.define(ANIMATION_SPEED, 1.0f);
     }
     @Override
     public void onClientRemoval() {
@@ -197,3 +197,4 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         return cache;
     }
 }
+

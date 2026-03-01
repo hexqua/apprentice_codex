@@ -1,11 +1,11 @@
 package jp.aquafactory.apprenticecodex.capability.personalinventory;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 public class PersonalInventory {
-    // ラージサイズ固定.
     public static final int MAX_SIZE = 54;
     private final ItemStackHandler handler = new ItemStackHandler(MAX_SIZE);
 
@@ -13,17 +13,16 @@ public class PersonalInventory {
         return handler;
     }
 
-    public CompoundTag serializeNBT() {
-        return handler.serializeNBT();
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        return handler.serializeNBT(provider);
     }
 
-    public void deserializeNBT(CompoundTag nbt) {
-        // ワールドに入れなくなる不具合だけは回避するため、ログを出して握りつぶし.
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
         try {
-            handler.deserializeNBT(nbt);
+            handler.deserializeNBT(provider, nbt);
         } catch (Exception e) {
             ApprenticeCodex.LOGGER.error("Failed to load PersonalInventory data, resetting.", e);
-            handler.deserializeNBT(new CompoundTag());
+            handler.deserializeNBT(provider, new CompoundTag());
         }
     }
 }

@@ -1,17 +1,20 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraftforge.common.data.ForgeAdvancementProvider;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.data.AdvancementProvider;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class DataGenerator {
+    private DataGenerator() {
+    }
+
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
+    public static void onGatherData(GatherDataEvent event) {
         var generator = event.getGenerator();
         var output = generator.getPackOutput();
         var lookupProvider = event.getLookupProvider();
@@ -22,9 +25,10 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), datapackProvider);
         generator.addProvider(event.includeServer(), blockTagGenerator);
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));
-        generator.addProvider(event.includeServer(), new RecipeGenerator(output));
-        generator.addProvider(event.includeServer(), new LootTableGenerator(output));
+        generator.addProvider(event.includeServer(), new EnchantmentTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
+        generator.addProvider(event.includeServer(), new RecipeGenerator(output, lookupProvider));
+        generator.addProvider(event.includeServer(), new LootTableGenerator(output, lookupProvider));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
-        generator.addProvider(event.includeServer(), new ForgeAdvancementProvider(output, lookupProvider, existing, List.of(new AdvancementGenerator())));
+        generator.addProvider(event.includeServer(), new AdvancementProvider(output, lookupProvider, existing, List.of(new AdvancementGenerator())));
     }
 }

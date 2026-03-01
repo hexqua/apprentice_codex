@@ -1,0 +1,37 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_iron_spell_amplifier": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:iron_spell_amplifier"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.description"
+    },
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:iron_spell_amplifier"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_iron_spell_amplifier.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_iron_spell_amplifier"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

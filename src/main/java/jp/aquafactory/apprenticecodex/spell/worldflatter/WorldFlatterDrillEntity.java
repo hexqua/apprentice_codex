@@ -7,24 +7,24 @@ import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.TierSortingRegistry;
+import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.LinkedHashMap;
@@ -67,7 +67,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
         // do nothing.
     }
 
@@ -352,7 +352,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
             return false;
         }
 
-        if (state.requiresCorrectToolForDrops() && !TierSortingRegistry.isCorrectTierForDrops(Tiers.IRON, state)) {
+        if (state.requiresCorrectToolForDrops() && state.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
             return false;
         }
 
@@ -522,3 +522,5 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         return cache;
     }
 }
+
+

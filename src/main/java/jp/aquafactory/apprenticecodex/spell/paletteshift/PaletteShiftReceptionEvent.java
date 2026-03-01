@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -17,12 +18,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.joml.Vector3f;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class PaletteShiftReceptionEvent {
     private static final int RECEPTION_DUST_COUNT = 72;
     private static final double RECEPTION_DUST_HORIZONTAL_SPREAD = 0.75D;
@@ -35,7 +36,7 @@ public final class PaletteShiftReceptionEvent {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onSpellPreCast(SpellPreCastEvent event) {
         var player = event.getEntity();
-        if (!player.hasEffect(EffectRegistry.PALETTE_RECEPTION.get())) {
+        if (!player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PALETTE_RECEPTION.get()))) {
             return;
         }
 
@@ -51,7 +52,7 @@ public final class PaletteShiftReceptionEvent {
         }
 
         applyReceptionEffects(player, schoolType, tintColor);
-        player.removeEffect(EffectRegistry.PALETTE_RECEPTION.get());
+        player.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PALETTE_RECEPTION.get()));
         // PaletteReception を最優先で消費するため、対象魔法の詠唱は常に中断する。
         event.setCanceled(true);
     }
@@ -124,3 +125,4 @@ public final class PaletteShiftReceptionEvent {
         return color.getValue();
     }
 }
+

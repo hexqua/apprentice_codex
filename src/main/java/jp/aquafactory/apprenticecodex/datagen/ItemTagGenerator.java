@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
@@ -10,14 +12,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
 public final class ItemTagGenerator extends ItemTagsProvider {
     private static TagKey<Item> createTag(String namespace, String path) {
-        return TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path));
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path));
     }
 
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
@@ -27,6 +29,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
+    private static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_MAGIC_ENCHANTABLE;
 
     public ItemTagGenerator(
             PackOutput output,
@@ -44,6 +47,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(CURIOS_SPELLBOOK).add(ItemRegistry.ENDER_GRIMOIRE.get());
         tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
         tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
+        tag(OFFHAND_MAGIC_ENCHANTABLE).add(
+                ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
+                ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
+                ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
+                ItemRegistry.PHOTON_SIPHON.get()
+        );
 
         // 指輪.
         tag(CURIOS_RING).add(
@@ -51,7 +60,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CRAFTSMANS_DELIGHT.get()
         );
 
-        // 魔法召喚武器はアイテムとして性能を持たずダミーにしか使っていないため、JEIでも表示しないようにする.
+        // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
                 ItemRegistry.SKY_EDGE_SWORD.get(),
                 ItemRegistry.COMMENCE_FIRE_RIFLE.get(),

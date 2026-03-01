@@ -5,11 +5,10 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class TranscendenceSpellLevelEvent {
     private TranscendenceSpellLevelEvent() {
     }
@@ -17,7 +16,7 @@ public final class TranscendenceSpellLevelEvent {
     @SubscribeEvent
     public static void onModifySpellLevel(ModifySpellLevelEvent event) {
         var caster = event.getEntity();
-        if (caster == null || !EnchantmentRegistry.TRANSCENDENCE.isPresent()) {
+        if (caster == null) {
             return;
         }
 
@@ -26,7 +25,7 @@ public final class TranscendenceSpellLevelEvent {
             return;
         }
 
-        var transcendenceLevel = offhandStack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get());
+        var transcendenceLevel = Enchantments.getLevel(offhandStack, Enchantments.TRANSCENDENCE);
         if (transcendenceLevel <= 0 || !ISpellContainer.isSpellContainer(offhandStack)) {
             return;
         }

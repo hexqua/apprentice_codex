@@ -62,8 +62,8 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(EFFECT_RADIUS_BLOCKS, 1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(EFFECT_RADIUS_BLOCKS, 1);
     }
 
     public void setFollowTarget(Entity target) {
@@ -226,7 +226,7 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
 
             var block = state.getBlock();
             if (block instanceof BonemealableBlock bonemealable
-                    && bonemealable.isValidBonemealTarget(level, cursor, state, false)) {
+                    && bonemealable.isValidBonemealTarget(level, cursor, state)) {
                 return cursor.immutable();
             }
 
@@ -320,3 +320,4 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         growthIntervalTicks = Math.max(1, ticks);
     }
 }
+

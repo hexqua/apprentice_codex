@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -28,7 +29,7 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     @Override
@@ -110,3 +111,4 @@ public class AssistWingsWingEntity extends SummonWeaponEntity {
         return RotationTools.calculateBehindPosition(owner, 0.25, 0, -0.4);
     }
 }
+

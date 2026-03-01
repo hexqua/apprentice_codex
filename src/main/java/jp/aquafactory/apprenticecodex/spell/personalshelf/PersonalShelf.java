@@ -13,8 +13,10 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -180,16 +182,25 @@ public class PersonalShelf extends AbstractSpell {
 
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            friendlyByteBuf.writeBlockPos(position);
+            var hasPosition = position != null;
+            friendlyByteBuf.writeBoolean(hasPosition);
+            if (hasPosition) {
+                friendlyByteBuf.writeBlockPos(position);
+            }
             friendlyByteBuf.writeBoolean(exportMode);
-            friendlyByteBuf.writeInt(exportFacing.get3DDataValue());
+
+            var hasExportFacing = exportFacing != null;
+            friendlyByteBuf.writeBoolean(hasExportFacing);
+            if (hasExportFacing) {
+                friendlyByteBuf.writeInt(exportFacing.get3DDataValue());
+            }
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
-            position = friendlyByteBuf.readBlockPos();
+            position = friendlyByteBuf.readBoolean() ? friendlyByteBuf.readBlockPos() : null;
             exportMode = friendlyByteBuf.readBoolean();
-            exportFacing = Direction.from3DDataValue(friendlyByteBuf.readInt());
+            exportFacing = friendlyByteBuf.readBoolean() ? Direction.from3DDataValue(friendlyByteBuf.readInt()) : null;
         }
 
         @Override
@@ -200,21 +211,37 @@ public class PersonalShelf extends AbstractSpell {
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
-            tag.putInt("PositionX", position.getX());
-            tag.putInt("PositionY", position.getY());
-            tag.putInt("PositionZ", position.getZ());
+            var hasPosition = position != null;
+            tag.putBoolean("HasPosition", hasPosition);
+            if (hasPosition) {
+                tag.putInt("PositionX", position.getX());
+                tag.putInt("PositionY", position.getY());
+                tag.putInt("PositionZ", position.getZ());
+            }
             tag.putBoolean("ExportMode", exportMode);
-            tag.putInt("ExportFacing", exportFacing.get3DDataValue());
+
+            var hasExportFacing = exportFacing != null;
+            tag.putBoolean("HasExportFacing", hasExportFacing);
+            if (hasExportFacing) {
+                tag.putInt("ExportFacing", exportFacing.get3DDataValue());
+            }
             return tag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            position = new BlockPos(nbt.getInt("PositionX"), nbt.getInt("PositionY"), nbt.getInt("PositionZ"));
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            var hasPosition = nbt.contains("HasPosition", Tag.TAG_BYTE)
+                    ? nbt.getBoolean("HasPosition")
+                    : nbt.contains("PositionX", Tag.TAG_INT) && nbt.contains("PositionY", Tag.TAG_INT) && nbt.contains("PositionZ", Tag.TAG_INT);
+            position = hasPosition ? new BlockPos(nbt.getInt("PositionX"), nbt.getInt("PositionY"), nbt.getInt("PositionZ")) : null;
             exportMode = nbt.getBoolean("ExportMode");
-            exportFacing = Direction.from3DDataValue(nbt.getInt("ExportFacing"));
+
+            var hasExportFacing = nbt.contains("HasExportFacing", Tag.TAG_BYTE)
+                    ? nbt.getBoolean("HasExportFacing")
+                    : nbt.contains("ExportFacing", Tag.TAG_INT);
+            exportFacing = hasExportFacing ? Direction.from3DDataValue(nbt.getInt("ExportFacing")) : null;
         }
     }
 }

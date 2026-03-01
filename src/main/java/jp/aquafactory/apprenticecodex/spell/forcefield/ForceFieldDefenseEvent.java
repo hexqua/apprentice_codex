@@ -27,14 +27,14 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.Nullable;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ForceFieldDefenseEvent {
     private static final double INTERCEPT_RADIUS = 3.0;
     private static final double INTERCEPT_RADIUS_SQ = INTERCEPT_RADIUS * INTERCEPT_RADIUS;
@@ -77,7 +77,7 @@ public final class ForceFieldDefenseEvent {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         var target = event.getEntity();
         //noinspection resource
         if (target.level().isClientSide) {
@@ -243,7 +243,6 @@ public final class ForceFieldDefenseEvent {
 
         if (projectile instanceof AbstractArrow arrow) {
             arrow.setBaseDamage(0.0);
-            arrow.setPierceLevel((byte) 0);
         }
 
         return true;
@@ -254,7 +253,9 @@ public final class ForceFieldDefenseEvent {
             return false;
         }
 
-        if (MinecraftForge.EVENT_BUS.post(new CounterSpellEvent(caster, target))) {
+        var event = new CounterSpellEvent(caster, target);
+        NeoForge.EVENT_BUS.post(event);
+        if (event.isCanceled()) {
             return false;
         }
 
@@ -571,3 +572,4 @@ public final class ForceFieldDefenseEvent {
     private record ActiveForceField(MagicData magicData, int spellLevel) {
     }
 }
+

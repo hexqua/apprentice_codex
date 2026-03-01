@@ -14,6 +14,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -28,7 +29,6 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 public class FlySwatterProjectileEntity extends Projectile {
@@ -76,8 +76,8 @@ public class FlySwatterProjectileEntity extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(STANDBY_TICK, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(STANDBY_TICK, 0);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class FlySwatterProjectileEntity extends Projectile {
             }
 
             var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-            if (hitresult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitresult)) {
+            if (hitresult.getType() != HitResult.Type.MISS) {
                 onHit(hitresult);
             }
 
@@ -186,7 +186,7 @@ public class FlySwatterProjectileEntity extends Projectile {
             server.sendParticles(ParticleTypes.POOF, position.x, position.y, position.z,
                     18, poofSpread, poofSpread * 0.4, poofSpread, 0.12);
 
-            server.playSound(null, BlockPos.containing(position), SoundEvents.GENERIC_EXPLODE,
+            server.playSound(null, BlockPos.containing(position), SoundEvents.GENERIC_EXPLODE.value(),
                     SoundSource.PLAYERS, 1.0f, 0.9f + level.random.nextFloat() * 0.2f);
         }
 
@@ -258,8 +258,8 @@ public class FlySwatterProjectileEntity extends Projectile {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity entity) {
+        return super.getAddEntityPacket(entity);
     }
 
     @Override
@@ -285,3 +285,5 @@ public class FlySwatterProjectileEntity extends Projectile {
         this.target = target;
     }
 }
+
+

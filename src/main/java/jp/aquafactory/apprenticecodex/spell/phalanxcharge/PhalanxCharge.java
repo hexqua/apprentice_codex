@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -249,7 +250,7 @@ public class PhalanxCharge extends AbstractSummonWeaponSpell<PhalanxWeaponryEnti
         }
 
         entity.addEffect(new MobEffectInstance(
-                EffectRegistry.PHALANX_STANCE.get(),
+                BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()),
                 GUARD_EFFECT_REFRESH_TICK,
                 PhalanxStance.FIXED_AMPLIFIER,
                 false,

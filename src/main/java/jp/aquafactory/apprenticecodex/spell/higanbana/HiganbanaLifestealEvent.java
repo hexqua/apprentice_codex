@@ -3,17 +3,17 @@ package jp.aquafactory.apprenticecodex.spell.higanbana;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class HiganbanaLifestealEvent {
     private HiganbanaLifestealEvent() {
     }
 
     @SubscribeEvent
-    public static void onLivingDamage(LivingDamageEvent event) {
+    public static void onLivingDamage(LivingDamageEvent.Post event) {
         if (event.getEntity().level().isClientSide) {
             return;
         }
@@ -26,7 +26,7 @@ public final class HiganbanaLifestealEvent {
             return;
         }
 
-        var dealtDamage = event.getAmount();
+        var dealtDamage = event.getNewDamage();
         if (dealtDamage <= 0f) {
             return;
         }
@@ -34,3 +34,4 @@ public final class HiganbanaLifestealEvent {
         attacker.heal(dealtDamage);
     }
 }
+

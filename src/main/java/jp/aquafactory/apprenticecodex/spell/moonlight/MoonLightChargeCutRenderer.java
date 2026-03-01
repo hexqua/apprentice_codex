@@ -371,10 +371,10 @@ public class MoonLightChargeCutRenderer extends EntityRenderer<MoonLightChargeCu
                                 float x2, float y2, float z2,
                                 float x3, float y3, float z3,
                                 int red, int green, int blue, int alpha) {
-        vc.vertex(matrix, x0, y0, z0).color(red, green, blue, alpha).endVertex();
-        vc.vertex(matrix, x1, y1, z1).color(red, green, blue, alpha).endVertex();
-        vc.vertex(matrix, x2, y2, z2).color(red, green, blue, alpha).endVertex();
-        vc.vertex(matrix, x3, y3, z3).color(red, green, blue, alpha).endVertex();
+        vc.addVertex(matrix, x0, y0, z0).setColor(red, green, blue, alpha);
+        vc.addVertex(matrix, x1, y1, z1).setColor(red, green, blue, alpha);
+        vc.addVertex(matrix, x2, y2, z2).setColor(red, green, blue, alpha);
+        vc.addVertex(matrix, x3, y3, z3).setColor(red, green, blue, alpha);
     }
 
     private record RiftVisualState(float nearHalfWidth, float farHalfWidth, float notchDepth, float open,

@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -211,8 +212,8 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
         }
 
         @Override
-        public CompoundTag serializeNBT() {
-            var tag = super.serializeNBT();
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+            var tag = super.serializeNBT(provider);
             tag.putInt("CurrentLockOnId", currentLockOnId);
             tag.putInt("CurrentLockOnTick", currentLockOnTick);
             tag.putIntArray("LockOnEntityIdList", lockOnEntityIdList.stream().mapToInt(i -> i).toArray());
@@ -220,8 +221,8 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            super.deserializeNBT(nbt);
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            super.deserializeNBT(provider, nbt);
             currentLockOnId = nbt.getInt("CurrentLockOnId");
             currentLockOnTick = nbt.getInt("CurrentLockOnTick");
             lockOnEntityIdList = Arrays.stream(nbt.getIntArray("LockOnEntityIdList")).boxed().collect(Collectors.toList());

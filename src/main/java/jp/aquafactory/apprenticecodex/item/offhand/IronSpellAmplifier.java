@@ -9,8 +9,8 @@ public class IronSpellAmplifier extends AbstractOffhandMagicItem {
     public IronSpellAmplifier() {
         super(
                 "iron_spell_amplifier",
-                bonus(AttributeRegistry.MAX_MANA, 50.0, AttributeModifier.Operation.ADDITION),
-                bonus(AttributeRegistry.MANA_REGEN, -0.10, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.MAX_MANA, 50.0, AttributeModifier.Operation.ADD_VALUE),
+                bonus(AttributeRegistry.MANA_REGEN, -0.10, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
         );
     }
 

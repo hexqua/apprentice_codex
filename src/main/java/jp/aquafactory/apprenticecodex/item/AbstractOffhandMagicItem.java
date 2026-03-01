@@ -1,29 +1,30 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public abstract class AbstractOffhandMagicItem extends Item implements IPresetSpellContainer {
@@ -39,9 +40,8 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
     private final boolean startsWithPresetSpell;
     private final String itemKey;
     private final List<AttributeBonus> offhandBonuses;
-    private final Multimap<Attribute, AttributeModifier> offhandModifiers;
+    private final ItemAttributeModifiers baseOffhandModifiers;
 
-    // 既定魔法入りで開始するアイテム向けコンストラクタ.
     protected AbstractOffhandMagicItem(
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
@@ -54,7 +54,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         this.startsWithPresetSpell = true;
         this.itemKey = normalizeKeyToken(itemKey);
         this.offhandBonuses = List.copyOf(offhandBonuses);
-        this.offhandModifiers = buildBaseOffhandModifiers();
+        this.baseOffhandModifiers = buildBaseOffhandModifiers();
     }
 
     protected AbstractOffhandMagicItem(
@@ -66,7 +66,6 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         this(configuredSpell, configuredSpellLevel, itemKey, List.of(offhandBonuses));
     }
 
-    // 空スロットで開始し、Imbue による魔法追加だけを受け付けたいアイテム向けコンストラクタ.
     protected AbstractOffhandMagicItem(
             String itemKey,
             List<AttributeBonus> offhandBonuses
@@ -77,7 +76,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         this.startsWithPresetSpell = false;
         this.itemKey = normalizeKeyToken(itemKey);
         this.offhandBonuses = List.copyOf(offhandBonuses);
-        this.offhandModifiers = buildBaseOffhandModifiers();
+        this.baseOffhandModifiers = buildBaseOffhandModifiers();
     }
 
     protected AbstractOffhandMagicItem(
@@ -94,6 +93,11 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         }
 
         if (startsWithPresetSpell) {
+            // Datagen時はSpellRegistry未バインドのため、初期呪文の注入をスキップする.
+            if (configuredSpell instanceof net.neoforged.neoforge.registries.DeferredHolder<?, ?> deferredHolder && !deferredHolder.isBound()) {
+                return;
+            }
+
             ISpellContainer.createImbuedContainer(configuredSpell.get(), configuredSpellLevel, itemStack);
             return;
         }
@@ -102,12 +106,8 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot == EquipmentSlot.OFFHAND) {
-            return buildOffhandModifiers(stack);
-        }
-
-        return super.getAttributeModifiers(slot, stack);
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return buildOffhandModifiers(stack);
     }
 
     @Override
@@ -122,54 +122,44 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
 
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
-        // 非耐久アイテムでもエンチャント台/金床で扱えるようにする.
         return getEnchantmentValue(stack) > 0;
     }
 
-    private Multimap<Attribute, AttributeModifier> buildBaseOffhandModifiers() {
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        var prefix = "apprenticecodex." + itemKey + ".offhand";
+    private ItemAttributeModifiers buildBaseOffhandModifiers() {
+        var builder = ItemAttributeModifiers.builder();
         for (int i = 0; i < offhandBonuses.size(); ++i) {
             var bonus = offhandBonuses.get(i);
-            var attribute = bonus.attributeSupplier().get();
-            if (attribute == null) {
+            var attribute = bonus.attribute();
+            if (attribute == null || bonus.amount() == 0.0D) {
                 continue;
             }
 
-            var attributeKey = resolveAttributeKey(bonus, attribute, i);
-            var modifierIdSeed = prefix + "." + attributeKey + "." + i;
-            var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
+            var attributeKey = resolveAttributeKey(bonus, i);
+            var modifierId = ResourceLocation.fromNamespaceAndPath(
+                    "apprenticecodex",
+                    itemKey + "_offhand_" + attributeKey + "_" + i
+            );
 
-            builder.put(
+            builder.add(
                     attribute,
-                    new AttributeModifier(modifierId, modifierIdSeed, bonus.amount(), bonus.operation())
+                    new AttributeModifier(modifierId, bonus.amount(), bonus.operation()),
+                    EquipmentSlotGroup.OFFHAND
             );
         }
         return builder.build();
     }
 
-    private Multimap<Attribute, AttributeModifier> buildOffhandModifiers(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return offhandModifiers;
-        }
-        if (!stack.isEnchanted()) {
-            return offhandModifiers;
-        }
-        if (!EnchantmentRegistry.ALACRITY.isPresent()
-                || !EnchantmentRegistry.REFLUX.isPresent()
-                || !EnchantmentRegistry.RESERVOIR.isPresent()
-                || !EnchantmentRegistry.SURGE.isPresent()
-                || !EnchantmentRegistry.ATTUNEMENT.isPresent()
-                || !EnchantmentRegistry.TENSE.isPresent()) {
-            return offhandModifiers;
+    private ItemAttributeModifiers buildOffhandModifiers(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
+            return baseOffhandModifiers;
         }
 
-        var alacrityLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ALACRITY.get());
-        var refluxLevel = stack.getEnchantmentLevel(EnchantmentRegistry.REFLUX.get());
-        var reservoirLevel = stack.getEnchantmentLevel(EnchantmentRegistry.RESERVOIR.get());
-        var surgeLevel = stack.getEnchantmentLevel(EnchantmentRegistry.SURGE.get());
-        var attunementLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ATTUNEMENT.get());
-        var tenseLevel = stack.getEnchantmentLevel(EnchantmentRegistry.TENSE.get());
+        var alacrityLevel = Enchantments.getLevel(stack, Enchantments.ALACRITY);
+        var refluxLevel = Enchantments.getLevel(stack, Enchantments.REFLUX);
+        var reservoirLevel = Enchantments.getLevel(stack, Enchantments.RESERVOIR);
+        var surgeLevel = Enchantments.getLevel(stack, Enchantments.SURGE);
+        var attunementLevel = Enchantments.getLevel(stack, Enchantments.ATTUNEMENT);
+        var tenseLevel = Enchantments.getLevel(stack, Enchantments.TENSE);
 
         if (alacrityLevel <= 0
                 && refluxLevel <= 0
@@ -177,233 +167,214 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
                 && surgeLevel <= 0
                 && attunementLevel <= 0
                 && tenseLevel <= 0) {
-            return offhandModifiers;
+            return baseOffhandModifiers;
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(offhandModifiers);
-        var prefix = "apprenticecodex." + itemKey + ".offhand.enchant";
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : baseOffhandModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
 
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.COOLDOWN_REDUCTION.get(),
+                AttributeRegistry.COOLDOWN_REDUCTION,
                 alacrityLevel * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".alacrity.cooldown_reduction"
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                "alacrity_cooldown_reduction"
         );
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.MANA_REGEN.get(),
+                AttributeRegistry.MANA_REGEN,
                 refluxLevel * REFLUX_MANA_REGEN_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".reflux.mana_regen"
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                "reflux_mana_regen"
         );
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.MAX_MANA.get(),
+                AttributeRegistry.MAX_MANA,
                 reservoirLevel * RESERVOIR_MAX_MANA_PER_LEVEL,
-                AttributeModifier.Operation.ADDITION,
-                prefix + ".reservoir.max_mana"
+                AttributeModifier.Operation.ADD_VALUE,
+                "reservoir_max_mana"
         );
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.SPELL_POWER.get(),
+                AttributeRegistry.SPELL_POWER,
                 surgeLevel * SURGE_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".surge.spell_power"
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                "surge_spell_power"
         );
+
         if (attunementLevel > 0) {
             var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
             var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            addEnchantmentModifier(
-                    builder,
-                    attunementSpellPowerAttribute,
-                    attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    prefix + ".attunement.spell_power"
-            );
+            if (attunementSpellPowerAttribute != null) {
+                addEnchantmentModifier(
+                        builder,
+                        BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementSpellPowerAttribute),
+                        attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                        "attunement_spell_power"
+                );
+            }
         }
+
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.CAST_TIME_REDUCTION.get(),
+                AttributeRegistry.CAST_TIME_REDUCTION,
                 tenseLevel * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".tense.cast_time_reduction"
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                "tense_cast_time_reduction"
         );
 
-        return mergeTooltipEquivalentModifiers(builder.build(), prefix + ".merged");
+        return mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_offhand_merged");
     }
 
-    private static void addEnchantmentModifier(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-            Attribute attribute,
+    private void addEnchantmentModifier(
+            ItemAttributeModifiers.Builder builder,
+            Holder<Attribute> attribute,
             double amount,
             AttributeModifier.Operation operation,
-            String modifierIdSeed
+            String key
     ) {
-        if (attribute == null || amount == 0.0D) {
+        if (amount == 0.0D) {
             return;
         }
 
-        var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
-        builder.put(attribute, new AttributeModifier(modifierId, modifierIdSeed, amount, operation));
+        var modifierId = ResourceLocation.fromNamespaceAndPath(
+                "apprenticecodex",
+                itemKey + "_offhand_enchant_" + key
+        );
+
+        builder.add(
+                attribute,
+                new AttributeModifier(modifierId, amount, operation),
+                EquipmentSlotGroup.OFFHAND
+        );
     }
 
-    private static Multimap<Attribute, AttributeModifier> mergeTooltipEquivalentModifiers(
-            Multimap<Attribute, AttributeModifier> modifiers,
-            String modifierSeedPrefix
+    private static ItemAttributeModifiers mergeTooltipEquivalentModifiers(
+            ItemAttributeModifiers modifiers,
+            String modifierPathPrefix
     ) {
-        if (modifiers.isEmpty()) {
+        if (modifiers.modifiers().isEmpty()) {
             return modifiers;
         }
 
-        var merged = new LinkedHashMap<MergeTarget, Double>();
-        var passthrough = new java.util.ArrayList<Map.Entry<Attribute, AttributeModifier>>();
-        for (var entry : modifiers.entries()) {
-            var modifier = entry.getValue();
-            var operation = modifier.getOperation();
-            // MULTIPLY_TOTAL は線形合算できないため、挙動維持のためそのまま残す.
-            if (operation != AttributeModifier.Operation.ADDITION
-                    && operation != AttributeModifier.Operation.MULTIPLY_BASE) {
+        var merged = new LinkedHashMap<MergeTarget, MergedModifier>();
+        var passthrough = new ArrayList<ItemAttributeModifiers.Entry>();
+        int unknownIndex = 0;
+
+        for (var entry : modifiers.modifiers()) {
+            var operation = entry.modifier().operation();
+            if (operation != AttributeModifier.Operation.ADD_VALUE
+                    && operation != AttributeModifier.Operation.ADD_MULTIPLIED_BASE) {
                 passthrough.add(entry);
                 continue;
             }
 
-            var key = new MergeTarget(entry.getKey(), operation);
-            merged.merge(key, modifier.getAmount(), Double::sum);
+            var attributeToken = resolveAttributeToken(entry.attribute(), unknownIndex++);
+            var target = new MergeTarget(attributeToken, operation, entry.slot());
+            var existing = merged.get(target);
+            if (existing == null) {
+                merged.put(target, new MergedModifier(entry.attribute(), entry.modifier().amount()));
+            } else {
+                merged.put(target, new MergedModifier(existing.attribute(), existing.amount() + entry.modifier().amount()));
+            }
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        for (var entry : merged.entrySet()) {
+        var builder = ItemAttributeModifiers.builder();
+        int mergedIndex = 0;
+        for (Map.Entry<MergeTarget, MergedModifier> entry : merged.entrySet()) {
             var target = entry.getKey();
-            var amount = entry.getValue();
-            if (amount == 0.0D) {
+            var mergedModifier = entry.getValue();
+            if (mergedModifier.amount() == 0.0D) {
                 continue;
             }
 
             var operationToken = target.operation().name().toLowerCase(Locale.ROOT);
-            var attributeToken = resolveAttributeToken(target.attribute());
-            var modifierIdSeed = modifierSeedPrefix + "." + attributeToken + "." + operationToken;
-            var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
-            builder.put(
-                    target.attribute(),
-                    new AttributeModifier(modifierId, modifierIdSeed, amount, target.operation())
+            var modifierId = ResourceLocation.fromNamespaceAndPath(
+                    "apprenticecodex",
+                    modifierPathPrefix + "_" + target.attributeToken() + "_" + operationToken + "_" + mergedIndex++
+            );
+
+            builder.add(
+                    mergedModifier.attribute(),
+                    new AttributeModifier(modifierId, mergedModifier.amount(), target.operation()),
+                    target.slot()
             );
         }
 
         for (var entry : passthrough) {
-            builder.put(entry);
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
+
         return builder.build();
     }
 
-    private static String resolveAttributeKey(AttributeBonus bonus, Attribute attribute, int index) {
+    private static String resolveAttributeToken(Holder<Attribute> attribute, int index) {
+        return attribute.unwrapKey()
+                .map(resourceKey -> normalizeKeyToken(resourceKey.location().toString()))
+                .orElse("unknown_" + index);
+    }
+
+    private static String resolveAttributeKey(AttributeBonus bonus, int index) {
         if (bonus.key() != null && !bonus.key().isBlank()) {
             return normalizeKeyToken(bonus.key());
         }
 
-        var registryKey = ForgeRegistries.ATTRIBUTES.getKey(attribute);
-        if (registryKey != null) {
-            return normalizeKeyToken(registryKey.toString());
-        }
-
-        // 登録キーが得られない属性でもUUIDが毎回安定するようフォールバックを固定化する.
-        return "unknown_" + index;
-    }
-
-    private static String resolveAttributeToken(Attribute attribute) {
-        var registryKey = ForgeRegistries.ATTRIBUTES.getKey(attribute);
-        if (registryKey == null) {
-            return "unknown";
-        }
-        return normalizeKeyToken(registryKey.toString());
+        return bonus.attribute().unwrapKey()
+                .map(resourceKey -> normalizeKeyToken(resourceKey.location().toString()))
+                .orElse("unknown_" + index);
     }
 
     private static String normalizeKeyToken(String token) {
         return Objects.requireNonNull(token)
                 .toLowerCase(Locale.ROOT)
-                .replace(':', '.')
-                .replace('/', '.')
-                .replaceAll("[^a-z0-9._-]", "_");
+                .replace(':', '_')
+                .replace('/', '_')
+                .replace('.', '_')
+                .replaceAll("[^a-z0-9_-]", "_");
     }
 
-    // `bonus` ヘルパーは属性参照の受け取り方ごとにオーバーロードしている.
-    // 将来のアイテムで属性の持ち方が異なっても同じ書き味で定義できるようにしている.
-
-    // Forge の RegistryObject や Deferred 登録由来の Supplier をそのまま渡す用途.
     protected static AttributeBonus bonus(
-            Supplier<? extends Attribute> attributeSupplier,
+            Holder<Attribute> attribute,
             double amount,
             AttributeModifier.Operation operation
     ) {
-        return new AttributeBonus(attributeSupplier, amount, operation, null);
+        return new AttributeBonus(attribute, amount, operation, null);
     }
 
-    // 既に Attribute 実体を持っているケース向け.
     protected static AttributeBonus bonus(
-            Attribute attribute,
-            double amount,
-            AttributeModifier.Operation operation
-    ) {
-        return new AttributeBonus(() -> attribute, amount, operation, null);
-    }
-
-    // バニラの Attributes.* のような Holder 経由の属性指定向け.
-    protected static AttributeBonus bonus(
-            Holder<Attribute> attributeHolder,
-            double amount,
-            AttributeModifier.Operation operation
-    ) {
-        return new AttributeBonus(attributeHolder::value, amount, operation, null);
-    }
-
-    // 属性名の解決が不安定なケースで、UUID シード用キーを明示したい場合の Supplier 版.
-    protected static AttributeBonus bonus(
-            Supplier<? extends Attribute> attributeSupplier,
+            Holder<Attribute> attribute,
             double amount,
             AttributeModifier.Operation operation,
             String key
     ) {
-        return new AttributeBonus(attributeSupplier, amount, operation, key);
-    }
-
-    // 属性名の解決が不安定なケースで、UUID シード用キーを明示したい場合の Holder 版.
-    protected static AttributeBonus bonus(
-            Holder<Attribute> attributeHolder,
-            double amount,
-            AttributeModifier.Operation operation,
-            String key
-    ) {
-        return new AttributeBonus(attributeHolder::value, amount, operation, key);
-    }
-
-    // 属性名の解決が不安定なケースで、UUID シード用キーを明示したい場合の Attribute 実体版.
-    protected static AttributeBonus bonus(
-            Attribute attribute,
-            double amount,
-            AttributeModifier.Operation operation,
-            String key
-    ) {
-        return new AttributeBonus(() -> attribute, amount, operation, key);
-    }
-
-    // `key` は UUID 生成のシードに使う任意識別子.
-    // null の場合は属性の登録キーを優先して使用する.
-    private record MergeTarget(
-            Attribute attribute,
-            AttributeModifier.Operation operation
-    ) {
+        return new AttributeBonus(attribute, amount, operation, key);
     }
 
     protected record AttributeBonus(
-            Supplier<? extends Attribute> attributeSupplier,
+            Holder<Attribute> attribute,
             double amount,
             AttributeModifier.Operation operation,
-            String key
+            @Nullable String key
     ) {
         public AttributeBonus {
-            Objects.requireNonNull(attributeSupplier);
+            Objects.requireNonNull(attribute);
             Objects.requireNonNull(operation);
         }
+    }
+
+    private record MergeTarget(
+            String attributeToken,
+            AttributeModifier.Operation operation,
+            EquipmentSlotGroup slot
+    ) {
+    }
+
+    private record MergedModifier(
+            Holder<Attribute> attribute,
+            double amount
+    ) {
     }
 }

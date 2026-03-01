@@ -1,39 +1,54 @@
 package jp.aquafactory.apprenticecodex.capability;
 
-import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventory;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookData;
+import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventory;
+import jp.aquafactory.apprenticecodex.registry.AttachmentRegistry;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.util.NonNullConsumer;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+import java.util.function.Consumer;
+
 public final class Capabilities {
-    public static Capability<PersonalInventory> PERSONAL_INVENTORY = CapabilityManager.get(new CapabilityToken<>() {
-    });
-    public static Capability<CodexSpellData> SPELL_DATA = CapabilityManager.get(new CapabilityToken<>() {
-    });
-    public static Capability<EnderGrimoireSpellbookData> ENDER_GRIMOIRE_SPELLBOOK = CapabilityManager.get(new CapabilityToken<>() {
-    });
-
-    public static void withSpellData(Entity entity, NonNullConsumer<CodexSpellData> consumer) {
-        entity.getCapability(Capabilities.SPELL_DATA).ifPresent(consumer);
+    private Capabilities() {
     }
 
-    public static void withEnderGrimoireSpellbook(Entity entity, NonNullConsumer<EnderGrimoireSpellbookData> consumer) {
-        entity.getCapability(Capabilities.ENDER_GRIMOIRE_SPELLBOOK).ifPresent(consumer);
+    public static Optional<PersonalInventory> getPersonalInventory(Entity entity) {
+        if (!(entity instanceof Player player)) {
+            return Optional.empty();
+        }
+        return Optional.of(player.getData(AttachmentRegistry.PERSONAL_INVENTORY));
     }
 
-    @SuppressWarnings("DataFlowIssue")
-    public @Nullable
-    static CodexSpellData getSpellDataOrNull(Entity entity) {
-        return entity.getCapability(Capabilities.SPELL_DATA).orElse(null);
+    public static Optional<CodexSpellData> getSpellData(Entity entity) {
+        if (!(entity instanceof Player player)) {
+            return Optional.empty();
+        }
+        return Optional.of(player.getData(AttachmentRegistry.SPELL_DATA));
     }
 
-    @SuppressWarnings("DataFlowIssue")
+    public static Optional<EnderGrimoireSpellbookData> getEnderGrimoireSpellbook(Entity entity) {
+        if (!(entity instanceof Player player)) {
+            return Optional.empty();
+        }
+        return Optional.of(player.getData(AttachmentRegistry.ENDER_GRIMOIRE_SPELLBOOK));
+    }
+
+    public static void withSpellData(Entity entity, Consumer<CodexSpellData> consumer) {
+        getSpellData(entity).ifPresent(consumer);
+    }
+
+    public static void withEnderGrimoireSpellbook(Entity entity, Consumer<EnderGrimoireSpellbookData> consumer) {
+        getEnderGrimoireSpellbook(entity).ifPresent(consumer);
+    }
+
+    public static @Nullable CodexSpellData getSpellDataOrNull(Entity entity) {
+        return getSpellData(entity).orElse(null);
+    }
+
     public static @Nullable EnderGrimoireSpellbookData getEnderGrimoireSpellbookOrNull(Entity entity) {
-        return entity.getCapability(Capabilities.ENDER_GRIMOIRE_SPELLBOOK).orElse(null);
+        return getEnderGrimoireSpellbook(entity).orElse(null);
     }
 }

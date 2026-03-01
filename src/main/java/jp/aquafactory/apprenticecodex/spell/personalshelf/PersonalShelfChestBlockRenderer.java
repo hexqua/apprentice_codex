@@ -64,9 +64,9 @@ public class PersonalShelfChestBlockRenderer implements BlockEntityRenderer<Pers
         var pose = poseStack.last();
         var mat = pose.pose();
 
-        vc.vertex(mat, x0, y, z0).color(255, 255, 255, 255).endVertex();
-        vc.vertex(mat, x0, y, z1).color(255, 255, 255, 255).endVertex();
-        vc.vertex(mat, x1, y, z1).color(255, 255, 255, 255).endVertex();
-        vc.vertex(mat, x1, y, z0).color(255, 255, 255, 255).endVertex();
+        vc.addVertex(mat, x0, y, z0).setColor(255, 255, 255, 255);
+        vc.addVertex(mat, x0, y, z1).setColor(255, 255, 255, 255);
+        vc.addVertex(mat, x1, y, z1).setColor(255, 255, 255, 255);
+        vc.addVertex(mat, x1, y, z0).setColor(255, 255, 255, 255);
     }
 }

@@ -4,16 +4,17 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.ShieldBlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.Map;
 import java.util.WeakHashMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class PhalanxGuardSuccessFlashEvent {
     private static final double SEARCH_RANGE = 8.0;
     private static final float FORCE_FIELD_VOLUME = 0.9f;
@@ -25,7 +26,7 @@ public final class PhalanxGuardSuccessFlashEvent {
     }
 
     @SubscribeEvent
-    public static void onShieldBlock(ShieldBlockEvent event) {
+    public static void onShieldBlock(LivingShieldBlockEvent event) {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
@@ -35,7 +36,7 @@ public final class PhalanxGuardSuccessFlashEvent {
             return;
         }
 
-        if (!player.hasEffect(EffectRegistry.PHALANX_STANCE.get())) {
+        if (!player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()))) {
             return;
         }
 
@@ -82,3 +83,4 @@ public final class PhalanxGuardSuccessFlashEvent {
         }
     }
 }
+

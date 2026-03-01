@@ -40,8 +40,7 @@ public class FlySwatterProjectileRenderer extends EntityRenderer<FlySwatterProje
         poseStack.mulPose(Axis.XP.rotationDegrees(-xRot));
         poseStack.mulPose(Axis.ZP.rotationDegrees(roll));
         model.setupAnim(entity, 0.0F, 0.0F, entity.tickCount + partialTicks, 0.0F, 0.0F);
-        model.renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY,
-                1.0F, 1.0F, 1.0F, 1.0F);
+        model.renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }

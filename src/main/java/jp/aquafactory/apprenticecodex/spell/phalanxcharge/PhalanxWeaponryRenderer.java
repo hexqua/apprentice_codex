@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -74,7 +75,7 @@ public class PhalanxWeaponryRenderer extends GeoEntityRenderer<PhalanxWeaponryEn
     @Override
     public void renderRecursively(PoseStack poseStack, PhalanxWeaponryEntity animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         switch (bone.getName()) {
             case SHIELD_CENTER_BONE -> shieldCenterBonePosition = boneWorldPosition(bone);
             case SPEAR_BOTTOM_BONE -> spearBottomBonePosition = boneWorldPosition(bone);
@@ -86,7 +87,7 @@ public class PhalanxWeaponryRenderer extends GeoEntityRenderer<PhalanxWeaponryEn
         if (!PLATE_FLASH_BONE.equals(bone.getName())) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -98,9 +99,11 @@ public class PhalanxWeaponryRenderer extends GeoEntityRenderer<PhalanxWeaponryEn
         var flashStrength = Math.min(1.0f, plateFlashStrength);
         var flashRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
         var flashBuffer = bufferSource.getBuffer(flashRenderType);
+        var flashAlpha = Mth.clamp((int) (flashStrength * 255.0f), 0, 255);
+        var flashColour = (flashAlpha << 24) | 0xFFFFFF;
         super.renderRecursively(
                 poseStack, animatable, bone, flashRenderType, bufferSource, flashBuffer, isReRender, partialTick,
-                FULL_BRIGHT_LIGHT, packedOverlay, 1.0f, 1.0f, 1.0f, flashStrength
+                FULL_BRIGHT_LIGHT, packedOverlay, flashColour
         );
     }
 

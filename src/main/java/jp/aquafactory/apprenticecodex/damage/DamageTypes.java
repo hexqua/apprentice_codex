@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.damage;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageEffects;
@@ -47,7 +47,7 @@ public final class DamageTypes {
     }
 
     @SuppressWarnings("DuplicatedCode")
-    public static void generateDamageTypeData(BootstapContext<DamageType> context){
+    public static void generateDamageTypeData(BootstrapContext<DamageType> context){
         context.register(ARCANE_BEAM, createTemplate(ARCANE_BEAM));
         context.register(ARCANE_BLAST, createTemplate(ARCANE_BLAST));
         context.register(ARCHER_MULTIPLE, createTemplate(ARCHER_MULTIPLE));

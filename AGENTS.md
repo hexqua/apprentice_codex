@@ -14,22 +14,22 @@
 - 技術スタックやバージョンなどの実装条件は「2. 開発環境」に記載する。
 
 ## 2. 開発環境
-- 開発対象: Minecraft 1.20.1
-- Mod ローダー: Minecraft Forge 47.4.10
-- 言語/実行環境: Java 17
+- 開発対象: Minecraft 1.21.1
+- Mod ローダー: NeoForge 21.1.219
+- 言語/実行環境: Java 21
 - ビルドツール: Gradle Wrapper（`./gradlew` / `./gradlew.bat`）
-- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.15.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
+- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.21.1-3.15.0）, Curios（9.5.1+1.21.1）, GeckoLib（4.8.3）
 - セットアップ手順:
-1. 64bit の Java 17 をインストールし、`java -version` で確認する。
-2. 既定の Java が 17 以外の場合は、ビルド実行前に一時的に `JAVA_HOME` を切り替える。
-3. `./gradlew.bat --version` を実行し、JVM が Java 17 であることを確認する。
+1. 64bit の Java 21 をインストールし、`java -version` で確認する。
+2. 既定の Java が 21 以外の場合は、ビルド実行前に一時的に `JAVA_HOME` を切り替える。
+3. `./gradlew.bat --version` を実行し、JVM が Java 21 であることを確認する。
 4. 必要に応じて IDE の Gradle プロジェクト再読み込みを実施する。
 
 ## 3. 実行コマンド
-- PowerShell で Java 17 を一時適用（必要な場合）:
+- PowerShell で Java 21 を一時適用（必要な場合）:
 ```powershell
-# 必須: <<REPLACE_WITH_YOUR_JDK17_PATH>> を実際の JDK 17 パスに置換する
-$env:JAVA_HOME='<<REPLACE_WITH_YOUR_JDK17_PATH>>'
+# 必須: <<REPLACE_WITH_YOUR_JDK21_PATH>> を実際の JDK 21 パスに置換する
+$env:JAVA_HOME='<<REPLACE_WITH_YOUR_JDK21_PATH>>'
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
 java -version
 ```
@@ -46,13 +46,13 @@ java -version
 Get-ChildItem build\libs\*.jar
 ```
 - 想定出力先:
-`build\libs\apprentice_codex-<mod_version>+mc1.20.1.jar`
+`build\libs\apprentice_codex-<mod_version>+mc<minecraft_version>.jar`
 - 起動（開発クライアント）:
 ```powershell
 ./gradlew.bat runClient
 ```
 - 注記: `runClient` は GUI（Minecraft クライアント）を起動するため、CI やヘッドレス環境では実行しない。
-- 注記: 通常のビルド確認では `clean` を付けない。`clean` 実行後は開発実行環境の再生成（例: `genIntellijRuns`）が必要になる場合がある。
+- 注記: 通常のビルド確認では `clean` を付けない。`clean` 実行後は開発実行環境の再生成や IDE 再同期が必要になる場合がある。
 - 注記: 本プロジェクトでは Gradle Wrapper の実行はパス経由を前提にしないため、`./gradlew.bat` を使用する。
 - Lint/Format:
 `現時点では専用タスク未設定。必要時に追加する。`
@@ -70,7 +70,7 @@ Get-ChildItem build\libs\*.jar
 - コメント方針: コメント本文は原則日本語で、短く具体的に記述する。
 - 文字コード方針: テキストファイルは UTF-8（BOM なし）を原則とする。UTF-8 BOM はビルド失敗の要因になるため使用しない。
 - 依存関係追加の方針: 追加・更新するバージョンは `gradle.properties` に集約し、`build.gradle` から参照する。
-- 依存関係追加の方針: 必須依存を追加する場合は `src/main/resources/META-INF/mods.toml` の dependency 定義も更新する。
+- 依存関係追加の方針: 必須依存を追加する場合は `src/main/resources/META-INF/neoforge.mods.toml` の dependency 定義も更新する。
 - 依存関係追加の方針: 外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を必ず確認する。
 
 ## 5. 変更フロー
@@ -81,14 +81,14 @@ Get-ChildItem build\libs\*.jar
 5. 必要に応じて関連ドキュメントを更新する。
 
 ## 6. レビューチェックリスト
-- 必須チェック項目: Java 17 環境で `./gradlew.bat build` が成功すること。
+- 必須チェック項目: Java 21 環境で `./gradlew.bat build` が成功すること。
 - 必須チェック項目: 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - 必須チェック項目: サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - リグレッション確認: 既存コンテンツの ID 変更や削除による互換性破壊を避ける。
-- リグレッション確認: 依存 MOD バージョン条件を変更した場合、`mods.toml` と `gradle.properties` の整合性を確認する。
+- リグレッション確認: 依存 MOD バージョン条件を変更した場合、`neoforge.mods.toml` と `gradle.properties` の整合性を確認する。
 
 ## 7. ドキュメント更新
-- コード変更時に更新すべきファイル: `gradle.properties`（バージョン）、`build.gradle`（依存/タスク）、`src/main/resources/META-INF/mods.toml`（依存条件）、`README.md`（仕様/導入手順）、`THIRD_PARTY_NOTICES.md`（ライセンス）。
+- コード変更時に更新すべきファイル: `gradle.properties`（バージョン）、`build.gradle`（依存/タスク）、`src/main/resources/META-INF/neoforge.mods.toml`（依存条件）、`README.md`（仕様/導入手順）、`THIRD_PARTY_NOTICES.md`（ライセンス）。
 - 更新ルール: 実装変更と同一 PR/コミット内で関連ドキュメントを更新し、差分の理由が追跡できる状態にする。
 - 更新ルール: 実行手順や開発フローに影響する変更は `AGENTS.md` も同時更新する。
 

@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
+import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
+import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
@@ -10,6 +12,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
+import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingRenderer;
@@ -37,13 +40,14 @@ import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerRenderer;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
-import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
-import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
 import java.util.concurrent.CompletableFuture;
@@ -54,16 +58,21 @@ public final class ClientModBusEvents {
 
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(ClientModBusEvents::onClientSetup);
+        modEventBus.addListener(ClientModBusEvents::onRegisterMenuScreens);
         modEventBus.addListener(ClientModBusEvents::onReloadListeners);
         modEventBus.addListener(ClientModBusEvents::registerParticleProviders);
+        modEventBus.addListener(ClientModBusEvents::registerClientExtensions);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.APPRENTICE_DESK.get(), ApprenticeDeskScreen::new));
-        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new));
-        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENDER_GRIMOIRE.get(), SpellBookCurioRenderer::new));
+    }
+
+    private static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(MenuRegistry.APPRENTICE_DESK.get(), ApprenticeDeskScreen::new);
+        event.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new);
+        event.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new);
     }
 
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
@@ -77,6 +86,20 @@ public final class ClientModBusEvents {
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleRegistry.RETICLE_DOT.get(), ReticleDotParticle.Provider::new);
         event.registerSpriteSet(ParticleRegistry.MUZZLE_FLASH.get(), MuzzleFlashParticle.Provider::new);
+    }
+
+    private static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new ClientStaffItemExtensions() {
+            private PastelStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new PastelStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.PASTEL_STAFF.get());
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

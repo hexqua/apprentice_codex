@@ -11,12 +11,12 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MantisLeapMovementEvent {
     private static final int POST_LEAP_INVULNERABLE_TICKS = 20;
     private static final int STAGNANT_TICK_LIMIT = 4;
@@ -39,12 +39,8 @@ public final class MantisLeapMovementEvent {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) {
-            return;
-        }
-
-        var player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
+        var player = event.getEntity();
         var level = player.level();
 
         // クライアント側も動作させないと跳躍のズレが大きくなるため、isClientSideで早期リターンをさせない.
@@ -112,7 +108,7 @@ public final class MantisLeapMovementEvent {
     }
 
     @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
@@ -296,3 +292,4 @@ public final class MantisLeapMovementEvent {
         });
     }
 }
+

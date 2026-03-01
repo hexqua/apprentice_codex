@@ -8,27 +8,23 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Feat
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class FeatherRushGravityControlEvent {
     private FeatherRushGravityControlEvent() {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) {
-            return;
-        }
-
-        var level = event.player.level();
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
+        var player = event.getEntity();
+        var level = player.level();
         if (level.isClientSide) {
             return;
         }
 
-        var player = event.player;
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
             return;
@@ -119,3 +115,4 @@ public final class FeatherRushGravityControlEvent {
         });
     }
 }
+

@@ -9,7 +9,7 @@ public class GoldSpellAmplifier extends AbstractOffhandMagicItem {
     public GoldSpellAmplifier() {
         super(
                 "gold_spell_amplifier",
-                bonus(AttributeRegistry.MANA_REGEN, 0.20, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.MANA_REGEN, 0.20, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
         );
     }
 

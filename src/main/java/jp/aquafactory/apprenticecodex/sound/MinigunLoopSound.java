@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.sound;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;

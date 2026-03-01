@@ -1,15 +1,15 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ApprenticeCodexServerConfig {
-    public static final ForgeConfigSpec SPEC;
+    public static final ModConfigSpec SPEC;
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
-    private static final ForgeConfigSpec.BooleanValue FORCE_FIELD_CAN_BLOCK_BYPASS_SHIELD;
+    private static final ModConfigSpec.BooleanValue FORCE_FIELD_CAN_BLOCK_BYPASS_SHIELD;
 
     static {
-        var builder = new ForgeConfigSpec.Builder();
+        var builder = new ModConfigSpec.Builder();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
         builder.push("spell");
@@ -69,3 +69,4 @@ public final class ApprenticeCodexServerConfig {
         return FORCE_FIELD_CAN_BLOCK_BYPASS_SHIELD.get();
     }
 }
+

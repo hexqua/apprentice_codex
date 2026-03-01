@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.model;
 
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.model.GeoModel;
 
 public class BulletStreamMinigunModel<T extends GeoAnimatable> extends GeoModel<T> {

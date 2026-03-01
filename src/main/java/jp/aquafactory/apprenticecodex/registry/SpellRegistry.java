@@ -30,9 +30,9 @@ import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 
@@ -42,7 +42,7 @@ public final class SpellRegistry {
     public static final DeferredRegister<AbstractSpell> SPELLS =
             DeferredRegister.create(io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPELL_REGISTRY_KEY, ApprenticeCodex.MODID);
 
-    private static RegistryObject<AbstractSpell> reg(String id, Supplier<? extends AbstractSpell> factory) {
+    private static DeferredHolder<AbstractSpell, AbstractSpell> reg(String id, Supplier<? extends AbstractSpell> factory) {
         return SPELLS.register(id, factory);
     }
 
@@ -51,50 +51,51 @@ public final class SpellRegistry {
     }
 
     // 血.
-    public static final RegistryObject<AbstractSpell> HIGANBANA = reg("higanbana", Higanbana::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> HIGANBANA = reg("higanbana", Higanbana::new);
 
     // エンダー.
-    public static final RegistryObject<AbstractSpell> ARCANE_BLAST = reg("arcane_blast", ArcaneBlast::new);
-    public static final RegistryObject<AbstractSpell> ARCANE_BEAM = reg("arcane_beam", ArcaneBeam::new);
-    public static final RegistryObject<AbstractSpell> PERSONAL_SHELF = reg("personal_shelf", PersonalShelf::new);
-    public static final RegistryObject<AbstractSpell> ASSIST_WINGS = reg("assist_wings", AssistWings::new);
-    public static final RegistryObject<AbstractSpell> MANIFESTATION_GRIMOIRE = reg("manifestation_grimoire", ManifestationGrimoire::new);
-    public static final RegistryObject<AbstractSpell> MANTIS_LEAP = reg("mantis_leap", MantisLeap::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCANE_BLAST = reg("arcane_blast", ArcaneBlast::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCANE_BEAM = reg("arcane_beam", ArcaneBeam::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> PERSONAL_SHELF = reg("personal_shelf", PersonalShelf::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> ASSIST_WINGS = reg("assist_wings", AssistWings::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> MANIFESTATION_GRIMOIRE = reg("manifestation_grimoire", ManifestationGrimoire::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> MANTIS_LEAP = reg("mantis_leap", MantisLeap::new);
 
     // 召喚.
-    public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
-    public static final RegistryObject<AbstractSpell> FEATHER_RUSH = reg("feather_rush", FeatherRush::new);
-    public static final RegistryObject<AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> FEATHER_RUSH = reg("feather_rush", FeatherRush::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
 
     // 炎.
-    public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
 
     // 聖.
-    public static final RegistryObject<AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
-    public static final RegistryObject<AbstractSpell> PHALANX_CHARGE = reg("phalanx_charge", PhalanxCharge::new);
-    public static final RegistryObject<AbstractSpell> MANA_CHARGE = reg("mana_charge", ManaCharge::new);
-    public static final RegistryObject<AbstractSpell> FORCE_FIELD = reg("force_field", ForceField::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> PHALANX_CHARGE = reg("phalanx_charge", PhalanxCharge::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_CHARGE = reg("mana_charge", ManaCharge::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> FORCE_FIELD = reg("force_field", ForceField::new);
 
     // 氷.
     // まだなし...
 
     // 雷.
-    public static final RegistryObject<AbstractSpell> SKY_EDGE = reg("sky_edge", SkyEdge::new);
-    public static final RegistryObject<AbstractSpell> COMMENCE_FIRE = reg("commence_fire", CommenceFire::new);
-    public static final RegistryObject<AbstractSpell> QUICK_ARMS = reg("quick_arms", QuickArms::new);
-    public static final RegistryObject<AbstractSpell> BREACHING_ENEMY = reg("breaching_enemy", BreachingEnemy::new);
-    public static final RegistryObject<AbstractSpell> BULLET_STREAM = reg("bullet_stream", BulletStream::new);
-    public static final RegistryObject<AbstractSpell> FLY_SWATTER = reg("fly_swatter", FlySwatter::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> SKY_EDGE = reg("sky_edge", SkyEdge::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> COMMENCE_FIRE = reg("commence_fire", CommenceFire::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> QUICK_ARMS = reg("quick_arms", QuickArms::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> BREACHING_ENEMY = reg("breaching_enemy", BreachingEnemy::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> BULLET_STREAM = reg("bullet_stream", BulletStream::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> FLY_SWATTER = reg("fly_swatter", FlySwatter::new);
 
 
     // 自然.
-    public static final RegistryObject<AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);
-    public static final RegistryObject<AbstractSpell> TINY_LUMBERJACK = reg("tiny_lumberjack", TinyLumberjack::new);
-    public static final RegistryObject<AbstractSpell> GRACED_RAIN = reg("graced_rain", GracedRain::new);
-    public static final RegistryObject<AbstractSpell> WORLD_FLATTER = reg("world_flatter", WorldFlatter::new);
-    public static final RegistryObject<AbstractSpell> EARTH_FORGE = reg("earth_forge", EarthForge::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> TINY_LUMBERJACK = reg("tiny_lumberjack", TinyLumberjack::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> GRACED_RAIN = reg("graced_rain", GracedRain::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> WORLD_FLATTER = reg("world_flatter", WorldFlatter::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> EARTH_FORGE = reg("earth_forge", EarthForge::new);
 
     // エルドリッチ.
-    public static final RegistryObject<AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
-    public static final RegistryObject<AbstractSpell> MOON_LIGHT = reg("moon_light", MoonLight::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> MOON_LIGHT = reg("moon_light", MoonLight::new);
 }
+

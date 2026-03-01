@@ -9,12 +9,32 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.*;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BEAM;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BLAST;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE_LAST;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BREACHING_ENEMY;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BULLET_STREAM;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMMENCE_FIRE;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMPOUND_PHIAL;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FEATHER_RUSH;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FLY_SWATTER;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PHALANX_CHARGE;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.QUICK_ARMS;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SKY_EDGE;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SLASH_BLADE;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.THERMAL_PROCESS;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.TINY_LUMBERJACK;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.WORLD_FLATTER;
 
 public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public DamageTypeTagGenerator(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, ExistingFileHelper existingFileHelper) {
@@ -46,7 +66,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     }
 
     @Override
-    protected void addTags(@NotNull HolderLookup.Provider pProvider) {
+    protected void addTags(@NotNull HolderLookup.Provider provider) {
         // CODEX_MAGIC: このMODの魔法由来ダメージ全体(Malum互換などで使用)
         tag(CODEX_MAGIC).add(
                 ARCANE_BEAM,
@@ -83,9 +103,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         );
 
         // FIRE_DAMAGE: 火炎耐性有効.
-        tag(FIRE_DAMAGE).add(
-                THERMAL_PROCESS
-        );
+        tag(FIRE_DAMAGE).add(THERMAL_PROCESS);
 
         // BYPASSES_IFRAME: 無敵時間を無視するダメージ.
         tag(BYPASSES_IFRAME).add(
@@ -128,9 +146,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
-        tag(EXPLOSIONS).add(
-                FLY_SWATTER
-        );
+        tag(EXPLOSIONS).add(FLY_SWATTER);
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC);

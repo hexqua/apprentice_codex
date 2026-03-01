@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -21,6 +22,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +30,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CraftsmansDelight extends Item implements ICurioItem {
@@ -51,21 +53,22 @@ public class CraftsmansDelight extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
-            tooltips.add(Component.empty());
-            tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.empty());
+            result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
             if (ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
-                tooltips.add(Component.literal(" ")
+                result.add(Component.literal(" ")
                         .append(Component.translatable(getDescriptionId() + ".desc_enchant"))
                         .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
             }
         }
 
-        return tooltips;
+        return result;
     }
 
     @Override
@@ -75,7 +78,7 @@ public class CraftsmansDelight extends Item implements ICurioItem {
             return super.use(level, player, usedHand);
         }
 
-        // あくまでも付与を制御するだけなので、既についたものの効果は発揮するのは仕様.
+        // 設定が無効なら通常挙動に戻す。
         if (!ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
             return super.use(level, player, usedHand);
         }
@@ -86,7 +89,7 @@ public class CraftsmansDelight extends Item implements ICurioItem {
             }
 
             AudioTools.playSoundFromEntity(level, player, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS);
-            applySneakUseEnchantment(stack);
+            applySneakUseEnchantment(player, stack);
         }
 
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -97,26 +100,29 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         return !slotContext.entity().isShiftKeyDown();
     }
 
-    private static void applySneakUseEnchantment(ItemStack stack) {
-        var enchantments = new HashMap<>(EnchantmentHelper.getEnchantments(stack));
+    private static void applySneakUseEnchantment(Player player, ItemStack stack) {
+        var enchantmentRegistry = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        var fortune = enchantmentRegistry.getOrThrow(Enchantments.FORTUNE);
+        var silkTouch = enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH);
+
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
         var fortuneLevel = ApprenticeCodexServerConfig.craftsmansDelightFortuneLevel();
         if (enchantments.isEmpty()) {
-            stack.enchant(Enchantments.BLOCK_FORTUNE, fortuneLevel);
+            stack.enchant(fortune, fortuneLevel);
             return;
         }
 
         var hasNonFortune = enchantments.keySet().stream()
-                .anyMatch(enchantment -> !enchantment.equals(Enchantments.BLOCK_FORTUNE));
+                .anyMatch(enchantment -> !enchantment.is(Enchantments.FORTUNE));
 
-        enchantments.clear();
-        EnchantmentHelper.setEnchantments(enchantments, stack);
+        EnchantmentHelper.setEnchantments(stack, ItemEnchantments.EMPTY);
 
         if (hasNonFortune) {
-            stack.enchant(Enchantments.BLOCK_FORTUNE, fortuneLevel);
+            stack.enchant(fortune, fortuneLevel);
             return;
         }
 
-        stack.enchant(Enchantments.SILK_TOUCH, 1);
+        stack.enchant(silkTouch, 1);
     }
 
     public static boolean isEquippedBy(@Nullable LivingEntity entity) {
@@ -155,10 +161,10 @@ public class CraftsmansDelight extends Item implements ICurioItem {
             return baseTool;
         }
 
-        // 装備中の指輪に付いたエンチャントを、魔法側で指定されたツールへ転写する.
-        var enchantments = EnchantmentHelper.getEnchantments(stack);
+        // 指輪に付いたエンチャントを魔法処理用ツールへ転写する。
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
         if (!enchantments.isEmpty()) {
-            EnchantmentHelper.setEnchantments(enchantments, baseTool);
+            EnchantmentHelper.setEnchantments(baseTool, enchantments);
         }
 
         return baseTool;
@@ -174,7 +180,7 @@ public class CraftsmansDelight extends Item implements ICurioItem {
 
     private static boolean consumeManaForSneakUse(Player player, ItemStack stack) {
         var requiredMana = ApprenticeCodexServerConfig.craftsmansDelightRequiredMana();
-        var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA);
         if (maxMana < requiredMana) {
             sendUnsatisfiedMaxManaMessage(player, stack, requiredMana);
             return false;
@@ -186,7 +192,7 @@ public class CraftsmansDelight extends Item implements ICurioItem {
             return false;
         }
 
-        // addManaは内部で最終的にsetを実行しているので、負値を加算すれば消費として機能する.
+        // addManaは負値で消費できる。
         magicData.addMana(-requiredMana);
         return true;
     }
@@ -215,4 +221,3 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         ));
     }
 }
-

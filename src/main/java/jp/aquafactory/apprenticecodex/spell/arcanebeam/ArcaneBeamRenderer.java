@@ -155,23 +155,22 @@ public class ArcaneBeamRenderer extends EntityRenderer<ArcaneBeamEntity> {
                                 float x3, float y3, float z3, float u3, float v3,
                                 float r, float g, float b, float a, int light,
                                 float nx, float ny, float nz) {
+        var normal = normalMat.transform(new Vector3f(nx, ny, nz));
 
-        //noinspection DuplicatedCode
-        vc.vertex(poseMat, x0, y0, z0).color(r, g, b, a).uv(u0, v0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        vc.addVertex(poseMat, x0, y0, z0).setColor(r, g, b, a).setUv(u0, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+                .setNormal(normal.x(), normal.y(), normal.z());
 
-        vc.vertex(poseMat, x1, y1, z1).color(r, g, b, a).uv(u1, v1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        vc.addVertex(poseMat, x1, y1, z1).setColor(r, g, b, a).setUv(u1, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+                .setNormal(normal.x(), normal.y(), normal.z());
 
-        //noinspection DuplicatedCode
-        vc.vertex(poseMat, x2, y2, z2).color(r, g, b, a).uv(u2, v2)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        vc.addVertex(poseMat, x2, y2, z2).setColor(r, g, b, a).setUv(u2, v2)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+                .setNormal(normal.x(), normal.y(), normal.z());
 
-        vc.vertex(poseMat, x3, y3, z3).color(r, g, b, a).uv(u3, v3)
-                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        vc.addVertex(poseMat, x3, y3, z3).setColor(r, g, b, a).setUv(u3, v3)
+                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+                .setNormal(normal.x(), normal.y(), normal.z());
     }
 }

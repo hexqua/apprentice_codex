@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import io.redspace.ironsspellbooks.api.item.CastingImplementData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -13,12 +12,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class OffhandMagicItemCastEvent {
     private OffhandMagicItemCastEvent() {
     }
@@ -97,7 +96,7 @@ public final class OffhandMagicItemCastEvent {
             return true;
         }
 
-        if (stack.isEdible() || item.getUseDuration(stack) > 0) {
+        if (stack.getFoodProperties(player) != null || item.getUseDuration(stack, player) > 0) {
             return true;
         }
 
@@ -113,7 +112,7 @@ public final class OffhandMagicItemCastEvent {
             return true;
         }
 
-        return CastingImplementData.has(stack) && CastingImplementData.get(stack);
+        return false;
     }
 
     private static boolean hasUseOverride(Item item) {
@@ -138,3 +137,4 @@ public final class OffhandMagicItemCastEvent {
         FAIL
     }
 }
+

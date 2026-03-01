@@ -11,6 +11,8 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -118,7 +120,7 @@ public class ArcaneBeam extends AbstractSpell {
             beam.updateLength(getRange(), level);
 
             var baseDamage = getDamage(spellLevel, entity);
-            var currentCharge = entity.getEffect(EffectRegistry.ARCANE_CHARGE.get());
+            var currentCharge = entity.getEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.ARCANE_CHARGE.get()));
             if (currentCharge != null)
             {
                 var chargeDamageAmplifier = getChargeDamageAmplifier(spellLevel, entity) * (currentCharge.getAmplifier() + 1);
@@ -161,7 +163,7 @@ public class ArcaneBeam extends AbstractSpell {
             }
         }
 
-        entity.removeEffect(EffectRegistry.ARCANE_CHARGE.get());
+        entity.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.ARCANE_CHARGE.get()));
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
     }
 
@@ -178,17 +180,24 @@ public class ArcaneBeam extends AbstractSpell {
         }
 
         public Entity getEntity(ServerLevel level) {
+            if (entityId == null) {
+                return null;
+            }
             return level.getEntity(entityId);
         }
 
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            friendlyByteBuf.writeUUID(entityId);
+            var hasEntity = entityId != null;
+            friendlyByteBuf.writeBoolean(hasEntity);
+            if (hasEntity) {
+                friendlyByteBuf.writeUUID(entityId);
+            }
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
-            entityId = friendlyByteBuf.readUUID();
+            entityId = friendlyByteBuf.readBoolean() ? friendlyByteBuf.readUUID() : null;
         }
 
         @Override
@@ -197,15 +206,17 @@ public class ArcaneBeam extends AbstractSpell {
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
-            tag.putUUID("Entity", entityId);
+            if (entityId != null) {
+                tag.putUUID("Entity", entityId);
+            }
             return tag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            entityId = nbt.getUUID("Entity");
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            entityId = nbt.hasUUID("Entity") ? nbt.getUUID("Entity") : null;
         }
     }
 }

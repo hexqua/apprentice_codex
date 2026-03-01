@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -196,17 +197,24 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
         }
 
         public Entity getEntity(ServerLevel level) {
+            if (entityId == null) {
+                return null;
+            }
             return level.getEntity(entityId);
         }
 
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            friendlyByteBuf.writeUUID(entityId);
+            var hasEntity = entityId != null;
+            friendlyByteBuf.writeBoolean(hasEntity);
+            if (hasEntity) {
+                friendlyByteBuf.writeUUID(entityId);
+            }
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
-            entityId = friendlyByteBuf.readUUID();
+            entityId = friendlyByteBuf.readBoolean() ? friendlyByteBuf.readUUID() : null;
         }
 
         @Override
@@ -215,15 +223,17 @@ public abstract class AbstractSummonWeaponRecastSpell<T extends SummonWeaponEnti
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
-            tag.putUUID("Entity", entityId);
+            if (entityId != null) {
+                tag.putUUID("Entity", entityId);
+            }
             return tag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            entityId = nbt.getUUID("Entity");
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            entityId = nbt.hasUUID("Entity") ? nbt.getUUID("Entity") : null;
         }
     }
 }

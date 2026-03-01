@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
@@ -44,7 +45,7 @@ public class FeatherRushProjectileEntity extends ThrowableProjectile {
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     @Override
@@ -63,7 +64,7 @@ public class FeatherRushProjectileEntity extends ThrowableProjectile {
         updateVelocity();
 
         var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitResult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult.getType() != HitResult.Type.MISS) {
             onHit(hitResult);
         }
 
@@ -206,3 +207,5 @@ public class FeatherRushProjectileEntity extends ThrowableProjectile {
         return new Vec3(0.0, 0.0, 1.0);
     }
 }
+
+

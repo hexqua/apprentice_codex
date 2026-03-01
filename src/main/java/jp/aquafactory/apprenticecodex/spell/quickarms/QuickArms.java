@@ -79,7 +79,7 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     }
     @Override
     public Optional<SoundEvent> getFireSound() {
-        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
+        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE.value());
     }
     @Override
     public Optional<SoundEvent> getSummonSound() {

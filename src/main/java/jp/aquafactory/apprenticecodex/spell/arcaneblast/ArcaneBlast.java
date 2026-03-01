@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -125,12 +126,12 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
             CombatTools.applyDamage(target, getDamage(spellLevel, entity), source, getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
             AudioTools.playSoundFromEntity(level, target, SoundRegistry.ARCANE_BLAST.get(), SoundSource.PLAYERS);
 
-            var currentCharge = entity.getEffect(EffectRegistry.ARCANE_CHARGE.get());
+            var currentCharge = entity.getEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.ARCANE_CHARGE.get()));
             if (currentCharge != null){
                 var chargeLevel = Math.min(currentCharge.getAmplifier() + 1, 2);
-                entity.addEffect(new MobEffectInstance(EffectRegistry.ARCANE_CHARGE.get(), 200, chargeLevel, false, false, true));
+                entity.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.ARCANE_CHARGE.get()), 200, chargeLevel, false, false, true));
             } else {
-                entity.addEffect(new MobEffectInstance(EffectRegistry.ARCANE_CHARGE.get(), 200, 0, false, false, true));
+                entity.addEffect(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.ARCANE_CHARGE.get()), 200, 0, false, false, true));
             }
 
             if (level instanceof ServerLevel server) {

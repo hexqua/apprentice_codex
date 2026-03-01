@@ -1,23 +1,14 @@
 package jp.aquafactory.apprenticecodex.recipe.condition;
 
-import com.google.gson.JsonObject;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
+import net.neoforged.neoforge.common.conditions.ICondition;
 
 public final class ApprenticeDeskRecipeEnabledCondition implements ICondition {
     public static final ApprenticeDeskRecipeEnabledCondition INSTANCE = new ApprenticeDeskRecipeEnabledCondition();
-    public static final ResourceLocation ID =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_desk_recipe_enabled");
+    public static final MapCodec<ApprenticeDeskRecipeEnabledCondition> CODEC = MapCodec.unit(INSTANCE);
 
     private ApprenticeDeskRecipeEnabledCondition() {
-    }
-
-    @Override
-    public ResourceLocation getID() {
-        return ID;
     }
 
     @Override
@@ -25,24 +16,8 @@ public final class ApprenticeDeskRecipeEnabledCondition implements ICondition {
         return !ApprenticeCodexCommonConfig.disableApprenticeDeskRecipe();
     }
 
-    public static final class Serializer implements IConditionSerializer<ApprenticeDeskRecipeEnabledCondition> {
-        public static final Serializer INSTANCE = new Serializer();
-
-        private Serializer() {
-        }
-
-        @Override
-        public void write(JsonObject json, ApprenticeDeskRecipeEnabledCondition value) {
-        }
-
-        @Override
-        public ApprenticeDeskRecipeEnabledCondition read(JsonObject json) {
-            return ApprenticeDeskRecipeEnabledCondition.INSTANCE;
-        }
-
-        @Override
-        public ResourceLocation getID() {
-            return ID;
-        }
+    @Override
+    public MapCodec<? extends ICondition> codec() {
+        return CODEC;
     }
 }

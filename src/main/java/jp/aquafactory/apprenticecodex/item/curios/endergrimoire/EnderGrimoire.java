@@ -11,32 +11,32 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
-import io.redspace.ironsspellbooks.registries.SoundRegistry;
-import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import io.redspace.ironsspellbooks.util.MinecraftInstanceHelper;
 import io.redspace.ironsspellbooks.util.TooltipsUtils;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPresetSpellContainer {
@@ -44,7 +44,7 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
             new AttributeContainer(
                     AttributeRegistry.MAX_MANA,
                     200,
-                    AttributeModifier.Operation.ADDITION
+                    AttributeModifier.Operation.ADD_VALUE
             )
     };
 
@@ -54,7 +54,7 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
 
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
-        // 編集画面を開かせるため、右クリック装備は許容しない.
+        // 編集画面を優先するため、右クリック装備は無効にする。
         return false;
     }
 
@@ -72,26 +72,25 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
+    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
         if (!Curios.SPELLBOOK_SLOT.equals(slotContext.identifier())) {
-            return ICurioItem.super.getAttributeModifiers(slotContext, uuid, stack);
+            return ICurioItem.super.getAttributeModifiers(slotContext, id, stack);
         }
 
-        // 能力値補正はここで処理して表示もする.
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         for (var attributeContainer : SPELLBOOK_ATTRIBUTES) {
             var modifierName = String.format("%s_%s", Curios.SPELLBOOK_SLOT, slotContext.index());
-            builder.put(attributeContainer.attribute().get(), attributeContainer.createModifier(modifierName));
+            builder.put(attributeContainer.attribute(), attributeContainer.createModifier(modifierName));
         }
 
         return builder.build();
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack itemStack, Level context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack itemStack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         var player = MinecraftInstanceHelper.getPlayer();
         if (player != null) {
-            player.getCapability(Capabilities.ENDER_GRIMOIRE_SPELLBOOK).ifPresent(spellbookData -> {
+            Capabilities.getEnderGrimoireSpellbook(player).ifPresent(spellbookData -> {
                 var spellList = spellbookData.getSpellContainer();
                 lines.add(Component.translatable("tooltip.irons_spellbooks.spellbook_spell_count", spellList.getMaxSpellCount()).withStyle(ChatFormatting.GRAY));
 
@@ -137,7 +136,7 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
     @NotNull
     @Override
     public ICurio.SoundInfo getEquipSound(SlotContext slotContext, ItemStack stack) {
-        return new ICurio.SoundInfo(SoundRegistry.EQUIP_SPELL_BOOK.get(), 1.0f, 1.0f);
+        return new ICurio.SoundInfo(io.redspace.ironsspellbooks.registries.SoundRegistry.EQUIP_SPELL_BOOK.get(), 1.0f, 1.0f);
     }
 
     @Override

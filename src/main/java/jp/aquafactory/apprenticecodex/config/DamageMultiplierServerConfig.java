@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.EnumMap;
 
@@ -9,20 +9,20 @@ final class DamageMultiplierServerConfig {
     private static final double MIN_DAMAGE_MULTIPLIER = 0.1d;
     private static final double MAX_DAMAGE_MULTIPLIER = 10.0d;
 
-    private final EnumMap<DamageMultiplierKey, ForgeConfigSpec.DoubleValue> values;
+    private final EnumMap<DamageMultiplierKey, ModConfigSpec.DoubleValue> values;
 
-    private DamageMultiplierServerConfig(EnumMap<DamageMultiplierKey, ForgeConfigSpec.DoubleValue> values) {
+    private DamageMultiplierServerConfig(EnumMap<DamageMultiplierKey, ModConfigSpec.DoubleValue> values) {
         this.values = values;
     }
 
     static DamageMultiplierServerConfig define(
-            ForgeConfigSpec.Builder builder,
+            ModConfigSpec.Builder builder,
             DamageMultiplierKey[] keys
     ) {
         builder.comment("Damage multiplier settings for spells added by this mod.")
                 .push("DamageMultipliers");
 
-        var values = new EnumMap<DamageMultiplierKey, ForgeConfigSpec.DoubleValue>(DamageMultiplierKey.class);
+        var values = new EnumMap<DamageMultiplierKey, ModConfigSpec.DoubleValue>(DamageMultiplierKey.class);
         for (var key : keys) {
             values.put(
                     key,
@@ -42,3 +42,4 @@ final class DamageMultiplierServerConfig {
         return values.get(key).get().floatValue();
     }
 }
+

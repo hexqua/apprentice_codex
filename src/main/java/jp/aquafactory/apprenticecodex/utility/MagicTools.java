@@ -4,10 +4,10 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.mixin.SchoolTypeAccessor;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -47,9 +47,9 @@ public final class MagicTools {
         }
 
         if (schoolType instanceof SchoolTypeAccessor accessor) {
-            var supplier = accessor.apprenticecodex$getPowerAttribute();
-            if (supplier != null) {
-                var resolved = supplier.get();
+            var holder = accessor.apprenticecodex$getPowerAttribute();
+            if (holder != null) {
+                var resolved = holder.value();
                 if (resolved != null) {
                     return resolved;
                 }
@@ -59,7 +59,7 @@ public final class MagicTools {
         var schoolId = schoolType.getId();
         var fallbackAttributeId = SCHOOL_POWER_ATTRIBUTE_FALLBACK_MAP.get(schoolId);
         if (fallbackAttributeId != null) {
-            var fallbackAttribute = ForgeRegistries.ATTRIBUTES.getValue(fallbackAttributeId);
+            var fallbackAttribute = BuiltInRegistries.ATTRIBUTE.getOptional(fallbackAttributeId).orElse(null);
             if (fallbackAttribute != null) {
                 return fallbackAttribute;
             }
@@ -71,6 +71,7 @@ public final class MagicTools {
                 schoolId.getNamespace(),
                 schoolId.getPath() + "_spell_power"
         );
-        return ForgeRegistries.ATTRIBUTES.getValue(guessedAttributeId);
+        return BuiltInRegistries.ATTRIBUTE.getOptional(guessedAttributeId).orElse(null);
     }
 }
+
