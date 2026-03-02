@@ -171,6 +171,16 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "blade_root",
+					"parent": "knife",
+					"pivot": [0, 2.95, 0]
+				},
+				{
+					"name": "blade_top",
+					"parent": "knife",
+					"pivot": [0, 7.7, 0]
 				}
 			]
 		}
