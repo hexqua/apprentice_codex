@@ -20,7 +20,8 @@ public enum DamageMultiplierKey {
     TINY_LUMBERJACK("tinyLumberjack"),
     MOON_LIGHT("moonLight"),
     QUICK_ARMS("quickArms"),
-    MANA_CHARGE("manaCharge");
+    MANA_CHARGE("manaCharge"),
+    PRECISION_JACK("precisionJack");
 
     private final String configKey;
 

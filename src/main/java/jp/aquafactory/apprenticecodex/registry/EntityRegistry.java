@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
@@ -138,6 +139,9 @@ public final class EntityRegistry {
     public static final RegistryObject<EntityType<MoonLightChargeCutEntity>> MOON_LIGHT_CHARGE_CUT =
             regProjectile("moon_light_charge_cut", MoonLightChargeCutEntity::new, 64, 1);
 
+    public static final RegistryObject<EntityType<PrecisionJackKnifeEntity>> PRECISION_JACK_KNIFE =
+            regWeapon("precision_jack_knife", PrecisionJackKnifeEntity::new, 1);
+
     public static final RegistryObject<EntityType<HiganbanaKatanaEntity>> HIGANBANA_KATANA =
             regWeapon("higanbana_katana", HiganbanaKatanaEntity::new, 1);
 
@@ -154,3 +158,4 @@ public final class EntityRegistry {
         ENTITIES.register(bus);
     }
 }
+
