@@ -6,6 +6,7 @@
   "item.apprenticecodex.gold_spell_amplifier": "金の魔力増幅装置",
   "item.apprenticecodex.scarlet_thirst": "真紅の渇望",
   "item.apprenticecodex.craftsmans_delight": "職人の歓喜",
+  "item.apprenticecodex.protection_spell_supporter": "保護術式補助具",
   "item.apprenticecodex.ender_grimoire": "エンダーグリモア",
   "item.apprenticecodex.grimoire_manifest": "グリモア目録",
   "item.apprenticecodex.pastel_staff": "パステルスタッフ",
@@ -15,6 +16,8 @@
   "item.apprenticecodex.craftsmans_delight.desc": "魔法の丸鋸やドリルの効率と性能を上昇させる。",
   "item.apprenticecodex.craftsmans_delight.desc_enchant": "屈んで使うと魔力を封じ込める。",
   "item.apprenticecodex.pastel_staff.desc.affinity": "%sの魔力で染まっている",
+  "item.apprenticecodex.protection_spell_supporter.desc_1": "特定の防御魔法を強化し、マナ効率も上昇させる。",
+  "item.apprenticecodex.protection_spell_supporter.desc_2": "対象の魔法は以下:",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
