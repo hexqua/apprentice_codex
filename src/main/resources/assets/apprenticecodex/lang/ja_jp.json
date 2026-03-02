@@ -19,6 +19,10 @@
   "item.apprenticecodex.protection_spell_supporter.desc_1": "特定の防御魔法を強化し、マナ効率も上昇させる。",
   "item.apprenticecodex.protection_spell_supporter.desc_2": "対象の魔法は以下:",
 
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_1": "下記の魔法の性能を変化させ、使用中のマナ消費量も減少させる。",
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_2": "• フォースフィールド：盾で防げない攻撃も防げるようになる。",
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_3": "• ファランクスチャージ：盾を構えた時の移動速度が上昇する",
+
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
   "enchantment.apprenticecodex.alacrity": "迅速",
