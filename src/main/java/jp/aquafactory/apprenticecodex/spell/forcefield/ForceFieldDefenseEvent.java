@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
@@ -439,6 +440,9 @@ public final class ForceFieldDefenseEvent {
 
         var magicData = forceField.magicData();
         magicData.setMana(Math.max(0f, magicData.getMana() - drainMana));
+        if (magicData.getMana() <= 0f) {
+            MagicTools.cancelCasting(caster, true);
+        }
     }
 
     private static void storeInterceptPosition(LivingEntity caster, Vec3 position, int interceptKind) {
