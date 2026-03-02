@@ -121,7 +121,7 @@
   "spell.apprenticecodex.feather_rush.guide": "魔法の翼を召喚し、羽ばたいて無数の羽を飛ばす。羽ばたいている間は落下しない。",
   "spell.apprenticecodex.mantis_leap.guide": "魔法の刃を一対召喚し、視線の先へ飛んで切り刻む。発動が阻止されることはなく、跳躍中はノックバックもしない。",
   "spell.apprenticecodex.palette_shift.guide": "パステルスタッフ固有の潜在魔法。次に振るう魔法でこの杖を染める。この魔法そのもので染めることはできない。",
-  "spell.apprenticecodex.phalanx_charge.guide": "魔法の槍と盾を召喚し、即座に盾で防御姿勢を取る。防御姿勢中、槍に魔力を注入し続け、スタンス解除時に鋭く前方を突く。発動中は中断されないが、短時間で解除すると突きへ派生しない。",
+  "spell.apprenticecodex.phalanx_charge.guide": "魔法の槍と盾を召喚し、即座に盾で防御姿勢を取る。スタンス解除時に鋭く前方を突く。発動中は中断されない。",
   "spell.apprenticecodex.higanbana.guide": "呪力を持つ魔法の刀を召喚する。続いて使用することで連撃を放てる。威力は低いが与えたダメージの100％を回復する。",
   "spell.apprenticecodex.thermal_process.guide": "魔法の火炎放射器を召喚し視線の先を焼き切る。対象を熱し続けることで強力な熱効果を与える。燃やせるアイテムに照射すると処理することができる。周囲や無関係なものを燃やすことはない。",
   "spell.apprenticecodex.earth_forge.guide": "視線先に土ブロックを平面に生成する。スニークをしていると範囲を1ブロックのみに変化させる。",
@@ -140,8 +140,6 @@
   "ui.apprenticecodex.jumps_count": "最大ジャンプ数: %d",
   "ui.apprenticecodex.deepslate_break_time": "深層岩採掘にかかる時間: %s ",
   "ui.apprenticecodex.feather_rpm": "羽のRPM: %d",
-  "ui.apprenticecodex.maximum_thrust_charge_time": "最大チャージまでの時間: %s",
-  "ui.apprenticecodex.maximum_thrust_charge_rate": "最大チャージ時倍率: %d%%",
   "ui.apprenticecodex.furnace_item_per_second": "1秒間に処理できるアイテム数: %d",
   "ui.apprenticecodex.mana_recover_speed": "秒間マナ回復: %d",
   "ui.apprenticecodex.drain_per_hit": "打ち消し時消費マナ: %d",
@@ -164,7 +162,7 @@
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
   "effect.apprenticecodex.palette_reception.description": "次にパステルスタッフで振るった魔力で杖を染める。",
-  "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。",
+  "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。特殊な装備で移動速度も上昇する。",
   "effect.apprenticecodex.thermal_processing.description": "熱加工を受けている状態。レベルが進行すると強力なデバフとダメージが発生し続ける。",
 
   "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた",
