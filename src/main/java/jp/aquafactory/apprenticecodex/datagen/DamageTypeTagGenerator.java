@@ -89,7 +89,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 PHALANX_CHARGE,
                 HIGANBANA,
                 THERMAL_PROCESS,
-                MOON_LIGHT
+                MOON_LIGHT,
+                PRECISION_JACK
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -142,7 +143,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 PHALANX_CHARGE,
                 HIGANBANA,
                 THERMAL_PROCESS,
-                MOON_LIGHT
+                MOON_LIGHT,
+                PRECISION_JACK
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLight;
 import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
@@ -65,6 +66,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FEATHER_RUSH = reg("feather_rush", FeatherRush::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> PRECISION_JACK = reg("precision_jack", PrecisionJack::new);
 
     // 炎.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
