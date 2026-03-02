@@ -1,3 +1,6 @@
 {
-  "parent": "irons_spellbooks:item/silver_ring"
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "apprenticecodex:item/protection_spell_supporter"
+  }
 }
