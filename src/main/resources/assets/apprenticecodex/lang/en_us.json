@@ -19,6 +19,10 @@
   "item.apprenticecodex.protection_spell_supporter.desc_1": "Enhances specific defensive spells and boosts mana efficiency.",
   "item.apprenticecodex.protection_spell_supporter.desc_2": "Target spells include:",
 
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_1": "Modifies the spells below and reduces their mana cost while they are active.",
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_2": "• Force Field: Can block attacks that a shield cannot.",
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_3": "• Phalanx Charge: Increases movement speed while guarding with the shield.",
+
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
   "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
