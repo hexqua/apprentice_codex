@@ -1,10 +1,14 @@
 package jp.aquafactory.apprenticecodex.utility;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.mixin.SchoolTypeAccessor;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -72,5 +76,18 @@ public final class MagicTools {
                 schoolId.getPath() + "_spell_power"
         );
         return ForgeRegistries.ATTRIBUTES.getValue(guessedAttributeId);
+    }
+
+    public static void cancelCasting(@Nullable LivingEntity entity, boolean triggerCooldown) {
+        if (!(entity instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(serverPlayer);
+        if (magicData == null || !magicData.isCasting()) {
+            return;
+        }
+
+        Utils.serverSideCancelCast(serverPlayer, triggerCooldown);
     }
 }
