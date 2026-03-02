@@ -149,6 +149,7 @@
   "ui.apprenticecodex.mana_recover_speed": "秒間マナ回復: %d",
   "ui.apprenticecodex.drain_per_hit": "打ち消し時消費マナ: %d",
   "ui.apprenticecodex.looting_level": "ドロップ増加レベル: %d",
+  "ui.apprenticecodex.duplicate_drop_chance": "追加ドロップ確率: %d%%",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",

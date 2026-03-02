@@ -149,6 +149,7 @@
   "ui.apprenticecodex.mana_recover_speed": "Mana recovery per second: %d",
   "ui.apprenticecodex.drain_per_hit": "Mana drain per hit: %d",
   "ui.apprenticecodex.looting_level": "Looting Level: %d",
+  "ui.apprenticecodex.duplicate_drop_chance": "Additional drop chance: %d%%",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
