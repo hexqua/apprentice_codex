@@ -6,6 +6,7 @@
   "item.apprenticecodex.gold_spell_amplifier": "Gold Spell Amplifier",
   "item.apprenticecodex.scarlet_thirst": "Scarlet Thirst",
   "item.apprenticecodex.craftsmans_delight": "Craftsman's Delight",
+  "item.apprenticecodex.protection_spell_supporter": "Protection Spell Supporter",
   "item.apprenticecodex.ender_grimoire": "Ender Grimoire",
   "item.apprenticecodex.grimoire_manifest": "Grimoire Manifest",
   "item.apprenticecodex.pastel_staff": "Pastel Staff",
@@ -15,6 +16,12 @@
   "item.apprenticecodex.craftsmans_delight.desc": "Improves efficiency and performance of magic buzzsaw and drill.",
   "item.apprenticecodex.craftsmans_delight.desc_enchant": "Use while crouching to seal magic power.",
   "item.apprenticecodex.pastel_staff.desc.affinity": "Tinged with %s magic",
+  "item.apprenticecodex.protection_spell_supporter.desc_1": "Enhances specific defensive spells and boosts mana efficiency.",
+  "item.apprenticecodex.protection_spell_supporter.desc_2": "Target spells include:",
+
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_1": "Modifies the spells below and reduces their mana cost while they are active.",
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_2": "• Force Field: Can block attacks that a shield cannot.",
+  "item.apprenticecodex.protection_spell_supporter.jei.desc_3": "• Phalanx Charge: Increases movement speed while guarding with the shield.",
 
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",

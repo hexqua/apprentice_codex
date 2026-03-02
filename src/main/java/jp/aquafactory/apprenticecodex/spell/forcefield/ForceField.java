@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -50,13 +51,20 @@ public class ForceField extends AbstractSpell {
     public static float getDrainManaPerHit(int spellLevel, LivingEntity entity) {
         var spellPowerRate = Math.max(1, SpellRegistry.FORCE_FIELD.get().getSpellPower(spellLevel, entity) / 100.0f);
         var rawDrain = 150 / spellPowerRate;
-        return rawDrain * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FORCE_FIELD);
+        var drainMana = rawDrain * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FORCE_FIELD);
+        if (ProtectionSpellSupporter.isEquippedBy(entity)) {
+            return drainMana * 0.5f;
+        }
+        return drainMana;
     }
 
     @Override
     public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
-        // スペルパワーでも詠唱時間が伸びるようにする.
-        return Math.round(super.getEffectiveCastTime(spellLevel, entity) * getSpellPower(spellLevel, entity) / 100.0f);
+        var effectiveCastTime = super.getEffectiveCastTime(spellLevel, entity);
+        if (ProtectionSpellSupporter.isEquippedBy(entity)) {
+            return effectiveCastTime * 2;
+        }
+        return effectiveCastTime;
     }
 
 
