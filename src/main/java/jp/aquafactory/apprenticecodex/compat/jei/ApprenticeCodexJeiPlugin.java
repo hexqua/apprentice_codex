@@ -16,15 +16,16 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings("unused")
 @JeiPlugin
 public class ApprenticeCodexJeiPlugin implements IModPlugin {
     private static final String EN_US_RESOURCE_PATH = "assets/" + ApprenticeCodex.MODID + "/lang/en_us.json";
-    private static final String JEI_INFO_KEY_PREFIX = "item.%s.%s.jei.desc_";
     private static final int MAX_INFO_LINES = 32;
 
     private static final ResourceLocation PLUGIN_UID =
@@ -38,27 +39,71 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(@NotNull IRecipeRegistration registration) {
+        Map<String, GroupedJeiInfo> groupedInfos = new LinkedHashMap<>();
+
         for (var item : ForgeRegistries.ITEMS.getValues()) {
             var itemId = ForgeRegistries.ITEMS.getKey(item);
             if (itemId == null || !ApprenticeCodex.MODID.equals(itemId.getNamespace())) {
                 continue;
             }
-
-            var infoComponents = collectInfoComponents(itemId);
-            if (infoComponents.isEmpty()) {
+            if (!(item instanceof IJeiInfoItem jeiInfoItem)) {
                 continue;
             }
 
-            registration.addItemStackInfo(new ItemStack(item), infoComponents.toArray(Component[]::new));
+            var keyPrefix = jeiInfoItem.getJeiInfoTranslationKeyPrefix();
+            if (keyPrefix == null || keyPrefix.isBlank()) {
+                ApprenticeCodex.LOGGER.warn("JEI info skipped: empty key prefix for {}.", itemId);
+                continue;
+            }
+
+            var groupId = resolveGroupId(itemId, jeiInfoItem.getJeiInfoGroupId());
+            var groupedInfo = groupedInfos.get(groupId);
+            if (groupedInfo == null) {
+                groupedInfo = new GroupedJeiInfo(keyPrefix);
+                groupedInfos.put(groupId, groupedInfo);
+            } else if (!groupedInfo.keyPrefix().equals(keyPrefix)) {
+                ApprenticeCodex.LOGGER.warn(
+                        "JEI info skipped: group {} has inconsistent key prefix ({} != {}) for {}.",
+                        groupId,
+                        groupedInfo.keyPrefix(),
+                        keyPrefix,
+                        itemId
+                );
+                continue;
+            }
+
+            groupedInfo.itemStacks().add(new ItemStack(item));
+        }
+
+        for (var entry : groupedInfos.entrySet()) {
+            var groupId = entry.getKey();
+            var groupedInfo = entry.getValue();
+            var infoComponents = collectInfoComponents(groupedInfo.keyPrefix());
+            if (infoComponents.isEmpty()) {
+                ApprenticeCodex.LOGGER.warn(
+                        "JEI info skipped: no translation key found for prefix {} (group {}).",
+                        groupedInfo.keyPrefix(),
+                        groupId
+                );
+                continue;
+            }
+
+            registration.addItemStackInfo(groupedInfo.itemStacks(), infoComponents.toArray(Component[]::new));
         }
     }
 
-    private static List<Component> collectInfoComponents(ResourceLocation itemId) {
-        var keyPattern = JEI_INFO_KEY_PREFIX.formatted(itemId.getNamespace(), itemId.getPath());
+    private static String resolveGroupId(ResourceLocation itemId, String groupId) {
+        if (groupId == null || groupId.isBlank()) {
+            return itemId.toString();
+        }
+        return groupId;
+    }
+
+    private static List<Component> collectInfoComponents(String keyPrefix) {
         List<Component> components = new ArrayList<>();
 
         for (int line = 1; line <= MAX_INFO_LINES; line++) {
-            var key = keyPattern + line;
+            var key = keyPrefix + line;
             if (!EN_US_TRANSLATION_KEYS.contains(key)) {
                 break;
             }
@@ -82,6 +127,15 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         } catch (Exception e) {
             ApprenticeCodex.LOGGER.warn("JEI info disabled: failed to read {}.", EN_US_RESOURCE_PATH, e);
             return Collections.emptySet();
+        }
+    }
+
+    private record GroupedJeiInfo(
+            String keyPrefix,
+            List<ItemStack> itemStacks
+    ) {
+        private GroupedJeiInfo(String keyPrefix) {
+            this(keyPrefix, new ArrayList<>());
         }
     }
 }
