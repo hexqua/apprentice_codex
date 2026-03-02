@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
@@ -27,13 +28,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public abstract class AbstractOffhandMagicItem extends Item implements IPresetSpellContainer {
+public abstract class AbstractOffhandMagicItem extends Item implements IPresetSpellContainer, IJeiInfoItem {
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
     private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
     private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
     private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
     private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
     private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
+    private static final String JEI_INFO_GROUP_ID = "offhand_magic_items";
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.offhand_magic_items.desc_";
 
     private final Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;
@@ -123,6 +126,16 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
         return getEnchantmentValue(stack) > 0;
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    public String getJeiInfoGroupId() {
+        return JEI_INFO_GROUP_ID;
     }
 
     private ItemAttributeModifiers buildBaseOffhandModifiers() {
