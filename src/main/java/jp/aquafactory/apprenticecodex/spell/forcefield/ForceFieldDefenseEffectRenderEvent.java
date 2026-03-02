@@ -29,9 +29,13 @@ import java.util.Deque;
 public final class ForceFieldDefenseEffectRenderEvent {
     private static final ResourceLocation SHIELD_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wall.png");
     private static final ResourceLocation SHIELD_TRIM_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wall_trim.png");
+    private static final ResourceLocation FAILED_SHIELD_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_failed_wall.png");
+    private static final ResourceLocation FAILED_SHIELD_TRIM_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_failed_wall_trim.png");
     private static final ResourceLocation SHOCKWAVE_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wave.png");
     private static final RenderType SHIELD_OVERLAY_RENDER_TYPE = createAdditiveEntityRenderType("force_field_shield_overlay_additive", SHIELD_OVERLAY_TEXTURE);
     private static final RenderType SHIELD_TRIM_RENDER_TYPE = createAdditiveEntityRenderType("force_field_shield_trim_additive", SHIELD_TRIM_TEXTURE);
+    private static final RenderType FAILED_SHIELD_OVERLAY_RENDER_TYPE = createAdditiveEntityRenderType("force_field_failed_shield_overlay_additive", FAILED_SHIELD_OVERLAY_TEXTURE);
+    private static final RenderType FAILED_SHIELD_TRIM_RENDER_TYPE = createAdditiveEntityRenderType("force_field_failed_shield_trim_additive", FAILED_SHIELD_TRIM_TEXTURE);
     private static final RenderType RIPPLE_RENDER_TYPE = createAdditiveEntityRenderType("force_field_ripple_additive", SHOCKWAVE_TEXTURE);
     private static final int MAX_ACTIVE_EFFECTS = 128;
     private static final float MIN_EFFECT_SCALE = 0.1f;
@@ -55,14 +59,18 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     public static void enqueueEffect(Vec3 position, Vec3 normal) {
-        enqueueEffect(position, normal, 1.0f, 1.0f, true);
+        enqueueEffect(position, normal, 1.0f, 1.0f, true, false);
     }
 
     public static void enqueueEffect(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale) {
-        enqueueEffect(position, normal, sizeScale, lifetimeScale, true);
+        enqueueEffect(position, normal, sizeScale, lifetimeScale, true, false);
     }
 
     public static void enqueueEffect(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave) {
+        enqueueEffect(position, normal, sizeScale, lifetimeScale, renderWave, false);
+    }
+
+    public static void enqueueEffect(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave, boolean failed) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
@@ -74,7 +82,8 @@ public final class ForceFieldDefenseEffectRenderEvent {
                 minecraft.level.getGameTime(),
                 sanitizeScale(sizeScale),
                 sanitizeScale(lifetimeScale),
-                renderWave
+                renderWave,
+                failed
         ));
         while (ACTIVE_EFFECTS.size() > MAX_ACTIVE_EFFECTS) {
             ACTIVE_EFFECTS.removeFirst();
@@ -127,6 +136,8 @@ public final class ForceFieldDefenseEffectRenderEvent {
 
         buffers.endBatch(SHIELD_OVERLAY_RENDER_TYPE);
         buffers.endBatch(SHIELD_TRIM_RENDER_TYPE);
+        buffers.endBatch(FAILED_SHIELD_OVERLAY_RENDER_TYPE);
+        buffers.endBatch(FAILED_SHIELD_TRIM_RENDER_TYPE);
         buffers.endBatch(RIPPLE_RENDER_TYPE);
     }
 
@@ -143,15 +154,17 @@ public final class ForceFieldDefenseEffectRenderEvent {
         var bitangent = normalizeOrFallback(normal.cross(tangent), new Vec3(0, 1, 0));
         var effectSize = effect.sizeScale();
         var halfThickness = WALL_THICKNESS * 0.5f * effectSize;
+        var shieldOverlayRenderType = effect.failed() ? FAILED_SHIELD_OVERLAY_RENDER_TYPE : SHIELD_OVERLAY_RENDER_TYPE;
+        var shieldTrimRenderType = effect.failed() ? FAILED_SHIELD_TRIM_RENDER_TYPE : SHIELD_TRIM_RENDER_TYPE;
 
-        var overlayBuffer = buffers.getBuffer(SHIELD_OVERLAY_RENDER_TYPE);
+        var overlayBuffer = buffers.getBuffer(shieldOverlayRenderType);
         drawFilledHex(poseStack, overlayBuffer, center, normal, tangent, bitangent, halfThickness, effectSize, alpha * 0.75f);
         drawOuterSide(poseStack, overlayBuffer, center, tangent, bitangent, normal, halfThickness, effectSize, alpha * 0.45f);
 
-        var trimBuffer = buffers.getBuffer(SHIELD_TRIM_RENDER_TYPE);
+        var trimBuffer = buffers.getBuffer(shieldTrimRenderType);
         drawTrimRing(poseStack, trimBuffer, center, normal, tangent, bitangent, halfThickness, effectSize, alpha);
 
-        if (effect.renderWave()) {
+        if (!effect.failed() && effect.renderWave()) {
             var rippleBuffer = buffers.getBuffer(RIPPLE_RENDER_TYPE);
             drawRipple(poseStack, rippleBuffer, center, normal, tangent, bitangent, halfThickness, effectSize, age, alpha);
         }
@@ -486,6 +499,6 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     private record ActiveEffect(Vec3 position, Vec3 normal, long startGameTime, float sizeScale, float lifetimeScale,
-                                boolean renderWave) {
+                                boolean renderWave, boolean failed) {
     }
 }
