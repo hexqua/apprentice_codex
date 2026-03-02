@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.DamageTypeTags;
@@ -50,8 +51,11 @@ public final class ForceFieldDefenseEvent {
     private static final float AMBIENT_WALL_LIFETIME_SCALE = 0.5f;
     private static final boolean DEFAULT_RENDER_WAVE = true;
     private static final boolean AMBIENT_RENDER_WAVE = false;
+    private static final int SAME_SOURCE_INTERCEPT_COOLDOWN_TICKS = 10;
     private static final String DEFLECT_COUNT_TAG = "ApprenticeCodexForceFieldDeflectCount";
     private static final String CAPTURED_TAG = "ApprenticeCodexForceFieldCaptured";
+    private static final String LAST_INTERCEPT_SOURCE_TAG = "ApprenticeCodexForceFieldLastInterceptSource";
+    private static final String LAST_INTERCEPT_TICK_TAG = "ApprenticeCodexForceFieldLastInterceptTick";
 
     private ForceFieldDefenseEvent() {
     }
@@ -95,26 +99,31 @@ public final class ForceFieldDefenseEvent {
         }
 
         event.setCanceled(true);
+        var shouldTriggerDefenseResponse = shouldTriggerDefenseResponse(target, source);
 
         if (isMeleeAttack(source)) {
             var attackerEntity = source.getEntity();
             if (isCloseRangeAttack(target, attackerEntity)) {
                 applyMeleeKnockback(target, attackerEntity);
-                var interceptPosition = getMeleeInterceptPosition(target, attackerEntity);
-                var interceptNormal = getMeleeInterceptNormal(target, attackerEntity);
-                onForceFieldIntercept(
-                        target,
-                        forceField,
-                        interceptPosition,
-                        interceptNormal,
-                        ForceFieldState.INTERCEPT_KIND_MELEE,
-                        MELEE_WALL_SIZE_SCALE,
-                        DEFAULT_WALL_LIFETIME_SCALE
-                );
+                if (shouldTriggerDefenseResponse) {
+                    var interceptPosition = getMeleeInterceptPosition(target, attackerEntity);
+                    var interceptNormal = getMeleeInterceptNormal(target, attackerEntity);
+                    onForceFieldIntercept(
+                            target,
+                            forceField,
+                            interceptPosition,
+                            interceptNormal,
+                            ForceFieldState.INTERCEPT_KIND_MELEE,
+                            MELEE_WALL_SIZE_SCALE,
+                            DEFAULT_WALL_LIFETIME_SCALE
+                    );
+                }
             } else {
-                var interceptPosition = getRangedInterceptPosition(target, attackerEntity, null);
-                var interceptNormal = getInterceptNormal(target, interceptPosition, attackerEntity, null);
-                onForceFieldIntercept(target, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+                if (shouldTriggerDefenseResponse) {
+                    var interceptPosition = getRangedInterceptPosition(target, attackerEntity, null);
+                    var interceptNormal = getInterceptNormal(target, interceptPosition, attackerEntity, null);
+                    onForceFieldIntercept(target, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+                }
             }
             return;
         }
@@ -122,19 +131,23 @@ public final class ForceFieldDefenseEvent {
         var directEntity = source.getDirectEntity();
         if (directEntity instanceof Projectile projectile) {
             var interceptPosition = getRangedInterceptPosition(target, source.getEntity(), projectile.getDeltaMovement());
-            if (neutralizeProjectile(target, forceField, projectile, interceptPosition, source.getEntity())) {
+            if (neutralizeProjectile(target, forceField, projectile, interceptPosition, source.getEntity(), shouldTriggerDefenseResponse)) {
                 return;
             }
         } else if (tryCounterspellEquivalent(target, forceField.magicData(), directEntity)) {
-            var interceptPosition = directEntity.position();
-            var interceptNormal = getInterceptNormal(target, interceptPosition, source.getEntity(), directEntity.getDeltaMovement());
-            onForceFieldIntercept(target, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            if (shouldTriggerDefenseResponse) {
+                var interceptPosition = directEntity.position();
+                var interceptNormal = getInterceptNormal(target, interceptPosition, source.getEntity(), directEntity.getDeltaMovement());
+                onForceFieldIntercept(target, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            }
             return;
         }
 
-        var fallbackPosition = getRangedInterceptPosition(target, source.getEntity(), null);
-        var fallbackNormal = getInterceptNormal(target, fallbackPosition, source.getEntity(), null);
-        onForceFieldIntercept(target, forceField, fallbackPosition, fallbackNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+        if (shouldTriggerDefenseResponse) {
+            var fallbackPosition = getRangedInterceptPosition(target, source.getEntity(), null);
+            var fallbackNormal = getInterceptNormal(target, fallbackPosition, source.getEntity(), null);
+            onForceFieldIntercept(target, forceField, fallbackPosition, fallbackNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+        }
     }
 
     private static boolean shouldInterceptProjectile(LivingEntity caster, Projectile projectile) {
@@ -170,6 +183,12 @@ public final class ForceFieldDefenseEvent {
 
     private static boolean neutralizeProjectile(LivingEntity caster, ActiveForceField forceField, Projectile projectile,
                                                 Vec3 interceptPosition, @Nullable Entity attackerEntity) {
+        return neutralizeProjectile(caster, forceField, projectile, interceptPosition, attackerEntity, true);
+    }
+
+    private static boolean neutralizeProjectile(LivingEntity caster, ActiveForceField forceField, Projectile projectile,
+                                                Vec3 interceptPosition, @Nullable Entity attackerEntity,
+                                                boolean shouldTriggerDefenseResponse) {
         if (projectile.isRemoved()) {
             return false;
         }
@@ -177,25 +196,70 @@ public final class ForceFieldDefenseEvent {
         var interceptNormal = getInterceptNormal(caster, interceptPosition, attackerEntity, projectile.getDeltaMovement());
 
         if (tryCounterspellEquivalent(caster, forceField.magicData(), projectile)) {
-            onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            if (shouldTriggerDefenseResponse) {
+                onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            }
             return true;
         }
 
         var deflectCount = projectile.getPersistentData().getInt(DEFLECT_COUNT_TAG);
         if (deflectCount <= 0 && tryDeflectProjectile(caster, projectile)) {
             projectile.getPersistentData().putInt(DEFLECT_COUNT_TAG, 1);
-            onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            if (shouldTriggerDefenseResponse) {
+                onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            }
             return true;
         }
 
         if (tryCatchProjectile(caster, projectile)) {
-            onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            if (shouldTriggerDefenseResponse) {
+                onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+            }
             return true;
         }
 
         projectile.discard();
-        onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+        if (shouldTriggerDefenseResponse) {
+            onForceFieldIntercept(caster, forceField, interceptPosition, interceptNormal, ForceFieldState.INTERCEPT_KIND_PROJECTILE);
+        }
         return true;
+    }
+
+    private static boolean shouldTriggerDefenseResponse(LivingEntity defender, DamageSource source) {
+        // 継続判定型の同一攻撃源では、防御は維持しつつ消費と演出を一定間隔に間引く.
+        var sourceKey = buildDamageSourceKey(source);
+        if (sourceKey.isBlank()) {
+            return true;
+        }
+
+        //noinspection resource
+        var now = defender.level().getGameTime();
+        var persistentData = defender.getPersistentData();
+        var lastSourceKey = persistentData.getString(LAST_INTERCEPT_SOURCE_TAG);
+        var lastTick = persistentData.getLong(LAST_INTERCEPT_TICK_TAG);
+
+        if (sourceKey.equals(lastSourceKey) && now - lastTick < SAME_SOURCE_INTERCEPT_COOLDOWN_TICKS) {
+            return false;
+        }
+
+        persistentData.putString(LAST_INTERCEPT_SOURCE_TAG, sourceKey);
+        persistentData.putLong(LAST_INTERCEPT_TICK_TAG, now);
+        return true;
+    }
+
+    private static String buildDamageSourceKey(DamageSource source) {
+        var typeId = source.type().msgId();
+        var directEntity = source.getDirectEntity();
+        if (directEntity != null) {
+            return typeId + "|direct:" + directEntity.getUUID();
+        }
+
+        var attackerEntity = source.getEntity();
+        if (attackerEntity != null) {
+            return typeId + "|attacker:" + attackerEntity.getUUID();
+        }
+
+        return typeId + "|environment";
     }
 
     private static boolean tryDeflectProjectile(LivingEntity caster, Projectile projectile) {
@@ -438,6 +502,9 @@ public final class ForceFieldDefenseEvent {
 
         var magicData = forceField.magicData();
         magicData.setMana(Math.max(0f, magicData.getMana() - drainMana));
+        if (magicData.getMana() <= 0f) {
+            MagicTools.cancelCasting(caster, true);
+        }
     }
 
     private static void storeInterceptPosition(LivingEntity caster, Vec3 position, int interceptKind) {
