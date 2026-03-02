@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBloc
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfScreen;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryRenderer;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeRenderer;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
@@ -105,7 +106,9 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.MOON_LIGHT_CHARGE_CUT.get(), MoonLightChargeCutRenderer::new);
         event.registerEntityRenderer(EntityRegistry.HIGANBANA_KATANA.get(), HiganbanaKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MANTIS_LEAP_BLADE.get(), MantisLeapBladeRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.PRECISION_JACK_KNIFE.get(), PrecisionJackKnifeRenderer::new);
         event.registerEntityRenderer(EntityRegistry.PHALANX_WEAPONRY.get(), PhalanxWeaponryRenderer::new);
         event.registerEntityRenderer(EntityRegistry.PHALANX_CHARGE_BEAM.get(), PhalanxChargeBeamRenderer::new);
     }
 }
+

@@ -3,12 +3,16 @@ package jp.aquafactory.apprenticecodex.spell.precisionjack;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -16,11 +20,13 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 
-public class PrecisionJack extends AbstractSpell {
+public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "precision_jack");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -31,6 +37,7 @@ public class PrecisionJack extends AbstractSpell {
             .build();
 
     public PrecisionJack() {
+        super(PrecisionJackKnifeEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
         baseManaCost = 60;
@@ -70,6 +77,16 @@ public class PrecisionJack extends AbstractSpell {
     }
 
     @Override
+    public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
+        return getCastTime(spellLevel);
+    }
+
+    @Override
+    public boolean canBeInterrupted(@Nullable net.minecraft.world.entity.player.Player player) {
+        return false;
+    }
+
+    @Override
     public Optional<SoundEvent> getCastStartSound() {
         return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
     }
@@ -90,7 +107,27 @@ public class PrecisionJack extends AbstractSpell {
     }
 
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    public PrecisionJackKnifeEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var summonWeapon = new PrecisionJackKnifeEntity(EntityRegistry.PRECISION_JACK_KNIFE.get(), level, entity);
+        summonWeapon.setDamage(getDamage());
+        summonWeapon.setLootingBonus(getLootingBonus(spellLevel, entity));
+        level.addFreshEntity(summonWeapon);
+        return summonWeapon;
+    }
+
+    @Override
+    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull PrecisionJackKnifeEntity weapon) {
+        weapon.prepare();
+    }
+
+    @Override
+    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull PrecisionJackKnifeEntity weapon) {
+        if (cancelled) {
+            return CompleteCastTypes.RELEASE_WEAPON;
+        }
+
+        weapon.slice(level);
+        return CompleteCastTypes.KEEP_WEAPON;
     }
 }
+
