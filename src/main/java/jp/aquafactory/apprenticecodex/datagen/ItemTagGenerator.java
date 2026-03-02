@@ -25,6 +25,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
     private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
+    private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
     private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
@@ -59,6 +60,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SCARLET_THIRST.get(),
                 ItemRegistry.CRAFTSMANS_DELIGHT.get()
         );
+        tag(CURIOS_BELT).add(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get());
 
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
