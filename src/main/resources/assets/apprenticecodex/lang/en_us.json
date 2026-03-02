@@ -121,7 +121,7 @@
   "spell.apprenticecodex.feather_rush.guide": "Summons magical wings and beats them to scatter countless feathers. While flapping, you do not fall.",
   "spell.apprenticecodex.mantis_leap.guide": "Summons a pair of magical blades and leaps toward your line of sight to shred the target. The cast cannot be interrupted, and you take no knockback while leaping.",
   "spell.apprenticecodex.palette_shift.guide": "A latent spell unique to the Pastel Staff. It dyes the staff with the next spell you cast. This spell cannot dye the staff on its own.",
-  "spell.apprenticecodex.phalanx_charge.guide": "Summons a magical spear and shield and immediately assumes a guarding stance. While guarding, you continuously channel mana into the spear; when the stance ends, you thrust sharply forward. The cast cannot be interrupted, but releasing too quickly will not transition into the thrust.",
+  "spell.apprenticecodex.phalanx_charge.guide": "Summons a magical spear and shield and immediately assumes a guarding stance. When the stance ends, you thrust sharply forward. The cast cannot be interrupted.",
   "spell.apprenticecodex.higanbana.guide": "Summons a cursed magical blade. Use it again to unleash a flurry of strikes. Its damage is low, but it heals you for 100% of the damage dealt.",
   "spell.apprenticecodex.thermal_process.guide": "Summons a magical flamethrower to sear whatever lies in your line of sight. Keeping the heat on a target applies an intense heat effect. You can also beam it at smeltable items to process them. It will not set the surroundings—or anything unrelated—on fire.",
   "spell.apprenticecodex.earth_forge.guide": "Creates a flat patch of dirt blocks at your line of sight. While sneaking, the area is reduced to a single block.",
@@ -140,8 +140,6 @@
   "ui.apprenticecodex.jumps_count": "Maximum Jumps Count: %d",
   "ui.apprenticecodex.deepslate_break_time": "Deepslate Break Time: %s",
   "ui.apprenticecodex.feather_rpm": "Feather RPM: %d",
-  "ui.apprenticecodex.maximum_thrust_charge_time": "Maximum Charge Time: %s",
-  "ui.apprenticecodex.maximum_thrust_charge_rate": "Maximum Charge Rate: %d%%",
   "ui.apprenticecodex.furnace_item_per_second": "Items processed per second: %d",
   "ui.apprenticecodex.mana_recover_speed": "Mana recovery per second: %d",
   "ui.apprenticecodex.drain_per_hit": "Mana drain per hit: %d",
@@ -164,7 +162,7 @@
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
   "effect.apprenticecodex.palette_reception.description": "The next magic you wield with the Pastel Staff will tint it.",
-  "effect.apprenticecodex.phalanx_stance.description": "The shield of magic that provides a sturdy barrier. More durable than a regular shield.",
+  "effect.apprenticecodex.phalanx_stance.description": "The shield of magic that provides a sturdy barrier. More durable than a regular shield. Special equipment increases movement speed.",
   "effect.apprenticecodex.thermal_processing.description": "Being thermally processed. As the level increases, severe debuffs and continuous damage are applied.",
 
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
