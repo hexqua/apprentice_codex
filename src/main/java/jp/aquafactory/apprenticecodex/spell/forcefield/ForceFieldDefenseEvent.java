@@ -9,7 +9,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ForceFieldState;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -77,7 +77,7 @@ public final class ForceFieldDefenseEvent {
         );
 
         for (var projectile : projectiles) {
-            if (isProjectileBlockableByForceField(projectile)) {
+            if (isProjectileBlockableByForceField(caster, projectile)) {
                 neutralizeProjectile(caster, forceField, projectile);
                 continue;
             }
@@ -99,7 +99,7 @@ public final class ForceFieldDefenseEvent {
         }
 
         var source = event.getSource();
-        if (!isBlockableByForceField(source)) {
+        if (!isBlockableByForceField(target, source)) {
             onForceFieldDefenseFailed(target, forceField, source);
             return;
         }
@@ -278,7 +278,6 @@ public final class ForceFieldDefenseEvent {
     }
 
     private static boolean shouldTriggerDefenseResponse(LivingEntity defender, DamageSource source) {
-        // 継続判定型の同一攻撃源では、防御は維持しつつ消費と演出を一定間隔に間引く.
         var sourceKey = buildDamageSourceKey(source);
         if (sourceKey.isBlank()) {
             return true;
@@ -397,9 +396,8 @@ public final class ForceFieldDefenseEvent {
         return true;
     }
 
-    private static boolean isBlockableByForceField(DamageSource source) {
-        // 設定次第で盾貫通ダメージと貫通矢を防御対象外にする.
-        if (ApprenticeCodexServerConfig.forceFieldCanBlockBypassShield()) {
+    private static boolean isBlockableByForceField(LivingEntity defender, DamageSource source) {
+        if (ProtectionSpellSupporter.isEquippedBy(defender)) {
             return true;
         }
 
@@ -410,8 +408,8 @@ public final class ForceFieldDefenseEvent {
         return !isPiercingArrow(source.getDirectEntity());
     }
 
-    private static boolean isProjectileBlockableByForceField(Projectile projectile) {
-        if (ApprenticeCodexServerConfig.forceFieldCanBlockBypassShield()) {
+    private static boolean isProjectileBlockableByForceField(LivingEntity defender, Projectile projectile) {
+        if (ProtectionSpellSupporter.isEquippedBy(defender)) {
             return true;
         }
 
