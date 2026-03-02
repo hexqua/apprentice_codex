@@ -31,21 +31,26 @@ public class ForceFieldDefenseEffectPacket implements CustomPacketPayload {
     private final float sizeScale;
     private final float lifetimeScale;
     private final boolean renderWave;
+    private final boolean failed;
 
     public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal) {
         this(position, normal, DEFAULT_SIZE_SCALE, DEFAULT_LIFETIME_SCALE, true);
     }
 
     public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale) {
-        this(position, normal, sizeScale, lifetimeScale, true);
+        this(position, normal, sizeScale, lifetimeScale, true, false);
     }
 
     public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave) {
-        this(position.x, position.y, position.z, (float) normal.x, (float) normal.y, (float) normal.z, sizeScale, lifetimeScale, renderWave);
+        this(position, normal, sizeScale, lifetimeScale, renderWave, false);
+    }
+
+    public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave, boolean failed) {
+        this(position.x, position.y, position.z, (float) normal.x, (float) normal.y, (float) normal.z, sizeScale, lifetimeScale, renderWave, failed);
     }
 
     private ForceFieldDefenseEffectPacket(double x, double y, double z, float normalX, float normalY, float normalZ,
-                                          float sizeScale, float lifetimeScale, boolean renderWave) {
+                                          float sizeScale, float lifetimeScale, boolean renderWave, boolean failed) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -55,6 +60,7 @@ public class ForceFieldDefenseEffectPacket implements CustomPacketPayload {
         this.sizeScale = sizeScale;
         this.lifetimeScale = lifetimeScale;
         this.renderWave = renderWave;
+        this.failed = failed;
     }
 
     @Override
@@ -72,6 +78,7 @@ public class ForceFieldDefenseEffectPacket implements CustomPacketPayload {
         buffer.writeFloat(packet.sizeScale);
         buffer.writeFloat(packet.lifetimeScale);
         buffer.writeBoolean(packet.renderWave);
+        buffer.writeBoolean(packet.failed);
     }
 
     private static ForceFieldDefenseEffectPacket decode(FriendlyByteBuf buffer) {
@@ -84,6 +91,7 @@ public class ForceFieldDefenseEffectPacket implements CustomPacketPayload {
                 buffer.readFloat(),
                 buffer.readFloat(),
                 buffer.readFloat(),
+                buffer.readBoolean(),
                 buffer.readBoolean()
         );
     }
@@ -107,7 +115,8 @@ public class ForceFieldDefenseEffectPacket implements CustomPacketPayload {
                     new Vec3(packet.normalX, packet.normalY, packet.normalZ),
                     packet.sizeScale,
                     packet.lifetimeScale,
-                    packet.renderWave
+                    packet.renderWave,
+                    packet.failed
             );
         }
     }
