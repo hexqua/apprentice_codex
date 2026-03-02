@@ -50,8 +50,7 @@ public class ForceField extends AbstractSpell {
 
     public static float getDrainManaPerHit(int spellLevel, LivingEntity entity) {
         var spellPowerRate = Math.max(1, SpellRegistry.FORCE_FIELD.get().getSpellPower(spellLevel, entity) / 100.0f);
-        var rawDrain = 150 / spellPowerRate;
-        var drainMana = rawDrain * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FORCE_FIELD);
+        var drainMana = ApprenticeCodexServerConfig.forceFieldDrainManaBasePerHit() / spellPowerRate;
         if (ProtectionSpellSupporter.isEquippedBy(entity)) {
             return drainMana * 0.5f;
         }

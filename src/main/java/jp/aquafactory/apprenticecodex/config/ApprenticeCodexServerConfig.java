@@ -6,11 +6,13 @@ public final class ApprenticeCodexServerConfig {
     public static final ForgeConfigSpec SPEC;
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
+    private static final SpellsServerConfig SPELLS_CONFIG;
 
     static {
         var builder = new ForgeConfigSpec.Builder();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
+        SPELLS_CONFIG = SpellsServerConfig.define(builder);
         SPEC = builder.build();
     }
 
@@ -57,4 +59,7 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
     }
 
+    public static float forceFieldDrainManaBasePerHit() {
+        return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
+    }
 }
