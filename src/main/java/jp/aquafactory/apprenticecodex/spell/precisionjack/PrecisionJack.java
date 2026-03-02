@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeEntity> {
+    private static final int MAX_LOOTING_BONUS = 5;
+    private static final int MAX_DUPLICATE_DROP_CHANCE_PERCENT = 30;
+
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "precision_jack");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -49,7 +52,8 @@ public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeE
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(), 2)),
-                Component.translatable("ui.apprenticecodex.looting_level", getLootingBonus(spellLevel, caster))
+                Component.translatable("ui.apprenticecodex.looting_level", getLootingBonus(spellLevel, caster)),
+                Component.translatable("ui.apprenticecodex.duplicate_drop_chance", getDuplicateDropChancePercent(spellLevel, caster))
         );
     }
 
@@ -58,7 +62,11 @@ public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeE
     }
 
     private int getLootingBonus(int spellLevel, LivingEntity entity) {
-        return Math.max(1, Math.round(getSpellPower(spellLevel, entity) / 100.0f));
+        return Math.min(MAX_LOOTING_BONUS, Math.max(1, Math.round(getSpellPower(spellLevel, entity) / 100.0f)));
+    }
+
+    private int getDuplicateDropChancePercent(int spellLevel, LivingEntity entity) {
+        return Math.min(MAX_DUPLICATE_DROP_CHANCE_PERCENT, Math.max(0, Math.round(getSpellPower(spellLevel, entity) / 10.0f)));
     }
 
     @Override
@@ -111,6 +119,7 @@ public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeE
         var summonWeapon = new PrecisionJackKnifeEntity(EntityRegistry.PRECISION_JACK_KNIFE.get(), level, entity);
         summonWeapon.setDamage(getDamage());
         summonWeapon.setLootingBonus(getLootingBonus(spellLevel, entity));
+        summonWeapon.setDuplicateDropChancePercent(getDuplicateDropChancePercent(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
@@ -130,4 +139,3 @@ public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeE
         return CompleteCastTypes.KEEP_WEAPON;
     }
 }
-

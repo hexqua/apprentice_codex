@@ -53,6 +53,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
 
     private float damage;
     private int lootingBonus = 1;
+    private int duplicateDropChancePercent;
     private int lifeTick;
     private boolean isPrepared;
 
@@ -164,6 +165,14 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         return lootingBonus;
     }
 
+    public void setDuplicateDropChancePercent(int duplicateDropChancePercent) {
+        this.duplicateDropChancePercent = Mth.clamp(duplicateDropChancePercent, 0, 100);
+    }
+
+    public int getDuplicateDropChancePercent() {
+        return duplicateDropChancePercent;
+    }
+
     @Override
     public boolean isTrailActive() {
         return entityData.get(SHOW_TRAIL);
@@ -184,6 +193,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
         lootingBonus = pCompound.getInt("LootingBonus");
+        duplicateDropChancePercent = pCompound.getInt("DuplicateDropChancePercent");
         lifeTick = pCompound.getInt("LifeTick");
         isPrepared = pCompound.getBoolean("IsPrepared");
     }
@@ -193,6 +203,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
         pCompound.putInt("LootingBonus", lootingBonus);
+        pCompound.putInt("DuplicateDropChancePercent", duplicateDropChancePercent);
         pCompound.putInt("LifeTick", lifeTick);
         pCompound.putBoolean("IsPrepared", isPrepared);
     }
