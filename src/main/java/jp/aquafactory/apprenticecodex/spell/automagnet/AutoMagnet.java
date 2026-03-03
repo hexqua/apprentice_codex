@@ -75,7 +75,7 @@ public class AutoMagnet extends AbstractSpell {
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
-            AutoMagnetFamiliarManager.toggle(serverPlayer);
+            AutoMagnetFamiliarManager.toggle(serverPlayer, getRange(spellLevel, entity));
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
