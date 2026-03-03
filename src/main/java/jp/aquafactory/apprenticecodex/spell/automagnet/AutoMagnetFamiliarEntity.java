@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.automagnet;
 
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -24,7 +25,6 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.lang.reflect.Field;
 import java.util.UUID;
 
 public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity implements GeoEntity {
@@ -35,7 +35,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     private static final double FLOAT_RANGE = 0.15;
     private static final int COLLECT_INTERVAL_TICK = 2;
     private static final double MIN_PICKUP_RANGE = 0.5;
-    private static final Field ITEM_THROWER_FIELD = resolveItemThrowerField();
+    private static final String ITEM_TRANSFER_SOUND_PLAYED_TAG = "apprenticecodex_auto_magnet_transfer_sound_played";
 
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
@@ -195,19 +195,14 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         var ownerFeet = new Vec3(owner.getX(), owner.getY(), owner.getZ());
         var rangeSq = pickupRange * pickupRange;
         var area = owner.getBoundingBox().inflate(pickupRange);
-        int movedItemCount = 0;
 
         for (var item : level.getEntitiesOfClass(ItemEntity.class, area, e -> canCollectItem(e, owner, ownerPos, rangeSq))) {
             moveEntityToOwnerFeet(item, ownerFeet);
-            movedItemCount++;
+            playItemTransferSoundOnce(level, item);
         }
 
         for (var orb : level.getEntitiesOfClass(ExperienceOrb.class, area, e -> canCollectOrb(e, ownerPos, rangeSq))) {
             moveEntityToOwnerFeet(orb, ownerFeet);
-        }
-
-        if (movedItemCount > 0) {
-            AudioTools.playSoundFromEntity(level, this, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.7f, 1.4f);
         }
     }
 
@@ -240,28 +235,16 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         target.hurtMarked = true;
     }
 
-    private static Field resolveItemThrowerField() {
-        try {
-            var field = ItemEntity.class.getDeclaredField("thrower");
-            field.setAccessible(true);
-            return field;
-        } catch (ReflectiveOperationException ignored) {
-            return null;
-        }
+    private static UUID getThrowerUuid(ItemEntity item) {
+        return ((ItemEntityAccessor) item).apprenticecodex$getThrower();
     }
 
-    private static UUID getThrowerUuid(ItemEntity item) {
-        if (ITEM_THROWER_FIELD == null) {
-            return null;
+    private void playItemTransferSoundOnce(ServerLevel level, ItemEntity item) {
+        var persistentData = item.getPersistentData();
+        if (persistentData.getBoolean(ITEM_TRANSFER_SOUND_PLAYED_TAG)) {
+            return;
         }
-
-        try {
-            var value = ITEM_THROWER_FIELD.get(item);
-            if (value instanceof UUID uuid) {
-                return uuid;
-            }
-        } catch (IllegalAccessException ignored) {
-        }
-        return null;
+        persistentData.putBoolean(ITEM_TRANSFER_SOUND_PLAYED_TAG, true);
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.7f, 1.4f);
     }
 }
