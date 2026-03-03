@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteMana
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingRenderer;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarRenderer;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunRenderer;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunRenderer;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRenderer;
@@ -98,6 +99,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), FlySwatterProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ASSIST_WINGS_WING.get(), AssistWingsWingRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), AutoMagnetFamiliarRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_PROJECTILE.get(), FeatherRushProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_WING.get(), FeatherRushWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);

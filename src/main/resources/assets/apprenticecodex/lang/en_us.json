@@ -54,6 +54,7 @@
   "entity.apprenticecodex.moon_light_katana": "Moonlit Blade \"Moonlight\"",
   "entity.apprenticecodex.force_field_wall": "Energy Field",
   "entity.apprenticecodex.precision_jack_knife": "\"Knife\"",
+  "entity.apprenticecodex.auto_magnet_familiar": "Magnet",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -87,6 +88,7 @@
   "spell.apprenticecodex.mana_charge": "Mana Charge",
   "spell.apprenticecodex.force_field": "Force Field",
   "spell.apprenticecodex.precision_jack": "Precision Jack",
+  "spell.apprenticecodex.auto_magnet": "Auto Magnet",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -133,6 +135,7 @@
   "spell.apprenticecodex.mana_charge.guide": "Recover mana quickly during casting.",
   "spell.apprenticecodex.force_field.guide": "Deploys an invisible field that repels enemy attacks from any direction. It consumes a large amount of mana when it knocks something away, but it can also repel certain spells. An imitation of the magic used by a long-lived race from another realm.",
   "spell.apprenticecodex.precision_jack.guide": "Summon a magical knife to cleave your target. Expect a lot more drops than usual, but you need to rotate a significant number of times before it can be activated.",
+  "spell.apprenticecodex.auto_magnet.guide": "Summon a magical magnet to follow you. The magnet will collect nearby items and experience orbs and transfer them to you.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
