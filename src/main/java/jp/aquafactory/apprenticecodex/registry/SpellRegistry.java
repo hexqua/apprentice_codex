@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeam;
 import jp.aquafactory.apprenticecodex.spell.arcaneblast.ArcaneBlast;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultiple;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWings;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnet;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
@@ -61,6 +62,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ASSIST_WINGS = reg("assist_wings", AssistWings::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANIFESTATION_GRIMOIRE = reg("manifestation_grimoire", ManifestationGrimoire::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANTIS_LEAP = reg("mantis_leap", MantisLeap::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> AUTO_MAGNET = reg("auto_magnet", AutoMagnet::new);
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
