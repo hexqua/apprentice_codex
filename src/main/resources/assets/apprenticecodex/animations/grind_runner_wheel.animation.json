@@ -1,0 +1,18 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"grind": {
+			"loop": true,
+			"animation_length": 0.5833,
+			"bones": {
+				"wheel": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.2917": [-180, 0, 0],
+						"0.5833": [-360, 0, 0]
+					}
+				}
+			}
+		}
+	}
+}
