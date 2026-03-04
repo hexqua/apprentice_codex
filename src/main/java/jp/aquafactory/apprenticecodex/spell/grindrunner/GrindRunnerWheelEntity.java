@@ -39,6 +39,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private static final double STOP_SPEED_THRESHOLD_SQR = 0.01;
     private static final double STOP_VERTICAL_SPEED_THRESHOLD = 0.1;
     private static final double LAUNCH_START_GROUND_EPSILON = 1.0E-3;
+    private static final float MAX_YAW_TURN_PER_TICK_DEG = 30.0f;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation GRIND = RawAnimation.begin().thenLoop("grind");
@@ -320,10 +321,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
 
         var yawPitch = RotationTools.calculateYawPitchByDirection(flat);
-        setYRot(yawPitch.yaw());
-        setXRot(0);
-        setRot(getYRot(), getXRot());
-        hasImpulse = true;
+        rotateYawWithLimit(yawPitch.yaw());
     }
 
     private boolean tryStepUpOneBlock(Vec3 velocity) {
@@ -375,7 +373,11 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
 
         var yawPitch = RotationTools.calculateYawPitchByDirection(horizontal);
-        setYRot(yawPitch.yaw());
+        rotateYawWithLimit(yawPitch.yaw());
+    }
+
+    private void rotateYawWithLimit(float targetYaw) {
+        setYRot(Mth.approachDegrees(getYRot(), targetYaw, MAX_YAW_TURN_PER_TICK_DEG));
         setXRot(0);
         setRot(getYRot(), getXRot());
         hasImpulse = true;
