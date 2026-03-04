@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -37,6 +38,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private static final double GROUND_FRICTION = 0.91;
     private static final double STOP_SPEED_THRESHOLD_SQR = 0.01;
     private static final double STOP_VERTICAL_SPEED_THRESHOLD = 0.1;
+    private static final double LAUNCH_START_GROUND_EPSILON = 1.0E-3;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation GRIND = RawAnimation.begin().thenLoop("grind");
@@ -151,6 +153,8 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             return;
         }
 
+        ensureLaunchStartAboveGround();
+
         var launchDir = flattenDirection(getLookAngle());
         if (launchDir.lengthSqr() < 1.0E-6 && getOwner() instanceof LivingEntity owner) {
             launchDir = flattenDirection(owner.getViewVector(1.0F));
@@ -165,6 +169,24 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         setMaxUpStep(1.0f);
         setDeltaMovement(launchDir.normalize().scale(launchSpeed));
         hasImpulse = true;
+    }
+
+    private void ensureLaunchStartAboveGround() {
+        var level = level();
+        var probePos = BlockPos.containing(getX(), getBoundingBox().minY - 0.01, getZ());
+        var collisionShape = level.getBlockState(probePos).getCollisionShape(level, probePos);
+        if (collisionShape.isEmpty()) {
+            return;
+        }
+
+        var collisionTopY = probePos.getY() + collisionShape.max(Direction.Axis.Y);
+        var minLaunchY = collisionTopY + LAUNCH_START_GROUND_EPSILON;
+        if (getY() >= minLaunchY) {
+            return;
+        }
+
+        // モブ重なり時などで地表面より低くなっていたら、射出前に補正する.
+        setPos(getX(), minLaunchY, getZ());
     }
 
     public void setSummonSettings(Vec3 summonGroundPosition, double dropHeight, int dropDurationTick) {
