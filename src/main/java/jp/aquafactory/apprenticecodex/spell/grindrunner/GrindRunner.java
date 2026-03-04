@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -34,6 +35,7 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
     private static final double SUMMON_ENTITY_HITBOX_WIDTH = 0.6;
     private static final double SUMMON_BLOCK_SIDE_OFFSET = 0.6;
     private static final double GROUND_SEARCH_DISTANCE = 4.0;
+    private static final double SUMMON_GROUND_Y_EPSILON = 1.0E-3;
     private static final double SUMMON_DROP_HEIGHT = 4.0;
     private static final int SUMMON_DROP_DURATION_TICK = 5;
 
@@ -166,7 +168,16 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
             return Optional.empty();
         }
 
-        return Optional.of(new Vec3(basePosition.x, downHit.getLocation().y, basePosition.z));
+        var hitBlockPos = downHit.getBlockPos();
+        var collisionShape = level.getBlockState(hitBlockPos).getCollisionShape(level, hitBlockPos);
+        if (collisionShape.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // 境界値でわずかに沈むケースを避けるため、衝突形状の上面 Y を下限として使う.
+        var collisionTopY = hitBlockPos.getY() + collisionShape.max(Direction.Axis.Y);
+        var groundY = Math.max(downHit.getLocation().y, collisionTopY) + SUMMON_GROUND_Y_EPSILON;
+        return Optional.of(new Vec3(basePosition.x, groundY, basePosition.z));
     }
 
     private Vec3 resolveSummonBasePosition(Level level, LivingEntity caster) {
@@ -178,7 +189,8 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
 
         var target = RaycastTools.raycast(caster, look, SUMMON_RANGE, SUMMON_RANGE, SUMMON_ENTITY_HITBOX_WIDTH, e -> e != caster);
         if (target.hitEntity() != null) {
-            return target.hitEntity().position();
+            // モブ対象時は足元座標ではなく命中点を基準にして接地計算の安定性を上げる.
+            return target.hitPosition();
         }
 
         if (target.hitType() == RaycastTools.TargetType.BLOCK && target.hitBlock() != null) {
