@@ -70,6 +70,7 @@
   "entity.apprenticecodex.force_field_wall": "エナジーフィールド",
   "entity.apprenticecodex.precision_jack_knife": "\"ナイフ\"",
   "entity.apprenticecodex.auto_magnet_familiar": "マグネッター",
+  "entity.apprenticecodex.grind_runner_wheel": "魔導ホイール",
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
@@ -105,6 +106,7 @@
   "spell.apprenticecodex.force_field": "フォースフィールド",
   "spell.apprenticecodex.precision_jack": "プレシジョンジャック",
   "spell.apprenticecodex.auto_magnet": "オートマグネット",
+  "spell.apprenticecodex.grind_runner": "グラインドランナー",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -136,6 +138,7 @@
   "spell.apprenticecodex.force_field.guide": "敵の攻撃を方向問わず弾く不可視のフィールドを展開する。弾き飛ばした際に大きくマナを消費するが特定の魔法も弾くことができる。異界の長命種の魔法の模造品。",
   "spell.apprenticecodex.precision_jack.guide": "魔法のナイフを召喚して目の前の対象を裂く。普段よりかなり多くのドロップを期待できるが、発動までに相当数回転させる必要がある。",
   "spell.apprenticecodex.auto_magnet.guide": "魔導仕掛けの磁石を召喚し追従させる。磁石は近くのアイテムと経験値オーブを回収して術者へ転送させる。",
+  "spell.apprenticecodex.grind_runner.guide": "魔導ホイールを召喚して目の前の対象を削り下ろす。モブだけでなく一部アイテムも削ることができる。魔力を解放するとホイールを射出する。歯車の理が入っていると削れるアイテムが変化する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -148,7 +151,7 @@
   "ui.apprenticecodex.jumps_count": "最大ジャンプ数: %d",
   "ui.apprenticecodex.deepslate_break_time": "深層岩採掘にかかる時間: %s ",
   "ui.apprenticecodex.feather_rpm": "羽のRPM: %d",
-  "ui.apprenticecodex.furnace_item_per_second": "1秒間に処理できるアイテム数: %d",
+  "ui.apprenticecodex.process_item_per_second": "1秒間に処理できるアイテム数: %d",
   "ui.apprenticecodex.mana_recover_speed": "秒間マナ回復: %d",
   "ui.apprenticecodex.drain_per_hit": "打ち消し時消費マナ: %d",
   "ui.apprenticecodex.looting_level": "ドロップ増加レベル: %d",
@@ -196,6 +199,7 @@
   "death.attack.apprenticecodex.thermal_process": "%1$sは%2$sによって汚物として消毒された",
   "death.attack.apprenticecodex.moon_light": "%1$sは%2$sによって存在を消された",
   "death.attack.apprenticecodex.precision_jack": "%1$sは%2$sに解体された",
+  "death.attack.apprenticecodex.grind_runner": "%1$sは%2$sによってハンバーグとして調理された",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
