@@ -72,7 +72,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private static final double STOP_SPEED_THRESHOLD_SQR = 0.01;
     private static final double STOP_VERTICAL_SPEED_THRESHOLD = 0.1;
     private static final int DAMAGE_INTERVAL_TICK = 2;
-    private static final int ITEM_PROCESS_INTERVAL_TICKS = 20;
+    private static final int ITEM_PROCESS_INTERVAL_TICKS = 10;
     private static final double ITEM_PROCESS_RADIUS = 1.0;
     private static final double DAMAGE_AXIS_RANGE = 1.1;
     private static final double DAMAGE_SIDE_RADIUS = 0.3;
@@ -563,7 +563,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             return;
         }
 
-        pendingItemProcessBudget += Math.max(0.0f, grindItemPerSecond);
+        pendingItemProcessBudget += Math.max(0.0f, grindItemPerSecond / 2f);
         var maxProcessCount = Mth.floor(pendingItemProcessBudget);
         if (maxProcessCount <= 0) {
             return;
