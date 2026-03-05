@@ -1,8 +1,11 @@
 package jp.aquafactory.apprenticecodex.spell.grindrunner;
 
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
@@ -29,6 +32,8 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.LinkedHashSet;
+
 public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEntity {
 
     private enum WheelState {
@@ -45,6 +50,11 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private static final int STOP_RESIDUAL_TICKS = 10;
     private static final double STOP_SPEED_THRESHOLD_SQR = 0.01;
     private static final double STOP_VERTICAL_SPEED_THRESHOLD = 0.1;
+    private static final int DAMAGE_INTERVAL_TICK = 2;
+    private static final double DAMAGE_AXIS_RANGE = 1.1;
+    private static final double DAMAGE_SIDE_RADIUS = 0.3;
+    private static final double DAMAGE_SAMPLE_STEP = 0.2;
+    private static final float LAUNCH_MAX_DAMAGE_MULTIPLIER = 3.0f;
     private static final double LAUNCH_START_GROUND_EPSILON = 1.0E-3;
     private static final float MAX_YAW_TURN_PER_TICK_DEG = 30.0f;
     private static final float NORMAL_ANIMATION_SPEED = 1.0f;
@@ -67,6 +77,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private int launchSustainTicks = 0;
     private int launchedTick = 0;
     private int stoppedTick = 0;
+    private float damage;
     private Vec3 lastLaunchDirection = new Vec3(0, 0, 1);
 
     public GrindRunnerWheelEntity(EntityType<?> pEntityType, Level pLevel) {
@@ -128,7 +139,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
 
         if (state == WheelState.LAUNCHED) {
-            tickLaunched();
+            tickLaunched(owner);
             return;
         }
 
@@ -146,6 +157,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
         holdSummonPosition();
         updateAimByOwnerLook(owner);
+        performEmbeddedDamage(owner);
     }
 
     @Override
@@ -242,6 +254,10 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         this.launchSustainTicks = Math.max(0, launchSustainTicks);
     }
 
+    public void setDamage(float damage) {
+        this.damage = Math.max(0.0f, damage);
+    }
+
     private void tickDropping() {
         if (dropStartPosition == null || summonGroundPosition == null) {
             state = WheelState.STANDBY;
@@ -296,7 +312,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         wasAimUpdateSuppressed = false;
     }
 
-    private void tickLaunched() {
+    private void tickLaunched(LivingEntity owner) {
         launchedTick++;
         var targetHorizontalSpeed = resolveHorizontalSpeedForTick(launchedTick);
         var launchDirection = resolveLaunchDirection();
@@ -338,6 +354,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
         updateAnimationSpeedByLaunchSpeed(targetHorizontalSpeed);
         updateRotationByMovement();
+        performLaunchDamage(owner, targetHorizontalSpeed);
     }
 
     private double resolveHorizontalSpeedForTick(int tick) {
@@ -479,6 +496,73 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             return owner.yBodyRot;
         }
         return 0.0f;
+    }
+
+    private void performEmbeddedDamage(LivingEntity owner) {
+        performDamage(owner, damage, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+    }
+
+    private void performLaunchDamage(LivingEntity owner, double horizontalSpeed) {
+        if (launchSpeed <= 1.0E-6) {
+            return;
+        }
+
+        var speedRatio = Mth.clamp(horizontalSpeed / launchSpeed, 0.0, 1.0);
+        var multiplier = (float) (speedRatio * LAUNCH_MAX_DAMAGE_MULTIPLIER);
+        performDamage(owner, damage * multiplier, CombatTools.KnockbackTypes.DEFAULT);
+    }
+
+    private void performDamage(LivingEntity owner, float damageAmount, CombatTools.KnockbackTypes knockbackType) {
+        if (damageAmount <= 0.0f || tickCount % DAMAGE_INTERVAL_TICK != 0) {
+            return;
+        }
+
+        var level = level();
+        var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.GRIND_RUNNER);
+        for (var target : resolveDamageTargets(owner)) {
+            CombatTools.applyDamage(target, damageAmount, source, SpellRegistry.GRIND_RUNNER.get().getSchoolType(), knockbackType);
+        }
+    }
+
+    private LinkedHashSet<LivingEntity> resolveDamageTargets(LivingEntity owner) {
+        var axis = resolveDamageAxis(owner);
+        var start = position().subtract(axis.scale(DAMAGE_AXIS_RANGE));
+        var end = position().add(axis.scale(DAMAGE_AXIS_RANGE));
+        var hits = RaycastTools.sampleBeamHits(
+                level(),
+                start,
+                end,
+                DAMAGE_SIDE_RADIUS,
+                DAMAGE_SAMPLE_STEP,
+                e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+        );
+
+        var targets = new LinkedHashSet<LivingEntity>();
+        for (var hit : hits) {
+            if (hit instanceof LivingEntity livingTarget && livingTarget != owner && livingTarget.isAlive()) {
+                targets.add(livingTarget);
+            }
+        }
+        return targets;
+    }
+
+    private Vec3 resolveDamageAxis(LivingEntity owner) {
+        var movementAxis = flattenDirection(getDeltaMovement());
+        if (movementAxis.lengthSqr() > 1.0E-6) {
+            return movementAxis;
+        }
+
+        var facingAxis = flattenDirection(getLookAngle());
+        if (facingAxis.lengthSqr() > 1.0E-6) {
+            return facingAxis;
+        }
+
+        var ownerAxis = flattenDirection(owner.getViewVector(1.0F));
+        if (ownerAxis.lengthSqr() > 1.0E-6) {
+            return ownerAxis;
+        }
+
+        return new Vec3(0, 0, 1);
     }
 
     @Override
