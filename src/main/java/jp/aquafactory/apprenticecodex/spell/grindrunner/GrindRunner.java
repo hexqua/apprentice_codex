@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.ChatFormatting;
@@ -90,13 +91,11 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        // todo:音を後で付ける.
-        return Optional.empty();
+        return Optional.of(SoundRegistry.WHEEL_SPINUP.get());
     }
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        // todo:音を後で付ける.
         return Optional.empty();
     }
 
