@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -19,8 +20,9 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProtectionSpellSupporter extends Item implements ICurioItem {
+public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiInfoItem {
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.protection_spell_supporter.desc_";
     private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.FORCE_FIELD,
             SpellRegistry.PHALANX_CHARGE
@@ -71,6 +73,11 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem {
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
         return true;
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     public static boolean isEquippedBy(@Nullable LivingEntity entity) {

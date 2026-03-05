@@ -19,9 +19,11 @@
   "item.apprenticecodex.protection_spell_supporter.desc_1": "Enhances specific defensive spells and boosts mana efficiency.",
   "item.apprenticecodex.protection_spell_supporter.desc_2": "Target spells include:",
 
-  "item.apprenticecodex.protection_spell_supporter.jei.desc_1": "Modifies the spells below and reduces their mana cost while they are active.",
-  "item.apprenticecodex.protection_spell_supporter.jei.desc_2": "• Force Field: Can block attacks that a shield cannot.",
-  "item.apprenticecodex.protection_spell_supporter.jei.desc_3": "• Phalanx Charge: Increases movement speed while guarding with the shield.",
+  "jei.apprenticecodex.protection_spell_supporter.desc_1": "Modifies the spells below and reduces their mana cost while they are active.",
+  "jei.apprenticecodex.protection_spell_supporter.desc_2": "• Force Field: Can block attacks that a shield cannot.",
+  "jei.apprenticecodex.protection_spell_supporter.desc_3": "• Phalanx Charge: Increases movement speed while guarding with the shield.",
+  "jei.apprenticecodex.offhand_magic_items.desc_1": "Spellcasting aids meant to be used in your offhand.",
+  "jei.apprenticecodex.offhand_magic_items.desc_2": "When your main hand holds a weapon or tool without a special use action, you can use these from your offhand-like a staff-to cast spells.",
 
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
@@ -51,6 +53,7 @@
   "entity.apprenticecodex.thermal_process_thrower" : "Magic Thrower",
   "entity.apprenticecodex.moon_light_katana": "Moonlit Blade \"Moonlight\"",
   "entity.apprenticecodex.force_field_wall": "Energy Field",
+  "entity.apprenticecodex.precision_jack_knife": "\"Knife\"",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -83,6 +86,7 @@
   "spell.apprenticecodex.moon_light": "Moonlight",
   "spell.apprenticecodex.mana_charge": "Mana Charge",
   "spell.apprenticecodex.force_field": "Force Field",
+  "spell.apprenticecodex.precision_jack": "Precision Jack",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -128,6 +132,7 @@
   "spell.apprenticecodex.moon_light.guide": "Summons a katana from beyond the laws of this world and delivers a single flash-cut. The blade's moonlit power then rends space—sharp and deep. The cast cannot be interrupted.",
   "spell.apprenticecodex.mana_charge.guide": "Recover mana quickly during casting.",
   "spell.apprenticecodex.force_field.guide": "Deploys an invisible field that repels enemy attacks from any direction. It consumes a large amount of mana when it knocks something away, but it can also repel certain spells. An imitation of the magic used by a long-lived race from another realm.",
+  "spell.apprenticecodex.precision_jack.guide": "Summon a magical knife to cleave your target. Expect a lot more drops than usual, but you need to rotate a significant number of times before it can be activated.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
@@ -143,6 +148,8 @@
   "ui.apprenticecodex.furnace_item_per_second": "Items processed per second: %d",
   "ui.apprenticecodex.mana_recover_speed": "Mana recovery per second: %d",
   "ui.apprenticecodex.drain_per_hit": "Mana drain per hit: %d",
+  "ui.apprenticecodex.looting_level": "Looting Level: %d",
+  "ui.apprenticecodex.duplicate_drop_chance": "Additional drop chance: %d%%",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -185,6 +192,7 @@
   "death.attack.apprenticecodex.higanbana": "%1$s crossed the Sanzu River, guided by %2$s",
   "death.attack.apprenticecodex.thermal_process": "%1$s was sterilized as filth by %2$s",
   "death.attack.apprenticecodex.moon_light": "%1$s was erased from existence by %2$s",
+  "death.attack.apprenticecodex.precision_jack": "%1$s was disassembled by %2$s",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",

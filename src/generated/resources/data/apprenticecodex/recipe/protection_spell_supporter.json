@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "R": {
+      "item": "irons_spellbooks:protection_rune"
+    }
+  },
+  "pattern": [
+    " L ",
+    "L L",
+    "ARA"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:protection_spell_supporter"
+  }
+}
