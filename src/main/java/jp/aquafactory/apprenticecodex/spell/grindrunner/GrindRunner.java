@@ -127,7 +127,7 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
 
         var summonWeapon = new GrindRunnerWheelEntity(EntityRegistry.GRIND_RUNNER_WHEEL.get(), level, entity);
         summonWeapon.setSummonSettings(summonPos.orElse(entity.position()), SUMMON_DROP_HEIGHT, SUMMON_DROP_DURATION_TICK);
-        summonWeapon.setLaunchSettings(getLaunchSpeed(spellLevel, entity), getLaunchSlowdownStartTick(spellLevel, entity), getLaunchSlowdownFactor(spellLevel, entity));
+        summonWeapon.setLaunchSettings(getLaunchSpeed(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
@@ -138,6 +138,7 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull GrindRunnerWheelEntity weapon) {
+        weapon.setLaunchSustainTicks(resolveCastTicks(playerMagicData) / 2);
         return CompleteCastTypes.RELEASE_WEAPON;
     }
 
@@ -145,12 +146,11 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
         return 1.15 + 0.15 * getSpellPower(spellLevel, entity) / 100.0;
     }
 
-    private int getLaunchSlowdownStartTick(int spellLevel, LivingEntity entity) {
-        return Math.max(8, Math.round(18f - 5f * getSpellPower(spellLevel, entity) / 100.0f));
-    }
-
-    private double getLaunchSlowdownFactor(int spellLevel, LivingEntity entity) {
-        return 0.90;
+    private static int resolveCastTicks(MagicData playerMagicData) {
+        if (playerMagicData == null) {
+            return 0;
+        }
+        return Math.max(0, playerMagicData.getCastDuration() - playerMagicData.getCastDurationRemaining());
     }
 
     private Optional<Vec3> findSummonGroundPosition(Level level, LivingEntity caster) {

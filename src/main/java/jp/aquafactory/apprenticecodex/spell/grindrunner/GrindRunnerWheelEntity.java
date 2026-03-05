@@ -1,13 +1,19 @@
 package jp.aquafactory.apprenticecodex.spell.grindrunner;
 
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -35,11 +41,15 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private static final double LOOK_TARGET_HITBOX_WIDTH = 0.5;
     private static final double LOOK_UPDATE_SUPPRESS_DISTANCE_SQR = 1.0;
     private static final double LAUNCH_GRAVITY = 0.08;
-    private static final double GROUND_FRICTION = 0.91;
+    private static final int LAUNCH_SLOWDOWN_TICKS = 10;
+    private static final int STOP_RESIDUAL_TICKS = 10;
     private static final double STOP_SPEED_THRESHOLD_SQR = 0.01;
     private static final double STOP_VERTICAL_SPEED_THRESHOLD = 0.1;
     private static final double LAUNCH_START_GROUND_EPSILON = 1.0E-3;
     private static final float MAX_YAW_TURN_PER_TICK_DEG = 30.0f;
+    private static final float NORMAL_ANIMATION_SPEED = 1.0f;
+    private static final EntityDataAccessor<Float> ANIMATION_SPEED =
+            SynchedEntityData.defineId(GrindRunnerWheelEntity.class, EntityDataSerializers.FLOAT);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation GRIND = RawAnimation.begin().thenLoop("grind");
@@ -54,9 +64,10 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private boolean wasAimUpdateSuppressed = false;
 
     private double launchSpeed = 1.2;
-    private int slowdownStartTick = 12;
-    private double slowdownFactor = 0.9;
+    private int launchSustainTicks = 0;
     private int launchedTick = 0;
+    private int stoppedTick = 0;
+    private Vec3 lastLaunchDirection = new Vec3(0, 0, 1);
 
     public GrindRunnerWheelEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -68,7 +79,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
     @Override
     protected void defineSynchedData() {
-        // do nothing.
+        entityData.define(ANIMATION_SPEED, NORMAL_ANIMATION_SPEED);
     }
 
     @Override
@@ -121,6 +132,8 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             return;
         }
 
+        setAnimationSpeed(NORMAL_ANIMATION_SPEED);
+
         if (summonGroundPosition == null) {
             summonGroundPosition = owner.position();
         }
@@ -166,9 +179,13 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
         state = WheelState.LAUNCHED;
         launchedTick = 0;
+        stoppedTick = 0;
+        lastLaunchDirection = launchDir.normalize();
         setNoGravity(false);
         setMaxUpStep(1.0f);
-        setDeltaMovement(launchDir.normalize().scale(launchSpeed));
+        setDeltaMovement(lastLaunchDirection.scale(launchSpeed));
+        setAnimationSpeed(NORMAL_ANIMATION_SPEED);
+        AudioTools.playSoundFromEntity(level(), this, SoundRegistry.WHEEL_LAUNCH.get(), SoundSource.PLAYERS);
         hasImpulse = true;
     }
 
@@ -198,6 +215,9 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         this.state = WheelState.DROPPING;
         this.hasAimInitialized = false;
         this.wasAimUpdateSuppressed = false;
+        this.launchedTick = 0;
+        this.stoppedTick = 0;
+        this.setAnimationSpeed(NORMAL_ANIMATION_SPEED);
 
         setNoGravity(true);
         setDeltaMovement(Vec3.ZERO);
@@ -214,10 +234,12 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
     }
 
-    public void setLaunchSettings(double launchSpeed, int slowdownStartTick, double slowdownFactor) {
+    public void setLaunchSettings(double launchSpeed) {
         this.launchSpeed = Math.max(0.05, launchSpeed);
-        this.slowdownStartTick = Math.max(1, slowdownStartTick);
-        this.slowdownFactor = Mth.clamp(slowdownFactor, 0.5, 0.999);
+    }
+
+    public void setLaunchSustainTicks(int launchSustainTicks) {
+        this.launchSustainTicks = Math.max(0, launchSustainTicks);
     }
 
     private void tickDropping() {
@@ -276,13 +298,11 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
     private void tickLaunched() {
         launchedTick++;
+        var targetHorizontalSpeed = resolveHorizontalSpeedForTick(launchedTick);
+        var launchDirection = resolveLaunchDirection();
+        var velocityY = getDeltaMovement().y - LAUNCH_GRAVITY;
+        setDeltaMovement(launchDirection.scale(targetHorizontalSpeed).add(0, velocityY, 0));
 
-        var velocity = getDeltaMovement().add(0, -LAUNCH_GRAVITY, 0);
-        if (launchedTick >= slowdownStartTick) {
-            velocity = new Vec3(velocity.x * slowdownFactor, velocity.y, velocity.z * slowdownFactor);
-        }
-
-        setDeltaMovement(velocity);
         move(MoverType.SELF, getDeltaMovement());
 
         // 1ブロック段差は自前で登坂し、2ブロック相当の壁に当たった時のみ消す.
@@ -297,21 +317,78 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             }
         }
 
-        var moved = getDeltaMovement();
-        if (onGround()) {
-            moved = new Vec3(moved.x * GROUND_FRICTION, moved.y * 0.9, moved.z * GROUND_FRICTION);
-            setDeltaMovement(moved);
+        if (onGround() && getDeltaMovement().y < 0.0) {
+            var moved = getDeltaMovement();
+            setDeltaMovement(moved.x, 0.0, moved.z);
         }
 
-        if (launchedTick >= slowdownStartTick
+        if (targetHorizontalSpeed <= 0.0
                 && onGround()
                 && getDeltaMovement().horizontalDistanceSqr() <= STOP_SPEED_THRESHOLD_SQR
                 && Math.abs(getDeltaMovement().y) <= STOP_VERTICAL_SPEED_THRESHOLD) {
-            discard();
+            stoppedTick++;
+            setDeltaMovement(Vec3.ZERO);
+            if (stoppedTick >= STOP_RESIDUAL_TICKS) {
+                discard();
+                return;
+            }
+        } else {
+            stoppedTick = 0;
+        }
+
+        updateAnimationSpeedByLaunchSpeed(targetHorizontalSpeed);
+        updateRotationByMovement();
+    }
+
+    private double resolveHorizontalSpeedForTick(int tick) {
+        if (tick <= launchSustainTicks) {
+            return launchSpeed;
+        }
+
+        var slowdownTick = tick - launchSustainTicks;
+        if (slowdownTick >= LAUNCH_SLOWDOWN_TICKS) {
+            return 0.0;
+        }
+
+        var t = Mth.clamp(slowdownTick / (double) LAUNCH_SLOWDOWN_TICKS, 0.0, 1.0);
+        return Mth.lerp(t, launchSpeed, 0.0);
+    }
+
+    private Vec3 resolveLaunchDirection() {
+        var horizontal = flattenDirection(getDeltaMovement());
+        if (horizontal.lengthSqr() > 1.0E-6) {
+            lastLaunchDirection = horizontal;
+            return horizontal;
+        }
+
+        if (lastLaunchDirection.lengthSqr() > 1.0E-6) {
+            return lastLaunchDirection;
+        }
+
+        var fallback = flattenDirection(getLookAngle());
+        if (fallback.lengthSqr() > 1.0E-6) {
+            lastLaunchDirection = fallback;
+            return fallback;
+        }
+
+        return new Vec3(0, 0, 1);
+    }
+
+    private void updateAnimationSpeedByLaunchSpeed(double horizontalSpeed) {
+        if (launchSpeed <= 1.0E-6) {
+            setAnimationSpeed(0.0f);
             return;
         }
 
-        updateRotationByMovement();
+        var speedRatio = Mth.clamp(horizontalSpeed / launchSpeed, 0.0, 1.0);
+        setAnimationSpeed((float) (NORMAL_ANIMATION_SPEED * speedRatio));
+    }
+
+    private void setAnimationSpeed(float speed) {
+        if (Math.abs(entityData.get(ANIMATION_SPEED) - speed) <= 1.0E-4f) {
+            return;
+        }
+        entityData.set(ANIMATION_SPEED, speed);
     }
 
     private void applyFacing(Vec3 direction) {
@@ -410,6 +487,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                 this, "main", 0,
                 state -> {
                     state.setAnimation(GRIND);
+                    state.getController().setAnimationSpeed(entityData.get(ANIMATION_SPEED));
                     return PlayState.CONTINUE;
                 }
         ));
