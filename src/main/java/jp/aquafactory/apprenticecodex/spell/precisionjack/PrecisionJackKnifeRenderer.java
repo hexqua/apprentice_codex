@@ -55,7 +55,7 @@ public class PrecisionJackKnifeRenderer extends GeoEntityRenderer<PrecisionJackK
     @Override
     public void renderRecursively(PoseStack poseStack, PrecisionJackKnifeEntity animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         switch (bone.getName()) {
             case BLADE_TOP_BONE -> bladeTopBonePosition = boneWorldPosition(bone);
             case BLADE_ROOT_BONE -> bladeRootBonePosition = boneWorldPosition(bone);
@@ -65,7 +65,7 @@ public class PrecisionJackKnifeRenderer extends GeoEntityRenderer<PrecisionJackK
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 

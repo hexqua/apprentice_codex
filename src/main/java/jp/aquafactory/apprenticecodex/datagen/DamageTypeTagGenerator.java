@@ -29,6 +29,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PHALANX_CHARGE;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PRECISION_JACK;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.QUICK_ARMS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SKY_EDGE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SLASH_BLADE;

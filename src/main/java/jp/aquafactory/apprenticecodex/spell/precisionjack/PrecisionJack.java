@@ -96,7 +96,7 @@ public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeE
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
+        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE.value());
     }
 
     @Override

@@ -12,11 +12,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class PrecisionJackLootingEvent {
     private PrecisionJackLootingEvent() {
     }
@@ -75,15 +75,13 @@ public final class PrecisionJackLootingEvent {
 
         var target = event.getEntity();
         var source = event.getSource();
-        var lootTable = serverLevel.getServer().getLootData().getLootTable(target.getLootTable());
+        var lootTable = serverLevel.getServer().reloadableRegistries().getLootTable(target.getLootTable());
         var hasAdditionalDrop = new boolean[]{false};
 
         var lootParamsBuilder = new LootParams.Builder(serverLevel)
                 .withParameter(LootContextParams.THIS_ENTITY, target)
                 .withParameter(LootContextParams.ORIGIN, target.position())
-                .withParameter(LootContextParams.DAMAGE_SOURCE, source)
-                .withOptionalParameter(LootContextParams.KILLER_ENTITY, source.getEntity())
-                .withOptionalParameter(LootContextParams.DIRECT_KILLER_ENTITY, source.getDirectEntity());
+                .withParameter(LootContextParams.DAMAGE_SOURCE, source);
 
         if (event.isRecentlyHit() && target.getKillCredit() instanceof Player player) {
             lootParamsBuilder = lootParamsBuilder
