@@ -23,6 +23,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), blockTagGenerator);
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));
         generator.addProvider(event.includeServer(), new RecipeGenerator(output));
+        generator.addProvider(event.includeServer(), new GrindRunnerRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new LootTableGenerator(output));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new ForgeAdvancementProvider(output, lookupProvider, existing, List.of(new AdvancementGenerator())));

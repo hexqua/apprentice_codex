@@ -35,6 +35,7 @@ public class ApprenticeCodex
         ItemRegistry.ITEMS.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
         SoundRegistry.register(bus);
+        RecipeRegistry.register(bus);
         EffectRegistry.register(bus);
         EnchantmentRegistry.register(bus);
         MenuRegistry.register(bus);

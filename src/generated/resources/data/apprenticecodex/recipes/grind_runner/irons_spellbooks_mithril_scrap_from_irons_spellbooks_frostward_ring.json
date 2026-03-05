@@ -1,0 +1,17 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "allow_unstackable_and_tagged_input": true,
+  "ingredient": {
+    "item": "irons_spellbooks:frostward_ring"
+  },
+  "results": [
+    {
+      "count": 1,
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    {
+      "count": 1,
+      "item": "irons_spellbooks:permafrost_shard"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "minecraft:book"
+  },
+  "results": [
+    {
+      "count": 1,
+      "item": "minecraft:leather"
+    },
+    {
+      "count": 3,
+      "item": "minecraft:paper"
+    }
+  ]
+}

@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudRenderer;
+import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelRenderer;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeRenderer;
@@ -103,6 +104,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_PROJECTILE.get(), FeatherRushProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_WING.get(), FeatherRushWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.GRIND_RUNNER_WHEEL.get(), GrindRunnerWheelRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SLASH_BLADE_KATANA.get(), SlashBladeKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MOON_LIGHT_KATANA.get(), MoonLightKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MOON_LIGHT_CHARGE_CUT.get(), MoonLightChargeCutRenderer::new);
