@@ -1,17 +1,17 @@
 package jp.aquafactory.apprenticecodex.config.spell;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ForceFieldServerConfig {
-    private final ForgeConfigSpec.DoubleValue drainManaBase;
+    private final ModConfigSpec.DoubleValue drainManaBase;
 
     private ForceFieldServerConfig(
-            ForgeConfigSpec.DoubleValue drainManaBase
+            ModConfigSpec.DoubleValue drainManaBase
     ) {
         this.drainManaBase = drainManaBase;
     }
 
-    public static ForceFieldServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ForceFieldServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ForceField");
 
         var drainManaBase = builder.defineInRange("drainManaBasePerHit", 150.0d, 0d, 10000.0d);

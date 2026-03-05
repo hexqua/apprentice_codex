@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.spell.ForceFieldServerConfig;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class SpellsServerConfig {
     private final ForceFieldServerConfig forceFieldConfig;
@@ -12,7 +12,7 @@ public final class SpellsServerConfig {
         this.forceFieldConfig = forceFieldConfig;
     }
 
-    static SpellsServerConfig define(ForgeConfigSpec.Builder builder) {
+    static SpellsServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("Spells");
         var forceFieldConfig = ForceFieldServerConfig.define(builder);
         builder.pop();
