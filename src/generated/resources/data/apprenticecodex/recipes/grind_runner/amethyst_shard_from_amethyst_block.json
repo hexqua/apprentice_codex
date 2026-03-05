@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "minecraft:amethyst_block"
+  },
+  "results": [
+    {
+      "count": 4,
+      "item": "minecraft:amethyst_shard"
+    }
+  ]
+}

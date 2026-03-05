@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.grindrunner;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -12,17 +14,23 @@ import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -32,7 +40,14 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEntity {
 
@@ -51,6 +66,8 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private static final double STOP_SPEED_THRESHOLD_SQR = 0.01;
     private static final double STOP_VERTICAL_SPEED_THRESHOLD = 0.1;
     private static final int DAMAGE_INTERVAL_TICK = 2;
+    private static final int ITEM_PROCESS_INTERVAL_TICKS = 20;
+    private static final double ITEM_PROCESS_RADIUS = 1.0;
     private static final double DAMAGE_AXIS_RANGE = 1.1;
     private static final double DAMAGE_SIDE_RADIUS = 0.3;
     private static final double DAMAGE_SAMPLE_STEP = 0.2;
@@ -78,6 +95,9 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private int launchedTick = 0;
     private int stoppedTick = 0;
     private float damage;
+    private float grindItemPerSecond;
+    private float pendingItemProcessBudget;
+    private final Set<UUID> skipProcessingItemIds = new HashSet<>();
     private Vec3 lastLaunchDirection = new Vec3(0, 0, 1);
 
     public GrindRunnerWheelEntity(EntityType<?> pEntityType, Level pLevel) {
@@ -91,6 +111,26 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     @Override
     protected void defineSynchedData() {
         entityData.define(ANIMATION_SPEED, NORMAL_ANIMATION_SPEED);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        damage = pCompound.getFloat("Damage");
+        launchSpeed = pCompound.getDouble("LaunchSpeed");
+        launchSustainTicks = pCompound.getInt("LaunchSustainTicks");
+        grindItemPerSecond = pCompound.getFloat("GrindItemPerSecond");
+        pendingItemProcessBudget = pCompound.getFloat("PendingItemProcessBudget");
+    }
+
+    @Override
+    protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        pCompound.putFloat("Damage", damage);
+        pCompound.putDouble("LaunchSpeed", launchSpeed);
+        pCompound.putInt("LaunchSustainTicks", launchSustainTicks);
+        pCompound.putFloat("GrindItemPerSecond", grindItemPerSecond);
+        pCompound.putFloat("PendingItemProcessBudget", pendingItemProcessBudget);
     }
 
     @Override
@@ -158,6 +198,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         holdSummonPosition();
         updateAimByOwnerLook(owner);
         performEmbeddedDamage(owner);
+        processNearbyItems(level);
     }
 
     @Override
@@ -256,6 +297,11 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
     public void setDamage(float damage) {
         this.damage = Math.max(0.0f, damage);
+    }
+
+    public void setGrindItemPerSecond(float grindItemPerSecond) {
+        this.grindItemPerSecond = Math.max(0.0f, grindItemPerSecond);
+        pendingItemProcessBudget = 0.0f;
     }
 
     private void tickDropping() {
@@ -500,6 +546,203 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
     private void performEmbeddedDamage(LivingEntity owner) {
         performDamage(owner, damage, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+    }
+
+    private void processNearbyItems(ServerLevel level) {
+        if (tickCount % ITEM_PROCESS_INTERVAL_TICKS != 0) {
+            return;
+        }
+
+        pendingItemProcessBudget += Math.max(0.0f, grindItemPerSecond);
+        var maxProcessCount = Mth.floor(pendingItemProcessBudget);
+        if (maxProcessCount <= 0) {
+            return;
+        }
+
+        var hits = sampleNearbyProcessTargets(level);
+        if (hits.size() > 1) {
+            hits.sort(Comparator.comparingDouble(item -> item.position().distanceToSqr(position())));
+        }
+
+        var processedCount = 0;
+        for (var itemEntity : hits) {
+            if (processedCount >= maxProcessCount) {
+                break;
+            }
+
+            if (!itemEntity.isAlive()) {
+                continue;
+            }
+
+            if (skipProcessingItemIds.contains(itemEntity.getUUID())) {
+                continue;
+            }
+
+            processedCount += tryProcessItem(level, itemEntity, maxProcessCount - processedCount);
+        }
+
+        pendingItemProcessBudget = Math.max(0.0f, pendingItemProcessBudget - processedCount);
+    }
+
+    private List<ItemEntity> sampleNearbyProcessTargets(ServerLevel level) {
+        var area = new AABB(position(), position()).inflate(ITEM_PROCESS_RADIUS);
+        return new ArrayList<>(level.getEntitiesOfClass(
+                ItemEntity.class,
+                area,
+                item -> item.isAlive() && !item.getItem().isEmpty()
+        ));
+    }
+
+    private int tryProcessItem(ServerLevel level, ItemEntity itemEntity, int maxProcessCount) {
+        if (maxProcessCount <= 0 || !itemEntity.isAlive()) {
+            return 0;
+        }
+
+        var inputStack = itemEntity.getItem();
+        if (inputStack.isEmpty() || inputStack.getCount() <= 0) {
+            return 0;
+        }
+
+        var recipe = findProcessingRecipe(level, inputStack);
+        if (recipe.isEmpty()) {
+            return 0;
+        }
+
+        var outputsPerInput = recipe.get().getResultTemplates();
+        if (outputsPerInput.isEmpty()) {
+            return 0;
+        }
+
+        var processCount = Math.min(maxProcessCount, inputStack.getCount());
+        applyProcessingResult(level, itemEntity, outputsPerInput, processCount);
+        return processCount;
+    }
+
+    private static boolean canProcessInputItem(GrindRunnerRecipe recipe, ItemStack stack) {
+        if (stack.isEmpty() || stack.getCount() <= 0) {
+            return false;
+        }
+
+        if (recipe.allowsUnstackableAndTaggedInput()) {
+            return true;
+        }
+
+        // 個体差のある非スタック/NBT付きアイテムは既定で加工対象外にして、意図しない変換や競合を避ける.
+        return stack.isStackable() && !stack.hasTag();
+    }
+
+    private Optional<GrindRunnerRecipe> findProcessingRecipe(ServerLevel level, ItemStack inputStack) {
+        var recipeManager = level.getRecipeManager();
+        var input = new SimpleContainer(inputStack.copyWithCount(1));
+        return recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).stream()
+                .filter(recipe -> recipe.matches(input, level))
+                .filter(recipe -> canProcessInputItem(recipe, inputStack))
+                .findFirst();
+    }
+
+    private void applyProcessingResult(ServerLevel level, ItemEntity sourceItem, List<ItemStack> outputsPerInput, int processCount) {
+        if (!sourceItem.isAlive() || processCount <= 0) {
+            return;
+        }
+
+        var sourceStack = sourceItem.getItem();
+        if (sourceStack.isEmpty() || sourceStack.getCount() <= 0) {
+            return;
+        }
+
+        var actualProcessCount = Math.min(processCount, sourceStack.getCount());
+        if (actualProcessCount <= 0) {
+            return;
+        }
+
+        var outputStacks = buildOutputStacks(outputsPerInput, actualProcessCount);
+        if (outputStacks.isEmpty()) {
+            return;
+        }
+
+        var sourcePosition = sourceItem.position();
+        var sourceVelocity = sourceItem.getDeltaMovement();
+        var remainingInputCount = sourceStack.getCount() - actualProcessCount;
+
+        if (remainingInputCount <= 0) {
+            if (outputStacks.isEmpty()) {
+                sourceItem.discard();
+                return;
+            }
+
+            var firstOutput = outputStacks.remove(0);
+            sourceItem.setItem(firstOutput);
+            skipProcessingItemIds.add(sourceItem.getUUID());
+        } else {
+            var remain = sourceStack.copy();
+            remain.setCount(remainingInputCount);
+            sourceItem.setItem(remain);
+        }
+
+        for (var outputStack : outputStacks) {
+            spawnProcessedOutput(level, sourcePosition, sourceVelocity, outputStack);
+        }
+
+        playItemProcessedEffects(level, sourcePosition, actualProcessCount);
+    }
+
+    private List<ItemStack> buildOutputStacks(List<ItemStack> outputPrototypes, int processCount) {
+        var outputStacks = new ArrayList<ItemStack>();
+        for (var outputPrototype : outputPrototypes) {
+            if (outputPrototype.isEmpty() || outputPrototype.getCount() <= 0) {
+                continue;
+            }
+
+            var outputCountLong = (long) outputPrototype.getCount() * processCount;
+            if (outputCountLong <= 0) {
+                continue;
+            }
+
+            var outputCount = (int) Math.min(Integer.MAX_VALUE, outputCountLong);
+            outputStacks.addAll(splitOutputStacks(outputPrototype, outputCount));
+        }
+        return outputStacks;
+    }
+
+    private List<ItemStack> splitOutputStacks(ItemStack outputPrototype, int totalCount) {
+        var stacks = new ArrayList<ItemStack>();
+        var maxStackSize = Math.max(1, outputPrototype.getMaxStackSize());
+        var remaining = totalCount;
+        while (remaining > 0) {
+            var stackCount = Math.min(maxStackSize, remaining);
+            var split = outputPrototype.copy();
+            split.setCount(stackCount);
+            stacks.add(split);
+            remaining -= stackCount;
+        }
+        return stacks;
+    }
+
+    private void spawnProcessedOutput(ServerLevel level, Vec3 sourcePosition, Vec3 sourceVelocity, ItemStack outputStack) {
+        if (outputStack.isEmpty()) {
+            return;
+        }
+
+        var spawned = new ItemEntity(level, sourcePosition.x, sourcePosition.y, sourcePosition.z, outputStack);
+        spawned.setDeltaMovement(sourceVelocity);
+        level.addFreshEntity(spawned);
+        skipProcessingItemIds.add(spawned.getUUID());
+    }
+
+    private void playItemProcessedEffects(ServerLevel level, Vec3 sourcePosition, int processCount) {
+        var particleCount = Mth.clamp(4 + processCount * 2, 6, 24);
+        AudioTools.playSoundFromPosition(level, sourcePosition, SoundRegistry.WHEEL_PROCESS.get(), SoundSource.NEUTRAL, 0.6f, 1.0f, 0.15f);
+        level.sendParticles(
+                ParticleTypes.CRIT,
+                sourcePosition.x,
+                sourcePosition.y + 0.1,
+                sourcePosition.z,
+                particleCount,
+                0.1,
+                0.05,
+                0.1,
+                0.01
+        );
     }
 
     private void performLaunchDamage(LivingEntity owner, double horizontalSpeed) {
