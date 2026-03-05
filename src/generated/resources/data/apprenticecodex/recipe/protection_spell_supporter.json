@@ -18,7 +18,7 @@
     "ARA"
   ],
   "result": {
-    "item": "apprenticecodex:protection_spell_supporter"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:protection_spell_supporter"
+  }
 }
