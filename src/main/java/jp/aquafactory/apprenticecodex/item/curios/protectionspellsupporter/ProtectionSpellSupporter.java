@@ -16,6 +16,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProtectionSpellSupporter extends Item implements ICurioItem {
@@ -41,20 +42,21 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
-            tooltips.add(Component.empty());
-            tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.empty());
+            result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_1"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_2"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            appendTargetSpellTooltips(tooltips);
+            appendTargetSpellTooltips(result);
         }
 
-        return tooltips;
+        return result;
     }
 
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
