@@ -33,6 +33,11 @@ repositories {
         }
     }
 
+    // JEI
+    maven {
+        url = uri("https://maven.blamejared.com")
+    }
+
     // Curios
     maven {
         url = uri("https://maven.theillusivec4.top/")
@@ -108,6 +113,10 @@ dependencies {
     // ISS前提MOD(2026/1/21時点それぞれ最新,動作確認用のみなのでruntimeOnly)
     runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
     runtimeOnly "curse.maven:playeranimator-658587:6024462"
+
+    // JEI.
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

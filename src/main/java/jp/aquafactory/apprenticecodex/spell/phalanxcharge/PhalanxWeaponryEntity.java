@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.phalanxcharge;
 
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -66,8 +67,6 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     private int thrustStateTick;
     private int thrustLifeTick;
     private boolean thrustResolved;
-    private boolean playMaxChargeThrustSound;
-    private boolean notifiedMaxChargeReached;
     private float attackBlendStartYaw;
     private float attackBlendStartPitch;
 
@@ -174,10 +173,9 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         return Vec3.ZERO;
     }
 
-    public void startThrustSequence(float damage, float thrustBeamLength, boolean playMaxChargeThrustSound) {
+    public void startThrustSequence(float damage, float thrustBeamLength) {
         this.damage = damage;
         this.thrustBeamLength = thrustBeamLength;
-        this.playMaxChargeThrustSound = playMaxChargeThrustSound;
         attackStandbyTick = 0;
         thrustStateTick = 0;
         thrustLifeTick = THRUST_STAY_TICKS;
@@ -187,14 +185,6 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
 
         entityData.set(ANIMATION_STATE, AnimationState.ATTACK_STANDBY.id);
         entityData.set(ANIMATION_SPEED, 1.0f);
-    }
-
-    public boolean hasNotifiedMaxChargeReached() {
-        return notifiedMaxChargeReached;
-    }
-
-    public void markMaxChargeReachedNotified() {
-        notifiedMaxChargeReached = true;
     }
 
     private void tickAttackStandby(Level level, LivingEntity owner) {
@@ -211,7 +201,7 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         entityData.set(ANIMATION_SPEED, 4.0f);
         thrustStateTick = 0;
         thrustResolved = false;
-        playThrustEntrySounds(level, playMaxChargeThrustSound);
+        playThrustEntrySounds(level);
     }
 
     private void tickThrust(Level level, LivingEntity owner) {
@@ -254,10 +244,13 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
     }
 
     private void applyGuardState(LivingEntity owner) {
+        var guardAmplifier = ProtectionSpellSupporter.isEquippedBy(owner)
+                ? PhalanxStance.MOVE_SPEED_ENABLED_AMPLIFIER
+                : PhalanxStance.FIXED_AMPLIFIER;
         owner.addEffect(new MobEffectInstance(
                 BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()),
                 GUARD_EFFECT_REFRESH_TICK,
-                PhalanxStance.FIXED_AMPLIFIER,
+                guardAmplifier,
                 false,
                 false,
                 true
@@ -280,11 +273,9 @@ public class PhalanxWeaponryEntity extends SummonWeaponEntity implements GeoEnti
         level.addFreshEntity(beam);
     }
 
-    private void playThrustEntrySounds(Level level, boolean playThrustSound) {
+    private void playThrustEntrySounds(Level level) {
         AudioTools.playSoundFromEntity(level, this, SoundEvents.TRIDENT_RIPTIDE_2.value(), SoundSource.PLAYERS);
-        if (playThrustSound) {
-            AudioTools.playSoundFromEntity(level, this, SoundRegistry.THRUST.get(), SoundSource.PLAYERS);
-        }
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.THRUST.get(), SoundSource.PLAYERS);
     }
 
     @Override

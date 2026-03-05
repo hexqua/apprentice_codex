@@ -20,8 +20,7 @@ public enum DamageMultiplierKey {
     TINY_LUMBERJACK("tinyLumberjack"),
     MOON_LIGHT("moonLight"),
     QUICK_ARMS("quickArms"),
-    MANA_CHARGE("manaCharge"),
-    FORCE_FIELD("forceField");
+    MANA_CHARGE("manaCharge");
 
     private final String configKey;
 

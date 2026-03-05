@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
@@ -45,6 +46,8 @@ public final class ItemRegistry {
             ITEMS.register("scarlet_thirst", ScarletThirst::new);
     public static final DeferredHolder<Item, Item> CRAFTSMANS_DELIGHT =
             ITEMS.register("craftsmans_delight", CraftsmansDelight::new);
+    public static final DeferredHolder<Item, Item> PROTECTION_SPELL_SUPPORTER =
+            ITEMS.register("protection_spell_supporter", ProtectionSpellSupporter::new);
     public static final DeferredHolder<Item, Item> ENDER_GRIMOIRE =
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final DeferredHolder<Item, Item> IRON_SPELL_AMPLIFIER =
