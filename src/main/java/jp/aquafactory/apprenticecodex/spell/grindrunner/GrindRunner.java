@@ -128,6 +128,7 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
         var summonWeapon = new GrindRunnerWheelEntity(EntityRegistry.GRIND_RUNNER_WHEEL.get(), level, entity);
         summonWeapon.setSummonSettings(summonPos.orElse(entity.position()), SUMMON_DROP_HEIGHT, SUMMON_DROP_DURATION_TICK);
         summonWeapon.setLaunchSettings(getLaunchSpeed(spellLevel, entity));
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
