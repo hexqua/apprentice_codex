@@ -49,3 +49,10 @@ config="mixins.apprenticecodex.json"
     versionRange="[${curios_version},)"
     ordering="NONE"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="create"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"

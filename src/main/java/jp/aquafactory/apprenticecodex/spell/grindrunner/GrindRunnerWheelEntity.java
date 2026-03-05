@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.grindrunner;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
@@ -18,6 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -27,11 +29,15 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -75,6 +81,10 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     private static final double LAUNCH_START_GROUND_EPSILON = 1.0E-3;
     private static final float MAX_YAW_TURN_PER_TICK_DEG = 30.0f;
     private static final float NORMAL_ANIMATION_SPEED = 1.0f;
+    private static final String CREATE_MOD_ID = "create";
+    private static final ResourceLocation CREATE_CRUSHING_RECIPE_TYPE_ID =
+            ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "crushing");
+    private static boolean hasLoggedCreateReflectionFailure = false;
     private static final EntityDataAccessor<Float> ANIMATION_SPEED =
             SynchedEntityData.defineId(GrindRunnerWheelEntity.class, EntityDataSerializers.FLOAT);
 
@@ -603,6 +613,23 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             return 0;
         }
 
+        var processCount = Math.min(maxProcessCount, inputStack.getCount());
+        if (processCount <= 0) {
+            return 0;
+        }
+
+        var createRecipe = findCreateCrushingRecipe(level, inputStack);
+        if (createRecipe.isPresent()) {
+            // Create 側は加工可能判定をレシピ準拠にし、NBT/非スタック保護を無効化して扱う.
+            var createOutputs = rollCreateCrushingOutputs(level, createRecipe.get(), processCount);
+            if (createOutputs.isPresent()) {
+                applyProcessingResult(level, itemEntity, createOutputs.get(), processCount);
+                return processCount;
+            }
+
+            logCreateReflectionFailureOnce(createRecipe.get().getId());
+        }
+
         var recipe = findProcessingRecipe(level, inputStack);
         if (recipe.isEmpty()) {
             return 0;
@@ -613,8 +640,8 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             return 0;
         }
 
-        var processCount = Math.min(maxProcessCount, inputStack.getCount());
-        applyProcessingResult(level, itemEntity, outputsPerInput, processCount);
+        var outputStacks = buildOutputStacks(outputsPerInput, processCount);
+        applyProcessingResult(level, itemEntity, outputStacks, processCount);
         return processCount;
     }
 
@@ -640,7 +667,174 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                 .findFirst();
     }
 
-    private void applyProcessingResult(ServerLevel level, ItemEntity sourceItem, List<ItemStack> outputsPerInput, int processCount) {
+    private Optional<Recipe<?>> findCreateCrushingRecipe(ServerLevel level, ItemStack inputStack) {
+        if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
+            return Optional.empty();
+        }
+
+        RecipeType<?> createCrushingType = ForgeRegistries.RECIPE_TYPES.getValue(CREATE_CRUSHING_RECIPE_TYPE_ID);
+        if (createCrushingType == null) {
+            return Optional.empty();
+        }
+
+        return level.getRecipeManager().getRecipes().stream()
+                .filter(recipe -> recipe.getType() == createCrushingType)
+                .filter(recipe -> matchesCreateCrushingInput(recipe, inputStack))
+                .findFirst();
+    }
+
+    private static boolean matchesCreateCrushingInput(Recipe<?> recipe, ItemStack inputStack) {
+        if (inputStack.isEmpty()) {
+            return false;
+        }
+
+        var ingredients = recipe.getIngredients();
+        if (ingredients.isEmpty()) {
+            return false;
+        }
+
+        return ingredients.get(0).test(inputStack);
+    }
+
+    private Optional<List<ItemStack>> rollCreateCrushingOutputs(ServerLevel level, Recipe<?> createRecipe, int processCount) {
+        var outputs = new ArrayList<ItemStack>();
+        for (var i = 0; i < processCount; i++) {
+            var rolledPerInput = rollCreateCrushingOutputsPerInput(level, createRecipe);
+            if (rolledPerInput.isEmpty()) {
+                return Optional.empty();
+            }
+            outputs.addAll(rolledPerInput.get());
+        }
+        return Optional.of(outputs);
+    }
+
+    private Optional<List<ItemStack>> rollCreateCrushingOutputsPerInput(ServerLevel level, Recipe<?> createRecipe) {
+        var rolledByRecipe = invokeCreateRecipeRollResults(level, createRecipe);
+        if (rolledByRecipe.isPresent()) {
+            return rolledByRecipe;
+        }
+
+        Object rawRollableResults;
+        try {
+            rawRollableResults = createRecipe.getClass().getMethod("getRollableResults").invoke(createRecipe);
+        } catch (ReflectiveOperationException ignored) {
+            return Optional.empty();
+        }
+
+        if (!(rawRollableResults instanceof List<?> rollableResults)) {
+            return Optional.empty();
+        }
+
+        var rolled = new ArrayList<ItemStack>();
+        for (var output : rollableResults) {
+            var rolledStack = rollCreateProcessingOutput(level, output);
+            if (rolledStack == null) {
+                return Optional.empty();
+            }
+            if (!rolledStack.isEmpty() && rolledStack.getCount() > 0) {
+                rolled.add(rolledStack);
+            }
+        }
+        return Optional.of(rolled);
+    }
+
+    private Optional<List<ItemStack>> invokeCreateRecipeRollResults(ServerLevel level, Recipe<?> createRecipe) {
+        try {
+            var method = createRecipe.getClass().getMethod("rollResults");
+            var rolled = copyItemStacks(method.invoke(createRecipe));
+            return rolled == null ? Optional.empty() : Optional.of(rolled);
+        } catch (NoSuchMethodException ignored) {
+            // no-op
+        } catch (ReflectiveOperationException ignored) {
+            return Optional.empty();
+        }
+
+        try {
+            var method = createRecipe.getClass().getMethod("rollResults", net.minecraft.util.RandomSource.class);
+            var rolled = copyItemStacks(method.invoke(createRecipe, level.random));
+            return rolled == null ? Optional.empty() : Optional.of(rolled);
+        } catch (NoSuchMethodException ignored) {
+            return Optional.empty();
+        } catch (ReflectiveOperationException ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private @Nullable ItemStack rollCreateProcessingOutput(ServerLevel level, Object processingOutput) {
+        try {
+            var method = processingOutput.getClass().getMethod("rollOutput");
+            return copyItemStack(method.invoke(processingOutput));
+        } catch (NoSuchMethodException ignored) {
+            // no-op
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+
+        try {
+            var method = processingOutput.getClass().getMethod("rollOutput", net.minecraft.util.RandomSource.class);
+            return copyItemStack(method.invoke(processingOutput, level.random));
+        } catch (NoSuchMethodException ignored) {
+            // no-op
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+
+        try {
+            var getStackMethod = processingOutput.getClass().getMethod("getStack");
+            var getChanceMethod = processingOutput.getClass().getMethod("getChance");
+            var stackValue = getStackMethod.invoke(processingOutput);
+            var chanceValue = getChanceMethod.invoke(processingOutput);
+            if (!(stackValue instanceof ItemStack stack) || stack.isEmpty() || stack.getCount() <= 0) {
+                return ItemStack.EMPTY;
+            }
+
+            var chance = chanceValue instanceof Number number ? number.floatValue() : 0.0f;
+            if (chance >= 1.0f || level.random.nextFloat() < chance) {
+                return stack.copy();
+            }
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+
+        return ItemStack.EMPTY;
+    }
+
+    private static @Nullable List<ItemStack> copyItemStacks(Object rawValue) {
+        if (!(rawValue instanceof List<?> rawList)) {
+            return null;
+        }
+
+        var copied = new ArrayList<ItemStack>();
+        for (var element : rawList) {
+            var copiedStack = copyItemStack(element);
+            if (!copiedStack.isEmpty() && copiedStack.getCount() > 0) {
+                copied.add(copiedStack);
+            }
+        }
+        return copied;
+    }
+
+    private static ItemStack copyItemStack(Object rawValue) {
+        if (!(rawValue instanceof ItemStack stack) || stack.isEmpty() || stack.getCount() <= 0) {
+            return ItemStack.EMPTY;
+        }
+        return stack.copy();
+    }
+
+    private static void logCreateReflectionFailureOnce(ResourceLocation recipeId) {
+        if (hasLoggedCreateReflectionFailure) {
+            return;
+        }
+
+        hasLoggedCreateReflectionFailure = true;
+        ApprenticeCodex.LOGGER.warn(
+                "Create crushing integration fallback enabled: reflection failed for recipe {}. " +
+                        "GrindRunner will use apprenticecodex recipes for compatibility.",
+                recipeId
+        );
+    }
+
+    private void applyProcessingResult(ServerLevel level, ItemEntity sourceItem, List<ItemStack> outputStacks, int processCount) {
         if (!sourceItem.isAlive() || processCount <= 0) {
             return;
         }
@@ -655,22 +849,19 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             return;
         }
 
-        var outputStacks = buildOutputStacks(outputsPerInput, actualProcessCount);
-        if (outputStacks.isEmpty()) {
-            return;
-        }
+        var normalizedOutputStacks = normalizeOutputStacks(outputStacks);
 
         var sourcePosition = sourceItem.position();
         var sourceVelocity = sourceItem.getDeltaMovement();
         var remainingInputCount = sourceStack.getCount() - actualProcessCount;
 
         if (remainingInputCount <= 0) {
-            if (outputStacks.isEmpty()) {
+            if (normalizedOutputStacks.isEmpty()) {
                 sourceItem.discard();
                 return;
             }
 
-            var firstOutput = outputStacks.remove(0);
+            var firstOutput = normalizedOutputStacks.remove(0);
             sourceItem.setItem(firstOutput);
             skipProcessingItemIds.add(sourceItem.getUUID());
         } else {
@@ -679,7 +870,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             sourceItem.setItem(remain);
         }
 
-        for (var outputStack : outputStacks) {
+        for (var outputStack : normalizedOutputStacks) {
             spawnProcessedOutput(level, sourcePosition, sourceVelocity, outputStack);
         }
 
@@ -702,6 +893,17 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
             outputStacks.addAll(splitOutputStacks(outputPrototype, outputCount));
         }
         return outputStacks;
+    }
+
+    private List<ItemStack> normalizeOutputStacks(List<ItemStack> rawOutputStacks) {
+        var normalized = new ArrayList<ItemStack>();
+        for (var outputStack : rawOutputStacks) {
+            if (outputStack.isEmpty() || outputStack.getCount() <= 0) {
+                continue;
+            }
+            normalized.addAll(splitOutputStacks(outputStack, outputStack.getCount()));
+        }
+        return normalized;
     }
 
     private List<ItemStack> splitOutputStacks(ItemStack outputPrototype, int totalCount) {
