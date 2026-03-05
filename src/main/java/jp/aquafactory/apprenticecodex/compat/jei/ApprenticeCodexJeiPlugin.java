@@ -6,10 +6,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStreamReader;
@@ -38,8 +38,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(@NotNull IRecipeRegistration registration) {
-        for (var item : ForgeRegistries.ITEMS.getValues()) {
-            var itemId = ForgeRegistries.ITEMS.getKey(item);
+        for (var item : BuiltInRegistries.ITEM) {
+            var itemId = BuiltInRegistries.ITEM.getKey(item);
             if (itemId == null || !ApprenticeCodex.MODID.equals(itemId.getNamespace())) {
                 continue;
             }

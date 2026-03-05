@@ -10,17 +10,17 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
-import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 
 public class ProtectionSpellSupporter extends Item implements ICurioItem {
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
-    private static final List<RegistryObject<AbstractSpell>> TARGET_SPELLS = List.of(
+    private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.FORCE_FIELD,
             SpellRegistry.PHALANX_CHARGE
     );

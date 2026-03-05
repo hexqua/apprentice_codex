@@ -33,6 +33,11 @@ repositories {
         }
     }
 
+    // JEI
+    maven {
+        url = uri("https://maven.blamejared.com")
+    }
+
     // Curios
     maven {
         url = uri("https://maven.theillusivec4.top/")
