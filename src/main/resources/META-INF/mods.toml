@@ -46,3 +46,10 @@ description='''${mod_description}'''
     versionRange="[5.14.1,)"
     ordering="NONE"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="create"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="NONE"
+    side="BOTH"
