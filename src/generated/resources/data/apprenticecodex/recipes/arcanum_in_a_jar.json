@@ -1,21 +1,33 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "key": {
-    "A": {
-      "item": "irons_spellbooks:arcane_ingot"
-    },
-    "G": {
-      "item": "minecraft:glass_pane"
+  "type": "forge:conditional",
+  "recipes": [
+    {
+      "conditions": [
+        {
+          "type": "apprenticecodex:arcanum_in_a_jar_recipe_enabled"
+        }
+      ],
+      "recipe": {
+        "type": "minecraft:crafting_shaped",
+        "category": "misc",
+        "key": {
+          "A": {
+            "item": "irons_spellbooks:arcane_ingot"
+          },
+          "G": {
+            "item": "minecraft:glass_pane"
+          }
+        },
+        "pattern": [
+          "GAG",
+          "G G",
+          "GGG"
+        ],
+        "result": {
+          "item": "apprenticecodex:arcanum_in_a_jar"
+        },
+        "show_notification": true
+      }
     }
-  },
-  "pattern": [
-    "GAG",
-    "G G",
-    "GGG"
-  ],
-  "result": {
-    "item": "apprenticecodex:arcanum_in_a_jar"
-  },
-  "show_notification": true
+  ]
 }

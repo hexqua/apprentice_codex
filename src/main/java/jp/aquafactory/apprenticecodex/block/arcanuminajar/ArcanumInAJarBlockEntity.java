@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
@@ -24,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class ArcanumInAJarBlockEntity extends BlockEntity {
     public static final int MAX_STORED_PARAMETER = 8;
-    private static final long TICKS_PER_ITEM = 20L * 60L;
     private static final String STORED_PARAMETER_COUNT_TAG = "StoredParameterCount";
     private static final String PLACED_GAME_TIME_TAG = "PlacedGameTime";
     private static final String DISPENSING_TAG = "Dispensing";
@@ -68,7 +68,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     public void restoreStoredParameterCount(int storedParameterCount, long gameTime) {
         var clampedStoredParameterCount = Mth.clamp(storedParameterCount, 0, MAX_STORED_PARAMETER);
         // 設置時間の絶対値は引き継がず、段階数だけを再現して破壊時の見た目を保つ.
-        placedGameTime = gameTime - (long)clampedStoredParameterCount * TICKS_PER_ITEM;
+        placedGameTime = gameTime - (long)clampedStoredParameterCount * ticksPerStoredParameter();
         dispensing = false;
         nextReleaseGameTime = -1L;
         setChanged();
@@ -219,13 +219,13 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         }
 
         var consumed = Math.min(count, stored);
-        var remainingElapsedTicks = Math.max(0L, elapsedTicks - (TICKS_PER_ITEM * consumed));
+        var remainingElapsedTicks = Math.max(0L, elapsedTicks - (ticksPerStoredParameter() * consumed));
         // 蓄積の上限到達後に放置した超過分はここで捨てる.
         placedGameTime = gameTime - remainingElapsedTicks;
 
         setChanged();
         syncToClient();
-        return (int)(remainingElapsedTicks / TICKS_PER_ITEM);
+        return (int)(remainingElapsedTicks / ticksPerStoredParameter());
     }
 
     private void finishDispenseSequence() {
@@ -270,11 +270,15 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     }
 
     private int getStoredParameterCount(long gameTime) {
-        return Mth.clamp((int)(getCappedElapsedTicks(gameTime) / TICKS_PER_ITEM), 0, MAX_STORED_PARAMETER);
+        return Mth.clamp((int)(getCappedElapsedTicks(gameTime) / ticksPerStoredParameter()), 0, MAX_STORED_PARAMETER);
     }
 
     private long getCappedElapsedTicks(long gameTime) {
-        var maxElapsedTicks = TICKS_PER_ITEM * MAX_STORED_PARAMETER;
+        var maxElapsedTicks = ticksPerStoredParameter() * MAX_STORED_PARAMETER;
         return Math.max(0L, Math.min(gameTime - placedGameTime, maxElapsedTicks));
+    }
+
+    private static long ticksPerStoredParameter() {
+        return ApprenticeCodexServerConfig.arcanumInAJarTicksPerStoredParameter();
     }
 }
