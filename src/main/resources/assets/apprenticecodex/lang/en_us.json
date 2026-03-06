@@ -169,6 +169,8 @@
   "ui.apprenticecodex.recepted_pastel_magic": "Bound \"%s\" magic to the staff!",
   "ui.apprenticecodex.unsatisfied_max_mana_for_enchant": "You need %2$d maximum mana to seal arcane power into %1$s!",
   "ui.apprenticecodex.cant_spawn_in_air": "Can't spawn in air!",
+  "ui.apprenticecodex.not_stored_essence": "No essence has built up in the bottle yet... it needs more time.",
+  "ui.apprenticecodex.not_open_top": "The top is blocked by an obstacle, so the lid can't be opened...",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.palette_reception": "Reception Mode",
