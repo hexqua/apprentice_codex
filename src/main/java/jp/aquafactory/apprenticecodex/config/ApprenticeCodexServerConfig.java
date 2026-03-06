@@ -5,12 +5,14 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public final class ApprenticeCodexServerConfig {
     public static final ForgeConfigSpec SPEC;
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
+    private static final BlocksServerConfig BLOCKS_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
     private static final SpellsServerConfig SPELLS_CONFIG;
 
     static {
         var builder = new ForgeConfigSpec.Builder();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
+        BLOCKS_CONFIG = BlocksServerConfig.define(builder);
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
         SPELLS_CONFIG = SpellsServerConfig.define(builder);
         SPEC = builder.build();
@@ -24,7 +26,23 @@ public final class ApprenticeCodexServerConfig {
     }
 
     public static int arcanumInAJarTicksPerStoredParameter() {
-        return ITEMS_CONFIG.arcanumInAJarTicksPerStoredParameter();
+        return BLOCKS_CONFIG.arcanumInAJarTicksPerStoredParameter();
+    }
+
+    public static boolean apprenticeDeskEnableSpellCraftBlacklist() {
+        return BLOCKS_CONFIG.apprenticeDeskEnableSpellCraftBlacklist();
+    }
+
+    public static java.util.List<String> apprenticeDeskSpellCraftBlacklist() {
+        return BLOCKS_CONFIG.apprenticeDeskSpellCraftBlacklist();
+    }
+
+    public static boolean apprenticeDeskRequireSameSchool() {
+        return BLOCKS_CONFIG.apprenticeDeskRequireSameSchool();
+    }
+
+    public static boolean apprenticeDeskDisableCommonRarityConversion() {
+        return BLOCKS_CONFIG.apprenticeDeskDisableCommonRarityConversion();
     }
 
     public static float scarletThirstRequiredHealth() {
