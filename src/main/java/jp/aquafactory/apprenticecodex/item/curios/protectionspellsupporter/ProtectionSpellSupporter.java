@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -31,7 +32,7 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
     private final String slotIdentifier;
 
     public ProtectionSpellSupporter() {
-        super(new Item.Properties().stacksTo(1));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
         slotIdentifier = CuriosSlotConstants.BELT;
     }
 

@@ -23,6 +23,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -52,7 +53,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private final String slotIdentifier;
 
     public CraftsmansDelight() {
-        super(new Item.Properties().stacksTo(1));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
         slotIdentifier = Curios.RING_SLOT;
     }
 

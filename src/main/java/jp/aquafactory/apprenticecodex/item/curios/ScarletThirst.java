@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
 import org.joml.Vector3f;
 import top.theillusivec4.curios.api.SlotContext;
@@ -33,7 +34,7 @@ public class ScarletThirst extends Item implements ICurioItem {
     private final String slotIdentifier;
 
     public ScarletThirst() {
-        super(new Item.Properties().stacksTo(1));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
         slotIdentifier = Curios.RING_SLOT;
     }
 

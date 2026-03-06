@@ -24,6 +24,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -62,7 +63,10 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public PastelStaff() {
-        super(new Item.Properties().stacksTo(1).attributes(ExtendedSwordItem.createAttributes(PASTEL_STAFF_WEAPON_TIER)));
+        super(new Item.Properties()
+                        .stacksTo(1)
+                        .rarity(Rarity.EPIC)
+                        .attributes(ExtendedSwordItem.createAttributes(PASTEL_STAFF_WEAPON_TIER)));
         GeoItem.registerSyncedAnimatable(this);
     }
 
