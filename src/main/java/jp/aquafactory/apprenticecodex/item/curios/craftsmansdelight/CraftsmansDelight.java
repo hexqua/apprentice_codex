@@ -27,7 +27,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -43,7 +43,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
-    private static final List<RegistryObject<AbstractSpell>> TARGET_SPELLS = List.of(
+    private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.TINY_LUMBERJACK,
             SpellRegistry.WORLD_FLATTER,
             SpellRegistry.THERMAL_PROCESS,

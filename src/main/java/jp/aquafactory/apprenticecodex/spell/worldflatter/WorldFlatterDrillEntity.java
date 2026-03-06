@@ -16,7 +16,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.common.TierSortingRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -352,8 +351,8 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
             return false;
         }
 
-        // CraftsmansDelight 装備時だけネザライト相当まで採掘可能にする.
-        if (state.requiresCorrectToolForDrops() && !TierSortingRegistry.isCorrectTierForDrops(WorldFlatter.getHarvestTier(owner), state)) {
+        // 実際に採掘へ使うダミーツール基準で可否を判定し、装備による採掘レベル差をそのまま反映する.
+        if (state.requiresCorrectToolForDrops() && !WorldFlatter.createDummyTool(owner).isCorrectToolForDrops(state)) {
             return false;
         }
 
