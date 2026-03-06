@@ -97,7 +97,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         true,
                         true,
                         false)
-                .addCriterion("retrieve_arcane_essence", new ImpossibleTrigger.TriggerInstance())
+                .addCriterion("retrieve_arcane_essence", CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
                 .save(saver, advancementId("retrieve_once_arcanum_in_a_jar"), existingFileHelper);
 
         Advancement.Builder.advancement()
@@ -110,7 +110,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         true,
                         true,
                         true)
-                .addCriterion("retrieve_fully_charged_arcanum", new ImpossibleTrigger.TriggerInstance())
+                .addCriterion("retrieve_fully_charged_arcanum", CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
                 .save(saver, advancementId("retrieve_max_arcanum_in_a_jar"), existingFileHelper);
 
         Advancement.Builder.advancement()

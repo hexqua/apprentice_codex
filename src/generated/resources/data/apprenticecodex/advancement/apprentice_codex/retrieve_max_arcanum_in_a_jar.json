@@ -6,16 +6,15 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.description"
     },
     "frame": "challenge",
     "hidden": true,
     "icon": {
-      "item": "minecraft:clock"
+      "count": 1,
+      "id": "minecraft:clock"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title"
     }

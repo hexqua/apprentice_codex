@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<ArcanumInAJarBlockEntity> {
     private static final ResourceLocation DUST_TEXTURE =
@@ -251,18 +252,19 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
                                 int red, int green, int blue, int alpha,
                                 int packedLight, int packedOverlay,
                                 float nx, float ny, float nz) {
-        consumer.vertex(poseMat, x0, y0, z0).color(red, green, blue, alpha).uv(u0, v0)
-                .overlayCoords(resolveOverlay(packedOverlay)).uv2(packedLight)
-                .normal(normalMat, nx, ny, nz).endVertex();
-        consumer.vertex(poseMat, x1, y1, z1).color(red, green, blue, alpha).uv(u1, v1)
-                .overlayCoords(resolveOverlay(packedOverlay)).uv2(packedLight)
-                .normal(normalMat, nx, ny, nz).endVertex();
-        consumer.vertex(poseMat, x2, y2, z2).color(red, green, blue, alpha).uv(u2, v2)
-                .overlayCoords(resolveOverlay(packedOverlay)).uv2(packedLight)
-                .normal(normalMat, nx, ny, nz).endVertex();
-        consumer.vertex(poseMat, x3, y3, z3).color(red, green, blue, alpha).uv(u3, v3)
-                .overlayCoords(resolveOverlay(packedOverlay)).uv2(packedLight)
-                .normal(normalMat, nx, ny, nz).endVertex();
+        var normal = normalMat.transform(new Vector3f(nx, ny, nz));
+        consumer.addVertex(poseMat, x0, y0, z0).setColor(red, green, blue, alpha).setUv(u0, v0)
+                .setOverlay(resolveOverlay(packedOverlay)).setLight(packedLight)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(poseMat, x1, y1, z1).setColor(red, green, blue, alpha).setUv(u1, v1)
+                .setOverlay(resolveOverlay(packedOverlay)).setLight(packedLight)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(poseMat, x2, y2, z2).setColor(red, green, blue, alpha).setUv(u2, v2)
+                .setOverlay(resolveOverlay(packedOverlay)).setLight(packedLight)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(poseMat, x3, y3, z3).setColor(red, green, blue, alpha).setUv(u3, v3)
+                .setOverlay(resolveOverlay(packedOverlay)).setLight(packedLight)
+                .setNormal(normal.x(), normal.y(), normal.z());
     }
 
     private static int resolveOverlay(int packedOverlay) {
@@ -279,6 +281,6 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
 
     private static void vertex(VertexConsumer consumer, Matrix4f pose, float x, float y, float z,
                                int red, int green, int blue, int alpha) {
-        consumer.vertex(pose, x, y, z).color(red, green, blue, alpha).endVertex();
+        consumer.addVertex(pose, x, y, z).setColor(red, green, blue, alpha);
     }
 }

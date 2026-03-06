@@ -21,7 +21,7 @@ public final class AdvancementTools {
 
     // 標準トリガーではなく直接 criterion を達成させる.
     public static void award(ServerPlayer player, ResourceLocation advancementId, String criterion) {
-        var advancement = player.server.getAdvancements().getAdvancement(advancementId);
+        var advancement = player.server.getAdvancements().get(advancementId);
         if (advancement == null) {
             ApprenticeCodex.LOGGER.warn("Missing advancement: {}", advancementId);
             return;

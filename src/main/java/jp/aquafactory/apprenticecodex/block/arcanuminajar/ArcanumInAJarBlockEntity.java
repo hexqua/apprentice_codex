@@ -5,8 +5,11 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -15,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -76,8 +80,13 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     }
 
     public static int getStoredParameterCount(ItemStack stack) {
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(STORED_PARAMETER_COUNT_TAG)) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return 0;
+        }
+
+        var tag = customData.copyTag();
+        if (!tag.contains(STORED_PARAMETER_COUNT_TAG, Tag.TAG_ANY_NUMERIC)) {
             return 0;
         }
 
@@ -87,19 +96,11 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     public static void setStoredParameterCount(ItemStack stack, int storedParameterCount) {
         var clampedStoredParameterCount = Mth.clamp(storedParameterCount, 0, MAX_STORED_PARAMETER);
         if (clampedStoredParameterCount <= 0) {
-            var tag = stack.getTag();
-            if (tag == null) {
-                return;
-            }
-
-            tag.remove(STORED_PARAMETER_COUNT_TAG);
-            if (tag.isEmpty()) {
-                stack.setTag(null);
-            }
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove(STORED_PARAMETER_COUNT_TAG));
             return;
         }
 
-        stack.getOrCreateTag().putInt(STORED_PARAMETER_COUNT_TAG, clampedStoredParameterCount);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(STORED_PARAMETER_COUNT_TAG, clampedStoredParameterCount));
     }
 
     public boolean isDispensing() {
@@ -142,8 +143,8 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (placedGameTime >= 0L) {
             tag.putLong(PLACED_GAME_TIME_TAG, placedGameTime);
         }
@@ -155,8 +156,8 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         placedGameTime = tag.contains(PLACED_GAME_TIME_TAG) ? tag.getLong(PLACED_GAME_TIME_TAG) : -1L;
         dispensing = tag.getBoolean(DISPENSING_TAG);
         nextReleaseGameTime = tag.contains(NEXT_RELEASE_GAME_TIME_TAG)
@@ -165,9 +166,9 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         var tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 

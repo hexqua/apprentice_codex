@@ -25,7 +25,7 @@ public final class BlockRegistry {
             BLOCKS.register("apprentice_desk", ApprenticeDesk::new);
 
     public static final DeferredHolder<Block, Block> ARCANUM_IN_A_JAR =
-            BLOCKS.register("arcanum_in_a_jar", ArcanumInAJar::new);
+            BLOCKS.register("arcanum_in_a_jar", () -> new ArcanumInAJar());
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

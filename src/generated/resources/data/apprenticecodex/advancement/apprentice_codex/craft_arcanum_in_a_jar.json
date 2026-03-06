@@ -9,16 +9,13 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:arcanum_in_a_jar"
+      "count": 1,
+      "id": "apprenticecodex:arcanum_in_a_jar"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.title"
     }

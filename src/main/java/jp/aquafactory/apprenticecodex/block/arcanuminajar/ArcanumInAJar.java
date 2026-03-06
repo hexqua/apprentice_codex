@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
+import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -39,11 +39,12 @@ import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class ArcanumInAJar extends BaseEntityBlock {
+    public static final MapCodec<ArcanumInAJar> CODEC = simpleCodec(ArcanumInAJar::new);
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     private static final VoxelShape SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 14.0D, 13.0D);
 
-    public ArcanumInAJar() {
-        super(Properties.of()
+    public ArcanumInAJar(Properties properties) {
+        super(properties
                 .strength(0.3f)
                 .sound(SoundType.GLASS)
                 .lightLevel(state -> 8)
@@ -51,6 +52,10 @@ public class ArcanumInAJar extends BaseEntityBlock {
                 .isSuffocating((state, getter, pos) -> false)
                 .isViewBlocking((state, getter, pos) -> false));
         registerDefaultState(stateDefinition.any().setValue(OPEN, false));
+    }
+
+    public ArcanumInAJar() {
+        this(Properties.of());
     }
 
     @Override
@@ -97,12 +102,8 @@ public class ArcanumInAJar extends BaseEntityBlock {
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                          @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
-        if (hand != InteractionHand.MAIN_HAND) {
-            return InteractionResult.PASS;
-        }
-
+    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
+                                                        @NotNull Player player, @NotNull BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
@@ -194,5 +195,10 @@ public class ArcanumInAJar extends BaseEntityBlock {
 
     private static boolean isTopBlocked(Level level, BlockPos pos) {
         return level.getBlockState(pos.above()).canOcclude();
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 }

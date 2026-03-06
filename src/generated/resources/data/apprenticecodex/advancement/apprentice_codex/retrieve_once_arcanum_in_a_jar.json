@@ -6,16 +6,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "irons_spellbooks:arcane_essence"
+      "count": 1,
+      "id": "irons_spellbooks:arcane_essence"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title"
     }
