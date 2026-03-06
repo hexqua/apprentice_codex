@@ -2,11 +2,11 @@ package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -14,13 +14,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -37,6 +34,7 @@ public class ArcanumInAJar extends Block implements EntityBlock {
         super(Properties.of()
                 .strength(0.3f)
                 .sound(SoundType.GLASS)
+                .lightLevel(state -> 8)
                 .noOcclusion()
                 .isSuffocating((state, getter, pos) -> false)
                 .isViewBlocking((state, getter, pos) -> false));
@@ -83,37 +81,20 @@ public class ArcanumInAJar extends Block implements EntityBlock {
     @Override
     public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
                                           @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
+        return InteractionResult.PASS;
+    }
 
-        var toggledState = state.cycle(OPEN);
-        level.setBlock(pos, toggledState, Block.UPDATE_ALL);
-        level.playSound(
-                null,
-                pos,
-                toggledState.getValue(OPEN) ? SoundEvents.BARREL_OPEN : SoundEvents.BARREL_CLOSE,
-                SoundSource.BLOCKS,
-                1.0f,
-                1.0f
-        );
-        level.gameEvent(player, toggledState.getValue(OPEN) ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, pos);
-        return InteractionResult.CONSUME;
+    @Override
+    public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state,
+                            LivingEntity placer, @NotNull ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity) {
+            blockEntity.initializePlacedGameTime(level.getGameTime());
+        }
     }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         return BlockEntityRegistry.ARCANUM_IN_A_JAR.get().create(pos, state);
-    }
-
-    @Override
-    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state,
-                                                                            @NotNull BlockEntityType<T> type) {
-        if (level.isClientSide || type != BlockEntityRegistry.ARCANUM_IN_A_JAR.get()) {
-            return null;
-        }
-
-        return (tickLevel, tickPos, tickState, blockEntity) ->
-                ArcanumInAJarBlockEntity.serverTick(tickLevel, tickPos, tickState, (ArcanumInAJarBlockEntity)blockEntity);
     }
 }

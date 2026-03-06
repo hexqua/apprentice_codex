@@ -1,21 +1,21 @@
 package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 public class ArcanumInAJarBlockEntity extends BlockEntity {
+    public static final int MAX_STORED_PARAMETER = 8;
+    private static final long TICKS_PER_ITEM = 20L * 60L;
     private static final String PLACED_GAME_TIME_TAG = "PlacedGameTime";
-    private static final float FILL_DURATION_TICKS = 20.0f * 10.0f;
 
     private long placedGameTime = -1L;
 
@@ -23,13 +23,36 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         super(BlockEntityRegistry.ARCANUM_IN_A_JAR.get(), pos, state);
     }
 
-    public float getFillRatio(float partialTick) {
+    public int getStoredParameterCount() {
         if (level == null || placedGameTime < 0L) {
-            return 0.0f;
+            return 0;
         }
 
-        var elapsed = (level.getGameTime() + partialTick) - placedGameTime;
-        return Mth.clamp(elapsed / FILL_DURATION_TICKS, 0.0f, 1.0f);
+        var elapsedTicks = Math.max(0L, level.getGameTime() - placedGameTime);
+        return Mth.clamp((int)(elapsedTicks / TICKS_PER_ITEM), 0, MAX_STORED_PARAMETER);
+    }
+
+    public float getFillRatio() {
+        return getStoredParameterCount() / (float)MAX_STORED_PARAMETER;
+    }
+
+    public void initializePlacedGameTime(long gameTime) {
+        if (placedGameTime >= 0L) {
+            return;
+        }
+
+        // tick加算ではなく設置時刻基準で扱い、距離外や再読込後も同じ蓄積量を復元する.
+        placedGameTime = gameTime;
+        setChanged();
+        syncToClient();
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (level != null && !level.isClientSide && placedGameTime < 0L) {
+            initializePlacedGameTime(level.getGameTime());
+        }
     }
 
     @Override
@@ -56,17 +79,6 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    public static void serverTick(Level level, BlockPos pos, BlockState state, ArcanumInAJarBlockEntity blockEntity) {
-        if (level.isClientSide || blockEntity.placedGameTime >= 0L) {
-            return;
-        }
-
-        // 設置起点をサーバー時刻で固定し、再読込や距離外復帰でも同じ進行にする.
-        blockEntity.placedGameTime = level.getGameTime();
-        blockEntity.setChanged();
-        blockEntity.syncToClient();
     }
 
     private void syncToClient() {

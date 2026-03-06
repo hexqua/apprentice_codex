@@ -64,7 +64,7 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
             return;
         }
 
-        // 既存のキューブ演出は描画確認用に残し、その上に粉の充填を重ねる.
+        // 既存のキューブ演出の上に粉の充填を重ねる.
         var time = level.getGameTime() + partialTick + (blockEntity.getBlockPos().asLong() & 31L);
         var fade = 0.5f + 0.5f * Mth.sin((float)(time * 0.045f));
 
@@ -97,7 +97,7 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
 
         poseStack.popPose();
 
-        var fillRatio = blockEntity.getFillRatio(partialTick);
+        var fillRatio = blockEntity.getFillRatio();
         if (fillRatio <= 0.0f) {
             return;
         }
