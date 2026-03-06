@@ -23,6 +23,10 @@ public final class ApprenticeCodexServerConfig {
         return DAMAGE_MULTIPLIER_CONFIG.value(key);
     }
 
+    public static int arcanumInAJarTicksPerStoredParameter() {
+        return ITEMS_CONFIG.arcanumInAJarTicksPerStoredParameter();
+    }
+
     public static float scarletThirstRequiredHealth() {
         return ITEMS_CONFIG.scarletThirstRequiredHealth();
     }

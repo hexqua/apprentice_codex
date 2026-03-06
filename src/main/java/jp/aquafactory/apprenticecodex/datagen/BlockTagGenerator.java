@@ -21,6 +21,7 @@ public final class BlockTagGenerator extends BlockTagsProvider {
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(BlockRegistry.PERSONAL_SHELF_CHEST.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(BlockRegistry.ARCANUM_IN_A_JAR.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(BlockRegistry.APPRENTICE_DESK.get());
 
         // 恵みの雨で効果のあるブロック.

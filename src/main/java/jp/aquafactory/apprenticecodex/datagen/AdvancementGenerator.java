@@ -6,6 +6,7 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.advancements.FrameType;
 import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.critereon.ImpossibleTrigger;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.advancements.critereon.PlayerPredicate;
 import net.minecraft.advancements.critereon.PlayerTrigger;
@@ -13,6 +14,7 @@ import net.minecraft.advancements.critereon.RecipeCraftedTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.ForgeAdvancementProvider;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +63,45 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_apprentice_desk", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.APPRENTICE_DESK.getId()))
                 .save(saver, advancementId("craft_apprentice_desk"), existingFileHelper);
+
+        var jar = Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.ARCANUM_IN_A_JAR.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_arcanum_in_a_jar", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ARCANUM_IN_A_JAR.getId()))
+                .save(saver, advancementId("craft_arcanum_in_a_jar"), existingFileHelper);
+
+        var retrieveOnceJar = Advancement.Builder.advancement()
+                .parent(jar)
+                .display(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("retrieve_arcane_essence", new ImpossibleTrigger.TriggerInstance())
+                .save(saver, advancementId("retrieve_once_arcanum_in_a_jar"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(retrieveOnceJar)
+                .display(Items.CLOCK,
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        true)
+                .addCriterion("retrieve_fully_charged_arcanum", new ImpossibleTrigger.TriggerInstance())
+                .save(saver, advancementId("retrieve_max_arcanum_in_a_jar"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)

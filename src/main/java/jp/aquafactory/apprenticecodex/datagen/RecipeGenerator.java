@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
+import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.FinishedRecipe;
@@ -38,6 +39,19 @@ public final class RecipeGenerator extends RecipeProvider {
                         .save(consumer, ItemRegistry.APPRENTICE_DESK.getId()))
                 .generateAdvancement()
                 .build(recipeWriter, ItemRegistry.APPRENTICE_DESK.getId());
+
+        ConditionalRecipe.builder()
+                .addCondition(ArcanumInAJarRecipeEnabledCondition.INSTANCE)
+                .addRecipe(consumer -> ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.ARCANUM_IN_A_JAR.get())
+                        .pattern("GAG")
+                        .pattern("G G")
+                        .pattern("GGG")
+                        .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                        .define('G', Items.GLASS_PANE)
+                        .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
+                        .save(consumer, ItemRegistry.ARCANUM_IN_A_JAR.getId()))
+                .generateAdvancement()
+                .build(recipeWriter, ItemRegistry.ARCANUM_IN_A_JAR.getId());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")

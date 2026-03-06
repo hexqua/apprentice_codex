@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
@@ -39,6 +40,9 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
+    public static final RegistryObject<Item> ARCANUM_IN_A_JAR =
+            ITEMS.register("arcanum_in_a_jar",
+                    () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));
 
     public static final RegistryObject<Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);

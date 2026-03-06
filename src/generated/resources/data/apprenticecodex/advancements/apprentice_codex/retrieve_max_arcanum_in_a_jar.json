@@ -1,0 +1,29 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/retrieve_once_arcanum_in_a_jar",
+  "criteria": {
+    "retrieve_fully_charged_arcanum": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "item": "minecraft:clock"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title"
+    }
+  },
+  "requirements": [
+    [
+      "retrieve_fully_charged_arcanum"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

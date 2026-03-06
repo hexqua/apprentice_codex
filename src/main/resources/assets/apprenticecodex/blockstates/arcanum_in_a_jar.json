@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "open=false": { "model": "apprenticecodex:block/arcanum_in_a_jar_close" },
+    "open=true": { "model": "apprenticecodex:block/arcanum_in_a_jar_open" }
+  }
+}
