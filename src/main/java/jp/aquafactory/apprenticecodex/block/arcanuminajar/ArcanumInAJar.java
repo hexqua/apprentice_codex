@@ -1,9 +1,11 @@
 package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -120,10 +122,22 @@ public class ArcanumInAJar extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
 
-        if (blockEntity.getStoredParameterCount() <= 0) {
+        var storedParameterCount = blockEntity.getStoredParameterCount();
+        if (storedParameterCount <= 0) {
             player.displayClientMessage(Component.translatable("ui.apprenticecodex.not_stored_essence")
                     .withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            AdvancementTools.award(serverPlayer,
+                    AdvancementTools.RETRIEVE_ONCE_ARCANUM_IN_A_JAR,
+                    AdvancementTools.RETRIEVE_ARCANE_ESSENCE_CRITERION);
+            if (storedParameterCount >= ArcanumInAJarBlockEntity.MAX_STORED_PARAMETER) {
+                AdvancementTools.award(serverPlayer,
+                        AdvancementTools.RETRIEVE_MAX_ARCANUM_IN_A_JAR,
+                        AdvancementTools.RETRIEVE_FULLY_CHARGED_ARCANUM_CRITERION);
+            }
         }
 
         blockEntity.startDispenseSequence();

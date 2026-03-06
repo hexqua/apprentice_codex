@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -19,7 +20,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 public class ArcanumInAJarBlockEntity extends BlockEntity {
@@ -242,7 +242,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     }
 
     private boolean spawnArcaneEssence(ServerLevel serverLevel, int count) {
-        var arcaneEssence = ForgeRegistries.ITEMS.getValue(ARCANE_ESSENCE_ITEM_ID);
+        var arcaneEssence = BuiltInRegistries.ITEM.getOptional(ARCANE_ESSENCE_ITEM_ID).orElse(null);
         if (arcaneEssence == null) {
             ApprenticeCodex.LOGGER.warn("Missing item: {}", ARCANE_ESSENCE_ITEM_ID);
             return false;
