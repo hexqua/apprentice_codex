@@ -23,7 +23,6 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
@@ -43,11 +42,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     public static final String STONE_AFFINITY_SCHOOL_TAG = "StoneAffinitySchool";
     public static final int DEFAULT_STONE_TINT_COLOR = 0xFFFFFF;
 
-    private static final String VANILLA_NAMESPACE = "minecraft";
-    private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
-    private static final Set<ResourceLocation> ALLOWED_VANILLA_WEAPON_ENCHANTMENTS = Set.of(
-            ResourceLocation.withDefaultNamespace("looting"),
-            ResourceLocation.withDefaultNamespace("knockback"),
+    private static final Set<ResourceLocation> EXTRA_SUPPORTED_ENCHANTMENTS = Set.of(
             ResourceLocation.withDefaultNamespace("fortune"),
             ResourceLocation.withDefaultNamespace("silk_touch")
     );
@@ -146,25 +141,17 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
+        }
+
         var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
-        if (enchantmentId == null) {
-            return false;
-        }
-
-        if (isDurabilityTargetEnchantment(enchantment)) {
-            return false;
-        }
-
-        if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-            return ALLOWED_VANILLA_WEAPON_ENCHANTMENTS.contains(enchantmentId);
-        }
-
-        return enchantment.value().isSupportedItem(new ItemStack(Items.DIAMOND_SWORD));
+        return enchantmentId != null && EXTRA_SUPPORTED_ENCHANTMENTS.contains(enchantmentId);
     }
 
     @Override
     public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
-        return supportsEnchantment(stack, enchantment);
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -184,10 +171,6 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 22;
-    }
-
-    private static boolean isDurabilityTargetEnchantment(Holder<Enchantment> enchantment) {
-        return enchantment.value().isSupportedItem(DURABILITY_ENCHANTMENT_PROBE_STACK);
     }
 
     public int getStoneTintColor(ItemStack stack) {
