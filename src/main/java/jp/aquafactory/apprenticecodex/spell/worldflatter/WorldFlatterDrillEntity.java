@@ -10,13 +10,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.TierSortingRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -272,7 +272,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
             return;
         }
 
-        if (!canBreakTarget(level, breakCenterPos, representativeState, representativeState)) {
+        if (!canBreakTarget(level, owner, breakCenterPos, representativeState, representativeState)) {
             resetBreakProgress(level);
             return;
         }
@@ -283,7 +283,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
             return;
         }
 
-        var breakableBlocks = collectBreakableBlocks(level, breakCenterPos, breakSideNormal, representativeState);
+        var breakableBlocks = collectBreakableBlocks(level, owner, breakCenterPos, breakSideNormal, representativeState);
         if (breakableBlocks.isEmpty()) {
             resetBreakProgress(level);
             return;
@@ -304,7 +304,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
 
         for (var pos : breakableBlocks) {
             var state = level.getBlockState(pos);
-            if (!canBreakTarget(level, pos, state, representativeState)) {
+            if (!canBreakTarget(level, owner, pos, state, representativeState)) {
                 continue;
             }
             BlockTools.breakBlockByPlayerHands(level, server, pos, WorldFlatter.createDummyTool(server));
@@ -313,13 +313,13 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         resetBreakProgress(level);
     }
 
-    private Set<BlockPos> collectBreakableBlocks(Level level, BlockPos centerPos, Vec3 sideNormal, BlockState representativeState) {
+    private Set<BlockPos> collectBreakableBlocks(Level level, LivingEntity owner, BlockPos centerPos, Vec3 sideNormal, BlockState representativeState) {
         var positions = new LinkedHashSet<BlockPos>(9);
         for (var axisA = -1; axisA <= 1; axisA++) {
             for (var axisB = -1; axisB <= 1; axisB++) {
                 var pos = offsetOnParallelPlane(centerPos, sideNormal, axisA, axisB);
                 var state = level.getBlockState(pos);
-                if (!canBreakTarget(level, pos, state, representativeState)) {
+                if (!canBreakTarget(level, owner, pos, state, representativeState)) {
                     continue;
                 }
                 positions.add(pos.immutable());
@@ -338,7 +338,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         return centerPos.offset(axisA, axisB, 0);
     }
 
-    private static boolean canBreakTarget(Level level, BlockPos pos, BlockState state, @Nullable BlockState representativeState) {
+    private static boolean canBreakTarget(Level level, LivingEntity owner, BlockPos pos, BlockState state, @Nullable BlockState representativeState) {
         if (state.isAir()) {
             return false;
         }
@@ -352,7 +352,8 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
             return false;
         }
 
-        if (state.requiresCorrectToolForDrops() && state.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
+        // CraftsmansDelight 装備時だけネザライト相当まで採掘可能にする.
+        if (state.requiresCorrectToolForDrops() && !TierSortingRegistry.isCorrectTierForDrops(WorldFlatter.getHarvestTier(owner), state)) {
             return false;
         }
 
