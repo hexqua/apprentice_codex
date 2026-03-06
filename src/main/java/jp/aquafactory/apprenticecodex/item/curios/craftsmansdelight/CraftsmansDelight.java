@@ -2,9 +2,12 @@ package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.compat.Curios;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -22,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -31,10 +35,18 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.HashMap;
 import java.util.List;
 
-public class CraftsmansDelight extends Item implements ICurioItem {
+public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem {
     private static final float BREAK_SPEED_BONUS_MULTIPLIER = 2.0f;
+    private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
 
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmansdelight.desc_";
+    private static final List<RegistryObject<AbstractSpell>> TARGET_SPELLS = List.of(
+            SpellRegistry.TINY_LUMBERJACK,
+            SpellRegistry.WORLD_FLATTER,
+            SpellRegistry.THERMAL_PROCESS,
+            SpellRegistry.GRIND_RUNNER
+    );
     private final String slotIdentifier;
 
     public CraftsmansDelight() {
@@ -56,8 +68,12 @@ public class CraftsmansDelight extends Item implements ICurioItem {
             tooltips.add(Component.empty());
             tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
             tooltips.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc"))
+                    .append(Component.translatable(getDescriptionId() + ".desc_1"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            tooltips.add(Component.literal(" ")
+                    .append(Component.translatable(getDescriptionId() + ".desc_2"))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            appendTargetSpellTooltips(tooltips);
             if (ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
                 tooltips.add(Component.literal(" ")
                         .append(Component.translatable(getDescriptionId() + ".desc_enchant"))
@@ -66,6 +82,15 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         }
 
         return tooltips;
+    }
+
+    private static void appendTargetSpellTooltips(List<Component> tooltips) {
+        for (var spellEntry : TARGET_SPELLS) {
+            var spell = spellEntry.get();
+            tooltips.add(Component.literal(" - ")
+                    .append(spell.getDisplayName(null))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        }
     }
 
     @Override
@@ -95,6 +120,11 @@ public class CraftsmansDelight extends Item implements ICurioItem {
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
         return !slotContext.entity().isShiftKeyDown();
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     private static void applySneakUseEnchantment(ItemStack stack) {
@@ -135,6 +165,14 @@ public class CraftsmansDelight extends Item implements ICurioItem {
         }
 
         return breakSpeed * BREAK_SPEED_BONUS_MULTIPLIER;
+    }
+
+    public static float applyProcessSpeedBonus(float processSpeed, @Nullable LivingEntity entity) {
+        if (!isEquippedBy(entity)) {
+            return processSpeed;
+        }
+
+        return processSpeed * PROCESS_SPEED_BONUS_MULTIPLIER;
     }
 
     public static int applyManaCostDiscount(int manaCost, @Nullable LivingEntity entity) {
