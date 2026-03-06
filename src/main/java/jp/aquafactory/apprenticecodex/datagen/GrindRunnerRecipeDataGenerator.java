@@ -4,13 +4,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -84,7 +84,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
     }
 
     private static String itemPath(ItemLike item) {
-        var id = ForgeRegistries.ITEMS.getKey(item.asItem());
+        var id = BuiltInRegistries.ITEM.getKey(item.asItem());
         if (id == null) {
             return "unknown";
         }
@@ -146,7 +146,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
     }
 
     private static String itemId(ItemLike item) {
-        var id = ForgeRegistries.ITEMS.getKey(item.asItem());
+        var id = BuiltInRegistries.ITEM.getKey(item.asItem());
         if (id != null) {
             return id.toString();
         }

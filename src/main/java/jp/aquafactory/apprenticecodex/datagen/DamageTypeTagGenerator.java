@@ -25,6 +25,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMPOUND_PHIAL;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FEATHER_RUSH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FLY_SWATTER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRIND_RUNNER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;

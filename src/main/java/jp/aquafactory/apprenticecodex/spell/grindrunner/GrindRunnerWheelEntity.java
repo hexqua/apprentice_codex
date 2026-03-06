@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -23,27 +24,27 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
@@ -119,8 +120,8 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(ANIMATION_SPEED, NORMAL_ANIMATION_SPEED);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(ANIMATION_SPEED, NORMAL_ANIMATION_SPEED);
     }
 
     @Override
@@ -245,7 +246,6 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         stoppedTick = 0;
         lastLaunchDirection = launchDir.normalize();
         setNoGravity(false);
-        setMaxUpStep(1.0f);
         setDeltaMovement(lastLaunchDirection.scale(launchSpeed));
         setAnimationSpeed(NORMAL_ANIMATION_SPEED);
         AudioTools.playSoundFromEntity(level(), this, SoundRegistry.WHEEL_LAUNCH.get(), SoundSource.PLAYERS);
@@ -621,13 +621,13 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         var createRecipe = findCreateCrushingRecipe(level, inputStack);
         if (createRecipe.isPresent()) {
             // Create 側は加工可能判定をレシピ準拠にし、NBT/非スタック保護を無効化して扱う.
-            var createOutputs = rollCreateCrushingOutputs(level, createRecipe.get(), processCount);
+            var createOutputs = rollCreateCrushingOutputs(level, createRecipe.get().value(), processCount);
             if (createOutputs.isPresent()) {
                 applyProcessingResult(level, itemEntity, createOutputs.get(), processCount);
                 return processCount;
             }
 
-            logCreateReflectionFailureOnce(createRecipe.get().getId());
+            logCreateReflectionFailureOnce(createRecipe.get().id());
         }
 
         var recipe = findProcessingRecipe(level, inputStack);
@@ -655,31 +655,32 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
 
         // 個体差のある非スタック/NBT付きアイテムは既定で加工対象外にして、意図しない変換や競合を避ける.
-        return stack.isStackable() && !stack.hasTag();
+        return stack.isStackable() && stack.isComponentsPatchEmpty();
     }
 
     private Optional<GrindRunnerRecipe> findProcessingRecipe(ServerLevel level, ItemStack inputStack) {
         var recipeManager = level.getRecipeManager();
-        var input = new SimpleContainer(inputStack.copyWithCount(1));
+        var input = new SingleRecipeInput(inputStack.copyWithCount(1));
         return recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).stream()
+                .map(RecipeHolder::value)
                 .filter(recipe -> recipe.matches(input, level))
                 .filter(recipe -> canProcessInputItem(recipe, inputStack))
                 .findFirst();
     }
 
-    private Optional<Recipe<?>> findCreateCrushingRecipe(ServerLevel level, ItemStack inputStack) {
+    private Optional<RecipeHolder<?>> findCreateCrushingRecipe(ServerLevel level, ItemStack inputStack) {
         if (!ModList.get().isLoaded(CREATE_MOD_ID)) {
             return Optional.empty();
         }
 
-        RecipeType<?> createCrushingType = ForgeRegistries.RECIPE_TYPES.getValue(CREATE_CRUSHING_RECIPE_TYPE_ID);
+        RecipeType<?> createCrushingType = BuiltInRegistries.RECIPE_TYPE.getOptional(CREATE_CRUSHING_RECIPE_TYPE_ID).orElse(null);
         if (createCrushingType == null) {
             return Optional.empty();
         }
 
         return level.getRecipeManager().getRecipes().stream()
-                .filter(recipe -> recipe.getType() == createCrushingType)
-                .filter(recipe -> matchesCreateCrushingInput(recipe, inputStack))
+                .filter(recipe -> recipe.value().getType() == createCrushingType)
+                .filter(recipe -> matchesCreateCrushingInput(recipe.value(), inputStack))
                 .findFirst();
     }
 

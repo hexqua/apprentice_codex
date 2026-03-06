@@ -1,76 +1,44 @@
 package jp.aquafactory.apprenticecodex.recipe.grindrunner;
 
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonObject;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
 
 public final class GrindRunnerRecipeSerializer implements RecipeSerializer<GrindRunnerRecipe> {
     private static final String ALLOW_UNSTACKABLE_AND_TAGGED_INPUT = "allow_unstackable_and_tagged_input";
 
+    private static final MapCodec<GrindRunnerRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
+            instance.group(
+                    Ingredient.CODEC.fieldOf("ingredient").forGetter(GrindRunnerRecipe::getIngredient),
+                    ItemStack.STRICT_CODEC.listOf().fieldOf("results").forGetter(GrindRunnerRecipe::getResultTemplates),
+                    Codec.BOOL.optionalFieldOf(ALLOW_UNSTACKABLE_AND_TAGGED_INPUT, false)
+                            .forGetter(GrindRunnerRecipe::allowsUnstackableAndTaggedInput)
+            ).apply(instance, GrindRunnerRecipe::new)
+    );
+
+    private static final StreamCodec<RegistryFriendlyByteBuf, GrindRunnerRecipe> STREAM_CODEC = StreamCodec.composite(
+            Ingredient.CONTENTS_STREAM_CODEC,
+            GrindRunnerRecipe::getIngredient,
+            ItemStack.LIST_STREAM_CODEC,
+            GrindRunnerRecipe::getResultTemplates,
+            ByteBufCodecs.BOOL,
+            GrindRunnerRecipe::allowsUnstackableAndTaggedInput,
+            GrindRunnerRecipe::new
+    );
+
     @Override
-    public @NotNull GrindRunnerRecipe fromJson(@NotNull ResourceLocation recipeId, @NotNull JsonObject json) {
-        var ingredient = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "ingredient"));
-        var allowUnstackableAndTaggedInput = GsonHelper.getAsBoolean(json, ALLOW_UNSTACKABLE_AND_TAGGED_INPUT, false);
-        var results = readResultsFromJson(json);
-        return new GrindRunnerRecipe(recipeId, ingredient, results, allowUnstackableAndTaggedInput);
+    public MapCodec<GrindRunnerRecipe> codec() {
+        return CODEC;
     }
 
     @Override
-    public @Nullable GrindRunnerRecipe fromNetwork(@NotNull ResourceLocation recipeId, @NotNull FriendlyByteBuf buffer) {
-        var ingredient = Ingredient.fromNetwork(buffer);
-        var allowUnstackableAndTaggedInput = buffer.readBoolean();
-        var resultCount = buffer.readVarInt();
-        var results = new ArrayList<ItemStack>(resultCount);
-        for (var i = 0; i < resultCount; i++) {
-            results.add(buffer.readItem());
-        }
-        return new GrindRunnerRecipe(recipeId, ingredient, results, allowUnstackableAndTaggedInput);
-    }
-
-    @Override
-    public void toNetwork(@NotNull FriendlyByteBuf buffer, @NotNull GrindRunnerRecipe recipe) {
-        recipe.getIngredient().toNetwork(buffer);
-        buffer.writeBoolean(recipe.allowsUnstackableAndTaggedInput());
-        var results = recipe.getResultTemplates();
-        buffer.writeVarInt(results.size());
-        for (var result : results) {
-            buffer.writeItem(result);
-        }
-    }
-
-    private static ArrayList<ItemStack> readResultsFromJson(JsonObject json) {
-        var results = new ArrayList<ItemStack>();
-        if (json.has("results")) {
-            var array = GsonHelper.getAsJsonArray(json, "results");
-            for (var element : array) {
-                if (!element.isJsonObject()) {
-                    continue;
-                }
-                var stack = ShapedRecipe.itemStackFromJson(element.getAsJsonObject());
-                if (!stack.isEmpty() && stack.getCount() > 0) {
-                    results.add(stack);
-                }
-            }
-        } else if (json.has("result")) {
-            var stack = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
-            if (!stack.isEmpty() && stack.getCount() > 0) {
-                results.add(stack);
-            }
-        }
-
-        if (!results.isEmpty()) {
-            return results;
-        }
-        throw new JsonParseException("GrindRunner recipe must have at least one output in result/results.");
+    public StreamCodec<RegistryFriendlyByteBuf, GrindRunnerRecipe> streamCodec() {
+        return STREAM_CODEC;
     }
 }

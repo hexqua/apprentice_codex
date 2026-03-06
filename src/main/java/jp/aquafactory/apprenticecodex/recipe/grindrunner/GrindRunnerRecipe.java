@@ -2,48 +2,44 @@ package jp.aquafactory.apprenticecodex.recipe.grindrunner;
 
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class GrindRunnerRecipe implements Recipe<Container> {
-    private final ResourceLocation id;
+public final class GrindRunnerRecipe implements Recipe<SingleRecipeInput> {
     private final Ingredient ingredient;
     private final List<ItemStack> results;
     private final boolean allowUnstackableAndTaggedInput;
 
     public GrindRunnerRecipe(
-            ResourceLocation id,
             Ingredient ingredient,
             List<ItemStack> results,
             boolean allowUnstackableAndTaggedInput
     ) {
-        this.id = id;
         this.ingredient = ingredient;
         this.results = sanitizeResults(results);
         this.allowUnstackableAndTaggedInput = allowUnstackableAndTaggedInput;
     }
 
     @Override
-    public boolean matches(Container input, Level level) {
-        if (input.getContainerSize() <= 0) {
+    public boolean matches(SingleRecipeInput input, Level level) {
+        if (input.size() <= 0) {
             return false;
         }
         return ingredient.test(input.getItem(0));
     }
 
     @Override
-    public @NotNull ItemStack assemble(Container input, RegistryAccess registryAccess) {
+    public @NotNull ItemStack assemble(SingleRecipeInput input, HolderLookup.Provider registries) {
         return getResultTemplate();
     }
 
@@ -53,13 +49,8 @@ public final class GrindRunnerRecipe implements Recipe<Container> {
     }
 
     @Override
-    public @NotNull ItemStack getResultItem(RegistryAccess registryAccess) {
+    public @NotNull ItemStack getResultItem(HolderLookup.Provider registries) {
         return getResultTemplate();
-    }
-
-    @Override
-    public @NotNull ResourceLocation getId() {
-        return id;
     }
 
     @Override
