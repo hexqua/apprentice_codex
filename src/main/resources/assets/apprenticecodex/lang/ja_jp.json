@@ -200,8 +200,7 @@
   "death.attack.apprenticecodex.thermal_process": "%1$sは%2$sによって汚物として消毒された",
   "death.attack.apprenticecodex.moon_light": "%1$sは%2$sによって存在を消された",
   "death.attack.apprenticecodex.precision_jack": "%1$sは%2$sに解体された",
-  "death.attack.apprenticecodex.grind_runner": "%1$sは%2$sによってハンバーグとして調理された",
-  "death.attack.apprenticecodex.grind_runner.self": "%1$sは何を見てヨシといったのかわからないままになった",
+  "death.attack.apprenticecodex.grind_runner": "%1$sは%2$sによって何を見てヨシといったのかわからないままになった",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

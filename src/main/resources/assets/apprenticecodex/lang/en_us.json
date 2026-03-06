@@ -200,8 +200,7 @@
   "death.attack.apprenticecodex.thermal_process": "%1$s was sterilized as filth by %2$s",
   "death.attack.apprenticecodex.moon_light": "%1$s was erased from existence by %2$s",
   "death.attack.apprenticecodex.precision_jack": "%1$s was disassembled by %2$s",
-  "death.attack.apprenticecodex.grind_runner": "%1$s was ground into hamburger by %2$s",
-  "death.attack.apprenticecodex.grind_runner.self": "%1$s never found out what made this \"OSHA-approved.\"",
+  "death.attack.apprenticecodex.grind_runner": "%1$s never found out what made this \"OSHA-approved.\" by %2$s",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",
