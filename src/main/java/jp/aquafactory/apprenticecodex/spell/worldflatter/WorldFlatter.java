@@ -28,6 +28,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,8 +89,12 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
     }
 
     public static ItemStack createDummyTool(@Nullable LivingEntity entity) {
-        var baseTool = new ItemStack(Items.IRON_PICKAXE);
+        var baseTool = new ItemStack(CraftsmansDelight.isEquippedBy(entity) ? Items.NETHERITE_PICKAXE : Items.IRON_PICKAXE);
         return CraftsmansDelight.applyEnchantsToTool(baseTool, entity);
+    }
+
+    public static Tier getHarvestTier(@Nullable LivingEntity entity) {
+        return CraftsmansDelight.isEquippedBy(entity) ? Tiers.NETHERITE : Tiers.IRON;
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){
