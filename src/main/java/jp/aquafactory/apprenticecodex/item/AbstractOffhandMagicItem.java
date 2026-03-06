@@ -14,6 +14,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
@@ -48,10 +49,11 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
     protected AbstractOffhandMagicItem(
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
+            Rarity rarity,
             String itemKey,
             List<AttributeBonus> offhandBonuses
     ) {
-        super(new Item.Properties().stacksTo(1));
+        super(createProperties(rarity));
         this.configuredSpell = Objects.requireNonNull(configuredSpell);
         this.configuredSpellLevel = configuredSpellLevel;
         this.startsWithPresetSpell = true;
@@ -64,17 +66,37 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
             String itemKey,
+            List<AttributeBonus> offhandBonuses
+    ) {
+        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, offhandBonuses);
+    }
+
+    protected AbstractOffhandMagicItem(
+            Supplier<? extends AbstractSpell> configuredSpell,
+            int configuredSpellLevel,
+            Rarity rarity,
+            String itemKey,
             AttributeBonus... offhandBonuses
     ) {
-        this(configuredSpell, configuredSpellLevel, itemKey, List.of(offhandBonuses));
+        this(configuredSpell, configuredSpellLevel, rarity, itemKey, List.of(offhandBonuses));
+    }
+
+    protected AbstractOffhandMagicItem(
+            Supplier<? extends AbstractSpell> configuredSpell,
+            int configuredSpellLevel,
+            String itemKey,
+            AttributeBonus... offhandBonuses
+    ) {
+        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, List.of(offhandBonuses));
     }
 
     // 空スロットで開始し、Imbue による魔法追加だけを受け付けたいアイテム向けコンストラクタ.
     protected AbstractOffhandMagicItem(
+            Rarity rarity,
             String itemKey,
             List<AttributeBonus> offhandBonuses
     ) {
-        super(new Item.Properties().stacksTo(1));
+        super(createProperties(rarity));
         this.configuredSpell = null;
         this.configuredSpellLevel = 0;
         this.startsWithPresetSpell = false;
@@ -85,9 +107,24 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
 
     protected AbstractOffhandMagicItem(
             String itemKey,
+            List<AttributeBonus> offhandBonuses
+    ) {
+        this(Rarity.COMMON, itemKey, offhandBonuses);
+    }
+
+    protected AbstractOffhandMagicItem(
+            Rarity rarity,
+            String itemKey,
             AttributeBonus... offhandBonuses
     ) {
-        this(itemKey, List.of(offhandBonuses));
+        this(rarity, itemKey, List.of(offhandBonuses));
+    }
+
+    protected AbstractOffhandMagicItem(
+            String itemKey,
+            AttributeBonus... offhandBonuses
+    ) {
+        this(Rarity.COMMON, itemKey, List.of(offhandBonuses));
     }
 
     @Override
@@ -338,6 +375,10 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
                 .replace(':', '.')
                 .replace('/', '.')
                 .replaceAll("[^a-z0-9._-]", "_");
+    }
+
+    private static Item.Properties createProperties(Rarity rarity) {
+        return new Item.Properties().stacksTo(1).rarity(Objects.requireNonNull(rarity));
     }
 
     // `bonus` ヘルパーは属性参照の受け取り方ごとにオーバーロードしている.

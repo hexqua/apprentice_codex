@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -13,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class GrimoireManifest extends Item implements IPresetSpellContainer {
+public class GrimoireManifest extends Item implements IPresetSpellContainer, UniqueItem {
     public GrimoireManifest() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC));
     }
 
     @Override
