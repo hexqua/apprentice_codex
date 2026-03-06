@@ -1,12 +1,12 @@
 {
   "type": "apprenticecodex:grind_runner",
   "ingredient": {
-    "item": "minecraft:gravel"
+    "item": "minecraft:cobblestone"
   },
   "results": [
     {
       "count": 1,
-      "item": "minecraft:sand"
+      "id": "minecraft:gravel"
     }
   ]
 }

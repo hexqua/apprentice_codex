@@ -6,11 +6,11 @@
   "results": [
     {
       "count": 1,
-      "item": "minecraft:leather"
+      "id": "minecraft:leather"
     },
     {
       "count": 3,
-      "item": "minecraft:paper"
+      "id": "minecraft:paper"
     }
   ]
 }

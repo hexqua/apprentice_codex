@@ -1,12 +1,12 @@
 {
   "type": "apprenticecodex:grind_runner",
   "ingredient": {
-    "item": "minecraft:cobblestone"
+    "item": "minecraft:amethyst_block"
   },
   "results": [
     {
-      "count": 1,
-      "item": "minecraft:gravel"
+      "count": 4,
+      "id": "minecraft:amethyst_shard"
     }
   ]
 }

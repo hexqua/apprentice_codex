@@ -2,12 +2,12 @@
   "type": "apprenticecodex:grind_runner",
   "allow_unstackable_and_tagged_input": true,
   "ingredient": {
-    "item": "minecraft:stone_sword"
+    "item": "irons_spellbooks:visibility_ring"
   },
   "results": [
     {
-      "count": 2,
-      "item": "minecraft:cobblestone"
+      "count": 1,
+      "id": "irons_spellbooks:mithril_scrap"
     }
   ]
 }

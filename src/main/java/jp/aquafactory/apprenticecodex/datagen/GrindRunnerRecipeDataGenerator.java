@@ -23,7 +23,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
     private final PackOutput.PathProvider pathProvider;
 
     public GrindRunnerRecipeDataGenerator(PackOutput output) {
-        this.pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "recipes/grind_runner");
+        this.pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "recipe/grind_runner");
     }
 
     @Override
@@ -118,7 +118,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
         var resultsArray = new JsonArray();
         for (var resultEntry : results) {
             var result = new JsonObject();
-            result.addProperty("item", itemId(resultEntry.item()));
+            result.addProperty("id", itemId(resultEntry.item()));
             result.addProperty("count", Math.max(1, resultEntry.count()));
             resultsArray.add(result);
         }

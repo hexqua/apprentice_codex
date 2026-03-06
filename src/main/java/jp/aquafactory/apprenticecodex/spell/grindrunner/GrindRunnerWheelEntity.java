@@ -659,12 +659,23 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
     }
 
     private Optional<GrindRunnerRecipe> findProcessingRecipe(ServerLevel level, ItemStack inputStack) {
+        var rawRecipe = findProcessingRecipeIgnoringInputGuard(level, inputStack);
+        return rawRecipe.filter(recipe -> canProcessInputItem(recipe, inputStack));
+    }
+
+    private Optional<GrindRunnerRecipe> findProcessingRecipeIgnoringInputGuard(ServerLevel level, ItemStack inputStack) {
         var recipeManager = level.getRecipeManager();
         var input = new SingleRecipeInput(inputStack.copyWithCount(1));
-        return recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).stream()
+        var directMatch = recipeManager.getRecipeFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get(), input, level);
+        if (directMatch.isPresent()) {
+            return Optional.of(directMatch.get().value());
+        }
+
+        return recipeManager.getRecipes().stream()
                 .map(RecipeHolder::value)
+                .filter(GrindRunnerRecipe.class::isInstance)
+                .map(GrindRunnerRecipe.class::cast)
                 .filter(recipe -> recipe.matches(input, level))
-                .filter(recipe -> canProcessInputItem(recipe, inputStack))
                 .findFirst();
     }
 
