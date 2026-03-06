@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDesk;
+import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJar;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +23,9 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> APPRENTICE_DESK =
             BLOCKS.register("apprentice_desk", ApprenticeDesk::new);
+
+    public static final DeferredHolder<Block, Block> ARCANUM_IN_A_JAR =
+            BLOCKS.register("arcanum_in_a_jar", ArcanumInAJar::new);
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

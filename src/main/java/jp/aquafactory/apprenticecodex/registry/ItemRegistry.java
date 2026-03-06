@@ -41,6 +41,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
+    public static final DeferredHolder<Item, Item> ARCANUM_IN_A_JAR = block("arcanum_in_a_jar", BlockRegistry.ARCANUM_IN_A_JAR);
 
     public static final DeferredHolder<Item, Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);

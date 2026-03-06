@@ -44,6 +44,7 @@
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
   "block.apprenticecodex.apprentice_desk" : "見習い用の机",
+  "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの神秘",
 
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
   "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",
