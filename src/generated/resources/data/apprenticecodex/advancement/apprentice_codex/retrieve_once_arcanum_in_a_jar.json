@@ -1,0 +1,27 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_arcanum_in_a_jar",
+  "criteria": {
+    "retrieve_arcane_essence": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "irons_spellbooks:arcane_essence"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title"
+    }
+  },
+  "requirements": [
+    [
+      "retrieve_arcane_essence"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

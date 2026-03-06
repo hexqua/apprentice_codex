@@ -28,6 +28,9 @@
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
   "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
+  "block.apprenticecodex.arcanum_in_a_jar" : "Arcanum in a Jar",
+
+  "block.apprenticecodex.arcanum_in_a_jar.fill": "Powder is dancing mysteriously inside.",
 
   "entity.apprenticecodex.sky_edge_projectile" : "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow" : "Archer Multiple Bow",
@@ -168,6 +171,8 @@
   "ui.apprenticecodex.recepted_pastel_magic": "Bound \"%s\" magic to the staff!",
   "ui.apprenticecodex.unsatisfied_max_mana_for_enchant": "You need %2$d maximum mana to seal arcane power into %1$s!",
   "ui.apprenticecodex.cant_spawn_in_air": "Can't spawn in air!",
+  "ui.apprenticecodex.not_stored_essence": "No essence has built up in the bottle yet... it needs more time.",
+  "ui.apprenticecodex.not_open_top": "The top is blocked by an obstacle, so the lid can't be opened...",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.palette_reception": "Reception Mode",
@@ -206,6 +211,12 @@
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",
   "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.title": "99% Inspiration, 1% Effort",
   "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.description": "Craft Apprentice's desk.",
+  "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.title": "If Fairies and Clouds Work, Then This Will Too",
+  "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.description": "Craft Arcanum in a Jar.",
+  "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title": "Not Going on a Hunt?",
+  "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description": "Obtain Arcane Essence from Arcanum in a Jar.",
+  "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title": "This Isn't a Solar Generator, You Know",
+  "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.description": "Retrieve it when Arcanum in a Jar is fully charged.",
   "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.title": "A Simple Application of Dimensional Linking",
   "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.description": "Obtain an Ender Grimoire using Grimoire Manifest.",
   "advancements.apprenticecodex.apprentice_codex.craft_pastel_staff.title": "That Perfectly Balanced Staff!",

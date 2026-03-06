@@ -1,0 +1,29 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_arcanum_in_a_jar": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:arcanum_in_a_jar"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:arcanum_in_a_jar"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_arcanum_in_a_jar"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
