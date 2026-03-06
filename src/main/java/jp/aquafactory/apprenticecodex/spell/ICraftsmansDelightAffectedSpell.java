@@ -5,6 +5,10 @@ public interface ICraftsmansDelightAffectedSpell {
         return true;
     }
 
+    default boolean isCraftsmansDelightProcessSpeedBonusEnabled() {
+        return true;
+    }
+
     default boolean isCraftsmansDelightManaCostDiscountEnabled() {
         return true;
     }
