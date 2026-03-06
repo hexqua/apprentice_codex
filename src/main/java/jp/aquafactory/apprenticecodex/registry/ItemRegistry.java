@@ -39,6 +39,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
+    public static final RegistryObject<Item> ARCANUM_IN_A_JAR = block("arcanum_in_a_jar", BlockRegistry.ARCANUM_IN_A_JAR);
 
     public static final RegistryObject<Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);
