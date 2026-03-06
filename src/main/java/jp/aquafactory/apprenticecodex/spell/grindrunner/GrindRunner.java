@@ -9,9 +9,11 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
@@ -31,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntity> {
+public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntity> implements ICraftsmansDelightAffectedSpell {
     private static final double SUMMON_RANGE = 8.0;
     private static final double SUMMON_ENTITY_HITBOX_WIDTH = 0.6;
     private static final double SUMMON_BLOCK_SIDE_OFFSET = 0.6;
@@ -71,7 +73,12 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
     }
 
     private float getGrindItemPerSecond(int spellLevel, LivingEntity entity) {
-        return 8 * getSpellPower(spellLevel, entity) / 100.0f;
+        var baseProcessSpeed = 8 * getSpellPower(spellLevel, entity) / 100.0f;
+        if (!isCraftsmansDelightProcessSpeedBonusEnabled()) {
+            return baseProcessSpeed;
+        }
+
+        return CraftsmansDelight.applyProcessSpeedBonus(baseProcessSpeed, entity);
     }
 
     @Override

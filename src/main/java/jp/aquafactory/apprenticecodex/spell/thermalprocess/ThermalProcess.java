@@ -12,8 +12,10 @@ import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -26,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThrowerEntity> {
+public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThrowerEntity> implements ICraftsmansDelightAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "thermal_process");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -64,7 +66,12 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     }
 
     private float getBurnItemPerSecond(int spellLevel, LivingEntity entity) {
-        return 4 * getSpellPower(spellLevel, entity) / 100.0f;
+        var baseProcessSpeed = 4 * getSpellPower(spellLevel, entity) / 100.0f;
+        if (!isCraftsmansDelightProcessSpeedBonusEnabled()) {
+            return baseProcessSpeed;
+        }
+
+        return CraftsmansDelight.applyProcessSpeedBonus(baseProcessSpeed, entity);
     }
 
     @Override
