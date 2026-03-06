@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -49,9 +50,9 @@ public class ApprenticeCodex
         MenuRegistry.register(modEventBus);
         CreativeTabRegistry.register(modEventBus);
         ParticleRegistry.PARTICLES.register(modEventBus);
+        RecipeRegistry.register(modEventBus);
         RecipeConditionRegistry.register(modEventBus);
         AttachmentRegistry.register(modEventBus);
-
         CodexSpellStateTypeRegister.register();
         Networks.register(modEventBus);
 

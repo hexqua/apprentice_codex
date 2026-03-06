@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "minecraft:bone"
+  },
+  "results": [
+    {
+      "count": 6,
+      "id": "minecraft:bone_meal"
+    }
+  ]
+}

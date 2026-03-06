@@ -33,6 +33,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> THERMAL_PROCESS = register("thermal_process");
     public static final ResourceKey<DamageType> MOON_LIGHT = register("moon_light");
     public static final ResourceKey<DamageType> PRECISION_JACK = register("precision_jack");
+    public static final ResourceKey<DamageType> GRIND_RUNNER = register("grind_runner");
 
 
     private static ResourceKey<DamageType> register(String name){
@@ -71,5 +72,6 @@ public final class DamageTypes {
         context.register(THERMAL_PROCESS, createTemplate(THERMAL_PROCESS));
         context.register(MOON_LIGHT, createTemplate(MOON_LIGHT));
         context.register(PRECISION_JACK, createTemplate(PRECISION_JACK));
+        context.register(GRIND_RUNNER, createTemplate(GRIND_RUNNER));
     }
 }

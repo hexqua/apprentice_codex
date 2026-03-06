@@ -50,7 +50,7 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1)),
-                Component.translatable("ui.apprenticecodex.furnace_item_per_second", Utils.stringTruncation(getBurnItemPerSecond(spellLevel, caster), 1))
+                Component.translatable("ui.apprenticecodex.process_item_per_second", Utils.stringTruncation(getBurnItemPerSecond(spellLevel, caster), 1))
         );
     }
 

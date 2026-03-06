@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
+import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutEntity;
@@ -133,6 +134,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<WorldFlatterDrillEntity>> WORLD_FLATTER_DRILL =
             regWeapon("world_flatter_drill", WorldFlatterDrillEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<GrindRunnerWheelEntity>> GRIND_RUNNER_WHEEL =
+            regWeapon("grind_runner_wheel", GrindRunnerWheelEntity::new, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<SlashBladeKatanaEntity>> SLASH_BLADE_KATANA =
             regWeapon("slash_blade_katana", SlashBladeKatanaEntity::new, 1);

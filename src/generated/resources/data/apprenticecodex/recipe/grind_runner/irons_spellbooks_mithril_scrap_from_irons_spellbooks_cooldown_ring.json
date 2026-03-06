@@ -1,0 +1,13 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "allow_unstackable_and_tagged_input": true,
+  "ingredient": {
+    "item": "irons_spellbooks:cooldown_ring"
+  },
+  "results": [
+    {
+      "count": 1,
+      "id": "irons_spellbooks:mithril_scrap"
+    }
+  ]
+}

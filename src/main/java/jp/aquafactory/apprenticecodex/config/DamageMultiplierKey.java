@@ -21,7 +21,9 @@ public enum DamageMultiplierKey {
     MOON_LIGHT("moonLight"),
     QUICK_ARMS("quickArms"),
     MANA_CHARGE("manaCharge"),
-    PRECISION_JACK("precisionJack");
+    PRECISION_JACK("precisionJack"),
+    GRIND_RUNNER("grindRunner"),
+    ;
 
     private final String configKey;
 

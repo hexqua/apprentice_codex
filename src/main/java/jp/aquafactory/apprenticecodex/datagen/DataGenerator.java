@@ -27,6 +27,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));
         generator.addProvider(event.includeServer(), new EnchantmentTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new RecipeGenerator(output, lookupProvider));
+        generator.addProvider(event.includeServer(), new GrindRunnerRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new LootTableGenerator(output, lookupProvider));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new AdvancementProvider(output, lookupProvider, existing, List.of(new AdvancementGenerator())));

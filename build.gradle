@@ -114,6 +114,10 @@ dependencies {
     runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
     runtimeOnly "curse.maven:playeranimator-658587:6024462"
 
+    // Create.
+    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
+    // runtimeOnly fg.deobf("curse.maven:create-328085:7178761")
+
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"

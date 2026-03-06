@@ -59,6 +59,24 @@
       "apprenticecodex:saw_stop"
     ]
   },
+  "wheel_launch": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:wheel_launch"
+    ]
+  },
+  "wheel_process": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:wheel_process"
+    ]
+  },
+  "wheel_spinup": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:wheel_spinup"
+    ]
+  },
   "cloud_rain": {
     "category": "player",
     "sounds": [

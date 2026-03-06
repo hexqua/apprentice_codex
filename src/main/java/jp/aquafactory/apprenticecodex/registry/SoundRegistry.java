@@ -43,6 +43,9 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> FORCE_FIELD_ACTIVATE = reg("force_field_activate");
     public static final DeferredHolder<SoundEvent, SoundEvent> KATANA_SLASH = reg("katana_slash");
     public static final DeferredHolder<SoundEvent, SoundEvent> MOON_LIGHT_DIMENSION = reg("moon_light_dimension");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WHEEL_LAUNCH = reg("wheel_launch");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WHEEL_PROCESS = reg("wheel_process");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WHEEL_SPINUP = reg("wheel_spinup");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
