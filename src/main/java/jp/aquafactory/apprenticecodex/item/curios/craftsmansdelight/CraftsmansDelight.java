@@ -42,7 +42,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
 
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmansdelight.desc_";
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
     private static final List<RegistryObject<AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.TINY_LUMBERJACK,
             SpellRegistry.WORLD_FLATTER,
