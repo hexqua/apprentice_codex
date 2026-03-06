@@ -27,6 +27,7 @@
   "jei.apprenticecodex.craftsmans_delight.desc_3": "For spells that process items, the number of items processed at once increases.",
   "jei.apprenticecodex.craftsmans_delight.desc_4": "The following spell also gains an additional effect:",
   "jei.apprenticecodex.craftsmans_delight.desc_5": "• World Flatter: Increases block-breaking power from iron-tier to netherite-tier.",
+  "jei.apprenticecodex.craftsmans_delight.desc_6": "• Grind Runner: When the laws of gears are present (Create installed), the list of grindable items changes to match Crushing Wheel processing.",
   "jei.apprenticecodex.protection_spell_supporter.desc_1": "Modifies the spells below and reduces their mana cost while they are active.",
   "jei.apprenticecodex.protection_spell_supporter.desc_2": "• Force Field: Can block attacks that a shield cannot.",
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "• Phalanx Charge: Increases movement speed while guarding with the shield.",
@@ -149,7 +150,7 @@
   "spell.apprenticecodex.force_field.guide": "Deploys an invisible field that repels enemy attacks from any direction. It consumes a large amount of mana when it knocks something away, but it can also repel certain spells. An imitation of the magic used by a long-lived race from another realm.",
   "spell.apprenticecodex.precision_jack.guide": "Summon a magical knife to cleave your target. Expect a lot more drops than usual, but you need to rotate a significant number of times before it can be activated.",
   "spell.apprenticecodex.auto_magnet.guide": "Summon a magical magnet to follow you. The magnet will collect nearby items and experience orbs and transfer them to you.",
-  "spell.apprenticecodex.grind_runner.guide": "Summons an arcane wheel to grind down whatever is in front of you. It can grind not only mobs, but also certain items. Release your magic to launch the wheel. When the laws of gears are present (Create installed), the list of grindable items changes to match Crushing Wheel processing.",
+  "spell.apprenticecodex.grind_runner.guide": "Summons an arcane wheel to grind down whatever is in front of you. It can grind not only mobs, but also certain items. Release your magic to launch the wheel.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",

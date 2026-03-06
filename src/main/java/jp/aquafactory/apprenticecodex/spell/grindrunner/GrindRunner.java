@@ -152,7 +152,7 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
     }
 
     private double getLaunchSpeed(int spellLevel, LivingEntity entity) {
-        return 1.15 + 0.15 * getSpellPower(spellLevel, entity) / 100.0;
+        return 0.9 + 0.05 * getSpellPower(spellLevel, entity) / 100.0;
     }
 
     private static int resolveCastTicks(MagicData playerMagicData) {
