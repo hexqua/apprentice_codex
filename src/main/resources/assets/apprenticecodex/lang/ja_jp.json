@@ -27,6 +27,7 @@
   "jei.apprenticecodex.craftsmans_delight.desc_3": "アイテムを加工する魔法の場合は一度に加工できるアイテム数が上昇する。",
   "jei.apprenticecodex.craftsmans_delight.desc_4": "また、下記の魔法は追加で効果を得る。",
   "jei.apprenticecodex.craftsmans_delight.desc_5": "• ワールドフラッター：ブロックの破壊レベルが鉄ツールからネザライトツール相当に上昇。",
+  "jei.apprenticecodex.craftsmans_delight.desc_6": "• グラインドランナー：歯車の理が入っている時に削れるアイテムが追加される。",
   "jei.apprenticecodex.protection_spell_supporter.desc_1": "下記の魔法の性能を変化させ、使用中のマナ消費量も減少させる。",
   "jei.apprenticecodex.protection_spell_supporter.desc_2": "• フォースフィールド：盾で防げない攻撃も防げるようになる。",
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "• ファランクスチャージ：盾を構えた時の移動速度が上昇する。",
@@ -149,7 +150,7 @@
   "spell.apprenticecodex.force_field.guide": "敵の攻撃を方向問わず弾く不可視のフィールドを展開する。弾き飛ばした際に大きくマナを消費するが特定の魔法も弾くことができる。異界の長命種の魔法の模造品。",
   "spell.apprenticecodex.precision_jack.guide": "魔法のナイフを召喚して目の前の対象を裂く。普段よりかなり多くのドロップを期待できるが、発動までに相当数回転させる必要がある。",
   "spell.apprenticecodex.auto_magnet.guide": "魔導仕掛けの磁石を召喚し追従させる。磁石は近くのアイテムと経験値オーブを回収して術者へ転送させる。",
-  "spell.apprenticecodex.grind_runner.guide": "魔導ホイールを召喚して目の前の対象を削り下ろす。モブだけでなく一部アイテムも削ることができる。魔力を解放するとホイールを射出する。歯車の理が入っていると削れるアイテムが変化する。",
+  "spell.apprenticecodex.grind_runner.guide": "魔導ホイールを召喚して目の前の対象を削り下ろす。モブだけでなく一部アイテムも削ることができる。魔力を解放するとホイールを射出する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",

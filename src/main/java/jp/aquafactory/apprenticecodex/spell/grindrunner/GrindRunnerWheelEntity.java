@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.grindrunner;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -619,7 +620,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
 
         var createRecipe = findCreateCrushingRecipe(level, inputStack);
-        if (createRecipe.isPresent()) {
+        if (createRecipe.isPresent() && CraftsmansDelight.isEquippedBy(getOwner() instanceof LivingEntity owner ? owner : null)) {
             // Create 側は加工可能判定をレシピ準拠にし、NBT/非スタック保護を無効化して扱う.
             var createOutputs = rollCreateCrushingOutputs(level, createRecipe.get().value(), processCount);
             if (createOutputs.isPresent()) {
