@@ -169,6 +169,8 @@
   "ui.apprenticecodex.recepted_pastel_magic": "\"%s\"の魔力を杖に封じ込めた！",
   "ui.apprenticecodex.unsatisfied_max_mana_for_enchant": "%1$sに魔力を封じ込めるには最大マナが%2$d必要だ！",
   "ui.apprenticecodex.cant_spawn_in_air": "空中には呼び出せない！",
+  "ui.apprenticecodex.not_stored_essence": "瓶には何も溜まっていない...長い時間が必要だ",
+  "ui.apprenticecodex.not_open_top": "上の障害物が邪魔で蓋が開けられない...",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",

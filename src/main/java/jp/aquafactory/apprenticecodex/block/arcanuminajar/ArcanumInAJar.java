@@ -1,7 +1,9 @@
 package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,10 +12,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -26,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
-public class ArcanumInAJar extends Block implements EntityBlock {
+public class ArcanumInAJar extends BaseEntityBlock {
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     private static final VoxelShape SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 14.0D, 13.0D);
 
@@ -44,6 +49,12 @@ public class ArcanumInAJar extends Block implements EntityBlock {
     @Override
     public @Nullable BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
         return defaultBlockState().setValue(OPEN, false);
+    }
+
+    @Override
+    public @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
+        // 瓶本体は JSON モデルで描画し、中身の演出だけを BlockEntityRenderer に委ねる.
+        return RenderShape.MODEL;
     }
 
     @Override
@@ -81,7 +92,37 @@ public class ArcanumInAJar extends Block implements EntityBlock {
     @Override
     public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
                                           @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
-        return InteractionResult.PASS;
+        if (hand != InteractionHand.MAIN_HAND) {
+            return InteractionResult.PASS;
+        }
+
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity)) {
+            return InteractionResult.PASS;
+        }
+
+        if (blockEntity.isDispensing()) {
+            blockEntity.skipDispenseSequence();
+            return InteractionResult.CONSUME;
+        }
+
+        if (isTopBlocked(level, pos)) {
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.not_open_top")
+                    .withStyle(ChatFormatting.RED), true);
+            return InteractionResult.CONSUME;
+        }
+
+        if (blockEntity.getStoredParameterCount() <= 0) {
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.not_stored_essence")
+                    .withStyle(ChatFormatting.RED), true);
+            return InteractionResult.CONSUME;
+        }
+
+        blockEntity.startDispenseSequence();
+        return InteractionResult.CONSUME;
     }
 
     @Override
@@ -96,5 +137,19 @@ public class ArcanumInAJar extends Block implements EntityBlock {
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         return BlockEntityRegistry.ARCANUM_IN_A_JAR.get().create(pos, state);
+    }
+
+    @Override
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state,
+                                                                            @NotNull BlockEntityType<T> type) {
+        return level.isClientSide ? null : createTickerHelper(
+                type,
+                BlockEntityRegistry.ARCANUM_IN_A_JAR.get(),
+                ArcanumInAJarBlockEntity::serverTick
+        );
+    }
+
+    private static boolean isTopBlocked(Level level, BlockPos pos) {
+        return level.getBlockState(pos.above()).canOcclude();
     }
 }
