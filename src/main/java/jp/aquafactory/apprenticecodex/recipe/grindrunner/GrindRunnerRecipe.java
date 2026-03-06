@@ -64,6 +64,12 @@ public final class GrindRunnerRecipe implements Recipe<SingleRecipeInput> {
     }
 
     @Override
+    public boolean isSpecial() {
+        // Grind Runner 専用の加工レシピで、レシピブック表示対象ではない。
+        return true;
+    }
+
+    @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {
         var ingredients = NonNullList.withSize(1, Ingredient.EMPTY);
         ingredients.set(0, ingredient);
