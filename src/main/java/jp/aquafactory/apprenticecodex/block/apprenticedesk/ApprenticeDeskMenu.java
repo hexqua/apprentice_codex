@@ -6,8 +6,10 @@ import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.sounds.SoundEvents;
@@ -26,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class ApprenticeDeskMenu extends AbstractContainerMenu {
     public static final int INPUT_SLOT = 0;
@@ -34,6 +37,7 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
     private static final int INVENTORY_SLOT_END = 29;
     private static final int HOTBAR_SLOT_START = 29;
     private static final int HOTBAR_SLOT_END = 38;
+    private static final int NO_TARGET_RARITY = -1;
 
     private final ContainerLevelAccess access;
     private final DataSlot selectedRecipeIndex = DataSlot.standalone();
@@ -168,11 +172,19 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
     private void refreshAvailableSpells() {
         var targetMinRarity = getTargetMinRarity();
         availableSpells.clear();
+        if (targetMinRarity == NO_TARGET_RARITY) {
+            return;
+        }
+
+        var sourceSpell = getSourceSpell();
+        var spellCraftBlacklist = getSpellCraftBlacklist();
         availableSpells.addAll(
                 SpellRegistry.getEnabledSpells()
                         .stream()
                         .filter(AbstractSpell::allowCrafting)
                         .filter(spell -> SpellConfigManager.getSpellConfigValue(spell, IronConfigParameters.MIN_RARITY).getValue() == targetMinRarity)
+                        .filter(spell -> isAllowedBySameSchoolSetting(spell, sourceSpell))
+                        .filter(spell -> !spellCraftBlacklist.contains(spell.getSpellId().toString()))
                         .toList()
         );
 
@@ -183,19 +195,59 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
     }
 
     private int getTargetMinRarity() {
-        var inputItem = inputSlot.getItem();
-        if (!isValidInputItem(inputItem) || !ISpellContainer.isSpellContainer(inputItem)) {
-            return SpellRarity.COMMON.getValue();
-        }
-
-        var spellContainer = ISpellContainer.get(inputItem);
-        if (spellContainer == null || spellContainer.isEmpty()) {
+        var sourceSpellData = getSourceSpellData();
+        if (sourceSpellData == null) {
             return SpellRarity.COMMON.getValue();
         }
 
         // Scroll は 1 スロット構成のため、先頭呪文のレアリティを基準に候補を決定する。
-        var sourceRarityValue = spellContainer.getSpellAtIndex(0).getRarity().getValue();
+        var sourceRarityValue = sourceSpellData.getRarity().getValue();
+        if (ApprenticeCodexServerConfig.apprenticeDeskDisableCommonRarityConversion()
+                && sourceRarityValue <= SpellRarity.COMMON.getValue()) {
+            return NO_TARGET_RARITY;
+        }
+
         return Math.max(sourceRarityValue - 1, SpellRarity.COMMON.getValue());
+    }
+
+    private SpellData getSourceSpellData() {
+        var inputItem = inputSlot.getItem();
+        if (!isValidInputItem(inputItem) || !ISpellContainer.isSpellContainer(inputItem)) {
+            return null;
+        }
+
+        var spellContainer = ISpellContainer.get(inputItem);
+        if (spellContainer == null || spellContainer.isEmpty()) {
+            return null;
+        }
+
+        var spellData = spellContainer.getSpellAtIndex(0);
+        return spellData == SpellData.EMPTY ? null : spellData;
+    }
+
+    private AbstractSpell getSourceSpell() {
+        var spellData = getSourceSpellData();
+        return spellData == null ? null : spellData.getSpell();
+    }
+
+    private boolean isAllowedBySameSchoolSetting(AbstractSpell spell, AbstractSpell sourceSpell) {
+        if (!ApprenticeCodexServerConfig.apprenticeDeskRequireSameSchool()) {
+            return true;
+        }
+
+        if (sourceSpell == null) {
+            return false;
+        }
+
+        return spell.getSchoolType().equals(sourceSpell.getSchoolType());
+    }
+
+    private Set<String> getSpellCraftBlacklist() {
+        if (!ApprenticeCodexServerConfig.apprenticeDeskEnableSpellCraftBlacklist()) {
+            return Set.of();
+        }
+
+        return Set.copyOf(ApprenticeCodexServerConfig.apprenticeDeskSpellCraftBlacklist());
     }
 
     private String getSchoolTypeSortKey(AbstractSpell spell) {
