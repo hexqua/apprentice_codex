@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ItemStack;
 
 public class PhotonSiphon extends AbstractOffhandMagicItem implements UniqueItem {
@@ -12,6 +13,7 @@ public class PhotonSiphon extends AbstractOffhandMagicItem implements UniqueItem
         super(
                 SpellRegistry.MANA_CHARGE,
                 1,
+                Rarity.RARE,
                 "photon_siphon",
                 bonus(AttributeRegistry.MAX_MANA, 100.0, AttributeModifier.Operation.ADD_VALUE)
         );
