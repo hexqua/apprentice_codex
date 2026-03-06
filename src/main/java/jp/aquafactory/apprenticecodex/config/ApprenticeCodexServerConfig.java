@@ -29,6 +29,22 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.arcanumInAJarTicksPerStoredParameter();
     }
 
+    public static boolean apprenticeDeskEnableSpellCraftBlacklist() {
+        return BLOCKS_CONFIG.apprenticeDeskEnableSpellCraftBlacklist();
+    }
+
+    public static java.util.List<String> apprenticeDeskSpellCraftBlacklist() {
+        return BLOCKS_CONFIG.apprenticeDeskSpellCraftBlacklist();
+    }
+
+    public static boolean apprenticeDeskRequireSameSchool() {
+        return BLOCKS_CONFIG.apprenticeDeskRequireSameSchool();
+    }
+
+    public static boolean apprenticeDeskDisableCommonRarityConversion() {
+        return BLOCKS_CONFIG.apprenticeDeskDisableCommonRarityConversion();
+    }
+
     public static float scarletThirstRequiredHealth() {
         return ITEMS_CONFIG.scarletThirstRequiredHealth();
     }
