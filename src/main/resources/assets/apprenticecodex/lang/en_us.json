@@ -30,6 +30,8 @@
   "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
   "block.apprenticecodex.arcanum_in_a_jar" : "Arcanum in a Jar",
 
+  "block.apprenticecodex.arcanum_in_a_jar.fill": "Powder is dancing mysteriously inside.",
+
   "entity.apprenticecodex.sky_edge_projectile" : "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow" : "Archer Multiple Bow",
   "entity.apprenticecodex.commence_fire_rifle" : "Magic DMR",
