@@ -39,6 +39,15 @@ public final class RecipeGenerator extends RecipeProvider {
                 .generateAdvancement()
                 .build(recipeWriter, ItemRegistry.APPRENTICE_DESK.getId());
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.ARCANUM_IN_A_JAR.get())
+                .pattern("GAG")
+                .pattern("G G")
+                .pattern("GGG")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('G', Items.GLASS_PANE)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")
                 .pattern("I I")
