@@ -24,10 +24,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -71,7 +68,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public PastelStaff() {
-        super(new Item.Properties().stacksTo(1), PASTEL_STAFF_TIER);
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC), PASTEL_STAFF_TIER);
         GeoItem.registerSyncedAnimatable(this);
     }
 
