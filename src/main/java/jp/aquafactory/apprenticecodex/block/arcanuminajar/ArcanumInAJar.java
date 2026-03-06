@@ -23,12 +23,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class ArcanumInAJar extends BaseEntityBlock {
@@ -130,7 +135,8 @@ public class ArcanumInAJar extends BaseEntityBlock {
                             LivingEntity placer, @NotNull ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity) {
-            blockEntity.initializePlacedGameTime(level.getGameTime());
+            var storedParameterCount = ArcanumInAJarBlockEntity.getStoredParameterCount(stack);
+            blockEntity.restoreStoredParameterCount(storedParameterCount, level.getGameTime());
         }
     }
 
@@ -147,6 +153,29 @@ public class ArcanumInAJar extends BaseEntityBlock {
                 BlockEntityRegistry.ARCANUM_IN_A_JAR.get(),
                 ArcanumInAJarBlockEntity::serverTick
         );
+    }
+
+    @Override
+    public @NotNull List<ItemStack> getDrops(@NotNull BlockState state, LootParams.@NotNull Builder builder) {
+        var drops = new ArrayList<>(super.getDrops(state, builder));
+        if (!(builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof ArcanumInAJarBlockEntity blockEntity)) {
+            return drops;
+        }
+
+        var storedParameterCount = blockEntity.getStoredParameterCount();
+        if (storedParameterCount <= 0) {
+            return drops;
+        }
+
+        for (var drop : drops) {
+            if (!drop.is(asItem())) {
+                continue;
+            }
+
+            ArcanumInAJarBlockEntity.setStoredParameterCount(drop, storedParameterCount);
+            break;
+        }
+        return drops;
     }
 
     private static boolean isTopBlocked(Level level, BlockPos pos) {

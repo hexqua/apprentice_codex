@@ -46,6 +46,8 @@
   "block.apprenticecodex.apprentice_desk" : "見習い用の机",
   "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの神秘",
 
+  "block.apprenticecodex.arcanum_in_a_jar.fill": "中で粉が神秘的に舞っている",
+
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
   "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",
   "entity.apprenticecodex.commence_fire_rifle" : "マジックライフル",

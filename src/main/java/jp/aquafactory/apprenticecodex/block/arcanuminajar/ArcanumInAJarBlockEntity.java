@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public class ArcanumInAJarBlockEntity extends BlockEntity {
     public static final int MAX_STORED_PARAMETER = 8;
     private static final long TICKS_PER_ITEM = 20L * 60L;
+    private static final String STORED_PARAMETER_COUNT_TAG = "StoredParameterCount";
     private static final String PLACED_GAME_TIME_TAG = "PlacedGameTime";
     private static final String DISPENSING_TAG = "Dispensing";
     private static final String NEXT_RELEASE_GAME_TIME_TAG = "NextReleaseGameTime";
@@ -62,6 +63,43 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         placedGameTime = gameTime;
         setChanged();
         syncToClient();
+    }
+
+    public void restoreStoredParameterCount(int storedParameterCount, long gameTime) {
+        var clampedStoredParameterCount = Mth.clamp(storedParameterCount, 0, MAX_STORED_PARAMETER);
+        // 設置時間の絶対値は引き継がず、段階数だけを再現して破壊時の見た目を保つ.
+        placedGameTime = gameTime - (long)clampedStoredParameterCount * TICKS_PER_ITEM;
+        dispensing = false;
+        nextReleaseGameTime = -1L;
+        setChanged();
+        syncToClient();
+    }
+
+    public static int getStoredParameterCount(ItemStack stack) {
+        var tag = stack.getTag();
+        if (tag == null || !tag.contains(STORED_PARAMETER_COUNT_TAG)) {
+            return 0;
+        }
+
+        return Mth.clamp(tag.getInt(STORED_PARAMETER_COUNT_TAG), 0, MAX_STORED_PARAMETER);
+    }
+
+    public static void setStoredParameterCount(ItemStack stack, int storedParameterCount) {
+        var clampedStoredParameterCount = Mth.clamp(storedParameterCount, 0, MAX_STORED_PARAMETER);
+        if (clampedStoredParameterCount <= 0) {
+            var tag = stack.getTag();
+            if (tag == null) {
+                return;
+            }
+
+            tag.remove(STORED_PARAMETER_COUNT_TAG);
+            if (tag.isEmpty()) {
+                stack.setTag(null);
+            }
+            return;
+        }
+
+        stack.getOrCreateTag().putInt(STORED_PARAMETER_COUNT_TAG, clampedStoredParameterCount);
     }
 
     public boolean isDispensing() {
