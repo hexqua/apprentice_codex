@@ -14,6 +14,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -102,5 +104,16 @@ public class ArcanumInAJar extends Block implements EntityBlock {
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         return BlockEntityRegistry.ARCANUM_IN_A_JAR.get().create(pos, state);
+    }
+
+    @Override
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state,
+                                                                            @NotNull BlockEntityType<T> type) {
+        if (level.isClientSide || type != BlockEntityRegistry.ARCANUM_IN_A_JAR.get()) {
+            return null;
+        }
+
+        return (tickLevel, tickPos, tickState, blockEntity) ->
+                ArcanumInAJarBlockEntity.serverTick(tickLevel, tickPos, tickState, (ArcanumInAJarBlockEntity)blockEntity);
     }
 }
