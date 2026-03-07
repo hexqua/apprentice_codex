@@ -41,9 +41,9 @@ public final class ApprenticeMageRobeStats {
     );
 
     private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
-            ArmorItem.Type.HELMET, 1,
-            ArmorItem.Type.CHESTPLATE, 3,
-            ArmorItem.Type.LEGGINGS, 2,
+            ArmorItem.Type.HELMET, 2,
+            ArmorItem.Type.CHESTPLATE, 5,
+            ArmorItem.Type.LEGGINGS, 3,
             ArmorItem.Type.BOOTS, 1
     );
 
