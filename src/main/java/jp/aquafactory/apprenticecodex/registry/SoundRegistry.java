@@ -46,6 +46,8 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> WHEEL_LAUNCH = reg("wheel_launch");
     public static final RegistryObject<SoundEvent> WHEEL_PROCESS = reg("wheel_process");
     public static final RegistryObject<SoundEvent> WHEEL_SPINUP = reg("wheel_spinup");
+    public static final RegistryObject<SoundEvent> REMOTE_PREPARE = reg("remote_prepare");
+
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

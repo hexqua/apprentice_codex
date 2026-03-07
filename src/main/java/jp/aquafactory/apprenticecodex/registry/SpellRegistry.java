@@ -26,6 +26,7 @@ import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLight;
 import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
+import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
@@ -64,6 +65,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> MANIFESTATION_GRIMOIRE = reg("manifestation_grimoire", ManifestationGrimoire::new);
     public static final RegistryObject<AbstractSpell> MANTIS_LEAP = reg("mantis_leap", MantisLeap::new);
     public static final RegistryObject<AbstractSpell> AUTO_MAGNET = reg("auto_magnet", AutoMagnet::new);
+    public static final RegistryObject<AbstractSpell> REMOTE_EYE = reg("remote_eye", RemoteEye::new);
 
     // 召喚.
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
