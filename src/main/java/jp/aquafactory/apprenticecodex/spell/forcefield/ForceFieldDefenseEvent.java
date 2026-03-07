@@ -61,6 +61,23 @@ public final class ForceFieldDefenseEvent {
     private ForceFieldDefenseEvent() {
     }
 
+    public static void spawnAbsorbWallEffect(LivingEntity defender, DamageSource source) {
+        var attackerEntity = source.getEntity();
+        var interceptPosition = getMeleeInterceptPosition(defender, attackerEntity);
+        var interceptNormal = getMeleeInterceptNormal(defender, attackerEntity);
+        broadcastDefenseEffect(
+                defender,
+                interceptPosition,
+                interceptNormal,
+                MELEE_WALL_SIZE_SCALE,
+                DEFAULT_WALL_LIFETIME_SCALE,
+                DEFAULT_RENDER_WAVE,
+                false,
+                true
+        );
+        playAbsorbWallSound(defender, interceptPosition);
+    }
+
     public static void interceptNearbyProjectiles(Level level, int spellLevel, LivingEntity caster, @Nullable MagicData magicData) {
         if (level.isClientSide || magicData == null || spellLevel <= 0) {
             return;
@@ -594,8 +611,13 @@ public final class ForceFieldDefenseEvent {
 
     private static void broadcastDefenseEffect(LivingEntity caster, Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale,
                                                boolean renderWave, boolean failed) {
+        broadcastDefenseEffect(caster, position, normal, sizeScale, lifetimeScale, renderWave, failed, false);
+    }
+
+    private static void broadcastDefenseEffect(LivingEntity caster, Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale,
+                                               boolean renderWave, boolean failed, boolean absorb) {
         var safeNormal = sanitizeInterceptNormal(caster, position, normal);
-        Networks.sendToTrackingEntityAndSelf(caster, new ForceFieldDefenseEffectPacket(position, safeNormal, sizeScale, lifetimeScale, renderWave, failed));
+        Networks.sendToTrackingEntityAndSelf(caster, new ForceFieldDefenseEffectPacket(position, safeNormal, sizeScale, lifetimeScale, renderWave, failed, absorb));
     }
 
     private static void playShieldBlockSound(LivingEntity caster, Vec3 position) {
@@ -605,6 +627,10 @@ public final class ForceFieldDefenseEvent {
 
     private static void playFailedBlockSound(LivingEntity caster, Vec3 position) {
         AudioTools.playSoundFromPosition(caster.level(), position, SoundEvents.ITEM_BREAK, SoundSource.PLAYERS);
+        AudioTools.playSoundFromPosition(caster.level(), position, SoundRegistry.FORCE_FIELD_DEFLECT.get(), SoundSource.PLAYERS);
+    }
+
+    private static void playAbsorbWallSound(LivingEntity caster, Vec3 position) {
         AudioTools.playSoundFromPosition(caster.level(), position, SoundRegistry.FORCE_FIELD_DEFLECT.get(), SoundSource.PLAYERS);
     }
 
