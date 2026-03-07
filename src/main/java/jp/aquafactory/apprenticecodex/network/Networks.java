@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,7 +12,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "3";
+    private static final String PROTOCOL_VERSION = "4";
 
     private Networks() {
     }
@@ -36,6 +37,11 @@ public final class Networks {
                 ForceFieldDefenseEffectPacket.TYPE,
                 ForceFieldDefenseEffectPacket.STREAM_CODEC,
                 ForceFieldDefenseEffectPacket::handle
+        );
+        registrar.playToClient(
+                SyncRemoteEyeStatePacket.TYPE,
+                SyncRemoteEyeStatePacket.STREAM_CODEC,
+                SyncRemoteEyeStatePacket::handle
         );
     }
 
