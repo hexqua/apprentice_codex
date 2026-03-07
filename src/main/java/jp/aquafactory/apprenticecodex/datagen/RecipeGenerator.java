@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
+import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.tags.ItemTags;
@@ -102,16 +103,20 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()))
                 .save(recipeWriter);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.EXPLORERS_CODEX.get())
-                .pattern("GDG")
-                .pattern("NBN")
-                .pattern("GNG")
-                .define('B', Items.WRITABLE_BOOK)
-                .define('D', Items.DIAMOND)
-                .define('G', Items.GOLD_INGOT)
-                .define('N', Items.GOLD_NUGGET)
-                .unlockedBy(getHasName(Items.WRITABLE_BOOK), has(Items.WRITABLE_BOOK))
-                .save(recipeWriter);
+        ConditionalRecipe.builder()
+                .addCondition(ExplorersCodexRecipeEnabledCondition.INSTANCE)
+                .addRecipe(consumer -> ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.EXPLORERS_CODEX.get())
+                        .pattern("GDG")
+                        .pattern("NBN")
+                        .pattern("GNG")
+                        .define('B', Items.WRITABLE_BOOK)
+                        .define('D', Items.DIAMOND)
+                        .define('G', Items.GOLD_INGOT)
+                        .define('N', Items.GOLD_NUGGET)
+                        .unlockedBy(getHasName(Items.WRITABLE_BOOK), has(Items.WRITABLE_BOOK))
+                        .save(consumer, ItemRegistry.EXPLORERS_CODEX.getId()))
+                .generateAdvancement()
+                .build(recipeWriter, ItemRegistry.EXPLORERS_CODEX.getId());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
