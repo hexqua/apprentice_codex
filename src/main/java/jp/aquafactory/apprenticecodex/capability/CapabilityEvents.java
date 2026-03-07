@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.capability;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellDataProvider;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookDataProvider;
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventoryProvider;
 import net.minecraft.world.entity.Entity;
@@ -34,7 +35,12 @@ public class CapabilityEvents {
         );
         event.getOriginal().getCapability(Capabilities.SPELL_DATA).ifPresent(
                 oldSpellData -> event.getEntity().getCapability(Capabilities.SPELL_DATA).ifPresent(
-                        newSpellData -> newSpellData.loadAll(oldSpellData.saveAll())
+                        newSpellData -> {
+                            newSpellData.loadAll(oldSpellData.saveAll());
+                            if (event.isWasDeath()) {
+                                newSpellData.edit(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE, state -> state.reset());
+                            }
+                        }
                 )
         );
         event.getOriginal().getCapability(Capabilities.ENDER_GRIMOIRE_SPELLBOOK).ifPresent(
