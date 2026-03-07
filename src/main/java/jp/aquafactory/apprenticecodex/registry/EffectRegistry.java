@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
+import jp.aquafactory.apprenticecodex.effect.SenseSensor;
 import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffect;
@@ -21,6 +22,8 @@ public final class EffectRegistry {
             EFFECTS.register("palette_reception", PaletteReception::new);
     public static final DeferredHolder<MobEffect, MobEffect> PHALANX_STANCE =
             EFFECTS.register("phalanx_stance", PhalanxStance::new);
+    public static final DeferredHolder<MobEffect, MobEffect> SENSE_SENSOR =
+            EFFECTS.register("sense_sensor", SenseSensor::new);
     public static final DeferredHolder<MobEffect, MobEffect> THERMAL_PROCESSING =
             EFFECTS.register("thermal_processing", ThermalProcessing::new);
 
