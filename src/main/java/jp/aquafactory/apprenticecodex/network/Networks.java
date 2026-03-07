@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -13,7 +14,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "4";
+    private static final String PROTOCOL_VERSION = "5";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -54,6 +55,13 @@ public final class Networks {
                 SyncRemoteEyeStatePacket::encode,
                 SyncRemoteEyeStatePacket::decode,
                 SyncRemoteEyeStatePacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SenseEvilHighlightsPacket.class,
+                SenseEvilHighlightsPacket::encode,
+                SenseEvilHighlightsPacket::decode,
+                SenseEvilHighlightsPacket::handle
         );
     }
 
