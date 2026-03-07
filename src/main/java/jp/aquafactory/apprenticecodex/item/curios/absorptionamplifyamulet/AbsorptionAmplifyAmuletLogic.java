@@ -3,11 +3,14 @@ package jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import io.redspace.ironsspellbooks.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
+import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import top.theillusivec4.curios.api.SlotContext;
@@ -79,7 +82,26 @@ final class AbsorptionAmplifyAmuletLogic {
         });
     }
 
-    static void onPostDamage(ServerPlayer player) {
+    static void onIncomingAttack(ServerPlayer player, DamageSource source, float amount) {
+        if (!shouldProtectIncomingHit(player, amount)) {
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null
+                || !magicData.isCasting()
+                || magicData.getCastDurationRemaining() <= 0
+                || source.is(DamageTypeTagGenerator.LONG_CAST_IGNORE)
+                || !magicData.getCastingSpell().getSpell().canBeInterrupted(player)) {
+            return;
+        }
+
+        // Iron's Spells 'n Spellbooks は被ダメ中断判定で popMarkedPoison を参照しているため、
+        // 同じワンショット回避経路を使ってクールダウンを発生させずにこの一撃だけ中断を無効化する。
+        magicData.markPoisoned();
+    }
+
+    static void onPostDamage(ServerPlayer player, DamageSource source) {
         withState(player, state -> {
             if (!state.initialized) {
                 state.lastKnownAbsorption = player.getAbsorptionAmount();
@@ -90,14 +112,15 @@ final class AbsorptionAmplifyAmuletLogic {
             if (currentAbsorption < state.lastKnownAbsorption) {
                 var gameTime = player.level().getGameTime();
                 scheduleRecovery(state, gameTime);
+                KnockbackControlEvent.markIgnoreNextKnockback(player);
+
+                if (player.invulnerableTime > 0) {
+                    player.invulnerableTime *= 2;
+                }
 
                 if (gameTime >= state.nextProcGameTime) {
                     state.nextProcGameTime = gameTime + PROC_COOLDOWN_TICKS;
-                    ApprenticeCodex.LOGGER.info(
-                            "AbsorptionAmplifyAmulet proc stub: player={}, absorbed={}",
-                            player.getGameProfile().getName(),
-                            state.lastKnownAbsorption - currentAbsorption
-                    );
+                    ForceFieldDefenseEvent.spawnAbsorbWallEffect(player, source);
                 }
             }
 
@@ -108,6 +131,13 @@ final class AbsorptionAmplifyAmuletLogic {
     static void onDeath(ServerPlayer player) {
         player.setAbsorptionAmount(0f);
         resetState(player);
+    }
+
+    private static boolean shouldProtectIncomingHit(ServerPlayer player, float amount) {
+        return amount > 0.0f
+                && player.isAlive()
+                && player.getAbsorptionAmount() > 0.0f
+                && AbsorptionAmplifyAmulet.isEquippedBy(player);
     }
 
     private static boolean consumeRecoveryMana(ServerPlayer player) {
