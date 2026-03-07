@@ -19,10 +19,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -112,7 +112,7 @@ public class SenseEvil extends AbstractSpell {
                                               List<SenseEvilHighlightsPacket.TargetData> highlights) {
         var searchBox = caster.getBoundingBox().inflate(range);
         for (var target : level.getEntitiesOfClass(LivingEntity.class, searchBox, living ->
-                living.isAlive() && living != caster && living.getMobType() == MobType.UNDEAD)) {
+                living.isAlive() && living != caster && living.getType().is(EntityTypeTags.UNDEAD))) {
             var scale = Mth.clamp((float) target.getBbWidth() * 1.2f, MIN_ENTITY_HIGHLIGHT_SCALE, MAX_ENTITY_HIGHLIGHT_SCALE);
             highlights.add(new SenseEvilHighlightsPacket.TargetData(target.getBoundingBox().getCenter(), scale));
         }
@@ -174,18 +174,16 @@ public class SenseEvil extends AbstractSpell {
             return false;
         }
         if (spawnDataTag.contains("entity", Tag.TAG_COMPOUND)) {
-            return isUndeadEntity(level, spawnDataTag.getCompound("entity"));
+            return isUndeadEntity(spawnDataTag.getCompound("entity"));
         }
-        return isUndeadEntity(level, spawnDataTag);
+        return isUndeadEntity(spawnDataTag);
     }
 
-    private static boolean isUndeadEntity(ServerLevel level, CompoundTag entityTag) {
+    private static boolean isUndeadEntity(CompoundTag entityTag) {
         var entityType = EntityType.by(entityTag);
         if (entityType.isEmpty()) {
             return false;
         }
-
-        var previewEntity = entityType.get().create(level);
-        return previewEntity instanceof LivingEntity livingEntity && livingEntity.getMobType() == MobType.UNDEAD;
+        return entityType.get().is(EntityTypeTags.UNDEAD);
     }
 }

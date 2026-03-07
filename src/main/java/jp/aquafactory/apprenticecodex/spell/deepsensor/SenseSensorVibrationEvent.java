@@ -4,7 +4,9 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.DustColorTransitionOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -47,7 +49,8 @@ public final class SenseSensorVibrationEvent {
             return;
         }
 
-        var effect = player.getEffect(EffectRegistry.SENSE_SENSOR.get());
+        var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
+        var effect = player.getEffect(senseSensor);
         if (effect == null || !player.isAlive()) {
             deactivate(player);
             return;
@@ -206,7 +209,7 @@ public final class SenseSensorVibrationEvent {
             }
 
             @Override
-            public boolean canReceiveVibration(ServerLevel level, BlockPos pos, GameEvent gameEvent, GameEvent.Context context) {
+            public boolean canReceiveVibration(ServerLevel level, BlockPos pos, Holder<GameEvent> gameEvent, GameEvent.Context context) {
                 if (activeTicks > 0 || cooldownTicks > 0) {
                     return false;
                 }
@@ -215,7 +218,7 @@ public final class SenseSensorVibrationEvent {
             }
 
             @Override
-            public void onReceiveVibration(ServerLevel level, BlockPos pos, GameEvent gameEvent, @Nullable Entity entity,
+            public void onReceiveVibration(ServerLevel level, BlockPos pos, Holder<GameEvent> gameEvent, @Nullable Entity entity,
                                            @Nullable Entity projectileOwner, float distance) {
                 ActiveSenseSensor.this.onReceiveVibration();
             }
