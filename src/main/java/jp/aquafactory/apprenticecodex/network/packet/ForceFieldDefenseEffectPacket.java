@@ -24,6 +24,7 @@ public class ForceFieldDefenseEffectPacket {
     private final float lifetimeScale;
     private final boolean renderWave;
     private final boolean failed;
+    private final boolean absorb;
 
     public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal) {
         this(position, normal, DEFAULT_SIZE_SCALE, DEFAULT_LIFETIME_SCALE, true);
@@ -38,11 +39,15 @@ public class ForceFieldDefenseEffectPacket {
     }
 
     public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave, boolean failed) {
-        this(position.x, position.y, position.z, (float) normal.x, (float) normal.y, (float) normal.z, sizeScale, lifetimeScale, renderWave, failed);
+        this(position, normal, sizeScale, lifetimeScale, renderWave, failed, false);
+    }
+
+    public ForceFieldDefenseEffectPacket(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave, boolean failed, boolean absorb) {
+        this(position.x, position.y, position.z, (float) normal.x, (float) normal.y, (float) normal.z, sizeScale, lifetimeScale, renderWave, failed, absorb);
     }
 
     private ForceFieldDefenseEffectPacket(double x, double y, double z, float normalX, float normalY, float normalZ,
-                                          float sizeScale, float lifetimeScale, boolean renderWave, boolean failed) {
+                                          float sizeScale, float lifetimeScale, boolean renderWave, boolean failed, boolean absorb) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -53,6 +58,7 @@ public class ForceFieldDefenseEffectPacket {
         this.lifetimeScale = lifetimeScale;
         this.renderWave = renderWave;
         this.failed = failed;
+        this.absorb = absorb;
     }
 
     public static void encode(ForceFieldDefenseEffectPacket packet, FriendlyByteBuf buffer) {
@@ -66,6 +72,7 @@ public class ForceFieldDefenseEffectPacket {
         buffer.writeFloat(packet.lifetimeScale);
         buffer.writeBoolean(packet.renderWave);
         buffer.writeBoolean(packet.failed);
+        buffer.writeBoolean(packet.absorb);
     }
 
     public static ForceFieldDefenseEffectPacket decode(FriendlyByteBuf buffer) {
@@ -78,6 +85,7 @@ public class ForceFieldDefenseEffectPacket {
                 buffer.readFloat(),
                 buffer.readFloat(),
                 buffer.readFloat(),
+                buffer.readBoolean(),
                 buffer.readBoolean(),
                 buffer.readBoolean()
         );
@@ -103,7 +111,8 @@ public class ForceFieldDefenseEffectPacket {
                     packet.sizeScale,
                     packet.lifetimeScale,
                     packet.renderWave,
-                    packet.failed
+                    packet.failed,
+                    packet.absorb
             );
         }
     }

@@ -5,9 +5,11 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -69,6 +71,16 @@ public class AbsorptionAmplifyAmulet extends Item implements ICurioItem {
                 .map(SlotResult::slotContext)
                 .map(firstSlot -> firstSlot.index() == slotContext.index()
                         && firstSlot.identifier().equals(slotContext.identifier()))
+                .orElse(false);
+    }
+
+    static boolean isEquippedBy(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return false;
+        }
+
+        return CuriosApi.getCuriosInventory(entity)
+                .map(inventory -> inventory.isEquipped(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get()))
                 .orElse(false);
     }
 }

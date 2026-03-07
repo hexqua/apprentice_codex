@@ -28,12 +28,16 @@ import java.util.Deque;
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ForceFieldDefenseEffectRenderEvent {
     private static final ResourceLocation SHIELD_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wall.png");
+    private static final ResourceLocation ABSORB_SHIELD_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_absorb_wall.png");
     private static final ResourceLocation SHIELD_TRIM_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wall_trim.png");
+    private static final ResourceLocation ABSORB_SHIELD_TRIM_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_absorb_wall_trim.png");
     private static final ResourceLocation FAILED_SHIELD_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_failed_wall.png");
     private static final ResourceLocation FAILED_SHIELD_TRIM_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_failed_wall_trim.png");
     private static final ResourceLocation SHOCKWAVE_TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/force_field_wave.png");
     private static final RenderType SHIELD_OVERLAY_RENDER_TYPE = createAdditiveEntityRenderType("force_field_shield_overlay_additive", SHIELD_OVERLAY_TEXTURE);
+    private static final RenderType ABSORB_SHIELD_OVERLAY_RENDER_TYPE = createAdditiveEntityRenderType("force_field_absorb_shield_overlay_additive", ABSORB_SHIELD_OVERLAY_TEXTURE);
     private static final RenderType SHIELD_TRIM_RENDER_TYPE = createAdditiveEntityRenderType("force_field_shield_trim_additive", SHIELD_TRIM_TEXTURE);
+    private static final RenderType ABSORB_SHIELD_TRIM_RENDER_TYPE = createAdditiveEntityRenderType("force_field_absorb_shield_trim_additive", ABSORB_SHIELD_TRIM_TEXTURE);
     private static final RenderType FAILED_SHIELD_OVERLAY_RENDER_TYPE = createAdditiveEntityRenderType("force_field_failed_shield_overlay_additive", FAILED_SHIELD_OVERLAY_TEXTURE);
     private static final RenderType FAILED_SHIELD_TRIM_RENDER_TYPE = createAdditiveEntityRenderType("force_field_failed_shield_trim_additive", FAILED_SHIELD_TRIM_TEXTURE);
     private static final RenderType RIPPLE_RENDER_TYPE = createAdditiveEntityRenderType("force_field_ripple_additive", SHOCKWAVE_TEXTURE);
@@ -71,6 +75,11 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     public static void enqueueEffect(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave, boolean failed) {
+        enqueueEffect(position, normal, sizeScale, lifetimeScale, renderWave, failed, false);
+    }
+
+    public static void enqueueEffect(Vec3 position, Vec3 normal, float sizeScale, float lifetimeScale, boolean renderWave, boolean failed,
+                                     boolean absorb) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return;
@@ -83,7 +92,8 @@ public final class ForceFieldDefenseEffectRenderEvent {
                 sanitizeScale(sizeScale),
                 sanitizeScale(lifetimeScale),
                 renderWave,
-                failed
+                failed,
+                absorb
         ));
         while (ACTIVE_EFFECTS.size() > MAX_ACTIVE_EFFECTS) {
             ACTIVE_EFFECTS.removeFirst();
@@ -135,7 +145,9 @@ public final class ForceFieldDefenseEffectRenderEvent {
         poseStack.popPose();
 
         buffers.endBatch(SHIELD_OVERLAY_RENDER_TYPE);
+        buffers.endBatch(ABSORB_SHIELD_OVERLAY_RENDER_TYPE);
         buffers.endBatch(SHIELD_TRIM_RENDER_TYPE);
+        buffers.endBatch(ABSORB_SHIELD_TRIM_RENDER_TYPE);
         buffers.endBatch(FAILED_SHIELD_OVERLAY_RENDER_TYPE);
         buffers.endBatch(FAILED_SHIELD_TRIM_RENDER_TYPE);
         buffers.endBatch(RIPPLE_RENDER_TYPE);
@@ -154,8 +166,12 @@ public final class ForceFieldDefenseEffectRenderEvent {
         var bitangent = normalizeOrFallback(normal.cross(tangent), new Vec3(0, 1, 0));
         var effectSize = effect.sizeScale();
         var halfThickness = WALL_THICKNESS * 0.5f * effectSize;
-        var shieldOverlayRenderType = effect.failed() ? FAILED_SHIELD_OVERLAY_RENDER_TYPE : SHIELD_OVERLAY_RENDER_TYPE;
-        var shieldTrimRenderType = effect.failed() ? FAILED_SHIELD_TRIM_RENDER_TYPE : SHIELD_TRIM_RENDER_TYPE;
+        var shieldOverlayRenderType = effect.failed()
+                ? FAILED_SHIELD_OVERLAY_RENDER_TYPE
+                : effect.absorb() ? ABSORB_SHIELD_OVERLAY_RENDER_TYPE : SHIELD_OVERLAY_RENDER_TYPE;
+        var shieldTrimRenderType = effect.failed()
+                ? FAILED_SHIELD_TRIM_RENDER_TYPE
+                : effect.absorb() ? ABSORB_SHIELD_TRIM_RENDER_TYPE : SHIELD_TRIM_RENDER_TYPE;
 
         var overlayBuffer = buffers.getBuffer(shieldOverlayRenderType);
         drawFilledHex(poseStack, overlayBuffer, center, normal, tangent, bitangent, halfThickness, effectSize, alpha * 0.75f);
@@ -499,6 +515,6 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     private record ActiveEffect(Vec3 position, Vec3 normal, long startGameTime, float sizeScale, float lifetimeScale,
-                                boolean renderWave, boolean failed) {
+                                boolean renderWave, boolean failed, boolean absorb) {
     }
 }
