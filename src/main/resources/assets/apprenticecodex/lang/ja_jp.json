@@ -12,6 +12,11 @@
   "item.apprenticecodex.pastel_staff": "パステルスタッフ",
   "item.apprenticecodex.photon_siphon": "フォトンサイフォン",
 
+  "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
+  "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
+  "item.apprenticecodex.apprentice_mage_leggings": "見習い魔術師のズボン",
+  "item.apprenticecodex.apprentice_mage_boots": "見習い魔術師の靴",
+
   "item.apprenticecodex.scarlet_thirst.desc": "マナ減少時、余っている体力をマナに変換する。",
   "item.apprenticecodex.craftsmans_delight.desc_1": "特定の作業魔法を強化し、マナ効率も上昇させる。",
   "item.apprenticecodex.craftsmans_delight.desc_2": "対象の魔法は以下:",

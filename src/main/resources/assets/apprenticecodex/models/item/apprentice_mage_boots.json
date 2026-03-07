@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "apprenticecodex:item/apprentice_mage_boots"
+  }
+}
