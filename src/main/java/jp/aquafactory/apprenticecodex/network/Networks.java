@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -12,7 +13,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "4";
+    private static final String PROTOCOL_VERSION = "5";
 
     private Networks() {
     }
@@ -42,6 +43,11 @@ public final class Networks {
                 SyncRemoteEyeStatePacket.TYPE,
                 SyncRemoteEyeStatePacket.STREAM_CODEC,
                 SyncRemoteEyeStatePacket::handle
+        );
+        registrar.playToClient(
+                SenseEvilHighlightsPacket.TYPE,
+                SenseEvilHighlightsPacket.STREAM_CODEC,
+                SenseEvilHighlightsPacket::handle
         );
     }
 
