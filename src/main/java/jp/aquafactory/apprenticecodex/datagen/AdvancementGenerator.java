@@ -205,5 +205,18 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_photon_siphon", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.PHOTON_SIPHON.getId()))
                 .save(saver, advancementId("craft_photon_siphon"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_absorption_amplify_amulet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.getId()))
+                .save(saver, advancementId("craft_absorption_amplify_amulet"), existingFileHelper);
     }
 }
