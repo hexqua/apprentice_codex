@@ -9,6 +9,7 @@
   "item.apprenticecodex.protection_spell_supporter": "保護術式補助具",
   "item.apprenticecodex.absorption_amplify_amulet": "衝撃吸収増強のネックレス",
   "item.apprenticecodex.ender_grimoire": "エンダーグリモア",
+  "item.apprenticecodex.explorers_codex": "探索者の写本",
   "item.apprenticecodex.grimoire_manifest": "グリモア目録",
   "item.apprenticecodex.pastel_staff": "パステルスタッフ",
   "item.apprenticecodex.photon_siphon": "フォトンサイフォン",
@@ -258,5 +259,7 @@
   "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.title": "魔術師ならやっぱりガラスの砲台でしょ",
   "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.description": "見習い魔術師のローブ一式を着用する",
   "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.title": "ラストエリクサー症候群への特効薬",
-  "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "衝撃吸収増強のネックレスを作る"
+  "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "衝撃吸収増強のネックレスを作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title": "魔法を手に入れる魔法がない",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description": "探索者の写本を作る"
 }

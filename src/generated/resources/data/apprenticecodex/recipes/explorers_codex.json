@@ -1,0 +1,39 @@
+{
+  "type": "forge:conditional",
+  "recipes": [
+    {
+      "conditions": [
+        {
+          "type": "apprenticecodex:explorers_codex_recipe_enabled"
+        }
+      ],
+      "recipe": {
+        "type": "minecraft:crafting_shaped",
+        "category": "equipment",
+        "key": {
+          "B": {
+            "item": "minecraft:writable_book"
+          },
+          "D": {
+            "item": "minecraft:diamond"
+          },
+          "G": {
+            "item": "minecraft:gold_ingot"
+          },
+          "N": {
+            "item": "minecraft:gold_nugget"
+          }
+        },
+        "pattern": [
+          "GDG",
+          "NBN",
+          "GNG"
+        ],
+        "result": {
+          "item": "apprenticecodex:explorers_codex"
+        },
+        "show_notification": true
+      }
+    }
+  ]
+}

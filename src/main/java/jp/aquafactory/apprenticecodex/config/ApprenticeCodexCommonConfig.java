@@ -8,12 +8,14 @@ public final class ApprenticeCodexCommonConfig {
     // レシピ制御はSERVERだと評価タイミングが遅く、COMMON出ないとダメ.
     private static final ForgeConfigSpec.BooleanValue DISABLE_APPRENTICE_DESK_RECIPE;
     private static final ForgeConfigSpec.BooleanValue DISABLE_ARCANUM_IN_A_JAR_RECIPE;
+    private static final ForgeConfigSpec.BooleanValue DISABLE_EXPLORERS_CODEX_RECIPE;
 
     static {
         var builder = new ForgeConfigSpec.Builder();
         builder.push("Items");
         DISABLE_APPRENTICE_DESK_RECIPE = builder.define("disableApprenticeDeskRecipe", false);
         DISABLE_ARCANUM_IN_A_JAR_RECIPE = builder.define("disableArcanumInAJarRecipe", false);
+        DISABLE_EXPLORERS_CODEX_RECIPE = builder.define("disableExplorersCodexRecipe", false);
         builder.pop();
         SPEC = builder.build();
     }
@@ -27,5 +29,9 @@ public final class ApprenticeCodexCommonConfig {
 
     public static boolean disableArcanumInAJarRecipe() {
         return DISABLE_ARCANUM_IN_A_JAR_RECIPE.get();
+    }
+
+    public static boolean disableExplorersCodexRecipe() {
+        return DISABLE_EXPLORERS_CODEX_RECIPE.get();
     }
 }

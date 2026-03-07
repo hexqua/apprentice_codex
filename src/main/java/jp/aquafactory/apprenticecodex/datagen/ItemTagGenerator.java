@@ -43,7 +43,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         tag(IRONS_STAFF).add(ItemRegistry.PASTEL_STAFF.get());
         tag(IRONS_UPGRADE_WHITELIST).add(ItemRegistry.ENDER_GRIMOIRE.get());
-        tag(CURIOS_SPELLBOOK).add(ItemRegistry.ENDER_GRIMOIRE.get());
+        tag(CURIOS_SPELLBOOK).add(
+                ItemRegistry.ENDER_GRIMOIRE.get(),
+                ItemRegistry.EXPLORERS_CODEX.get()
+        );
         tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
         tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
 

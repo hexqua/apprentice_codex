@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
@@ -69,6 +70,8 @@ public final class ItemRegistry {
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
     public static final RegistryObject<Item> ENDER_GRIMOIRE =
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
+    public static final RegistryObject<Item> EXPLORERS_CODEX =
+            ITEMS.register("explorers_codex", ExplorersCodex::new);
     public static final RegistryObject<Item> IRON_SPELL_AMPLIFIER =
             ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
     public static final RegistryObject<Item> COPPER_SPELL_AMPLIFIER =
