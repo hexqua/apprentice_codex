@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
+import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
@@ -13,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -35,12 +37,24 @@ public final class ItemRegistry {
         return ITEMS.register(id, () -> new BlockItem(block.get(), new Item.Properties()));
     }
 
+    private static DeferredHolder<Item, Item> armor(String id, ArmorItem.Type type) {
+        return ITEMS.register(id, () -> new ApprenticeMageRobeItem(type));
+    }
+
     public static final DeferredHolder<Item, Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
     public static final DeferredHolder<Item, Item> COMMENCE_FIRE_RIFLE = simple("commence_fire_rifle");
     public static final DeferredHolder<Item, Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
     public static final DeferredHolder<Item, Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
     public static final DeferredHolder<Item, Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
+    public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_SCARF =
+            armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
+    public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_TORSO =
+            armor("apprentice_mage_torso", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_LEGGINGS =
+            armor("apprentice_mage_leggings", ArmorItem.Type.LEGGINGS);
+    public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_BOOTS =
+            armor("apprentice_mage_boots", ArmorItem.Type.BOOTS);
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
     public static final DeferredHolder<Item, Item> ARCANUM_IN_A_JAR =
             ITEMS.register("arcanum_in_a_jar",

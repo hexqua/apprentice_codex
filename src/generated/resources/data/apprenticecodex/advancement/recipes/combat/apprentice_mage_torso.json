@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:apprentice_mage_torso"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_wandering_magician_chestplate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "irons_spellbooks:wandering_magician_chestplate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_wandering_magician_chestplate"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:apprentice_mage_torso"
+    ]
+  }
+}

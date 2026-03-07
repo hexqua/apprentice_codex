@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:apprentice_mage_leggings"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_wandering_magician_leggings": {
+      "conditions": {
+        "items": [
+          {
+            "items": "irons_spellbooks:wandering_magician_leggings"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_wandering_magician_leggings"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:apprentice_mage_leggings"
+    ]
+  }
+}
