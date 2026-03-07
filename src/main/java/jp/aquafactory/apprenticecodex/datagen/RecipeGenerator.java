@@ -9,8 +9,10 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -133,5 +135,46 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('S', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()))
                 .save(recipeOutput);
+                .save(recipeOutput);
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_HELMET.get()),
+                        Ingredient.of(Items.IRON_INGOT),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.APPRENTICE_MAGE_SCARF.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_HELMET.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_HELMET.get()))
+                .save(recipeOutput, ItemRegistry.APPRENTICE_MAGE_SCARF.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_CHESTPLATE.get()),
+                        Ingredient.of(Items.IRON_INGOT),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.APPRENTICE_MAGE_TORSO.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_CHESTPLATE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_CHESTPLATE.get()))
+                .save(recipeOutput, ItemRegistry.APPRENTICE_MAGE_TORSO.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_LEGGINGS.get()),
+                        Ingredient.of(Items.IRON_INGOT),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_LEGGINGS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_LEGGINGS.get()))
+                .save(recipeOutput, ItemRegistry.APPRENTICE_MAGE_LEGGINGS.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()),
+                        Ingredient.of(Items.IRON_INGOT),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()))
+                .save(recipeOutput, ItemRegistry.APPRENTICE_MAGE_BOOTS.getId());
     }
 }

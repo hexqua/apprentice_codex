@@ -1,0 +1,62 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "equip_apprentice_mage_robe": {
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "equipment": {
+                "chest": {
+                  "items": [
+                    "apprenticecodex:apprentice_mage_torso"
+                  ]
+                },
+                "feet": {
+                  "items": [
+                    "apprenticecodex:apprentice_mage_boots"
+                  ]
+                },
+                "head": {
+                  "items": [
+                    "apprenticecodex:apprentice_mage_scarf"
+                  ]
+                },
+                "legs": {
+                  "items": [
+                    "apprenticecodex:apprentice_mage_leggings"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:apprentice_mage_scarf",
+      "nbt": "{Damage:0}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.title"
+    }
+  },
+  "requirements": [
+    [
+      "equip_apprentice_mage_robe"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

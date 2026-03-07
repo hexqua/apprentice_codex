@@ -7,8 +7,10 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.critereon.EntityEquipmentPredicate;
 import net.minecraft.advancements.critereon.ImpossibleTrigger;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
+import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.advancements.critereon.PlayerPredicate;
 import net.minecraft.advancements.critereon.PlayerTrigger;
 import net.minecraft.advancements.critereon.RecipeCraftedTrigger;
@@ -43,6 +45,16 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                                 .build())
                         .build()
         );
+        var apprenticeMageRobeEquipPredicate = EntityPredicate.wrap(
+                EntityPredicate.Builder.entity()
+                        .equipment(EntityEquipmentPredicate.Builder.equipment()
+                                .head(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_SCARF.get()).build())
+                                .chest(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_TORSO.get()).build())
+                                .legs(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get()).build())
+                                .feet(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_BOOTS.get()).build())
+                                .build())
+                        .build()
+        );
 
         var root = Advancement.Builder.advancement()
                 .display(ItemRegistry.SKY_EDGE_SWORD.get(),
@@ -60,6 +72,24 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         )
                 )
                 .save(saver, advancementId("root"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion(
+                        "equip_apprentice_mage_robe",
+                        CriteriaTriggers.TICK.createCriterion(
+                                new PlayerTrigger.TriggerInstance(Optional.of(apprenticeMageRobeEquipPredicate))
+                        )
+                )
+                .save(saver, advancementId("equip_apprentice_mage_robe"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)
