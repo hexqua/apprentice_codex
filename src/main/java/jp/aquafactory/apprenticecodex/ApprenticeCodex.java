@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex;
 
 import com.mojang.logging.LogUtils;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -36,7 +37,7 @@ public class ApprenticeCodex
 
     public ApprenticeCodex(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("Loading {}", NAME);
-
+        modContainer.registerConfig(ModConfig.Type.CLIENT, ApprenticeCodexClientConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.COMMON, ApprenticeCodexCommonConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
 
