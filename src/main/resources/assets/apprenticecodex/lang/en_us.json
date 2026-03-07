@@ -12,6 +12,11 @@
   "item.apprenticecodex.pastel_staff": "Pastel Staff",
   "item.apprenticecodex.photon_siphon": "Photon Siphon",
 
+  "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
+  "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
+  "item.apprenticecodex.apprentice_mage_leggings": "Apprentice Mage's Leggings",
+  "item.apprenticecodex.apprentice_mage_boots": "Apprentice Mage's Boots",
+
   "item.apprenticecodex.scarlet_thirst.desc": "Converts excess health into mana when mana is low.",
   "item.apprenticecodex.craftsmans_delight.desc_1": "Enhances specific utility spells and boosts mana efficiency.",
   "item.apprenticecodex.craftsmans_delight.desc_2": "Target spells include:",
@@ -237,5 +242,7 @@
   "advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.title": "Gold Beats Iron-Even for Iron Spells",
   "advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.description": "Craft Gold Spell Amplifier",
   "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.title": "This Time, Offhands Collide",
-  "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.description": "Craft Photon Siphon"
+  "advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.description": "Craft Photon Siphon",
+  "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.title": "If You're a Mage, You Might as Well Be a Glass Cannon",
+  "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.description": "Equip a full set of Apprentice Mage Robes."
 }

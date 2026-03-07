@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "minecraft:iron_ingot"
+  },
+  "base": {
+    "item": "irons_spellbooks:wandering_magician_chestplate"
+  },
+  "result": {
+    "item": "apprenticecodex:apprentice_mage_torso"
+  },
+  "template": {
+    "item": "irons_spellbooks:magic_cloth"
+  }
+}
