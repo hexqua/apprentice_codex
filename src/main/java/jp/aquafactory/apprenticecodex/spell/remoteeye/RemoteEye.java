@@ -26,7 +26,7 @@ public class RemoteEye extends AbstractSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "remote_eye");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.RARE)
+            .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
             .setMaxLevel(3)
             .setCooldownSeconds(30)
@@ -48,7 +48,7 @@ public class RemoteEye extends AbstractSpell {
     }
 
     private int getDuration(int spellLevel, LivingEntity caster) {
-        return 20 + Math.round(20 * getSpellPower(spellLevel, caster) / 100.0f);
+        return 30 + Math.round(30 * getSpellPower(spellLevel, caster) / 100.0f);
     }
 
     @Override
