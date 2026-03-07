@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.item.armor;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,7 +23,7 @@ import java.util.function.Consumer;
 
 import jp.aquafactory.apprenticecodex.renderer.armor.ApprenticeMageRobeRenderer;
 
-public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem {
+public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Type armorType;
     private final Multimap<Attribute, AttributeModifier> robeAttributeModifiers;
@@ -53,6 +55,16 @@ public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+    }
+
+    @Override
+    public void initializeSpellContainer(ItemStack itemStack) {
+        if (itemStack == null || armorType != Type.CHESTPLATE || ISpellContainer.isSpellContainer(itemStack)) {
+            return;
+        }
+
+        // 身体に魔法枠+1
+        ISpellContainer.set(itemStack, ISpellContainer.create(1, true, true));
     }
 
     @Override
