@@ -11,6 +11,8 @@
     "SchoolTypeAccessor"
   ],
   "client": [
+    "KeyboardHandlerMixin",
+    "MouseHandlerMixin",
     "MinecraftMixin",
     "EntityMixin"
   ],

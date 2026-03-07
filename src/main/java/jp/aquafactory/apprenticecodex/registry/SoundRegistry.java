@@ -16,7 +16,6 @@ public final class SoundRegistry {
         return SOUND_EVENTS.register(id,
                 () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, id)));
     }
-
     public static final DeferredHolder<SoundEvent, SoundEvent> RIFLE = reg("rifle");
     public static final DeferredHolder<SoundEvent, SoundEvent> HANDGUN = reg("handgun");
     public static final DeferredHolder<SoundEvent, SoundEvent> SHOTGUN = reg("shotgun");
@@ -46,6 +45,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> WHEEL_LAUNCH = reg("wheel_launch");
     public static final DeferredHolder<SoundEvent, SoundEvent> WHEEL_PROCESS = reg("wheel_process");
     public static final DeferredHolder<SoundEvent, SoundEvent> WHEEL_SPINUP = reg("wheel_spinup");
+    public static final DeferredHolder<SoundEvent, SoundEvent> REMOTE_PREPARE = reg("remote_prepare");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

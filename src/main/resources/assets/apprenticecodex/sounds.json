@@ -172,5 +172,11 @@
     "sounds": [
       "apprenticecodex:moon_light_dimension"
     ]
+  },
+  "remote_prepare": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:remote_prepare"
+    ]
   }
 }
