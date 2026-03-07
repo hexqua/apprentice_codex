@@ -75,6 +75,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
 
         Advancement.Builder.advancement()
                 .parent(root)
+                .display(ItemRegistry.EXPLORERS_CODEX.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_explorers_codex", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.EXPLORERS_CODEX.getId()))
+                .save(saver, advancementId("craft_explorers_codex"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
                 .display(ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.description"),
