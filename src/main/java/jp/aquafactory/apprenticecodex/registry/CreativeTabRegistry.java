@@ -36,6 +36,10 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.GOLD_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.PHOTON_SIPHON.get());
         output.accept(ItemRegistry.PASTEL_STAFF.get());
+        output.accept(ItemRegistry.APPRENTICE_MAGE_SCARF.get());
+        output.accept(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
+        output.accept(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get());
+        output.accept(ItemRegistry.APPRENTICE_MAGE_BOOTS.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
