@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "minecraft:iron_ingot"
+  },
+  "base": {
+    "item": "irons_spellbooks:wandering_magician_leggings"
+  },
+  "result": {
+    "item": "apprenticecodex:apprentice_mage_leggings"
+  },
+  "template": {
+    "item": "irons_spellbooks:magic_cloth"
+  }
+}
