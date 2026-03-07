@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.model;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -64,6 +65,9 @@ public class ApprenticeMageRobeModel extends GeoModel<ApprenticeMageRobeItem> {
         resetToInitialTransform(capeRoot);
         resetToInitialTransform(capeMid);
         resetToInitialTransform(capeTip);
+        if (!ApprenticeCodexClientConfig.enableApprenticeMageRobeCapeAnimation()) {
+            return;
+        }
 
         var slot = animationState.getData(DataTickets.EQUIPMENT_SLOT);
         var entity = animationState.getData(DataTickets.ENTITY);
