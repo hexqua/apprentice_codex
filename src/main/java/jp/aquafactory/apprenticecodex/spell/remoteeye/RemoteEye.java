@@ -35,9 +35,9 @@ public class RemoteEye extends AbstractSpell {
     public RemoteEye() {
         baseSpellPower = 100;
         spellPowerPerLevel = 25;
-        baseManaCost = 100;
+        baseManaCost = 80;
         manaCostPerLevel = 20;
-        castTime = 40;
+        castTime = 50;
     }
 
     @Override
@@ -48,7 +48,7 @@ public class RemoteEye extends AbstractSpell {
     }
 
     private int getDuration(int spellLevel, LivingEntity caster) {
-        return 20 + Math.round(40 * getSpellPower(spellLevel, caster) / 100.0f);
+        return 20 + Math.round(20 * getSpellPower(spellLevel, caster) / 100.0f);
     }
 
     @Override
