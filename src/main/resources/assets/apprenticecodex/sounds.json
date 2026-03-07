@@ -178,5 +178,11 @@
     "sounds": [
       "apprenticecodex:remote_prepare"
     ]
+  },
+  "sense_evil": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:sense_evil"
+    ]
   }
 }

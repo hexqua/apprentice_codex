@@ -46,6 +46,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> WHEEL_PROCESS = reg("wheel_process");
     public static final DeferredHolder<SoundEvent, SoundEvent> WHEEL_SPINUP = reg("wheel_spinup");
     public static final DeferredHolder<SoundEvent, SoundEvent> REMOTE_PREPARE = reg("remote_prepare");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SENSE_EVIL = reg("sense_evil");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
