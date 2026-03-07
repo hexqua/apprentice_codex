@@ -21,7 +21,7 @@
     " M "
   ],
   "result": {
-    "item": "apprenticecodex:absorption_amplify_amulet"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:absorption_amplify_amulet"
+  }
 }

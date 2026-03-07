@@ -158,7 +158,7 @@ final class AbsorptionAmplifyAmuletLogic {
     private static float getTargetAbsorption(ServerPlayer player) {
         // 既定値8.0は Iron's Spells 'n Spellbooks 3.15.0 の Fortify Lv3 基礎値相当.
         var baseAbsorptionTarget = ApprenticeCodexServerConfig.absorptionAmplifyAmuletBaseAbsorptionTarget();
-        var spellPowerModifier = (float) player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
+        var spellPowerModifier = (float) player.getAttributeValue(AttributeRegistry.SPELL_POWER);
         var holyPowerModifier = (float) SchoolRegistry.HOLY.get().getPowerFor(player);
         return baseAbsorptionTarget * spellPowerModifier * holyPowerModifier;
     }

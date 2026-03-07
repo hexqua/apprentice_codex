@@ -41,22 +41,23 @@ public class AbsorptionAmplifyAmulet extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new java.util.ArrayList<>(tooltips);
         if (slotIdentifier != null) {
-            tooltips.add(Component.empty());
-            tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.empty());
+            result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_1"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_2"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_3"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
         }
 
-        return tooltips;
+        return result;
     }
 
     @Override
@@ -66,7 +67,6 @@ public class AbsorptionAmplifyAmulet extends Item implements ICurioItem {
 
     static boolean isPrimaryEquippedCurio(SlotContext slotContext) {
         return CuriosApi.getCuriosInventory(slotContext.entity())
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get()))
                 .map(SlotResult::slotContext)
                 .map(firstSlot -> firstSlot.index() == slotContext.index()

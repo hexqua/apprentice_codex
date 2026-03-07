@@ -1,20 +1,20 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class AbsorptionAmplifyAmuletServerConfig {
-    private final ForgeConfigSpec.DoubleValue baseAbsorptionTarget;
-    private final ForgeConfigSpec.IntValue recoveryDelayTicks;
+    private final ModConfigSpec.DoubleValue baseAbsorptionTarget;
+    private final ModConfigSpec.IntValue recoveryDelayTicks;
 
     private AbsorptionAmplifyAmuletServerConfig(
-            ForgeConfigSpec.DoubleValue baseAbsorptionTarget,
-            ForgeConfigSpec.IntValue recoveryDelayTicks
+            ModConfigSpec.DoubleValue baseAbsorptionTarget,
+            ModConfigSpec.IntValue recoveryDelayTicks
     ) {
         this.baseAbsorptionTarget = baseAbsorptionTarget;
         this.recoveryDelayTicks = recoveryDelayTicks;
     }
 
-    public static AbsorptionAmplifyAmuletServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static AbsorptionAmplifyAmuletServerConfig define(ModConfigSpec.Builder builder) {
         builder.comment("Ticks before absorption recovery resumes after equipping or taking absorption damage.")
                 .push("AbsorptionAmplifyAmulet");
 
