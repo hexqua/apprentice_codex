@@ -102,6 +102,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.EXPLORERS_CODEX.get())
+                .pattern("GDG")
+                .pattern("NBN")
+                .pattern("GNG")
+                .define('B', Items.WRITABLE_BOOK)
+                .define('D', Items.DIAMOND)
+                .define('G', Items.GOLD_INGOT)
+                .define('N', Items.GOLD_NUGGET)
+                .unlockedBy(getHasName(Items.WRITABLE_BOOK), has(Items.WRITABLE_BOOK))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
                 .pattern(" W ")

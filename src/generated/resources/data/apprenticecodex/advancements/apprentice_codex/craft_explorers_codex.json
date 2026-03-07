@@ -1,0 +1,33 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_explorers_codex": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:explorers_codex"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:explorers_codex",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[{id:\"apprenticecodex:assist_wings\",index:0,level:1,locked:1b},{id:\"apprenticecodex:mage_light\",index:1,level:1,locked:1b},{id:\"apprenticecodex:sense_evil\",index:2,level:1,locked:1b},{id:\"apprenticecodex:remote_eye\",index:3,level:1,locked:1b}],maxSpells:4,mustEquip:1b,spellWheel:1b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_explorers_codex"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
