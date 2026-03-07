@@ -18,7 +18,7 @@ public class ExplorersCodex extends UniqueSpellBook {
         withSpellbookAttributes(new AttributeContainer(
                 AttributeRegistry.MAX_MANA,
                 50,
-                AttributeModifier.Operation.ADDITION
+                AttributeModifier.Operation.ADD_VALUE
         ));
     }
 }

@@ -1,46 +1,37 @@
 {
-  "advancements": [
+  "neoforge:conditions": [
     {
-      "advancement": {
-        "parent": "minecraft:recipes/root",
-        "criteria": {
-          "has_the_recipe": {
-            "conditions": {
-              "recipe": "apprenticecodex:explorers_codex"
-            },
-            "trigger": "minecraft:recipe_unlocked"
-          },
-          "has_writable_book": {
-            "conditions": {
-              "items": [
-                {
-                  "items": [
-                    "minecraft:writable_book"
-                  ]
-                }
-              ]
-            },
-            "trigger": "minecraft:inventory_changed"
-          }
-        },
-        "requirements": [
-          [
-            "has_writable_book",
-            "has_the_recipe"
-          ]
-        ],
-        "rewards": {
-          "recipes": [
-            "apprenticecodex:explorers_codex"
-          ]
-        },
-        "sends_telemetry_event": false
-      },
-      "conditions": [
-        {
-          "type": "apprenticecodex:explorers_codex_recipe_enabled"
-        }
-      ]
+      "type": "apprenticecodex:explorers_codex_recipe_enabled"
     }
-  ]
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:explorers_codex"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_writable_book": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:writable_book"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_writable_book"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:explorers_codex"
+    ]
+  }
 }
