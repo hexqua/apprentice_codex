@@ -39,6 +39,7 @@ public class CapabilityEvents {
                             newSpellData.loadAll(oldSpellData.saveAll());
                             if (event.isWasDeath()) {
                                 newSpellData.edit(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE, state -> state.reset());
+                                newSpellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> state.reset());
                             }
                         }
                 )

@@ -128,6 +128,7 @@
   "spell.apprenticecodex.precision_jack": "プレシジョンジャック",
   "spell.apprenticecodex.auto_magnet": "オートマグネット",
   "spell.apprenticecodex.grind_runner": "グラインドランナー",
+  "spell.apprenticecodex.remote_eye": "リモートアイ",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -160,6 +161,7 @@
   "spell.apprenticecodex.precision_jack.guide": "魔法のナイフを召喚して目の前の対象を裂く。普段よりかなり多くのドロップを期待できるが、発動までに相当数回転させる必要がある。",
   "spell.apprenticecodex.auto_magnet.guide": "魔導仕掛けの磁石を召喚し追従させる。磁石は近くのアイテムと経験値オーブを回収して術者へ転送させる。",
   "spell.apprenticecodex.grind_runner.guide": "魔導ホイールを召喚して目の前の対象を削り下ろす。モブだけでなく一部アイテムも削ることができる。魔力を解放するとホイールを射出する。",
+  "spell.apprenticecodex.remote_eye.guide": "視覚を切り離し、一定時間自由に視線を移動させられる。壁を抜けることはできず、効果時間中は無防備。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
