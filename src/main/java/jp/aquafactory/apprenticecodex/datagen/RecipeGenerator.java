@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
+import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -96,6 +97,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()))
                 .save(recipeOutput);
 
+        var explorersCodexOutput = recipeOutput.withConditions(ExplorersCodexRecipeEnabledCondition.INSTANCE);
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.EXPLORERS_CODEX.get())
                 .pattern("GDG")
                 .pattern("NBN")
@@ -105,7 +107,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('G', Items.GOLD_INGOT)
                 .define('N', Items.GOLD_NUGGET)
                 .unlockedBy(getHasName(Items.WRITABLE_BOOK), has(Items.WRITABLE_BOOK))
-                .save(recipeWriter);
+                .save(explorersCodexOutput, ItemRegistry.EXPLORERS_CODEX.getId());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
