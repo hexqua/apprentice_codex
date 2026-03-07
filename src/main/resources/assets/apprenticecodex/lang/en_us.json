@@ -9,6 +9,7 @@
   "item.apprenticecodex.protection_spell_supporter": "Protection Spell Supporter",
   "item.apprenticecodex.absorption_amplify_amulet": "Amulet of Absorption Amplify",
   "item.apprenticecodex.ender_grimoire": "Ender Grimoire",
+  "item.apprenticecodex.explorers_codex": "Explorer's Codex",
   "item.apprenticecodex.grimoire_manifest": "Grimoire Manifest",
   "item.apprenticecodex.pastel_staff": "Pastel Staff",
   "item.apprenticecodex.photon_siphon": "Photon Siphon",
@@ -258,5 +259,7 @@
   "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.title": "If You're a Mage, You Might as Well Be a Glass Cannon",
   "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.description": "Equip a full set of Apprentice Mage Robes.",
   "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.title": "A Cure for Too-Good-to-Use Syndrome",
-  "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "Craft an Amulet of Absorption Amplify."
+  "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "Craft an Amulet of Absorption Amplify.",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title": "No Magic to Get Magic",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description": "Craft an Explorer's Codex"
 }
