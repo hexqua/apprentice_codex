@@ -17,9 +17,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.lwjgl.glfw.GLFW;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class RemoteEyeClientController {
@@ -71,8 +73,77 @@ public final class RemoteEyeClientController {
         anchorLocalPlayer(player, state);
     }
 
+    @SubscribeEvent
+    public static void onInteractionKeyMappingTriggered(InputEvent.InteractionKeyMappingTriggered event) {
+        var minecraft = Minecraft.getInstance();
+        if (!shouldRestrictGameplayInput(minecraft)) {
+            return;
+        }
+
+        // 攻撃/使用/中クリックを別キーへ再割り当てしていても通らないようにしておく.
+        event.setCanceled(true);
+        event.setSwingHand(false);
+    }
+
+    @SubscribeEvent
+    public static void onMouseButtonPre(InputEvent.MouseButton.Pre event) {
+        if (!shouldRestrictGameplayInput(Minecraft.getInstance())) {
+            return;
+        }
+
+        if (event.getAction() != GLFW.GLFW_PRESS) {
+            return;
+        }
+
+        // 視線移動にはマウスボタンは不要なので、RemoteEye 中は押下自体を通さない.
+        event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onMouseScrolling(InputEvent.MouseScrollingEvent event) {
+        if (!shouldRestrictGameplayInput(Minecraft.getInstance())) {
+            return;
+        }
+
+        event.setCanceled(true);
+    }
+
     private static boolean isActive(Level level, RemoteEyeState state) {
         return state.activeUntilGameTime > level.getGameTime();
+    }
+
+    public static boolean shouldRestrictGameplayInput(Minecraft minecraft) {
+        if (minecraft.screen != null) {
+            return false;
+        }
+
+        var player = minecraft.player;
+        var level = minecraft.level;
+        if (player == null || level == null) {
+            return false;
+        }
+
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            return false;
+        }
+
+        return isActive(level, spellData.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE));
+    }
+
+    public static boolean isAllowedRemoteEyeKey(Minecraft minecraft, int keyCode, int scanCode) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            return true;
+        }
+
+        var options = minecraft.options;
+        return options.keyUp.matches(keyCode, scanCode)
+                || options.keyDown.matches(keyCode, scanCode)
+                || options.keyLeft.matches(keyCode, scanCode)
+                || options.keyRight.matches(keyCode, scanCode)
+                || options.keyJump.matches(keyCode, scanCode)
+                || options.keyShift.matches(keyCode, scanCode)
+                || options.keySprint.matches(keyCode, scanCode);
     }
 
     private static ArmorStand ensureCamera(Player player, RemoteEyeState state) {
