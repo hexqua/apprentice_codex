@@ -16,14 +16,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.lwjgl.glfw.GLFW;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class RemoteEyeClientController {
     private static final double BASE_MOVE_SPEED = 0.35;
     private static final double SPRINT_MOVE_SPEED = 0.70;
@@ -39,11 +39,7 @@ public final class RemoteEyeClientController {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         var level = minecraft.level;
@@ -181,7 +177,7 @@ public final class RemoteEyeClientController {
             activeCamera.yOld = eyePosition.y;
             activeCamera.zOld = eyePosition.z;
             activeUntilGameTime = state.activeUntilGameTime;
-            clientLevel.putNonPlayerEntity(CAMERA_ENTITY_ID, activeCamera);
+            clientLevel.addEntity(activeCamera);
         }
 
         return activeCamera;

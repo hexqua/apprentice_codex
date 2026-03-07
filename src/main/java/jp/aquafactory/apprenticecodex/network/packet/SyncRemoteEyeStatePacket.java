@@ -1,17 +1,25 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class SyncRemoteEyeStatePacket implements CustomPacketPayload {
+    public static final Type<SyncRemoteEyeStatePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_remote_eye_state"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncRemoteEyeStatePacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncRemoteEyeStatePacket::decode);
 
-public class SyncRemoteEyeStatePacket {
     private final long activeUntilGameTime;
     private final double anchorX;
     private final double anchorY;
@@ -26,6 +34,11 @@ public class SyncRemoteEyeStatePacket {
         this.anchorZ = anchorZ;
         this.anchorYaw = anchorYaw;
         this.anchorPitch = anchorPitch;
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
     public static void encode(SyncRemoteEyeStatePacket packet, FriendlyByteBuf buffer) {
@@ -48,12 +61,12 @@ public class SyncRemoteEyeStatePacket {
         );
     }
 
-    public static void handle(SyncRemoteEyeStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(SyncRemoteEyeStatePacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -68,7 +81,7 @@ public class SyncRemoteEyeStatePacket {
             }
 
             // 発動判定はサーバー起点なので、クライアント側の視点切替条件も明示同期する.
-            player.getCapability(Capabilities.SPELL_DATA).ifPresent(data ->
+            Capabilities.getSpellData(player).ifPresent(data ->
                     data.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> {
                         state.activeUntilGameTime = packet.activeUntilGameTime;
                         state.anchorX = packet.anchorX;

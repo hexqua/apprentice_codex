@@ -8,11 +8,13 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Remo
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class RemoteEyeBodyControlEvent {
     private static final double POSITION_EPSILON_SQ = 1.0e-6;
 
@@ -20,12 +22,8 @@ public final class RemoteEyeBodyControlEvent {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        var player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        var player = event.getEntity();
         var level = player.level();
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
@@ -81,5 +79,48 @@ public final class RemoteEyeBodyControlEvent {
         if (!player.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
             RemoteEyeSync.syncToClient(serverPlayer, spellData.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE));
         }
+    }
+
+    @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getEntity().level().isClientSide) {
+            return;
+        }
+
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            var spellData = Capabilities.getSpellDataOrNull(serverPlayer);
+            if (spellData == null) {
+                return;
+            }
+            spellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, RemoteEyeState::reset);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        syncToClient(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        syncToClient(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        syncToClient(event.getEntity());
+    }
+
+    private static void syncToClient(Player player) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        var spellData = Capabilities.getSpellDataOrNull(serverPlayer);
+        if (spellData == null) {
+            return;
+        }
+
+        RemoteEyeSync.syncToClient(serverPlayer, spellData.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE));
     }
 }
