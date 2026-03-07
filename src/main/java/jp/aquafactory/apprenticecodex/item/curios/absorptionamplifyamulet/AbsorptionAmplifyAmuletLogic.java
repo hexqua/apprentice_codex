@@ -10,6 +10,9 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Abso
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -41,6 +44,8 @@ final class AbsorptionAmplifyAmuletLogic {
             return;
         }
 
+        AudioTools.playSoundFromEntity(player.level(),player, SoundEvents.ITEM_BREAK, SoundSource.PLAYERS);
+        AudioTools.playSoundFromEntity(player.level(),player, SoundEvents.GENERIC_EXTINGUISH_FIRE, SoundSource.PLAYERS);
         player.setAbsorptionAmount(0f);
         resetState(player);
     }
