@@ -112,6 +112,7 @@
   "spell.apprenticecodex.precision_jack": "Precision Jack",
   "spell.apprenticecodex.auto_magnet": "Auto Magnet",
   "spell.apprenticecodex.grind_runner": "Grind Runner",
+  "spell.apprenticecodex.remote_eye": "Remote Eye",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -160,6 +161,7 @@
   "spell.apprenticecodex.precision_jack.guide": "Summon a magical knife to cleave your target. Expect a lot more drops than usual, but you need to rotate a significant number of times before it can be activated.",
   "spell.apprenticecodex.auto_magnet.guide": "Summon a magical magnet to follow you. The magnet will collect nearby items and experience orbs and transfer them to you.",
   "spell.apprenticecodex.grind_runner.guide": "Summons an arcane wheel to grind down whatever is in front of you. It can grind not only mobs, but also certain items. Release your magic to launch the wheel.",
+  "spell.apprenticecodex.remote_eye.guide": "Detach your vision and freely move your gaze for a certain period of time. You cannot pass through walls, and you are defenseless during the effect period.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
