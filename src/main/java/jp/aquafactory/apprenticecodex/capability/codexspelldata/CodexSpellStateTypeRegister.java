@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.capability.codexspelldata;
 
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AssistWingsState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AutoMagnetState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FeatherRushState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ForceFieldState;
@@ -9,6 +10,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Mant
 public final class CodexSpellStateTypeRegister {
     private CodexSpellStateTypeRegister(){}
 
+    public static CodexSpellStateType<AbsorptionAmplifyAmuletState> ABSORPTION_AMPLIFY_AMULET_STATE;
     public static CodexSpellStateType<AssistWingsState> ASSIST_WINGS_STATE;
     public static CodexSpellStateType<AutoMagnetState> AUTO_MAGNET_STATE;
     public static CodexSpellStateType<FeatherRushState> FEATHER_RUSH_STATE;
@@ -16,6 +18,7 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<MantisLeapState> MANTIS_LEAP_STATE;
 
     public static void register() {
+        ABSORPTION_AMPLIFY_AMULET_STATE = CodexSpellStates.register("absorption_amplify_amulet", AbsorptionAmplifyAmuletState::new);
         ASSIST_WINGS_STATE = CodexSpellStates.register("assist_wings", AssistWingsState::new);
         AUTO_MAGNET_STATE = CodexSpellStates.register("auto_magnet", AutoMagnetState::new);
         FEATHER_RUSH_STATE = CodexSpellStates.register("feather_rush", FeatherRushState::new);

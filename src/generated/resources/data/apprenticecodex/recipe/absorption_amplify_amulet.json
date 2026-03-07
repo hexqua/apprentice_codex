@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_essence"
+    },
+    "G": {
+      "item": "minecraft:enchanted_golden_apple"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "pattern": [
+    "SAS",
+    "MGM",
+    " M "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:absorption_amplify_amulet"
+  }
+}

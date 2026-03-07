@@ -48,6 +48,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.scarletThirstRequiredHealth();
     }
 
+    public static int absorptionAmplifyAmuletRecoveryDelayTicks() {
+        return ITEMS_CONFIG.absorptionAmplifyAmuletRecoveryDelayTicks();
+    }
+
+    public static float absorptionAmplifyAmuletBaseAbsorptionTarget() {
+        return ITEMS_CONFIG.absorptionAmplifyAmuletBaseAbsorptionTarget();
+    }
+
     public static float scarletThirstDrainHealth() {
         return ITEMS_CONFIG.scarletThirstDrainHealth();
     }

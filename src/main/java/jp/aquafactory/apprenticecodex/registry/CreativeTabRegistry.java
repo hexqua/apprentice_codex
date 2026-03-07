@@ -44,6 +44,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
         output.accept(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get());
+        output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
         output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
         addSpellScrollsToTab(output);
     }

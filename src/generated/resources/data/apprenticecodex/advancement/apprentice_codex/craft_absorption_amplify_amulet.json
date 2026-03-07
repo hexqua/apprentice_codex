@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_absorption_amplify_amulet": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:absorption_amplify_amulet"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:absorption_amplify_amulet"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_absorption_amplify_amulet"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
