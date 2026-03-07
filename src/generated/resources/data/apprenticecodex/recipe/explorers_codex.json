@@ -1,0 +1,65 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "apprenticecodex:explorers_codex_recipe_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "minecraft:writable_book"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "N": {
+      "item": "minecraft:gold_nugget"
+    }
+  },
+  "pattern": [
+    "GDG",
+    "NBN",
+    "GNG"
+  ],
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:assist_wings",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          },
+          {
+            "id": "apprenticecodex:mage_light",
+            "index": 1,
+            "level": 1,
+            "locked": true
+          },
+          {
+            "id": "apprenticecodex:sense_evil",
+            "index": 2,
+            "level": 1,
+            "locked": true
+          },
+          {
+            "id": "apprenticecodex:remote_eye",
+            "index": 3,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 4,
+        "mustEquip": true,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:explorers_codex"
+  }
+}

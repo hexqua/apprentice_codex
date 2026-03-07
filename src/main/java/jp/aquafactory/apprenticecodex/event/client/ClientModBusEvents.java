@@ -71,6 +71,7 @@ public final class ClientModBusEvents {
 
     private static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENDER_GRIMOIRE.get(), SpellBookCurioRenderer::new));
+        event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.EXPLORERS_CODEX.get(), SpellBookCurioRenderer::new));
     }
 
     private static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {

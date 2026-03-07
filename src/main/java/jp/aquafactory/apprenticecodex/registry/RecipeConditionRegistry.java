@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
+import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -16,6 +17,7 @@ public final class RecipeConditionRegistry {
     static {
         CONDITION_CODECS.register("apprentice_desk_recipe_enabled", () -> ApprenticeDeskRecipeEnabledCondition.CODEC);
         CONDITION_CODECS.register("arcanum_in_a_jar_recipe_enabled", () -> ArcanumInAJarRecipeEnabledCondition.CODEC);
+        CONDITION_CODECS.register("explorers_codex_recipe_enabled", () -> ExplorersCodexRecipeEnabledCondition.CODEC);
     }
 
     private RecipeConditionRegistry() {
