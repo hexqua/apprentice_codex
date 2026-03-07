@@ -11,9 +11,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:wandering_magician_helmet"
-            ]
+            "items": "irons_spellbooks:wandering_magician_helmet"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_wandering_magician_helmet",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_wandering_magician_helmet"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:apprentice_mage_scarf"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

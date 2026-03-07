@@ -7,7 +7,16 @@
     "item": "irons_spellbooks:wandering_magician_chestplate"
   },
   "result": {
-    "item": "apprenticecodex:apprentice_mage_torso"
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": true,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:apprentice_mage_torso"
   },
   "template": {
     "item": "irons_spellbooks:magic_cloth"

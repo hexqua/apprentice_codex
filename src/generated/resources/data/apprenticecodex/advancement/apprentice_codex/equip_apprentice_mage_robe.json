@@ -10,24 +10,16 @@
             "predicate": {
               "equipment": {
                 "chest": {
-                  "items": [
-                    "apprenticecodex:apprentice_mage_torso"
-                  ]
+                  "items": "apprenticecodex:apprentice_mage_torso"
                 },
                 "feet": {
-                  "items": [
-                    "apprenticecodex:apprentice_mage_boots"
-                  ]
+                  "items": "apprenticecodex:apprentice_mage_boots"
                 },
                 "head": {
-                  "items": [
-                    "apprenticecodex:apprentice_mage_scarf"
-                  ]
+                  "items": "apprenticecodex:apprentice_mage_scarf"
                 },
                 "legs": {
-                  "items": [
-                    "apprenticecodex:apprentice_mage_leggings"
-                  ]
+                  "items": "apprenticecodex:apprentice_mage_leggings"
                 }
               }
             }
@@ -38,17 +30,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:apprentice_mage_scarf",
-      "nbt": "{Damage:0}"
+      "count": 1,
+      "id": "apprenticecodex:apprentice_mage_scarf"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.title"
     }

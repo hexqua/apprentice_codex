@@ -7,7 +7,8 @@
     "item": "irons_spellbooks:wandering_magician_boots"
   },
   "result": {
-    "item": "apprenticecodex:apprentice_mage_boots"
+    "count": 1,
+    "id": "apprenticecodex:apprentice_mage_boots"
   },
   "template": {
     "item": "irons_spellbooks:magic_cloth"

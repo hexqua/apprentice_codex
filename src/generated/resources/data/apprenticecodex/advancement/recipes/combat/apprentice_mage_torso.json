@@ -11,9 +11,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:wandering_magician_chestplate"
-            ]
+            "items": "irons_spellbooks:wandering_magician_chestplate"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_wandering_magician_chestplate",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_wandering_magician_chestplate"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:apprentice_mage_torso"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

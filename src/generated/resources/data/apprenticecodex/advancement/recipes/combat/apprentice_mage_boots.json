@@ -11,9 +11,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:wandering_magician_boots"
-            ]
+            "items": "irons_spellbooks:wandering_magician_boots"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_wandering_magician_boots",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_wandering_magician_boots"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:apprentice_mage_boots"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

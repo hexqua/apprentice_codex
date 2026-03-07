@@ -48,10 +48,10 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
         var apprenticeMageRobeEquipPredicate = EntityPredicate.wrap(
                 EntityPredicate.Builder.entity()
                         .equipment(EntityEquipmentPredicate.Builder.equipment()
-                                .head(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_SCARF.get()).build())
-                                .chest(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_TORSO.get()).build())
-                                .legs(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get()).build())
-                                .feet(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_BOOTS.get()).build())
+                                .head(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_SCARF.get()))
+                                .chest(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_TORSO.get()))
+                                .legs(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get()))
+                                .feet(ItemPredicate.Builder.item().of(ItemRegistry.APPRENTICE_MAGE_BOOTS.get()))
                                 .build())
                         .build()
         );

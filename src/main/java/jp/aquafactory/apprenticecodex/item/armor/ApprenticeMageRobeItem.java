@@ -1,22 +1,20 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
@@ -25,29 +23,29 @@ import jp.aquafactory.apprenticecodex.renderer.armor.ApprenticeMageRobeRenderer;
 
 public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Type armorType;
-    private final Multimap<Attribute, AttributeModifier> robeAttributeModifiers;
+    private final ItemAttributeModifiers robeAttributeModifiers;
 
     public ApprenticeMageRobeItem(Type type) {
-        super(ApprenticeMageRobeStats.MATERIAL, type, new Properties());
-        this.armorType = type;
+        super(Holder.direct(ApprenticeMageRobeStats.MATERIAL), type, ApprenticeMageRobeStats.createProperties(type));
         this.robeAttributeModifiers = ApprenticeMageRobeStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private GeoArmorRenderer<?> renderer;
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private ApprenticeMageRobeRenderer renderer;
 
             @Override
-            public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack,
-                                                                   EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
+            public <T extends LivingEntity> HumanoidModel<?> getGeoArmorRenderer(
+                    @Nullable T livingEntity,
+                    ItemStack itemStack,
+                    @Nullable EquipmentSlot equipmentSlot,
+                    @Nullable HumanoidModel<T> original
+            ) {
                 if (this.renderer == null) {
                     this.renderer = new ApprenticeMageRobeRenderer();
                 }
-
-                this.renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
                 return this.renderer;
             }
         });
@@ -59,7 +57,7 @@ public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPrese
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || armorType != Type.CHESTPLATE || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || getType() != Type.CHESTPLATE || ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
@@ -68,26 +66,20 @@ public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPrese
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != armorType.getSlot() || robeAttributeModifiers.isEmpty()) {
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var baseModifiers = super.getDefaultAttributeModifiers(stack);
+        if (robeAttributeModifiers.modifiers().isEmpty()) {
             return baseModifiers;
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(baseModifiers);
-        builder.putAll(robeAttributeModifiers);
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : baseModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+        for (var entry : robeAttributeModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
         return builder.build();
-    }
-
-    @Override
-    public int getEnchantmentValue(ItemStack stack) {
-        return ApprenticeMageRobeStats.enchantmentValue();
-    }
-
-    @Override
-    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
-        return ApprenticeMageRobeStats.isRepairIngredient(repair) || super.isValidRepairItem(toRepair, repair);
     }
 
     @Override
