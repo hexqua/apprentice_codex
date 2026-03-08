@@ -119,6 +119,23 @@ public class EssenceSmoker extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
 
+        // 火打ち石は素材・触媒チェックより先に判定し、着火操作を他のエラーで潰さない。
+        if (heldStack.is(Items.FLINT_AND_STEEL)) {
+            if (!blockEntity.hasCatalyst() || !blockEntity.hasMaterials()) {
+                displayError(player, "ui.apprenticecodex.need_material_and_catalyst");
+                return InteractionResult.CONSUME;
+            }
+
+            if (level.isClientSide) {
+                return InteractionResult.SUCCESS;
+            }
+
+            if (blockEntity.startProcessing(level.getGameTime()) && !player.getAbilities().instabuild) {
+                heldStack.hurtAndBreak(1, player, livingEntity -> livingEntity.broadcastBreakEvent(hand));
+            }
+            return InteractionResult.CONSUME;
+        }
+
         if (!blockEntity.hasCatalyst()) {
             if (!blockEntity.canAcceptCatalyst(heldStack)) {
                 displayError(player, "ui.apprenticecodex.not_match_catalyst", heldStack.getHoverName());
@@ -158,17 +175,6 @@ public class EssenceSmoker extends BaseEntityBlock {
 
             if (blockEntity.addMaterial(heldStack) && !player.getAbilities().instabuild) {
                 heldStack.shrink(1);
-            }
-            return InteractionResult.CONSUME;
-        }
-
-        if (blockEntity.hasMaterials() && heldStack.is(Items.FLINT_AND_STEEL)) {
-            if (level.isClientSide) {
-                return InteractionResult.SUCCESS;
-            }
-
-            if (blockEntity.startProcessing(level.getGameTime()) && !player.getAbilities().instabuild) {
-                heldStack.hurtAndBreak(1, player, livingEntity -> livingEntity.broadcastBreakEvent(hand));
             }
             return InteractionResult.CONSUME;
         }
