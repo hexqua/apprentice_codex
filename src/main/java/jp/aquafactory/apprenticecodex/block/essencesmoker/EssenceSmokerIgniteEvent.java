@@ -21,8 +21,6 @@ public final class EssenceSmokerIgniteEvent {
             return;
         }
 
-        if (blockEntity.canIgnite()) {
-            blockEntity.startProcessing(serverLevel.getGameTime());
-        }
+        blockEntity.ignite(serverLevel.getGameTime());
     }
 }
