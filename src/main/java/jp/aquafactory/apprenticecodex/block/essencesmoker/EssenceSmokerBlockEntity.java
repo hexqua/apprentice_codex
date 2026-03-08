@@ -140,6 +140,16 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
         return true;
     }
 
+    public boolean ignite(long gameTime) {
+        if (!startProcessing(gameTime)) {
+            return false;
+        }
+
+        // 着火手段に関わらず同じ開始フィードバックを返す。
+        playIgniteSound();
+        return true;
+    }
+
     public List<ItemStack> collectCompletedItems() {
         if (!completed) {
             return List.of();
@@ -290,5 +300,13 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
         }
 
         AudioTools.playSoundFromPosition(level, worldPosition.getCenter(), SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.45F, 0.9F, 0.08F);
+    }
+
+    private void playIgniteSound() {
+        if (level == null) {
+            return;
+        }
+
+        AudioTools.playSoundFromPosition(level, worldPosition.getCenter(), SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 }

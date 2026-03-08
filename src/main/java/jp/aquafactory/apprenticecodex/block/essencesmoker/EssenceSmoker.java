@@ -141,8 +141,8 @@ public class EssenceSmoker extends BaseEntityBlock {
                 return InteractionResult.SUCCESS;
             }
 
-            if (blockEntity.startProcessing(level.getGameTime()) && !player.getAbilities().instabuild) {
-                heldStack.hurtAndBreak(1, player, livingEntity -> livingEntity.broadcastBreakEvent(hand));
+            if (blockEntity.ignite(level.getGameTime()) && !player.getAbilities().instabuild) {
+                damageIgniter(player, hand);
             }
             return InteractionResult.CONSUME;
         }
@@ -268,5 +268,10 @@ public class EssenceSmoker extends BaseEntityBlock {
 
     private static void playItemSetSound(Level level, BlockPos pos) {
         AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 0.65F, 1.1F, 0.1F);
+    }
+
+    private static void damageIgniter(Player player, InteractionHand hand) {
+        var heldStack = player.getItemInHand(hand);
+        heldStack.hurtAndBreak(1, player, livingEntity -> livingEntity.broadcastBreakEvent(hand));
     }
 }
