@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "apprenticecodex:block/essence_smoker"
+    },
+    "facing=east": {
+      "model": "apprenticecodex:block/essence_smoker",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "apprenticecodex:block/essence_smoker",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "apprenticecodex:block/essence_smoker",
+      "y": 270
+    }
+  }
+}
