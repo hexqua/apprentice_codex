@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
@@ -81,7 +82,10 @@ public final class ClientModBusEvents {
         event.registerReloadListener((barrier, manager, prepProfiler, reloadProfiler, backgroundExecutor, gameExecutor) ->
                 CompletableFuture.completedFuture((Void) null)
                         .thenCompose(barrier::wait)
-                        .thenRunAsync(ExtrudedSpriteManager::clear, gameExecutor)
+                        .thenRunAsync(() -> {
+                            ExtrudedSpriteManager.clear();
+                            EssenceSmokerParticlePaletteCache.clear();
+                        }, gameExecutor)
         );
     }
 
