@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.block.essencesmoker;
 
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -10,6 +11,8 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -250,6 +253,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
         for (var i = 0; i < materials.size(); i++) {
             materials.set(i, new ItemStack(Items.LEATHER, materials.get(i).getCount()));
         }
+        playCompletionSound();
         markUpdated();
     }
 
@@ -278,5 +282,13 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    private void playCompletionSound() {
+        if (level == null) {
+            return;
+        }
+
+        AudioTools.playSoundFromPosition(level, worldPosition.getCenter(), SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.45F, 0.9F, 0.08F);
     }
 }
