@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.block.essencesmoker;
 
+import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -9,21 +11,19 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class EssenceSmokerBlockEntity extends BlockEntity {
     public static final int MAX_MATERIAL_COUNT = 8;
@@ -33,8 +33,6 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
     private static final String PROCESSING_TAG = "Processing";
     private static final String COMPLETED_TAG = "Completed";
     private static final String PROCESS_FINISH_GAME_TIME_TAG = "ProcessFinishGameTime";
-    private static final ResourceLocation ARCANE_ESSENCE_ITEM_ID =
-            ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "arcane_essence");
 
     private ItemStack catalyst = ItemStack.EMPTY;
     private final List<ItemStack> materials = new ArrayList<>();
@@ -75,16 +73,19 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
     }
 
     public boolean canAcceptCatalyst(ItemStack stack) {
-        var arcaneEssenceItem = ForgeRegistries.ITEMS.getValue(ARCANE_ESSENCE_ITEM_ID);
-        return arcaneEssenceItem != null && stack.is(arcaneEssenceItem);
+        return findRecipeByCatalyst(stack).isPresent();
     }
 
     public boolean canAcceptMaterial(ItemStack stack) {
-        return stack.is(Items.ROTTEN_FLESH);
+        return hasCatalyst() && findMatchingRecipe(catalyst, stack).isPresent();
     }
 
     public boolean canIgnite() {
-        return hasCatalyst() && hasMaterials() && !processing && !completed;
+        return hasCatalyst()
+                && hasMaterials()
+                && !processing
+                && !completed
+                && materials.stream().allMatch(material -> findMatchingRecipe(catalyst, material).isPresent());
     }
 
     public boolean setCatalyst(ItemStack stack) {
@@ -259,12 +260,38 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
         processing = false;
         completed = true;
         processFinishGameTime = -1L;
+        transformMaterialsToResults();
         catalyst = ItemStack.EMPTY;
-        for (var i = 0; i < materials.size(); i++) {
-            materials.set(i, new ItemStack(Items.LEATHER, materials.get(i).getCount()));
-        }
         playCompletionSound();
         markUpdated();
+    }
+
+    private void transformMaterialsToResults() {
+        for (var i = 0; i < materials.size(); i++) {
+            var material = materials.get(i);
+            var transformed = resolveProcessedResult(material);
+            if (!transformed.isEmpty()) {
+                materials.set(i, transformed);
+            }
+        }
+    }
+
+    private @NotNull ItemStack resolveProcessedResult(ItemStack material) {
+        var recipe = findMatchingRecipe(catalyst, material);
+        if (recipe.isEmpty()) {
+            // 加工開始後に datapack が差し替わっても、素材消失は起こさない。
+            return material.copy();
+        }
+
+        var result = recipe.get().getResultTemplate();
+        if (result.isEmpty()) {
+            return material.copy();
+        }
+
+        var transformed = result.copy();
+        var outputCount = Math.max(1L, material.getCount()) * result.getCount();
+        transformed.setCount((int) Math.min(Integer.MAX_VALUE, outputCount));
+        return transformed;
     }
 
     private List<ItemStack> copyMaterials() {
@@ -273,6 +300,30 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
             copies.add(material.copy());
         }
         return copies;
+    }
+
+    private Optional<EssenceSmokerRecipe> findRecipeByCatalyst(ItemStack catalystStack) {
+        return getAllRecipes().stream()
+                .filter(recipe -> recipe.getCatalyst().test(catalystStack))
+                .findFirst();
+    }
+
+    private Optional<EssenceSmokerRecipe> findMatchingRecipe(ItemStack catalystStack, ItemStack materialStack) {
+        if (catalystStack.isEmpty() || materialStack.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return getAllRecipes().stream()
+                .filter(recipe -> recipe.matches(catalystStack, materialStack))
+                .findFirst();
+    }
+
+    private List<EssenceSmokerRecipe> getAllRecipes() {
+        if (level == null) {
+            return List.of();
+        }
+
+        return level.getRecipeManager().getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get());
     }
 
     private void resetContents() {
