@@ -68,35 +68,38 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
         // 既存のキューブ演出の上に粉の充填を重ねる.
         var time = level.getGameTime() + partialTick + (blockEntity.getBlockPos().asLong() & 31L);
         var fade = 0.5f + 0.5f * Mth.sin((float)(time * 0.045f));
+        var operationRatio = blockEntity.getRemainingOperationRatio();
 
-        poseStack.pushPose();
-        poseStack.translate(CENTER_XZ, CENTER_Y, CENTER_XZ);
-        poseStack.mulPose(Axis.XP.rotationDegrees((float)(time * 0.55f)));
-        poseStack.mulPose(Axis.YP.rotationDegrees((float)(time * 0.85f)));
-        poseStack.mulPose(Axis.ZP.rotationDegrees((float)(time * 0.70f)));
+        if (operationRatio > 0.0f) {
+            poseStack.pushPose();
+            poseStack.translate(CENTER_XZ, CENTER_Y, CENTER_XZ);
+            poseStack.mulPose(Axis.XP.rotationDegrees((float)(time * 0.55f)));
+            poseStack.mulPose(Axis.YP.rotationDegrees((float)(time * 0.85f)));
+            poseStack.mulPose(Axis.ZP.rotationDegrees((float)(time * 0.70f)));
 
-        drawCube(
-                poseStack,
-                buffer.getBuffer(SOLID_RENDER_TYPE),
-                INNER_CUBE_SIZE,
-                255, 255, 255, 255,
-                false
-        );
-
-        if (distanceSqr <= OUTER_CUBE_MAX_DISTANCE_SQR) {
             drawCube(
                     poseStack,
                     buffer.getBuffer(SOLID_RENDER_TYPE),
-                    OUTER_CUBE_SIZE,
-                    toChannel(Mth.lerp(fade, 0.45f, 0.78f)),
-                    toChannel(Mth.lerp(fade, 0.88f, 0.44f)),
-                    255,
-                    255,
-                    true
+                    INNER_CUBE_SIZE * operationRatio,
+                    255, 255, 255, 255,
+                    false
             );
-        }
 
-        poseStack.popPose();
+            if (distanceSqr <= OUTER_CUBE_MAX_DISTANCE_SQR) {
+                drawCube(
+                        poseStack,
+                        buffer.getBuffer(SOLID_RENDER_TYPE),
+                        OUTER_CUBE_SIZE * operationRatio,
+                        toChannel(Mth.lerp(fade, 0.45f, 0.78f)),
+                        toChannel(Mth.lerp(fade, 0.88f, 0.44f)),
+                        255,
+                        255,
+                        true
+                );
+            }
+
+            poseStack.popPose();
+        }
 
         var fillRatio = blockEntity.getFillRatio();
         if (fillRatio <= 0.0f) {
