@@ -1,11 +1,14 @@
 package jp.aquafactory.apprenticecodex.block.essencesmoker;
 
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -39,6 +42,10 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class EssenceSmoker extends BaseEntityBlock {
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    private static final double PIT_CENTER_XZ = 0.5D;
+    private static final double PIT_CENTER_Y = 3.0D / 16.0D;
+    private static final double PIT_PARTICLE_SPREAD = 0.18D;
+    private static final double SMOKER_SOUND_CHANCE = 0.1D;
 
     public EssenceSmoker() {
         super(Properties.of()
@@ -96,8 +103,12 @@ public class EssenceSmoker extends BaseEntityBlock {
                 return InteractionResult.SUCCESS;
             }
 
-            for (var completedItem : blockEntity.collectCompletedItems()) {
+            var completedItems = blockEntity.collectCompletedItems();
+            for (var completedItem : completedItems) {
                 blockEntity.giveItemToPlayer(player, completedItem);
+            }
+            if (!completedItems.isEmpty()) {
+                playItemSetSound(level, pos);
             }
             return InteractionResult.CONSUME;
         }
@@ -146,7 +157,11 @@ public class EssenceSmoker extends BaseEntityBlock {
                 return InteractionResult.SUCCESS;
             }
 
-            if (blockEntity.setCatalyst(heldStack) && !player.getAbilities().instabuild) {
+            var catalystSet = blockEntity.setCatalyst(heldStack);
+            if (catalystSet) {
+                playItemSetSound(level, pos);
+            }
+            if (catalystSet && !player.getAbilities().instabuild) {
                 heldStack.shrink(1);
             }
             return InteractionResult.CONSUME;
@@ -173,7 +188,11 @@ public class EssenceSmoker extends BaseEntityBlock {
                 return InteractionResult.SUCCESS;
             }
 
-            if (blockEntity.addMaterial(heldStack) && !player.getAbilities().instabuild) {
+            var materialAdded = blockEntity.addMaterial(heldStack);
+            if (materialAdded) {
+                playItemSetSound(level, pos);
+            }
+            if (materialAdded && !player.getAbilities().instabuild) {
                 heldStack.shrink(1);
             }
             return InteractionResult.CONSUME;
@@ -212,12 +231,19 @@ public class EssenceSmoker extends BaseEntityBlock {
             return;
         }
 
-        var x = pos.getX() + 0.5D + (random.nextDouble() - 0.5D) * 0.2D;
-        var y = pos.getY() + 0.9D + random.nextDouble() * 0.2D;
-        var z = pos.getZ() + 0.5D + (random.nextDouble() - 0.5D) * 0.2D;
-        level.addParticle(ParticleTypes.SMOKE, x, y, z, 0.0D, 0.04D, 0.0D);
-        if (random.nextBoolean()) {
-            level.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, x, y, z, 0.0D, 0.03D, 0.0D);
+        // pit グループ内の炭位置に寄せて、中央下部から燃えている見た目を出す。
+        var centerX = pos.getX() + PIT_CENTER_XZ;
+        var centerY = pos.getY() + PIT_CENTER_Y;
+        var centerZ = pos.getZ() + PIT_CENTER_XZ;
+        var x = centerX + (random.nextDouble() - 0.5D) * PIT_PARTICLE_SPREAD;
+        var y = centerY + random.nextDouble() * 0.04D;
+        var z = centerZ + (random.nextDouble() - 0.5D) * PIT_PARTICLE_SPREAD;
+        level.addParticle(ParticleTypes.SMOKE, x, y, z, 0.0D, 0.015D + random.nextDouble() * 0.01D, 0.0D);
+        if (random.nextFloat() < 0.7F) {
+            level.addParticle(ParticleTypes.FLAME, x, y, z, 0.0D, 0.01D, 0.0D);
+        }
+        if (random.nextDouble() < SMOKER_SOUND_CHANCE) {
+            level.playLocalSound(centerX, centerY, centerZ, SoundEvents.SMOKER_SMOKE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
         }
     }
 
@@ -238,5 +264,9 @@ public class EssenceSmoker extends BaseEntityBlock {
         }
 
         player.displayClientMessage(Component.translatable(key, args).withStyle(ChatFormatting.RED), true);
+    }
+
+    private static void playItemSetSound(Level level, BlockPos pos) {
+        AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 0.65F, 1.1F, 0.1F);
     }
 }
