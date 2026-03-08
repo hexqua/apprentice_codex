@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
-import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
@@ -15,7 +14,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -34,10 +32,10 @@ public class RemoteEye extends AbstractSpell {
 
     public RemoteEye() {
         baseSpellPower = 100;
-        spellPowerPerLevel = 25;
+        spellPowerPerLevel = 30;
         baseManaCost = 80;
-        manaCostPerLevel = 20;
-        castTime = 50;
+        manaCostPerLevel = 25;
+        castTime = 0;
     }
 
     @Override
@@ -48,7 +46,7 @@ public class RemoteEye extends AbstractSpell {
     }
 
     private int getDuration(int spellLevel, LivingEntity caster) {
-        return 30 + Math.round(30 * getSpellPower(spellLevel, caster) / 100.0f);
+        return 40 + Math.round(40 * getSpellPower(spellLevel, caster) / 100.0f);
     }
 
     @Override
@@ -63,27 +61,12 @@ public class RemoteEye extends AbstractSpell {
 
     @Override
     public CastType getCastType() {
-        return CastType.LONG;
-    }
-
-    @Override
-    public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundRegistry.REMOTE_PREPARE.get());
+        return CastType.INSTANT;
     }
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
-    }
-
-    @Override
-    public AnimationHolder getCastStartAnimation() {
-        return SpellAnimations.CAST_T_POSE;
-    }
-
-    @Override
-    public AnimationHolder getCastFinishAnimation() {
-        return AnimationHolder.none();
+        return Optional.of(SoundRegistry.REMOTE_PREPARE.get());
     }
 
     @Override
