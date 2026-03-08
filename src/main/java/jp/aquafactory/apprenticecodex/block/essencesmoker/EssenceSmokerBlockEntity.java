@@ -39,6 +39,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
     private boolean processing;
     private boolean completed;
     private long processFinishGameTime = -1L;
+    private long lastColoredParticleGameTime = Long.MIN_VALUE;
 
     public EssenceSmokerBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.ESSENCE_SMOKER.get(), pos, state);
@@ -66,6 +67,15 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
 
     public boolean isProcessing() {
         return processing;
+    }
+
+    public boolean markColoredParticleGameTime(long gameTime) {
+        if (lastColoredParticleGameTime == gameTime) {
+            return false;
+        }
+
+        lastColoredParticleGameTime = gameTime;
+        return true;
     }
 
     public boolean isCompleted() {

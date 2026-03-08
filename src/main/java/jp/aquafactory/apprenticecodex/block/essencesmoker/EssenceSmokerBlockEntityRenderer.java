@@ -7,10 +7,13 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
 public class EssenceSmokerBlockEntityRenderer implements BlockEntityRenderer<EssenceSmokerBlockEntity> {
     private static final float CATALYST_SCALE = 0.5f;
@@ -19,6 +22,13 @@ public class EssenceSmokerBlockEntityRenderer implements BlockEntityRenderer<Ess
     private static final float CATALYST_CENTER_Z = 8.0f / 16.0f;
     private static final float MATERIAL_SCALE = 0.35f;
     private static final float MATERIAL_CENTER_Y = 9.5f / 16.0f;
+    private static final float COLORED_DUST_SCALE = 0.85f;
+    private static final double COLORED_PARTICLE_MIN_RADIUS = 0.55d;
+    private static final double COLORED_PARTICLE_MAX_RADIUS = 1.0d;
+    private static final double COLORED_PARTICLE_MIN_Y = 0.35d;
+    private static final double COLORED_PARTICLE_Y_RANGE = 0.45d;
+    private static final double COLORED_PARTICLE_MAX_DISTANCE = 18.0d;
+    private static final double COLORED_PARTICLE_MAX_DISTANCE_SQR = COLORED_PARTICLE_MAX_DISTANCE * COLORED_PARTICLE_MAX_DISTANCE;
     private static final MaterialSlot[] MATERIAL_SLOTS = {
             // 現行モデルの chain1..4 板ポリ位置に寄せた吊り下げ座標. 1本につき2個まで表示する.
             new MaterialSlot(5.5f / 16.0f, MATERIAL_CENTER_Y, 2.6f / 16.0f, 0.0f),
@@ -43,6 +53,8 @@ public class EssenceSmokerBlockEntityRenderer implements BlockEntityRenderer<Ess
             return;
         }
 
+        spawnColoredProcessingParticle(blockEntity);
+
         poseStack.pushPose();
         applyBlockRotation(poseStack, blockEntity);
 
@@ -50,6 +62,47 @@ public class EssenceSmokerBlockEntityRenderer implements BlockEntityRenderer<Ess
         renderMaterials(blockEntity, poseStack, buffer, packedLight);
 
         poseStack.popPose();
+    }
+
+    private static void spawnColoredProcessingParticle(EssenceSmokerBlockEntity blockEntity) {
+        if (!blockEntity.isProcessing()) {
+            return;
+        }
+
+        var level = blockEntity.getLevel();
+        if (level == null) {
+            return;
+        }
+
+        var catalyst = blockEntity.getCatalyst();
+        if (catalyst.isEmpty()) {
+            return;
+        }
+
+        var cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        var center = Vec3.atCenterOf(blockEntity.getBlockPos());
+        if (cameraPos.distanceToSqr(center) > COLORED_PARTICLE_MAX_DISTANCE_SQR) {
+            return;
+        }
+
+        var gameTime = level.getGameTime();
+        if (!blockEntity.markColoredParticleGameTime(gameTime)) {
+            return;
+        }
+
+        var random = level.getRandom();
+        var angle = random.nextDouble() * (Math.PI * 2.0d);
+        var radius = Mth.lerp(random.nextDouble(), COLORED_PARTICLE_MIN_RADIUS, COLORED_PARTICLE_MAX_RADIUS);
+        var x = center.x + Math.cos(angle) * radius;
+        var y = blockEntity.getBlockPos().getY() + COLORED_PARTICLE_MIN_Y + random.nextDouble() * COLORED_PARTICLE_Y_RANGE;
+        var z = center.z + Math.sin(angle) * radius;
+        var rgb = EssenceSmokerParticlePaletteCache.pickColor(catalyst, level, random);
+        var particle = new DustParticleOptions(toVectorColor(rgb), COLORED_DUST_SCALE + random.nextFloat() * 0.2f);
+        var motionX = (random.nextDouble() - 0.5d) * 0.01d;
+        var motionY = 0.01d + random.nextDouble() * 0.02d;
+        var motionZ = (random.nextDouble() - 0.5d) * 0.01d;
+
+        level.addParticle(particle, x, y, z, motionX, motionY, motionZ);
     }
 
     private static void applyBlockRotation(PoseStack poseStack, EssenceSmokerBlockEntity blockEntity) {
@@ -150,6 +203,13 @@ public class EssenceSmokerBlockEntityRenderer implements BlockEntityRenderer<Ess
                 + (stack.getDamageValue() * 17)
                 + (stack.hasTag() ? stack.getTag().hashCode() : 0)
                 + (salt * 31);
+    }
+
+    private static Vector3f toVectorColor(int rgb) {
+        var red = ((rgb >> 16) & 0xFF) / 255.0f;
+        var green = ((rgb >> 8) & 0xFF) / 255.0f;
+        var blue = (rgb & 0xFF) / 255.0f;
+        return new Vector3f(red, green, blue);
     }
 
     private record MaterialSlot(float x, float y, float z, float yRotDeg) {
