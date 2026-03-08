@@ -201,6 +201,12 @@
   "ui.apprenticecodex.max_supply_redstone": "これ以上レッドストーンを入れられない！",
   "ui.apprenticecodex.not_stored_essence": "瓶には何も溜まっていない...長い時間が必要だ",
   "ui.apprenticecodex.not_open_top": "上の障害物が邪魔で蓋が開けられない...",
+  "ui.apprenticecodex.not_match_catalyst": "%1$sは触媒には使えないようだ",
+  "ui.apprenticecodex.already_set_catalyst": "触媒は既にセットされている",
+  "ui.apprenticecodex.not_match_material": "%1$sは%2$sとは反応しないようだ",
+  "ui.apprenticecodex.max_count_material": "それ以上素材を吊るせない！",
+  "ui.apprenticecodex.need_ignite": "%1$sか%2$sで着火する必要がある！",
+  "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",
