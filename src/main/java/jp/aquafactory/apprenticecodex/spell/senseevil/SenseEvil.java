@@ -19,10 +19,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -114,7 +114,7 @@ public class SenseEvil extends AbstractSpell {
         for (var target : level.getEntitiesOfClass(LivingEntity.class, searchBox, living ->
                 living.isAlive() && living != caster)) {
             var configuredVariant = SenseEvilHighlightManager.getConfiguredVariant(target.getType());
-            if (configuredVariant == null && target.getMobType() != MobType.UNDEAD) {
+            if (configuredVariant == null && !target.getType().is(EntityTypeTags.UNDEAD)) {
                 continue;
             }
             var scale = Mth.clamp((float) target.getBbWidth() * 1.2f, MIN_ENTITY_HIGHLIGHT_SCALE, MAX_ENTITY_HIGHLIGHT_SCALE);
@@ -203,7 +203,7 @@ public class SenseEvil extends AbstractSpell {
         }
 
         var previewEntity = entityType.get().create(level);
-        if (!(previewEntity instanceof LivingEntity livingEntity) || livingEntity.getMobType() != MobType.UNDEAD) {
+        if (!(previewEntity instanceof LivingEntity) || !entityType.get().is(EntityTypeTags.UNDEAD)) {
             return null;
         }
         return SenseEvilHighlightVariant.NORMAL;

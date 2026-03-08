@@ -1,34 +1,41 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
-import com.mojang.serialization.JsonOps;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvilHighlightEntityList;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvilHighlightManager;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvilHighlightVariant;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.JsonCodecProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.JsonCodecProvider;
 
-import java.util.Map;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class SenseEvilHighlightDataGenerator extends JsonCodecProvider<SenseEvilHighlightEntityList> {
-    public SenseEvilHighlightDataGenerator(PackOutput output, ExistingFileHelper existingFileHelper) {
+    public SenseEvilHighlightDataGenerator(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
+                                           ExistingFileHelper existingFileHelper) {
         super(
                 output,
-                existingFileHelper,
-                ApprenticeCodex.MODID,
-                JsonOps.INSTANCE,
-                PackType.SERVER_DATA,
+                PackOutput.Target.DATA_PACK,
                 SenseEvilHighlightManager.DIRECTORY,
+                PackType.SERVER_DATA,
                 SenseEvilHighlightEntityList.CODEC,
-                Map.of(
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, SenseEvilHighlightVariant.LIGHT_STRONG.getDataFileName()),
-                        new SenseEvilHighlightEntityList(java.util.List.of(
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "necromancer")
-                        ))
-                )
+                lookupProvider,
+                ApprenticeCodex.MODID,
+                existingFileHelper
+        );
+    }
+
+    @Override
+    protected void gather() {
+        unconditional(
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, SenseEvilHighlightVariant.LIGHT_STRONG.getDataFileName()),
+                new SenseEvilHighlightEntityList(List.of(
+                        ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "necromancer")
+                ))
         );
     }
 }
