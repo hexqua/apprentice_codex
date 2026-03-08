@@ -51,8 +51,8 @@ public class EssenceSmokerBlockEntity extends BlockEntity {
         return catalyst.copy();
     }
 
-    public int getMaterialCount() {
-        return materials.size();
+    public @NotNull List<ItemStack> getMaterials() {
+        return copyMaterials();
     }
 
     public boolean hasMaterials() {
