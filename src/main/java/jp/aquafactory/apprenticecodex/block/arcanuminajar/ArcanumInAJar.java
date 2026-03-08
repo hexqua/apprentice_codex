@@ -7,10 +7,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -102,6 +105,46 @@ public class ArcanumInAJar extends BaseEntityBlock {
     }
 
     @Override
+    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
+                                                       @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand,
+                                                       @NotNull BlockHitResult hitResult) {
+        if (hand != InteractionHand.MAIN_HAND) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (!stack.is(Items.REDSTONE)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (!blockEntity.canAcceptMoreRedstone()) {
+            if (!level.isClientSide) {
+                player.displayClientMessage(Component.translatable("ui.apprenticecodex.max_supply_redstone")
+                        .withStyle(ChatFormatting.RED), true);
+            }
+            // FAIL にすると手前に設置を試みてしまうので CONSUME にする.
+            return ItemInteractionResult.CONSUME;
+        }
+
+        if (level.isClientSide) {
+            return ItemInteractionResult.SUCCESS;
+        }
+
+        var inserted = blockEntity.insertRedstone(level.getGameTime(), stack.getCount());
+        if (inserted <= 0) {
+            return ItemInteractionResult.CONSUME;
+        }
+
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(inserted);
+        }
+        return ItemInteractionResult.CONSUME;
+    }
+
+    @Override
     protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
                                                         @NotNull Player player, @NotNull BlockHitResult hitResult) {
         if (level.isClientSide) {
@@ -125,8 +168,10 @@ public class ArcanumInAJar extends BaseEntityBlock {
 
         var storedParameterCount = blockEntity.getStoredParameterCount();
         if (storedParameterCount <= 0) {
-            player.displayClientMessage(Component.translatable("ui.apprenticecodex.not_stored_essence")
-                    .withStyle(ChatFormatting.RED), true);
+            var messageKey = blockEntity.hasNoWorkLoaded()
+                    ? "ui.apprenticecodex.not_supply_redstone"
+                    : "ui.apprenticecodex.not_stored_essence";
+            player.displayClientMessage(Component.translatable(messageKey).withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
 
@@ -151,7 +196,8 @@ public class ArcanumInAJar extends BaseEntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity) {
             var storedParameterCount = ArcanumInAJarBlockEntity.getStoredParameterCount(stack);
-            blockEntity.restoreStoredParameterCount(storedParameterCount, level.getGameTime());
+            var remainingOperationCount = ArcanumInAJarBlockEntity.getRemainingOperationCount(stack);
+            blockEntity.restoreState(storedParameterCount, remainingOperationCount, level.getGameTime());
         }
     }
 
@@ -178,7 +224,8 @@ public class ArcanumInAJar extends BaseEntityBlock {
         }
 
         var storedParameterCount = blockEntity.getStoredParameterCount();
-        if (storedParameterCount <= 0) {
+        var remainingOperationCount = blockEntity.getRemainingOperationCount();
+        if (storedParameterCount <= 0 && remainingOperationCount <= 0) {
             return drops;
         }
 
@@ -188,6 +235,7 @@ public class ArcanumInAJar extends BaseEntityBlock {
             }
 
             ArcanumInAJarBlockEntity.setStoredParameterCount(drop, storedParameterCount);
+            ArcanumInAJarBlockEntity.setRemainingOperationCount(drop, remainingOperationCount);
             break;
         }
         return drops;
