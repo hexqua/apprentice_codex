@@ -30,7 +30,7 @@
   "item.apprenticecodex.absorption_amplify_amulet.desc_2": "The recovery amount is amplified by the strength of holy school.",
   "item.apprenticecodex.absorption_amplify_amulet.desc_3": "Removing this accessory causes loses all absorption shields.",
 
-  "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Generates Arcane Essence over time when placed.",
+  "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "It takes time to build up, and breaking it causes some of the stored essence to be lost.",
   "jei.apprenticecodex.craftsmans_delight.desc_1": "Reduces the mana cost of the spells listed in the tooltip.",
   "jei.apprenticecodex.craftsmans_delight.desc_2": "For spells that break blocks, ring enchantments apply and mining speed increases.",
@@ -196,6 +196,8 @@
   "ui.apprenticecodex.recepted_pastel_magic": "Bound \"%s\" magic to the staff!",
   "ui.apprenticecodex.unsatisfied_max_mana_for_enchant": "You need %2$d maximum mana to seal arcane power into %1$s!",
   "ui.apprenticecodex.cant_spawn_in_air": "Can't spawn in air!",
+  "ui.apprenticecodex.not_supply_redstone": "It's not working... Looks like it needs redstone.",
+  "ui.apprenticecodex.max_supply_redstone": "Can't supply more redstone!",
   "ui.apprenticecodex.not_stored_essence": "No essence has built up in the bottle yet... it needs more time.",
   "ui.apprenticecodex.not_open_top": "The top is blocked by an obstacle, so the lid can't be opened...",
 
