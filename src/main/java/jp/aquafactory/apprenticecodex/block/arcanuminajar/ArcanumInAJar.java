@@ -11,6 +11,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -103,12 +104,38 @@ public class ArcanumInAJar extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
 
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
-
         if (!(level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity)) {
             return InteractionResult.PASS;
+        }
+
+        var heldStack = player.getItemInHand(hand);
+        if (heldStack.is(Items.REDSTONE)) {
+            if (!blockEntity.canAcceptMoreRedstone()) {
+                if (!level.isClientSide) {
+                    player.displayClientMessage(Component.translatable("ui.apprenticecodex.max_supply_redstone")
+                            .withStyle(ChatFormatting.RED), true);
+                }
+                // FAILにすると手前に設置を試みてしまうのでCONSUMEにする.
+                return InteractionResult.CONSUME;
+            }
+
+            if (level.isClientSide) {
+                return InteractionResult.SUCCESS;
+            }
+
+            var inserted = blockEntity.insertRedstone(level.getGameTime(), heldStack.getCount());
+            if (inserted <= 0) {
+                return InteractionResult.CONSUME;
+            }
+
+            if (!player.getAbilities().instabuild) {
+                heldStack.shrink(inserted);
+            }
+            return InteractionResult.CONSUME;
+        }
+
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
         if (blockEntity.isDispensing()) {
@@ -124,8 +151,10 @@ public class ArcanumInAJar extends BaseEntityBlock {
 
         var storedParameterCount = blockEntity.getStoredParameterCount();
         if (storedParameterCount <= 0) {
-            player.displayClientMessage(Component.translatable("ui.apprenticecodex.not_stored_essence")
-                    .withStyle(ChatFormatting.RED), true);
+            var messageKey = blockEntity.hasNoWorkLoaded()
+                    ? "ui.apprenticecodex.not_supply_redstone"
+                    : "ui.apprenticecodex.not_stored_essence";
+            player.displayClientMessage(Component.translatable(messageKey).withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
 
@@ -150,7 +179,8 @@ public class ArcanumInAJar extends BaseEntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity) {
             var storedParameterCount = ArcanumInAJarBlockEntity.getStoredParameterCount(stack);
-            blockEntity.restoreStoredParameterCount(storedParameterCount, level.getGameTime());
+            var remainingOperationCount = ArcanumInAJarBlockEntity.getRemainingOperationCount(stack);
+            blockEntity.restoreState(storedParameterCount, remainingOperationCount, level.getGameTime());
         }
     }
 
@@ -177,7 +207,8 @@ public class ArcanumInAJar extends BaseEntityBlock {
         }
 
         var storedParameterCount = blockEntity.getStoredParameterCount();
-        if (storedParameterCount <= 0) {
+        var remainingOperationCount = blockEntity.getRemainingOperationCount();
+        if (storedParameterCount <= 0 && remainingOperationCount <= 0) {
             return drops;
         }
 
@@ -187,6 +218,7 @@ public class ArcanumInAJar extends BaseEntityBlock {
             }
 
             ArcanumInAJarBlockEntity.setStoredParameterCount(drop, storedParameterCount);
+            ArcanumInAJarBlockEntity.setRemainingOperationCount(drop, remainingOperationCount);
             break;
         }
         return drops;

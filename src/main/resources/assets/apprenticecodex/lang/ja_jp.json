@@ -30,7 +30,7 @@
   "item.apprenticecodex.absorption_amplify_amulet.desc_2": "回復量の値は聖魔法の強さによって強化される。",
   "item.apprenticecodex.absorption_amplify_amulet.desc_3": "このアクセサリを外すと反動で全ての衝撃吸収のシールドを失う。",
 
-  "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置して放置しておくと秘術のエッセンスを生成する。",
+  "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "生成には時間がかかり、壊すと中のエッセンスの一部が失われる。",
   "jei.apprenticecodex.craftsmans_delight.desc_1": "ツールチップに書かれている魔法の消費マナ消費量が減少する。",
   "jei.apprenticecodex.craftsmans_delight.desc_2": "ブロックを破壊する魔法の場合は指輪のエンチャントが有効な上で破壊速度が上昇する。",
@@ -196,6 +196,8 @@
   "ui.apprenticecodex.recepted_pastel_magic": "\"%s\"の魔力を杖に封じ込めた！",
   "ui.apprenticecodex.unsatisfied_max_mana_for_enchant": "%1$sに魔力を封じ込めるには最大マナが%2$d必要だ！",
   "ui.apprenticecodex.cant_spawn_in_air": "空中には呼び出せない！",
+  "ui.apprenticecodex.not_supply_redstone": "動いていない...どうやらレッドストーンが必要のようだ",
+  "ui.apprenticecodex.max_supply_redstone": "これ以上レッドストーンを入れられない！",
   "ui.apprenticecodex.not_stored_essence": "瓶には何も溜まっていない...長い時間が必要だ",
   "ui.apprenticecodex.not_open_top": "上の障害物が邪魔で蓋が開けられない...",
 
