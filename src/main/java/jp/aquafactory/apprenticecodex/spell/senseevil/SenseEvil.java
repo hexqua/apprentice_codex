@@ -41,7 +41,7 @@ public class SenseEvil extends AbstractSpell {
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.HOLY_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(30)
+            .setCooldownSeconds(10)
             .build();
 
     public SenseEvil() {
