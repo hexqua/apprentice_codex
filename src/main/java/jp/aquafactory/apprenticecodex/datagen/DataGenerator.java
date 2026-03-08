@@ -29,6 +29,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new RecipeGenerator(output, lookupProvider));
         generator.addProvider(event.includeServer(), new GrindRunnerRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new LootTableGenerator(output, lookupProvider));
+        generator.addProvider(event.includeServer(), new SenseEvilHighlightDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new AdvancementProvider(output, lookupProvider, existing, List.of(new AdvancementGenerator())));
     }

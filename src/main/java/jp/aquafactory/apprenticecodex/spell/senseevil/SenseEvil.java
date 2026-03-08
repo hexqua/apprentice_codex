@@ -19,10 +19,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -112,9 +112,17 @@ public class SenseEvil extends AbstractSpell {
                                               List<SenseEvilHighlightsPacket.TargetData> highlights) {
         var searchBox = caster.getBoundingBox().inflate(range);
         for (var target : level.getEntitiesOfClass(LivingEntity.class, searchBox, living ->
-                living.isAlive() && living != caster && living.getType().is(EntityTypeTags.UNDEAD))) {
+                living.isAlive() && living != caster)) {
+            var configuredVariant = SenseEvilHighlightManager.getConfiguredVariant(target.getType());
+            if (configuredVariant == null && target.getMobType() != MobType.UNDEAD) {
+                continue;
+            }
             var scale = Mth.clamp((float) target.getBbWidth() * 1.2f, MIN_ENTITY_HIGHLIGHT_SCALE, MAX_ENTITY_HIGHLIGHT_SCALE);
-            highlights.add(new SenseEvilHighlightsPacket.TargetData(target.getBoundingBox().getCenter(), scale));
+            highlights.add(new SenseEvilHighlightsPacket.TargetData(
+                    target.getBoundingBox().getCenter(),
+                    scale,
+                    configuredVariant != null ? configuredVariant : SenseEvilHighlightVariant.NORMAL
+            ));
         }
     }
 
@@ -144,46 +152,60 @@ public class SenseEvil extends AbstractSpell {
                     if (center.distanceToSqr(origin) > rangeSqr) {
                         continue;
                     }
-                    if (isUndeadSpawner(level, spawner)) {
-                        highlights.add(new SenseEvilHighlightsPacket.TargetData(center, SPAWNER_HIGHLIGHT_SCALE));
+                    var highlightVariant = getSpawnerHighlightVariant(level, spawner);
+                    if (highlightVariant != null) {
+                        highlights.add(new SenseEvilHighlightsPacket.TargetData(center, SPAWNER_HIGHLIGHT_SCALE, highlightVariant));
                     }
                 }
             }
         }
     }
 
-    private static boolean isUndeadSpawner(ServerLevel level, SpawnerBlockEntity spawner) {
+    private static SenseEvilHighlightVariant getSpawnerHighlightVariant(ServerLevel level, SpawnerBlockEntity spawner) {
         var tag = new CompoundTag();
         spawner.getSpawner().save(tag);
-        if (containsUndeadSpawnData(level, tag.getCompound("SpawnData"))) {
-            return true;
+        var highlightVariant = getHighlightVariantForSpawnData(level, tag.getCompound("SpawnData"));
+        if (highlightVariant != null) {
+            return highlightVariant;
         }
 
         var spawnPotentials = tag.getList("SpawnPotentials", Tag.TAG_COMPOUND);
         for (int i = 0; i < spawnPotentials.size(); i++) {
             var wrappedData = spawnPotentials.getCompound(i);
-            if (containsUndeadSpawnData(level, wrappedData.getCompound("data"))) {
-                return true;
+            var spawnVariant = getHighlightVariantForSpawnData(level, wrappedData.getCompound("data"));
+            if (spawnVariant != null) {
+                highlightVariant = highlightVariant == null ? spawnVariant : SenseEvilHighlightVariant.max(highlightVariant, spawnVariant);
             }
         }
-        return false;
+        return highlightVariant;
     }
 
-    private static boolean containsUndeadSpawnData(ServerLevel level, CompoundTag spawnDataTag) {
+    private static SenseEvilHighlightVariant getHighlightVariantForSpawnData(ServerLevel level, CompoundTag spawnDataTag) {
         if (spawnDataTag.getAllKeys().isEmpty()) {
-            return false;
+            return null;
         }
         if (spawnDataTag.contains("entity", Tag.TAG_COMPOUND)) {
-            return isUndeadEntity(spawnDataTag.getCompound("entity"));
+            return getHighlightVariantForEntityTag(level, spawnDataTag.getCompound("entity"));
         }
-        return isUndeadEntity(spawnDataTag);
+        return getHighlightVariantForEntityTag(level, spawnDataTag);
     }
 
-    private static boolean isUndeadEntity(CompoundTag entityTag) {
+    private static SenseEvilHighlightVariant getHighlightVariantForEntityTag(ServerLevel level, CompoundTag entityTag) {
         var entityType = EntityType.by(entityTag);
         if (entityType.isEmpty()) {
-            return false;
+            return null;
         }
-        return entityType.get().is(EntityTypeTags.UNDEAD);
+
+        // datapack 明示指定は種族判定より優先し、非アンデッドを強制的に表示対象へ含められるようにする。
+        var configuredVariant = SenseEvilHighlightManager.getConfiguredVariant(entityType.get());
+        if (configuredVariant != null) {
+            return configuredVariant;
+        }
+
+        var previewEntity = entityType.get().create(level);
+        if (!(previewEntity instanceof LivingEntity livingEntity) || livingEntity.getMobType() != MobType.UNDEAD) {
+            return null;
+        }
+        return SenseEvilHighlightVariant.NORMAL;
     }
 }

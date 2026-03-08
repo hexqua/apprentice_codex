@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvilHighlightRenderEvent;
+import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvilHighlightVariant;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -40,6 +41,7 @@ public class SenseEvilHighlightsPacket implements CustomPacketPayload {
             buffer.writeDouble(target.position().y);
             buffer.writeDouble(target.position().z);
             buffer.writeFloat(target.scale());
+            buffer.writeVarInt(target.variant().toNetworkId());
         }
     }
 
@@ -49,7 +51,8 @@ public class SenseEvilHighlightsPacket implements CustomPacketPayload {
         for (int i = 0; i < size; i++) {
             targets.add(new TargetData(
                     new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()),
-                    buffer.readFloat()
+                    buffer.readFloat(),
+                    SenseEvilHighlightVariant.byNetworkId(buffer.readVarInt())
             ));
         }
         return new SenseEvilHighlightsPacket(targets);
@@ -63,7 +66,7 @@ public class SenseEvilHighlightsPacket implements CustomPacketPayload {
         });
     }
 
-    public record TargetData(Vec3 position, float scale) {
+    public record TargetData(Vec3 position, float scale, SenseEvilHighlightVariant variant) {
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -74,7 +77,7 @@ public class SenseEvilHighlightsPacket implements CustomPacketPayload {
         private static void handle(SenseEvilHighlightsPacket packet) {
             var targets = new ArrayList<SenseEvilHighlightRenderEvent.HighlightTarget>(packet.targets.size());
             for (var target : packet.targets) {
-                targets.add(new SenseEvilHighlightRenderEvent.HighlightTarget(target.position(), target.scale()));
+                targets.add(new SenseEvilHighlightRenderEvent.HighlightTarget(target.position(), target.scale(), target.variant()));
             }
             SenseEvilHighlightRenderEvent.enqueueHighlights(targets);
         }
