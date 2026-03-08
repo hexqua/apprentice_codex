@@ -24,18 +24,15 @@ import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.List;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class SenseEvilHighlightRenderEvent {
-    private static final ResourceLocation LIGHT_TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            ApprenticeCodex.MODID,
-            "textures/spell/sense_evil_light.png"
-    );
-    private static final RenderType LIGHT_RENDER_TYPE = ApprenticeRenderTypes.additiveEntityNoCullNoDepth(
-            "sense_evil_light_additive_no_depth",
-            LIGHT_TEXTURE
-    );
+    private static final ResourceLocation LIGHT_TEXTURE = texture("sense_evil_light");
+    private static final ResourceLocation LIGHT_STRONG_TEXTURE = texture("sense_evil_light_strong");
+    private static final RenderType LIGHT_RENDER_TYPE = renderType("sense_evil_light", LIGHT_TEXTURE);
+    private static final RenderType LIGHT_STRONG_RENDER_TYPE = renderType("sense_evil_light_strong", LIGHT_STRONG_TEXTURE);
     private static final int HOLD_TICKS = 80;
     private static final int FADE_TICKS = 20;
     private static final int TOTAL_TICKS = HOLD_TICKS + FADE_TICKS;
@@ -84,6 +81,7 @@ public final class SenseEvilHighlightRenderEvent {
         var gameTime = level.getGameTime();
         var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         var cameraRotation = new Quaternionf(event.getCamera().rotation());
+        var usedVariants = EnumSet.noneOf(SenseEvilHighlightVariant.class);
 
         // RenderType の NO_DEPTH_TEST は setup 時に深度テストを切らないため、ここで明示的に無効化する。
         RenderSystem.disableDepthTest();
@@ -101,26 +99,30 @@ public final class SenseEvilHighlightRenderEvent {
                     continue;
                 }
 
-                renderCast(poseStack, buffers.getBuffer(LIGHT_RENDER_TYPE), activeCast.targets(), age, cameraRotation);
+                renderCast(poseStack, buffers, activeCast.targets(), age, cameraRotation, usedVariants);
             }
 
             poseStack.popPose();
-            buffers.endBatch(LIGHT_RENDER_TYPE);
+            for (var variant : usedVariants) {
+                buffers.endBatch(getRenderType(variant));
+            }
         } finally {
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
         }
     }
 
-    private static void renderCast(PoseStack poseStack, VertexConsumer buffer, List<HighlightTarget> targets, float age,
-                                   Quaternionf cameraRotation) {
+    private static void renderCast(PoseStack poseStack, net.minecraft.client.renderer.MultiBufferSource.BufferSource buffers,
+                                   List<HighlightTarget> targets, float age, Quaternionf cameraRotation,
+                                   EnumSet<SenseEvilHighlightVariant> usedVariants) {
         var fadeAlpha = getFadeAlpha(age);
         if (fadeAlpha <= 0.0f) {
             return;
         }
 
         for (var target : targets) {
-            renderHighlight(poseStack, buffer, target, age, fadeAlpha, cameraRotation);
+            usedVariants.add(target.variant());
+            renderHighlight(poseStack, buffers.getBuffer(getRenderType(target.variant())), target, age, fadeAlpha, cameraRotation);
         }
     }
 
@@ -250,7 +252,22 @@ public final class SenseEvilHighlightRenderEvent {
         return (float) (value - Math.floor(value));
     }
 
-    public record HighlightTarget(Vec3 position, float scale) {
+    private static ResourceLocation texture(String path) {
+        return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/" + path + ".png");
+    }
+
+    private static RenderType renderType(String name, ResourceLocation texture) {
+        return ApprenticeRenderTypes.additiveEntityNoCullNoDepth(name + "_additive_no_depth", texture);
+    }
+
+    private static RenderType getRenderType(SenseEvilHighlightVariant variant) {
+        return switch (variant) {
+            case NORMAL -> LIGHT_RENDER_TYPE;
+            case LIGHT_STRONG -> LIGHT_STRONG_RENDER_TYPE;
+        };
+    }
+
+    public record HighlightTarget(Vec3 position, float scale, SenseEvilHighlightVariant variant) {
     }
 
     private record ActiveCast(List<HighlightTarget> targets, long startGameTime) {
