@@ -250,6 +250,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.description": "見習い用の机を作る。",
   "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.title": "妖精や雲もいけるならこれだって",
   "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.description": "瓶詰めの神秘を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.title": "アブない煙ではないはず",
+  "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.description": "エッセンス燻製台を作る",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title": "一狩り行かない",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description": "瓶詰めの神秘から秘術のエッセンスを入手する",
   "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title": "これはソーラー発電機ではないからね",

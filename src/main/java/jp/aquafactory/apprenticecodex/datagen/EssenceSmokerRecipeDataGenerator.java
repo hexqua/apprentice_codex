@@ -8,6 +8,7 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.PathProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -28,11 +29,48 @@ public final class EssenceSmokerRecipeDataGenerator implements DataProvider {
     public @NotNull CompletableFuture<?> run(@NotNull CachedOutput cachedOutput) {
         var recipes = List.of(
                 recipe(
-                        "rotten_flesh_to_leather",
+                        "purify_rotten_flesh_to_leather",
                         Ingredient.of(ItemRegistry.DIVINE_PEARL.get()),
                         Ingredient.of(Items.ROTTEN_FLESH),
                         new ItemStack(Items.LEATHER)
+                ),
+                recipe(
+                        "purify_potato",
+                        Ingredient.of(ItemRegistry.DIVINE_PEARL.get()),
+                        Ingredient.of(Items.POISONOUS_POTATO),
+                        new ItemStack(Items.POTATO)
+                ),
+                recipe(
+                        "taint_potato",
+                        Ingredient.of(ItemRegistry.BLOOD_VIAL.get()),
+                        Ingredient.of(Items.POTATO),
+                        new ItemStack(Items.POISONOUS_POTATO)
+                ),
+                recipe(
+                        "taint_eye",
+                        Ingredient.of(ItemRegistry.BLOOD_VIAL.get()),
+                        Ingredient.of(Items.SPIDER_EYE),
+                        new ItemStack(Items.FERMENTED_SPIDER_EYE)
+                ),
+                recipe(
+                        "blaze_bonemeal_to_gunpowder",
+                        Ingredient.of(Items.BLAZE_POWDER),
+                        Ingredient.of(Items.BONE_MEAL),
+                        new ItemStack(Items.GUNPOWDER)
+                ),
+                recipe(
+                        "blaze_glowstone_to_gunpowder",
+                        Ingredient.of(Items.BLAZE_POWDER),
+                        Ingredient.of(Items.GLOWSTONE_DUST),
+                        new ItemStack(Items.GUNPOWDER)
+                ),
+                recipe(
+                        "infuse_glowstone_to_redstone",
+                        Ingredient.of(ItemRegistry.ARCANE_ESSENCE.get()),
+                        Ingredient.of(Items.GLOWSTONE_DUST),
+                        new ItemStack(Items.REDSTONE)
                 )
+
         );
 
         return CompletableFuture.allOf(recipes.stream()
