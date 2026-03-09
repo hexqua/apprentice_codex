@@ -59,6 +59,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> ARCANUM_IN_A_JAR =
             ITEMS.register("arcanum_in_a_jar",
                     () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));
+    public static final RegistryObject<Item> ESSENCE_SMOKER = block("essence_smoker", BlockRegistry.ESSENCE_SMOKER);
 
     public static final RegistryObject<Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);

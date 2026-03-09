@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:essence_smoker",
+  "catalyst": {
+    "item": "irons_spellbooks:blood_vial"
+  },
+  "material": {
+    "item": "minecraft:potato"
+  },
+  "result": {
+    "item": "minecraft:poisonous_potato"
+  }
+}

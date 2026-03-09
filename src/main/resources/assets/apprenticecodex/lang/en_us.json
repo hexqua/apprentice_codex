@@ -48,6 +48,7 @@
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
   "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
   "block.apprenticecodex.arcanum_in_a_jar" : "Arcanum in a Jar",
+  "block.apprenticecodex.essence_smoker" : "Essence Smoker",
 
   "block.apprenticecodex.arcanum_in_a_jar.fill": "Powder is dancing mysteriously inside.",
 
@@ -200,6 +201,13 @@
   "ui.apprenticecodex.max_supply_redstone": "Can't supply more redstone!",
   "ui.apprenticecodex.not_stored_essence": "No essence has built up in the bottle yet... it needs more time.",
   "ui.apprenticecodex.not_open_top": "The top is blocked by an obstacle, so the lid can't be opened...",
+  "ui.apprenticecodex.not_match_catalyst": "%1$s is not suitable for catalysts",
+  "ui.apprenticecodex.already_set_catalyst": "Catalyst is already set",
+  "ui.apprenticecodex.not_match_material": "%1$s does not react with %2$s",
+  "ui.apprenticecodex.max_count_material": "Can't supply more materials!",
+  "ui.apprenticecodex.need_material_and_catalyst": "You need to set catalyst and material first!",
+  "ui.apprenticecodex.need_ignite": "%1$s or %2$s is required to ignite!",
+  "ui.apprenticecodex.now_smoke_processing": "Still needs time",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.palette_reception": "Reception Mode",
@@ -242,6 +250,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.description": "Craft Apprentice's desk.",
   "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.title": "If Fairies and Clouds Work, Then This Will Too",
   "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.description": "Craft Arcanum in a Jar.",
+  "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.title": "This Isn't That Kind of Smoke",
+  "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.description": "Craft Essence Smoker.",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title": "Not Going on a Hunt?",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description": "Obtain Arcane Essence from Arcanum in a Jar.",
   "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title": "This Isn't a Solar Generator, You Know",

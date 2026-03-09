@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:essence_smoker",
+  "catalyst": {
+    "item": "irons_spellbooks:divine_pearl"
+  },
+  "material": {
+    "item": "minecraft:poisonous_potato"
+  },
+  "result": {
+    "item": "minecraft:potato"
+  }
+}
