@@ -38,7 +38,7 @@ import java.util.Optional;
 
 public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyContainer {
     public static final int MAX_MATERIAL_COUNT = 8;
-    public static final int PROCESS_DURATION_TICKS = 20 * 30;
+    public static final int PROCESS_DURATION_TICKS = 20 * 60;
     private static final int CATALYST_SLOT = 0;
     private static final int FIRST_MATERIAL_SLOT = 1;
     private static final int TOTAL_SLOT_COUNT = FIRST_MATERIAL_SLOT + MAX_MATERIAL_COUNT;
