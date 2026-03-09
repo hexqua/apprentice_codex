@@ -1,6 +1,7 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
+  "item.apprenticecodex.iron_spellcaster_device": "Iron Spellcaster Device",
   "item.apprenticecodex.iron_spell_amplifier": "Iron Spell Amplifier",
   "item.apprenticecodex.copper_spell_amplifier": "Copper Spell Amplifier",
   "item.apprenticecodex.gold_spell_amplifier": "Gold Spell Amplifier",
@@ -208,6 +209,7 @@
   "ui.apprenticecodex.need_material_and_catalyst": "You need to set catalyst and material first!",
   "ui.apprenticecodex.need_ignite": "%1$s or %2$s is required to ignite!",
   "ui.apprenticecodex.now_smoke_processing": "Still needs time",
+  "ui.apprenticecodex.missing_spell_gun_ammo": "Out of ammo!(Ammo:%1$s)",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.palette_reception": "Reception Mode",

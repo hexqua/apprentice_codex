@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
+import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterDevice;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
@@ -77,6 +78,8 @@ public final class ItemRegistry {
             ITEMS.register("explorers_codex", ExplorersCodex::new);
     public static final DeferredHolder<Item, Item> IRON_SPELL_AMPLIFIER =
             ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
+    public static final DeferredHolder<Item, Item> IRON_SPELLCASTER_DEVICE =
+            ITEMS.register("iron_spellcaster_device", IronSpellcasterDevice::new);
     public static final DeferredHolder<Item, Item> COPPER_SPELL_AMPLIFIER =
             ITEMS.register("copper_spell_amplifier", CopperSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> GOLD_SPELL_AMPLIFIER =

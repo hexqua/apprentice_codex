@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "refmap": "mixins.apprenticecodex.refmap.json",
   "mixins": [
+    "ArcaneAnvilMenuMixin",
     "ItemEntityAccessor",
+    "ItemCombinerMenuAccessor",
     "LivingEntityAccessor",
     "LivingEntityPhalanxGuardMixin",
     "SchoolTypeAccessor"
