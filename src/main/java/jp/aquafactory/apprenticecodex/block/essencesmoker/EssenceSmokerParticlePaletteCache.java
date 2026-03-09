@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.essencesmoker;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.util.FastColor;
@@ -40,6 +41,11 @@ public final class EssenceSmokerParticlePaletteCache {
 
     private static int[] resolvePalette(ItemStack stack, @Nullable Level level) {
         if (stack.isEmpty()) {
+            return FALLBACK_COLORS;
+        }
+
+        // 緊急回避設定ではテクスチャやモデルへ一切触れず、必ず固定色へ落とす。
+        if (ApprenticeCodexClientConfig.disableEssenceSmokerParticleTextureAnalysis()) {
             return FALLBACK_COLORS;
         }
 
