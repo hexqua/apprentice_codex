@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "C": {
+      "item": "minecraft:campfire"
+    },
+    "D": {
+      "item": "minecraft:polished_deepslate"
+    },
+    "E": {
+      "item": "irons_spellbooks:arcane_essence"
+    },
+    "F": {
+      "tag": "minecraft:wooden_fences"
+    }
+  },
+  "pattern": [
+    "A A",
+    "FEF",
+    "DCD"
+  ],
+  "result": {
+    "item": "apprenticecodex:essence_smoker"
+  },
+  "show_notification": true
+}
