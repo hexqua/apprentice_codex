@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_essence_smoker": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:essence_smoker"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:essence_smoker"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_essence_smoker"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

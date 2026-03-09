@@ -64,6 +64,7 @@
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
   "block.apprenticecodex.apprentice_desk" : "見習い用の机",
   "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの神秘",
+  "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
 
   "block.apprenticecodex.arcanum_in_a_jar.fill": "中で粉が神秘的に舞っている",
 
@@ -200,6 +201,13 @@
   "ui.apprenticecodex.max_supply_redstone": "これ以上レッドストーンを入れられない！",
   "ui.apprenticecodex.not_stored_essence": "瓶には何も溜まっていない...長い時間が必要だ",
   "ui.apprenticecodex.not_open_top": "上の障害物が邪魔で蓋が開けられない...",
+  "ui.apprenticecodex.not_match_catalyst": "%1$sは触媒には使えないようだ",
+  "ui.apprenticecodex.already_set_catalyst": "触媒は既にセットされている",
+  "ui.apprenticecodex.not_match_material": "%1$sは%2$sとは反応しないようだ",
+  "ui.apprenticecodex.max_count_material": "それ以上素材を吊るせない！",
+  "ui.apprenticecodex.need_material_and_catalyst": "先に触媒と素材をセットする必要がある！",
+  "ui.apprenticecodex.need_ignite": "%1$sか%2$sで着火する必要がある！",
+  "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",
@@ -242,6 +250,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.description": "見習い用の机を作る。",
   "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.title": "妖精や雲もいけるならこれだって",
   "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.description": "瓶詰めの神秘を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.title": "アブない煙ではないはず",
+  "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.description": "エッセンス燻製台を作る",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title": "一狩り行かない",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description": "瓶詰めの神秘から秘術のエッセンスを入手する",
   "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title": "これはソーラー発電機ではないからね",

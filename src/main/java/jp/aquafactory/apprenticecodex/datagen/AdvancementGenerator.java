@@ -158,6 +158,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
 
         Advancement.Builder.advancement()
                 .parent(root)
+                .display(ItemRegistry.ESSENCE_SMOKER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_essence_smoker", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ESSENCE_SMOKER.getId()))
+                .save(saver, advancementId("craft_essence_smoker"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
                 .display(ItemRegistry.ENDER_GRIMOIRE.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.description"),

@@ -5,6 +5,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class ApprenticeCodexClientConfig {
     public static final ModConfigSpec SPEC;
     private static final ModConfigSpec.BooleanValue ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION;
+    private static final ModConfigSpec.BooleanValue DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS;
 
     static {
         var builder = new ModConfigSpec.Builder();
@@ -13,6 +14,13 @@ public final class ApprenticeCodexClientConfig {
                 .comment("見習い魔術師のローブのケープアニメーションを有効化する")
                 .define("enableApprenticeMageRobeCapeAnimation", true);
         builder.pop();
+
+        builder.push("Blocks");
+        DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS = builder
+                .comment("エッセンス燻製台のパーティクル色解析を無効化し、常に代替色を使う")
+                .define("disableEssenceSmokerParticleTextureAnalysis", false);
+        builder.pop();
+
         SPEC = builder.build();
     }
 
@@ -21,5 +29,9 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean enableApprenticeMageRobeCapeAnimation() {
         return ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION.get();
+    }
+
+    public static boolean disableEssenceSmokerParticleTextureAnalysis() {
+        return DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS.get();
     }
 }
