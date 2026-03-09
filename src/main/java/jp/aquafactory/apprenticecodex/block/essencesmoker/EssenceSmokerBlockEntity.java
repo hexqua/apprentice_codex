@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -47,6 +48,8 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
     private static final String PROCESSING_TAG = "Processing";
     private static final String COMPLETED_TAG = "Completed";
     private static final String PROCESS_FINISH_GAME_TIME_TAG = "ProcessFinishGameTime";
+    private static final String STORED_EXPERIENCE_TAG = "StoredExperience";
+    private static final int EXPERIENCE_PER_ITEM = 2;
     private static final int[] NO_SLOTS = new int[0];
     private static final int[] CATALYST_INPUT_SLOTS = {CATALYST_SLOT};
     private static final int[] MATERIAL_SLOTS = {
@@ -65,6 +68,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
     private boolean processing;
     private boolean completed;
     private long processFinishGameTime = -1L;
+    private int storedExperience;
     private long lastColoredParticleGameTime = Long.MIN_VALUE;
     @Nullable
     private RecipeManager cachedRecipeManager;
@@ -254,6 +258,16 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         }
     }
 
+    public void awardStoredExperience(Player player) {
+        if (storedExperience <= 0 || !(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        ExperienceOrb.award(serverLevel, player.position(), storedExperience);
+        storedExperience = 0;
+        markUpdated();
+    }
+
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
@@ -280,6 +294,9 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         tag.putBoolean(COMPLETED_TAG, completed);
         if (processFinishGameTime >= 0L) {
             tag.putLong(PROCESS_FINISH_GAME_TIME_TAG, processFinishGameTime);
+        }
+        if (storedExperience > 0) {
+            tag.putInt(STORED_EXPERIENCE_TAG, storedExperience);
         }
     }
 
@@ -317,6 +334,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         processFinishGameTime = tag.contains(PROCESS_FINISH_GAME_TIME_TAG, Tag.TAG_LONG)
                 ? tag.getLong(PROCESS_FINISH_GAME_TIME_TAG)
                 : -1L;
+        storedExperience = tag.getInt(STORED_EXPERIENCE_TAG);
         invalidateRecipeCaches();
     }
 
@@ -518,6 +536,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
             return;
         }
 
+        accumulateProcessingExperience();
         processing = false;
         completed = true;
         processFinishGameTime = -1L;
@@ -557,6 +576,21 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         var outputCount = Math.max(1L, material.getCount()) * result.getCount();
         transformed.setCount((int) Math.min(Integer.MAX_VALUE, outputCount));
         return transformed;
+    }
+
+    private void accumulateProcessingExperience() {
+        var processedItemCount = 0;
+        for (var material : materials) {
+            if (!material.isEmpty()) {
+                processedItemCount += Math.max(1, material.getCount());
+            }
+        }
+
+        if (processedItemCount > 0) {
+            // かまど同様、ホッパー搬出では消費せず手動回収時まで内部に保持する。
+            var gainedExperience = (long) processedItemCount * EXPERIENCE_PER_ITEM;
+            storedExperience = (int) Math.min(Integer.MAX_VALUE, storedExperience + gainedExperience);
+        }
     }
 
     private List<ItemStack> copyFilledMaterials() {
