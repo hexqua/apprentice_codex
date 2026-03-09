@@ -162,7 +162,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)

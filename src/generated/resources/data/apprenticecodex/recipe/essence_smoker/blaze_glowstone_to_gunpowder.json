@@ -1,12 +1,12 @@
 {
   "type": "apprenticecodex:essence_smoker",
   "catalyst": {
-    "item": "irons_spellbooks:arcane_essence"
+    "item": "minecraft:blaze_powder"
   },
   "material": {
     "item": "minecraft:glowstone_dust"
   },
   "result": {
-    "item": "minecraft:redstone"
+    "id": "minecraft:gunpowder"
   }
 }

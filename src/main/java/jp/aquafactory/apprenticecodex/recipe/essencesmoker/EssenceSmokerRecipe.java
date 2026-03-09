@@ -2,9 +2,7 @@ package jp.aquafactory.apprenticecodex.recipe.essencesmoker;
 
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -13,26 +11,20 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-public final class EssenceSmokerRecipe implements Recipe<Container> {
-    private final ResourceLocation id;
+public final class EssenceSmokerRecipe implements Recipe<EssenceSmokerRecipeInput> {
     private final Ingredient catalyst;
     private final Ingredient material;
     private final ItemStack result;
 
-    public EssenceSmokerRecipe(ResourceLocation id, Ingredient catalyst, Ingredient material, ItemStack result) {
-        this.id = id;
+    public EssenceSmokerRecipe(Ingredient catalyst, Ingredient material, ItemStack result) {
         this.catalyst = catalyst;
         this.material = material;
         this.result = sanitizeResult(result);
     }
 
     @Override
-    public boolean matches(Container container, @NotNull Level level) {
-        if (container.getContainerSize() < 2) {
-            return false;
-        }
-
-        return catalyst.test(container.getItem(0)) && material.test(container.getItem(1));
+    public boolean matches(EssenceSmokerRecipeInput input, @NotNull Level level) {
+        return catalyst.test(input.catalyst()) && material.test(input.material());
     }
 
     public boolean matches(ItemStack catalystStack, ItemStack materialStack) {
@@ -40,7 +32,7 @@ public final class EssenceSmokerRecipe implements Recipe<Container> {
     }
 
     @Override
-    public @NotNull ItemStack assemble(@NotNull Container container, @NotNull RegistryAccess registryAccess) {
+    public @NotNull ItemStack assemble(EssenceSmokerRecipeInput input, HolderLookup.Provider registries) {
         return getResultTemplate();
     }
 
@@ -50,13 +42,8 @@ public final class EssenceSmokerRecipe implements Recipe<Container> {
     }
 
     @Override
-    public @NotNull ItemStack getResultItem(@NotNull RegistryAccess registryAccess) {
+    public @NotNull ItemStack getResultItem(HolderLookup.Provider registries) {
         return getResultTemplate();
-    }
-
-    @Override
-    public @NotNull ResourceLocation getId() {
-        return id;
     }
 
     @Override
@@ -97,7 +84,7 @@ public final class EssenceSmokerRecipe implements Recipe<Container> {
 
     private static ItemStack sanitizeResult(ItemStack result) {
         if (result.isEmpty() || result.getCount() <= 0) {
-            return ItemStack.EMPTY;
+            throw new IllegalArgumentException("EssenceSmoker recipe requires a non-empty result.");
         }
         return result.copy();
     }

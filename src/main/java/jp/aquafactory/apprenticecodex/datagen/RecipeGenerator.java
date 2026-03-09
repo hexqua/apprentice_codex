@@ -57,7 +57,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('D', Items.POLISHED_DEEPSLATE)
                 .define('C', Items.CAMPFIRE)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.BLOOD_VIAL.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.BLOOD_VIAL.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")

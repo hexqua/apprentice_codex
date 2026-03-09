@@ -23,7 +23,7 @@ public final class RecipeRegistry {
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<GrindRunnerRecipe>> GRIND_RUNNER_SERIALIZER =
             RECIPE_SERIALIZERS.register("grind_runner", GrindRunnerRecipeSerializer::new);
-    public static final RegistryObject<RecipeSerializer<EssenceSmokerRecipe>> ESSENCE_SMOKER_SERIALIZER =
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<EssenceSmokerRecipe>> ESSENCE_SMOKER_SERIALIZER =
             RECIPE_SERIALIZERS.register("essence_smoker", EssenceSmokerRecipeSerializer::new);
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<GrindRunnerRecipe>> GRIND_RUNNER_RECIPE_TYPE =
@@ -33,7 +33,7 @@ public final class RecipeRegistry {
                     return ApprenticeCodex.MODID + ":grind_runner";
                 }
             });
-    public static final RegistryObject<RecipeType<EssenceSmokerRecipe>> ESSENCE_SMOKER_RECIPE_TYPE =
+    public static final DeferredHolder<RecipeType<?>, RecipeType<EssenceSmokerRecipe>> ESSENCE_SMOKER_RECIPE_TYPE =
             RECIPE_TYPES.register("essence_smoker", () -> new RecipeType<>() {
                 @Override
                 public String toString() {

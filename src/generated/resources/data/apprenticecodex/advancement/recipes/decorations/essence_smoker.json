@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:blood_vial"
-            ]
+            "items": "irons_spellbooks:blood_vial"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_blood_vial",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_blood_vial"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:essence_smoker"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

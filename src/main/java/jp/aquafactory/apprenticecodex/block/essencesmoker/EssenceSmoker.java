@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.essencesmoker;
 
+import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
@@ -12,6 +13,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -41,19 +43,24 @@ import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class EssenceSmoker extends BaseEntityBlock {
+    public static final MapCodec<EssenceSmoker> CODEC = simpleCodec(EssenceSmoker::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final double PIT_CENTER_XZ = 0.5D;
     private static final double PIT_CENTER_Y = 3.0D / 16.0D;
     private static final double PIT_PARTICLE_SPREAD = 0.18D;
     private static final double SMOKER_SOUND_CHANCE = 0.1D;
 
-    public EssenceSmoker() {
-        super(Properties.of()
+    public EssenceSmoker(Properties properties) {
+        super(properties
                 .strength(1.5f, 6.0f)
                 .sound(SoundType.STONE)
                 .requiresCorrectToolForDrops()
                 .noOcclusion());
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    public EssenceSmoker() {
+        this(Properties.of());
     }
 
     @Override
@@ -82,80 +89,56 @@ public class EssenceSmoker extends BaseEntityBlock {
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                          @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
+    protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack heldStack, @NotNull BlockState state, @NotNull Level level,
+                                                       @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand,
+                                                       @NotNull BlockHitResult hitResult) {
         if (hand != InteractionHand.MAIN_HAND) {
-            return InteractionResult.PASS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
         if (!(level.getBlockEntity(pos) instanceof EssenceSmokerBlockEntity blockEntity)) {
-            return InteractionResult.PASS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        var heldStack = player.getItemInHand(hand);
         if (blockEntity.isProcessing()) {
             displayError(player, "ui.apprenticecodex.now_smoke_processing");
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
         if (blockEntity.isCompleted()) {
             if (level.isClientSide) {
-                return InteractionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             }
 
-            var completedItems = blockEntity.collectCompletedItems();
-            for (var completedItem : completedItems) {
-                blockEntity.giveItemToPlayer(player, completedItem);
-            }
-            if (!completedItems.isEmpty()) {
-                blockEntity.awardStoredExperience(player);
-                playItemSetSound(level, pos);
-            }
-            return InteractionResult.CONSUME;
-        }
-
-        if (heldStack.isEmpty()) {
-            if (level.isClientSide) {
-                return InteractionResult.SUCCESS;
-            }
-
-            if (blockEntity.hasMaterials()) {
-                blockEntity.giveItemToPlayer(player, blockEntity.popLastMaterial());
-                return InteractionResult.CONSUME;
-            }
-
-            if (blockEntity.hasCatalyst()) {
-                blockEntity.giveItemToPlayer(player, blockEntity.popCatalyst());
-                return InteractionResult.CONSUME;
-            }
-            return InteractionResult.CONSUME;
+            collectCompletedItems(level, pos, player, blockEntity);
+            return ItemInteractionResult.CONSUME;
         }
 
         // 火打ち石は素材・触媒チェックより先に判定し、着火操作を他のエラーで潰さない。
         if (heldStack.is(Items.FLINT_AND_STEEL)) {
             if (!blockEntity.hasCatalyst() || !blockEntity.hasMaterials()) {
                 displayError(player, "ui.apprenticecodex.need_material_and_catalyst");
-                return InteractionResult.CONSUME;
+                return ItemInteractionResult.CONSUME;
             }
 
             if (level.isClientSide) {
-                return InteractionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             }
 
             if (blockEntity.ignite(level.getGameTime()) && !player.getAbilities().instabuild) {
                 damageIgniter(player, hand);
             }
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
         if (!blockEntity.hasCatalyst()) {
             if (!blockEntity.canAcceptCatalyst(heldStack)) {
                 displayError(player, "ui.apprenticecodex.not_match_catalyst", heldStack.getHoverName());
-                return InteractionResult.CONSUME;
+                return ItemInteractionResult.CONSUME;
             }
 
             if (level.isClientSide) {
-                return InteractionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             }
 
             var catalystSet = blockEntity.setCatalyst(heldStack);
@@ -165,7 +148,7 @@ public class EssenceSmoker extends BaseEntityBlock {
             if (catalystSet && !player.getAbilities().instabuild) {
                 heldStack.shrink(1);
             }
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
         if (blockEntity.hasMaterials() && blockEntity.isMaterialSlotsFull()) {
@@ -176,17 +159,17 @@ public class EssenceSmoker extends BaseEntityBlock {
                         Items.FLINT_AND_STEEL.getDescription(),
                         Component.translatable("spell.irons_spellbooks.firebolt"));
             }
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
-        if (ItemStack.isSameItemSameTags(heldStack, blockEntity.getCatalyst())) {
+        if (ItemStack.isSameItemSameComponents(heldStack, blockEntity.getCatalyst())) {
             displayError(player, "ui.apprenticecodex.already_set_catalyst");
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
         if (blockEntity.canAcceptMaterial(heldStack)) {
             if (level.isClientSide) {
-                return InteractionResult.SUCCESS;
+                return ItemInteractionResult.SUCCESS;
             }
 
             var materialAdded = blockEntity.addMaterial(heldStack);
@@ -196,17 +179,54 @@ public class EssenceSmoker extends BaseEntityBlock {
             if (materialAdded && !player.getAbilities().instabuild) {
                 heldStack.shrink(1);
             }
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
         if (blockEntity.hasMaterials() && heldStack.getMaxStackSize() == 1) {
             displayError(player, "ui.apprenticecodex.need_ignite",
                     Items.FLINT_AND_STEEL.getDescription(),
                     Component.translatable("spell.irons_spellbooks.firebolt"));
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
         }
 
         displayError(player, "ui.apprenticecodex.not_match_material", heldStack.getHoverName(), blockEntity.getCatalyst().getHoverName());
+        return ItemInteractionResult.CONSUME;
+    }
+
+    @Override
+    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
+                                                        @NotNull Player player, @NotNull BlockHitResult hitResult) {
+        if (!(level.getBlockEntity(pos) instanceof EssenceSmokerBlockEntity blockEntity)) {
+            return InteractionResult.PASS;
+        }
+
+        if (blockEntity.isProcessing()) {
+            displayError(player, "ui.apprenticecodex.now_smoke_processing");
+            return InteractionResult.CONSUME;
+        }
+
+        if (blockEntity.isCompleted()) {
+            if (level.isClientSide) {
+                return InteractionResult.SUCCESS;
+            }
+
+            collectCompletedItems(level, pos, player, blockEntity);
+            return InteractionResult.CONSUME;
+        }
+
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+
+        if (blockEntity.hasMaterials()) {
+            blockEntity.giveItemToPlayer(player, blockEntity.popLastMaterial());
+            return InteractionResult.CONSUME;
+        }
+
+        if (blockEntity.hasCatalyst()) {
+            blockEntity.giveItemToPlayer(player, blockEntity.popCatalyst());
+            return InteractionResult.CONSUME;
+        }
         return InteractionResult.CONSUME;
     }
 
@@ -271,8 +291,24 @@ public class EssenceSmoker extends BaseEntityBlock {
         AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 0.65F, 1.1F, 0.1F);
     }
 
+    private static void collectCompletedItems(Level level, BlockPos pos, Player player, EssenceSmokerBlockEntity blockEntity) {
+        var completedItems = blockEntity.collectCompletedItems();
+        for (var completedItem : completedItems) {
+            blockEntity.giveItemToPlayer(player, completedItem);
+        }
+        if (!completedItems.isEmpty()) {
+            blockEntity.awardStoredExperience(player);
+            playItemSetSound(level, pos);
+        }
+    }
+
     private static void damageIgniter(Player player, InteractionHand hand) {
         var heldStack = player.getItemInHand(hand);
-        heldStack.hurtAndBreak(1, player, livingEntity -> livingEntity.broadcastBreakEvent(hand));
+        heldStack.hurtAndBreak(1, player, player.getSlotForHand(hand));
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 }

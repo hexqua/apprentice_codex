@@ -195,13 +195,9 @@ public class EssenceSmokerBlockEntityRenderer implements BlockEntityRenderer<Ess
     }
 
     private static int getRenderSeed(ItemStack stack, int salt) {
-        if (stack.getTag() == null){
-            return 0;
-        }
-
         return (net.minecraft.world.item.Item.getId(stack.getItem()) * 37)
                 + (stack.getDamageValue() * 17)
-                + (stack.hasTag() ? stack.getTag().hashCode() : 0)
+                + stack.toString().hashCode()
                 + (salt * 31);
     }
 

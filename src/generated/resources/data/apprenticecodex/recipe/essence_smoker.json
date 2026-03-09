@@ -24,7 +24,7 @@
     "DCD"
   ],
   "result": {
-    "item": "apprenticecodex:essence_smoker"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:essence_smoker"
+  }
 }

@@ -3,13 +3,13 @@ package jp.aquafactory.apprenticecodex.block.essencesmoker;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -107,8 +107,8 @@ public final class EssenceSmokerParticlePaletteCache {
 
     private record CacheKey(String itemId, int damageValue, String tagData) {
         private static CacheKey from(ItemStack stack) {
-            var itemId = ForgeRegistries.ITEMS.getKey(stack.getItem()).toString();
-            var tagData = stack.hasTag() ? stack.getTag().copy().toString() : "";
+            var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+            var tagData = stack.toString();
             return new CacheKey(itemId, stack.getDamageValue(), tagData);
         }
     }

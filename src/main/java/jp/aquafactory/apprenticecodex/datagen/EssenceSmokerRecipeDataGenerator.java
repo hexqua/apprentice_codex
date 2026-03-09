@@ -1,28 +1,31 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.PathProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class EssenceSmokerRecipeDataGenerator implements DataProvider {
+    private static final String RECIPE_TYPE = ApprenticeCodex.MODID + ":essence_smoker";
+    private static final String RECIPE_DIRECTORY = "recipe/essence_smoker";
     private final PathProvider pathProvider;
 
     public EssenceSmokerRecipeDataGenerator(PackOutput output) {
-        this.pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "recipes/essence_smoker");
+        this.pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, RECIPE_DIRECTORY);
     }
 
     @Override
@@ -93,21 +96,25 @@ public final class EssenceSmokerRecipeDataGenerator implements DataProvider {
         }
 
         var json = new JsonObject();
-        json.addProperty("type", ApprenticeCodex.MODID + ":essence_smoker");
-        json.add("catalyst", recipe.catalyst().toJson());
-        json.add("material", recipe.material().toJson());
+        json.addProperty("type", RECIPE_TYPE);
+        json.add("catalyst", serializeIngredient(recipe.catalyst()));
+        json.add("material", serializeIngredient(recipe.material()));
         json.add("result", serializeItemStack(result));
         return json;
     }
 
+    private static JsonElement serializeIngredient(Ingredient ingredient) {
+        return Ingredient.CODEC.encodeStart(JsonOps.INSTANCE, ingredient).getOrThrow();
+    }
+
     private static JsonObject serializeItemStack(ItemStack stack) {
-        var itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemId == null) {
             throw new IllegalStateException("Unregistered item in EssenceSmoker datagen result: " + stack.getItem());
         }
 
         var json = new JsonObject();
-        json.addProperty("item", itemId.toString());
+        json.addProperty("id", itemId.toString());
         if (stack.getCount() != 1) {
             json.addProperty("count", stack.getCount());
         }

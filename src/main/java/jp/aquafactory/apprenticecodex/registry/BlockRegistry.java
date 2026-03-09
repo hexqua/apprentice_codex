@@ -28,8 +28,8 @@ public final class BlockRegistry {
     public static final DeferredHolder<Block, Block> ARCANUM_IN_A_JAR =
             BLOCKS.register("arcanum_in_a_jar", () -> new ArcanumInAJar());
 
-    public static final RegistryObject<Block> ESSENCE_SMOKER =
-            BLOCKS.register("essence_smoker", EssenceSmoker::new);
+    public static final DeferredHolder<Block, Block> ESSENCE_SMOKER =
+            BLOCKS.register("essence_smoker", () -> new EssenceSmoker());
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -24,10 +25,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +73,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
     private List<EssenceSmokerRecipe> cachedRecipes = List.of();
     private ItemStack materialLookupCatalyst = ItemStack.EMPTY;
     private List<EssenceSmokerRecipe> materialLookupRecipes = List.of();
-    private LazyOptional<IItemHandler>[] sidedHandlers = createSidedHandlers();
+    private final IItemHandler[] sidedHandlers = createSidedHandlers();
 
     public EssenceSmokerBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.ESSENCE_SMOKER.get(), pos, state);
@@ -269,10 +267,10 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (!catalyst.isEmpty()) {
-            tag.put(CATALYST_TAG, catalyst.save(new CompoundTag()));
+            tag.put(CATALYST_TAG, catalyst.save(registries));
         }
 
         if (hasMaterials()) {
@@ -283,7 +281,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
                     continue;
                 }
 
-                var materialTag = material.save(new CompoundTag());
+                var materialTag = (CompoundTag) material.save(registries);
                 materialTag.putInt(MATERIAL_SLOT_TAG, i);
                 materialListTag.add(materialTag);
             }
@@ -301,10 +299,10 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         catalyst = tag.contains(CATALYST_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.of(tag.getCompound(CATALYST_TAG))
+                ? ItemStack.parseOptional(registries, tag.getCompound(CATALYST_TAG))
                 : ItemStack.EMPTY;
 
         clearMaterialSlots();
@@ -312,7 +310,7 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
             var materialListTag = tag.getList(MATERIALS_TAG, Tag.TAG_COMPOUND);
             for (var i = 0; i < materialListTag.size(); i++) {
                 var materialTag = materialListTag.getCompound(i);
-                var material = ItemStack.of(materialTag);
+                var material = ItemStack.parseOptional(registries, materialTag);
                 if (material.isEmpty()) {
                     continue;
                 }
@@ -339,9 +337,9 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         var tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 
@@ -496,29 +494,6 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         return side == Direction.DOWN && completed && isMaterialSlot(slot) && !stack.isEmpty();
     }
 
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        for (var handler : sidedHandlers) {
-            handler.invalidate();
-        }
-    }
-
-    @Override
-    public void reviveCaps() {
-        super.reviveCaps();
-        sidedHandlers = createSidedHandlers();
-    }
-
-    @Override
-    public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> capability, @Nullable Direction side) {
-        if (capability == ForgeCapabilities.ITEM_HANDLER && side != null) {
-            return sidedHandlers[side.get3DDataValue()].cast();
-        }
-
-        return super.getCapability(capability, side);
-    }
-
     public static void serverTick(Level level, BlockPos pos, BlockState state, EssenceSmokerBlockEntity blockEntity) {
         if (level.isClientSide || !(level instanceof ServerLevel serverLevel) || !blockEntity.processing) {
             return;
@@ -644,7 +619,9 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         var recipeManager = level.getRecipeManager();
         if (cachedRecipeManager != recipeManager) {
             cachedRecipeManager = recipeManager;
-            cachedRecipes = List.copyOf(recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()));
+            cachedRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).stream()
+                    .map(recipe -> recipe.value())
+                    .toList();
             invalidateMaterialRecipeCache();
         }
 
@@ -782,14 +759,21 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
             return left.isEmpty() && right.isEmpty();
         }
 
-        return left.getCount() == right.getCount() && ItemStack.isSameItemSameTags(left, right);
+        return left.getCount() == right.getCount() && ItemStack.isSameItemSameComponents(left, right);
     }
 
-    @SuppressWarnings("unchecked")
-    private LazyOptional<IItemHandler>[] createSidedHandlers() {
-        var handlers = new LazyOptional[Direction.values().length];
+    public @Nullable IItemHandler getItemHandler(@Nullable Direction side) {
+        if (side == null) {
+            return null;
+        }
+
+        return sidedHandlers[side.get3DDataValue()];
+    }
+
+    private IItemHandler[] createSidedHandlers() {
+        var handlers = new IItemHandler[Direction.values().length];
         for (var direction : Direction.values()) {
-            handlers[direction.get3DDataValue()] = LazyOptional.of(() -> new SidedAutomationItemHandler(direction));
+            handlers[direction.get3DDataValue()] = new SidedAutomationItemHandler(direction);
         }
         return handlers;
     }

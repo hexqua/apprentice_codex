@@ -7,6 +7,6 @@
     "item": "minecraft:poisonous_potato"
   },
   "result": {
-    "item": "minecraft:potato"
+    "id": "minecraft:potato"
   }
 }
