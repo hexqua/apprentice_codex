@@ -108,6 +108,7 @@ public class EssenceSmoker extends BaseEntityBlock {
                 blockEntity.giveItemToPlayer(player, completedItem);
             }
             if (!completedItems.isEmpty()) {
+                blockEntity.awardStoredExperience(player);
                 playItemSetSound(level, pos);
             }
             return InteractionResult.CONSUME;
