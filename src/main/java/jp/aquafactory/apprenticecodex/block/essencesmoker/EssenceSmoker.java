@@ -168,7 +168,7 @@ public class EssenceSmoker extends BaseEntityBlock {
         }
 
         if (blockEntity.hasMaterials() && blockEntity.isMaterialSlotsFull()) {
-            if (blockEntity.canAcceptMaterial(heldStack)) {
+            if (blockEntity.matchesCurrentCatalystMaterial(heldStack)) {
                 displayError(player, "ui.apprenticecodex.max_count_material");
             } else {
                 displayError(player, "ui.apprenticecodex.need_ignite",
