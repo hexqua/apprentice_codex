@@ -1,0 +1,37 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_iron_spellcaster_gun",
+  "criteria": {
+    "crafted_gold_spellcaster_gun": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:gold_spellcaster_gun"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.description"
+    },
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": false
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:gold_spellcaster_gun"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_gold_spellcaster_gun"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

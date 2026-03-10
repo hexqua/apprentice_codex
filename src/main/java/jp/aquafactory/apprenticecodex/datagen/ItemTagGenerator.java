@@ -32,6 +32,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
+    private static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = Enchantments.MAGIC_ITEM_ENCHANTABLE;
     private static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_MAGIC_ENCHANTABLE;
 
     public ItemTagGenerator(
@@ -55,6 +56,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
         tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
+        tag(MAGIC_ITEM_ENCHANTABLE).add(
+                ItemRegistry.IRON_SPELLCASTER_GUN.get(),
+                ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
+                ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
+                ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
+                ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
+                ItemRegistry.PHOTON_SIPHON.get()
+        );
         tag(OFFHAND_MAGIC_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),

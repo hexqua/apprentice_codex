@@ -13,10 +13,10 @@
     "base": 5,
     "per_level_above_first": 8
   },
-  "primary_items": "#apprenticecodex:offhand_magic_enchantable",
+  "primary_items": "#apprenticecodex:magic_item_enchantable",
   "slots": [
-    "offhand"
+    "hand"
   ],
-  "supported_items": "#apprenticecodex:offhand_magic_enchantable",
+  "supported_items": "#apprenticecodex:magic_item_enchantable",
   "weight": 10
 }

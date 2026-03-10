@@ -16,6 +16,8 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
+import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
@@ -53,6 +55,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -114,6 +117,28 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.PASTEL_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
+            private IronSpellcasterGunRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new IronSpellcasterGunRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.IRON_SPELLCASTER_GUN.get());
+        event.registerItem(new IClientItemExtensions() {
+            private GoldSpellcasterGunRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new GoldSpellcasterGunRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.GOLD_SPELLCASTER_GUN.get());
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

@@ -259,5 +259,31 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_absorption_amplify_amulet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.getId()))
                 .save(saver, advancementId("craft_absorption_amplify_amulet"), existingFileHelper);
+
+        var ironGun = Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.IRON_SPELLCASTER_GUN.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_iron_spellcaster_gun", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.IRON_SPELLCASTER_GUN.getId()))
+                .save(saver, advancementId("craft_iron_spellcaster_gun"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(ironGun)
+                .display(ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_gold_spellcaster_gun", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.GOLD_SPELLCASTER_GUN.getId()))
+                .save(saver, advancementId("craft_gold_spellcaster_gun"), existingFileHelper);
     }
 }

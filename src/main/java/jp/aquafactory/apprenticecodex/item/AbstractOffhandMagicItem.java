@@ -66,9 +66,9 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
             String itemKey,
-            List<AttributeBonus> offhandBonuses
+            List<AttributeBonus> attributeBonuses
     ) {
-        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, offhandBonuses);
+        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, attributeBonuses);
     }
 
     protected AbstractOffhandMagicItem(
@@ -76,18 +76,18 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
             int configuredSpellLevel,
             Rarity rarity,
             String itemKey,
-            AttributeBonus... offhandBonuses
+            AttributeBonus... attributeBonuses
     ) {
-        this(configuredSpell, configuredSpellLevel, rarity, itemKey, List.of(offhandBonuses));
+        this(configuredSpell, configuredSpellLevel, rarity, itemKey, List.of(attributeBonuses));
     }
 
     protected AbstractOffhandMagicItem(
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
             String itemKey,
-            AttributeBonus... offhandBonuses
+            AttributeBonus... attributeBonuses
     ) {
-        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, List.of(offhandBonuses));
+        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, List.of(attributeBonuses));
     }
 
     protected AbstractOffhandMagicItem(
@@ -106,24 +106,24 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
 
     protected AbstractOffhandMagicItem(
             String itemKey,
-            List<AttributeBonus> offhandBonuses
+            List<AttributeBonus> attributeBonuses
     ) {
-        this(Rarity.COMMON, itemKey, offhandBonuses);
+        this(Rarity.COMMON, itemKey, attributeBonuses);
     }
 
     protected AbstractOffhandMagicItem(
             Rarity rarity,
             String itemKey,
-            AttributeBonus... offhandBonuses
+            AttributeBonus... attributeBonuses
     ) {
-        this(rarity, itemKey, List.of(offhandBonuses));
+        this(rarity, itemKey, List.of(attributeBonuses));
     }
 
     protected AbstractOffhandMagicItem(
             String itemKey,
-            AttributeBonus... offhandBonuses
+            AttributeBonus... attributeBonuses
     ) {
-        this(Rarity.COMMON, itemKey, List.of(offhandBonuses));
+        this(Rarity.COMMON, itemKey, List.of(attributeBonuses));
     }
 
     @Override
