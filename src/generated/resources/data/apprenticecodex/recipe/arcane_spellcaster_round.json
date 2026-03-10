@@ -9,7 +9,7 @@
       "item": "minecraft:gunpowder"
     },
     "R": {
-      "item": "minecraft:copper_ingot"
+      "item": "irons_spellbooks:arcane_ingot"
     }
   },
   "pattern": [
@@ -19,7 +19,6 @@
   ],
   "result": {
     "count": 6,
-    "item": "apprenticecodex:arcane_spellcaster_round"
-  },
-  "show_notification": true
+    "id": "apprenticecodex:arcane_spellcaster_round"
+  }
 }

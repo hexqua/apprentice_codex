@@ -9,17 +9,21 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:gold_spellcaster_gun",
-      "nbt": "{\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": false
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:gold_spellcaster_gun"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.title"
     }

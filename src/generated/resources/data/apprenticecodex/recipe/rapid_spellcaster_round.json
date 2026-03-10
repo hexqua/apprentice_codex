@@ -19,7 +19,6 @@
   ],
   "result": {
     "count": 16,
-    "item": "apprenticecodex:rapid_spellcaster_round"
-  },
-  "show_notification": true
+    "id": "apprenticecodex:rapid_spellcaster_round"
+  }
 }
