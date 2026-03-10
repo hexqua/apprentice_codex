@@ -13,6 +13,7 @@
     "SchoolTypeAccessor"
   ],
   "client": [
+    "ClientSpellCastHelperMixin",
     "KeyboardHandlerMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",
