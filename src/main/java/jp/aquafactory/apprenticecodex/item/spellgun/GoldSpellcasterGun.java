@@ -1,15 +1,14 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,21 +36,21 @@ public class GoldSpellcasterGun extends AbstractSpellGunItem {
     @Override
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
         if (spellData == null){
-            return Items.IRON_NUGGET;
+            return ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
         }
 
-        return spellData.getRarity().compareRarity(SpellRarity.EPIC) > 0 ? Items.GOLD_NUGGET : Items.IRON_NUGGET;
+        return spellData.getRarity().compareRarity(SpellRarity.EPIC) > 0 ? ItemRegistry.ARCANE_SPELLCASTER_ROUND.get() : ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
     }
 
     @Override
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
         return List.of(
                 new AmmoTooltipEntry(
-                        Items.IRON_NUGGET,
+                        ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
                         "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare"
                 ),
                 new AmmoTooltipEntry(
-                        Items.GOLD_NUGGET,
+                        ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
                         "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic"
                 )
         );

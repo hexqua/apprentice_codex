@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
@@ -51,6 +52,12 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
     public static final DeferredHolder<Item, Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
+    public static final DeferredHolder<Item, Item> RAPID_SPELLCASTER_ROUND =
+            ITEMS.register("rapid_spellcaster_round", SpellcasterRoundItem::new);
+    public static final DeferredHolder<Item, Item> BASIC_SPELLCASTER_ROUND =
+            ITEMS.register("basic_spellcaster_round", SpellcasterRoundItem::new);
+    public static final DeferredHolder<Item, Item> ARCANE_SPELLCASTER_ROUND =
+            ITEMS.register("arcane_spellcaster_round", SpellcasterRoundItem::new);
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_TORSO =
