@@ -59,7 +59,7 @@
   "enchantment.apprenticecodex.tense.desc": "魔法の詠唱時間を短縮します。継続詠唱の魔法は詠唱時間が延長されます。",
   "enchantment.apprenticecodex.surge.desc": "属性を問わず魔法の力が上昇します。",
   "enchantment.apprenticecodex.attunement.desc": "注入された魔法の属性の魔法の力が上昇します。",
-  "enchantment.apprenticecodex.transcendence.desc": "オフハンドに所持している時のみ、注入された魔法のレベルが上昇します。",
+  "enchantment.apprenticecodex.transcendence.desc": "手に持っている時のみ、注入された魔法のレベルが上昇します。",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",

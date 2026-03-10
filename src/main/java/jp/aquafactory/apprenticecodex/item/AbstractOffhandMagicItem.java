@@ -42,8 +42,8 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
     private final int configuredSpellLevel;
     private final boolean startsWithPresetSpell;
     private final String itemKey;
-    private final List<AttributeBonus> offhandBonuses;
-    private final Multimap<Attribute, AttributeModifier> offhandModifiers;
+    private final List<AttributeBonus> attributeBonuses;
+    private final Multimap<Attribute, AttributeModifier> baseModifiers;
 
     // 既定魔法入りで開始するアイテム向けコンストラクタ.
     protected AbstractOffhandMagicItem(
@@ -51,24 +51,24 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
             int configuredSpellLevel,
             Rarity rarity,
             String itemKey,
-            List<AttributeBonus> offhandBonuses
+            List<AttributeBonus> attributeBonuses
     ) {
         super(createProperties(rarity));
         this.configuredSpell = Objects.requireNonNull(configuredSpell);
         this.configuredSpellLevel = configuredSpellLevel;
         this.startsWithPresetSpell = true;
         this.itemKey = normalizeKeyToken(itemKey);
-        this.offhandBonuses = List.copyOf(offhandBonuses);
-        this.offhandModifiers = buildBaseOffhandModifiers();
+        this.attributeBonuses = List.copyOf(attributeBonuses);
+        this.baseModifiers = buildBaseModifiers();
     }
 
     protected AbstractOffhandMagicItem(
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
             String itemKey,
-            List<AttributeBonus> offhandBonuses
+            List<AttributeBonus> attributeBonuses
     ) {
-        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, offhandBonuses);
+        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, attributeBonuses);
     }
 
     protected AbstractOffhandMagicItem(
@@ -76,55 +76,55 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
             int configuredSpellLevel,
             Rarity rarity,
             String itemKey,
-            AttributeBonus... offhandBonuses
+            AttributeBonus... attributeBonuses
     ) {
-        this(configuredSpell, configuredSpellLevel, rarity, itemKey, List.of(offhandBonuses));
+        this(configuredSpell, configuredSpellLevel, rarity, itemKey, List.of(attributeBonuses));
     }
 
     protected AbstractOffhandMagicItem(
             Supplier<? extends AbstractSpell> configuredSpell,
             int configuredSpellLevel,
             String itemKey,
-            AttributeBonus... offhandBonuses
+            AttributeBonus... attributeBonuses
     ) {
-        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, List.of(offhandBonuses));
+        this(configuredSpell, configuredSpellLevel, Rarity.COMMON, itemKey, List.of(attributeBonuses));
     }
 
     // 空スロットで開始し、Imbue による魔法追加だけを受け付けたいアイテム向けコンストラクタ.
     protected AbstractOffhandMagicItem(
             Rarity rarity,
             String itemKey,
-            List<AttributeBonus> offhandBonuses
+            List<AttributeBonus> attributeBonuses
     ) {
         super(createProperties(rarity));
         this.configuredSpell = null;
         this.configuredSpellLevel = 0;
         this.startsWithPresetSpell = false;
         this.itemKey = normalizeKeyToken(itemKey);
-        this.offhandBonuses = List.copyOf(offhandBonuses);
-        this.offhandModifiers = buildBaseOffhandModifiers();
+        this.attributeBonuses = List.copyOf(attributeBonuses);
+        this.baseModifiers = buildBaseModifiers();
     }
 
     protected AbstractOffhandMagicItem(
             String itemKey,
-            List<AttributeBonus> offhandBonuses
+            List<AttributeBonus> attributeBonuses
     ) {
-        this(Rarity.COMMON, itemKey, offhandBonuses);
+        this(Rarity.COMMON, itemKey, attributeBonuses);
     }
 
     protected AbstractOffhandMagicItem(
             Rarity rarity,
             String itemKey,
-            AttributeBonus... offhandBonuses
+            AttributeBonus... attributeBonuses
     ) {
-        this(rarity, itemKey, List.of(offhandBonuses));
+        this(rarity, itemKey, List.of(attributeBonuses));
     }
 
     protected AbstractOffhandMagicItem(
             String itemKey,
-            AttributeBonus... offhandBonuses
+            AttributeBonus... attributeBonuses
     ) {
-        this(Rarity.COMMON, itemKey, List.of(offhandBonuses));
+        this(Rarity.COMMON, itemKey, List.of(attributeBonuses));
     }
 
     @Override
@@ -144,7 +144,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         if (slot == EquipmentSlot.OFFHAND) {
-            return buildOffhandModifiers(stack);
+            return buildEquippedModifiers(stack);
         }
 
         return super.getAttributeModifiers(slot, stack);
@@ -176,11 +176,11 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return JEI_INFO_GROUP_ID;
     }
 
-    private Multimap<Attribute, AttributeModifier> buildBaseOffhandModifiers() {
+    private Multimap<Attribute, AttributeModifier> buildBaseModifiers() {
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        var prefix = "apprenticecodex." + itemKey + ".offhand";
-        for (int i = 0; i < offhandBonuses.size(); ++i) {
-            var bonus = offhandBonuses.get(i);
+        var prefix = "apprenticecodex." + itemKey;
+        for (int i = 0; i < attributeBonuses.size(); ++i) {
+            var bonus = attributeBonuses.get(i);
             var attribute = bonus.attributeSupplier().get();
             if (attribute == null) {
                 continue;
@@ -198,12 +198,12 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return builder.build();
     }
 
-    private Multimap<Attribute, AttributeModifier> buildOffhandModifiers(ItemStack stack) {
+    private Multimap<Attribute, AttributeModifier> buildEquippedModifiers(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
-            return offhandModifiers;
+            return baseModifiers;
         }
         if (!stack.isEnchanted()) {
-            return offhandModifiers;
+            return baseModifiers;
         }
         if (!EnchantmentRegistry.ALACRITY.isPresent()
                 || !EnchantmentRegistry.REFLUX.isPresent()
@@ -211,7 +211,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
                 || !EnchantmentRegistry.SURGE.isPresent()
                 || !EnchantmentRegistry.ATTUNEMENT.isPresent()
                 || !EnchantmentRegistry.TENSE.isPresent()) {
-            return offhandModifiers;
+            return baseModifiers;
         }
 
         var alacrityLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ALACRITY.get());
@@ -227,12 +227,12 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
                 && surgeLevel <= 0
                 && attunementLevel <= 0
                 && tenseLevel <= 0) {
-            return offhandModifiers;
+            return baseModifiers;
         }
 
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(offhandModifiers);
-        var prefix = "apprenticecodex." + itemKey + ".offhand.enchant";
+        builder.putAll(baseModifiers);
+        var prefix = "apprenticecodex." + itemKey + ".enchant";
 
         addEnchantmentModifier(
                 builder,

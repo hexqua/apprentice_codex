@@ -1,11 +1,14 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -21,26 +24,44 @@ public final class TranscendenceSpellLevelEvent {
             return;
         }
 
-        var offhandStack = caster.getOffhandItem();
-        if (!(offhandStack.getItem() instanceof AbstractOffhandMagicItem)) {
+        var addedLevels = getApplicableTranscendenceLevels(caster.getMainHandItem(), event.getSpell(), false)
+                + getApplicableTranscendenceLevels(caster.getOffhandItem(), event.getSpell(), true);
+        if (addedLevels <= 0) {
             return;
         }
 
-        var transcendenceLevel = offhandStack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get());
-        if (transcendenceLevel <= 0 || !ISpellContainer.isSpellContainer(offhandStack)) {
-            return;
+        event.addLevels(addedLevels);
+    }
+
+    private static int getApplicableTranscendenceLevels(ItemStack stack, AbstractSpell spell, boolean isOffhandSlot) {
+        if (stack == null || stack.isEmpty()) {
+            return 0;
         }
 
-        var spellContainer = ISpellContainer.get(offhandStack);
+        var item = stack.getItem();
+        // 魔法補助具は従来通りオフハンド限定だが、spell gun は両手持ちでもレベル加算対象にする。
+        var isSupportedSlot =
+                (isOffhandSlot && item instanceof AbstractOffhandMagicItem)
+                        || item instanceof AbstractSpellGunItem;
+        if (!isSupportedSlot) {
+            return 0;
+        }
+
+        var transcendenceLevel = stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get());
+        if (transcendenceLevel <= 0 || !ISpellContainer.isSpellContainer(stack)) {
+            return 0;
+        }
+
+        var spellContainer = ISpellContainer.get(stack);
         if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return;
+            return 0;
         }
 
         var imbuedSpell = spellContainer.getSpellAtIndex(0);
-        if (imbuedSpell == SpellData.EMPTY || !imbuedSpell.getSpell().equals(event.getSpell())) {
-            return;
+        if (imbuedSpell == SpellData.EMPTY || !imbuedSpell.getSpell().equals(spell)) {
+            return 0;
         }
 
-        event.addLevels(transcendenceLevel);
+        return transcendenceLevel;
     }
 }
