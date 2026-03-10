@@ -21,8 +21,7 @@ import java.util.Set;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class SpellGunSpellListManager extends SimpleJsonResourceReloadListener {
-    // datapack 互換性のため、既存ディレクトリ名は維持する。
-    public static final String DIRECTORY = "iron_spellcaster_device_spell_lists";
+    public static final String DIRECTORY = "spell_gun_spell_lists";
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final SpellGunSpellListManager INSTANCE = new SpellGunSpellListManager();
