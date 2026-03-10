@@ -1,6 +1,9 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
+  "item.apprenticecodex.rapid_spellcaster_round": "高速詠唱銃弾",
+  "item.apprenticecodex.basic_spellcaster_round": "通常用詠唱銃弾",
+  "item.apprenticecodex.arcane_spellcaster_round": "秘術の詠唱銃弾",
   "item.apprenticecodex.iron_spellcaster_gun": "鉄の魔術詠唱銃",
   "item.apprenticecodex.gold_spellcaster_gun": "金の魔術詠唱銃",
   "item.apprenticecodex.iron_spell_amplifier": "鉄の魔力増幅装置",
@@ -35,6 +38,9 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "レア以下",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "エピック以上",
 
+  "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
+  "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",
+  "item.apprenticecodex.arcane_spellcaster_round.desc": "やや複雑な即時詠唱魔法用の実包",
   "item.apprenticecodex.scarlet_thirst.desc": "マナ減少時、余っている体力をマナに変換する。",
   "item.apprenticecodex.craftsmans_delight.desc_1": "特定の作業魔法を強化し、マナ効率も上昇させる。",
   "item.apprenticecodex.craftsmans_delight.desc_2": "対象の魔法は以下:",

@@ -1,6 +1,9 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
+  "item.apprenticecodex.rapid_spellcaster_round": "Rapid Spellcaster Round",
+  "item.apprenticecodex.basic_spellcaster_round": "Basic Spellcaster Round",
+  "item.apprenticecodex.arcane_spellcaster_round": "Arcane Spellcaster Round",
   "item.apprenticecodex.iron_spellcaster_gun": "Iron Spellcaster Gun",
   "item.apprenticecodex.gold_spellcaster_gun": "Gold Spellcaster Gun",
   "item.apprenticecodex.iron_spell_amplifier": "Iron Spell Amplifier",
@@ -35,6 +38,9 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "Above Epic",
 
+  "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
+  "item.apprenticecodex.basic_spellcaster_round.desc": "Ammo for instant casting spells",
+  "item.apprenticecodex.arcane_spellcaster_round.desc": "Ammo for slightly complex instant casting spells",
   "item.apprenticecodex.scarlet_thirst.desc": "Converts excess health into mana when mana is low.",
   "item.apprenticecodex.craftsmans_delight.desc_1": "Enhances specific utility spells and boosts mana efficiency.",
   "item.apprenticecodex.craftsmans_delight.desc_2": "Target spells include:",

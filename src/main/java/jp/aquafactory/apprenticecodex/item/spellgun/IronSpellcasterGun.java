@@ -5,10 +5,10 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +36,7 @@ public class IronSpellcasterGun extends AbstractSpellGunItem {
 
     @Override
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
-        return Items.IRON_NUGGET;
+        return ItemRegistry.RAPID_SPELLCASTER_ROUND.get();
     }
     
     @Override
