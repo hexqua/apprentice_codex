@@ -1,19 +1,17 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("RedundantMethodOverride")
 public class AttunementEnchantment extends Enchantment {
-    private static final EnchantmentCategory OFFHAND_MAGIC_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_attunement_offhand_magic", AttunementEnchantment::isOffhandMagicItem);
+    private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
+            EnchantmentCategory.create("apprenticecodex_attunement_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
 
     public AttunementEnchantment() {
-        super(Rarity.UNCOMMON, OFFHAND_MAGIC_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
+        super(Rarity.UNCOMMON, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
     }
 
     @Override
@@ -51,9 +49,5 @@ public class AttunementEnchantment extends Enchantment {
         return !(other instanceof SurgeEnchantment)
                 && !(other instanceof TranscendenceEnchantment)
                 && super.checkCompatibility(other);
-    }
-
-    private static boolean isOffhandMagicItem(Item item) {
-        return item instanceof AbstractOffhandMagicItem;
     }
 }

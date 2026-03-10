@@ -1,19 +1,17 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("RedundantMethodOverride")
 public class TenseEnchantment extends Enchantment {
-    private static final EnchantmentCategory OFFHAND_MAGIC_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_tense_offhand_magic", TenseEnchantment::isOffhandMagicItem);
+    private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
+            EnchantmentCategory.create("apprenticecodex_tense_magic", MagicItemEnchantmentTargeting::isSupportedOffhandMagicItem);
 
     public TenseEnchantment() {
-        super(Rarity.COMMON, OFFHAND_MAGIC_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
+        super(Rarity.COMMON, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
     }
 
     @Override
@@ -50,9 +48,5 @@ public class TenseEnchantment extends Enchantment {
     protected boolean checkCompatibility(@NotNull Enchantment other) {
         return !(other instanceof AlacrityEnchantment)
                 && super.checkCompatibility(other);
-    }
-
-    private static boolean isOffhandMagicItem(Item item) {
-        return item instanceof AbstractOffhandMagicItem;
     }
 }

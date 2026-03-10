@@ -7,8 +7,18 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
 public final class TagRegistry {
+    private TagRegistry() {
+    }
+
+    private static TagKey<Block> createBlockTag(String name) {
+        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
+    }
+
     public static final class Blocks {
+        private Blocks() {
+        }
+
         public static final TagKey<Block> CAN_RECEIVE_GRACED_RAIN =
-                TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "can_receive_graced_rain"));
+                createBlockTag("can_receive_graced_rain");
     }
 }

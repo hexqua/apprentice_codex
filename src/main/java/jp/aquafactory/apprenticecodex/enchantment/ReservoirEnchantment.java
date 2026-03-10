@@ -1,19 +1,17 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("RedundantMethodOverride")
 public class ReservoirEnchantment extends Enchantment {
-    private static final EnchantmentCategory OFFHAND_MAGIC_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_reservoir_offhand_magic", ReservoirEnchantment::isOffhandMagicItem);
+    private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
+            EnchantmentCategory.create("apprenticecodex_reservoir_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
 
     public ReservoirEnchantment() {
-        super(Rarity.COMMON, OFFHAND_MAGIC_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
+        super(Rarity.COMMON, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
     }
 
     @Override
@@ -50,9 +48,5 @@ public class ReservoirEnchantment extends Enchantment {
     protected boolean checkCompatibility(@NotNull Enchantment other) {
         return !(other instanceof RefluxEnchantment)
                 && super.checkCompatibility(other);
-    }
-
-    private static boolean isOffhandMagicItem(Item item) {
-        return item instanceof AbstractOffhandMagicItem;
     }
 }

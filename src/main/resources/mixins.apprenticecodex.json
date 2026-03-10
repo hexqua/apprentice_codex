@@ -5,12 +5,15 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "mixins.apprenticecodex.refmap.json",
   "mixins": [
+    "ArcaneAnvilMenuMixin",
     "ItemEntityAccessor",
+    "ItemCombinerMenuAccessor",
     "LivingEntityAccessor",
     "LivingEntityPhalanxGuardMixin",
     "SchoolTypeAccessor"
   ],
   "client": [
+    "ClientSpellCastHelperMixin",
     "KeyboardHandlerMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",
