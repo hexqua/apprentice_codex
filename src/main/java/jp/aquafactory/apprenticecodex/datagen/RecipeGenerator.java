@@ -172,6 +172,60 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.IRON_SPELLCASTER_GUN.get())
+                .pattern("IAE")
+                .pattern(" IR")
+                .pattern(" BI")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('E', Items.ENDER_PEARL)
+                .define('I', Items.IRON_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('B', ItemTags.BUTTONS)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GOLD_SPELLCASTER_GUN.get())
+                .pattern("GAC")
+                .pattern(" GR")
+                .pattern(" BG")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('C', io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get())
+                .define('G', Items.GOLD_INGOT)
+                .define('R', Items.REDSTONE)
+                .define('B', ItemTags.BUTTONS)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.RAPID_SPELLCASTER_ROUND.get(), 16)
+                .pattern("A")
+                .pattern("C")
+                .pattern("G")
+                .define('A', Items.AMETHYST_SHARD)
+                .define('C', Items.COPPER_INGOT)
+                .define('G', Items.GUNPOWDER)
+                .unlockedBy(getHasName(Items.GUNPOWDER), has(Items.GUNPOWDER))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.BASIC_SPELLCASTER_ROUND.get(), 8)
+                .pattern("A")
+                .pattern("I")
+                .pattern("G")
+                .define('A', Items.AMETHYST_SHARD)
+                .define('I', Items.IRON_INGOT)
+                .define('G', Items.GUNPOWDER)
+                .unlockedBy(getHasName(Items.GUNPOWDER), has(Items.GUNPOWDER))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(), 6)
+                .pattern("A")
+                .pattern("R")
+                .pattern("G")
+                .define('A', Items.AMETHYST_SHARD)
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('G', Items.GUNPOWDER)
+                .unlockedBy(getHasName(Items.GUNPOWDER), has(Items.GUNPOWDER))
+                .save(recipeOutput);
+
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_HELMET.get()),
