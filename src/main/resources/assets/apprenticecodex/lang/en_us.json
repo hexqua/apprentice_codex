@@ -2,6 +2,7 @@
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
   "item.apprenticecodex.iron_spellcaster_gun": "Iron Spellcaster Gun",
+  "item.apprenticecodex.gold_spellcaster_gun": "Gold Spellcaster Gun",
   "item.apprenticecodex.iron_spell_amplifier": "Iron Spell Amplifier",
   "item.apprenticecodex.copper_spell_amplifier": "Copper Spell Amplifier",
   "item.apprenticecodex.gold_spell_amplifier": "Gold Spell Amplifier",
@@ -19,6 +20,20 @@
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
   "item.apprenticecodex.apprentice_mage_leggings": "Apprentice Mage's Leggings",
   "item.apprenticecodex.apprentice_mage_boots": "Apprentice Mage's Boots",
+
+  "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift for details.",
+  "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",
+  "item.apprenticecodex.spellgun.tooltip.ability_none": "- None",
+  "item.apprenticecodex.spellgun.tooltip.ability_reduce_recast": "- Cast spells have %ss cooldown.",
+  "item.apprenticecodex.spellgun.tooltip.restrict_title": "Imbuing limits:",
+  "item.apprenticecodex.spellgun.tooltip.restrict_none": "- [N/A]",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only": "- No casting required",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_cooldown": "- Cooldown is %s seconds or less",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast": "- No recast needed",
+  "item.apprenticecodex.spellgun.tooltip.ammo_title": "Ammo:",
+  "item.apprenticecodex.spellgun.tooltip.ammo_none": "- None",
+  "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",
+  "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "Above Epic",
 
   "item.apprenticecodex.scarlet_thirst.desc": "Converts excess health into mana when mana is low.",
   "item.apprenticecodex.craftsmans_delight.desc_1": "Enhances specific utility spells and boosts mana efficiency.",

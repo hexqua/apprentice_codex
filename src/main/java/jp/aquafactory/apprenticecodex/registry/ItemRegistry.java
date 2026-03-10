@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import net.minecraft.core.registries.Registries;
+import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
@@ -76,10 +77,12 @@ public final class ItemRegistry {
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final DeferredHolder<Item, Item> EXPLORERS_CODEX =
             ITEMS.register("explorers_codex", ExplorersCodex::new);
-    public static final DeferredHolder<Item, Item> IRON_SPELL_AMPLIFIER =
-            ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> IRON_SPELLCASTER_GUN =
             ITEMS.register("iron_spellcaster_gun", IronSpellcasterGun::new);
+    public static final DeferredHolder<Item, Item> GOLD_SPELLCASTER_GUN =
+            ITEMS.register("gold_spellcaster_gun", GoldSpellcasterGun::new);
+    public static final DeferredHolder<Item, Item> IRON_SPELL_AMPLIFIER =
+            ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> COPPER_SPELL_AMPLIFIER =
             ITEMS.register("copper_spell_amplifier", CopperSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> GOLD_SPELL_AMPLIFIER =
