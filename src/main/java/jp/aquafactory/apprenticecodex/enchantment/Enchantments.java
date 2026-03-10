@@ -76,6 +76,7 @@ public final class Enchantments {
         HolderGetter<Item> itemLookup = context.lookup(Registries.ITEM);
         HolderGetter<Enchantment> enchantmentLookup = context.lookup(Registries.ENCHANTMENT);
         var magicItems = itemLookup.getOrThrow(MAGIC_ITEM_ENCHANTABLE);
+        var offhandMagicItems = itemLookup.getOrThrow(OFFHAND_MAGIC_ENCHANTABLE);
 
         register(
                 context,
@@ -118,14 +119,14 @@ public final class Enchantments {
                 ALACRITY,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        magicItems,
-                                        magicItems,
+                                        offhandMagicItems,
+                                        offhandMagicItems,
                                         5,
                                         5,
                                         Enchantment.dynamicCost(5, 8),
                                         Enchantment.dynamicCost(25, 8),
                                         1,
-                                        EquipmentSlotGroup.HAND
+                                        EquipmentSlotGroup.OFFHAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_ALACRITY_TENSE))
@@ -136,14 +137,14 @@ public final class Enchantments {
                 TENSE,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        magicItems,
-                                        magicItems,
+                                        offhandMagicItems,
+                                        offhandMagicItems,
                                         10,
                                         5,
                                         Enchantment.dynamicCost(5, 8),
                                         Enchantment.dynamicCost(25, 8),
                                         1,
-                                        EquipmentSlotGroup.HAND
+                                        EquipmentSlotGroup.OFFHAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_ALACRITY_TENSE))

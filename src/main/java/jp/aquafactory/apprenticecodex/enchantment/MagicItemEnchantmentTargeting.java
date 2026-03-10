@@ -11,4 +11,8 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedMagicItem(Item item) {
         return item instanceof AbstractOffhandMagicItem || item instanceof AbstractSpellGunItem;
     }
+
+    static boolean isSupportedOffhandMagicItem(Item item) {
+        return item instanceof AbstractOffhandMagicItem;
+    }
 }
