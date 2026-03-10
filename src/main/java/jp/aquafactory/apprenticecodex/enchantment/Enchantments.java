@@ -25,6 +25,7 @@ public final class Enchantments {
     public static final ResourceKey<Enchantment> ATTUNEMENT = key("attunement");
     public static final ResourceKey<Enchantment> TRANSCENDENCE = key("transcendence");
 
+    public static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = itemTag("magic_item_enchantable");
     public static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = itemTag("offhand_magic_enchantable");
     public static final TagKey<Enchantment> EXCLUSIVE_REFLUX_RESERVOIR = enchantmentTag("exclusive_set/reflux_reservoir");
     public static final TagKey<Enchantment> EXCLUSIVE_ALACRITY_TENSE = enchantmentTag("exclusive_set/alacrity_tense");
@@ -74,21 +75,21 @@ public final class Enchantments {
     public static void bootstrap(BootstrapContext<Enchantment> context) {
         HolderGetter<Item> itemLookup = context.lookup(Registries.ITEM);
         HolderGetter<Enchantment> enchantmentLookup = context.lookup(Registries.ENCHANTMENT);
-        var offhandItems = itemLookup.getOrThrow(OFFHAND_MAGIC_ENCHANTABLE);
+        var magicItems = itemLookup.getOrThrow(MAGIC_ITEM_ENCHANTABLE);
 
         register(
                 context,
                 REFLUX,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandItems,
-                                        offhandItems,
+                                        magicItems,
+                                        magicItems,
                                         5,
                                         5,
                                         Enchantment.dynamicCost(1, 10),
                                         Enchantment.dynamicCost(51, 10),
                                         1,
-                                        EquipmentSlotGroup.OFFHAND
+                                        EquipmentSlotGroup.HAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_REFLUX_RESERVOIR))
@@ -99,14 +100,14 @@ public final class Enchantments {
                 RESERVOIR,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandItems,
-                                        offhandItems,
+                                        magicItems,
+                                        magicItems,
                                         10,
                                         5,
                                         Enchantment.dynamicCost(1, 10),
                                         Enchantment.dynamicCost(51, 10),
                                         1,
-                                        EquipmentSlotGroup.OFFHAND
+                                        EquipmentSlotGroup.HAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_REFLUX_RESERVOIR))
@@ -117,14 +118,14 @@ public final class Enchantments {
                 ALACRITY,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandItems,
-                                        offhandItems,
+                                        magicItems,
+                                        magicItems,
                                         5,
                                         5,
                                         Enchantment.dynamicCost(5, 8),
                                         Enchantment.dynamicCost(25, 8),
                                         1,
-                                        EquipmentSlotGroup.OFFHAND
+                                        EquipmentSlotGroup.HAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_ALACRITY_TENSE))
@@ -135,14 +136,14 @@ public final class Enchantments {
                 TENSE,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandItems,
-                                        offhandItems,
+                                        magicItems,
+                                        magicItems,
                                         10,
                                         5,
                                         Enchantment.dynamicCost(5, 8),
                                         Enchantment.dynamicCost(25, 8),
                                         1,
-                                        EquipmentSlotGroup.OFFHAND
+                                        EquipmentSlotGroup.HAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_ALACRITY_TENSE))
@@ -153,14 +154,14 @@ public final class Enchantments {
                 SURGE,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandItems,
-                                        offhandItems,
+                                        magicItems,
+                                        magicItems,
                                         10,
                                         5,
                                         Enchantment.dynamicCost(5, 8),
                                         Enchantment.dynamicCost(25, 8),
                                         2,
-                                        EquipmentSlotGroup.OFFHAND
+                                        EquipmentSlotGroup.HAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE))
@@ -171,14 +172,14 @@ public final class Enchantments {
                 ATTUNEMENT,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandItems,
-                                        offhandItems,
+                                        magicItems,
+                                        magicItems,
                                         5,
                                         5,
                                         Enchantment.dynamicCost(5, 11),
                                         Enchantment.dynamicCost(25, 11),
                                         2,
-                                        EquipmentSlotGroup.OFFHAND
+                                        EquipmentSlotGroup.HAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE))
@@ -189,14 +190,14 @@ public final class Enchantments {
                 TRANSCENDENCE,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        offhandItems,
-                                        offhandItems,
+                                        magicItems,
+                                        magicItems,
                                         1,
                                         3,
                                         Enchantment.dynamicCost(25, 8),
                                         Enchantment.dynamicCost(75, 8),
                                         8,
-                                        EquipmentSlotGroup.OFFHAND
+                                        EquipmentSlotGroup.HAND
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE))
