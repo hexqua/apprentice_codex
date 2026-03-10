@@ -11,6 +11,8 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -242,6 +244,23 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Nullable
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
         return null;
+    }
+
+    public boolean shouldOverrideSpellGunCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        if (spell == null || spell.getCastType() != CastType.INSTANT) {
+            return false;
+        }
+
+        var spellData = getPrimarySpellData(stack);
+        if (spellData != null) {
+            return spellData.getSpell().equals(spell);
+        }
+
+        return startsWithPresetSpell && configuredSpell != null && configuredSpell.get().equals(spell);
+    }
+
+    public AnimationHolder getSpellGunCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel) {
+        return SpellAnimations.ANIMATION_INSTANT_CAST;
     }
 
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
