@@ -162,7 +162,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return 14;
+        return 1;
     }
 
     @Override
