@@ -1,0 +1,33 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_iron_spellcaster_gun": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:iron_spellcaster_gun"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:iron_spellcaster_gun",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[{id:\"irons_spellbooks:magic_missile\",index:0,level:1,locked:1b}],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_iron_spellcaster_gun"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
