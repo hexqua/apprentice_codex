@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("RedundantMethodOverride")
 public class TenseEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_tense_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
+            EnchantmentCategory.create("apprenticecodex_tense_magic", MagicItemEnchantmentTargeting::isSupportedOffhandMagicItem);
 
     public TenseEnchantment() {
         super(Rarity.COMMON, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
