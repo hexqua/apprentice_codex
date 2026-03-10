@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -27,7 +29,9 @@ public class IronSpellcasterDevice extends AbstractSpellGunItem {
                 new Item.Properties().stacksTo(1).rarity(Rarity.COMMON),
                 SPELL_GUN_CONFIG,
                 SpellRegistry.MAGIC_MISSILE_SPELL,
-                1
+                1,
+                "iron_spellcaster_device",
+                bonus(AttributeRegistry.SPELL_POWER, 0.10, AttributeModifier.Operation.MULTIPLY_BASE)
         );
     }
 
