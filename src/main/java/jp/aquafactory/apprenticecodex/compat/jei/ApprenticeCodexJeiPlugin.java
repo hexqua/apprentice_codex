@@ -2,14 +2,22 @@ package jp.aquafactory.apprenticecodex.compat.jei;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.registration.IRecipeCatalystRegistration;
+import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStreamReader;
@@ -38,7 +46,18 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     }
 
     @Override
+    public void registerCategories(@NotNull IRecipeCategoryRegistration registration) {
+        var guiHelper = registration.getJeiHelpers().getGuiHelper();
+        registration.addRecipeCategories(
+                new GrindRunnerRecipeCategory(guiHelper, buildGrindRunnerCatalyst()),
+                new EssenceSmokerRecipeCategory(guiHelper),
+                new SpellcasterWorkbenchRecipeCategory(guiHelper)
+        );
+    }
+
+    @Override
     public void registerRecipes(@NotNull IRecipeRegistration registration) {
+        registerCustomRecipes(registration);
         Map<String, GroupedJeiInfo> groupedInfos = new LinkedHashMap<>();
 
         for (var item : BuiltInRegistries.ITEM) {
@@ -92,6 +111,16 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         }
     }
 
+    @Override
+    public void registerRecipeCatalysts(@NotNull IRecipeCatalystRegistration registration) {
+        registration.addRecipeCatalyst(buildGrindRunnerCatalyst(), ApprenticeCodexJeiRecipeTypes.GRIND_RUNNER);
+        registration.addRecipeCatalyst(new ItemStack(ItemRegistry.ESSENCE_SMOKER.get()), ApprenticeCodexJeiRecipeTypes.ESSENCE_SMOKER);
+        registration.addRecipeCatalyst(
+                new ItemStack(ItemRegistry.SPELLCASTER_WORKBENCH.get()),
+                ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH
+        );
+    }
+
     private static String resolveGroupId(ResourceLocation itemId, String groupId) {
         if (groupId == null || groupId.isBlank()) {
             return itemId.toString();
@@ -111,6 +140,49 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
             components.add(Component.translatable(key));
         }
         return components;
+    }
+
+    private static void registerCustomRecipes(IRecipeRegistration registration) {
+        var recipeManager = getClientRecipeManager();
+        if (recipeManager == null) {
+            ApprenticeCodex.LOGGER.warn("JEI recipe registration skipped: client recipe manager is not available.");
+            return;
+        }
+
+        registration.addRecipes(
+                ApprenticeCodexJeiRecipeTypes.GRIND_RUNNER,
+                recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).stream()
+                        .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                        .toList()
+        );
+        registration.addRecipes(
+                ApprenticeCodexJeiRecipeTypes.ESSENCE_SMOKER,
+                recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).stream()
+                        .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                        .toList()
+        );
+        registration.addRecipes(
+                ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH,
+                recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
+                        .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                        .toList()
+        );
+    }
+
+    private static RecipeManager getClientRecipeManager() {
+        var minecraft = Minecraft.getInstance();
+        var connection = minecraft.getConnection();
+        return connection == null ? null : connection.getRecipeManager();
+    }
+
+    private static ItemStack buildGrindRunnerCatalyst() {
+        var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(
+                SpellRegistry.GRIND_RUNNER.get(),
+                SpellRegistry.GRIND_RUNNER.get().getMinLevel(),
+                scrollStack
+        );
+        return scrollStack;
     }
 
     private static Set<String> loadEnUsTranslationKeys() {
