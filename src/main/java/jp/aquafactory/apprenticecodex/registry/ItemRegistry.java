@@ -50,18 +50,21 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
     public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
-    public static final RegistryObject<Item> RAPID_SPELLCASTER_ROUND =
-            ITEMS.register("rapid_spellcaster_round", SpellcasterRoundItem::new);
-    public static final RegistryObject<Item> BASIC_SPELLCASTER_ROUND =
-            ITEMS.register("basic_spellcaster_round", SpellcasterRoundItem::new);
-    public static final RegistryObject<Item> ARCANE_SPELLCASTER_ROUND =
-            ITEMS.register("arcane_spellcaster_round", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_BASIC_SPELLCASTER_CASING =
             ITEMS.register("empty_basic_spellcaster_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_ARCANE_SPELLCASTER_CASING =
             ITEMS.register("empty_arcane_spellcaster_casing", SpellcasterRoundItem::new);
+    public static final RegistryObject<Item> RAPID_SPELLCASTER_ROUND =
+            ITEMS.register("rapid_spellcaster_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_RAPID_SPELLCASTER_CASING.get()));
+    public static final RegistryObject<Item> BASIC_SPELLCASTER_ROUND =
+            ITEMS.register("basic_spellcaster_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_BASIC_SPELLCASTER_CASING.get()));
+    public static final RegistryObject<Item> ARCANE_SPELLCASTER_ROUND =
+            ITEMS.register("arcane_spellcaster_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_ARCANE_SPELLCASTER_CASING.get()));
     public static final RegistryObject<Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final RegistryObject<Item> APPRENTICE_MAGE_TORSO =
