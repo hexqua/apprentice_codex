@@ -17,6 +17,8 @@ import java.util.List;
 public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<SpellcasterWorkbenchMenu> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/spellcaster_workbench.png");
+    private static final Component CANT_REMOVE_DEFAULT_TOOLTIP =
+            Component.translatable("ui.apprenticecodex.spellcaster_workbench.cant_remove_default");
     private static final int ICON_GRID_X = 121;
     private static final int ICON_GRID_Y = 16;
     private static final int ICON_COLUMNS = 2;
@@ -28,6 +30,12 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
     private static final int SCROLL_BAR_WIDTH = 12;
     private static final int SCROLL_BAR_HEIGHT = 15;
     private static final int SCROLL_TRACK_HEIGHT = 54;
+    private static final int RESULT_SLOT_X = 81;
+    private static final int RESULT_SLOT_Y = 33;
+    private static final int SLOT_SIZE = 16;
+    private static final int BLOCKED_RESULT_U = 177;
+    private static final int BLOCKED_RESULT_V = 16;
+    private static final int BLOCKED_RESULT_SIZE = 15;
 
     private float scrollOffset;
     private boolean isScrolling;
@@ -60,6 +68,7 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
         );
         renderIconButtons(gui, mouseX, mouseY);
         renderIconItems(gui);
+        renderBlockedResultOverlay(gui);
     }
 
     @Override
@@ -76,6 +85,10 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
                 gui.renderTooltip(font, icons.get(index), mouseX, mouseY);
                 return;
             }
+        }
+
+        if (menu.isBlockedByDefaultSpellExtraction() && isHoveringResultSlot(mouseX, mouseY)) {
+            gui.renderTooltip(font, CANT_REMOVE_DEFAULT_TOOLTIP, mouseX, mouseY);
         }
     }
 
@@ -172,6 +185,33 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
             var iconY = topPos + ICON_GRID_Y + visibleIndex / ICON_COLUMNS * ICON_HEIGHT;
             gui.renderItem(icons.get(index), iconX, iconY);
         }
+    }
+
+    private void renderBlockedResultOverlay(GuiGraphics gui) {
+        if (!menu.isBlockedByDefaultSpellExtraction()) {
+            return;
+        }
+
+        var resultX = leftPos + RESULT_SLOT_X;
+        var resultY = topPos + RESULT_SLOT_Y;
+        gui.blit(
+                TEXTURE,
+                resultX,
+                resultY,
+                BLOCKED_RESULT_U,
+                BLOCKED_RESULT_V,
+                BLOCKED_RESULT_SIZE,
+                BLOCKED_RESULT_SIZE
+        );
+    }
+
+    private boolean isHoveringResultSlot(int mouseX, int mouseY) {
+        var resultX = leftPos + RESULT_SLOT_X;
+        var resultY = topPos + RESULT_SLOT_Y;
+        return mouseX >= resultX
+                && mouseX < resultX + SLOT_SIZE
+                && mouseY >= resultY
+                && mouseY < resultY + SLOT_SIZE;
     }
 
     private boolean isScrollBarActive() {

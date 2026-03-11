@@ -240,6 +240,8 @@
   "ui.apprenticecodex.now_smoke_processing": "Still needs time",
   "ui.apprenticecodex.missing_spell_gun_ammo": "Out of ammo!(Ammo:%1$s)",
 
+  "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
+
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.palette_reception": "Reception Mode",
   "effect.apprenticecodex.phalanx_stance": "Phalanx Stance",

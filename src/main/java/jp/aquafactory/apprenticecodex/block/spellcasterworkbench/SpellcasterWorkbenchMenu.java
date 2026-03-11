@@ -1,5 +1,9 @@
 package jp.aquafactory.apprenticecodex.block.spellcasterworkbench;
 
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
+import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
@@ -81,7 +85,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
             @Override
             public boolean mayPickup(@NotNull Player player) {
-                return SpellcasterWorkbenchMenu.this.getActiveRecipe() != null;
+                return !SpellcasterWorkbenchMenu.this.getActiveResult().isEmpty();
             }
 
             @Override
@@ -118,6 +122,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     public int getSelectedIconIndex() {
         return selectedIconIndex.get();
+    }
+
+    public boolean isBlockedByDefaultSpellExtraction() {
+        return getBlockedSpellExtractionSourceSlot() >= 0;
     }
 
     @Override
@@ -170,12 +178,12 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         if (slotIndex == RESULT_SLOT) {
-            var activeRecipe = getActiveRecipe();
-            if (activeRecipe == null) {
+            var activeResult = getActiveResult();
+            if (activeResult.isEmpty()) {
                 return ItemStack.EMPTY;
             }
 
-            var craftedStack = activeRecipe.getPrimaryResultTemplate();
+            var craftedStack = activeResult.copy();
             var craftedCopy = craftedStack.copy();
             if (!moveItemStackTo(craftedStack, PLAYER_INVENTORY_START, HOTBAR_SLOT_END, true) || !craftedStack.isEmpty()) {
                 return ItemStack.EMPTY;
@@ -433,21 +441,33 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private void handleResultTake(Player player, ItemStack craftedStack) {
         var activeRecipe = getActiveRecipe();
-        if (activeRecipe == null) {
+        if (activeRecipe != null) {
+            var matchedSlots = activeRecipe.findMatchingSlots(container);
+            if (matchedSlots == null) {
+                return;
+            }
+
+            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
+            consumeRecipeIngredients(player, activeRecipe, matchedSlots);
+
+            var resultTemplates = activeRecipe.getResultTemplates();
+            for (var index = 1; index < resultTemplates.size(); ++index) {
+                player.getInventory().placeItemBackInInventory(resultTemplates.get(index).copy());
+            }
+
+            playCraftSound();
+            setupResultSlot();
             return;
         }
 
-        var matchedSlots = activeRecipe.findMatchingSlots(container);
-        if (matchedSlots == null) {
+        var extraction = getActiveSpellExtraction();
+        if (extraction == null) {
             return;
         }
 
         craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
-        consumeRecipeIngredients(player, activeRecipe, matchedSlots);
-
-        var resultTemplates = activeRecipe.getResultTemplates();
-        for (var index = 1; index < resultTemplates.size(); ++index) {
-            player.getInventory().placeItemBackInInventory(resultTemplates.get(index).copy());
+        if (!removeSpellFromSpellGun(extraction.sourceSlotIndex())) {
+            return;
         }
 
         playCraftSound();
@@ -502,8 +522,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             selectedIconIndex.set(-1);
         }
 
-        var activeRecipe = getActiveRecipe();
-        var result = activeRecipe == null ? ItemStack.EMPTY : activeRecipe.getPrimaryResultTemplate();
+        var result = getActiveResult();
         if (!ItemStack.matches(result, resultContainer.getItem(0))) {
             resultContainer.setItem(0, result);
         }
@@ -523,6 +542,20 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             }
         }
         return null;
+    }
+
+    private @Nullable SpellExtraction getActiveSpellExtraction() {
+        return buildSpellExtraction();
+    }
+
+    private @NotNull ItemStack getActiveResult() {
+        var activeRecipe = getActiveRecipe();
+        if (activeRecipe != null) {
+            return activeRecipe.getPrimaryResultTemplate();
+        }
+
+        var extraction = getActiveSpellExtraction();
+        return extraction == null ? ItemStack.EMPTY : extraction.resultTemplate().copy();
     }
 
     private @Nullable RecipeSelection getSelectedSelection() {
@@ -569,6 +602,93 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
                 .toList();
     }
 
+    private @Nullable SpellExtraction buildSpellExtraction() {
+        var sourceSlotIndex = findSingleOccupiedInputSlot();
+        if (sourceSlotIndex < 0) {
+            return null;
+        }
+
+        var inputStack = container.getItem(sourceSlotIndex);
+        if (!(inputStack.getItem() instanceof AbstractSpellGunItem) || !ISpellContainer.isSpellContainer(inputStack)) {
+            return null;
+        }
+
+        var spellContainer = ISpellContainer.get(inputStack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return null;
+        }
+
+        var spellData = spellContainer.getSpellAtIndex(0);
+        if (spellData == SpellData.EMPTY || !spellData.canRemove()) {
+            return null;
+        }
+
+        var scrollStack = new ItemStack(ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(spellData.getSpell(), spellData.getLevel(), scrollStack);
+        return new SpellExtraction(sourceSlotIndex, scrollStack);
+    }
+
+    private int getBlockedSpellExtractionSourceSlot() {
+        var sourceSlotIndex = findSingleOccupiedInputSlot();
+        if (sourceSlotIndex < 0) {
+            return -1;
+        }
+
+        var inputStack = container.getItem(sourceSlotIndex);
+        if (!(inputStack.getItem() instanceof AbstractSpellGunItem) || !ISpellContainer.isSpellContainer(inputStack)) {
+            return -1;
+        }
+
+        var spellContainer = ISpellContainer.get(inputStack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return -1;
+        }
+
+        var spellData = spellContainer.getSpellAtIndex(0);
+        return spellData != SpellData.EMPTY && !spellData.canRemove() ? sourceSlotIndex : -1;
+    }
+
+    private int findSingleOccupiedInputSlot() {
+        var occupiedSlotIndex = -1;
+        for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
+            if (container.getItem(slotIndex).isEmpty()) {
+                continue;
+            }
+            if (occupiedSlotIndex >= 0) {
+                return -1;
+            }
+            occupiedSlotIndex = slotIndex;
+        }
+        return occupiedSlotIndex;
+    }
+
+    private boolean removeSpellFromSpellGun(int sourceSlotIndex) {
+        var inputStack = container.getItem(sourceSlotIndex);
+        if (!(inputStack.getItem() instanceof AbstractSpellGunItem) || !ISpellContainer.isSpellContainer(inputStack)) {
+            return false;
+        }
+
+        var spellContainer = ISpellContainer.get(inputStack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return false;
+        }
+
+        var spellData = spellContainer.getSpellAtIndex(0);
+        if (spellData == SpellData.EMPTY || !spellData.canRemove()) {
+            return false;
+        }
+
+        var mutable = spellContainer.mutableCopy();
+        if (!mutable.removeSpellAtIndex(0)) {
+            return false;
+        }
+
+        // 初期化済みの銃から spell_container を消すと既定呪文が再生成され得るため、空コンテナを保持する。
+        ISpellContainer.set(inputStack, mutable.toImmutable());
+        container.setChanged();
+        return true;
+    }
+
     private static @Nullable MutableRecipeSelection findSelection(List<MutableRecipeSelection> groupedSelections, ItemStack icon) {
         for (var selection : groupedSelections) {
             if (ItemStack.isSameItemSameTags(selection.icon(), icon)) {
@@ -591,6 +711,12 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     private record RecipeSelection(
             ItemStack icon,
             List<SpellcasterWorkbenchRecipe> recipes
+    ) {
+    }
+
+    private record SpellExtraction(
+            int sourceSlotIndex,
+            ItemStack resultTemplate
     ) {
     }
 
