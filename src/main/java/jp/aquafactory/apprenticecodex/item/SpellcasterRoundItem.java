@@ -8,10 +8,24 @@ import net.minecraft.world.item.TooltipFlag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class SpellcasterRoundItem extends Item {
+    @Nullable
+    private final Supplier<? extends Item> emptyCasingSupplier;
+
     public SpellcasterRoundItem() {
+        this(null);
+    }
+
+    public SpellcasterRoundItem(@Nullable Supplier<? extends Item> emptyCasingSupplier) {
         super(new Item.Properties());
+        this.emptyCasingSupplier = emptyCasingSupplier;
+    }
+
+    @Nullable
+    public Item getEmptyCasingItem() {
+        return emptyCasingSupplier == null ? null : emptyCasingSupplier.get();
     }
 
     @Override
