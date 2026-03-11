@@ -649,6 +649,17 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                     formatTooltipSeconds(overriddenCooldownTicks)
             ).withStyle(ChatFormatting.GRAY));
         }
+
+        var overriddenLongCastTicks = getOverriddenLongCastTicks();
+        if (overriddenLongCastTicks != null) {
+            var translationKey = overriddenLongCastTicks <= 0
+                    ? "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
+                    : "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_cast";
+            var tooltip = overriddenLongCastTicks <= 0
+                    ? Component.translatable(translationKey)
+                    : Component.translatable(translationKey, formatTooltipSeconds(overriddenLongCastTicks));
+            translatedLines.add(tooltip.withStyle(ChatFormatting.GRAY));
+        }
         return translatedLines;
     }
 
@@ -657,6 +668,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (spellGunConfig.supportedCastTypes().size() == 1 && spellGunConfig.supports(SpellGunCastType.INSTANT)) {
             translatedLines.add(Component.translatable(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_instant_only"
+            ).withStyle(ChatFormatting.GRAY));
+        }
+        if (spellGunConfig.supportedCastTypes().size() == 1 && spellGunConfig.supports(SpellGunCastType.LONG)) {
+            translatedLines.add(Component.translatable(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_long_allow_only"
             ).withStyle(ChatFormatting.GRAY));
         }
 

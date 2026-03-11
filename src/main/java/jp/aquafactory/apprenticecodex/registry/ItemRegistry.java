@@ -16,6 +16,8 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
+import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
+import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
 import net.minecraft.world.item.ArmorItem;
@@ -95,8 +97,12 @@ public final class ItemRegistry {
             ITEMS.register("explorers_codex", ExplorersCodex::new);
     public static final RegistryObject<Item> IRON_SPELLCASTER_GUN =
             ITEMS.register("iron_spellcaster_gun", IronSpellcasterGun::new);
+    public static final RegistryObject<Item> COPPER_SPELLCASTER_GUN =
+            ITEMS.register("copper_spellcaster_gun", CopperSpellcasterGun::new);
     public static final RegistryObject<Item> GOLD_SPELLCASTER_GUN =
             ITEMS.register("gold_spellcaster_gun", GoldSpellcasterGun::new);
+    public static final RegistryObject<Item> DIAMOND_SPELLCASTER_GUN =
+            ITEMS.register("diamond_spellcaster_gun", DiamondSpellcasterGun::new);
     public static final RegistryObject<Item> IRON_SPELL_AMPLIFIER =
             ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
     public static final RegistryObject<Item> COPPER_SPELL_AMPLIFIER =
