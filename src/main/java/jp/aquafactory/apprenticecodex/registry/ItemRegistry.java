@@ -59,6 +59,13 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> ARCANE_SPELLCASTER_ROUND =
             ITEMS.register("arcane_spellcaster_round", SpellcasterRoundItem::new);
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_SCARF =
+    public static final DeferredHolder<Item, Item> EMPTY_RAPID_SPELLCASTER_CASING =
+            ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);
+    public static final DeferredHolder<Item, Item> EMPTY_BASIC_SPELLCASTER_CASING =
+            ITEMS.register("empty_basic_spellcaster_casing", SpellcasterRoundItem::new);
+    public static final DeferredHolder<Item, Item> EMPTY_ARCANE_SPELLCASTER_CASING =
+            ITEMS.register("empty_arcane_spellcaster_casing", SpellcasterRoundItem::new);
+    public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_TORSO =
             armor("apprentice_mage_torso", ArmorItem.Type.CHESTPLATE);
