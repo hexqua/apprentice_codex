@@ -260,6 +260,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
 
         Advancement.Builder.advancement()
                 .parent(ironGun)
+                .display(ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_copper_spellcaster_gun", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.COPPER_SPELLCASTER_GUN.getId()))
+                .save(saver, advancementId("craft_copper_spellcaster_gun"), existingFileHelper);
+
+        var goldGun = Advancement.Builder.advancement()
+                .parent(ironGun)
                 .display(ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.description"),
@@ -270,5 +283,45 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_gold_spellcaster_gun", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.GOLD_SPELLCASTER_GUN.getId()))
                 .save(saver, advancementId("craft_gold_spellcaster_gun"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(goldGun)
+                .display(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_diamond_spellcaster_gun", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.DIAMOND_SPELLCASTER_GUN.getId()))
+                .save(saver, advancementId("craft_diamond_spellcaster_gun"), existingFileHelper);
+
+
+        var spellcaster = Advancement.Builder.advancement()
+                .parent(ironGun)
+                .display(ItemRegistry.SPELLCASTER_WORKBENCH.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_spellcaster_workbench", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLCASTER_WORKBENCH.getId()))
+                .save(saver, advancementId("craft_spellcaster_workbench"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(spellcaster)
+                .display(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("extract_spellcaster_gun_scroll", new ImpossibleTrigger.TriggerInstance())
+                .save(saver, advancementId("extract_spellcaster_gun_scroll"), existingFileHelper);
     }
 }

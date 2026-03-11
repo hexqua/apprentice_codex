@@ -290,6 +290,10 @@
   "advancements.apprenticecodex.apprentice_codex.craft_arcanum_in_a_jar.description": "Craft Arcanum in a Jar.",
   "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.title": "This Isn't That Kind of Smoke",
   "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.description": "Craft Essence Smoker.",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.title": "Immersion, or Crayfish",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.description": "Craft a Spellcaster Workbench.",
+  "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.title": "A Kind of Spellbook",
+  "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.description": "Use the Spellcaster Workbench to extract a scroll from a Spellcaster Gun.",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title": "Not Going on a Hunt?",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description": "Obtain Arcane Essence from Arcanum in a Jar.",
   "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title": "This Isn't a Solar Generator, You Know",
@@ -314,6 +318,10 @@
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description": "Craft an Explorer's Codex",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.title": "Sasuga, Onii-sama!",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description": "Craft an Iron Spellcaster Gun",
+  "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.title": "Like Lightning",
+  "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.description": "Craft a Copper Spellcaster Gun.",
   "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.title": "Not Exactly a One-Shot Kill",
-  "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.description": "Craft a Gold Spellcaster Gun"
+  "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.description": "Craft a Gold Spellcaster Gun",
+  "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.title": "The Price and the Reward",
+  "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description": "Craft a Diamond Spellcaster Gun"
 }

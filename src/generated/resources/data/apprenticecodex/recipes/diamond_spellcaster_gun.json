@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "tag": "minecraft:buttons"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "L": {
+      "item": "irons_spellbooks:cooldown_upgrade_orb"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "DML",
+    " DR",
+    " BD"
+  ],
+  "result": {
+    "item": "apprenticecodex:diamond_spellcaster_gun"
+  },
+  "show_notification": true
+}

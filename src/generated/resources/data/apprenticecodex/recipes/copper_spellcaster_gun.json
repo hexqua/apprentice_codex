@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "tag": "minecraft:buttons"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "L": {
+      "item": "irons_spellbooks:lightning_bottle"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "CML",
+    " CR",
+    " BC"
+  ],
+  "result": {
+    "item": "apprenticecodex:copper_spellcaster_gun"
+  },
+  "show_notification": true
+}
