@@ -18,6 +18,7 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
     @Override
     protected void generate() {
         dropSelf(BlockRegistry.APPRENTICE_DESK.get());
+        dropSelf(BlockRegistry.SPELLCASTER_WORKBENCH.get());
         dropSelf(BlockRegistry.ARCANUM_IN_A_JAR.get());
         dropSelf(BlockRegistry.ESSENCE_SMOKER.get());
     }
@@ -26,6 +27,7 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
     protected @NotNull Iterable<Block> getKnownBlocks() {
         return List.of(
                 BlockRegistry.APPRENTICE_DESK.get(),
+                BlockRegistry.SPELLCASTER_WORKBENCH.get(),
                 BlockRegistry.ARCANUM_IN_A_JAR.get(),
                 BlockRegistry.ESSENCE_SMOKER.get()
         );

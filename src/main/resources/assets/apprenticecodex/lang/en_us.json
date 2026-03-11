@@ -71,6 +71,7 @@
   "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
   "block.apprenticecodex.arcanum_in_a_jar" : "Arcanum in a Jar",
   "block.apprenticecodex.essence_smoker" : "Essence Smoker",
+  "block.apprenticecodex.spellcaster_workbench" : "Spellcaster Workbench",
 
   "block.apprenticecodex.arcanum_in_a_jar.fill": "Powder is dancing mysteriously inside.",
 
@@ -104,6 +105,7 @@
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
+  "container.apprenticecodex.spellcaster_workbench": "Spellcaster Workbench",
   "container.apprenticecodex.ender_grimoire_inscription": "Ender Grimoire",
 
   "spell.apprenticecodex.sky_edge": "Sky Edge",

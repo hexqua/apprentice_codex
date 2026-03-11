@@ -67,6 +67,8 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_BOOTS =
             armor("apprentice_mage_boots", ArmorItem.Type.BOOTS);
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
+    public static final DeferredHolder<Item, Item> SPELLCASTER_WORKBENCH =
+            block("spellcaster_workbench", BlockRegistry.SPELLCASTER_WORKBENCH);
     public static final DeferredHolder<Item, Item> ARCANUM_IN_A_JAR =
             ITEMS.register("arcanum_in_a_jar",
                     () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));
