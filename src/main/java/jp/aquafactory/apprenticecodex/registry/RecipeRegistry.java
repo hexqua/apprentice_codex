@@ -5,6 +5,8 @@ import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipeSerializer;
+import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
+import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeSerializer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -26,6 +28,8 @@ public final class RecipeRegistry {
             RECIPE_SERIALIZERS.register("grind_runner", GrindRunnerRecipeSerializer::new);
     public static final RegistryObject<RecipeSerializer<EssenceSmokerRecipe>> ESSENCE_SMOKER_SERIALIZER =
             RECIPE_SERIALIZERS.register("essence_smoker", EssenceSmokerRecipeSerializer::new);
+    public static final RegistryObject<RecipeSerializer<SpellcasterWorkbenchRecipe>> SPELLCASTER_WORKBENCH_SERIALIZER =
+            RECIPE_SERIALIZERS.register("spellcaster_workbench", SpellcasterWorkbenchRecipeSerializer::new);
 
     public static final RegistryObject<RecipeType<GrindRunnerRecipe>> GRIND_RUNNER_RECIPE_TYPE =
             RECIPE_TYPES.register("grind_runner", () -> new RecipeType<>() {
@@ -39,6 +43,13 @@ public final class RecipeRegistry {
                 @Override
                 public String toString() {
                     return ApprenticeCodex.MODID + ":essence_smoker";
+                }
+            });
+    public static final RegistryObject<RecipeType<SpellcasterWorkbenchRecipe>> SPELLCASTER_WORKBENCH_RECIPE_TYPE =
+            RECIPE_TYPES.register("spellcaster_workbench", () -> new RecipeType<>() {
+                @Override
+                public String toString() {
+                    return ApprenticeCodex.MODID + ":spellcaster_workbench";
                 }
             });
 

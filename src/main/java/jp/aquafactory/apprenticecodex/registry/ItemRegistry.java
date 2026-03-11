@@ -56,6 +56,12 @@ public final class ItemRegistry {
             ITEMS.register("basic_spellcaster_round", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> ARCANE_SPELLCASTER_ROUND =
             ITEMS.register("arcane_spellcaster_round", SpellcasterRoundItem::new);
+    public static final RegistryObject<Item> EMPTY_RAPID_SPELLCASTER_CASING =
+            ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);
+    public static final RegistryObject<Item> EMPTY_BASIC_SPELLCASTER_CASING =
+            ITEMS.register("empty_basic_spellcaster_casing", SpellcasterRoundItem::new);
+    public static final RegistryObject<Item> EMPTY_ARCANE_SPELLCASTER_CASING =
+            ITEMS.register("empty_arcane_spellcaster_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final RegistryObject<Item> APPRENTICE_MAGE_TORSO =
@@ -65,6 +71,8 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> APPRENTICE_MAGE_BOOTS =
             armor("apprentice_mage_boots", ArmorItem.Type.BOOTS);
     public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
+    public static final RegistryObject<Item> SPELLCASTER_WORKBENCH =
+            block("spellcaster_workbench", BlockRegistry.SPELLCASTER_WORKBENCH);
     public static final RegistryObject<Item> ARCANUM_IN_A_JAR =
             ITEMS.register("arcanum_in_a_jar",
                     () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));

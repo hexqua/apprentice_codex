@@ -4,6 +4,9 @@
   "item.apprenticecodex.rapid_spellcaster_round": "高速詠唱銃弾",
   "item.apprenticecodex.basic_spellcaster_round": "通常用詠唱銃弾",
   "item.apprenticecodex.arcane_spellcaster_round": "秘術の詠唱銃弾",
+  "item.apprenticecodex.empty_rapid_spellcaster_casing": "高速詠唱銃弾の空薬莢",
+  "item.apprenticecodex.empty_basic_spellcaster_casing": "通常用詠唱銃弾の空薬莢",
+  "item.apprenticecodex.empty_arcane_spellcaster_casing": "秘術の詠唱銃弾の空薬莢",
   "item.apprenticecodex.iron_spellcaster_gun": "鉄の魔術詠唱銃",
   "item.apprenticecodex.gold_spellcaster_gun": "金の魔術詠唱銃",
   "item.apprenticecodex.iron_spell_amplifier": "鉄の魔力増幅装置",
@@ -41,6 +44,9 @@
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
   "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",
   "item.apprenticecodex.arcane_spellcaster_round.desc": "やや複雑な即時詠唱魔法用の実包",
+  "item.apprenticecodex.empty_rapid_spellcaster_casing.desc": "使用済みの空薬莢、いくらか再利用ができそうだ",
+  "item.apprenticecodex.empty_basic_spellcaster_casing.desc": "使用済みの空薬莢、いくらか再利用ができそうだ",
+  "item.apprenticecodex.empty_arcane_spellcaster_casing.desc": "使用済みの空薬莢、いくらか再利用ができそうだ",
   "item.apprenticecodex.scarlet_thirst.desc": "マナ減少時、余っている体力をマナに変換する。",
   "item.apprenticecodex.craftsmans_delight.desc_1": "特定の作業魔法を強化し、マナ効率も上昇させる。",
   "item.apprenticecodex.craftsmans_delight.desc_2": "対象の魔法は以下:",
@@ -87,6 +93,7 @@
   "block.apprenticecodex.apprentice_desk" : "見習い用の机",
   "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの神秘",
   "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
+  "block.apprenticecodex.spellcaster_workbench" : "魔術師の作業台",
 
   "block.apprenticecodex.arcanum_in_a_jar.fill": "中で粉が神秘的に舞っている",
 
@@ -119,6 +126,7 @@
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
+  "container.apprenticecodex.spellcaster_workbench": "魔術師の作業台",
   "container.apprenticecodex.ender_grimoire_inscription": "エンダーグリモア",
 
   "spell.apprenticecodex.sky_edge": "スカイエッジ",
@@ -231,6 +239,8 @@
   "ui.apprenticecodex.need_ignite": "%1$sか%2$sで着火する必要がある！",
   "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
   "ui.apprenticecodex.missing_spell_gun_ammo": "弾切れだ！(弾:%1$s)",
+
+  "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",
