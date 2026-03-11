@@ -1,25 +1,43 @@
 package jp.aquafactory.apprenticecodex.block.spellcasterworkbench;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<SpellcasterWorkbenchMenu> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/spellcaster_workbench.png");
+    private static final int ICON_GRID_X = 121;
+    private static final int ICON_GRID_Y = 16;
+    private static final int ICON_COLUMNS = 2;
+    private static final int ICON_ROWS = 3;
+    private static final int ICON_WIDTH = 16;
+    private static final int ICON_HEIGHT = 18;
+    private static final int SCROLL_BAR_X = 156;
+    private static final int SCROLL_BAR_Y = 15;
+    private static final int SCROLL_BAR_WIDTH = 12;
+    private static final int SCROLL_BAR_HEIGHT = 15;
+    private static final int SCROLL_TRACK_HEIGHT = 54;
+
+    private float scrollOffset;
+    private boolean isScrolling;
+    private int startIndex;
 
     public SpellcasterWorkbenchScreen(SpellcasterWorkbenchMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
-        imageWidth = 200;
-        imageHeight = 220;
-        inventoryLabelX = 19;
-        inventoryLabelY = 126;
-        titleLabelX = 20;
-        titleLabelY = 8;
+        imageWidth = 176;
+        imageHeight = 166;
     }
 
     @Override
@@ -32,5 +50,144 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
     @Override
     protected void renderBg(@NotNull GuiGraphics gui, float partialTicks, int mouseX, int mouseY) {
         gui.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        gui.blit(
+                TEXTURE,
+                leftPos + SCROLL_BAR_X,
+                topPos + SCROLL_BAR_Y + (int) (41.0F * scrollOffset),
+                176 + (isScrollBarActive() ? 0 : 12),
+                0,
+                SCROLL_BAR_WIDTH,
+                SCROLL_BAR_HEIGHT
+        );
+        renderIconButtons(gui, mouseX, mouseY);
+        renderIconItems(gui);
+    }
+
+    @Override
+    protected void renderTooltip(@NotNull GuiGraphics gui, int mouseX, int mouseY) {
+        super.renderTooltip(gui, mouseX, mouseY);
+
+        var icons = getSelectableIcons();
+        var lastVisibleIconIndex = Math.min(startIndex + ICON_COLUMNS * ICON_ROWS, icons.size());
+        for (var index = startIndex; index < lastVisibleIconIndex; ++index) {
+            var visibleIndex = index - startIndex;
+            var iconX = leftPos + ICON_GRID_X + visibleIndex % ICON_COLUMNS * ICON_WIDTH;
+            var iconY = topPos + ICON_GRID_Y + visibleIndex / ICON_COLUMNS * ICON_HEIGHT;
+            if (mouseX >= iconX && mouseX < iconX + ICON_WIDTH && mouseY >= iconY && mouseY < iconY + ICON_WIDTH) {
+                gui.renderTooltip(font, icons.get(index), mouseX, mouseY);
+                return;
+            }
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        isScrolling = false;
+        if (minecraft == null || minecraft.player == null || minecraft.gameMode == null) {
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
+
+        var icons = getSelectableIcons();
+        var lastVisibleIconIndex = Math.min(startIndex + ICON_COLUMNS * ICON_ROWS, icons.size());
+        for (var index = startIndex; index < lastVisibleIconIndex; ++index) {
+            var visibleIndex = index - startIndex;
+            var buttonX = leftPos + ICON_GRID_X + visibleIndex % ICON_COLUMNS * ICON_WIDTH;
+            var buttonY = topPos + ICON_GRID_Y + visibleIndex / ICON_COLUMNS * ICON_HEIGHT;
+            if (mouseX >= buttonX && mouseX < buttonX + ICON_WIDTH
+                    && mouseY >= buttonY - 1 && mouseY < buttonY - 1 + ICON_HEIGHT
+                    && menu.clickMenuButton(minecraft.player, index)) {
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, index);
+                return true;
+            }
+        }
+
+        if (isScrollBarActive()
+                && mouseX >= leftPos + SCROLL_BAR_X
+                && mouseX < leftPos + SCROLL_BAR_X + SCROLL_BAR_WIDTH
+                && mouseY >= topPos + SCROLL_BAR_Y
+                && mouseY < topPos + SCROLL_BAR_Y + SCROLL_TRACK_HEIGHT) {
+            isScrolling = true;
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (!isScrolling || !isScrollBarActive()) {
+            return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        }
+
+        var scrollTop = topPos + SCROLL_BAR_Y;
+        var scrollBottom = scrollTop + SCROLL_TRACK_HEIGHT;
+        scrollOffset = ((float) mouseY - (float) scrollTop - 7.5F) / ((float) (scrollBottom - scrollTop) - (float) SCROLL_BAR_HEIGHT);
+        scrollOffset = Mth.clamp(scrollOffset, 0.0F, 1.0F);
+        startIndex = (int) ((double) (scrollOffset * (float) getOffscreenRows()) + 0.5D) * ICON_COLUMNS;
+        return true;
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        isScrolling = false;
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
+        if (!isScrollBarActive()) {
+            return super.mouseScrolled(mouseX, mouseY, scrollY);
+        }
+
+        var offscreenRows = getOffscreenRows();
+        scrollOffset = Mth.clamp(scrollOffset - (float) scrollY / (float) offscreenRows, 0.0F, 1.0F);
+        startIndex = (int) ((double) (scrollOffset * (float) offscreenRows) + 0.5D) * ICON_COLUMNS;
+        return true;
+    }
+
+    private void renderIconButtons(GuiGraphics gui, int mouseX, int mouseY) {
+        var icons = getSelectableIcons();
+        var lastVisibleIconIndex = Math.min(startIndex + ICON_COLUMNS * ICON_ROWS, icons.size());
+        for (var index = startIndex; index < lastVisibleIconIndex; ++index) {
+            var visibleIndex = index - startIndex;
+            var buttonX = leftPos + ICON_GRID_X + visibleIndex % ICON_COLUMNS * ICON_WIDTH;
+            var buttonY = topPos + ICON_GRID_Y + visibleIndex / ICON_COLUMNS * ICON_HEIGHT;
+            var textureY = imageHeight;
+            if (index == menu.getSelectedIconIndex()) {
+                textureY += 18;
+            } else if (mouseX >= buttonX && mouseX < buttonX + ICON_WIDTH
+                    && mouseY >= buttonY - 1 && mouseY < buttonY - 1 + ICON_HEIGHT) {
+                textureY += 36;
+            }
+
+            gui.blit(TEXTURE, buttonX, buttonY - 1, 0, textureY, ICON_WIDTH, ICON_HEIGHT);
+        }
+    }
+
+    private void renderIconItems(GuiGraphics gui) {
+        var icons = getSelectableIcons();
+        var lastVisibleIconIndex = Math.min(startIndex + ICON_COLUMNS * ICON_ROWS, icons.size());
+        for (var index = startIndex; index < lastVisibleIconIndex; ++index) {
+            var visibleIndex = index - startIndex;
+            var iconX = leftPos + ICON_GRID_X + visibleIndex % ICON_COLUMNS * ICON_WIDTH;
+            var iconY = topPos + ICON_GRID_Y + visibleIndex / ICON_COLUMNS * ICON_HEIGHT;
+            gui.renderItem(icons.get(index), iconX, iconY);
+        }
+    }
+
+    private boolean isScrollBarActive() {
+        return getSelectableIcons().size() > ICON_COLUMNS * ICON_ROWS;
+    }
+
+    private int getOffscreenRows() {
+        return Math.max((getSelectableIcons().size() + ICON_COLUMNS - 1) / ICON_COLUMNS - ICON_ROWS, 0);
+    }
+
+    private List<ItemStack> getSelectableIcons() {
+        return List.of(
+                new ItemStack(ItemRegistry.RAPID_SPELLCASTER_ROUND.get()),
+                new ItemStack(ItemRegistry.BASIC_SPELLCASTER_ROUND.get()),
+                new ItemStack(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get())
+        );
     }
 }
