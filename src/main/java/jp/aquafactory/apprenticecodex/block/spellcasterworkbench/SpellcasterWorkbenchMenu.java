@@ -1,8 +1,11 @@
 package jp.aquafactory.apprenticecodex.block.spellcasterworkbench;
 
+import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -13,17 +16,27 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     public static final int INPUT_SLOT_COUNT = 3;
     public static final int RESULT_SLOT = INPUT_SLOT_COUNT;
+
     private static final int PLAYER_INVENTORY_START = RESULT_SLOT + 1;
     private static final int PLAYER_INVENTORY_SLOT_COUNT = 27;
     private static final int HOTBAR_SLOT_COUNT = 9;
     private static final int PLAYER_INVENTORY_END = PLAYER_INVENTORY_START + PLAYER_INVENTORY_SLOT_COUNT;
     private static final int HOTBAR_SLOT_START = PLAYER_INVENTORY_END;
     private static final int HOTBAR_SLOT_END = HOTBAR_SLOT_START + HOTBAR_SLOT_COUNT;
+    private static final int SHIFT_FILL_FLAG = 1 << 30;
+
     private static final int[] INPUT_SLOT_X = {20, 40, 20};
     private static final int[] INPUT_SLOT_Y = {23, 33, 43};
     private static final int RESULT_SLOT_X = 81;
@@ -31,8 +44,8 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     private static final int PLAYER_INVENTORY_X = 8;
     private static final int PLAYER_INVENTORY_Y = 84;
     private static final int HOTBAR_Y = 142;
-    private static final int SELECTABLE_ICON_COUNT = 3;
 
+    private final Inventory playerInventory;
     private final ContainerLevelAccess access;
     private final DataSlot selectedIconIndex = DataSlot.standalone();
     private final Container container = new SimpleContainer(INPUT_SLOT_COUNT) {
@@ -44,12 +57,17 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     };
     private final ResultContainer resultContainer = new ResultContainer();
 
+    private RecipeManager cachedRecipeManager;
+    private List<RecipeSelection> selectableRecipeGroups = List.of();
+    private long lastCraftSoundTime;
+
     public SpellcasterWorkbenchMenu(int containerId, Inventory inventory) {
         this(containerId, inventory, ContainerLevelAccess.NULL);
     }
 
     public SpellcasterWorkbenchMenu(int containerId, Inventory inventory, ContainerLevelAccess access) {
         super(MenuRegistry.SPELLCASTER_WORKBENCH.get(), containerId);
+        this.playerInventory = inventory;
         this.access = access;
 
         for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
@@ -63,7 +81,13 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
             @Override
             public boolean mayPickup(@NotNull Player player) {
-                return false;
+                return SpellcasterWorkbenchMenu.this.getActiveRecipe() != null;
+            }
+
+            @Override
+            public void onTake(@NotNull Player player, @NotNull ItemStack stack) {
+                SpellcasterWorkbenchMenu.this.handleResultTake(player, stack.copy());
+                super.onTake(player, stack);
             }
         });
 
@@ -81,17 +105,34 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         selectedIconIndex.set(-1);
     }
 
+    public static int encodeRecipeButtonId(int iconIndex, boolean shiftDown) {
+        return shiftDown ? iconIndex | SHIFT_FILL_FLAG : iconIndex;
+    }
+
+    public @NotNull List<ItemStack> getSelectableIcons() {
+        return getSelectableRecipeGroups().stream()
+                .map(RecipeSelection::icon)
+                .map(ItemStack::copy)
+                .toList();
+    }
+
     public int getSelectedIconIndex() {
         return selectedIconIndex.get();
     }
 
     @Override
     public boolean clickMenuButton(@NotNull Player player, int buttonId) {
-        if (!isValidIconIndex(buttonId)) {
+        var iconIndex = buttonId & ~SHIFT_FILL_FLAG;
+        var fillAll = (buttonId & SHIFT_FILL_FLAG) != 0;
+        if (!isValidIconIndex(iconIndex)) {
             return false;
         }
 
-        selectedIconIndex.set(buttonId);
+        if (!player.level().isClientSide) {
+            handleRecipeSelection(player, iconIndex, fillAll);
+        } else {
+            selectedIconIndex.set(iconIndex);
+        }
         setupResultSlot();
         return true;
     }
@@ -128,12 +169,24 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return ItemStack.EMPTY;
         }
 
-        var stack = slot.getItem();
-        var copy = stack.copy();
         if (slotIndex == RESULT_SLOT) {
-            return ItemStack.EMPTY;
+            var activeRecipe = getActiveRecipe();
+            if (activeRecipe == null) {
+                return ItemStack.EMPTY;
+            }
+
+            var craftedStack = activeRecipe.getPrimaryResultTemplate();
+            var craftedCopy = craftedStack.copy();
+            if (!moveItemStackTo(craftedStack, PLAYER_INVENTORY_START, HOTBAR_SLOT_END, true) || !craftedStack.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+
+            handleResultTake(player, craftedCopy);
+            return craftedCopy;
         }
 
+        var stack = slot.getItem();
+        var copy = stack.copy();
         if (slotIndex < PLAYER_INVENTORY_START) {
             if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_SLOT_END, false)) {
                 return ItemStack.EMPTY;
@@ -165,24 +218,433 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         access.execute((level, pos) -> clearContainer(player, container));
     }
 
-    private boolean isValidIconIndex(int index) {
-        return index >= 0 && index < SELECTABLE_ICON_COUNT;
+    private void handleRecipeSelection(Player player, int iconIndex, boolean fillAll) {
+        var previousActiveRecipe = getActiveRecipe();
+        var selection = getSelectableRecipeGroups().get(iconIndex);
+        var appendToExisting = previousActiveRecipe != null
+                && ItemStack.isSameItemSameTags(previousActiveRecipe.getPrimaryResultTemplate(), selection.icon());
+
+        selectedIconIndex.set(iconIndex);
+        if (appendToExisting) {
+            var targetSlots = previousActiveRecipe.findMatchingSlots(container);
+            if (targetSlots != null) {
+                moveRecipeBatchesToInput(previousActiveRecipe, targetSlots, fillAll);
+            }
+            return;
+        }
+
+        returnAllInputs(player);
+        for (var recipe : selection.recipes()) {
+            var targetSlots = new int[]{0, 1, 2};
+            if (!tryMoveRecipeBatchToInput(recipe, targetSlots)) {
+                continue;
+            }
+
+            if (fillAll) {
+                while (tryMoveRecipeBatchToInput(recipe, targetSlots)) {
+                    // シフト時は同一レシピで積めるだけ材料を集める。
+                }
+            }
+            return;
+        }
+    }
+
+    private void moveRecipeBatchesToInput(SpellcasterWorkbenchRecipe recipe, int[] targetSlots, boolean fillAll) {
+        if (!tryMoveRecipeBatchToInput(recipe, targetSlots)) {
+            return;
+        }
+
+        if (!fillAll) {
+            return;
+        }
+
+        while (tryMoveRecipeBatchToInput(recipe, targetSlots)) {
+            // シフト時は現在成立しているレシピを崩さずに追加入力する。
+        }
+    }
+
+    private boolean tryMoveRecipeBatchToInput(SpellcasterWorkbenchRecipe recipe, int[] targetSlots) {
+        var transferPlan = planRecipeBatchTransfer(recipe, targetSlots);
+        if (transferPlan == null) {
+            return false;
+        }
+
+        applyTransferPlan(transferPlan);
+        return true;
+    }
+
+    private @Nullable List<PlannedTransfer> planRecipeBatchTransfer(SpellcasterWorkbenchRecipe recipe, int[] targetSlots) {
+        var ingredients = recipe.getSizedIngredients();
+        if (targetSlots.length != ingredients.size()) {
+            return null;
+        }
+
+        var sources = collectInventorySources();
+        var transfers = new ArrayList<PlannedTransfer>();
+        if (!planIngredientTransfers(ingredients, targetSlots, 0, sources, transfers)) {
+            return null;
+        }
+        return List.copyOf(transfers);
+    }
+
+    private boolean planIngredientTransfers(
+            List<SpellcasterWorkbenchRecipe.SizedIngredient> ingredients,
+            int[] targetSlots,
+            int ingredientIndex,
+            List<InventorySourceState> sources,
+            List<PlannedTransfer> transfers
+    ) {
+        if (ingredientIndex >= ingredients.size()) {
+            return true;
+        }
+
+        var ingredient = ingredients.get(ingredientIndex);
+        var targetSlotIndex = targetSlots[ingredientIndex];
+        var targetStack = container.getItem(targetSlotIndex);
+        if (!targetStack.isEmpty() && !ingredient.test(targetStack)) {
+            return false;
+        }
+
+        var prototypeCandidates = collectPrototypeCandidates(ingredient, targetStack, sources);
+        for (var prototypeCandidate : prototypeCandidates) {
+            var compatibleSources = new ArrayList<InventorySourceState>();
+            var availableCount = 0;
+            for (var source : sources) {
+                if (source.remainingCount() <= 0
+                        || !ingredient.ingredient().test(source.stack())
+                        || !canStacksMerge(prototypeCandidate.stack(), source.stack())) {
+                    continue;
+                }
+
+                compatibleSources.add(source);
+                availableCount += source.remainingCount();
+            }
+
+            var maxAcceptableCount = targetStack.isEmpty()
+                    ? prototypeCandidate.stack().getMaxStackSize()
+                    : targetStack.getMaxStackSize() - targetStack.getCount();
+            if (availableCount < ingredient.count() || maxAcceptableCount < ingredient.count()) {
+                continue;
+            }
+
+            var snapshot = new ArrayList<ReservedTransfer>();
+            var remainingNeed = ingredient.count();
+            for (var source : compatibleSources) {
+                if (remainingNeed <= 0) {
+                    break;
+                }
+
+                var movedCount = Math.min(source.remainingCount(), remainingNeed);
+                if (movedCount <= 0) {
+                    continue;
+                }
+
+                source.remove(movedCount);
+                snapshot.add(new ReservedTransfer(source, movedCount));
+                transfers.add(new PlannedTransfer(source.menuSlotIndex(), targetSlotIndex, movedCount));
+                remainingNeed -= movedCount;
+            }
+
+            if (remainingNeed <= 0
+                    && planIngredientTransfers(ingredients, targetSlots, ingredientIndex + 1, sources, transfers)) {
+                return true;
+            }
+
+            rollbackReservedTransfers(snapshot, transfers);
+        }
+
+        return false;
+    }
+
+    private @NotNull List<InventorySourceState> collectPrototypeCandidates(
+            SpellcasterWorkbenchRecipe.SizedIngredient ingredient,
+            ItemStack targetStack,
+            List<InventorySourceState> sources
+    ) {
+        var candidates = new ArrayList<InventorySourceState>();
+        for (var source : sources) {
+            if (source.remainingCount() <= 0 || !ingredient.ingredient().test(source.stack())) {
+                continue;
+            }
+            if (!targetStack.isEmpty() && !canStacksMerge(targetStack, source.stack())) {
+                continue;
+            }
+
+            var alreadyAdded = false;
+            for (var candidate : candidates) {
+                if (canStacksMerge(candidate.stack(), source.stack())) {
+                    alreadyAdded = true;
+                    break;
+                }
+            }
+            if (!alreadyAdded) {
+                candidates.add(source);
+            }
+        }
+        return candidates;
+    }
+
+    private void rollbackReservedTransfers(List<ReservedTransfer> snapshot, List<PlannedTransfer> transfers) {
+        for (var reservedTransfer : snapshot) {
+            reservedTransfer.source().restore(reservedTransfer.count());
+            transfers.remove(transfers.size() - 1);
+        }
+    }
+
+    private @NotNull List<InventorySourceState> collectInventorySources() {
+        var sources = new ArrayList<InventorySourceState>();
+        for (var slotIndex = PLAYER_INVENTORY_START; slotIndex < HOTBAR_SLOT_END; ++slotIndex) {
+            var stack = slots.get(slotIndex).getItem();
+            if (!stack.isEmpty()) {
+                sources.add(new InventorySourceState(slotIndex, stack.copy(), stack.getCount()));
+            }
+        }
+        return sources;
+    }
+
+    private void applyTransferPlan(List<PlannedTransfer> transferPlan) {
+        for (var transfer : transferPlan) {
+            var sourceSlot = slots.get(transfer.sourceSlotIndex());
+            var movedStack = sourceSlot.remove(transfer.count());
+            if (movedStack.isEmpty()) {
+                continue;
+            }
+
+            var targetStack = container.getItem(transfer.targetSlotIndex());
+            if (targetStack.isEmpty()) {
+                container.setItem(transfer.targetSlotIndex(), movedStack);
+            } else {
+                targetStack.grow(movedStack.getCount());
+                container.setChanged();
+            }
+            sourceSlot.setChanged();
+        }
+    }
+
+    private void returnAllInputs(Player player) {
+        for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
+            var stack = container.removeItemNoUpdate(slotIndex);
+            if (!stack.isEmpty()) {
+                player.getInventory().placeItemBackInInventory(stack);
+            }
+        }
+        container.setChanged();
+    }
+
+    private void handleResultTake(Player player, ItemStack craftedStack) {
+        var activeRecipe = getActiveRecipe();
+        if (activeRecipe == null) {
+            return;
+        }
+
+        var matchedSlots = activeRecipe.findMatchingSlots(container);
+        if (matchedSlots == null) {
+            return;
+        }
+
+        craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
+        consumeRecipeIngredients(player, activeRecipe, matchedSlots);
+
+        var resultTemplates = activeRecipe.getResultTemplates();
+        for (var index = 1; index < resultTemplates.size(); ++index) {
+            player.getInventory().placeItemBackInInventory(resultTemplates.get(index).copy());
+        }
+
+        playCraftSound();
+        setupResultSlot();
+    }
+
+    private void consumeRecipeIngredients(Player player, SpellcasterWorkbenchRecipe recipe, int[] matchedSlots) {
+        var remainderStacks = new ArrayList<ItemStack>();
+        var ingredients = recipe.getSizedIngredients();
+        for (var ingredientIndex = 0; ingredientIndex < ingredients.size(); ++ingredientIndex) {
+            var slotIndex = matchedSlots[ingredientIndex];
+            var inputStack = container.getItem(slotIndex);
+            if (inputStack.isEmpty()) {
+                continue;
+            }
+
+            var consumeCount = ingredients.get(ingredientIndex).count();
+            if (inputStack.hasCraftingRemainingItem()) {
+                for (var count = 0; count < consumeCount; ++count) {
+                    remainderStacks.add(inputStack.getCraftingRemainingItem().copy());
+                }
+            }
+
+            inputStack.shrink(consumeCount);
+            if (inputStack.isEmpty()) {
+                container.setItem(slotIndex, ItemStack.EMPTY);
+            }
+        }
+
+        container.setChanged();
+        for (var remainderStack : remainderStacks) {
+            if (!remainderStack.isEmpty()) {
+                player.getInventory().placeItemBackInInventory(remainderStack);
+            }
+        }
+    }
+
+    private void playCraftSound() {
+        access.execute((level, pos) -> {
+            var gameTime = level.getGameTime();
+            if (lastCraftSoundTime == gameTime) {
+                return;
+            }
+
+            level.playSound(null, pos, SoundEvents.SMITHING_TABLE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            lastCraftSoundTime = gameTime;
+        });
     }
 
     private void setupResultSlot() {
-        var result = createPreviewStack(selectedIconIndex.get());
+        if (!isValidIconIndex(selectedIconIndex.get())) {
+            selectedIconIndex.set(-1);
+        }
+
+        var activeRecipe = getActiveRecipe();
+        var result = activeRecipe == null ? ItemStack.EMPTY : activeRecipe.getPrimaryResultTemplate();
         if (!ItemStack.matches(result, resultContainer.getItem(0))) {
             resultContainer.setItem(0, result);
         }
         broadcastChanges();
     }
 
-    private ItemStack createPreviewStack(int index) {
-        return switch (index) {
-            case 0 -> new ItemStack(ItemRegistry.RAPID_SPELLCASTER_ROUND.get());
-            case 1 -> new ItemStack(ItemRegistry.BASIC_SPELLCASTER_ROUND.get());
-            case 2 -> new ItemStack(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get());
-            default -> ItemStack.EMPTY;
-        };
+    private @Nullable SpellcasterWorkbenchRecipe getActiveRecipe() {
+        var selection = getSelectedSelection();
+        if (selection == null) {
+            return null;
+        }
+
+        var level = playerInventory.player.level();
+        for (var recipe : selection.recipes()) {
+            if (recipe.matches(container, level)) {
+                return recipe;
+            }
+        }
+        return null;
+    }
+
+    private @Nullable RecipeSelection getSelectedSelection() {
+        if (!isValidIconIndex(selectedIconIndex.get())) {
+            return null;
+        }
+        return getSelectableRecipeGroups().get(selectedIconIndex.get());
+    }
+
+    private boolean isValidIconIndex(int index) {
+        return index >= 0 && index < getSelectableRecipeGroups().size();
+    }
+
+    private @NotNull List<RecipeSelection> getSelectableRecipeGroups() {
+        var level = playerInventory.player.level();
+        var recipeManager = level.getRecipeManager();
+        if (cachedRecipeManager != recipeManager) {
+            cachedRecipeManager = recipeManager;
+            selectableRecipeGroups = buildSelectableRecipeGroups(recipeManager);
+        }
+        return selectableRecipeGroups;
+    }
+
+    private static @NotNull List<RecipeSelection> buildSelectableRecipeGroups(RecipeManager recipeManager) {
+        var sortedRecipes = new ArrayList<>(recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()));
+        sortedRecipes.sort(Comparator
+                .comparingInt(SpellcasterWorkbenchRecipe::getPriority)
+                .thenComparing(recipe -> itemKey(recipe.getPrimaryResultTemplate()))
+                .thenComparing(recipe -> recipe.getId().toString()));
+
+        var groupedSelections = new ArrayList<MutableRecipeSelection>();
+        for (var recipe : sortedRecipes) {
+            var icon = recipe.getPrimaryResultTemplate();
+            var existingSelection = findSelection(groupedSelections, icon);
+            if (existingSelection == null) {
+                existingSelection = new MutableRecipeSelection(icon.copy());
+                groupedSelections.add(existingSelection);
+            }
+            existingSelection.recipes().add(recipe);
+        }
+
+        return groupedSelections.stream()
+                .map(selection -> new RecipeSelection(selection.icon(), List.copyOf(selection.recipes())))
+                .toList();
+    }
+
+    private static @Nullable MutableRecipeSelection findSelection(List<MutableRecipeSelection> groupedSelections, ItemStack icon) {
+        for (var selection : groupedSelections) {
+            if (ItemStack.isSameItemSameTags(selection.icon(), icon)) {
+                return selection;
+            }
+        }
+        return null;
+    }
+
+    private static boolean canStacksMerge(ItemStack first, ItemStack second) {
+        return ItemStack.isSameItemSameTags(first, second);
+    }
+
+    private static String itemKey(ItemStack stack) {
+        var itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        var tagKey = stack.hasTag() ? stack.getTag().toString() : "";
+        return (itemId == null ? "unknown" : itemId.toString()) + tagKey;
+    }
+
+    private record RecipeSelection(
+            ItemStack icon,
+            List<SpellcasterWorkbenchRecipe> recipes
+    ) {
+    }
+
+    private record MutableRecipeSelection(
+            ItemStack icon,
+            List<SpellcasterWorkbenchRecipe> recipes
+    ) {
+        private MutableRecipeSelection(ItemStack icon) {
+            this(icon, new ArrayList<>());
+        }
+    }
+
+    private static final class InventorySourceState {
+        private final int menuSlotIndex;
+        private final ItemStack stack;
+        private int remainingCount;
+
+        private InventorySourceState(int menuSlotIndex, ItemStack stack, int remainingCount) {
+            this.menuSlotIndex = menuSlotIndex;
+            this.stack = stack;
+            this.remainingCount = remainingCount;
+        }
+
+        private int menuSlotIndex() {
+            return menuSlotIndex;
+        }
+
+        private ItemStack stack() {
+            return stack;
+        }
+
+        private int remainingCount() {
+            return remainingCount;
+        }
+
+        private void remove(int count) {
+            remainingCount -= count;
+        }
+
+        private void restore(int count) {
+            remainingCount += count;
+        }
+    }
+
+    private record PlannedTransfer(
+            int sourceSlotIndex,
+            int targetSlotIndex,
+            int count
+    ) {
+    }
+
+    private record ReservedTransfer(
+            InventorySourceState source,
+            int count
+    ) {
     }
 }

@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.spellcasterworkbench;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -94,10 +93,12 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
             var buttonX = leftPos + ICON_GRID_X + visibleIndex % ICON_COLUMNS * ICON_WIDTH;
             var buttonY = topPos + ICON_GRID_Y + visibleIndex / ICON_COLUMNS * ICON_HEIGHT;
             if (mouseX >= buttonX && mouseX < buttonX + ICON_WIDTH
-                    && mouseY >= buttonY - 1 && mouseY < buttonY - 1 + ICON_HEIGHT
-                    && menu.clickMenuButton(minecraft.player, index)) {
+                    && mouseY >= buttonY - 1 && mouseY < buttonY - 1 + ICON_HEIGHT) {
                 minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
-                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, index);
+                minecraft.gameMode.handleInventoryButtonClick(
+                        menu.containerId,
+                        SpellcasterWorkbenchMenu.encodeRecipeButtonId(index, hasShiftDown())
+                );
                 return true;
             }
         }
@@ -153,9 +154,7 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
             var buttonX = leftPos + ICON_GRID_X + visibleIndex % ICON_COLUMNS * ICON_WIDTH;
             var buttonY = topPos + ICON_GRID_Y + visibleIndex / ICON_COLUMNS * ICON_HEIGHT;
             var textureY = imageHeight;
-            if (index == menu.getSelectedIconIndex()) {
-                textureY += 18;
-            } else if (mouseX >= buttonX && mouseX < buttonX + ICON_WIDTH
+            if (mouseX >= buttonX && mouseX < buttonX + ICON_WIDTH
                     && mouseY >= buttonY - 1 && mouseY < buttonY - 1 + ICON_HEIGHT) {
                 textureY += 36;
             }
@@ -184,10 +183,6 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
     }
 
     private List<ItemStack> getSelectableIcons() {
-        return List.of(
-                new ItemStack(ItemRegistry.RAPID_SPELLCASTER_ROUND.get()),
-                new ItemStack(ItemRegistry.BASIC_SPELLCASTER_ROUND.get()),
-                new ItemStack(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get())
-        );
+        return menu.getSelectableIcons();
     }
 }

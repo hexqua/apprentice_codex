@@ -26,6 +26,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new RecipeGenerator(output));
         generator.addProvider(event.includeServer(), new GrindRunnerRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new EssenceSmokerRecipeDataGenerator(output));
+        generator.addProvider(event.includeServer(), new SpellcasterWorkbenchRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new LootTableGenerator(output));
         generator.addProvider(event.includeServer(), new SenseEvilHighlightDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
