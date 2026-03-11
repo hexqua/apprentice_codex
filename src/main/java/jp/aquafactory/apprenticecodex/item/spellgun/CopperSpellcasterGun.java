@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.spellgun;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -16,13 +17,14 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
+import java.util.List;
 
 public class CopperSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.LONG),
             20 * 10,
             true,
-            10,
+            20,
             0
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -52,7 +54,27 @@ public class CopperSpellcasterGun extends AbstractSpellGunItem implements GeoIte
 
     @Override
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
-        return ItemRegistry.RAPID_SPELLCASTER_ROUND.get();
+        if (spellData == null) {
+            return ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
+        }
+
+        return spellData.getRarity().compareRarity(SpellRarity.EPIC) > 0
+                ? ItemRegistry.ARCANE_SPELLCASTER_ROUND.get()
+                : ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
+    }
+
+    @Override
+    protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
+        return List.of(
+                new AmmoTooltipEntry(
+                        ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
+                        "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare"
+                ),
+                new AmmoTooltipEntry(
+                        ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
+                        "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic"
+                )
+        );
     }
     
     @Override

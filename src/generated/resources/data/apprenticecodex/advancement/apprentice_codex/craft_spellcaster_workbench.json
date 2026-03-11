@@ -1,0 +1,32 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_iron_spellcaster_gun",
+  "criteria": {
+    "crafted_spellcaster_workbench": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:spellcaster_workbench"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:spellcaster_workbench"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_spellcaster_workbench"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -10,8 +10,10 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -470,6 +472,12 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
         if (!removeSpellFromSpellGun(extraction.sourceSlotIndex())) {
             return;
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            AdvancementTools.award(serverPlayer,
+                    AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL,
+                    AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL_CRITERION);
         }
 
         playCraftSound();
