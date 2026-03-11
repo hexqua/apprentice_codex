@@ -137,8 +137,10 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
         }
 
         var json = new JsonObject();
-        json.addProperty("item", itemId.toString());
-        json.addProperty("count", Math.max(1, count));
+        json.addProperty("id", itemId.toString());
+        if (count != 1) {
+            json.addProperty("count", Math.max(1, count));
+        }
         return json;
     }
 
