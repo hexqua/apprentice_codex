@@ -7,10 +7,10 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
     private final PackOutput.PathProvider pathProvider;
 
     public SpellcasterWorkbenchRecipeDataGenerator(PackOutput output) {
-        this.pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "recipes/spellcaster_workbench");
+        this.pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "recipe/spellcaster_workbench");
     }
 
     @Override
@@ -131,7 +131,7 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
     }
 
     private static JsonObject serializeResult(ItemLike item, int count) {
-        var itemId = ForgeRegistries.ITEMS.getKey(item.asItem());
+        var itemId = BuiltInRegistries.ITEM.getKey(item.asItem());
         if (itemId == null) {
             throw new IllegalStateException("Unregistered item in SpellcasterWorkbench datagen result: " + item.asItem());
         }
@@ -160,7 +160,7 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
     }
 
     private static JsonObject itemId(ItemLike item) {
-        var itemId = ForgeRegistries.ITEMS.getKey(item.asItem());
+        var itemId = BuiltInRegistries.ITEM.getKey(item.asItem());
         if (itemId == null) {
             throw new IllegalStateException("Unregistered ingredient item in SpellcasterWorkbench datagen: " + item.asItem());
         }

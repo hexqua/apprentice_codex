@@ -30,7 +30,7 @@ public final class BlockRegistry {
             BLOCKS.register("spellcaster_workbench", SpellcasterWorkbench::new);
 
     public static final DeferredHolder<Block, Block> ARCANUM_IN_A_JAR =
-            BLOCKS.register("arcanum_in_a_jar", ArcanumInAJar::new);
+            BLOCKS.register("arcanum_in_a_jar", () -> new ArcanumInAJar());
 
     public static final DeferredHolder<Block, Block> ESSENCE_SMOKER =
             BLOCKS.register("essence_smoker", () -> new EssenceSmoker());

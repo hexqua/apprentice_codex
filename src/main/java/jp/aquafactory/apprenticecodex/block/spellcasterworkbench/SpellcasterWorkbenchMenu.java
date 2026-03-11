@@ -5,9 +5,11 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
+import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -20,8 +22,8 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -230,11 +232,11 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         var previousActiveRecipe = getActiveRecipe();
         var selection = getSelectableRecipeGroups().get(iconIndex);
         var appendToExisting = previousActiveRecipe != null
-                && ItemStack.isSameItemSameTags(previousActiveRecipe.getPrimaryResultTemplate(), selection.icon());
+                && ItemStack.isSameItemSameComponents(previousActiveRecipe.getPrimaryResultTemplate(), selection.icon());
 
         selectedIconIndex.set(iconIndex);
         if (appendToExisting) {
-            var targetSlots = previousActiveRecipe.findMatchingSlots(container);
+            var targetSlots = previousActiveRecipe.findMatchingSlots(createRecipeInput());
             if (targetSlots != null) {
                 moveRecipeBatchesToInput(previousActiveRecipe, targetSlots, fillAll);
             }
@@ -442,7 +444,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     private void handleResultTake(Player player, ItemStack craftedStack) {
         var activeRecipe = getActiveRecipe();
         if (activeRecipe != null) {
-            var matchedSlots = activeRecipe.findMatchingSlots(container);
+            var matchedSlots = activeRecipe.findMatchingSlots(createRecipeInput());
             if (matchedSlots == null) {
                 return;
             }
@@ -536,8 +538,9 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         var level = playerInventory.player.level();
+        var recipeInput = createRecipeInput();
         for (var recipe : selection.recipes()) {
-            if (recipe.matches(container, level)) {
+            if (recipe.matches(recipeInput, level)) {
                 return recipe;
             }
         }
@@ -580,11 +583,13 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     }
 
     private static @NotNull List<RecipeSelection> buildSelectableRecipeGroups(RecipeManager recipeManager) {
-        var sortedRecipes = new ArrayList<>(recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()));
-        sortedRecipes.sort(Comparator
-                .comparingInt(SpellcasterWorkbenchRecipe::getPriority)
-                .thenComparing(recipe -> itemKey(recipe.getPrimaryResultTemplate()))
-                .thenComparing(recipe -> recipe.getId().toString()));
+        var sortedRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
+                .sorted(Comparator
+                        .comparingInt((RecipeHolder<SpellcasterWorkbenchRecipe> holder) -> holder.value().getPriority())
+                        .thenComparing(holder -> itemKey(holder.value().getPrimaryResultTemplate()))
+                        .thenComparing(holder -> holder.id().toString()))
+                .map(RecipeHolder::value)
+                .toList();
 
         var groupedSelections = new ArrayList<MutableRecipeSelection>();
         for (var recipe : sortedRecipes) {
@@ -691,7 +696,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private static @Nullable MutableRecipeSelection findSelection(List<MutableRecipeSelection> groupedSelections, ItemStack icon) {
         for (var selection : groupedSelections) {
-            if (ItemStack.isSameItemSameTags(selection.icon(), icon)) {
+            if (ItemStack.isSameItemSameComponents(selection.icon(), icon)) {
                 return selection;
             }
         }
@@ -699,13 +704,20 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     }
 
     private static boolean canStacksMerge(ItemStack first, ItemStack second) {
-        return ItemStack.isSameItemSameTags(first, second);
+        return ItemStack.isSameItemSameComponents(first, second);
     }
 
     private static String itemKey(ItemStack stack) {
-        var itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        var tagKey = stack.hasTag() ? stack.getTag().toString() : "";
-        return (itemId == null ? "unknown" : itemId.toString()) + tagKey;
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return itemId == null ? "unknown" : itemId.toString();
+    }
+
+    private SpellcasterWorkbenchRecipeInput createRecipeInput() {
+        return new SpellcasterWorkbenchRecipeInput(
+                container.getItem(0),
+                container.getItem(1),
+                container.getItem(2)
+        );
     }
 
     private record RecipeSelection(

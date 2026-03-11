@@ -49,7 +49,7 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
 
     @Override
     public void render(@NotNull GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(gui);
+        renderBackground(gui, mouseX, mouseY, partialTicks);
         super.render(gui, mouseX, mouseY, partialTicks);
         renderTooltip(gui, mouseX, mouseY);
     }
@@ -148,9 +148,9 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (!isScrollBarActive()) {
-            return super.mouseScrolled(mouseX, mouseY, scrollY);
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
 
         var offscreenRows = getOffscreenRows();
