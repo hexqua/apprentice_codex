@@ -17,6 +17,8 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import net.minecraft.core.registries.Registries;
+import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
+import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
 import net.minecraft.world.item.ArmorItem;
@@ -58,7 +60,6 @@ public final class ItemRegistry {
             ITEMS.register("empty_basic_spellcaster_casing", SpellcasterRoundItem::new);
     public static final DeferredHolder<Item, Item> EMPTY_ARCANE_SPELLCASTER_CASING =
             ITEMS.register("empty_arcane_spellcaster_casing", SpellcasterRoundItem::new);
-    public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_SCARF =
     public static final DeferredHolder<Item, Item> RAPID_SPELLCASTER_ROUND =
             ITEMS.register("rapid_spellcaster_round",
                     () -> new SpellcasterRoundItem(() -> EMPTY_RAPID_SPELLCASTER_CASING.get()));
@@ -68,6 +69,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> ARCANE_SPELLCASTER_ROUND =
             ITEMS.register("arcane_spellcaster_round",
                     () -> new SpellcasterRoundItem(() -> EMPTY_ARCANE_SPELLCASTER_CASING.get()));
+    public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_TORSO =
             armor("apprentice_mage_torso", ArmorItem.Type.CHESTPLATE);
@@ -97,8 +99,12 @@ public final class ItemRegistry {
             ITEMS.register("explorers_codex", ExplorersCodex::new);
     public static final DeferredHolder<Item, Item> IRON_SPELLCASTER_GUN =
             ITEMS.register("iron_spellcaster_gun", IronSpellcasterGun::new);
+    public static final DeferredHolder<Item, Item> COPPER_SPELLCASTER_GUN =
+            ITEMS.register("copper_spellcaster_gun", CopperSpellcasterGun::new);
     public static final DeferredHolder<Item, Item> GOLD_SPELLCASTER_GUN =
             ITEMS.register("gold_spellcaster_gun", GoldSpellcasterGun::new);
+    public static final DeferredHolder<Item, Item> DIAMOND_SPELLCASTER_GUN =
+            ITEMS.register("diamond_spellcaster_gun", DiamondSpellcasterGun::new);
     public static final DeferredHolder<Item, Item> IRON_SPELL_AMPLIFIER =
             ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> COPPER_SPELL_AMPLIFIER =
