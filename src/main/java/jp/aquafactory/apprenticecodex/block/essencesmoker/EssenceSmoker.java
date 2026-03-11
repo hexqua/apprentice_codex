@@ -100,6 +100,12 @@ public class EssenceSmoker extends BaseEntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
+        // 1.21.1 では空手右クリックが useItemOn を経由する場合があるため、
+        // 素手回収は useWithoutItem 側へ流して 1.20.1 と同じ優先順位を維持する。
+        if (heldStack.isEmpty()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
         if (blockEntity.isProcessing()) {
             displayError(player, "ui.apprenticecodex.now_smoke_processing");
             return ItemInteractionResult.CONSUME;
