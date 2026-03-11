@@ -21,7 +21,7 @@
     "FAF"
   ],
   "result": {
-    "item": "apprenticecodex:spellcaster_workbench"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:spellcaster_workbench"
+  }
 }

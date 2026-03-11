@@ -55,11 +55,11 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final DeferredHolder<Item, Item> EMPTY_RAPID_SPELLCASTER_CASING =
-            ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);
+            ITEMS.register("empty_rapid_spellcaster_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> EMPTY_BASIC_SPELLCASTER_CASING =
-            ITEMS.register("empty_basic_spellcaster_casing", SpellcasterRoundItem::new);
+            ITEMS.register("empty_basic_spellcaster_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> EMPTY_ARCANE_SPELLCASTER_CASING =
-            ITEMS.register("empty_arcane_spellcaster_casing", SpellcasterRoundItem::new);
+            ITEMS.register("empty_arcane_spellcaster_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> RAPID_SPELLCASTER_ROUND =
             ITEMS.register("rapid_spellcaster_round",
                     () -> new SpellcasterRoundItem(() -> EMPTY_RAPID_SPELLCASTER_CASING.get()));

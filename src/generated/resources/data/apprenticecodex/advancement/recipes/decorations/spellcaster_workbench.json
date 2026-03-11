@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:iron_spellcaster_gun"
-            ]
+            "items": "apprenticecodex:iron_spellcaster_gun"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_iron_spellcaster_gun",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_iron_spellcaster_gun"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:spellcaster_workbench"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

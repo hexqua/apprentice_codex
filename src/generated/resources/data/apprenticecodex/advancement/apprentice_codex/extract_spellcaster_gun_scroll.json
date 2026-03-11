@@ -6,16 +6,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "irons_spellbooks:scroll"
+      "count": 1,
+      "id": "irons_spellbooks:scroll"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.title"
     }
