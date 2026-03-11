@@ -55,7 +55,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
     private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
     private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
-
+    public static final float EMPTY_CASING_RETURN_CHANCE = 0.5F;
     private final SpellGunConfig spellGunConfig;
     private final Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;
@@ -227,6 +227,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Nullable
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
         return null;
+    }
+
+    final boolean shouldReturnEmptyCasing(Player player) {
+        return EMPTY_CASING_RETURN_CHANCE > 0.0F
+                && player.getRandom().nextFloat() < EMPTY_CASING_RETURN_CHANCE;
     }
 
     public boolean shouldOverrideSpellGunCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
@@ -606,6 +611,17 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                     formatTooltipSeconds(overriddenCooldownTicks)
             ).withStyle(ChatFormatting.GRAY));
         }
+
+        var overriddenLongCastTicks = getOverriddenLongCastTicks();
+        if (overriddenLongCastTicks != null) {
+            var translationKey = overriddenLongCastTicks <= 0
+                    ? "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
+                    : "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_cast";
+            var tooltip = overriddenLongCastTicks <= 0
+                    ? Component.translatable(translationKey)
+                    : Component.translatable(translationKey, formatTooltipSeconds(overriddenLongCastTicks));
+            translatedLines.add(tooltip.withStyle(ChatFormatting.GRAY));
+        }
         return translatedLines;
     }
 
@@ -614,6 +630,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (spellGunConfig.supportedCastTypes().size() == 1 && spellGunConfig.supports(SpellGunCastType.INSTANT)) {
             translatedLines.add(Component.translatable(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_instant_only"
+            ).withStyle(ChatFormatting.GRAY));
+        }
+        if (spellGunConfig.supportedCastTypes().size() == 1 && spellGunConfig.supports(SpellGunCastType.LONG)) {
+            translatedLines.add(Component.translatable(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_long_allow_only"
             ).withStyle(ChatFormatting.GRAY));
         }
 

@@ -1,0 +1,27 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_spellcaster_workbench",
+  "criteria": {
+    "extract_spellcaster_gun_scroll": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "irons_spellbooks:scroll"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.title"
+    }
+  },
+  "requirements": [
+    [
+      "extract_spellcaster_gun_scroll"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

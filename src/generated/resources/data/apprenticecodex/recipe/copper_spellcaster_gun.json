@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "tag": "minecraft:buttons"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "L": {
+      "item": "irons_spellbooks:lightning_bottle"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "CML",
+    " CR",
+    " BC"
+  ],
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:copper_spellcaster_gun"
+  }
+}

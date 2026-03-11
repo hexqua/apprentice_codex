@@ -17,6 +17,8 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
+import jp.aquafactory.apprenticecodex.renderer.item.CopperSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
@@ -131,6 +133,17 @@ public final class ClientModBusEvents {
             }
         }, ItemRegistry.IRON_SPELLCASTER_GUN.get());
         event.registerItem(new IClientItemExtensions() {
+            private CopperSpellcasterGunRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new CopperSpellcasterGunRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.COPPER_SPELLCASTER_GUN.get());
+        event.registerItem(new IClientItemExtensions() {
             private GoldSpellcasterGunRenderer renderer;
 
             @Override
@@ -141,6 +154,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.GOLD_SPELLCASTER_GUN.get());
+        event.registerItem(new IClientItemExtensions() {
+            private DiamondSpellcasterGunRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new DiamondSpellcasterGunRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

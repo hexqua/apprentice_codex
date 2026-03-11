@@ -21,7 +21,7 @@ import java.util.EnumSet;
 public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.INSTANT),
-            20 * 10,
+            20 * 5,
             true,
             10,
             null
@@ -35,7 +35,7 @@ public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
                 SpellRegistry.MAGIC_MISSILE_SPELL,
                 1,
                 "IronSpellcasterGun",
-                bonus(AttributeRegistry.SPELL_POWER, 0.10, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
+                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
         );
         GeoItem.registerSyncedAnimatable(this);
     }
