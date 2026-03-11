@@ -1,0 +1,33 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_gold_spellcaster_gun",
+  "criteria": {
+    "crafted_diamond_spellcaster_gun": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:diamond_spellcaster_gun"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:diamond_spellcaster_gun",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_diamond_spellcaster_gun"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

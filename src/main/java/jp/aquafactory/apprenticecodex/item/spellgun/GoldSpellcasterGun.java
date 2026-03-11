@@ -26,9 +26,9 @@ import java.util.function.Consumer;
 public class GoldSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.INSTANT),
-            20 * 30,
+            20 * 20,
             true,
-            30,
+            40,
             null
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -38,7 +38,7 @@ public class GoldSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
                 new Properties().stacksTo(1).rarity(Rarity.COMMON),
                 SPELL_GUN_CONFIG,
                 "GoldSpellcasterGun",
-                bonus(AttributeRegistry.SPELL_POWER, 0.15, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.SPELL_POWER, 0.10, AttributeModifier.Operation.MULTIPLY_BASE)
         );
         GeoItem.registerSyncedAnimatable(this);
     }

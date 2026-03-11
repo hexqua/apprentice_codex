@@ -16,6 +16,8 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
+import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
+import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
 import net.minecraft.world.item.ArmorItem;
@@ -50,18 +52,21 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
     public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
-    public static final RegistryObject<Item> RAPID_SPELLCASTER_ROUND =
-            ITEMS.register("rapid_spellcaster_round", SpellcasterRoundItem::new);
-    public static final RegistryObject<Item> BASIC_SPELLCASTER_ROUND =
-            ITEMS.register("basic_spellcaster_round", SpellcasterRoundItem::new);
-    public static final RegistryObject<Item> ARCANE_SPELLCASTER_ROUND =
-            ITEMS.register("arcane_spellcaster_round", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_BASIC_SPELLCASTER_CASING =
             ITEMS.register("empty_basic_spellcaster_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_ARCANE_SPELLCASTER_CASING =
             ITEMS.register("empty_arcane_spellcaster_casing", SpellcasterRoundItem::new);
+    public static final RegistryObject<Item> RAPID_SPELLCASTER_ROUND =
+            ITEMS.register("rapid_spellcaster_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_RAPID_SPELLCASTER_CASING.get()));
+    public static final RegistryObject<Item> BASIC_SPELLCASTER_ROUND =
+            ITEMS.register("basic_spellcaster_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_BASIC_SPELLCASTER_CASING.get()));
+    public static final RegistryObject<Item> ARCANE_SPELLCASTER_ROUND =
+            ITEMS.register("arcane_spellcaster_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_ARCANE_SPELLCASTER_CASING.get()));
     public static final RegistryObject<Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final RegistryObject<Item> APPRENTICE_MAGE_TORSO =
@@ -92,8 +97,12 @@ public final class ItemRegistry {
             ITEMS.register("explorers_codex", ExplorersCodex::new);
     public static final RegistryObject<Item> IRON_SPELLCASTER_GUN =
             ITEMS.register("iron_spellcaster_gun", IronSpellcasterGun::new);
+    public static final RegistryObject<Item> COPPER_SPELLCASTER_GUN =
+            ITEMS.register("copper_spellcaster_gun", CopperSpellcasterGun::new);
     public static final RegistryObject<Item> GOLD_SPELLCASTER_GUN =
             ITEMS.register("gold_spellcaster_gun", GoldSpellcasterGun::new);
+    public static final RegistryObject<Item> DIAMOND_SPELLCASTER_GUN =
+            ITEMS.register("diamond_spellcaster_gun", DiamondSpellcasterGun::new);
     public static final RegistryObject<Item> IRON_SPELL_AMPLIFIER =
             ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
     public static final RegistryObject<Item> COPPER_SPELL_AMPLIFIER =

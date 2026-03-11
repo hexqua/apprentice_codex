@@ -62,7 +62,7 @@ public final class SpellGunCastEvent {
         if (!player.isCreative()) {
             var ammoItem = spellGunItem.getAmmoItem(castingItem, spellGunItem.getPrimarySpellData(castingItem));
             if (ammoItem != null) {
-                consumeAmmo(player.getInventory(), ammoItem);
+                consumeAmmo(player, player.getInventory(), ammoItem, spellGunItem);
             }
         }
     }
@@ -137,12 +137,15 @@ public final class SpellGunCastEvent {
         return containsAmmo(inventory.items, ammoItem) || containsAmmo(inventory.offhand, ammoItem);
     }
 
-    private static void consumeAmmo(Inventory inventory, Item ammoItem) {
+    private static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, AbstractSpellGunItem spellGunItem) {
         if (consumeOne(inventory.items, ammoItem)) {
+            tryGiveEmptyCasing(player, inventory, ammoItem, spellGunItem);
             return;
         }
 
-        consumeOne(inventory.offhand, ammoItem);
+        if (consumeOne(inventory.offhand, ammoItem)) {
+            tryGiveEmptyCasing(player, inventory, ammoItem, spellGunItem);
+        }
     }
 
     private static boolean containsAmmo(java.util.List<ItemStack> stacks, Item ammoItem) {
@@ -166,5 +169,21 @@ public final class SpellGunCastEvent {
         }
 
         return false;
+    }
+
+    private static void tryGiveEmptyCasing(ServerPlayer player, Inventory inventory, Item ammoItem, AbstractSpellGunItem spellGunItem) {
+        if (!(ammoItem instanceof SpellcasterRoundItem roundItem)) {
+            return;
+        }
+
+        var emptyCasingItem = roundItem.getEmptyCasingItem();
+        if (emptyCasingItem == null || !spellGunItem.shouldReturnEmptyCasing(player)) {
+            return;
+        }
+
+        var emptyCasingStack = new ItemStack(emptyCasingItem);
+        if (!inventory.add(emptyCasingStack) && !emptyCasingStack.isEmpty()) {
+            player.drop(emptyCasingStack, false);
+        }
     }
 }

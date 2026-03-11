@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
@@ -20,26 +20,25 @@ import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.function.Consumer;
 
-public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
+public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
-            EnumSet.of(SpellGunCastType.INSTANT),
-            20 * 5,
+            EnumSet.of(SpellGunCastType.LONG),
+            20 * 30,
             true,
-            10,
-            null
+            40,
+            0
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    public IronSpellcasterGun() {
+    public DiamondSpellcasterGun() {
         super(
-                new Item.Properties().stacksTo(1).rarity(Rarity.COMMON),
+                new Properties().stacksTo(1).rarity(Rarity.COMMON),
                 SPELL_GUN_CONFIG,
-                SpellRegistry.MAGIC_MISSILE_SPELL,
-                1,
-                "IronSpellcasterGun",
-                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE)
+                "DiamondSpellcasterGun",
+                bonus(AttributeRegistry.SPELL_POWER, 0.10, AttributeModifier.Operation.MULTIPLY_BASE)
         );
         GeoItem.registerSyncedAnimatable(this);
     }
@@ -47,12 +46,12 @@ public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
-            private IronSpellcasterGunRenderer renderer;
+            private DiamondSpellcasterGunRenderer renderer;
 
             @Override
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
-                    renderer = new IronSpellcasterGunRenderer();
+                    renderer = new DiamondSpellcasterGunRenderer();
                 }
 
                 return renderer;
@@ -71,11 +70,29 @@ public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
 
     @Override
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
-        return ItemRegistry.RAPID_SPELLCASTER_ROUND.get();
+        if (spellData == null){
+            return ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
+        }
+
+        return spellData.getRarity().compareRarity(SpellRarity.EPIC) > 0 ? ItemRegistry.ARCANE_SPELLCASTER_ROUND.get() : ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
+    }
+
+    @Override
+    protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
+        return List.of(
+                new AmmoTooltipEntry(
+                        ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
+                        "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare"
+                ),
+                new AmmoTooltipEntry(
+                        ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
+                        "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic"
+                )
+        );
     }
     
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return 14;
+        return 10;
     }
 }

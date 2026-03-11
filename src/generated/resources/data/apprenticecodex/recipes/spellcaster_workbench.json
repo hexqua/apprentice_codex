@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "F": {
+      "tag": "minecraft:wooden_fences"
+    },
+    "M": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "S": {
+      "tag": "minecraft:wooden_slabs"
+    }
+  },
+  "pattern": [
+    " M ",
+    "SSS",
+    "FAF"
+  ],
+  "result": {
+    "item": "apprenticecodex:spellcaster_workbench"
+  },
+  "show_notification": true
+}
