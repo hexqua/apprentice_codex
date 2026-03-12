@@ -73,7 +73,8 @@
   "item.apprenticecodex.absorption_amplify_amulet.desc_2": "回復量の値は聖魔法の強さによって強化される。",
   "item.apprenticecodex.absorption_amplify_amulet.desc_3": "このアクセサリを外すと反動で全ての衝撃吸収のシールドを失う。",
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_1": "空薬莢が戻って来る確率が上昇する。",
-  "item.apprenticecodex.spellcaster_ammo_pouch.desc_2": "装備をしていなくても弾薬を収納/自動使用することは可能。",
+  "item.apprenticecodex.spellcaster_ammo_pouch.desc_2": "また、弾薬アイテムを自動で収納する。",
+  "item.apprenticecodex.spellcaster_ammo_pouch.desc_3": "装備をしていなくても弾薬を収納/自動使用することは可能。",
   "item.apprenticecodex.spellcaster_ammo_pouch.stored_amount": "収納数: %s / %s",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
