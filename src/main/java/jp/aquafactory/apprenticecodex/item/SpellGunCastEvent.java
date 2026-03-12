@@ -4,7 +4,9 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -133,11 +135,18 @@ public final class SpellGunCastEvent {
         magicData.setMana(Math.max(0f, magicData.getMana() - reservedMana));
     }
 
-    public static boolean hasAmmo(Inventory inventory, Item ammoItem) {
-        return containsAmmo(inventory.items, ammoItem) || containsAmmo(inventory.offhand, ammoItem);
+    public static boolean hasAmmo(Player player, Inventory inventory, Item ammoItem) {
+        return SpellcasterAmmoPouch.hasAmmoInAccessiblePouches(player, ammoItem)
+                || containsAmmo(inventory.items, ammoItem)
+                || containsAmmo(inventory.offhand, ammoItem);
     }
 
     private static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, AbstractSpellGunItem spellGunItem) {
+        if (SpellcasterAmmoPouch.consumeAmmoFromAccessiblePouches(player, ammoItem)) {
+            tryGiveEmptyCasing(player, inventory, ammoItem, spellGunItem);
+            return;
+        }
+
         if (consumeOne(inventory.items, ammoItem)) {
             tryGiveEmptyCasing(player, inventory, ammoItem, spellGunItem);
             return;
@@ -182,6 +191,7 @@ public final class SpellGunCastEvent {
         }
 
         var emptyCasingStack = new ItemStack(emptyCasingItem);
+        SpellcasterAmmoPouch.storeInAccessiblePouches(player, emptyCasingStack);
         if (!inventory.add(emptyCasingStack) && !emptyCasingStack.isEmpty()) {
             player.drop(emptyCasingStack, false);
         }
