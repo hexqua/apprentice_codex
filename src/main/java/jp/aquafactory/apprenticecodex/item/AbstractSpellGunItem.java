@@ -397,6 +397,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private static void completeLongCastImmediately(ServerPlayer player, int spellLevel, AbstractSpell spell, MagicData magicData) {
         // LONG の完了待ちだけを飛ばし、CastType 自体は維持して downstream の挙動を崩さない。
         spell.castSpell(player.level(), spellLevel, player, magicData.getCastSource(), true);
+        spell.onServerCastTick(player.level(), spellLevel, player, magicData);
         spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
     }
 
