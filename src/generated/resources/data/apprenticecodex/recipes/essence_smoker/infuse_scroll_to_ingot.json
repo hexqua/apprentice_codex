@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:essence_smoker",
+  "catalyst": {
+    "item": "irons_spellbooks:scroll"
+  },
+  "material": {
+    "item": "irons_spellbooks:arcane_ingot"
+  },
+  "result": {
+    "item": "apprenticecodex:spellstained_arcane_ingot"
+  }
+}

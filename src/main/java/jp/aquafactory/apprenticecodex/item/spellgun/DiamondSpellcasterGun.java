@@ -71,21 +71,21 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
     @Override
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
         if (spellData == null){
-            return ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
+            return ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get();
         }
 
-        return spellData.getRarity().compareRarity(SpellRarity.EPIC) > 0 ? ItemRegistry.ARCANE_SPELLCASTER_ROUND.get() : ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
+        return spellData.getRarity().compareRarity(SpellRarity.EPIC) > 0 ? ItemRegistry.SPELL_DOMINATOR_ROUND.get() : ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get();
     }
 
     @Override
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
         return List.of(
                 new AmmoTooltipEntry(
-                        ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
+                        ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
                         "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare"
                 ),
                 new AmmoTooltipEntry(
-                        ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
+                        ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
                         "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic"
                 )
         );
