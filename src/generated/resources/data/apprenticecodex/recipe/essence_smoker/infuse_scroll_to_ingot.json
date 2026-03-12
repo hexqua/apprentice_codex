@@ -7,6 +7,6 @@
     "item": "irons_spellbooks:arcane_ingot"
   },
   "result": {
-    "item": "apprenticecodex:spellstained_arcane_ingot"
+    "id": "apprenticecodex:spellstained_arcane_ingot"
   }
 }
