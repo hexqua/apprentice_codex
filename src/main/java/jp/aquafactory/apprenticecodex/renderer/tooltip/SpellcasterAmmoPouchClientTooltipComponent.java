@@ -57,10 +57,20 @@ public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientT
         var stack = items.get(itemIndex);
         blit(guiGraphics, x, y, Texture.SLOT);
         guiGraphics.renderItem(stack, x + 1, y + 1, itemIndex);
-        guiGraphics.renderItemDecorations(font, stack, x + 1, y + 1);
+        guiGraphics.renderItemDecorations(font, stack, x + 1, y + 1, getCountLabel(stack));
         if (itemIndex == highlightedIndex) {
             AbstractContainerScreen.renderSlotHighlight(guiGraphics, x + 1, y + 1, 0);
         }
+    }
+
+    private String getCountLabel(ItemStack stack) {
+        var count = stack.getCount();
+        if (count < 1000) {
+            return null;
+        }
+
+        // 4桁以上はツールチップ枠内に収まらないため、簡略表記に切り替える。
+        return count / 1000 + "K";
     }
 
     private void drawBorder(int x, int y, int slotWidth, int slotHeight, GuiGraphics guiGraphics) {
