@@ -194,10 +194,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (spellGunCastType == null || !spellGunConfig.supports(spellGunCastType)) {
             return false;
         }
-        if (spellGunCastType == SpellGunCastType.LONG) {
-            return SpellGunSpellListManager.isLongAllowlisted(spell);
-        }
-        return passesInstantImbueConditions(spell, spellLevel);
+
+        return passesImbueConditions(spell, spellLevel);
     }
 
     final boolean supportsManaBypass(@Nullable AbstractSpell spell) {
@@ -270,7 +268,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return spellGunConfig.overriddenLongCastDurationTicks();
     }
 
-    private boolean passesInstantImbueConditions(AbstractSpell spell, int spellLevel) {
+    private boolean passesImbueConditions(AbstractSpell spell, int spellLevel) {
         var maxCooldownTicks = spellGunConfig.maxInstantImbueCooldownTicks();
         if (maxCooldownTicks != null && spell.getSpellCooldown() > maxCooldownTicks) {
             return false;
@@ -634,7 +632,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
         if (spellGunConfig.supportedCastTypes().size() == 1 && spellGunConfig.supports(SpellGunCastType.LONG)) {
             translatedLines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_long_allow_only"
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_long_only"
             ).withStyle(ChatFormatting.GRAY));
         }
 
