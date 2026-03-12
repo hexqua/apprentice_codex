@@ -73,7 +73,8 @@
   "item.apprenticecodex.absorption_amplify_amulet.desc_2": "The recovery amount is amplified by the strength of holy school.",
   "item.apprenticecodex.absorption_amplify_amulet.desc_3": "Removing this accessory causes loses all absorption shields.",
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_1": "Increase chance of returning empty casing.",
-  "item.apprenticecodex.spellcaster_ammo_pouch.desc_2": "Can store and automatically use cartridges even without equipping.",
+  "item.apprenticecodex.spellcaster_ammo_pouch.desc_2": "Automatically stores ammo items.",
+  "item.apprenticecodex.spellcaster_ammo_pouch.desc_3": "Can store and automatically use cartridges even without equipping.",
   "item.apprenticecodex.spellcaster_ammo_pouch.stored_amount": "Stored: %s / %s",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",

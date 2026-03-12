@@ -57,6 +57,9 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
             tooltips.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_2"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            tooltips.add(Component.literal(" ")
+                    .append(Component.translatable(getDescriptionId() + ".desc_3"))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         }
 
         return tooltips;
@@ -222,20 +225,19 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
             return false;
         }
 
-        var beforeCount = stack.getCount();
-        for (var pouchStack : getEquippedPouches(player)) {
-            stack.shrink(addToPouch(pouchStack, stack));
-            if (stack.isEmpty()) {
-                return true;
-            }
+        var inserted = storeInPouches(getEquippedPouches(player), stack);
+        if (!stack.isEmpty()) {
+            inserted += storeInPouches(getInventoryPouches(player), stack);
         }
-        for (var pouchStack : getInventoryPouches(player)) {
-            stack.shrink(addToPouch(pouchStack, stack));
-            if (stack.isEmpty()) {
-                return true;
-            }
+        return inserted > 0;
+    }
+
+    public static int storeInEquippedPouches(Player player, ItemStack stack) {
+        if (stack.isEmpty() || !accepts(stack)) {
+            return 0;
         }
-        return stack.getCount() < beforeCount;
+
+        return storeInPouches(getEquippedPouches(player), stack);
     }
 
     public static int getStoredItemCount(ItemStack pouchStack) {
@@ -359,6 +361,17 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
             }
         }
         return false;
+    }
+
+    private static int storeInPouches(List<ItemStack> pouchStacks, ItemStack stack) {
+        var beforeCount = stack.getCount();
+        for (var pouchStack : pouchStacks) {
+            stack.shrink(addToPouch(pouchStack, stack));
+            if (stack.isEmpty()) {
+                break;
+            }
+        }
+        return beforeCount - stack.getCount();
     }
 
     private static List<StoredEntry> readContents(ItemStack pouchStack) {
