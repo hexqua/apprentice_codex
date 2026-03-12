@@ -1,0 +1,56 @@
+{
+  "loader": "forge:separate_transforms",
+  "base": {
+    "parent": "apprenticecodex:item/spellcaster_ammo_pouch_3d"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_ammo_pouch"
+      }
+    },
+    "ground": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_ammo_pouch"
+      }
+    },
+    "fixed": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_ammo_pouch"
+      }
+    },
+    "head": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_ammo_pouch"
+      }
+    },
+    "firstperson_lefthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_ammo_pouch"
+      }
+    },
+    "firstperson_righthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_ammo_pouch"
+      }
+    },
+    "thirdperson_lefthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_ammo_pouch"
+      }
+    },
+    "thirdperson_righthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_ammo_pouch"
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
@@ -13,7 +14,9 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
+import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingRenderer;
@@ -50,6 +53,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -67,6 +71,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::onReloadListeners);
         modEventBus.addListener(ClientModBusEvents::registerParticleProviders);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
+        modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
     }
 
     @SuppressWarnings("removal")
@@ -77,6 +82,7 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENDER_GRIMOIRE.get(), SpellBookCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.EXPLORERS_CODEX.get(), SpellBookCurioRenderer::new));
+        event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_AMMO_POUCH.get(), SpellcasterAmmoPouchCurioRenderer::new));
         event.enqueueWork(() -> ItemBlockRenderTypes.setRenderLayer(BlockRegistry.ESSENCE_SMOKER.get(), RenderType.cutout()));
     }
 
@@ -94,6 +100,10 @@ public final class ClientModBusEvents {
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleRegistry.RETICLE_DOT.get(), ReticleDotParticle.Provider::new);
         event.registerSpriteSet(ParticleRegistry.MUZZLE_FLASH.get(), MuzzleFlashParticle.Provider::new);
+    }
+
+    private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(SpellcasterAmmoPouchTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
