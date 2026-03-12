@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.datagen;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
@@ -76,9 +77,30 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SCARLET_THIRST.get(),
                 ItemRegistry.CRAFTSMANS_DELIGHT.get()
         );
-        tag(CURIOS_BELT).add(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get());
+        tag(CURIOS_BELT).add(
+                ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(),
+                ItemRegistry.SPELLCASTER_AMMO_POUCH.get()
+        );
         tag(CURIOS_NECKLACE).add(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
-
+        tag(TagRegistry.Items.SPELLCASTER_AMMO_POUCH_STORABLE).add(
+                ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
+                ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(),
+                ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
+                ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
+                ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
+                ItemRegistry.RAPID_SPELLCASTER_ROUND.get(),
+                ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
+                ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
+                ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
+                ItemRegistry.SPELL_DOMINATOR_ROUND.get()
+        );
+        tag(TagRegistry.Items.SPELLCASTER_EMPTY_CASINGS).add(
+                ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
+                ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(),
+                ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
+                ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
+                ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get()
+        );
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
                 ItemRegistry.SKY_EDGE_SWORD.get(),

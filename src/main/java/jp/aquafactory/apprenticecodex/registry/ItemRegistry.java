@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
@@ -102,6 +103,8 @@ public final class ItemRegistry {
             ITEMS.register("craftsmans_delight", CraftsmansDelight::new);
     public static final DeferredHolder<Item, Item> PROTECTION_SPELL_SUPPORTER =
             ITEMS.register("protection_spell_supporter", ProtectionSpellSupporter::new);
+    public static final DeferredHolder<Item, Item> SPELLCASTER_AMMO_POUCH =
+            ITEMS.register("spellcaster_ammo_pouch", SpellcasterAmmoPouch::new);
     public static final DeferredHolder<Item, Item> ABSORPTION_AMPLIFY_AMULET =
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
     public static final DeferredHolder<Item, Item> ENDER_GRIMOIRE =

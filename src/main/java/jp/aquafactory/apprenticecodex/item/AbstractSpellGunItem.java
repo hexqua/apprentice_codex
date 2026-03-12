@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
@@ -228,8 +229,12 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     final boolean shouldReturnEmptyCasing(Player player) {
-        return EMPTY_CASING_RETURN_CHANCE > 0.0F
-                && player.getRandom().nextFloat() < EMPTY_CASING_RETURN_CHANCE;
+        var emptyCasingReturnChance = SpellcasterAmmoPouch.applyEmptyCasingReturnChanceBonus(
+                EMPTY_CASING_RETURN_CHANCE,
+                player
+        );
+        return emptyCasingReturnChance > 0.0F
+                && player.getRandom().nextFloat() < emptyCasingReturnChance;
     }
 
     public boolean shouldOverrideSpellGunCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
@@ -330,7 +335,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         var ammoItem = getAmmoItem(stack, spellData);
-        if (ammoItem != null && !SpellGunCastEvent.hasAmmo(player.getInventory(), ammoItem)) {
+        if (ammoItem != null && !SpellGunCastEvent.hasAmmo(player, player.getInventory(), ammoItem)) {
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
                         Component.translatable("ui.apprenticecodex.missing_spell_gun_ammo", ammoItem.getDescription())
