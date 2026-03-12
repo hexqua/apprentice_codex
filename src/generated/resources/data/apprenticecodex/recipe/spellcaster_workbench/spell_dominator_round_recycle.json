@@ -1,0 +1,30 @@
+{
+  "type": "apprenticecodex:spellcaster_workbench",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:amethyst_shard"
+      }
+    },
+    {
+      "count": 6,
+      "ingredient": {
+        "item": "apprenticecodex:empty_spell_dominator_casing"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:gunpowder"
+      }
+    }
+  ],
+  "priority": 0,
+  "results": [
+    {
+      "count": 6,
+      "id": "apprenticecodex:spell_dominator_round"
+    }
+  ]
+}

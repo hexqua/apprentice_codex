@@ -54,12 +54,17 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
     public static final DeferredHolder<Item, Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
+    public static final DeferredHolder<Item, Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
     public static final DeferredHolder<Item, Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> EMPTY_BASIC_SPELLCASTER_CASING =
             ITEMS.register("empty_basic_spellcaster_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> EMPTY_ARCANE_SPELLCASTER_CASING =
             ITEMS.register("empty_arcane_spellcaster_casing", () -> new SpellcasterRoundItem());
+    public static final DeferredHolder<Item, Item> EMPTY_ADVANCED_SPELLCASTER_CASING =
+            ITEMS.register("empty_advanced_spellcaster_casing", () -> new SpellcasterRoundItem());
+    public static final DeferredHolder<Item, Item> EMPTY_SPELL_DOMINATOR_CASING =
+            ITEMS.register("empty_spell_dominator_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> RAPID_SPELLCASTER_ROUND =
             ITEMS.register("rapid_spellcaster_round",
                     () -> new SpellcasterRoundItem(() -> EMPTY_RAPID_SPELLCASTER_CASING.get()));
@@ -69,6 +74,12 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> ARCANE_SPELLCASTER_ROUND =
             ITEMS.register("arcane_spellcaster_round",
                     () -> new SpellcasterRoundItem(() -> EMPTY_ARCANE_SPELLCASTER_CASING.get()));
+    public static final DeferredHolder<Item, Item> ADVANCED_SPELLCASTER_ROUND =
+            ITEMS.register("advanced_spellcaster_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_ADVANCED_SPELLCASTER_CASING.get()));
+    public static final DeferredHolder<Item, Item> SPELL_DOMINATOR_ROUND =
+            ITEMS.register("spell_dominator_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_SPELL_DOMINATOR_CASING.get()));
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_TORSO =

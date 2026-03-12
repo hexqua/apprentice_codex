@@ -34,12 +34,6 @@ public final class SpellGunSpellListDataGenerator extends JsonCodecProvider<Spel
     @Override
     protected void gather() {
         unconditional(
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "long_allowlist"),
-                new SpellGunSpellList(List.of(
-                        ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_arrow")
-                ))
-        );
-        unconditional(
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "denylist"),
                 new SpellGunSpellList(List.of())
         );
