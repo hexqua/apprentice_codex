@@ -43,7 +43,7 @@
   "item.apprenticecodex.spellgun.tooltip.restrict_title": "Imbuing limits:",
   "item.apprenticecodex.spellgun.tooltip.restrict_none": "- [N/A]",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only": "- No casting required",
-  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_long_allow_only": "- Casting required for some spells",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_long_only": "- Casting required",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_cooldown": "- Cooldown is %s seconds or less",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast": "- No recast needed",
   "item.apprenticecodex.spellgun.tooltip.ammo_title": "Ammo:",

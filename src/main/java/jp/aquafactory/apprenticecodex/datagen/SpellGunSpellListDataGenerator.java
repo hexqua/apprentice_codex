@@ -24,10 +24,6 @@ public final class SpellGunSpellListDataGenerator extends JsonCodecProvider<Spel
                 SpellGunSpellListManager.DIRECTORY,
                 SpellGunSpellList.CODEC,
                 Map.of(
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "long_allowlist"),
-                        new SpellGunSpellList(List.of(
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_arrow")
-                        )),
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "denylist"),
                         new SpellGunSpellList(List.of())
                 )
