@@ -6,7 +6,7 @@
       "item": "irons_spellbooks:arcane_ingot"
     },
     "C": {
-      "tag": "forge:chests"
+      "tag": "c:chests"
     },
     "L": {
       "item": "minecraft:leather"
@@ -21,7 +21,7 @@
     "LLL"
   ],
   "result": {
-    "item": "apprenticecodex:spellcaster_ammo_pouch"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:spellcaster_ammo_pouch"
+  }
 }

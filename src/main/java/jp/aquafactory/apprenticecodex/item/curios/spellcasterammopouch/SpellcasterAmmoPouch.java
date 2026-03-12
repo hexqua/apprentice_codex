@@ -4,12 +4,15 @@ import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
@@ -18,9 +21,10 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -36,7 +40,7 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
     private static final int BAR_COLOR = 0xD79C37;
     private static final String STORAGE_TAG = "AmmoPouch";
     private static final String CONTENTS_TAG = "Contents";
-    private static final String STACK_TAG = "Stack";
+    private static final String ITEM_ID_TAG = "ItemId";
     private static final String COUNT_TAG = "Count";
 
     private final String slotIdentifier;
@@ -71,8 +75,8 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> lines, TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> lines, TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
 
         var storedItemCount = getStoredItemCount(stack);
         lines.add(Component.translatable(
@@ -293,7 +297,7 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
 
         var contents = readContents(pouchStack);
         for (var entry : contents) {
-            if (!ItemStack.isSameItemSameTags(entry.displayStack, stack)) {
+            if (!ItemStack.isSameItemSameComponents(entry.displayStack, stack)) {
                 continue;
             }
 
@@ -375,7 +379,17 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
     }
 
     private static List<StoredEntry> readContents(ItemStack pouchStack) {
-        var storageTag = pouchStack.getTagElement(STORAGE_TAG);
+        var customData = pouchStack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return new ArrayList<>();
+        }
+
+        var rootTag = customData.copyTag();
+        if (!rootTag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)) {
+            return new ArrayList<>();
+        }
+
+        var storageTag = rootTag.getCompound(STORAGE_TAG);
         if (storageTag == null || !storageTag.contains(CONTENTS_TAG, Tag.TAG_LIST)) {
             return new ArrayList<>();
         }
@@ -387,21 +401,26 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
                 continue;
             }
 
-            var stackTag = compoundTag.getCompound(STACK_TAG);
-            var storedStack = ItemStack.of(stackTag);
-            var storedCount = compoundTag.getInt(COUNT_TAG);
-            if (storedStack.isEmpty() || storedCount <= 0) {
+            var itemId = compoundTag.getString(ITEM_ID_TAG);
+            var itemKey = ResourceLocation.tryParse(itemId);
+            if (itemKey == null) {
                 continue;
             }
 
-            contents.add(new StoredEntry(storedStack, storedCount));
+            var item = BuiltInRegistries.ITEM.getOptional(itemKey).orElse(null);
+            var storedCount = compoundTag.getInt(COUNT_TAG);
+            if (item == null || item == Items.AIR || storedCount <= 0) {
+                continue;
+            }
+
+            contents.add(new StoredEntry(new ItemStack(item), storedCount));
         }
         return contents;
     }
 
     private static void writeContents(ItemStack pouchStack, List<StoredEntry> contents) {
         if (contents.isEmpty()) {
-            pouchStack.removeTagKey(STORAGE_TAG);
+            removeStorageTag(pouchStack);
             return;
         }
 
@@ -411,18 +430,31 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
                 continue;
             }
 
+            var itemKey = BuiltInRegistries.ITEM.getKey(entry.displayStack.getItem());
+            if (itemKey == null || entry.displayStack.is(Items.AIR)) {
+                continue;
+            }
+
             var compoundTag = new CompoundTag();
-            compoundTag.put(STACK_TAG, entry.displayStack.copyWithCount(1).save(new CompoundTag()));
+            compoundTag.putString(ITEM_ID_TAG, itemKey.toString());
             compoundTag.putInt(COUNT_TAG, entry.count);
             contentsTag.add(compoundTag);
         }
 
         if (contentsTag.isEmpty()) {
-            pouchStack.removeTagKey(STORAGE_TAG);
+            removeStorageTag(pouchStack);
             return;
         }
 
-        pouchStack.getOrCreateTagElement(STORAGE_TAG).put(CONTENTS_TAG, contentsTag);
+        CustomData.update(DataComponents.CUSTOM_DATA, pouchStack, tag -> {
+            var storageTag = new CompoundTag();
+            storageTag.put(CONTENTS_TAG, contentsTag);
+            tag.put(STORAGE_TAG, storageTag);
+        });
+    }
+
+    private static void removeStorageTag(ItemStack pouchStack) {
+        CustomData.update(DataComponents.CUSTOM_DATA, pouchStack, tag -> tag.remove(STORAGE_TAG));
     }
 
     private static List<StoredEntry> getDisplayEntries(List<StoredEntry> contents) {

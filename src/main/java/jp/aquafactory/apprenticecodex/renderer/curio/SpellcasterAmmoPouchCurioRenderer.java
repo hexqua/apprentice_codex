@@ -13,12 +13,9 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.client.ICurioRenderer;
 
-@OnlyIn(Dist.CLIENT)
 public class SpellcasterAmmoPouchCurioRenderer implements ICurioRenderer {
     private static final float PIXEL = 1.0F / 16.0F;
     private static final float HIP_OFFSET_X = 3.4F * PIXEL;

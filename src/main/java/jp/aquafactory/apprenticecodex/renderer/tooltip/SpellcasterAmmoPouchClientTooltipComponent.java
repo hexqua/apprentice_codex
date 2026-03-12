@@ -10,8 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientTooltipComponent {
-    private static final ResourceLocation TEXTURE_LOCATION =
-            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/gui/container/bundle.png");
+    private static final ResourceLocation BACKGROUND_SPRITE =
+            ResourceLocation.fromNamespaceAndPath("minecraft", "container/bundle/background");
 
     private final NonNullList<ItemStack> items;
     private final int highlightedIndex;
@@ -25,7 +25,7 @@ public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientT
 
     @Override
     public int getHeight() {
-        return gridSizeY() * 20 + 6;
+        return backgroundHeight() + 4;
     }
 
     @Override
@@ -39,13 +39,13 @@ public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientT
         var rows = gridSizeY();
         var itemIndex = 0;
 
+        guiGraphics.blitSprite(BACKGROUND_SPRITE, x, y, getWidth(font), backgroundHeight());
+
         for (int row = 0; row < rows; ++row) {
             for (int column = 0; column < columns; ++column) {
                 renderSlot(x + column * 18 + 1, y + row * 20 + 1, itemIndex++, guiGraphics, font);
             }
         }
-
-        drawBorder(x, y, columns, rows, guiGraphics);
     }
 
     private void renderSlot(int x, int y, int itemIndex, GuiGraphics guiGraphics, Font font) {
@@ -73,26 +73,8 @@ public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientT
         return count / 1000 + "K";
     }
 
-    private void drawBorder(int x, int y, int slotWidth, int slotHeight, GuiGraphics guiGraphics) {
-        blit(guiGraphics, x, y, Texture.BORDER_CORNER_TOP);
-        blit(guiGraphics, x + slotWidth * 18 + 1, y, Texture.BORDER_CORNER_TOP);
-
-        for (int i = 0; i < slotWidth; ++i) {
-            blit(guiGraphics, x + 1 + i * 18, y, Texture.BORDER_HORIZONTAL_TOP);
-            blit(guiGraphics, x + 1 + i * 18, y + slotHeight * 20, Texture.BORDER_HORIZONTAL_BOTTOM);
-        }
-
-        for (int i = 0; i < slotHeight; ++i) {
-            blit(guiGraphics, x, y + i * 20 + 1, Texture.BORDER_VERTICAL);
-            blit(guiGraphics, x + slotWidth * 18 + 1, y + i * 20 + 1, Texture.BORDER_VERTICAL);
-        }
-
-        blit(guiGraphics, x, y + slotHeight * 20, Texture.BORDER_CORNER_BOTTOM);
-        blit(guiGraphics, x + slotWidth * 18 + 1, y + slotHeight * 20, Texture.BORDER_CORNER_BOTTOM);
-    }
-
     private void blit(GuiGraphics guiGraphics, int x, int y, Texture texture) {
-        guiGraphics.blit(TEXTURE_LOCATION, x, y, 0, texture.x, texture.y, texture.w, texture.h, 128, 128);
+        guiGraphics.blitSprite(texture.location, x, y, texture.width, texture.height);
     }
 
     private int gridSizeX() {
@@ -103,25 +85,22 @@ public final class SpellcasterAmmoPouchClientTooltipComponent implements ClientT
         return (int) Math.ceil((items.size() + 1.0D) / gridSizeX());
     }
 
+    private int backgroundHeight() {
+        return gridSizeY() * 20 + 2;
+    }
+
     private enum Texture {
-        SLOT(0, 0, 18, 20),
-        BLOCKED_SLOT(0, 40, 18, 20),
-        BORDER_VERTICAL(0, 18, 1, 20),
-        BORDER_HORIZONTAL_TOP(0, 20, 18, 1),
-        BORDER_HORIZONTAL_BOTTOM(0, 60, 18, 1),
-        BORDER_CORNER_TOP(0, 20, 1, 1),
-        BORDER_CORNER_BOTTOM(0, 60, 1, 1);
+        SLOT("container/bundle/slot", 18, 20),
+        BLOCKED_SLOT("container/bundle/blocked_slot", 18, 20);
 
-        private final int x;
-        private final int y;
-        private final int w;
-        private final int h;
+        private final ResourceLocation location;
+        private final int width;
+        private final int height;
 
-        Texture(int x, int y, int w, int h) {
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
+        Texture(String path, int width, int height) {
+            location = ResourceLocation.fromNamespaceAndPath("minecraft", path);
+            this.width = width;
+            this.height = height;
         }
     }
 }
