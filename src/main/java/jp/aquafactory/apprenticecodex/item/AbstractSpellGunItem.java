@@ -211,11 +211,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return false;
         }
 
-        if (spellGunCastType == SpellGunCastType.LONG) {
-            return SpellGunSpellListManager.isLongAllowlisted(spell);
-        }
-
-        return passesInstantImbueConditions(spell, spellLevel);
+        return passesImbueConditions(spell, spellLevel);
     }
 
     final boolean supportsManaBypass(@Nullable AbstractSpell spell) {
@@ -253,20 +249,19 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     public boolean shouldOverrideSpellGunCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
-        if (spell == null || spell.getCastType() != CastType.INSTANT) {
+        if (!matchesSpellGunAnimationOverrideSpell(stack, spell)) {
             return false;
         }
 
-        var spellData = getPrimarySpellData(stack);
-        if (spellData != null) {
-            return spellData.getSpell().equals(spell);
-        }
-
-        return startsWithPresetSpell && configuredSpell != null && configuredSpell.get().equals(spell);
+        return spell.getCastType() == CastType.INSTANT || isZeroTickLongCastAnimationOverride(spell);
     }
 
     public AnimationHolder getSpellGunCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel) {
         return SpellAnimations.ANIMATION_INSTANT_CAST;
+    }
+
+    public boolean shouldSuppressSpellGunCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return matchesSpellGunAnimationOverrideSpell(stack, spell) && isZeroTickLongCastAnimationOverride(spell);
     }
 
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
@@ -289,7 +284,27 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return spellGunConfig.overriddenLongCastDurationTicks();
     }
 
-    private boolean passesInstantImbueConditions(AbstractSpell spell, int spellLevel) {
+    private boolean matchesSpellGunAnimationOverrideSpell(ItemStack stack, @Nullable AbstractSpell spell) {
+        if (spell == null) {
+            return false;
+        }
+
+        var spellData = getPrimarySpellData(stack);
+        if (spellData != null) {
+            return spellData.getSpell().equals(spell);
+        }
+
+        return startsWithPresetSpell && configuredSpell != null && configuredSpell.get().equals(spell);
+    }
+
+    private boolean isZeroTickLongCastAnimationOverride(AbstractSpell spell) {
+        return spell.getCastType() == CastType.LONG
+                && spellGunConfig.supports(SpellGunCastType.LONG)
+                && spellGunConfig.overriddenLongCastDurationTicks() != null
+                && spellGunConfig.overriddenLongCastDurationTicks() <= 0;
+    }
+
+    private boolean passesImbueConditions(AbstractSpell spell, int spellLevel) {
         var maxCooldownTicks = spellGunConfig.maxInstantImbueCooldownTicks();
         if (maxCooldownTicks != null && spell.getSpellCooldown() > maxCooldownTicks) {
             return false;
@@ -419,6 +434,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private static void completeLongCastImmediately(ServerPlayer player, int spellLevel, AbstractSpell spell, MagicData magicData) {
         // LONG の完了待ちだけを飛ばし、CastType 自体は維持して downstream の挙動を崩さない。
         spell.castSpell(player.level(), spellLevel, player, magicData.getCastSource(), true);
+        spell.onServerCastTick(player.level(), spellLevel, player, magicData);
         spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
     }
 
@@ -672,7 +688,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
         if (spellGunConfig.supportedCastTypes().size() == 1 && spellGunConfig.supports(SpellGunCastType.LONG)) {
             translatedLines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_long_allow_only"
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_long_only"
             ).withStyle(ChatFormatting.GRAY));
         }
 

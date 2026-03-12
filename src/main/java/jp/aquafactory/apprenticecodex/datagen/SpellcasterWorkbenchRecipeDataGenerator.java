@@ -85,6 +85,46 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                         ),
                         List.of(result(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(), 6)),
                         0
+                ),
+                recipe(
+                        "advanced_spellcaster_round",
+                        List.of(
+                                ingredient(Items.AMETHYST_SHARD, 1),
+                                ingredient(Items.GOLD_INGOT, 1),
+                                ingredient(Items.GUNPOWDER, 1)
+                        ),
+                        List.of(result(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(), 12)),
+                        1
+                ),
+                recipe(
+                        "spell_dominator_round",
+                        List.of(
+                                ingredient(Items.AMETHYST_SHARD, 1),
+                                ingredient(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(), 1),
+                                ingredient(Items.GUNPOWDER, 1)
+                        ),
+                        List.of(result(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), 8)),
+                        1
+                ),
+                recipe(
+                        "advanced_spellcaster_round_recycle",
+                        List.of(
+                                ingredient(Items.AMETHYST_SHARD, 1),
+                                ingredient(ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(), 8),
+                                ingredient(Items.GUNPOWDER, 1)
+                        ),
+                        List.of(result(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(), 8)),
+                        0
+                ),
+                recipe(
+                        "spell_dominator_round_recycle",
+                        List.of(
+                                ingredient(Items.AMETHYST_SHARD, 1),
+                                ingredient(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(), 6),
+                                ingredient(Items.GUNPOWDER, 1)
+                        ),
+                        List.of(result(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), 6)),
+                        0
                 )
         );
 
