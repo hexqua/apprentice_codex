@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.player.ClientSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
@@ -10,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.UUID;
@@ -52,6 +55,35 @@ public abstract class ClientSpellCastHelperMixin {
         ci.cancel();
     }
 
+    // 0tick に短縮した LONG は開始直後に終了パケットも飛ぶため、元 spell の Finish をそのまま使うと二重モーションになる。
+    @Redirect(
+            method = "handleClientBoundOnCastFinished",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lio/redspace/ironsspellbooks/api/spells/AbstractSpell;getCastFinishAnimation()Lio/redspace/ironsspellbooks/api/util/AnimationHolder;"
+            )
+    )
+    private static AnimationHolder redirectSpellGunCastFinishAnimation(AbstractSpell spell, UUID castingEntityId, String spellId, boolean cancelled) {
+        var minecraft = Minecraft.getInstance();
+        if (minecraft.level == null) {
+            return spell.getCastFinishAnimation();
+        }
+
+        var player = minecraft.level.getPlayerByUUID(castingEntityId);
+        if (player == null) {
+            return spell.getCastFinishAnimation();
+        }
+
+        var castingStack = resolveSpellGunAnimationStack(player, spell);
+        if (!(castingStack.getItem() instanceof AbstractSpellGunItem spellGunItem)) {
+            return spell.getCastFinishAnimation();
+        }
+
+        return spellGunItem.shouldSuppressSpellGunCastFinishAnimation(castingStack, spell)
+                ? AnimationHolder.pass()
+                : spell.getCastFinishAnimation();
+    }
+
     private static ItemStack resolveCastingStack(net.minecraft.world.entity.player.Player player, String castingSlot) {
         if (SpellSelectionManager.MAINHAND.equals(castingSlot)) {
             return player.getMainHandItem();
@@ -59,6 +91,24 @@ public abstract class ClientSpellCastHelperMixin {
         if (SpellSelectionManager.OFFHAND.equals(castingSlot)) {
             return player.getOffhandItem();
         }
+        return ItemStack.EMPTY;
+    }
+
+    private static ItemStack resolveSpellGunAnimationStack(net.minecraft.world.entity.player.Player player, AbstractSpell spell) {
+        var mainHand = player.getMainHandItem();
+        if (mainHand.getItem() instanceof AbstractSpellGunItem spellGunItem
+                && (spellGunItem.shouldOverrideSpellGunCastStartAnimation(mainHand, spell)
+                || spellGunItem.shouldSuppressSpellGunCastFinishAnimation(mainHand, spell))) {
+            return mainHand;
+        }
+
+        var offHand = player.getOffhandItem();
+        if (offHand.getItem() instanceof AbstractSpellGunItem spellGunItem
+                && (spellGunItem.shouldOverrideSpellGunCastStartAnimation(offHand, spell)
+                || spellGunItem.shouldSuppressSpellGunCastFinishAnimation(offHand, spell))) {
+            return offHand;
+        }
+
         return ItemStack.EMPTY;
     }
 }

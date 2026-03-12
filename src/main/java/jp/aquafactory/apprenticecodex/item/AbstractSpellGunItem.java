@@ -233,19 +233,19 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     public boolean shouldOverrideSpellGunCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
-        if (spell == null || spell.getCastType() != CastType.INSTANT) {
+        if (!matchesSpellGunAnimationOverrideSpell(stack, spell)) {
             return false;
         }
 
-        var spellData = getPrimarySpellData(stack);
-        if (spellData != null) {
-            return spellData.getSpell().equals(spell);
-        }
-        return startsWithPresetSpell && configuredSpell != null && configuredSpell.get().equals(spell);
+        return spell.getCastType() == CastType.INSTANT || isZeroTickLongCastAnimationOverride(spell);
     }
 
     public AnimationHolder getSpellGunCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel) {
         return SpellAnimations.ANIMATION_INSTANT_CAST;
+    }
+
+    public boolean shouldSuppressSpellGunCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return matchesSpellGunAnimationOverrideSpell(stack, spell) && isZeroTickLongCastAnimationOverride(spell);
     }
 
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
@@ -266,6 +266,26 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Nullable
     private Integer getOverriddenLongCastTicks() {
         return spellGunConfig.overriddenLongCastDurationTicks();
+    }
+
+    private boolean matchesSpellGunAnimationOverrideSpell(ItemStack stack, @Nullable AbstractSpell spell) {
+        if (spell == null) {
+            return false;
+        }
+
+        var spellData = getPrimarySpellData(stack);
+        if (spellData != null) {
+            return spellData.getSpell().equals(spell);
+        }
+
+        return startsWithPresetSpell && configuredSpell != null && configuredSpell.get().equals(spell);
+    }
+
+    private boolean isZeroTickLongCastAnimationOverride(AbstractSpell spell) {
+        return spell.getCastType() == CastType.LONG
+                && spellGunConfig.supports(SpellGunCastType.LONG)
+                && spellGunConfig.overriddenLongCastDurationTicks() != null
+                && spellGunConfig.overriddenLongCastDurationTicks() <= 0;
     }
 
     private boolean passesImbueConditions(AbstractSpell spell, int spellLevel) {
