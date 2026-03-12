@@ -55,7 +55,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SCARLET_THIRST.get(),
                 ItemRegistry.CRAFTSMANS_DELIGHT.get()
         );
-        tag(CURIOS_BELT).add(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get());
+        tag(CURIOS_BELT).add(
+                ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(),
+                ItemRegistry.SPELLCASTER_AMMO_POUCH.get()
+        );
         tag(CURIOS_NECKLACE).add(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
 
         // 魔法召喚武器はアイテムとして性能を持たずダミーにしか使っていないため、JEIでも表示しないようにする.

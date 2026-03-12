@@ -23,6 +23,7 @@
   "item.apprenticecodex.craftsmans_delight": "職人の歓喜",
   "item.apprenticecodex.protection_spell_supporter": "保護術式補助具",
   "item.apprenticecodex.absorption_amplify_amulet": "衝撃吸収増強のネックレス",
+  "item.apprenticecodex.spellcaster_ammo_pouch": "詠唱者の弾薬ポーチ",
   "item.apprenticecodex.ender_grimoire": "エンダーグリモア",
   "item.apprenticecodex.explorers_codex": "探索者の写本",
   "item.apprenticecodex.grimoire_manifest": "グリモア目録",
@@ -71,6 +72,8 @@
   "item.apprenticecodex.absorption_amplify_amulet.desc_1": "マナを消費して衝撃吸収のシールドを強化した上で一定値まで自動回復する。",
   "item.apprenticecodex.absorption_amplify_amulet.desc_2": "回復量の値は聖魔法の強さによって強化される。",
   "item.apprenticecodex.absorption_amplify_amulet.desc_3": "このアクセサリを外すと反動で全ての衝撃吸収のシールドを失う。",
+  "item.apprenticecodex.spellcaster_ammo_pouch.desc_1": "空薬莢が戻って来る確率が上昇する。",
+  "item.apprenticecodex.spellcaster_ammo_pouch.desc_2": "装備をしていなくても弾薬を収納/自動使用することは可能。",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "生成には時間がかかり、壊すと中のエッセンスの一部が失われる。",
