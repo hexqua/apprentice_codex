@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
@@ -23,6 +24,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRendere
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingRenderer;
@@ -59,11 +61,12 @@ import net.minecraft.client.renderer.RenderType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
-import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
 import java.util.concurrent.CompletableFuture;
@@ -79,6 +82,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::registerParticleProviders);
         modEventBus.addListener(ClientModBusEvents::registerClientExtensions);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
+        modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
@@ -167,6 +171,10 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+    }
+
+    private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(SpellcasterAmmoPouchTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
