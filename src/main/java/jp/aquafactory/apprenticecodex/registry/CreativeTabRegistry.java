@@ -39,6 +39,10 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get());
         output.accept(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get());
         output.accept(ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get());
+        output.accept(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get());
+        output.accept(ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get());
+        output.accept(ItemRegistry.SPELL_DOMINATOR_ROUND.get());
+        output.accept(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get());
         output.accept(ItemRegistry.IRON_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.COPPER_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.GOLD_SPELLCASTER_GUN.get());
@@ -59,6 +63,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
         output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
+        output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
         addSpellScrollsToTab(output);
     }
 
