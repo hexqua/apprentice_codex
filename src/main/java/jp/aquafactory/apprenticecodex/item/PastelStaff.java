@@ -97,46 +97,10 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
 
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
-        var baseModifiers = super.getDefaultAttributeModifiers(stack);
-        var builder = ItemAttributeModifiers.builder();
-
-        for (var entry : baseModifiers.modifiers()) {
-            var idPath = entry.modifier().id().getPath();
-            if (!idPath.startsWith(AFFINITY_MODIFIER_PATH_PREFIX)
-                    && !entry.modifier().id().equals(BASE_SPELL_POWER_MODIFIER_ID)) {
-                builder.add(entry.attribute(), entry.modifier(), entry.slot());
-            }
-        }
-
-        builder.add(
-                AttributeRegistry.SPELL_POWER,
-                new AttributeModifier(
-                        BASE_SPELL_POWER_MODIFIER_ID,
-                        BASE_STAFF_SPELL_POWER_BONUS,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                ),
-                EquipmentSlotGroup.MAINHAND
+        return buildAttributeModifiers(
+                stack,
+                stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY)
         );
-
-        var schoolType = readStoneAffinitySchool(stack);
-        if (schoolType != null) {
-            var powerAttribute = MagicTools.resolveSchoolPowerAttribute(schoolType);
-            if (powerAttribute != null) {
-                var schoolId = schoolType.getId();
-                var affinitySpellPowerBonus = ApprenticeCodexServerConfig.pastelStaffAmplifyTintedMagicMultiplier();
-                builder.add(
-                        BuiltInRegistries.ATTRIBUTE.wrapAsHolder(powerAttribute),
-                        new AttributeModifier(
-                                createAffinityModifierId(schoolId),
-                                affinitySpellPowerBonus,
-                                AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                        ),
-                        EquipmentSlotGroup.MAINHAND
-                );
-            }
-        }
-
-        return builder.build();
     }
 
     @Override
@@ -246,6 +210,51 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
                 "apprenticecodex",
                 AFFINITY_MODIFIER_PATH_PREFIX + schoolId.getNamespace() + "_" + schoolId.getPath()
         );
+    }
+
+    public static ItemAttributeModifiers buildAttributeModifiers(ItemStack stack, ItemAttributeModifiers baseModifiers) {
+        var builder = ItemAttributeModifiers.builder();
+
+        for (var entry : baseModifiers.modifiers()) {
+            var idPath = entry.modifier().id().getPath();
+            if (!idPath.startsWith(AFFINITY_MODIFIER_PATH_PREFIX)
+                    && !entry.modifier().id().equals(BASE_SPELL_POWER_MODIFIER_ID)) {
+                builder.add(entry.attribute(), entry.modifier(), entry.slot());
+            }
+        }
+
+        builder.add(
+                AttributeRegistry.SPELL_POWER,
+                new AttributeModifier(
+                        BASE_SPELL_POWER_MODIFIER_ID,
+                        BASE_STAFF_SPELL_POWER_BONUS,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ),
+                EquipmentSlotGroup.MAINHAND
+        );
+
+        var schoolType = readStoneAffinitySchool(stack);
+        if (schoolType == null) {
+            return builder.build();
+        }
+
+        var powerAttribute = MagicTools.resolveSchoolPowerAttribute(schoolType);
+        if (powerAttribute == null) {
+            return builder.build();
+        }
+
+        var schoolId = schoolType.getId();
+        var affinitySpellPowerBonus = ApprenticeCodexServerConfig.pastelStaffAmplifyTintedMagicMultiplier();
+        builder.add(
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(powerAttribute),
+                new AttributeModifier(
+                        createAffinityModifierId(schoolId),
+                        affinitySpellPowerBonus,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ),
+                EquipmentSlotGroup.MAINHAND
+        );
+        return builder.build();
     }
 
     @Override
