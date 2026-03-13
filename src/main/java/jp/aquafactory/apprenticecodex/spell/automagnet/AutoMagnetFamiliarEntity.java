@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.automagnet;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -14,6 +15,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.Vec3;
@@ -43,6 +46,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private double orbitOffset;
     private double pickupRange;
+    private double collectMana;
 
     public AutoMagnetFamiliarEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -50,12 +54,13 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         noPhysics = true;
     }
 
-    public AutoMagnetFamiliarEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner, double pickupRange) {
+    public AutoMagnetFamiliarEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner, double pickupRange, double collectMana) {
         super(pEntityType, pLevel, owner);
         setNoGravity(true);
         noPhysics = true;
         orbitOffset = pLevel.random.nextDouble() * (Math.PI * 2.0);
         this.pickupRange = Math.max(MIN_PICKUP_RANGE, pickupRange);
+        this.collectMana = Math.max(0.0, collectMana);
         setStandbyPosition(owner);
     }
 
@@ -69,6 +74,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         super.readAdditionalSaveData(pCompound);
         orbitOffset = pCompound.contains("OrbitOffset") ? pCompound.getDouble("OrbitOffset") : 0.0;
         pickupRange = pCompound.contains("PickupRange") ? pCompound.getDouble("PickupRange") : MIN_PICKUP_RANGE;
+        collectMana = pCompound.contains("CollectMana") ? pCompound.getDouble("CollectMana") : 0.0;
     }
 
     @Override
@@ -76,6 +82,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         super.addAdditionalSaveData(pCompound);
         pCompound.putDouble("OrbitOffset", orbitOffset);
         pCompound.putDouble("PickupRange", pickupRange);
+        pCompound.putDouble("CollectMana", collectMana);
     }
 
     @Override
@@ -198,7 +205,11 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         var area = owner.getBoundingBox().inflate(pickupRange);
 
         for (var item : level.getEntitiesOfClass(ItemEntity.class, area, e -> canCollectItem(e, owner, ownerPos, rangeSq))) {
+            if (!tryConsumeCollectMana(owner, item)) {
+                continue;
+            }
             moveEntityToOwnerFeet(item, ownerFeet);
+            item.setNoPickUpDelay();
             playItemTransferSoundOnce(level, item);
         }
 
@@ -214,7 +225,13 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         if (item.position().distanceToSqr(ownerPos) > rangeSq) {
             return false;
         }
-        return !isRecentOwnerDrop(item, owner);
+        if (isRecentOwnerDrop(item, owner)) {
+            return false;
+        }
+        if (owner instanceof Player player) {
+            return canFitInNormalInventory(player, item.getItem());
+        }
+        return true;
     }
 
     private static boolean canCollectOrb(ExperienceOrb orb, Vec3 ownerPos, double rangeSq) {
@@ -228,6 +245,44 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
 
         var thrower = getThrowerUuid(item);
         return thrower != null && thrower.equals(owner.getUUID());
+    }
+
+    private static boolean canFitInNormalInventory(Player player, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+
+        // 拡張インベントリは考慮しない(際限がないため)
+        for (var inventoryStack : player.getInventory().items) {
+            if (inventoryStack.isEmpty()) {
+                return true;
+            }
+            if (!ItemStack.isSameItemSameComponents(inventoryStack, stack)) {
+                continue;
+            }
+            if (inventoryStack.getCount() < inventoryStack.getMaxStackSize()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean tryConsumeCollectMana(LivingEntity owner, ItemEntity item) {
+        if (item.getPersistentData().getBoolean(ITEM_TRANSFER_SOUND_PLAYED_TAG)) {
+            return true;
+        }
+
+        if (collectMana <= 0.0) {
+            return true;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(owner);
+        if (magicData == null || magicData.getMana() < collectMana) {
+            return false;
+        }
+
+        magicData.setMana(Math.max(0f, magicData.getMana() - (float) collectMana));
+        return true;
     }
 
     private static void moveEntityToOwnerFeet(Entity target, Vec3 ownerFeet) {
