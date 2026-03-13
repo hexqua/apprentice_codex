@@ -8,6 +8,9 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -46,6 +49,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
                 recipe(Items.GLOWSTONE, result(Items.GLOWSTONE_DUST, 4)),
                 recipe(Items.NETHER_WART_BLOCK, result(Items.NETHER_WART, 1)),
                 recipe(Items.SUGAR_CANE, result(Items.SUGAR, 2)),
+                recipe(ItemTags.WOOL, result(Items.STRING, 4)),
                 recipe(Items.STONE, result(Items.COBBLESTONE, 1)),
                 recipe(Items.COBBLESTONE, result(Items.GRAVEL, 1)),
                 recipe(Items.GRAVEL, result(Items.SAND, 1)),
@@ -80,17 +84,17 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
 
         var id = ResourceLocation.fromNamespaceAndPath(
                 ApprenticeCodex.MODID,
-                recipeIdPath(recipe.ingredientItem(), results.get(0).item())
+                recipeIdPath(recipe.ingredient(), results.get(0).item())
         );
         return DataProvider.saveStable(
                 cachedOutput,
-                createRecipeJson(recipe.ingredientItem(), recipe.allowUnstackableAndTaggedInput(), results),
+                createRecipeJson(recipe.ingredient(), recipe.allowUnstackableAndTaggedInput(), results),
                 pathProvider.json(id)
         );
     }
 
-    private static String recipeIdPath(ItemLike ingredientItem, ItemLike resultItem) {
-        return itemPath(resultItem) + "_from_" + itemPath(ingredientItem);
+    private static String recipeIdPath(IngredientDefinition ingredient, ItemLike resultItem) {
+        return itemPath(resultItem) + "_from_" + ingredient.recipeIdPath();
     }
 
     private static String itemPath(ItemLike item) {
@@ -106,7 +110,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
     }
 
     private static JsonObject createRecipeJson(
-            ItemLike ingredientItem,
+            IngredientDefinition ingredient,
             boolean allowUnstackableAndTaggedInput,
             List<RecipeResult> results
     ) {
@@ -116,10 +120,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
 
         var json = new JsonObject();
         json.addProperty("type", RECIPE_TYPE);
-
-        var ingredient = new JsonObject();
-        ingredient.addProperty("item", itemId(ingredientItem));
-        json.add("ingredient", ingredient);
+        json.add("ingredient", ingredient.toJson());
 
         if (allowUnstackableAndTaggedInput) {
             json.addProperty(ALLOW_UNSTACKABLE_AND_TAGGED_INPUT, true);
@@ -140,7 +141,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
             ItemLike ingredientItem,
             RecipeResult... results
     ) {
-        return new RecipeDefinition(ingredientItem, false, List.of(results));
+        return new RecipeDefinition(ingredient(ingredientItem), false, List.of(results));
     }
 
     private static RecipeDefinition recipe(
@@ -148,11 +149,34 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
             boolean allowUnstackableAndTaggedInput,
             RecipeResult... results
     ) {
-        return new RecipeDefinition(ingredientItem, allowUnstackableAndTaggedInput, List.of(results));
+        return new RecipeDefinition(ingredient(ingredientItem), allowUnstackableAndTaggedInput, List.of(results));
+    }
+
+    private static RecipeDefinition recipe(
+            TagKey<Item> ingredientTag,
+            RecipeResult... results
+    ) {
+        return new RecipeDefinition(ingredient(ingredientTag), false, List.of(results));
+    }
+
+    private static RecipeDefinition recipe(
+            TagKey<Item> ingredientTag,
+            boolean allowUnstackableAndTaggedInput,
+            RecipeResult... results
+    ) {
+        return new RecipeDefinition(ingredient(ingredientTag), allowUnstackableAndTaggedInput, List.of(results));
     }
 
     private static RecipeResult result(ItemLike item, int count) {
         return new RecipeResult(item, count);
+    }
+
+    private static IngredientDefinition ingredient(ItemLike item) {
+        return new IngredientDefinition(itemPath(item), "item", itemId(item));
+    }
+
+    private static IngredientDefinition ingredient(TagKey<Item> tag) {
+        return new IngredientDefinition(tagPath(tag) + "_tag", "tag", tag.location().toString());
     }
 
     private static String itemId(ItemLike item) {
@@ -161,6 +185,15 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
             return id.toString();
         }
         return "unknown";
+    }
+
+    private static String tagPath(TagKey<Item> tag) {
+        var id = tag.location();
+        var path = id.getPath().replace('/', '_');
+        if ("minecraft".equals(id.getNamespace())) {
+            return path;
+        }
+        return id.getNamespace() + "_" + path;
     }
 
     @Override
@@ -175,9 +208,21 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
     }
 
     private record RecipeDefinition(
-            ItemLike ingredientItem,
+            IngredientDefinition ingredient,
             boolean allowUnstackableAndTaggedInput,
             List<RecipeResult> results
     ) {
+    }
+
+    private record IngredientDefinition(
+            String recipeIdPath,
+            String ingredientKey,
+            String ingredientValue
+    ) {
+        private JsonObject toJson() {
+            var json = new JsonObject();
+            json.addProperty(ingredientKey, ingredientValue);
+            return json;
+        }
     }
 }
