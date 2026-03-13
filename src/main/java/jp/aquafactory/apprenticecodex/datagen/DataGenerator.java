@@ -1,6 +1,11 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.datagen.recipe.EssenceSmokerRecipeDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.recipe.GrindRunnerRecipeDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.recipe.SpellcasterWorkbenchRecipeDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.SenseEvilHighlightDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.SpellGunSpellListDataGenerator;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.AdvancementProvider;
