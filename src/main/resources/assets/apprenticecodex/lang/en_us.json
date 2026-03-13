@@ -175,6 +175,7 @@
   "enchantment.apprenticecodex.surge": "Surge",
   "enchantment.apprenticecodex.attunement": "Attunement",
   "enchantment.apprenticecodex.transcendence": "Transcendence",
+  "enchantment.apprenticecodex.wisdom": "Wisdom",
 
   "enchantment.apprenticecodex.reflux.desc": "Increases mana regeneration rate.",
   "enchantment.apprenticecodex.reservoir.desc": "Increases maximum mana.",
@@ -183,6 +184,7 @@
   "enchantment.apprenticecodex.surge.desc": "Increases spell power for all elements.",
   "enchantment.apprenticecodex.attunement.desc": "Increases spell power for the imbued element.",
   "enchantment.apprenticecodex.transcendence.desc": "Only while held, increases the level of the imbued spell.",
+  "enchantment.apprenticecodex.wisdom.desc": "Mobs will drop more experience when killed.",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and keeps firing until it runs out of shots, prioritizing your chosen target or nearby enemies.",
