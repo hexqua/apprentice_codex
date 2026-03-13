@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "minecraft:nether_wart_block"
+  },
+  "results": [
+    {
+      "count": 1,
+      "item": "minecraft:nether_wart"
+    }
+  ]
+}
