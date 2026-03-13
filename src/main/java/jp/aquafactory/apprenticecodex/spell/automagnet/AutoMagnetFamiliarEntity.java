@@ -14,6 +14,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.Vec3;
@@ -215,7 +217,13 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         if (item.position().distanceToSqr(ownerPos) > rangeSq) {
             return false;
         }
-        return !isRecentOwnerDrop(item, owner);
+        if (isRecentOwnerDrop(item, owner)) {
+            return false;
+        }
+        if (owner instanceof Player player) {
+            return canFitInNormalInventory(player, item.getItem());
+        }
+        return true;
     }
 
     private static boolean canCollectOrb(ExperienceOrb orb, Vec3 ownerPos, double rangeSq) {
@@ -229,6 +237,26 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
 
         var thrower = getThrowerUuid(item);
         return thrower != null && thrower.equals(owner.getUUID());
+    }
+
+    private static boolean canFitInNormalInventory(Player player, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+
+        // 拡張インベントリは考慮しない(際限がないため)
+        for (var inventoryStack : player.getInventory().items) {
+            if (inventoryStack.isEmpty()) {
+                return true;
+            }
+            if (!ItemStack.isSameItemSameTags(inventoryStack, stack)) {
+                continue;
+            }
+            if (inventoryStack.getCount() < inventoryStack.getMaxStackSize()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void moveEntityToOwnerFeet(Entity target, Vec3 ownerFeet) {
