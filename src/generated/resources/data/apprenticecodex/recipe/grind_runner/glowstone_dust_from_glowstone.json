@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "minecraft:glowstone"
+  },
+  "results": [
+    {
+      "count": 4,
+      "id": "minecraft:glowstone_dust"
+    }
+  ]
+}

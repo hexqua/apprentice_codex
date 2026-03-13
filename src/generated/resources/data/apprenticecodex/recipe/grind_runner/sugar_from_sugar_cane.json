@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "minecraft:sugar_cane"
+  },
+  "results": [
+    {
+      "count": 2,
+      "id": "minecraft:sugar"
+    }
+  ]
+}
