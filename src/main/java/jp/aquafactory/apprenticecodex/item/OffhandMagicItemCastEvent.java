@@ -11,6 +11,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.bus.api.EventPriority;
@@ -100,7 +101,9 @@ public final class OffhandMagicItemCastEvent {
             return true;
         }
 
-        return hasUseOverride(item);
+        // ブロック設置のような `useOn` 系アイテムは、視線先に対象がなくても
+        // メインハンド操作を優先してオフハンド魔法の誤発動を防ぐ。
+        return hasUseOverride(item) || hasUseOnOverride(item);
     }
 
     private static boolean isRightClickSpellItem(ItemStack stack) {
@@ -119,12 +122,28 @@ public final class OffhandMagicItemCastEvent {
         return ITEM_USE_OVERRIDE_CACHE.get(item.getClass());
     }
 
+    private static boolean hasUseOnOverride(Item item) {
+        return ITEM_USE_ON_OVERRIDE_CACHE.get(item.getClass());
+    }
+
     private static final ClassValue<Boolean> ITEM_USE_OVERRIDE_CACHE = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> itemClass) {
             try {
                 var useMethod = itemClass.getMethod("use", Level.class, Player.class, InteractionHand.class);
                 return useMethod.getDeclaringClass() != Item.class;
+            } catch (NoSuchMethodException ignored) {
+                return false;
+            }
+        }
+    };
+
+    private static final ClassValue<Boolean> ITEM_USE_ON_OVERRIDE_CACHE = new ClassValue<>() {
+        @Override
+        protected Boolean computeValue(Class<?> itemClass) {
+            try {
+                var useOnMethod = itemClass.getMethod("useOn", UseOnContext.class);
+                return useOnMethod.getDeclaringClass() != Item.class;
             } catch (NoSuchMethodException ignored) {
                 return false;
             }
