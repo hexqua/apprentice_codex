@@ -25,6 +25,7 @@ public final class Enchantments {
     public static final ResourceKey<Enchantment> ATTUNEMENT = key("attunement");
     public static final ResourceKey<Enchantment> TRANSCENDENCE = key("transcendence");
     public static final ResourceKey<Enchantment> WISDOM = key("wisdom");
+    public static final ResourceKey<Enchantment> PLUNDER = key("plunder");
 
     public static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = itemTag("magic_item_enchantable");
     public static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = itemTag("offhand_magic_enchantable");
@@ -210,6 +211,23 @@ public final class Enchantments {
         register(
                 context,
                 WISDOM,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        spellGunItems,
+                                        spellGunItems,
+                                        2,
+                                        3,
+                                        Enchantment.dynamicCost(15, 9),
+                                        Enchantment.dynamicCost(65, 9),
+                                        2,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
+        );
+
+        register(
+                context,
+                PLUNDER,
                 Enchantment.enchantment(
                                 Enchantment.definition(
                                         spellGunItems,
