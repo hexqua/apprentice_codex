@@ -26,9 +26,9 @@ import java.util.function.Consumer;
 public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.LONG),
-            20 * 30,
+            20 * 20,
             true,
-            40,
+            80,
             0
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
