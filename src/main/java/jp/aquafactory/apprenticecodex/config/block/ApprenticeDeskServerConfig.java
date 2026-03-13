@@ -1,10 +1,10 @@
-package jp.aquafactory.apprenticecodex.config;
+package jp.aquafactory.apprenticecodex.config.block;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 
-final class ApprenticeDeskServerConfig {
+public final class ApprenticeDeskServerConfig {
     private final ModConfigSpec.BooleanValue enableSpellCraftBlacklist;
     private final ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist;
     private final ModConfigSpec.BooleanValue requireSameSchool;
@@ -22,7 +22,7 @@ final class ApprenticeDeskServerConfig {
         this.disableCommonRarityConversion = disableCommonRarityConversion;
     }
 
-    static ApprenticeDeskServerConfig define(ModConfigSpec.Builder builder) {
+    public static ApprenticeDeskServerConfig define(ModConfigSpec.Builder builder) {
         builder.comment("spellCraftBlacklist : \"modid:spell_id\"(example: \"irons_spellbooks:black_hole\")")
                 .push("ApprenticeDesk");
 
@@ -41,21 +41,21 @@ final class ApprenticeDeskServerConfig {
         );
     }
 
-    boolean enableSpellCraftBlacklist() {
+    public boolean enableSpellCraftBlacklist() {
         return enableSpellCraftBlacklist.get();
     }
 
-    List<String> spellCraftBlacklist() {
+    public List<String> spellCraftBlacklist() {
         return spellCraftBlacklist.get().stream()
                 .map(String::valueOf)
                 .toList();
     }
 
-    boolean requireSameSchool() {
+    public boolean requireSameSchool() {
         return requireSameSchool.get();
     }
 
-    boolean disableCommonRarityConversion() {
+    public boolean disableCommonRarityConversion() {
         return disableCommonRarityConversion.get();
     }
 }

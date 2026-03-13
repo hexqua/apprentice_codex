@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.datagen;
+package jp.aquafactory.apprenticecodex.datagen.recipe;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

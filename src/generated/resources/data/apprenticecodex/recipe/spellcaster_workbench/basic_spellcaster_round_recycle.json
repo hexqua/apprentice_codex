@@ -8,7 +8,7 @@
       }
     },
     {
-      "count": 8,
+      "count": 12,
       "ingredient": {
         "item": "apprenticecodex:empty_basic_spellcaster_casing"
       }
@@ -23,7 +23,7 @@
   "priority": 0,
   "results": [
     {
-      "count": 8,
+      "count": 12,
       "id": "apprenticecodex:basic_spellcaster_round"
     }
   ]

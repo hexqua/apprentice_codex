@@ -1,7 +1,8 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import jp.aquafactory.apprenticecodex.config.item.ArcanumInAJarServerConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import jp.aquafactory.apprenticecodex.config.block.ApprenticeDeskServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 
 final class BlocksServerConfig {
     private final ApprenticeDeskServerConfig apprenticeDeskConfig;
