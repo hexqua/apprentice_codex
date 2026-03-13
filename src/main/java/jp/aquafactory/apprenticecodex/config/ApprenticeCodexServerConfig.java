@@ -92,4 +92,8 @@ public final class ApprenticeCodexServerConfig {
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
     }
+
+    public static boolean autoMagnetDisableCollectManaCost() {
+        return SPELLS_CONFIG.autoMagnetDisableCollectManaCost();
+    }
 }

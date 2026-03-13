@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -39,12 +40,21 @@ public class AutoMagnet extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1)),
+                Component.translatable("ui.apprenticecodex.collect_cost_mana", (int) getCollectMana(spellLevel, caster))
         );
     }
 
     private double getRange(int spellLevel, LivingEntity caster){
         return 8 * getSpellPower(spellLevel, caster) / 100.0;
+    }
+
+    public double getCollectMana(int spellLevel, LivingEntity caster){
+        if (ApprenticeCodexServerConfig.autoMagnetDisableCollectManaCost()) {
+            return 0.0;
+        }
+
+        return Math.round(Math.max(0, 12 - getSpellPower(spellLevel, caster) / 50.0f));
     }
 
     @Override
@@ -75,7 +85,7 @@ public class AutoMagnet extends AbstractSpell {
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide && entity instanceof ServerPlayer serverPlayer) {
-            AutoMagnetFamiliarManager.toggle(serverPlayer, getRange(spellLevel, entity));
+            AutoMagnetFamiliarManager.toggle(serverPlayer, getRange(spellLevel, entity), getCollectMana(spellLevel, entity));
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);

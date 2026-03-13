@@ -16,7 +16,7 @@ public final class AutoMagnetFamiliarManager {
     private AutoMagnetFamiliarManager() {
     }
 
-    public static void toggle(ServerPlayer player, double summonRange) {
+    public static void toggle(ServerPlayer player, double summonRange, double collectMana) {
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
             return;
@@ -28,23 +28,25 @@ public final class AutoMagnetFamiliarManager {
             return;
         }
 
-        activate(player, summonRange);
+        activate(player, summonRange, collectMana);
     }
 
-    public static void activate(ServerPlayer player, double summonRange) {
+    public static void activate(ServerPlayer player, double summonRange, double collectMana) {
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
             return;
         }
 
         var fixedRange = Math.max(MIN_RANGE, summonRange);
+        var fixedCollectMana = Math.max(0.0, collectMana);
         var state = spellData.get(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE);
         var current = findByUuid(player.server, state.getFamiliarUuid());
         if (isValidForOwner(current, player)) {
-            if (!state.active || state.range != fixedRange) {
+            if (!state.active || state.range != fixedRange || state.collectMana != fixedCollectMana) {
                 spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> {
                     s.active = true;
                     s.range = fixedRange;
+                    s.collectMana = fixedCollectMana;
                 });
             }
             return;
@@ -54,10 +56,11 @@ public final class AutoMagnetFamiliarManager {
             current.discard();
         }
 
-        var spawned = spawn(player, fixedRange);
+        var spawned = spawn(player, fixedRange, fixedCollectMana);
         spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> {
             s.active = true;
             s.range = fixedRange;
+            s.collectMana = fixedCollectMana;
             s.setFamiliarUuid(spawned.getUUID());
         });
     }
@@ -81,6 +84,7 @@ public final class AutoMagnetFamiliarManager {
         spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> {
             s.active = false;
             s.range = 0.0;
+            s.collectMana = 0.0;
             s.setFamiliarUuid(null);
         });
     }
@@ -114,6 +118,7 @@ public final class AutoMagnetFamiliarManager {
         }
 
         var fixedRange = state.range > 0.0 ? state.range : DEFAULT_RANGE;
+        var fixedCollectMana = Math.max(0.0, state.collectMana);
         var familiar = findByUuid(player.server, state.getFamiliarUuid());
         if (isValidForOwner(familiar, player)) {
             return;
@@ -123,16 +128,17 @@ public final class AutoMagnetFamiliarManager {
             familiar.discard();
         }
 
-        var spawned = spawn(player, fixedRange);
+        var spawned = spawn(player, fixedRange, fixedCollectMana);
         spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> {
             s.range = fixedRange;
+            s.collectMana = fixedCollectMana;
             s.setFamiliarUuid(spawned.getUUID());
         });
     }
 
-    private static AutoMagnetFamiliarEntity spawn(ServerPlayer player, double range) {
+    private static AutoMagnetFamiliarEntity spawn(ServerPlayer player, double range, double collectMana) {
         var level = player.serverLevel();
-        var familiar = new AutoMagnetFamiliarEntity(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), level, player, range);
+        var familiar = new AutoMagnetFamiliarEntity(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), level, player, range, collectMana);
         level.addFreshEntity(familiar);
         return familiar;
     }
