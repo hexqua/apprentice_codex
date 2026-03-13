@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.datagen;
+package jp.aquafactory.apprenticecodex.datagen.recipe;
 
 import com.google.gson.JsonObject;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
@@ -8,7 +8,6 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.PackOutput.PathProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;

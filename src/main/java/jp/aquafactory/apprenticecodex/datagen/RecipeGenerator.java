@@ -262,26 +262,6 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.GUNPOWDER), has(Items.GUNPOWDER))
                 .save(recipeWriter);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.BASIC_SPELLCASTER_ROUND.get(), 8)
-                .pattern("A")
-                .pattern("I")
-                .pattern("G")
-                .define('A', Items.AMETHYST_SHARD)
-                .define('I', Items.IRON_INGOT)
-                .define('G', Items.GUNPOWDER)
-                .unlockedBy(getHasName(Items.GUNPOWDER), has(Items.GUNPOWDER))
-                .save(recipeWriter);
-
-        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(), 6)
-                .pattern("A")
-                .pattern("R")
-                .pattern("G")
-                .define('A', Items.AMETHYST_SHARD)
-                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
-                .define('G', Items.GUNPOWDER)
-                .unlockedBy(getHasName(Items.GUNPOWDER), has(Items.GUNPOWDER))
-                .save(recipeWriter);
-
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_HELMET.get()),

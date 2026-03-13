@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import jp.aquafactory.apprenticecodex.config.item.ArcanumInAJarServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.ApprenticeDeskServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 final class BlocksServerConfig {
