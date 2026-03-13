@@ -19,4 +19,8 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedSpellGunItem(Item item) {
         return item instanceof AbstractSpellGunItem;
     }
+
+    static boolean isSupportedLootingMagicItem(Item item) {
+        return item instanceof AbstractSpellGunItem;
+    }
 }

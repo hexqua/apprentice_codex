@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.AlacrityEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.AttunementEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.PlunderEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.RefluxEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.ReservoirEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.SurgeEnchantment;
@@ -37,6 +38,8 @@ public final class EnchantmentRegistry {
             ENCHANTMENTS.register("transcendence", TranscendenceEnchantment::new);
     public static final RegistryObject<Enchantment> WISDOM =
             ENCHANTMENTS.register("wisdom", WisdomEnchantment::new);
+    public static final RegistryObject<Enchantment> PLUNDER =
+            ENCHANTMENTS.register("plunder", PlunderEnchantment::new);
 
     public static void register(IEventBus bus) {
         ENCHANTMENTS.register(bus);

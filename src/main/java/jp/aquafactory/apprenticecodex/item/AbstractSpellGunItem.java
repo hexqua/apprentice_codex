@@ -61,8 +61,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
     private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
     private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
-    private static final String VANILLA_NAMESPACE = "minecraft";
-    private static final ResourceLocation LOOTING_ENCHANTMENT_ID = ResourceLocation.withDefaultNamespace("looting");
     public static final float EMPTY_CASING_RETURN_CHANCE = 0.5F;
     private final SpellGunConfig spellGunConfig;
     private final Supplier<? extends AbstractSpell> configuredSpell;
@@ -191,16 +189,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return false;
         }
 
-        // Looting は sword 系カテゴリ前提のため、spell gun 側で候補へ明示追加する。
-        if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-            return LOOTING_ENCHANTMENT_ID.equals(enchantmentId);
-        }
-
         if (!ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
             return false;
         }
 
-        return enchantment.canApplyAtEnchantingTable(stack);
+        return isSupportedSpellGunEnchantment(enchantment);
     }
 
     @Override
@@ -306,6 +299,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     public boolean shouldSuppressSpellGunCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
         return matchesSpellGunAnimationOverrideSpell(stack, spell) && isZeroTickLongCastAnimationOverride(spell);
+    }
+
+    private static boolean isSupportedSpellGunEnchantment(Enchantment enchantment) {
+        return (EnchantmentRegistry.ALACRITY.isPresent() && enchantment == EnchantmentRegistry.ALACRITY.get())
+                || (EnchantmentRegistry.REFLUX.isPresent() && enchantment == EnchantmentRegistry.REFLUX.get())
+                || (EnchantmentRegistry.RESERVOIR.isPresent() && enchantment == EnchantmentRegistry.RESERVOIR.get())
+                || (EnchantmentRegistry.SURGE.isPresent() && enchantment == EnchantmentRegistry.SURGE.get())
+                || (EnchantmentRegistry.ATTUNEMENT.isPresent() && enchantment == EnchantmentRegistry.ATTUNEMENT.get())
+                || (EnchantmentRegistry.TENSE.isPresent() && enchantment == EnchantmentRegistry.TENSE.get())
+                || (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
+                || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
+                || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get());
     }
 
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
