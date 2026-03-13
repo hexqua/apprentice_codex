@@ -99,6 +99,7 @@
   "enchantment.apprenticecodex.surge": "増幅",
   "enchantment.apprenticecodex.attunement": "同調",
   "enchantment.apprenticecodex.transcendence": "超越",
+  "enchantment.apprenticecodex.wisdom": "叡智",
 
   "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
   "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",
@@ -107,6 +108,7 @@
   "enchantment.apprenticecodex.surge.desc": "属性を問わず魔法の力が上昇します。",
   "enchantment.apprenticecodex.attunement.desc": "注入された魔法の属性の魔法の力が上昇します。",
   "enchantment.apprenticecodex.transcendence.desc": "手に持っている時のみ、注入された魔法のレベルが上昇します。",
+  "enchantment.apprenticecodex.wisdom.desc": "Mobからの経験値ドロップを増加させます。",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
