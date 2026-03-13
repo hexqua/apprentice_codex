@@ -199,6 +199,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
 
         for (var item : level.getEntitiesOfClass(ItemEntity.class, area, e -> canCollectItem(e, owner, ownerPos, rangeSq))) {
             moveEntityToOwnerFeet(item, ownerFeet);
+            item.setNoPickUpDelay();
             playItemTransferSoundOnce(level, item);
         }
 
