@@ -257,7 +257,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
             if (inventoryStack.isEmpty()) {
                 return true;
             }
-            if (!ItemStack.isSameItemSameTags(inventoryStack, stack)) {
+            if (!ItemStack.isSameItemSameComponents(inventoryStack, stack)) {
                 continue;
             }
             if (inventoryStack.getCount() < inventoryStack.getMaxStackSize()) {

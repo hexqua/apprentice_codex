@@ -1,15 +1,15 @@
 package jp.aquafactory.apprenticecodex.config.spell;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class AutoMagnetServerConfig {
-    private final ForgeConfigSpec.BooleanValue disableCollectManaCost;
+    private final ModConfigSpec.BooleanValue disableCollectManaCost;
 
-    private AutoMagnetServerConfig(ForgeConfigSpec.BooleanValue disableCollectManaCost) {
+    private AutoMagnetServerConfig(ModConfigSpec.BooleanValue disableCollectManaCost) {
         this.disableCollectManaCost = disableCollectManaCost;
     }
 
-    public static AutoMagnetServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static AutoMagnetServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("AutoMagnet");
 
         var disableCollectManaCost = builder.define("disableCollectManaCost", false);
