@@ -2,12 +2,12 @@
   "type": "apprenticecodex:grind_runner",
   "allow_unstackable_and_tagged_input": true,
   "ingredient": {
-    "item": "irons_spellbooks:silver_ring"
+    "item": "minecraft:iron_shovel"
   },
   "results": [
     {
       "count": 1,
-      "item": "irons_spellbooks:mithril_scrap"
+      "item": "minecraft:iron_ingot"
     }
   ]
 }

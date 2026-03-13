@@ -30,12 +30,22 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
     public @NotNull CompletableFuture<?> run(@NotNull CachedOutput cachedOutput) {
         var recipes = List.of(
                 recipe(Items.STONE_SWORD, true, result(Items.COBBLESTONE, 2)),
+                recipe(Items.STONE_AXE, true, result(Items.COBBLESTONE, 3)),
+                recipe(Items.STONE_SHOVEL, true, result(Items.COBBLESTONE, 1)),
+                recipe(Items.IRON_SWORD, true, result(Items.IRON_INGOT, 2)),
+                recipe(Items.IRON_SHOVEL, true, result(Items.IRON_INGOT, 1)),
+                recipe(Items.IRON_AXE, true, result(Items.IRON_INGOT, 3)),
                 recipe(Items.GOLDEN_SWORD, true, result(Items.GOLD_INGOT, 2)),
                 recipe(Items.GOLDEN_AXE, true, result(Items.GOLD_INGOT, 3)),
+                recipe(Items.GOLDEN_SHOVEL, true, result(Items.GOLD_INGOT, 1)),
                 recipe(Items.BOW, true, result(Items.STRING, 3)),
 
                 recipe(Items.AMETHYST_BLOCK, result(Items.AMETHYST_SHARD, 4)),
                 recipe(Items.BONE, result(Items.BONE_MEAL, 6)),
+                recipe(Items.BLAZE_ROD, result(Items.BLAZE_POWDER, 4)),
+                recipe(Items.GLOWSTONE, result(Items.GLOWSTONE_DUST, 4)),
+                recipe(Items.NETHER_WART_BLOCK, result(Items.NETHER_WART, 1)),
+                recipe(Items.SUGAR_CANE, result(Items.SUGAR, 2)),
                 recipe(Items.STONE, result(Items.COBBLESTONE, 1)),
                 recipe(Items.COBBLESTONE, result(Items.GRAVEL, 1)),
                 recipe(Items.GRAVEL, result(Items.SAND, 1)),
@@ -47,11 +57,11 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
                 recipe(ItemRegistry.EMERALD_STONEPLATE_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(ItemRegistry.VISIBILITY_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(ItemRegistry.CONCENTRATION_AMULET.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.SILVER_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
 
                 recipe(ItemRegistry.FIREWARD_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.CINDER_ESSENCE.get(), 1)),
                 recipe(ItemRegistry.FROSTWARD_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.ICE_CRYSTAL.get(), 1)),
-                recipe(ItemRegistry.POISONWARD_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(Items.POISONOUS_POTATO, 4)),
-                recipe(ItemRegistry.SILVER_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.MITHRIL_INGOT.get(), 1))
+                recipe(ItemRegistry.POISONWARD_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(Items.POISONOUS_POTATO, 1))
         );
 
         return CompletableFuture.allOf(recipes.stream()
