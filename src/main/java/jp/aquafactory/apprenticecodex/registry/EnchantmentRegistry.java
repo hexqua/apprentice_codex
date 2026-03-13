@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.enchantment.ReservoirEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.SurgeEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.TenseEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomEnchantment;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -34,6 +35,8 @@ public final class EnchantmentRegistry {
             ENCHANTMENTS.register("attunement", AttunementEnchantment::new);
     public static final RegistryObject<Enchantment> TRANSCENDENCE =
             ENCHANTMENTS.register("transcendence", TranscendenceEnchantment::new);
+    public static final RegistryObject<Enchantment> WISDOM =
+            ENCHANTMENTS.register("wisdom", WisdomEnchantment::new);
 
     public static void register(IEventBus bus) {
         ENCHANTMENTS.register(bus);
