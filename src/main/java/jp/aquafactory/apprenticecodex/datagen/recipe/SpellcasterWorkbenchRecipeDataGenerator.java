@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.datagen;
+package jp.aquafactory.apprenticecodex.datagen.recipe;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -53,37 +53,37 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                                 ingredient(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(), 1),
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
-                        List.of(result(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(), 8)),
+                        List.of(result(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(), 10)),
                         1
                 ),
                 recipe(
                         "rapid_spellcaster_round_recycle",
                         List.of(
                                 ingredient(Items.AMETHYST_SHARD, 1),
-                                ingredient(ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(), 12),
+                                ingredient(ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(), 16),
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
-                        List.of(result(ItemRegistry.RAPID_SPELLCASTER_ROUND.get(), 12)),
+                        List.of(result(ItemRegistry.RAPID_SPELLCASTER_ROUND.get(), 16)),
                         0
                 ),
                 recipe(
                         "basic_spellcaster_round_recycle",
                         List.of(
                                 ingredient(Items.AMETHYST_SHARD, 1),
-                                ingredient(ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(), 8),
+                                ingredient(ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(), 12),
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
-                        List.of(result(ItemRegistry.BASIC_SPELLCASTER_ROUND.get(), 8)),
+                        List.of(result(ItemRegistry.BASIC_SPELLCASTER_ROUND.get(), 12)),
                         0
                 ),
                 recipe(
                         "arcane_spellcaster_round_recycle",
                         List.of(
                                 ingredient(Items.AMETHYST_SHARD, 1),
-                                ingredient(ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(), 6),
+                                ingredient(ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(), 10),
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
-                        List.of(result(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(), 6)),
+                        List.of(result(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(), 10)),
                         0
                 ),
                 recipe(
@@ -103,27 +103,27 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                                 ingredient(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(), 1),
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
-                        List.of(result(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), 8)),
+                        List.of(result(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), 10)),
                         1
                 ),
                 recipe(
                         "advanced_spellcaster_round_recycle",
                         List.of(
                                 ingredient(Items.AMETHYST_SHARD, 1),
-                                ingredient(ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(), 8),
+                                ingredient(ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(), 12),
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
-                        List.of(result(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(), 8)),
+                        List.of(result(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(), 12)),
                         0
                 ),
                 recipe(
                         "spell_dominator_round_recycle",
                         List.of(
                                 ingredient(Items.AMETHYST_SHARD, 1),
-                                ingredient(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(), 6),
+                                ingredient(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(), 10),
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
-                        List.of(result(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), 6)),
+                        List.of(result(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), 10)),
                         0
                 )
         );

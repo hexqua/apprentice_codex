@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.config;
+package jp.aquafactory.apprenticecodex.config.block;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 

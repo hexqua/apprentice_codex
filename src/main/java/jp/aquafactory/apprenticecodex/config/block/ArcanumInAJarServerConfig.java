@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.config.item;
+package jp.aquafactory.apprenticecodex.config.block;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
@@ -12,7 +12,7 @@ public final class ArcanumInAJarServerConfig {
     public static ArcanumInAJarServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.comment("20tick = 1sec, default = 1min.")
                 .push("ArcanumInAJar");
-        var ticksPerStoredParameter = builder.defineInRange("ticksPerStoredParameter", 1200, 1, Integer.MAX_VALUE);
+        var ticksPerStoredParameter = builder.defineInRange("ticksPerStoredParameter", 3600, 1, Integer.MAX_VALUE);
         builder.pop();
 
         return new ArcanumInAJarServerConfig(ticksPerStoredParameter);

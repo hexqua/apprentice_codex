@@ -8,7 +8,7 @@
       }
     },
     {
-      "count": 6,
+      "count": 10,
       "ingredient": {
         "item": "apprenticecodex:empty_arcane_spellcaster_casing"
       }
@@ -23,7 +23,7 @@
   "priority": 0,
   "results": [
     {
-      "count": 6,
+      "count": 10,
       "item": "apprenticecodex:arcane_spellcaster_round"
     }
   ]

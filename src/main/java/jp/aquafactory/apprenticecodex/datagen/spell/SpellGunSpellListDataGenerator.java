@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.datagen;
+package jp.aquafactory.apprenticecodex.datagen.spell;
 
 import com.mojang.serialization.JsonOps;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
