@@ -235,6 +235,7 @@
   "ui.apprenticecodex.drain_per_hit": "Mana drain per hit: %d",
   "ui.apprenticecodex.looting_level": "Looting Level: %d",
   "ui.apprenticecodex.duplicate_drop_chance": "Additional drop chance: %d%%",
+  "ui.apprenticecodex.collect_cost_mana": "Collect item cost mana: %d",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",

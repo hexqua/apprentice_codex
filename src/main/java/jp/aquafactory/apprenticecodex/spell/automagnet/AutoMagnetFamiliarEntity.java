@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.automagnet;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -44,6 +45,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private double orbitOffset;
     private double pickupRange;
+    private double collectMana;
 
     public AutoMagnetFamiliarEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -51,12 +53,13 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         noPhysics = true;
     }
 
-    public AutoMagnetFamiliarEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner, double pickupRange) {
+    public AutoMagnetFamiliarEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner, double pickupRange, double collectMana) {
         super(pEntityType, pLevel, owner);
         setNoGravity(true);
         noPhysics = true;
         orbitOffset = pLevel.random.nextDouble() * (Math.PI * 2.0);
         this.pickupRange = Math.max(MIN_PICKUP_RANGE, pickupRange);
+        this.collectMana = Math.max(0.0, collectMana);
         setStandbyPosition(owner);
     }
 
@@ -70,6 +73,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         super.readAdditionalSaveData(pCompound);
         orbitOffset = pCompound.contains("OrbitOffset") ? pCompound.getDouble("OrbitOffset") : 0.0;
         pickupRange = pCompound.contains("PickupRange") ? pCompound.getDouble("PickupRange") : MIN_PICKUP_RANGE;
+        collectMana = pCompound.contains("CollectMana") ? pCompound.getDouble("CollectMana") : 0.0;
     }
 
     @Override
@@ -77,6 +81,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         super.addAdditionalSaveData(pCompound);
         pCompound.putDouble("OrbitOffset", orbitOffset);
         pCompound.putDouble("PickupRange", pickupRange);
+        pCompound.putDouble("CollectMana", collectMana);
     }
 
     @Override
@@ -199,6 +204,9 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         var area = owner.getBoundingBox().inflate(pickupRange);
 
         for (var item : level.getEntitiesOfClass(ItemEntity.class, area, e -> canCollectItem(e, owner, ownerPos, rangeSq))) {
+            if (!tryConsumeCollectMana(owner, item)) {
+                continue;
+            }
             moveEntityToOwnerFeet(item, ownerFeet);
             item.setNoPickUpDelay();
             playItemTransferSoundOnce(level, item);
@@ -256,6 +264,24 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
             }
         }
         return false;
+    }
+
+    private boolean tryConsumeCollectMana(LivingEntity owner, ItemEntity item) {
+        if (item.getPersistentData().getBoolean(ITEM_TRANSFER_SOUND_PLAYED_TAG)) {
+            return true;
+        }
+
+        if (collectMana <= 0.0) {
+            return true;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(owner);
+        if (magicData == null || magicData.getMana() < collectMana) {
+            return false;
+        }
+
+        magicData.setMana(Math.max(0f, magicData.getMana() - (float) collectMana));
+        return true;
     }
 
     private static void moveEntityToOwnerFeet(Entity target, Vec3 ownerFeet) {
