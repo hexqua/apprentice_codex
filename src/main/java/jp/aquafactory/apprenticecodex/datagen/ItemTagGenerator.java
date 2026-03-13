@@ -35,6 +35,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
     private static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = Enchantments.MAGIC_ITEM_ENCHANTABLE;
     private static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_MAGIC_ENCHANTABLE;
+    private static final TagKey<Item> SPELL_GUN_ENCHANTABLE = Enchantments.SPELL_GUN_ENCHANTABLE;
 
     public ItemTagGenerator(
             PackOutput output,
@@ -64,6 +65,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get()
+        );
+        // spell gun 専用 enchant は offhand 補助具を巻き込まないように個別タグで分離する.
+        tag(SPELL_GUN_ENCHANTABLE).add(
+                ItemRegistry.IRON_SPELLCASTER_GUN.get(),
+                ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
+                ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
+                ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
         );
         tag(OFFHAND_MAGIC_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),

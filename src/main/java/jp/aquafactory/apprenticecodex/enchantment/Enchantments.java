@@ -24,9 +24,11 @@ public final class Enchantments {
     public static final ResourceKey<Enchantment> SURGE = key("surge");
     public static final ResourceKey<Enchantment> ATTUNEMENT = key("attunement");
     public static final ResourceKey<Enchantment> TRANSCENDENCE = key("transcendence");
+    public static final ResourceKey<Enchantment> WISDOM = key("wisdom");
 
     public static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = itemTag("magic_item_enchantable");
     public static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = itemTag("offhand_magic_enchantable");
+    public static final TagKey<Item> SPELL_GUN_ENCHANTABLE = itemTag("spell_gun_enchantable");
     public static final TagKey<Enchantment> EXCLUSIVE_REFLUX_RESERVOIR = enchantmentTag("exclusive_set/reflux_reservoir");
     public static final TagKey<Enchantment> EXCLUSIVE_ALACRITY_TENSE = enchantmentTag("exclusive_set/alacrity_tense");
     public static final TagKey<Enchantment> EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE =
@@ -77,6 +79,7 @@ public final class Enchantments {
         HolderGetter<Enchantment> enchantmentLookup = context.lookup(Registries.ENCHANTMENT);
         var magicItems = itemLookup.getOrThrow(MAGIC_ITEM_ENCHANTABLE);
         var offhandMagicItems = itemLookup.getOrThrow(OFFHAND_MAGIC_ENCHANTABLE);
+        var spellGunItems = itemLookup.getOrThrow(SPELL_GUN_ENCHANTABLE);
 
         register(
                 context,
@@ -202,6 +205,23 @@ public final class Enchantments {
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE))
+        );
+
+        register(
+                context,
+                WISDOM,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        spellGunItems,
+                                        spellGunItems,
+                                        2,
+                                        3,
+                                        Enchantment.dynamicCost(15, 9),
+                                        Enchantment.dynamicCost(65, 9),
+                                        2,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
         );
     }
 
