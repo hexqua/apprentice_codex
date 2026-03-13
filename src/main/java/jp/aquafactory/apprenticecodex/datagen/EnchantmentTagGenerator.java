@@ -37,7 +37,8 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.TENSE,
                         Enchantments.SURGE,
                         Enchantments.ATTUNEMENT,
-                        Enchantments.WISDOM
+                        Enchantments.WISDOM,
+                        Enchantments.PLUNDER
                 );
         tag(EnchantmentTags.TREASURE)
                 .add(Enchantments.TRANSCENDENCE);
@@ -50,7 +51,8 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.TENSE,
                         Enchantments.SURGE,
                         Enchantments.ATTUNEMENT,
-                        Enchantments.WISDOM
+                        Enchantments.WISDOM,
+                        Enchantments.PLUNDER
                 );
 
         tag(EnchantmentTags.ON_RANDOM_LOOT)
@@ -62,7 +64,8 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.SURGE,
                         Enchantments.ATTUNEMENT,
                         Enchantments.TRANSCENDENCE,
-                        Enchantments.WISDOM
+                        Enchantments.WISDOM,
+                        Enchantments.PLUNDER
                 );
     }
 }
