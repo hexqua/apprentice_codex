@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.Prote
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
@@ -129,4 +130,6 @@ public final class ItemRegistry {
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final RegistryObject<Item> PASTEL_STAFF =
             ITEMS.register("pastel_staff", PastelStaff::new);
+    public static final RegistryObject<Item> CRYSTAL_BLADED_STAFF =
+            ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
 }
