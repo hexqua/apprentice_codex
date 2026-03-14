@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -38,10 +39,11 @@ public final class TranscendenceSpellLevelEvent {
         }
 
         var item = stack.getItem();
-        // 魔法補助具は従来通りオフハンド限定だが、spell gun は両手持ちでもレベル加算対象にする。
+        // 魔法補助具は従来通りオフハンド限定、spell gun は両手、CrystalBladedStaff はメイン限定にする。
         var isSupportedSlot =
                 (isOffhandSlot && item instanceof AbstractOffhandMagicItem)
-                        || item instanceof AbstractSpellGunItem;
+                        || item instanceof AbstractSpellGunItem
+                        || (!isOffhandSlot && item instanceof CrystalBladedStaff);
         if (!isSupportedSlot) {
             return 0;
         }
