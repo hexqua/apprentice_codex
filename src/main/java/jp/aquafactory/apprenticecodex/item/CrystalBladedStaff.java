@@ -5,12 +5,18 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingManaRecovery;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -37,6 +43,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -55,6 +62,13 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     private static final double ENTITY_REACH_BONUS = 1.0D;
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final int ENCHANTMENT_VALUE = 14;
+    private static final int MIN_ORB_COUNT = 4;
+    private static final int MAX_ORB_COUNT = 8;
+    private static final int MIN_RETURN_DELAY_TICKS = 20;
+    private static final int MAX_RETURN_DELAY_TICKS = 30;
+    private static final int MIN_RETURN_DURATION_TICKS = 4;
+    private static final int MAX_RETURN_DURATION_TICKS = 6;
+    private static final float MANA_RECOVERY_PER_ORB = 2.5f;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Multimap<Attribute, AttributeModifier> mainhandModifiers;
@@ -116,12 +130,12 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, @NotNull InteractionHand usedHand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         return InteractionResultHolder.pass(player.getItemInHand(usedHand));
     }
 
     @Override
-    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+    public boolean canAttackBlock(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, Player player) {
         return !player.isCreative();
     }
 
@@ -169,12 +183,73 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     @Override
-    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, ItemStack repair) {
         return repair.is(Items.DIAMOND) || super.isValidRepairItem(toRepair, repair);
+    }
+
+    @Override
+    public boolean hurtEnemy(@NotNull ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
+        if (attacker.level().isClientSide) {
+            return true;
+        }
+
+        if (!(target instanceof Mob)) {
+            return true;
+        }
+
+        if (!(attacker instanceof ServerPlayer serverPlayer)) {
+            return true;
+        }
+
+        var serverLevel = serverPlayer.serverLevel();
+        var random = serverLevel.random;
+        var orbCount = random.nextInt(MAX_ORB_COUNT - MIN_ORB_COUNT + 1) + MIN_ORB_COUNT;
+        var impactPosition = target.getBoundingBox().getCenter();
+        var orbData = new ArrayList<ManaSiphonOrbEffectPacket.OrbData>(orbCount);
+
+        for (int i = 0; i < orbCount; i++) {
+            var scatter = randomScatterVector(random.nextDouble(), random.nextDouble(), random.nextDouble());
+            var returnDelayTicks = random.nextInt(MAX_RETURN_DELAY_TICKS - MIN_RETURN_DELAY_TICKS + 1) + MIN_RETURN_DELAY_TICKS;
+            var returnDurationTicks = random.nextInt(MAX_RETURN_DURATION_TICKS - MIN_RETURN_DURATION_TICKS + 1) + MIN_RETURN_DURATION_TICKS;
+            var scale = 0.18f + random.nextFloat() * 0.06f;
+            var phaseOffset = random.nextFloat() * ((float) Math.PI * 2.0f);
+            orbData.add(new ManaSiphonOrbEffectPacket.OrbData(
+                    (float) scatter.x,
+                    (float) scatter.y,
+                    (float) scatter.z,
+                    returnDelayTicks,
+                    returnDurationTicks,
+                    scale,
+                    phaseOffset
+            ));
+            CrystalBladedStaffManaRecoveryManager.submit(serverLevel, new PendingManaRecovery(
+                    serverPlayer.getUUID(),
+                    serverLevel.getGameTime() + returnDelayTicks + returnDurationTicks,
+                    MANA_RECOVERY_PER_ORB
+            ));
+        }
+
+        Networks.sendToTrackingEntityAndSelf(serverPlayer, new ManaSiphonOrbEffectPacket(
+                impactPosition,
+                serverPlayer.getId(),
+                orbData
+        ));
+        return true;
     }
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
         return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
+    }
+
+    private static net.minecraft.world.phys.Vec3 randomScatterVector(double rx, double ry, double rz) {
+        var horizontalAngle = rx * Math.PI * 2.0;
+        var horizontalSpeed = 0.16 + ry * 0.14;
+        var verticalSpeed = 0.12 + rz * 0.14;
+        return new net.minecraft.world.phys.Vec3(
+                Math.cos(horizontalAngle) * horizontalSpeed,
+                verticalSpeed,
+                Math.sin(horizontalAngle) * horizontalSpeed
+        );
     }
 
     private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
