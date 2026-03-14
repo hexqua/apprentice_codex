@@ -16,7 +16,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -32,6 +31,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.ToolAction;
+import net.minecraftforge.common.ToolActions;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -46,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.function.Consumer;
+import net.minecraft.world.phys.Vec3;
 
 public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellContainer {
     private static final String VANILLA_NAMESPACE = "minecraft";
@@ -189,22 +191,28 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
 
     @Override
     public boolean hurtEnemy(@NotNull ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
-        if (attacker.level().isClientSide) {
-            return true;
-        }
+        return true;
+    }
 
-        if (!(target instanceof Mob)) {
-            return true;
-        }
+    @Override
+    public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
+        return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
+    }
 
-        if (!(attacker instanceof ServerPlayer serverPlayer)) {
-            return true;
-        }
+    public static boolean isFullyChargedAttack(Player player) {
+        return player.getAttackStrengthScale(0.5f) > 0.9f;
+    }
 
+    public static boolean isCrystalBladedStaff(ItemStack stack) {
+        return stack.getItem() instanceof CrystalBladedStaff;
+    }
+
+    public static void spawnManaSiphonOrbs(ServerPlayer serverPlayer, Vec3 impactPosition, int totalHitMobCount) {
         var serverLevel = serverPlayer.serverLevel();
         var random = serverLevel.random;
-        var orbCount = random.nextInt(MAX_ORB_COUNT - MIN_ORB_COUNT + 1) + MIN_ORB_COUNT;
-        var impactPosition = target.getBoundingBox().getCenter();
+        var baseOrbCount = random.nextInt(MAX_ORB_COUNT - MIN_ORB_COUNT + 1) + MIN_ORB_COUNT;
+        var orbPenalty = Math.max(0, totalHitMobCount - 1);
+        var orbCount = Math.max(1, baseOrbCount - orbPenalty);
         var orbData = new ArrayList<ManaSiphonOrbEffectPacket.OrbData>(orbCount);
 
         for (int i = 0; i < orbCount; i++) {
@@ -234,7 +242,6 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                 serverPlayer.getId(),
                 orbData
         ));
-        return true;
     }
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
