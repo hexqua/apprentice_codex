@@ -184,5 +184,11 @@
     "sounds": [
       "apprenticecodex:sense_evil"
     ]
+  },
+  "siphon_orb_launch": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:siphon_orb_launch"
+    ]
   }
 }
