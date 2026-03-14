@@ -23,6 +23,7 @@ public enum DamageMultiplierKey {
     MANA_CHARGE("manaCharge"),
     PRECISION_JACK("precisionJack"),
     GRIND_RUNNER("grindRunner"),
+    MANA_SLASH("manaSlash"),
     ;
 
     private final String configKey;

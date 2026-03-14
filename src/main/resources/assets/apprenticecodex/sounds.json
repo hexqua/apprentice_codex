@@ -190,5 +190,11 @@
     "sounds": [
       "apprenticecodex:siphon_orb_launch"
     ]
+  },
+  "mana_slash": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:mana_slash"
+    ]
   }
 }

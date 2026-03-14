@@ -48,6 +48,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> REMOTE_PREPARE = reg("remote_prepare");
     public static final DeferredHolder<SoundEvent, SoundEvent> SENSE_EVIL = reg("sense_evil");
     public static final DeferredHolder<SoundEvent, SoundEvent> SIPHON_ORB_LAUNCH = reg("siphon_orb_launch");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MANA_SLASH = reg("mana_slash");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

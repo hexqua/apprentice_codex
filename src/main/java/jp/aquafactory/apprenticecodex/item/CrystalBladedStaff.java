@@ -5,10 +5,12 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingManaRecovery;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
@@ -49,7 +51,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import net.minecraft.world.phys.Vec3;
 
-public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellContainer {
+public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellContainer, UniqueItem {
     private static final String MAIN_CONTROLLER = "main";
     private static final String ACTIVATE_ANIMATION = "activate";
     private static final String VANILLA_NAMESPACE = "minecraft";
@@ -69,6 +71,7 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     private static final int ENCHANTMENT_VALUE = 14;
     private static final int MIN_ORB_COUNT = 4;
     private static final int MAX_ORB_COUNT = 8;
+    private static final int SPELL_ORB_COUNT = 4;
     private static final int MIN_RETURN_DELAY_TICKS = 20;
     private static final int MAX_RETURN_DELAY_TICKS = 30;
     private static final int MIN_RETURN_DURATION_TICKS = 4;
@@ -93,7 +96,9 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
             return;
         }
 
-        ISpellContainer.set(itemStack, ISpellContainer.create(1, true, false));
+        var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
+        spellContainer.addSpell(SpellRegistry.MANA_SLASH.get(), 1, true);
+        ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }
 
     @Override
@@ -213,11 +218,16 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     public static void spawnManaSiphonOrbs(ServerPlayer serverPlayer, Vec3 impactPosition, int totalHitMobCount) {
+        spawnManaSiphonOrbBurst(serverPlayer, impactPosition, resolveOrbCount(serverPlayer.serverLevel(), totalHitMobCount));
+    }
+
+    public static void spawnManaSiphonOrbsForSpell(ServerPlayer serverPlayer, Vec3 impactPosition) {
+        spawnManaSiphonOrbBurst(serverPlayer, impactPosition, SPELL_ORB_COUNT);
+    }
+
+    private static void spawnManaSiphonOrbBurst(ServerPlayer serverPlayer, Vec3 impactPosition, int orbCount) {
         var serverLevel = serverPlayer.serverLevel();
         var random = serverLevel.random;
-        var baseOrbCount = random.nextInt(MAX_ORB_COUNT - MIN_ORB_COUNT + 1) + MIN_ORB_COUNT;
-        var orbPenalty = Math.max(0, totalHitMobCount - 1);
-        var orbCount = Math.max(1, baseOrbCount - orbPenalty);
         var orbData = new ArrayList<ManaSiphonOrbEffectPacket.OrbData>(orbCount);
 
         for (int i = 0; i < orbCount; i++) {
@@ -256,6 +266,13 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                 serverPlayer.getId(),
                 orbData
         ));
+    }
+
+    private static int resolveOrbCount(net.minecraft.server.level.ServerLevel serverLevel, int totalHitMobCount) {
+        var random = serverLevel.random;
+        var baseOrbCount = random.nextInt(MAX_ORB_COUNT - MIN_ORB_COUNT + 1) + MIN_ORB_COUNT;
+        var orbPenalty = Math.max(0, totalHitMobCount - 1);
+        return Math.max(1, baseOrbCount - orbPenalty);
     }
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
