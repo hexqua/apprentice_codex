@@ -28,6 +28,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRIND_RUNNER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_SLASH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PHALANX_CHARGE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PRECISION_JACK;
@@ -93,7 +94,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 THERMAL_PROCESS,
                 MOON_LIGHT,
                 PRECISION_JACK,
-                GRIND_RUNNER
+                GRIND_RUNNER,
+                MANA_SLASH
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -149,7 +151,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 THERMAL_PROCESS,
                 MOON_LIGHT,
                 PRECISION_JACK,
-                GRIND_RUNNER
+                GRIND_RUNNER,
+                MANA_SLASH
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
+import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
@@ -113,6 +114,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
             regProjectile("arcane_beam", ArcaneBeamEntity::new, 64, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ManaSlashProjectileEntity>> MANA_SLASH_PROJECTILE =
+            regProjectile("mana_slash_projectile", ManaSlashProjectileEntity::new, 64, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<FlySwatterLauncherEntity>> FLY_SWATTER_LAUNCHER =
             regWeapon("fly_swatter_launcher", FlySwatterLauncherEntity::new, 1);

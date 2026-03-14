@@ -12,10 +12,10 @@
     "base": 15,
     "per_level_above_first": 9
   },
-  "primary_items": "#apprenticecodex:spell_gun_enchantable",
+  "primary_items": "#apprenticecodex:wisdom_enchantable",
   "slots": [
     "hand"
   ],
-  "supported_items": "#apprenticecodex:spell_gun_enchantable",
+  "supported_items": "#apprenticecodex:wisdom_enchantable",
   "weight": 2
 }

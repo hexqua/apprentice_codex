@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -38,6 +39,11 @@ public final class Networks {
                 ForceFieldDefenseEffectPacket.TYPE,
                 ForceFieldDefenseEffectPacket.STREAM_CODEC,
                 ForceFieldDefenseEffectPacket::handle
+        );
+        registrar.playToClient(
+                ManaSiphonOrbEffectPacket.TYPE,
+                ManaSiphonOrbEffectPacket.STREAM_CODEC,
+                ManaSiphonOrbEffectPacket::handle
         );
         registrar.playToClient(
                 SyncRemoteEyeStatePacket.TYPE,

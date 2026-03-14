@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
 import jp.aquafactory.apprenticecodex.renderer.item.CopperSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
@@ -42,6 +43,7 @@ import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelRenderer
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeRenderer;
+import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutRenderer;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockRenderer;
@@ -128,6 +130,17 @@ public final class ClientModBusEvents {
             }
         }, ItemRegistry.PASTEL_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
+            private CrystalBladedStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new CrystalBladedStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
             private IronSpellcasterGunRenderer renderer;
 
             @Override
@@ -194,6 +207,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.GRACED_RAIN_CLOUD.get(), GracedRainCloudRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_SAW.get(), TinyLumberjackSawRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.MANA_SLASH_PROJECTILE.get(), ManaSlashProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), FlySwatterProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ASSIST_WINGS_WING.get(), AssistWingsWingRenderer::new);

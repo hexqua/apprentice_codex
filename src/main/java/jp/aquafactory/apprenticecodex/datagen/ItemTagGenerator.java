@@ -36,6 +36,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = Enchantments.MAGIC_ITEM_ENCHANTABLE;
     private static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_MAGIC_ENCHANTABLE;
     private static final TagKey<Item> SPELL_GUN_ENCHANTABLE = Enchantments.SPELL_GUN_ENCHANTABLE;
+    private static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = Enchantments.TRANSCENDENCE_ENCHANTABLE;
+    private static final TagKey<Item> WISDOM_ENCHANTABLE = Enchantments.WISDOM_ENCHANTABLE;
 
     public ItemTagGenerator(
             PackOutput output,
@@ -48,7 +50,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
-        tag(IRONS_STAFF).add(ItemRegistry.PASTEL_STAFF.get());
+        tag(IRONS_STAFF).add(
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
         tag(IRONS_UPGRADE_WHITELIST).add(ItemRegistry.ENDER_GRIMOIRE.get());
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
@@ -56,8 +61,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
-        tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
-        tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
+        tag(MALUM_SOUL_HUNTER_WEAPON).add(
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
+        tag(TOMAGIC_REVERSAL_WEAPON).add(
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
         tag(MAGIC_ITEM_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELLCASTER_GUN.get(),
                 ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
@@ -73,6 +84,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
                 ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
         );
+        // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
+        tag(TRANSCENDENCE_ENCHANTABLE).addTag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        tag(WISDOM_ENCHANTABLE).addTag(SPELL_GUN_ENCHANTABLE).add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
         tag(OFFHAND_MAGIC_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
