@@ -11,8 +11,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = ArcaneAnvilMenu.class, remap = false)
 public abstract class ArcaneAnvilMenuMixin {
-    // createResult は継承元 ItemCombinerMenu の override なので、本番 jar では Minecraft 名へ難読化される.
-    @Inject(method = {"createResult()V", "m_6640_()V"}, at = @At("RETURN"), require = 1)
+    // ArcaneAnvilMenu 自体は外部 MOD クラスなので remap しないが、
+    // createResult は継承元 ItemCombinerMenu 由来で本番 jar では Minecraft 名へ難読化される.
+    @Inject(method = "createResult()V", at = @At("RETURN"), remap = true, require = 1)
     private void apprenticecodex$blockUnsupportedSpellImbuement(CallbackInfo ci) {
         var itemCombinerMenu = (ItemCombinerMenuAccessor) (ItemCombinerMenu) (Object) this;
         if (!SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(
