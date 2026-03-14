@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -17,6 +18,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 public final class MagicTools {
+    private static final float MANA_UI_SAFE_MARGIN = 0.1f;
+
     private MagicTools() {
     }
 
@@ -89,5 +92,29 @@ public final class MagicTools {
         }
 
         Utils.serverSideCancelCast(serverPlayer, triggerCooldown);
+    }
+
+    public static void recoverManaSafely(@Nullable LivingEntity entity, @Nullable MagicData magicData, float recoverMana) {
+        if (entity == null || magicData == null || recoverMana <= 0f) {
+            return;
+        }
+
+        var maxMana = (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        if (maxMana <= MANA_UI_SAFE_MARGIN) {
+            return;
+        }
+
+        var currentMana = magicData.getMana();
+        if (currentMana >= maxMana - MANA_UI_SAFE_MARGIN) {
+            return;
+        }
+
+        // 最大マナぴったりで UI 更新が止まる不具合回避のため、少し手前で止める.
+        if (currentMana + recoverMana > maxMana - MANA_UI_SAFE_MARGIN) {
+            magicData.setMana(maxMana - MANA_UI_SAFE_MARGIN);
+            return;
+        }
+
+        magicData.addMana(recoverMana);
     }
 }

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -48,6 +49,13 @@ public final class Networks {
                 ForceFieldDefenseEffectPacket::encode,
                 ForceFieldDefenseEffectPacket::decode,
                 ForceFieldDefenseEffectPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ManaSiphonOrbEffectPacket.class,
+                ManaSiphonOrbEffectPacket::encode,
+                ManaSiphonOrbEffectPacket::decode,
+                ManaSiphonOrbEffectPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

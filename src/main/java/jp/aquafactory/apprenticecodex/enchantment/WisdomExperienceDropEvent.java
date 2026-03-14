@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -50,7 +49,8 @@ public final class WisdomExperienceDropEvent {
     }
 
     private static int getWisdomLevel(ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof AbstractSpellGunItem)) {
+        if (stack.isEmpty()
+                || !MagicItemEnchantmentTargeting.isSupportedWisdomMagicItem(stack.getItem())) {
             return 0;
         }
 

@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -100,19 +101,8 @@ public class ManaCharge extends AbstractSpell{
         if (playerMagicData != null){
             var tick = playerMagicData.getCastDurationRemaining();
             if (tick % 10 == 0){
-                var maxMana = (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA.get());
-                var currentMana = playerMagicData.getMana();
-                if (currentMana < maxMana){
-                    var rechargeMana = getManaRechargePerSecond(spellLevel, entity) / 2f;
-
-                    // 最大マナまでピッタリ回復するとUI更新が止まってしまうため、少し手前で止める.
-                    if (currentMana + rechargeMana > maxMana - .1f){
-                        playerMagicData.setMana(maxMana - .1f);
-                    } else {
-                        playerMagicData.addMana(rechargeMana);
-                    }
-                }
-
+                var rechargeMana = getManaRechargePerSecond(spellLevel, entity) / 2f;
+                MagicTools.recoverManaSafely(entity, playerMagicData, rechargeMana);
             }
         }
 
