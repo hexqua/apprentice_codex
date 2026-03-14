@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -50,6 +51,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import net.minecraft.world.phys.Vec3;
@@ -58,6 +60,10 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     private static final String MAIN_CONTROLLER = "main";
     private static final String ACTIVATE_ANIMATION = "activate";
     private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
+    );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_ACTIVATE = RawAnimation.begin().thenPlay("activate");
@@ -183,6 +189,10 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
 
         if (isDurabilityTargetEnchantment(enchantment)) {
             return false;
+        }
+
+        if (ALLOWED_MAGIC_ITEM_ENCHANTMENTS.contains(enchantmentId)) {
+            return true;
         }
 
         if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {

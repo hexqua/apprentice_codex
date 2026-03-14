@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import net.minecraft.world.item.Item;
 
 final class MagicItemEnchantmentTargeting {
@@ -18,6 +19,10 @@ final class MagicItemEnchantmentTargeting {
 
     static boolean isSupportedSpellGunItem(Item item) {
         return item instanceof AbstractSpellGunItem;
+    }
+
+    static boolean isSupportedWisdomMagicItem(Item item) {
+        return item instanceof AbstractSpellGunItem || item instanceof CrystalBladedStaff;
     }
 
     static boolean isSupportedLootingMagicItem(Item item) {
