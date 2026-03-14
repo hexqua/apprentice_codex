@@ -132,7 +132,7 @@ public final class ItemRegistry {
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =
             ITEMS.register("pastel_staff", PastelStaff::new);
-    public static final RegistryObject<Item> CRYSTAL_BLADED_STAFF =
+    public static final DeferredHolder<Item, Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
 }
 

@@ -1,28 +1,28 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.item.weapons.ExtendedSwordItem;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import io.redspace.ironsspellbooks.item.weapons.StaffItem;
+import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager;
+import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingLaunchSound;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingManaRecovery;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -31,50 +31,46 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Consumer;
-import net.minecraft.world.phys.Vec3;
 
-public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
     private static final String MAIN_CONTROLLER = "main";
     private static final String ACTIVATE_ANIMATION = "activate";
-    private static final String VANILLA_NAMESPACE = "minecraft";
-    private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
+    private static final ResourceLocation ENTITY_REACH_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "crystal_bladed_staff_entity_reach");
+    private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "crystal_bladed_staff_spell_power");
+    private static final Set<ResourceLocation> EXTRA_SUPPORTED_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
     );
-    private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
+    private static final Set<ResourceLocation> EXCLUDED_ENCHANTMENTS = Set.of(
+            ResourceLocation.withDefaultNamespace("fortune"),
+            ResourceLocation.withDefaultNamespace("silk_touch")
+    );
+    private static final StaffTier WEAPON_TIER = new StaffTier(5.0F, -2.4F);
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_ACTIVATE = RawAnimation.begin().thenPlay("activate");
-    private static final UUID ATTACK_DAMAGE_MODIFIER_ID = Item.BASE_ATTACK_DAMAGE_UUID;
-    private static final UUID ATTACK_SPEED_MODIFIER_ID = Item.BASE_ATTACK_SPEED_UUID;
-    private static final UUID ENTITY_REACH_MODIFIER_ID =
-            UUID.nameUUIDFromBytes("apprenticecodex:crystal_bladed_staff/entity_reach".getBytes(StandardCharsets.UTF_8));
-    private static final UUID SPELL_POWER_MODIFIER_ID =
-            UUID.nameUUIDFromBytes("apprenticecodex:crystal_bladed_staff/spell_power".getBytes(StandardCharsets.UTF_8));
-    private static final double ATTACK_DAMAGE = 5.0D;
-    private static final double ATTACK_SPEED = -2.4D;
     private static final double ENTITY_REACH_BONUS = 1.0D;
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final int ENCHANTMENT_VALUE = 14;
@@ -91,12 +87,20 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     private static final double ORB_SCATTER_GRAVITY = 0.012d;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Multimap<Attribute, AttributeModifier> mainhandModifiers;
+    private final ItemAttributeModifiers mainhandModifiers;
 
     public CrystalBladedStaff() {
-        super(new Properties().stacksTo(1).rarity(Rarity.RARE));
-        this.mainhandModifiers = buildMainhandModifiers();
+        super(new Properties()
+                .stacksTo(1)
+                .rarity(Rarity.RARE)
+                .attributes(buildBaseAttributeModifiers()));
+        this.mainhandModifiers = buildBaseAttributeModifiers();
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean hasCustomRendering() {
+        return true;
     }
 
     @Override
@@ -105,25 +109,14 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
             return;
         }
 
+        // Datagen 時は SpellRegistry 未バインドのため、初期呪文の注入をスキップする。
+        if (!SpellRegistry.MANA_SLASH.isBound()) {
+            return;
+        }
+
         var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
         spellContainer.addSpell(SpellRegistry.MANA_SLASH.get(), 1, true);
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private CrystalBladedStaffRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new CrystalBladedStaffRenderer();
-                }
-
-                return renderer;
-            }
-        });
     }
 
     @Override
@@ -142,12 +135,8 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot == EquipmentSlot.MAINHAND) {
-            return mainhandModifiers;
-        }
-
-        return super.getAttributeModifiers(slot, stack);
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return mainhandModifiers;
     }
 
     @Override
@@ -166,7 +155,7 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     @Override
-    public boolean canAttackBlock(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, Player player) {
+    public boolean canAttackBlock(@NotNull BlockState state, @NotNull Level level, @NotNull net.minecraft.core.BlockPos pos, Player player) {
         return !player.isCreative();
     }
 
@@ -181,25 +170,22 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        if (enchantmentId != null && EXCLUDED_ENCHANTMENTS.contains(enchantmentId)) {
             return false;
         }
 
-        if (isDurabilityTargetEnchantment(enchantment)) {
-            return false;
-        }
-
-        if (ALLOWED_MAGIC_ITEM_ENCHANTMENTS.contains(enchantmentId)) {
+        if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
 
-        if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-            return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
-        }
+        return enchantmentId != null && EXTRA_SUPPORTED_ENCHANTMENTS.contains(enchantmentId);
+    }
 
-        return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -208,13 +194,12 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
-        return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+        return enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
@@ -228,8 +213,8 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     @Override
-    public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
-        return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
+    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+        return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
     }
 
     public static boolean isFullyChargedAttack(Player player) {
@@ -238,38 +223,6 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
 
     public static boolean isCrystalBladedStaff(ItemStack stack) {
         return stack.getItem() instanceof CrystalBladedStaff;
-    }
-
-    private static boolean shouldPrioritizeOffhandUse(Player player) {
-        var offhandItem = player.getOffhandItem().getItem();
-        // 盾はクールダウン中でも常に優先し、Crystal 側の右クリック復帰を防ぐ。
-        return offhandItem instanceof ShieldItem || offhandItem instanceof AbstractSpellGunItem;
-    }
-
-    private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {
-        if (!ISpellContainer.isSpellContainer(stack)) {
-            initializeSpellContainer(stack);
-        }
-
-        var selectionOption = new SpellSelectionManager(player).getSelection();
-        if (selectionOption == null || selectionOption.spellData == SpellData.EMPTY) {
-            return CastResult.NONE;
-        }
-
-        var spellData = selectionOption.spellData;
-        var spell = spellData.getSpell();
-        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        var casted = spell.attemptInitiateCast(
-                stack,
-                spellLevel,
-                player.level(),
-                player,
-                selectionOption.getCastSource(),
-                true,
-                SpellSelectionManager.MAINHAND
-        );
-
-        return casted ? CastResult.SUCCESS : CastResult.FAIL;
     }
 
     public static void spawnManaSiphonOrbs(ServerPlayer serverPlayer, Vec3 impactPosition, int totalHitMobCount) {
@@ -306,39 +259,29 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                     serverLevel.getGameTime() + returnDelayTicks + returnDurationTicks,
                     MANA_RECOVERY_PER_ORB
             ));
-            CrystalBladedStaffManaRecoveryManager.submitLaunchSound(serverLevel,
-                    new CrystalBladedStaffManaRecoveryManager.PendingLaunchSound(
-                            launchPosition,
-                            serverLevel.getGameTime() + returnDelayTicks
-                    ));
+            CrystalBladedStaffManaRecoveryManager.submitLaunchSound(serverLevel, new PendingLaunchSound(
+                    launchPosition,
+                    serverLevel.getGameTime() + returnDelayTicks
+            ));
         }
 
         triggerActivateAnimation(serverPlayer, serverPlayer.getMainHandItem());
         triggerActivateAnimation(serverPlayer, serverPlayer.getOffhandItem());
-
-        Networks.sendToTrackingEntityAndSelf(serverPlayer, new ManaSiphonOrbEffectPacket(
-                impactPosition,
-                serverPlayer.getId(),
-                orbData
-        ));
+        Networks.sendToTrackingEntityAndSelf(serverPlayer, new ManaSiphonOrbEffectPacket(impactPosition, serverPlayer.getId(), orbData));
     }
 
-    private static int resolveOrbCount(net.minecraft.server.level.ServerLevel serverLevel, int totalHitMobCount) {
+    private static int resolveOrbCount(ServerLevel serverLevel, int totalHitMobCount) {
         var random = serverLevel.random;
         var baseOrbCount = random.nextInt(MAX_ORB_COUNT - MIN_ORB_COUNT + 1) + MIN_ORB_COUNT;
         var orbPenalty = Math.max(0, totalHitMobCount - 1);
         return Math.max(1, baseOrbCount - orbPenalty);
     }
 
-    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
-    }
-
-    private static net.minecraft.world.phys.Vec3 randomScatterVector(double rx, double ry, double rz) {
+    private static Vec3 randomScatterVector(double rx, double ry, double rz) {
         var horizontalAngle = rx * Math.PI * 2.0;
         var horizontalSpeed = 0.16 + ry * 0.14;
         var verticalSpeed = 0.12 + rz * 0.14;
-        return new net.minecraft.world.phys.Vec3(
+        return new Vec3(
                 Math.cos(horizontalAngle) * horizontalSpeed,
                 verticalSpeed,
                 Math.sin(horizontalAngle) * horizontalSpeed
@@ -346,9 +289,8 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     private static Vec3 launchStartPosition(Vec3 impactPosition, Vec3 scatter, int returnDelayTicks, float phaseOffset) {
-        var anchor = impactPosition.add(
-                scatter.scale(ORB_SCATTER_DURATION_TICKS)
-        ).add(0.0d, -ORB_SCATTER_GRAVITY * ORB_SCATTER_DURATION_TICKS * ORB_SCATTER_DURATION_TICKS, 0.0d);
+        var anchor = impactPosition.add(scatter.scale(ORB_SCATTER_DURATION_TICKS))
+                .add(0.0d, -ORB_SCATTER_GRAVITY * ORB_SCATTER_DURATION_TICKS * ORB_SCATTER_DURATION_TICKS, 0.0d);
         var hoverTicks = returnDelayTicks - ORB_SCATTER_DURATION_TICKS;
         var phase = hoverTicks * 0.14f + phaseOffset;
         return anchor.add(
@@ -367,45 +309,57 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
         ((CrystalBladedStaff) stack.getItem()).triggerAnim(serverPlayer, instanceId, MAIN_CONTROLLER, ACTIVATE_ANIMATION);
     }
 
-    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.put(
-                Attributes.ATTACK_DAMAGE,
-                new AttributeModifier(
-                        ATTACK_DAMAGE_MODIFIER_ID,
-                        "Weapon modifier",
-                        ATTACK_DAMAGE,
-                        AttributeModifier.Operation.ADDITION
-                )
+    private static ItemAttributeModifiers buildBaseAttributeModifiers() {
+        return buildAttributeModifiers(ExtendedSwordItem.createAttributes(WEAPON_TIER));
+    }
+
+    private static ItemAttributeModifiers buildAttributeModifiers(ItemAttributeModifiers baseModifiers) {
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : baseModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+        builder.add(
+                Attributes.ENTITY_INTERACTION_RANGE,
+                new AttributeModifier(ENTITY_REACH_MODIFIER_ID, ENTITY_REACH_BONUS, AttributeModifier.Operation.ADD_VALUE),
+                EquipmentSlotGroup.MAINHAND
         );
-        builder.put(
-                Attributes.ATTACK_SPEED,
-                new AttributeModifier(
-                        ATTACK_SPEED_MODIFIER_ID,
-                        "Weapon modifier",
-                        ATTACK_SPEED,
-                        AttributeModifier.Operation.ADDITION
-                )
-        );
-        builder.put(
-                ForgeMod.ENTITY_REACH.get(),
-                new AttributeModifier(
-                        ENTITY_REACH_MODIFIER_ID,
-                        "apprenticecodex.crystal_bladed_staff.entity_reach",
-                        ENTITY_REACH_BONUS,
-                        AttributeModifier.Operation.ADDITION
-                )
-        );
-        builder.put(
-                AttributeRegistry.SPELL_POWER.get(),
-                new AttributeModifier(
-                        SPELL_POWER_MODIFIER_ID,
-                        "apprenticecodex.crystal_bladed_staff.spell_power",
-                        SPELL_POWER_BONUS,
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
+        builder.add(
+                AttributeRegistry.SPELL_POWER,
+                new AttributeModifier(SPELL_POWER_MODIFIER_ID, SPELL_POWER_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
+                EquipmentSlotGroup.MAINHAND
         );
         return builder.build();
+    }
+
+    private static boolean shouldPrioritizeOffhandUse(Player player) {
+        var offhandItem = player.getOffhandItem().getItem();
+        // 盾はクールダウン中でも常に優先し、Crystal 側の右クリック復帰を防ぐ。
+        return offhandItem instanceof ShieldItem || offhandItem instanceof AbstractSpellGunItem;
+    }
+
+    private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {
+        if (!ISpellContainer.isSpellContainer(stack)) {
+            initializeSpellContainer(stack);
+        }
+
+        var selectionOption = new SpellSelectionManager(player).getSelection();
+        if (selectionOption == null || selectionOption.spellData == SpellData.EMPTY) {
+            return CastResult.NONE;
+        }
+
+        var spellData = selectionOption.spellData;
+        var spell = spellData.getSpell();
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var casted = spell.attemptInitiateCast(
+                stack,
+                spellLevel,
+                player.level(),
+                player,
+                selectionOption.getCastSource(),
+                true,
+                SpellSelectionManager.MAINHAND
+        );
+        return casted ? CastResult.SUCCESS : CastResult.FAIL;
     }
 
     private enum CastResult {

@@ -10,12 +10,14 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -24,7 +26,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -74,8 +75,8 @@ public class ManaSlashProjectileEntity extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_RADIUS, INITIAL_RADIUS);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_RADIUS, INITIAL_RADIUS);
     }
 
     @Override
@@ -92,8 +93,7 @@ public class ManaSlashProjectileEntity extends Projectile {
 
         if (!level().isClientSide) {
             var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, entity -> false);
-            if (hitResult.getType() == HitResult.Type.BLOCK
-                    && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+            if (hitResult.getType() == HitResult.Type.BLOCK) {
                 onHitBlock((BlockHitResult) hitResult);
             }
 
@@ -115,7 +115,7 @@ public class ManaSlashProjectileEntity extends Projectile {
             }
         }
 
-        setPos(position().add(getDeltaMovement()));
+        move(MoverType.SELF, getDeltaMovement());
         ProjectileUtil.rotateTowardsMovement(this, 1.0f);
     }
 
@@ -142,7 +142,6 @@ public class ManaSlashProjectileEntity extends Projectile {
         if (DATA_RADIUS.equals(key)) {
             refreshDimensions();
         }
-
         super.onSyncedDataUpdated(key);
     }
 
@@ -168,8 +167,8 @@ public class ManaSlashProjectileEntity extends Projectile {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity entity) {
+        return super.getAddEntityPacket(entity);
     }
 
     @Override
@@ -185,19 +184,24 @@ public class ManaSlashProjectileEntity extends Projectile {
 
     private void setRadius(float radius) {
         if (!level().isClientSide) {
-            entityData.set(DATA_RADIUS, Mth.clamp(radius, 0.0f, MAX_RADIUS));
+            getEntityData().set(DATA_RADIUS, Mth.clamp(radius, 0.0f, MAX_RADIUS));
         }
     }
 
     private float getRadius() {
-        return entityData.get(DATA_RADIUS);
+        return getEntityData().get(DATA_RADIUS);
     }
 
     private void damageEntity(Entity entity) {
         var owner = getOwner();
         var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.MANA_SLASH);
-        if (!CombatTools.applyDamage(entity, damage, source, SpellRegistry.MANA_SLASH.get().getSchoolType(),
-                CombatTools.KnockbackTypes.DEFAULT)) {
+        if (!CombatTools.applyDamage(
+                entity,
+                damage,
+                source,
+                SpellRegistry.MANA_SLASH.get().getSchoolType(),
+                CombatTools.KnockbackTypes.DEFAULT
+        )) {
             return;
         }
 

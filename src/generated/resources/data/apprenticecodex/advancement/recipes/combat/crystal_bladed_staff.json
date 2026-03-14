@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:diamond_sword"
-            ]
+            "items": "minecraft:diamond_sword"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_diamond_sword",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_diamond_sword"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:crystal_bladed_staff"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

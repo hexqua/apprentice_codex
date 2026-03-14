@@ -30,6 +30,8 @@ public final class Enchantments {
     public static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = itemTag("magic_item_enchantable");
     public static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = itemTag("offhand_magic_enchantable");
     public static final TagKey<Item> SPELL_GUN_ENCHANTABLE = itemTag("spell_gun_enchantable");
+    public static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = itemTag("transcendence_enchantable");
+    public static final TagKey<Item> WISDOM_ENCHANTABLE = itemTag("wisdom_enchantable");
     public static final TagKey<Enchantment> EXCLUSIVE_REFLUX_RESERVOIR = enchantmentTag("exclusive_set/reflux_reservoir");
     public static final TagKey<Enchantment> EXCLUSIVE_ALACRITY_TENSE = enchantmentTag("exclusive_set/alacrity_tense");
     public static final TagKey<Enchantment> EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE =
@@ -81,6 +83,8 @@ public final class Enchantments {
         var magicItems = itemLookup.getOrThrow(MAGIC_ITEM_ENCHANTABLE);
         var offhandMagicItems = itemLookup.getOrThrow(OFFHAND_MAGIC_ENCHANTABLE);
         var spellGunItems = itemLookup.getOrThrow(SPELL_GUN_ENCHANTABLE);
+        var transcendenceItems = itemLookup.getOrThrow(TRANSCENDENCE_ENCHANTABLE);
+        var wisdomItems = itemLookup.getOrThrow(WISDOM_ENCHANTABLE);
 
         register(
                 context,
@@ -195,8 +199,8 @@ public final class Enchantments {
                 TRANSCENDENCE,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        magicItems,
-                                        magicItems,
+                                        transcendenceItems,
+                                        transcendenceItems,
                                         1,
                                         3,
                                         Enchantment.dynamicCost(25, 8),
@@ -213,8 +217,8 @@ public final class Enchantments {
                 WISDOM,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        spellGunItems,
-                                        spellGunItems,
+                                        wisdomItems,
+                                        wisdomItems,
                                         2,
                                         3,
                                         Enchantment.dynamicCost(15, 9),

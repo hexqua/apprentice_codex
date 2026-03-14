@@ -90,7 +90,6 @@ public class ManaSlashProjectileRenderer extends EntityRenderer<ManaSlashProject
 
         var pose = poseStack.last();
         var poseMatrix = pose.pose();
-        var normalMatrix = pose.normal();
         var halfWidth = width * 0.5f;
         var alpha = BASE_ALPHA * intensity * alphaScale;
 
@@ -99,34 +98,30 @@ public class ManaSlashProjectileRenderer extends EntityRenderer<ManaSlashProject
         var green = BASE_GREEN * alpha;
         var blue = BASE_BLUE * alpha;
 
-        buffer.vertex(poseMatrix, -halfWidth, -0.1f, -halfWidth)
-                .color(red, green, blue, alpha)
-                .uv(0.0f, 1.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, 0.0f, 1.0f, 0.0f)
-                .endVertex();
-        buffer.vertex(poseMatrix, halfWidth, -0.1f, -halfWidth)
-                .color(red, green, blue, alpha)
-                .uv(1.0f, 1.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, 0.0f, 1.0f, 0.0f)
-                .endVertex();
-        buffer.vertex(poseMatrix, halfWidth, -0.1f, halfWidth)
-                .color(red, green, blue, alpha)
-                .uv(1.0f, 0.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, 0.0f, 1.0f, 0.0f)
-                .endVertex();
-        buffer.vertex(poseMatrix, -halfWidth, -0.1f, halfWidth)
-                .color(red, green, blue, alpha)
-                .uv(0.0f, 0.0f)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, 0.0f, 1.0f, 0.0f)
-                .endVertex();
+        buffer.addVertex(poseMatrix, -halfWidth, -0.1f, -halfWidth)
+                .setColor(red, green, blue, alpha)
+                .setUv(0.0f, 1.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(pose, 0.0f, 1.0f, 0.0f);
+        buffer.addVertex(poseMatrix, halfWidth, -0.1f, -halfWidth)
+                .setColor(red, green, blue, alpha)
+                .setUv(1.0f, 1.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(pose, 0.0f, 1.0f, 0.0f);
+        buffer.addVertex(poseMatrix, halfWidth, -0.1f, halfWidth)
+                .setColor(red, green, blue, alpha)
+                .setUv(1.0f, 0.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(pose, 0.0f, 1.0f, 0.0f);
+        buffer.addVertex(poseMatrix, -halfWidth, -0.1f, halfWidth)
+                .setColor(red, green, blue, alpha)
+                .setUv(0.0f, 0.0f)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(pose, 0.0f, 1.0f, 0.0f);
 
         poseStack.popPose();
     }

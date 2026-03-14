@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
 import jp.aquafactory.apprenticecodex.renderer.item.CopperSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
@@ -128,6 +129,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.PASTEL_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
+            private CrystalBladedStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new CrystalBladedStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.CRYSTAL_BLADED_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
             private IronSpellcasterGunRenderer renderer;
 

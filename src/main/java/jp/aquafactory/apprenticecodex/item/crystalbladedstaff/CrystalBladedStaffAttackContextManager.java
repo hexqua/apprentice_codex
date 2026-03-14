@@ -7,18 +7,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class CrystalBladedStaffAttackContextManager {
     private static final Map<ServerLevel, Map<UUID, PendingAttackContext>> PENDING_ATTACKS = new WeakHashMap<>();
 
@@ -26,12 +26,12 @@ public final class CrystalBladedStaffAttackContextManager {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingDamage(LivingDamageEvent event) {
+    public static void onLivingDamage(LivingDamageEvent.Post event) {
         if (event.getEntity().level().isClientSide) {
             return;
         }
 
-        if (event.getAmount() <= 0f) {
+        if (event.getNewDamage() <= 0f) {
             return;
         }
 
@@ -57,12 +57,8 @@ public final class CrystalBladedStaffAttackContextManager {
     }
 
     @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        if (!(event.level instanceof ServerLevel serverLevel)) {
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
             return;
         }
 
@@ -107,7 +103,7 @@ public final class CrystalBladedStaffAttackContextManager {
         }
     }
 
-    private static ServerPlayer resolveStaffAttacker(LivingDamageEvent event) {
+    private static ServerPlayer resolveStaffAttacker(LivingDamageEvent.Post event) {
         ServerPlayer player = null;
         if (event.getSource().getDirectEntity() instanceof ServerPlayer directPlayer) {
             player = directPlayer;

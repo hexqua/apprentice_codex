@@ -12,11 +12,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ManaSiphonOrbRenderEvent {
     private static final ResourceLocation ORB_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/mana_siphon_orb.png");
@@ -71,11 +71,7 @@ public final class ManaSiphonOrbRenderEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         if (Minecraft.getInstance().level == null && !ACTIVE_ORBS.isEmpty()) {
             ACTIVE_ORBS.clear();
         }
@@ -96,7 +92,7 @@ public final class ManaSiphonOrbRenderEvent {
 
         var poseStack = event.getPoseStack();
         var camera = event.getCamera();
-        var partialTick = event.getPartialTick();
+        var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
         var gameTime = level.getGameTime();
         var bufferSource = minecraft.renderBuffers().bufferSource();
         var buffer = bufferSource.getBuffer(ORB_RENDER_TYPE);
@@ -304,13 +300,13 @@ public final class ManaSiphonOrbRenderEvent {
     private static void vertex(VertexConsumer buffer, Matrix4f poseMatrix, Matrix3f normalMatrix,
                                Vec3 position, float u, float v,
                                float red, float green, float blue, float alpha, Vec3 normal) {
-        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(red, green, blue, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, (float) normal.x, (float) normal.y, (float) normal.z)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(new Vector3f((float) normal.x, (float) normal.y, (float) normal.z));
+        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(red, green, blue, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 
     private static Vec3 horizontalPerpendicular(Vec3 vector) {

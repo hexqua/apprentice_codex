@@ -8,9 +8,9 @@ import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class CrystalBladedStaffManaRecoveryManager {
     private static final Map<ServerLevel, List<PendingManaRecovery>> PENDING_RECOVERIES = new WeakHashMap<>();
     private static final Map<ServerLevel, List<PendingLaunchSound>> PENDING_LAUNCH_SOUNDS = new WeakHashMap<>();
@@ -35,12 +35,8 @@ public final class CrystalBladedStaffManaRecoveryManager {
     }
 
     @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        if (!(event.level instanceof ServerLevel serverLevel)) {
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
             return;
         }
 

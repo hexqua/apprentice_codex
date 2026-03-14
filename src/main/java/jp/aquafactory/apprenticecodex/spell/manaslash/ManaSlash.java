@@ -15,8 +15,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -49,7 +49,7 @@ public class ManaSlash extends AbstractSpell {
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         // ベースのマナパワーが低いので武器ダメージより下がるのは意図的.
-        var rawDamage = Utils.getWeaponDamage(entity, MobType.UNDEFINED) * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = (float) entity.getAttributeValue(Attributes.ATTACK_DAMAGE) * getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH);
     }
 

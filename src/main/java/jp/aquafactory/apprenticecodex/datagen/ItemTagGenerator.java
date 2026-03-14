@@ -36,6 +36,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = Enchantments.MAGIC_ITEM_ENCHANTABLE;
     private static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_MAGIC_ENCHANTABLE;
     private static final TagKey<Item> SPELL_GUN_ENCHANTABLE = Enchantments.SPELL_GUN_ENCHANTABLE;
+    private static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = Enchantments.TRANSCENDENCE_ENCHANTABLE;
+    private static final TagKey<Item> WISDOM_ENCHANTABLE = Enchantments.WISDOM_ENCHANTABLE;
 
     public ItemTagGenerator(
             PackOutput output,
@@ -82,6 +84,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
                 ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
         );
+        // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
+        tag(TRANSCENDENCE_ENCHANTABLE).addTag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        tag(WISDOM_ENCHANTABLE).addTag(SPELL_GUN_ENCHANTABLE).add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
         tag(OFFHAND_MAGIC_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),

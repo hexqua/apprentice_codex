@@ -23,14 +23,14 @@ public class CrystalBladedStaffRenderer extends GeoItemRenderer<CrystalBladedSta
     @Override
     public void renderRecursively(PoseStack poseStack, CrystalBladedStaff animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         if (isBoneOrChildOf(bone, MANA_ORBIT_BONE)) {
             // mana_orbit 系は暗さの影響を受けない半透明発光として描画する。
             var translucentRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
             var translucentBuffer = getFoilAwareBuffer(bufferSource, translucentRenderType);
             super.renderRecursively(
                     poseStack, animatable, bone, translucentRenderType, bufferSource, translucentBuffer, isReRender, partialTick,
-                    FULL_BRIGHT_LIGHT, packedOverlay, red, green, blue, alpha
+                    FULL_BRIGHT_LIGHT, packedOverlay, colour
             );
             return;
         }
@@ -40,14 +40,14 @@ public class CrystalBladedStaffRenderer extends GeoItemRenderer<CrystalBladedSta
             var translucentBuffer = getFoilAwareBuffer(bufferSource, translucentRenderType);
             super.renderRecursively(
                     poseStack, animatable, bone, translucentRenderType, bufferSource, translucentBuffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 

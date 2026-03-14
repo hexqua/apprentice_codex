@@ -21,7 +21,22 @@
     "D  "
   ],
   "result": {
-    "item": "apprenticecodex:crystal_bladed_staff"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:mana_slash",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:crystal_bladed_staff"
+  }
 }

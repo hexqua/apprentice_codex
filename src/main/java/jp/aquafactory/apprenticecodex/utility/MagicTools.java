@@ -99,7 +99,7 @@ public final class MagicTools {
             return;
         }
 
-        var maxMana = (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        var maxMana = (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA);
         if (maxMana <= MANA_UI_SAFE_MARGIN) {
             return;
         }

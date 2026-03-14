@@ -1,18 +1,27 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.ManaSiphonOrbRenderEvent;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
-public class ManaSiphonOrbEffectPacket {
+public class ManaSiphonOrbEffectPacket implements CustomPacketPayload {
+    public static final Type<ManaSiphonOrbEffectPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mana_siphon_orb_effect"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, ManaSiphonOrbEffectPacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), ManaSiphonOrbEffectPacket::decode);
+
     private final double impactX;
     private final double impactY;
     private final double impactZ;
@@ -31,7 +40,12 @@ public class ManaSiphonOrbEffectPacket {
         this.orbs = orbs;
     }
 
-    public static void encode(ManaSiphonOrbEffectPacket packet, FriendlyByteBuf buffer) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    private static void encode(ManaSiphonOrbEffectPacket packet, FriendlyByteBuf buffer) {
         buffer.writeDouble(packet.impactX);
         buffer.writeDouble(packet.impactY);
         buffer.writeDouble(packet.impactZ);
@@ -48,7 +62,7 @@ public class ManaSiphonOrbEffectPacket {
         }
     }
 
-    public static ManaSiphonOrbEffectPacket decode(FriendlyByteBuf buffer) {
+    private static ManaSiphonOrbEffectPacket decode(FriendlyByteBuf buffer) {
         var impactX = buffer.readDouble();
         var impactY = buffer.readDouble();
         var impactZ = buffer.readDouble();
@@ -69,12 +83,12 @@ public class ManaSiphonOrbEffectPacket {
         return new ManaSiphonOrbEffectPacket(impactX, impactY, impactZ, ownerEntityId, orbs);
     }
 
-    public static void handle(ManaSiphonOrbEffectPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(ManaSiphonOrbEffectPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -91,7 +105,14 @@ public class ManaSiphonOrbEffectPacket {
         }
     }
 
-    public record OrbData(float scatterX, float scatterY, float scatterZ, int returnDelayTicks, int returnDurationTicks,
-                          float scale, float phaseOffset) {
+    public record OrbData(
+            float scatterX,
+            float scatterY,
+            float scatterZ,
+            int returnDelayTicks,
+            int returnDurationTicks,
+            float scale,
+            float phaseOffset
+    ) {
     }
 }
