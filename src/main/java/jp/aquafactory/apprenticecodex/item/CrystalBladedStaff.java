@@ -71,6 +71,9 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     private static final int MIN_RETURN_DURATION_TICKS = 4;
     private static final int MAX_RETURN_DURATION_TICKS = 6;
     private static final float MANA_RECOVERY_PER_ORB = 2.5f;
+    // クライアント描画と同じ値で待機開始位置を求め、launch 音の位置ずれを防ぐ。
+    private static final float ORB_SCATTER_DURATION_TICKS = 6.0f;
+    private static final double ORB_SCATTER_GRAVITY = 0.012d;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Multimap<Attribute, AttributeModifier> mainhandModifiers;
@@ -221,6 +224,7 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
             var returnDurationTicks = random.nextInt(MAX_RETURN_DURATION_TICKS - MIN_RETURN_DURATION_TICKS + 1) + MIN_RETURN_DURATION_TICKS;
             var scale = 0.18f + random.nextFloat() * 0.06f;
             var phaseOffset = random.nextFloat() * ((float) Math.PI * 2.0f);
+            var launchPosition = launchStartPosition(impactPosition, scatter, returnDelayTicks, phaseOffset);
             orbData.add(new ManaSiphonOrbEffectPacket.OrbData(
                     (float) scatter.x,
                     (float) scatter.y,
@@ -235,6 +239,11 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                     serverLevel.getGameTime() + returnDelayTicks + returnDurationTicks,
                     MANA_RECOVERY_PER_ORB
             ));
+            CrystalBladedStaffManaRecoveryManager.submitLaunchSound(serverLevel,
+                    new CrystalBladedStaffManaRecoveryManager.PendingLaunchSound(
+                            launchPosition,
+                            serverLevel.getGameTime() + returnDelayTicks
+                    ));
         }
 
         Networks.sendToTrackingEntityAndSelf(serverPlayer, new ManaSiphonOrbEffectPacket(
@@ -256,6 +265,19 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                 Math.cos(horizontalAngle) * horizontalSpeed,
                 verticalSpeed,
                 Math.sin(horizontalAngle) * horizontalSpeed
+        );
+    }
+
+    private static Vec3 launchStartPosition(Vec3 impactPosition, Vec3 scatter, int returnDelayTicks, float phaseOffset) {
+        var anchor = impactPosition.add(
+                scatter.scale(ORB_SCATTER_DURATION_TICKS)
+        ).add(0.0d, -ORB_SCATTER_GRAVITY * ORB_SCATTER_DURATION_TICKS * ORB_SCATTER_DURATION_TICKS, 0.0d);
+        var hoverTicks = returnDelayTicks - ORB_SCATTER_DURATION_TICKS;
+        var phase = hoverTicks * 0.14f + phaseOffset;
+        return anchor.add(
+                Math.cos(phase * 0.9f) * 0.05d,
+                Math.sin(phase * 1.3f) * 0.03d,
+                Math.sin(phase) * 0.05d
         );
     }
 
