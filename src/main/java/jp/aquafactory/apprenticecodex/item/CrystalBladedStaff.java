@@ -2,9 +2,11 @@ package jp.aquafactory.apprenticecodex.item;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingManaRecovery;
@@ -27,6 +29,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -143,7 +146,17 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
 
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
-        return InteractionResultHolder.pass(player.getItemInHand(usedHand));
+        var stack = player.getItemInHand(usedHand);
+        if (usedHand != InteractionHand.MAIN_HAND || shouldPrioritizeOffhandUse(player)) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        var castResult = tryCastSelectedSpell(player, stack);
+        return switch (castResult) {
+            case SUCCESS -> InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+            case FAIL -> InteractionResultHolder.fail(stack);
+            case NONE -> InteractionResultHolder.pass(stack);
+        };
     }
 
     @Override
@@ -215,6 +228,38 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
 
     public static boolean isCrystalBladedStaff(ItemStack stack) {
         return stack.getItem() instanceof CrystalBladedStaff;
+    }
+
+    private static boolean shouldPrioritizeOffhandUse(Player player) {
+        var offhandItem = player.getOffhandItem().getItem();
+        // 盾はクールダウン中でも常に優先し、Crystal 側の右クリック復帰を防ぐ。
+        return offhandItem instanceof ShieldItem || offhandItem instanceof AbstractSpellGunItem;
+    }
+
+    private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {
+        if (!ISpellContainer.isSpellContainer(stack)) {
+            initializeSpellContainer(stack);
+        }
+
+        var selectionOption = new SpellSelectionManager(player).getSelection();
+        if (selectionOption == null || selectionOption.spellData == SpellData.EMPTY) {
+            return CastResult.NONE;
+        }
+
+        var spellData = selectionOption.spellData;
+        var spell = spellData.getSpell();
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var casted = spell.attemptInitiateCast(
+                stack,
+                spellLevel,
+                player.level(),
+                player,
+                selectionOption.getCastSource(),
+                true,
+                SpellSelectionManager.MAINHAND
+        );
+
+        return casted ? CastResult.SUCCESS : CastResult.FAIL;
     }
 
     public static void spawnManaSiphonOrbs(ServerPlayer serverPlayer, Vec3 impactPosition, int totalHitMobCount) {
@@ -351,5 +396,11 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                 )
         );
         return builder.build();
+    }
+
+    private enum CastResult {
+        NONE,
+        SUCCESS,
+        FAIL
     }
 }
