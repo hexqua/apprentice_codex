@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
+import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLight;
 import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
@@ -82,6 +83,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
     public static final RegistryObject<AbstractSpell> PHALANX_CHARGE = reg("phalanx_charge", PhalanxCharge::new);
     public static final RegistryObject<AbstractSpell> MANA_CHARGE = reg("mana_charge", ManaCharge::new);
+    public static final RegistryObject<AbstractSpell> MANA_SLASH = reg("mana_slash", ManaSlash::new);
     public static final RegistryObject<AbstractSpell> FORCE_FIELD = reg("force_field", ForceField::new);
     public static final RegistryObject<AbstractSpell> SENSE_EVIL = reg("sense_evil", SenseEvil::new);
 
