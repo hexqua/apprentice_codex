@@ -48,7 +48,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
-        tag(IRONS_STAFF).add(ItemRegistry.PASTEL_STAFF.get());
+        tag(IRONS_STAFF).add(
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
         tag(IRONS_UPGRADE_WHITELIST).add(ItemRegistry.ENDER_GRIMOIRE.get());
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
@@ -56,8 +59,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
-        tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
-        tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
+        tag(MALUM_SOUL_HUNTER_WEAPON).add(
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
+        tag(TOMAGIC_REVERSAL_WEAPON).add(
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
         tag(MAGIC_ITEM_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELLCASTER_GUN.get(),
                 ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
