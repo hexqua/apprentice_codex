@@ -72,7 +72,11 @@ public final class ManaSiphonOrbRenderEvent {
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END && Minecraft.getInstance().level == null && !ACTIVE_ORBS.isEmpty()) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
+
+        if (Minecraft.getInstance().level == null && !ACTIVE_ORBS.isEmpty()) {
             ACTIVE_ORBS.clear();
         }
     }

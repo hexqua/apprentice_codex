@@ -50,9 +50,12 @@ import java.util.function.Consumer;
 import net.minecraft.world.phys.Vec3;
 
 public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellContainer {
+    private static final String MAIN_CONTROLLER = "main";
+    private static final String ACTIVATE_ANIMATION = "activate";
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation ANIM_ACTIVATE = RawAnimation.begin().thenPlay("activate");
     private static final UUID ATTACK_DAMAGE_MODIFIER_ID = Item.BASE_ATTACK_DAMAGE_UUID;
     private static final UUID ATTACK_SPEED_MODIFIER_ID = Item.BASE_ATTACK_SPEED_UUID;
     private static final UUID ENTITY_REACH_MODIFIER_ID =
@@ -111,13 +114,12 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
-        controllerRegistrar.add(new AnimationController<>(
-                this, "main", 0,
-                state -> {
+        controllerRegistrar.add(
+                new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
                     state.setAnimation(ANIM_IDLE);
                     return PlayState.CONTINUE;
-                }
-        ));
+                }).triggerableAnim(ACTIVATE_ANIMATION, ANIM_ACTIVATE)
+        );
     }
 
     @Override
@@ -246,6 +248,9 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                     ));
         }
 
+        triggerActivateAnimation(serverPlayer, serverPlayer.getMainHandItem());
+        triggerActivateAnimation(serverPlayer, serverPlayer.getOffhandItem());
+
         Networks.sendToTrackingEntityAndSelf(serverPlayer, new ManaSiphonOrbEffectPacket(
                 impactPosition,
                 serverPlayer.getId(),
@@ -279,6 +284,15 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                 Math.sin(phase * 1.3f) * 0.03d,
                 Math.sin(phase) * 0.05d
         );
+    }
+
+    private static void triggerActivateAnimation(ServerPlayer serverPlayer, ItemStack stack) {
+        if (!isCrystalBladedStaff(stack)) {
+            return;
+        }
+
+        var instanceId = GeoItem.getOrAssignId(stack, serverPlayer.serverLevel());
+        ((CrystalBladedStaff) stack.getItem()).triggerAnim(serverPlayer, instanceId, MAIN_CONTROLLER, ACTIVATE_ANIMATION);
     }
 
     private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
