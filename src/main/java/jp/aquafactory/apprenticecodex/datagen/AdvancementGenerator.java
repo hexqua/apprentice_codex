@@ -338,5 +338,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("extract_spellcaster_gun_scroll", CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
                 .save(saver, advancementId("extract_spellcaster_gun_scroll"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_crystal_bladed_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_crystal_bladed_staff.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_crystal_bladed_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.CRYSTAL_BLADED_STAFF.getId()))
+                .save(saver, advancementId("craft_crystal_bladed_staff"), existingFileHelper);
+
     }
 }
