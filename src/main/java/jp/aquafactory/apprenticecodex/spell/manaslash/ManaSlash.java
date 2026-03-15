@@ -29,14 +29,14 @@ public class ManaSlash extends AbstractSpell {
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
             .setMaxLevel(1)
-            .setCooldownSeconds(8)
+            .setCooldownSeconds(12)
             .setAllowCrafting(false)
             .build();
 
     public ManaSlash() {
         baseSpellPower = 50;
         spellPowerPerLevel = 10;
-        baseManaCost = 0;
+        baseManaCost = 10;
         manaCostPerLevel = 0;
         castTime = 0;
     }
@@ -49,7 +49,7 @@ public class ManaSlash extends AbstractSpell {
 
     private float getDamage(int spellLevel, LivingEntity entity) {
         // ベースのマナパワーが低いので武器ダメージより下がるのは意図的.
-        var rawDamage = Utils.getWeaponDamage(entity, MobType.UNDEFINED) * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = Math.max(1, Utils.getWeaponDamage(entity, MobType.UNDEFINED) * getSpellPower(spellLevel, entity) / 100.0f);
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.MANA_SLASH);
     }
 

@@ -14,10 +14,13 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,11 +29,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -41,6 +40,7 @@ import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.ToolActions;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -51,6 +51,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -60,6 +61,9 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     private static final String MAIN_CONTROLLER = "main";
     private static final String ACTIVATE_ANIMATION = "activate";
     private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final ResourceLocation FORGE_SHIELDS_TAG_ID = ResourceLocation.fromNamespaceAndPath("forge", "shields");
+    private static final ResourceLocation FORGE_TOOLS_SHIELDS_TAG_ID =
+            ResourceLocation.fromNamespaceAndPath("forge", "tools/shields");
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
@@ -75,7 +79,7 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
             UUID.nameUUIDFromBytes("apprenticecodex:crystal_bladed_staff/spell_power".getBytes(StandardCharsets.UTF_8));
     private static final double ATTACK_DAMAGE = 5.0D;
     private static final double ATTACK_SPEED = -2.4D;
-    private static final double ENTITY_REACH_BONUS = 1.0D;
+    private static final double ENTITY_REACH_BONUS = 0.5D;
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final int ENCHANTMENT_VALUE = 14;
     private static final int MIN_ORB_COUNT = 4;
@@ -134,6 +138,13 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
                     return PlayState.CONTINUE;
                 }).triggerableAnim(ACTIVATE_ANIMATION, ANIM_ACTIVATE)
         );
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+                                @NotNull TooltipFlag flag) {
+        lines.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
+        super.appendHoverText(stack, level, lines, flag);
     }
 
     @Override
@@ -241,9 +252,16 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     private static boolean shouldPrioritizeOffhandUse(Player player) {
-        var offhandItem = player.getOffhandItem().getItem();
-        // 盾はクールダウン中でも常に優先し、Crystal 側の右クリック復帰を防ぐ。
-        return offhandItem instanceof ShieldItem || offhandItem instanceof AbstractSpellGunItem;
+        var offhandStack = player.getOffhandItem();
+        return offhandStack.getItem() instanceof AbstractSpellGunItem || isShieldLikeOffhandItem(offhandStack);
+    }
+
+    private static boolean isShieldLikeOffhandItem(ItemStack stack) {
+        // 継承元ではなく Forge の盾契約で判定し、ShieldItem 非継承の MOD 盾や
+        // Shield Expansion のタグ拡張にも追従する。
+        return stack.canPerformAction(ToolActions.SHIELD_BLOCK)
+                || stack.is(ItemTags.create(FORGE_SHIELDS_TAG_ID))
+                || stack.is(ItemTags.create(FORGE_TOOLS_SHIELDS_TAG_ID));
     }
 
     private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {

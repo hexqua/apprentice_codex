@@ -53,6 +53,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "Above Epic",
 
+  "item.apprenticecodex.crystal_bladed_staff.desc": "This staff prioritizes shield usage.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
   "item.apprenticecodex.basic_spellcaster_round.desc": "Ammo for instant casting spells",
   "item.apprenticecodex.arcane_spellcaster_round.desc": "Ammo for slightly complex instant casting spells",
