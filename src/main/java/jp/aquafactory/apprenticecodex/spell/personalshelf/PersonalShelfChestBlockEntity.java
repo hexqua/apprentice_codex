@@ -35,8 +35,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuProvider {
-    private static final int EXPORT_COOLDOWN_TICK = 20;
-    private static final int FALLBACK_LIFE_TIME_TICKS = 20 * 30;
+    private static final int EXPORT_COOLDOWN_TICK = 5;
+    private static final int FALLBACK_LIFE_TIME_TICKS = 20 * 60;
     private static final double FALLBACK_KEEP_OWNER_RANGE = 10.0;
 
 
