@@ -79,7 +79,7 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
             UUID.nameUUIDFromBytes("apprenticecodex:crystal_bladed_staff/spell_power".getBytes(StandardCharsets.UTF_8));
     private static final double ATTACK_DAMAGE = 5.0D;
     private static final double ATTACK_SPEED = -2.4D;
-    private static final double ENTITY_REACH_BONUS = 1.0D;
+    private static final double ENTITY_REACH_BONUS = 0.5D;
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final int ENCHANTMENT_VALUE = 14;
     private static final int MIN_ORB_COUNT = 4;
