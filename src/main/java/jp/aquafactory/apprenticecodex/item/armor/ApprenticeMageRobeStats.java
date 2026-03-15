@@ -62,11 +62,17 @@ public final class ApprenticeMageRobeStats {
     }
 
     public static Item.Properties createProperties(ArmorItem.Type type) {
-        return new Item.Properties().durability(type.getDurability(DURABILITY_MULTIPLIER));
+        return new Item.Properties()
+                .stacksTo(1)
+                .durability(type.getDurability(DURABILITY_MULTIPLIER));
     }
 
     public static boolean isRepairIngredient(ItemStack stack) {
         return REPAIR_INGREDIENT.get().test(stack);
+    }
+
+    public static int enchantmentValue() {
+        return ENCHANTMENT_VALUE;
     }
 
     public static ItemAttributeModifiers createAttributeModifiers(ArmorItem.Type type) {
