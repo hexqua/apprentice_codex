@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.particles.ParticleTypes;
@@ -187,7 +188,7 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             if (position != null) {
                 tag.putInt("PositionX", position.getX());
@@ -198,7 +199,7 @@ public class MageLight extends AbstractSpell implements jp.aquafactory.apprentic
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             if (nbt.contains("PositionX")) {
                 position = new BlockPos(nbt.getInt("PositionX"), nbt.getInt("PositionY"), nbt.getInt("PositionZ"));
             } else {

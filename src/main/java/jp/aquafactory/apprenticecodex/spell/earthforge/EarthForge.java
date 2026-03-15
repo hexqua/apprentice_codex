@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -284,7 +285,7 @@ public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenti
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             if (centerPos == null || effectDirection == null || radius <= 0) {
                 return tag;
@@ -299,7 +300,7 @@ public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenti
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             if (!nbt.contains("CenterX")) {
                 reset();
                 return;

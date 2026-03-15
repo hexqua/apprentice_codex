@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.spells.ICastDataSerializable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
@@ -124,7 +125,7 @@ public class BlockTargetData implements ICastDataSerializable {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
         var tag = new CompoundTag();
         tag.putBoolean("HasTarget", hasTarget);
         if (!hasTarget) {
@@ -146,7 +147,7 @@ public class BlockTargetData implements ICastDataSerializable {
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
         hasTarget = nbt.getBoolean("HasTarget");
         if (!hasTarget) {
             reset();

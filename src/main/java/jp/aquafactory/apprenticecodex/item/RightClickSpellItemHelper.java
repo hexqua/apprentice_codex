@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import io.redspace.ironsspellbooks.api.item.CastingImplementData;
 import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.Scroll;
+import io.redspace.ironsspellbooks.registries.ComponentRegistry;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -30,7 +30,7 @@ public final class RightClickSpellItemHelper {
             return true;
         }
 
-        if (stack.isEdible() || item.getUseDuration(stack) > 0) {
+        if (stack.getFoodProperties(player) != null || item.getUseDuration(stack, player) > 0) {
             return true;
         }
 
@@ -48,7 +48,7 @@ public final class RightClickSpellItemHelper {
             return true;
         }
 
-        return CastingImplementData.has(stack) && CastingImplementData.get(stack);
+        return stack.has(ComponentRegistry.CASTING_IMPLEMENT);
     }
 
     private static boolean hasUseOverride(Item item) {
