@@ -13,11 +13,13 @@
     "SchoolTypeAccessor"
   ],
   "client": [
+    "ClientInputEventsMixin",
     "ClientSpellCastHelperMixin",
     "KeyboardHandlerMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",
-    "EntityMixin"
+    "EntityMixin",
+    "QuickCastPacketAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

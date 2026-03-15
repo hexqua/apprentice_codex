@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.network;
 
+import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
@@ -14,7 +15,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "5";
+    private static final String PROTOCOL_VERSION = "6";
 
     private Networks() {
     }
@@ -25,6 +26,11 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToServer(
+                ClientBlockTargetCastPacket.TYPE,
+                ClientBlockTargetCastPacket.STREAM_CODEC,
+                ClientBlockTargetCastPacket::handle
+        );
         registrar.playToClient(
                 SyncEnderGrimoireSpellbookPacket.TYPE,
                 SyncEnderGrimoireSpellbookPacket.STREAM_CODEC,
@@ -63,5 +69,9 @@ public final class Networks {
 
     public static void sendToTrackingEntityAndSelf(Entity entity, CustomPacketPayload packet) {
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, packet);
+    }
+
+    public static void sendToServer(CustomPacketPayload packet) {
+        PacketDistributor.sendToServer(packet);
     }
 }
