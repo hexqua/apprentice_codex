@@ -35,6 +35,10 @@
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
   "item.apprenticecodex.apprentice_mage_leggings": "見習い魔術師のズボン",
   "item.apprenticecodex.apprentice_mage_boots": "見習い魔術師の靴",
+  "item.apprenticecodex.enchantress_hat": "付呪魔女の帽子",
+  "item.apprenticecodex.enchantress_robe": "付呪魔女のローブ",
+  "item.apprenticecodex.enchantress_leggings": "付呪魔女のズボン",
+  "item.apprenticecodex.enchantress_boots": "付呪魔女の靴",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "シフトキーで詳細を表示",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入した魔法への特殊効果:",
