@@ -15,7 +15,9 @@ import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,7 +32,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -39,6 +41,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -51,6 +54,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Set;
 
 public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
@@ -71,7 +75,7 @@ public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpe
     private static final StaffTier WEAPON_TIER = new StaffTier(5.0F, -2.4F);
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_ACTIVATE = RawAnimation.begin().thenPlay("activate");
-    private static final double ENTITY_REACH_BONUS = 1.0D;
+    private static final double ENTITY_REACH_BONUS = 0.5D;
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final int ENCHANTMENT_VALUE = 14;
     private static final int MIN_ORB_COUNT = 4;
@@ -132,6 +136,12 @@ public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpe
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 
     @Override
@@ -331,10 +341,17 @@ public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpe
         return builder.build();
     }
 
-    private static boolean shouldPrioritizeOffhandUse(Player player) {
-        var offhandItem = player.getOffhandItem().getItem();
-        // 盾はクールダウン中でも常に優先し、Crystal 側の右クリック復帰を防ぐ。
-        return offhandItem instanceof ShieldItem || offhandItem instanceof AbstractSpellGunItem;
+    static boolean shouldPrioritizeOffhandUse(Player player) {
+        var offhandStack = player.getOffhandItem();
+        return offhandStack.getItem() instanceof AbstractSpellGunItem || isShieldLikeOffhandItem(offhandStack);
+    }
+
+    private static boolean isShieldLikeOffhandItem(ItemStack stack) {
+        // 1.21.1 では ISS の CASTING_IMPLEMENT 経路が use() より先に走るため、
+        // 継承判定ではなく shield_block ability と c:tools/shield 契約を共有して
+        // イベント側と同じ条件でバニラ盾・MOD盾を拾う。
+        return stack.canPerformAction(ItemAbilities.SHIELD_BLOCK)
+                || stack.is(Tags.Items.TOOLS_SHIELD);
     }
 
     private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {
