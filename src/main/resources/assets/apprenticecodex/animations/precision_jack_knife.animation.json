@@ -1,6 +1,19 @@
 {
 	"format_version": "1.8.0",
 	"animations": {
+		"idle": {
+			"loop": true,
+			"bones": {
+				"hand": {
+					"rotation": {
+						"vector": [0, 0, 22.5]
+					},
+					"position": {
+						"vector": [-11, 8, -8]
+					}
+				}
+			}
+		},
 		"prepare": {
 			"loop": true,
 			"animation_length": 0.1667,
