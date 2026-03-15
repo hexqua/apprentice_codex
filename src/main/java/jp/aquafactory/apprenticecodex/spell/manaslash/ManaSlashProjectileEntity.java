@@ -19,7 +19,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -121,7 +120,9 @@ public class ManaSlashProjectileEntity extends Projectile {
             }
         }
 
-        move(MoverType.SELF, getDeltaMovement());
+        // 1.20.1 と同様に独自 clip 判定だけで地形衝突を決める。
+        // move() を通すと可変サイズ当たり判定で別経路の押し戻しが発生し、柵などで弾かれる。
+        setPos(position().add(getDeltaMovement()));
         ProjectileUtil.rotateTowardsMovement(this, 1.0f);
     }
 
