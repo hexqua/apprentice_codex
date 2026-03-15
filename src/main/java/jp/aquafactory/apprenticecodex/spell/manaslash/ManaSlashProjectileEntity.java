@@ -11,6 +11,8 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -20,6 +22,7 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -37,6 +40,9 @@ public class ManaSlashProjectileEntity extends Projectile {
     static final double SPEED = 1.0d;
     static final int EXPIRE_TIME_TICKS = 20;
     static final int FADE_DURATION_TICKS = 10;
+    private static final float BLOCK_COLLISION_WIDTH = 0.5f;
+    private static final float BLOCK_COLLISION_HEIGHT = 0.5f;
+    private static final double BLOCK_COLLISION_STEP = BLOCK_COLLISION_WIDTH * 0.5d;
     private static final float INITIAL_RADIUS = 0.5f;
     private static final float MAX_RADIUS = 5.0f;
     private static final float RADIUS_GROWTH_PER_TICK = 0.45f;
@@ -91,10 +97,9 @@ public class ManaSlashProjectileEntity extends Projectile {
         setRadius(getRadius() + RADIUS_GROWTH_PER_TICK);
 
         if (!level().isClientSide) {
-            var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, entity -> false);
-            if (hitResult.getType() == HitResult.Type.BLOCK
-                    && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
-                onHitBlock((BlockHitResult) hitResult);
+            var blockHit = findBlockCollision(getDeltaMovement());
+            if (blockHit != null && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, blockHit)) {
+                onHitBlock(blockHit);
             }
 
             if (isRemoved()) {
@@ -187,6 +192,53 @@ public class ManaSlashProjectileEntity extends Projectile {
         if (!level().isClientSide) {
             entityData.set(DATA_RADIUS, Mth.clamp(radius, 0.0f, MAX_RADIUS));
         }
+    }
+
+    private BlockHitResult findBlockCollision(Vec3 movement) {
+        if (movement.lengthSqr() < 1.0e-8) {
+            return null;
+        }
+
+        var stepCount = Math.max(1, Mth.ceil(movement.length() / BLOCK_COLLISION_STEP));
+        var step = movement.scale(1.0d / stepCount);
+        var previousPos = position();
+
+        for (var i = 1; i <= stepCount; ++i) {
+            var currentPos = position().add(step.scale(i));
+            if (!level().getBlockCollisions(this, makeBlockCollisionBox(currentPos)).iterator().hasNext()) {
+                previousPos = currentPos;
+                continue;
+            }
+
+            // 見た目の拡大とは切り離し、ブロック判定だけは Magic Missile 相当の固定サイズにする。
+            var blockHit = level().clip(new ClipContext(
+                    previousPos,
+                    currentPos,
+                    ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE,
+                    this
+            ));
+            if (blockHit.getType() == HitResult.Type.BLOCK) {
+                return blockHit;
+            }
+
+            return new BlockHitResult(
+                    currentPos,
+                    Direction.getNearest(-movement.x, -movement.y, -movement.z),
+                    BlockPos.containing(currentPos),
+                    false
+            );
+        }
+
+        return null;
+    }
+
+    private static AABB makeBlockCollisionBox(Vec3 pos) {
+        var halfWidth = BLOCK_COLLISION_WIDTH * 0.5d;
+        return new AABB(
+                pos.x - halfWidth, pos.y, pos.z - halfWidth,
+                pos.x + halfWidth, pos.y + BLOCK_COLLISION_HEIGHT, pos.z + halfWidth
+        );
     }
 
     private float getRadius() {
