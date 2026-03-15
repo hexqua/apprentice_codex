@@ -69,6 +69,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANTIS_LEAP = reg("mantis_leap", MantisLeap::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> AUTO_MAGNET = reg("auto_magnet", AutoMagnet::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> REMOTE_EYE = reg("remote_eye", RemoteEye::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_SLASH = reg("mana_slash", ManaSlash::new);
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
@@ -83,7 +84,6 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> PHALANX_CHARGE = reg("phalanx_charge", PhalanxCharge::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_CHARGE = reg("mana_charge", ManaCharge::new);
-    public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_SLASH = reg("mana_slash", ManaSlash::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FORCE_FIELD = reg("force_field", ForceField::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SENSE_EVIL = reg("sense_evil", SenseEvil::new);
 
