@@ -61,7 +61,7 @@ public class PersonalShelf extends AbstractSpell implements jp.aquafactory.appre
     }
 
     private int getDurationTicks(){
-        return 20 * 30;
+        return 20 * 60;
     }
 
     private double getRange(){
