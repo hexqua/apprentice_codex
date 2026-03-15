@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,7 +31,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -60,6 +60,9 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     private static final String MAIN_CONTROLLER = "main";
     private static final String ACTIVATE_ANIMATION = "activate";
     private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final ResourceLocation FORGE_SHIELDS_TAG_ID = ResourceLocation.fromNamespaceAndPath("forge", "shields");
+    private static final ResourceLocation FORGE_TOOLS_SHIELDS_TAG_ID =
+            ResourceLocation.fromNamespaceAndPath("forge", "tools/shields");
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
@@ -241,9 +244,16 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
     }
 
     private static boolean shouldPrioritizeOffhandUse(Player player) {
-        var offhandItem = player.getOffhandItem().getItem();
-        // 盾はクールダウン中でも常に優先し、Crystal 側の右クリック復帰を防ぐ。
-        return offhandItem instanceof ShieldItem || offhandItem instanceof AbstractSpellGunItem;
+        var offhandStack = player.getOffhandItem();
+        return offhandStack.getItem() instanceof AbstractSpellGunItem || isShieldLikeOffhandItem(offhandStack);
+    }
+
+    private static boolean isShieldLikeOffhandItem(ItemStack stack) {
+        // 継承元ではなく Forge の盾契約で判定し、ShieldItem 非継承の MOD 盾や
+        // Shield Expansion のタグ拡張にも追従する。
+        return stack.canPerformAction(ToolActions.SHIELD_BLOCK)
+                || stack.is(ItemTags.create(FORGE_SHIELDS_TAG_ID))
+                || stack.is(ItemTags.create(FORGE_TOOLS_SHIELDS_TAG_ID));
     }
 
     private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {
