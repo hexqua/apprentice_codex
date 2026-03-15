@@ -10,6 +10,8 @@ import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.EnchantressRobeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -144,6 +146,12 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
     @Override
     public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
         return EnchantressRobeStats.isRepairIngredient(repair) || super.isValidRepairItem(toRepair, repair);
+    }
+
+    @Override
+    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
+        // GeoArmor 描画とは別に vanilla 防具テクスチャも問い合わせられるため、既存テクスチャへ解決して警告を出させない。
+        return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/enchantress_robe.png").toString();
     }
 
     @Override
