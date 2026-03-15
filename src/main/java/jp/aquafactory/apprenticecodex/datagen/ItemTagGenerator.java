@@ -101,7 +101,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         tag(MAGIC_ITEM_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELLCASTER_GUN.get(),
+                ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
                 ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
+                ItemRegistry.DIAMOND_SPELLCASTER_GUN.get(),
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
