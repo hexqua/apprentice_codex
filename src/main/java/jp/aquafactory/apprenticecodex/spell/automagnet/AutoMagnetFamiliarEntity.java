@@ -39,7 +39,8 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     private static final double FLOAT_RANGE = 0.15;
     private static final int COLLECT_INTERVAL_TICK = 2;
     private static final double MIN_PICKUP_RANGE = 0.5;
-    private static final String ITEM_TRANSFER_SOUND_PLAYED_TAG = "apprenticecodex_auto_magnet_transfer_sound_played";
+    // 既存ワールドとの互換のため tag 名は据え置きつつ、転送済み判定にも使う。
+    private static final String ITEM_TRANSFER_MARKED_TAG = "apprenticecodex_auto_magnet_transfer_sound_played";
 
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
@@ -204,9 +205,14 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         var rangeSq = pickupRange * pickupRange;
         var area = owner.getBoundingBox().inflate(pickupRange);
 
+        var consumedCollectMana = false;
         for (var item : level.getEntitiesOfClass(ItemEntity.class, area, e -> canCollectItem(e, owner, ownerPos, rangeSq))) {
-            if (!tryConsumeCollectMana(owner, item)) {
-                continue;
+            if (!consumedCollectMana && !isAlreadyTransferredByAutoMagnet(item)) {
+                // 同一 tick にまとめて回収できる item 群は 1 回分だけ課金する。
+                if (!tryConsumeCollectMana(owner)) {
+                    break;
+                }
+                consumedCollectMana = true;
             }
             moveEntityToOwnerFeet(item, ownerFeet);
             item.setNoPickUpDelay();
@@ -267,11 +273,7 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         return false;
     }
 
-    private boolean tryConsumeCollectMana(LivingEntity owner, ItemEntity item) {
-        if (item.getPersistentData().getBoolean(ITEM_TRANSFER_SOUND_PLAYED_TAG)) {
-            return true;
-        }
-
+    private boolean tryConsumeCollectMana(LivingEntity owner) {
         if (collectMana <= 0.0) {
             return true;
         }
@@ -295,12 +297,16 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
         return ((ItemEntityAccessor) item).apprenticecodex$getThrower();
     }
 
+    private static boolean isAlreadyTransferredByAutoMagnet(ItemEntity item) {
+        return item.getPersistentData().getBoolean(ITEM_TRANSFER_MARKED_TAG);
+    }
+
     private void playItemTransferSoundOnce(ServerLevel level, ItemEntity item) {
         var persistentData = item.getPersistentData();
-        if (persistentData.getBoolean(ITEM_TRANSFER_SOUND_PLAYED_TAG)) {
+        if (persistentData.getBoolean(ITEM_TRANSFER_MARKED_TAG)) {
             return;
         }
-        persistentData.putBoolean(ITEM_TRANSFER_SOUND_PLAYED_TAG, true);
+        persistentData.putBoolean(ITEM_TRANSFER_MARKED_TAG, true);
         AudioTools.playSoundFromEntity(level, this, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.7f, 1.4f);
     }
 }
