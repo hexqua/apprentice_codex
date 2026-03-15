@@ -7,9 +7,13 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -26,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class EarthForge extends AbstractSpell {
+public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "earth_forge");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -88,19 +92,38 @@ public class EarthForge extends AbstractSpell {
     }
 
     @Override
+    public double getClientBlockTargetingRange(int spellLevel, LivingEntity entity) {
+        return getRange(spellLevel, entity);
+    }
+
+    @Override
+    public final ICastDataSerializable getEmptyCastData() {
+        return new EarthForgeCastData();
+    }
+
+    @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        if (buildPlacementPlan(level, spellLevel, entity).isEmpty()) {
+        var placementPlan = buildPlacementPlan(level, spellLevel, entity);
+        if (placementPlan.isEmpty()) {
             sendCantPlaceMessage(entity);
             return false;
         }
 
+        var castData = new EarthForgeCastData();
+        castData.centerPos = placementPlan.get().center();
+        castData.effectDirection = placementPlan.get().effectDirection();
+        castData.radius = placementPlan.get().radius();
+        playerMagicData.setAdditionalCastData(castData);
         return true;
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (level instanceof ServerLevel serverLevel) {
-            var placementPlan = buildPlacementPlan(level, spellLevel, entity);
+            var placementPlan = restorePlacementPlan(level, playerMagicData);
+            if (placementPlan.isEmpty()) {
+                placementPlan = buildPlacementPlan(level, spellLevel, entity);
+            }
             if (placementPlan.isEmpty()) {
                 sendCantPlaceMessage(entity);
             } else {
@@ -116,20 +139,47 @@ public class EarthForge extends AbstractSpell {
     }
 
     private Optional<PlacementPlan> buildPlacementPlan(Level level, int spellLevel, LivingEntity entity) {
-        var raycastHit = raycastTargetBlock(level, spellLevel, entity);
-        if (raycastHit.isEmpty()) {
+        var placementTarget = resolvePlacementTarget(level, spellLevel, entity);
+        if (placementTarget.isEmpty()) {
             return Optional.empty();
         }
 
-        var hit = raycastHit.get();
-        var centerPos = resolveCenterPos(level, hit);
+        var hit = placementTarget.get();
+        var centerPos = resolveCenterPos(level, hit.hitPos(), hit.hitFace());
         var radius = entity.isShiftKeyDown() ? 1 : getRadius(spellLevel, entity);
-        var placeablePositions = collectPlaceablePositions(level, centerPos, hit.getDirection(), radius);
+        var placeablePositions = collectPlaceablePositions(level, centerPos, hit.hitFace(), radius);
         if (placeablePositions.isEmpty()) {
             return Optional.empty();
         }
 
-        return Optional.of(new PlacementPlan(centerPos, placeablePositions, hit.getDirection()));
+        return Optional.of(new PlacementPlan(centerPos, placeablePositions, hit.hitFace(), radius));
+    }
+
+    private Optional<PlacementPlan> restorePlacementPlan(Level level, MagicData playerMagicData) {
+        if (!(playerMagicData.getAdditionalCastData() instanceof EarthForgeCastData castData)) {
+            return Optional.empty();
+        }
+        if (castData.centerPos == null || castData.effectDirection == null || castData.radius <= 0) {
+            return Optional.empty();
+        }
+
+        var placeablePositions = collectPlaceablePositions(level, castData.centerPos, castData.effectDirection, castData.radius);
+        if (placeablePositions.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new PlacementPlan(castData.centerPos, placeablePositions, castData.effectDirection, castData.radius));
+    }
+
+    private Optional<PlacementTarget> resolvePlacementTarget(Level level, int spellLevel, LivingEntity entity) {
+        var clientTarget = BlockTargetingHelper.getValidatedPendingTarget(level, entity, getSpellResource(), getRange(spellLevel, entity));
+        if (clientTarget.isPresent()) {
+            var target = clientTarget.get();
+            return Optional.of(new PlacementTarget(target.getHitBlockPos(), target.getHitFace()));
+        }
+
+        return raycastTargetBlock(level, spellLevel, entity)
+                .map(hit -> new PlacementTarget(hit.getBlockPos(), hit.getDirection()));
     }
 
     private Optional<BlockHitResult> raycastTargetBlock(Level level, int spellLevel, LivingEntity entity) {
@@ -150,14 +200,13 @@ public class EarthForge extends AbstractSpell {
         return Optional.of(hit);
     }
 
-    private BlockPos resolveCenterPos(Level level, BlockHitResult hit) {
-        var hitPos = hit.getBlockPos();
+    private BlockPos resolveCenterPos(Level level, BlockPos hitPos, Direction hitFace) {
         var hitState = level.getBlockState(hitPos);
         if (hitState.canBeReplaced()) {
             return hitPos.immutable();
         }
 
-        return hitPos.relative(hit.getDirection()).immutable();
+        return hitPos.relative(hitFace).immutable();
     }
 
     private List<BlockPos> collectPlaceablePositions(Level level, BlockPos centerPos, Direction normal, int radius) {
@@ -193,6 +242,73 @@ public class EarthForge extends AbstractSpell {
         }
     }
 
-    private record PlacementPlan(BlockPos center, List<BlockPos> placeablePositions, Direction effectDirection) {
+    private record PlacementPlan(BlockPos center, List<BlockPos> placeablePositions, Direction effectDirection, int radius) {
+    }
+
+    private record PlacementTarget(BlockPos hitPos, Direction hitFace) {
+    }
+
+    public static class EarthForgeCastData implements ICastDataSerializable {
+        private BlockPos centerPos;
+        private Direction effectDirection;
+        private int radius;
+
+        @Override
+        public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
+            friendlyByteBuf.writeBoolean(centerPos != null && effectDirection != null && radius > 0);
+            if (centerPos == null || effectDirection == null || radius <= 0) {
+                return;
+            }
+
+            friendlyByteBuf.writeBlockPos(centerPos);
+            friendlyByteBuf.writeInt(effectDirection.get3DDataValue());
+            friendlyByteBuf.writeInt(radius);
+        }
+
+        @Override
+        public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
+            if (!friendlyByteBuf.readBoolean()) {
+                reset();
+                return;
+            }
+
+            centerPos = friendlyByteBuf.readBlockPos();
+            effectDirection = Direction.from3DDataValue(friendlyByteBuf.readInt());
+            radius = friendlyByteBuf.readInt();
+        }
+
+        @Override
+        public void reset() {
+            centerPos = null;
+            effectDirection = null;
+            radius = 0;
+        }
+
+        @Override
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+            var tag = new CompoundTag();
+            if (centerPos == null || effectDirection == null || radius <= 0) {
+                return tag;
+            }
+
+            tag.putInt("CenterX", centerPos.getX());
+            tag.putInt("CenterY", centerPos.getY());
+            tag.putInt("CenterZ", centerPos.getZ());
+            tag.putInt("EffectDirection", effectDirection.get3DDataValue());
+            tag.putInt("Radius", radius);
+            return tag;
+        }
+
+        @Override
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            if (!nbt.contains("CenterX")) {
+                reset();
+                return;
+            }
+
+            centerPos = new BlockPos(nbt.getInt("CenterX"), nbt.getInt("CenterY"), nbt.getInt("CenterZ"));
+            effectDirection = Direction.from3DDataValue(nbt.getInt("EffectDirection"));
+            radius = nbt.getInt("Radius");
+        }
     }
 }

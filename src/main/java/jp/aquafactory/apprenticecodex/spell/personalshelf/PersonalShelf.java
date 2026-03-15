@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -34,7 +35,7 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Optional;
 
-public class PersonalShelf extends AbstractSpell {
+public class PersonalShelf extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "personal_shelf");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -60,11 +61,16 @@ public class PersonalShelf extends AbstractSpell {
     }
 
     private int getDurationTicks(){
-        return 20 * 30;
+        return 20 * 60;
     }
 
     private double getRange(){
         return 8;
+    }
+
+    @Override
+    public double getClientBlockTargetingRange(int spellLevel, LivingEntity entity) {
+        return getRange();
     }
 
     @Override
@@ -109,7 +115,7 @@ public class PersonalShelf extends AbstractSpell {
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var position = BlockTools.findPlacePos(level, entity, getRange());
+        var position = findPlaceData(level, entity);
         if (position.isEmpty()) {
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_place", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
@@ -123,6 +129,14 @@ public class PersonalShelf extends AbstractSpell {
         castData.exportMode = entity.isShiftKeyDown();
         playerMagicData.setAdditionalCastData(castData);
         return true;
+    }
+
+    private Optional<BlockTools.PlaceData> findPlaceData(Level level, LivingEntity entity) {
+        var result = BlockTargetingHelper.findClientPlacePos(level, entity, getSpellResource(), getRange());
+        if (result.isEmpty()) {
+            result = BlockTools.findPlacePos(level, entity, getRange());
+        }
+        return result;
     }
 
     @Override

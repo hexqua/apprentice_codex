@@ -10,9 +10,13 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -29,7 +33,7 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Optional;
 
-public class MageLight extends AbstractSpell {
+public class MageLight extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mage_light");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -56,6 +60,11 @@ public class MageLight extends AbstractSpell {
 
     private double getRange(int spellLevel, LivingEntity entity){
         return 8 * getSpellPower(spellLevel, entity) / 100.0;
+    }
+
+    @Override
+    public double getClientBlockTargetingRange(int spellLevel, LivingEntity entity) {
+        return getRange(spellLevel, entity);
     }
 
     @Override
@@ -94,36 +103,56 @@ public class MageLight extends AbstractSpell {
     }
 
     @Override
+    public final ICastDataSerializable getEmptyCastData() {
+        return new MageLightCastData();
+    }
+
+    @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        if (findPlacePos(level, spellLevel, entity).isEmpty()) {
+        var placePos = findPlacePos(level, spellLevel, entity);
+        if (placePos.isEmpty()) {
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.cant_place", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
             return false;
         }
 
+        var castData = new MageLightCastData();
+        castData.position = placePos.get();
+        playerMagicData.setAdditionalCastData(castData);
         return true;
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        findPlacePos(level, spellLevel, entity)
-                .ifPresent(pos -> {
-                    level.setBlockAndUpdate(pos, BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState());
-                    AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
+        BlockPos placePos = null;
+        if (playerMagicData.getAdditionalCastData() instanceof MageLightCastData castData) {
+            placePos = castData.position;
+        }
+        if (placePos == null) {
+            placePos = findPlacePos(level, spellLevel, entity).orElse(null);
+        }
 
-                    if (level instanceof ServerLevel server) {
-                        var position = pos.getCenter();
-                        server.sendParticles(ParticleTypes.END_ROD, position.x, position.y, position.z, 4, 0.1, 0.1, 0.1, 0.01);
-                        server.sendParticles(ParticleTypes.FIREWORK, position.x, position.y, position.z, 2, 0.1, 0.1, 0.1, 0.02);
-                    }
-                }
-        );
+        if (placePos != null) {
+            level.setBlockAndUpdate(placePos, BlockRegistry.MAGE_LIGHT_TORCH.get().defaultBlockState());
+            AudioTools.playSoundFromPosition(level, placePos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
+
+            if (level instanceof ServerLevel server) {
+                var position = placePos.getCenter();
+                server.sendParticles(ParticleTypes.END_ROD, position.x, position.y, position.z, 4, 0.1, 0.1, 0.1, 0.01);
+                server.sendParticles(ParticleTypes.FIREWORK, position.x, position.y, position.z, 2, 0.1, 0.1, 0.1, 0.02);
+            }
+        }
+
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 
     private Optional<BlockPos> findPlacePos(Level level, int spellLevel, LivingEntity entity) {
-        var result = BlockTools.findPlacePos(level, entity, getRange(spellLevel, entity));
+        var range = getRange(spellLevel, entity);
+        var result = BlockTargetingHelper.findClientPlacePos(level, entity, getSpellResource(), range);
+        if (result.isEmpty()) {
+            result = BlockTools.findPlacePos(level, entity, range);
+        }
         if (result.isEmpty()) {
             return Optional.empty();
         }
@@ -135,5 +164,47 @@ public class MageLight extends AbstractSpell {
         }
 
         return Optional.of(placePos);
+    }
+
+    public static class MageLightCastData implements ICastDataSerializable {
+        private BlockPos position;
+
+        @Override
+        public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
+            friendlyByteBuf.writeBoolean(position != null);
+            if (position != null) {
+                friendlyByteBuf.writeBlockPos(position);
+            }
+        }
+
+        @Override
+        public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
+            position = friendlyByteBuf.readBoolean() ? friendlyByteBuf.readBlockPos() : null;
+        }
+
+        @Override
+        public void reset() {
+            position = null;
+        }
+
+        @Override
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+            var tag = new CompoundTag();
+            if (position != null) {
+                tag.putInt("PositionX", position.getX());
+                tag.putInt("PositionY", position.getY());
+                tag.putInt("PositionZ", position.getZ());
+            }
+            return tag;
+        }
+
+        @Override
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+            if (nbt.contains("PositionX")) {
+                position = new BlockPos(nbt.getInt("PositionX"), nbt.getInt("PositionY"), nbt.getInt("PositionZ"));
+            } else {
+                position = null;
+            }
+        }
     }
 }
