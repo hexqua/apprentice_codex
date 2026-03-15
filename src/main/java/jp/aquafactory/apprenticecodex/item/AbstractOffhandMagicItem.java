@@ -147,7 +147,7 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
 
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
-        return buildOffhandModifiers(stack);
+        return buildOffhandModifiers(stack, baseOffhandModifiers);
     }
 
     @Override
@@ -199,9 +199,14 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return builder.build();
     }
 
-    private ItemAttributeModifiers buildOffhandModifiers(ItemStack stack) {
+    final ItemAttributeModifiers buildRuntimeAttributeModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
+        return buildOffhandModifiers(stack, defaultModifiers);
+    }
+
+    private ItemAttributeModifiers buildOffhandModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
+        var baseModifiers = stripManagedEnchantmentModifiers(defaultModifiers);
         if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
-            return baseOffhandModifiers;
+            return baseModifiers;
         }
 
         var alacrityLevel = Enchantments.getLevel(stack, Enchantments.ALACRITY);
@@ -217,11 +222,11 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
                 && surgeLevel <= 0
                 && attunementLevel <= 0
                 && tenseLevel <= 0) {
-            return baseOffhandModifiers;
+            return baseModifiers;
         }
 
         var builder = ItemAttributeModifiers.builder();
-        for (var entry : baseOffhandModifiers.modifiers()) {
+        for (var entry : baseModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
 
@@ -277,6 +282,27 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         );
 
         return mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_offhand_merged");
+    }
+
+    private ItemAttributeModifiers stripManagedEnchantmentModifiers(ItemAttributeModifiers modifiers) {
+        if (modifiers.modifiers().isEmpty()) {
+            return modifiers;
+        }
+
+        var enchantModifierPrefix = itemKey + "_offhand_enchant_";
+        var mergedModifierPrefix = itemKey + "_offhand_merged_";
+        var builder = ItemAttributeModifiers.builder();
+        boolean changed = false;
+        for (var entry : modifiers.modifiers()) {
+            var modifierPath = entry.modifier().id().getPath();
+            if (modifierPath.startsWith(enchantModifierPrefix) || modifierPath.startsWith(mergedModifierPrefix)) {
+                changed = true;
+                continue;
+            }
+
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+        return changed ? builder.build() : modifiers;
     }
 
     private void addEnchantmentModifier(

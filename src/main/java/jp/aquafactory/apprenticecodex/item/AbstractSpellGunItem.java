@@ -176,7 +176,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
-        return buildMainhandModifiers(stack);
+        return buildMainhandModifiers(stack, baseMainhandModifiers);
     }
 
     public final boolean canImbueSpell(SpellData spellData) {
@@ -429,9 +429,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return builder.build();
     }
 
-    private ItemAttributeModifiers buildMainhandModifiers(ItemStack stack) {
+    final ItemAttributeModifiers buildRuntimeAttributeModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
+        return buildMainhandModifiers(stack, defaultModifiers);
+    }
+
+    private ItemAttributeModifiers buildMainhandModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
+        var baseModifiers = stripManagedEnchantmentModifiers(defaultModifiers);
         if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
-            return baseMainhandModifiers;
+            return baseModifiers;
         }
 
         var alacrityLevel = Enchantments.getLevel(stack, Enchantments.ALACRITY);
@@ -446,11 +451,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 && surgeLevel <= 0
                 && attunementLevel <= 0
                 && tenseLevel <= 0) {
-            return baseMainhandModifiers;
+            return baseModifiers;
         }
 
         var builder = ItemAttributeModifiers.builder();
-        for (var entry : baseMainhandModifiers.modifiers()) {
+        for (var entry : baseModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
 
@@ -504,6 +509,27 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         );
 
         return mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_mainhand_merged");
+    }
+
+    private ItemAttributeModifiers stripManagedEnchantmentModifiers(ItemAttributeModifiers modifiers) {
+        if (modifiers.modifiers().isEmpty()) {
+            return modifiers;
+        }
+
+        var enchantModifierPrefix = itemKey + "_mainhand_enchant_";
+        var mergedModifierPrefix = itemKey + "_mainhand_merged_";
+        var builder = ItemAttributeModifiers.builder();
+        boolean changed = false;
+        for (var entry : modifiers.modifiers()) {
+            var modifierPath = entry.modifier().id().getPath();
+            if (modifierPath.startsWith(enchantModifierPrefix) || modifierPath.startsWith(mergedModifierPrefix)) {
+                changed = true;
+                continue;
+            }
+
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+        return changed ? builder.build() : modifiers;
     }
 
     private void addEnchantmentModifier(
