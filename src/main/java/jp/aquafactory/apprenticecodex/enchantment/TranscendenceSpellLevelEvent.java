@@ -8,7 +8,9 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -26,7 +28,8 @@ public final class TranscendenceSpellLevelEvent {
         }
 
         var addedLevels = getApplicableTranscendenceLevels(caster.getMainHandItem(), event.getSpell(), false)
-                + getApplicableTranscendenceLevels(caster.getOffhandItem(), event.getSpell(), true);
+                + getApplicableTranscendenceLevels(caster.getOffhandItem(), event.getSpell(), true)
+                + getApplicableArmorTranscendenceLevels(caster.getItemBySlot(EquipmentSlot.CHEST), event.getSpell());
         if (addedLevels <= 0) {
             return;
         }
@@ -46,6 +49,29 @@ public final class TranscendenceSpellLevelEvent {
                         || item instanceof AbstractSpellGunItem
                         || (!isOffhandSlot && item instanceof CrystalBladedStaff);
         if (!isSupportedSlot) {
+            return 0;
+        }
+
+        var transcendenceLevel = stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get());
+        if (transcendenceLevel <= 0 || !ISpellContainer.isSpellContainer(stack)) {
+            return 0;
+        }
+
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return 0;
+        }
+
+        var imbuedSpell = spellContainer.getSpellAtIndex(0);
+        if (imbuedSpell == SpellData.EMPTY || !imbuedSpell.getSpell().equals(spell)) {
+            return 0;
+        }
+
+        return transcendenceLevel;
+    }
+
+    private static int getApplicableArmorTranscendenceLevels(ItemStack stack, AbstractSpell spell) {
+        if (stack == null || stack.isEmpty() || !(stack.getItem() instanceof EnchantressRobeItem robeItem) || !robeItem.hasImbueSlot()) {
             return 0;
         }
 

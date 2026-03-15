@@ -35,6 +35,10 @@
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
   "item.apprenticecodex.apprentice_mage_leggings": "Apprentice Mage's Leggings",
   "item.apprenticecodex.apprentice_mage_boots": "Apprentice Mage's Boots",
+  "item.apprenticecodex.enchantress_hat": "Enchantress's Hat",
+  "item.apprenticecodex.enchantress_robe": "Enchantress's Robe",
+  "item.apprenticecodex.enchantress_leggings": "Enchantress's Leggings",
+  "item.apprenticecodex.enchantress_boots": "Enchantress's Boots",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift for details.",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",

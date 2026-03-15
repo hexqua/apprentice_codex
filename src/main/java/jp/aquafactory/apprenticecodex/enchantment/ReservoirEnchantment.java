@@ -11,7 +11,8 @@ public class ReservoirEnchantment extends Enchantment {
             EnchantmentCategory.create("apprenticecodex_reservoir_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
 
     public ReservoirEnchantment() {
-        super(Rarity.COMMON, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
+        super(Rarity.COMMON, MAGIC_ITEM_CATEGORY,
+                new EquipmentSlot[]{EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND, EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET});
     }
 
     @Override

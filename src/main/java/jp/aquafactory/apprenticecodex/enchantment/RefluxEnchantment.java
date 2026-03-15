@@ -11,7 +11,8 @@ public class RefluxEnchantment extends Enchantment {
             EnchantmentCategory.create("apprenticecodex_reflux_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
 
     public RefluxEnchantment() {
-        super(Rarity.UNCOMMON, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
+        super(Rarity.UNCOMMON, MAGIC_ITEM_CATEGORY,
+                new EquipmentSlot[]{EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND, EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET});
     }
 
     @Override

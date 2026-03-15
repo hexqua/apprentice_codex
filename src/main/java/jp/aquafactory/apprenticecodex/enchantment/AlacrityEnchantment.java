@@ -8,10 +8,11 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("RedundantMethodOverride")
 public class AlacrityEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_alacrity_magic", MagicItemEnchantmentTargeting::isSupportedOffhandMagicItem);
+            EnchantmentCategory.create("apprenticecodex_alacrity_magic", MagicItemEnchantmentTargeting::isSupportedOffhandOrArmorMagicItem);
 
     public AlacrityEnchantment() {
-        super(Rarity.UNCOMMON, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
+        super(Rarity.UNCOMMON, MAGIC_ITEM_CATEGORY,
+                new EquipmentSlot[]{EquipmentSlot.OFFHAND, EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET});
     }
 
     @Override
