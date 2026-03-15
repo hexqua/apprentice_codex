@@ -29,7 +29,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
     private static final TagKey<Item> CURIOS_NECKLACE = createTag("curios", "necklace");
     private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
+    private static final TagKey<Item> MINECRAFT_HEAD_ARMOR = createTag("minecraft", "head_armor");
+    private static final TagKey<Item> MINECRAFT_CHEST_ARMOR = createTag("minecraft", "chest_armor");
+    private static final TagKey<Item> MINECRAFT_LEG_ARMOR = createTag("minecraft", "leg_armor");
+    private static final TagKey<Item> MINECRAFT_FOOT_ARMOR = createTag("minecraft", "foot_armor");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_DURABILITY = createTag("minecraft", "enchantable/durability");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_EQUIPPABLE = createTag("minecraft", "enchantable/equippable");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
@@ -58,6 +65,29 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.EXPLORERS_CODEX.get()
+        );
+        // 1.21.1 のバニラ防具 enchant は item tag 基準になったため、通常防具相当の分類へ入れる.
+        tag(MINECRAFT_HEAD_ARMOR).add(ItemRegistry.APPRENTICE_MAGE_SCARF.get());
+        tag(MINECRAFT_CHEST_ARMOR).add(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
+        tag(MINECRAFT_LEG_ARMOR).add(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get());
+        tag(MINECRAFT_FOOT_ARMOR).add(ItemRegistry.APPRENTICE_MAGE_BOOTS.get());
+        tag(MINECRAFT_ENCHANTABLE_DURABILITY).add(
+                ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
+                ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
+                ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
+                ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+        );
+        tag(MINECRAFT_ENCHANTABLE_EQUIPPABLE).add(
+                ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
+                ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
+                ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
+                ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+        );
+        tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
+                ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
+                ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
+                ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
+                ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
         );
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());

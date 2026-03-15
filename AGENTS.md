@@ -108,6 +108,12 @@ Get-ChildItem build\libs\*.jar
 - 取り込み判断で迷わないよう、`main` 側では無関係な整形・リネームの混在を避ける。
 - 同種コンフリクトの再解決コストを下げるため、`git config rerere.enabled true` を推奨する。
 - `1.21.1-main` のみで必要になった修正は、`main` への逆取り込みが必要かを別途判断し、必要時のみ個別対応で反映する。
+- 移植注意（エンチャント/修理）:
+1. 1.21.1 では enchant 適用可否の多くが `data/*/enchantment/*.json` の `supported_items` / `primary_items` と item tag で決まる。`canApplyAtEnchantingTable` / `isBookEnchantable` / `supportsEnchantment` などのメソッド移植だけで完了と判断しない。
+2. 防具を移植する場合は `minecraft:head_armor` / `chest_armor` / `leg_armor` / `foot_armor` に加え、必要に応じて `minecraft:enchantable/durability` `minecraft:enchantable/equippable` `minecraft:enchantable/vanishing` の tag 登録漏れを確認する。
+3. 武器・ツール・特殊アイテムを移植する場合は、対象 enchantment JSON が参照する `minecraft:enchantable/*` や独自 tag を洗い出し、datagen と `src/generated/resources` の両方を更新する。
+4. 1.20.1 側で `isValidRepairItem` を実装していたアイテムは、1.21.1 では素材定義だけで修理可否が復元されると決めつけず、個別 override 要否を確認する。
+5. 移植後の確認では `./gradlew.bat runData` と `./gradlew.bat build` に加え、対象アイテムのエンチャントテーブル・金床（エンチャント本）・素材修理の 3 経路を確認する。
 
 ## 9. Codex運用上の注意（コメント保全/文字化け対策）
 - 原因整理: Windows PowerShell 5.1（コードページ 932）で `Get-Content` 既定読み取りを使うと、UTF-8日本語が文字化けして表示される。

@@ -83,6 +83,16 @@ public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPrese
     }
 
     @Override
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, ItemStack repair) {
+        return ApprenticeMageRobeStats.isRepairIngredient(repair) || super.isValidRepairItem(toRepair, repair);
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return ApprenticeMageRobeStats.enchantmentValue();
+    }
+
+    @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.cache;
     }
