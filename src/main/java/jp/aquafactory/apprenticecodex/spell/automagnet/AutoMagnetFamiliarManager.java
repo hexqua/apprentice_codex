@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -12,6 +13,7 @@ import java.util.UUID;
 public final class AutoMagnetFamiliarManager {
     private static final double MIN_RANGE = 0.5;
     private static final double DEFAULT_RANGE = 8.0;
+    private static final double CLEANUP_RADIUS = 24.0;
 
     private AutoMagnetFamiliarManager() {
     }
@@ -76,6 +78,7 @@ public final class AutoMagnetFamiliarManager {
         if (familiar != null) {
             familiar.discard();
         }
+        discardNearbyOwnedFamiliars(player);
 
         if (!state.active && state.getFamiliarUuid() == null) {
             return;
@@ -100,6 +103,7 @@ public final class AutoMagnetFamiliarManager {
         if (familiar != null) {
             familiar.discard();
         }
+        discardNearbyOwnedFamiliars(player);
 
         if (state.getFamiliarUuid() != null) {
             spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> s.setFamiliarUuid(null));
@@ -148,6 +152,21 @@ public final class AutoMagnetFamiliarManager {
                 && !familiar.isRemoved()
                 && familiar.level() == player.level()
                 && familiar.getOwner() == player;
+    }
+
+    private static void discardNearbyOwnedFamiliars(ServerPlayer player) {
+        var ownerUuid = player.getUUID();
+        // ゾンビ個体は通常どおり owner の近くを周回しているため、解除時は近傍だけ掃除すれば十分.
+        var nearbyArea = AABB.ofSize(player.position(), CLEANUP_RADIUS * 2.0, CLEANUP_RADIUS * 2.0, CLEANUP_RADIUS * 2.0);
+        for (var familiar : player.serverLevel().getEntitiesOfClass(AutoMagnetFamiliarEntity.class, nearbyArea,
+                entity -> !entity.isRemoved() && hasOwner(entity, ownerUuid))) {
+            familiar.discard();
+        }
+    }
+
+    private static boolean hasOwner(AutoMagnetFamiliarEntity familiar, UUID ownerUuid) {
+        var owner = familiar.getOwner();
+        return owner != null && owner.getUUID().equals(ownerUuid);
     }
 
     private static @Nullable AutoMagnetFamiliarEntity findByUuid(MinecraftServer server, @Nullable UUID entityUuid) {
