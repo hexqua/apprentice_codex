@@ -8,10 +8,11 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("RedundantMethodOverride")
 public class TranscendenceEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_transcendence_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
+            EnchantmentCategory.create("apprenticecodex_transcendence_magic", MagicItemEnchantmentTargeting::isSupportedSpellContainerMagicItem);
 
     public TranscendenceEnchantment() {
-        super(Rarity.VERY_RARE, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
+        super(Rarity.VERY_RARE, MAGIC_ITEM_CATEGORY,
+                new EquipmentSlot[]{EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND, EquipmentSlot.CHEST});
     }
 
     @Override

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
@@ -48,6 +49,10 @@ public final class ItemRegistry {
         return ITEMS.register(id, () -> new ApprenticeMageRobeItem(type));
     }
 
+    private static RegistryObject<Item> enchantressArmor(String id, ArmorItem.Type type) {
+        return ITEMS.register(id, () -> new EnchantressRobeItem(type));
+    }
+
     public static final RegistryObject<Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
     public static final RegistryObject<Item> COMMENCE_FIRE_RIFLE = simple("commence_fire_rifle");
     public static final RegistryObject<Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
@@ -88,6 +93,14 @@ public final class ItemRegistry {
             armor("apprentice_mage_leggings", ArmorItem.Type.LEGGINGS);
     public static final RegistryObject<Item> APPRENTICE_MAGE_BOOTS =
             armor("apprentice_mage_boots", ArmorItem.Type.BOOTS);
+    public static final RegistryObject<Item> ENCHANTRESS_HAT =
+            enchantressArmor("enchantress_hat", ArmorItem.Type.HELMET);
+    public static final RegistryObject<Item> ENCHANTRESS_ROBE =
+            enchantressArmor("enchantress_robe", ArmorItem.Type.CHESTPLATE);
+    public static final RegistryObject<Item> ENCHANTRESS_LEGGINGS =
+            enchantressArmor("enchantress_leggings", ArmorItem.Type.LEGGINGS);
+    public static final RegistryObject<Item> ENCHANTRESS_BOOTS =
+            enchantressArmor("enchantress_boots", ArmorItem.Type.BOOTS);
     public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
     public static final RegistryObject<Item> SPELLCASTER_WORKBENCH =
             block("spellcaster_workbench", BlockRegistry.SPELLCASTER_WORKBENCH);

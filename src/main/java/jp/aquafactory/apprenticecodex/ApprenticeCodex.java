@@ -35,6 +35,7 @@ public class ApprenticeCodex
         BlockRegistry.register(bus);
         BlockEntityRegistry.register(bus);
         ItemRegistry.ITEMS.register(bus);
+        ApprenticeAttributeRegistry.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
         SoundRegistry.register(bus);
         RecipeRegistry.register(bus);

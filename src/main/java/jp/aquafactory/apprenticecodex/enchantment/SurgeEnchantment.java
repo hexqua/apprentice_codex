@@ -11,7 +11,8 @@ public class SurgeEnchantment extends Enchantment {
             EnchantmentCategory.create("apprenticecodex_surge_magic", MagicItemEnchantmentTargeting::isSupportedMagicItem);
 
     public SurgeEnchantment() {
-        super(Rarity.COMMON, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.OFFHAND});
+        super(Rarity.COMMON, MAGIC_ITEM_CATEGORY,
+                new EquipmentSlot[]{EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND, EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET});
     }
 
     @Override

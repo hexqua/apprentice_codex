@@ -8,10 +8,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class WisdomEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_wisdom_magic", MagicItemEnchantmentTargeting::isSupportedSpellGunItem);
+            EnchantmentCategory.create("apprenticecodex_wisdom_magic", MagicItemEnchantmentTargeting::isSupportedWisdomEnchantingItem);
 
     public WisdomEnchantment() {
-        super(Enchantment.Rarity.RARE, MAGIC_ITEM_CATEGORY, new EquipmentSlot[]{EquipmentSlot.MAINHAND});
+        super(Enchantment.Rarity.RARE, MAGIC_ITEM_CATEGORY,
+                new EquipmentSlot[]{EquipmentSlot.MAINHAND, EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET});
     }
 
     @Override
