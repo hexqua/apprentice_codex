@@ -1,16 +1,25 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import com.google.gson.JsonObject;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementRewards;
+import net.minecraft.advancements.RequirementsStrategy;
+import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.core.registries.BuiltInRegistries;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.crafting.ConditionalRecipe;
 import org.jetbrains.annotations.NotNull;
@@ -313,5 +322,69 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()))
                 .save(recipeWriter, ItemRegistry.APPRENTICE_MAGE_BOOTS.getId());
 
+        saveSpellbookCarryoverSmithingRecipe(recipeWriter);
+
+    }
+
+    private void saveSpellbookCarryoverSmithingRecipe(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        var recipeId = ItemRegistry.SPELLSTAINED_RUNIC_TABLET.getId();
+        var advancement = Advancement.Builder.recipeAdvancement()
+                .parent(RecipeBuilder.ROOT_RECIPE_ADVANCEMENT)
+                .addCriterion(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.GOLD_SPELL_BOOK.get()),
+                        has(io.redspace.ironsspellbooks.registries.ItemRegistry.GOLD_SPELL_BOOK.get()))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .requirements(RequirementsStrategy.OR);
+
+        recipeWriter.accept(new SpellbookCarryoverSmithingFinishedRecipe(
+                recipeId,
+                Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()),
+                Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.GOLD_SPELL_BOOK.get()),
+                Ingredient.of(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()),
+                ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(),
+                advancement,
+                recipeId.withPrefix("recipes/" + RecipeCategory.COMBAT.getFolderName() + "/")
+        ));
+    }
+
+    private record SpellbookCarryoverSmithingFinishedRecipe(
+            ResourceLocation id,
+            Ingredient template,
+            Ingredient base,
+            Ingredient addition,
+            Item result,
+            Advancement.Builder advancement,
+            ResourceLocation advancementId
+    ) implements FinishedRecipe {
+        @Override
+        public @NotNull ResourceLocation getId() {
+            return id;
+        }
+
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            json.add("template", template.toJson());
+            json.add("base", base.toJson());
+            json.add("addition", addition.toJson());
+
+            var resultJson = new JsonObject();
+            resultJson.addProperty("item", BuiltInRegistries.ITEM.getKey(result).toString());
+            json.add("result", resultJson);
+        }
+
+        @Override
+        public @NotNull RecipeSerializer<?> getType() {
+            return RecipeRegistry.SPELLBOOK_CARRYOVER_SMITHING_SERIALIZER.get();
+        }
+
+        @Override
+        public JsonObject serializeAdvancement() {
+            return advancement.serializeToJson();
+        }
+
+        @Override
+        public ResourceLocation getAdvancementId() {
+            return advancementId;
+        }
     }
 }
