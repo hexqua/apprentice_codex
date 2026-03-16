@@ -147,7 +147,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
         );
         // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
-        tag(WISDOM_ENCHANTABLE).addTag(SPELL_GUN_ENCHANTABLE).add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        tag(WISDOM_ENCHANTABLE).addTag(SPELL_GUN_ENCHANTABLE).add(
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                ItemRegistry.ENCHANTRESS_HAT.get(),
+                ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                ItemRegistry.ENCHANTRESS_BOOTS.get()
+        );
         tag(OFFHAND_MAGIC_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),

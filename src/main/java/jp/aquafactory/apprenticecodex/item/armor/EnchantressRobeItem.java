@@ -269,7 +269,8 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
                 || enchantmentId.equals(Enchantments.REFLUX.location())
                 || enchantmentId.equals(Enchantments.RESERVOIR.location())
                 || enchantmentId.equals(Enchantments.SURGE.location())
-                || enchantmentId.equals(Enchantments.TENSE.location());
+                || enchantmentId.equals(Enchantments.TENSE.location())
+                || enchantmentId.equals(Enchantments.WISDOM.location());
     }
 
     private static boolean isChestOnlyRobeEnchantment(ResourceLocation enchantmentId) {
