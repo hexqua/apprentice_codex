@@ -42,7 +42,13 @@ final class MagicItemEnchantmentTargeting {
         return item instanceof EnchantressRobeItem robeItem && robeItem.hasImbueSlot();
     }
 
-    static boolean isSupportedWisdomMagicItem(Item item) {
+    static boolean isSupportedWisdomEnchantingItem(Item item) {
+        return item instanceof AbstractSpellGunItem
+                || item instanceof CrystalBladedStaff
+                || item instanceof EnchantressRobeItem;
+    }
+
+    static boolean isSupportedHeldWisdomMagicItem(Item item) {
         return item instanceof AbstractSpellGunItem || item instanceof CrystalBladedStaff;
     }
 
