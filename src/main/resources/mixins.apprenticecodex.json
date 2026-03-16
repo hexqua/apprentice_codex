@@ -4,8 +4,10 @@
   "package": "jp.aquafactory.apprenticecodex.mixin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "mixins.apprenticecodex.refmap.json",
+  "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
     "ArcaneAnvilMenuMixin",
+    "EasyMagicModEnchantmentMenuMixin",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",
     "LivingEntityAccessor",

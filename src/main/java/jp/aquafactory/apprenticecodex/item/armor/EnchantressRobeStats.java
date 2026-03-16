@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -27,6 +28,7 @@ public final class EnchantressRobeStats {
 
     private static final int DURABILITY_MULTIPLIER = 33;
     private static final int ENCHANTMENT_VALUE = 22;
+    public static final int ENCHANTING_TABLE_LEVEL_BONUS_PER_PIECE = 5;
     private static final float TOUGHNESS = 0.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
     private static final SoundEvent EQUIP_SOUND = SoundEvents.ARMOR_EQUIP_LEATHER;
@@ -48,7 +50,13 @@ public final class EnchantressRobeStats {
 
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
             new AttributeBonus(AttributeRegistry.MAX_MANA, 50.0D, AttributeModifier.Operation.ADDITION, "max_mana"),
-            new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.10D, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
+            new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.10D, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power"),
+            new AttributeBonus(
+                    ApprenticeAttributeRegistry.MAX_ENCHANTMENT_TABLE_LEVEL,
+                    ENCHANTING_TABLE_LEVEL_BONUS_PER_PIECE,
+                    AttributeModifier.Operation.ADDITION,
+                    "max_enchantment_table_level"
+            )
     );
 
     private static final Map<ArmorItem.Type, List<AttributeBonus>> ATTRIBUTE_BONUSES = Map.of(
