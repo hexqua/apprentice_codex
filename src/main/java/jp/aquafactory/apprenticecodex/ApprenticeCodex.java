@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.AttachmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -47,6 +48,7 @@ public class ApprenticeCodex
         EntityRegistry.register(modEventBus);
         EffectRegistry.register(modEventBus);
         SpellRegistry.register(modEventBus);
+        ApprenticeAttributeRegistry.register(modEventBus);
         SoundRegistry.register(modEventBus);
         MenuRegistry.register(modEventBus);
         CreativeTabRegistry.register(modEventBus);

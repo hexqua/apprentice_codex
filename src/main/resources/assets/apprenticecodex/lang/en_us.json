@@ -1,6 +1,8 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
+  "attribute.name.apprenticecodex.max_enchantment_table_level": "Max Enchantment Table Level",
+
   "item.apprenticecodex.spellstained_arcane_ingot": "Spell-stained Arcane Ingot",
   "item.apprenticecodex.rapid_spellcaster_round": "Rapid Spellcaster Round",
   "item.apprenticecodex.basic_spellcaster_round": "Basic Spellcaster Round",

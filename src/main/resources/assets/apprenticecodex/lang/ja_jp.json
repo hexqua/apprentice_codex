@@ -1,6 +1,8 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice Codex",
 
+  "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
+
   "item.apprenticecodex.spellstained_arcane_ingot": "魔術染めの秘術のインゴット",
   "item.apprenticecodex.rapid_spellcaster_round": "高速詠唱銃弾",
   "item.apprenticecodex.basic_spellcaster_round": "通常用詠唱銃弾",
