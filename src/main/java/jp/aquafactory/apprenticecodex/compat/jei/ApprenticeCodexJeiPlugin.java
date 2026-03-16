@@ -9,14 +9,17 @@ import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,6 +55,14 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 new GrindRunnerRecipeCategory(guiHelper, buildGrindRunnerCatalyst()),
                 new EssenceSmokerRecipeCategory(guiHelper),
                 new SpellcasterWorkbenchRecipeCategory(guiHelper)
+        );
+    }
+
+    @Override
+    public void registerVanillaCategoryExtensions(@NotNull IVanillaCategoryExtensionRegistration registration) {
+        registration.getSmithingCategory().addExtension(
+                jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe.class,
+                new SpellbookCarryoverSmithingJeiExtension()
         );
     }
 
@@ -160,6 +171,13 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipes(
                 ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH,
                 recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())
+        );
+        registration.addRecipes(
+                RecipeTypes.SMITHING,
+                recipeManager.getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMITHING).stream()
+                        .filter(jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe.class::isInstance)
+                        .map(SmithingRecipe.class::cast)
+                        .toList()
         );
     }
 
