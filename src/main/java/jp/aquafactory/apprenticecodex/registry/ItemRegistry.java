@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import net.minecraft.core.registries.Registries;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
@@ -125,6 +126,8 @@ public final class ItemRegistry {
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final DeferredHolder<Item, Item> EXPLORERS_CODEX =
             ITEMS.register("explorers_codex", ExplorersCodex::new);
+    public static final DeferredHolder<Item, Item> SPELLSTAINED_RUNIC_TABLET =
+            ITEMS.register("spellstained_runic_tablet", SpellStainedRunicTablet::new);
     public static final DeferredHolder<Item, Item> IRON_SPELLCASTER_GUN =
             ITEMS.register("iron_spellcaster_gun", IronSpellcasterGun::new);
     public static final DeferredHolder<Item, Item> COPPER_SPELLCASTER_GUN =

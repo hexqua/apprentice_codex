@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:item/handheld",
+  "loader": "neoforge:separate_transforms",
+  "base": {
+    "textures": {
+      "book": "apprenticecodex:item/spellbook/spellstained_runic_tablet",
+      "particle": "apprenticecodex:item/spellbook/spellstained_runic_tablet"
+    },
+    "parent": "irons_spellbooks:item/template_spell_book_model"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellstained_runic_tablet"
+      }
+    },
+    "head": {
+      "textures": {
+        "book": "apprenticecodex:item/spellbook/spellstained_runic_tablet",
+        "particle": "apprenticecodex:item/spellbook/spellstained_runic_tablet"
+      },
+      "parent": "irons_spellbooks:item/template_spell_book_model_open"
+    }
+  }
+}
+

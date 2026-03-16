@@ -12,6 +12,7 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -52,6 +53,14 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 new GrindRunnerRecipeCategory(guiHelper, buildGrindRunnerCatalyst()),
                 new EssenceSmokerRecipeCategory(guiHelper),
                 new SpellcasterWorkbenchRecipeCategory(guiHelper)
+        );
+    }
+
+    @Override
+    public void registerVanillaCategoryExtensions(IVanillaCategoryExtensionRegistration registration) {
+        registration.getSmithingCategory().addExtension(
+                jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe.class,
+                new SpellbookCarryoverSmithingJeiExtension()
         );
     }
 
