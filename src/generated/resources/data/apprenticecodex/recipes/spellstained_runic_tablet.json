@@ -1,0 +1,15 @@
+{
+  "type": "apprenticecodex:spellbook_carryover_smithing",
+  "addition": {
+    "item": "apprenticecodex:spellstained_arcane_ingot"
+  },
+  "base": {
+    "item": "irons_spellbooks:gold_spell_book"
+  },
+  "result": {
+    "item": "apprenticecodex:spellstained_runic_tablet"
+  },
+  "template": {
+    "item": "irons_spellbooks:blank_rune"
+  }
+}
