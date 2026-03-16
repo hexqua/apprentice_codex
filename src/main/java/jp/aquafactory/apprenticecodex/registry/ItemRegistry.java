@@ -1,13 +1,8 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
-import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
-import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
-import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
-import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
-import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
@@ -15,8 +10,14 @@ import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
+import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import net.minecraft.core.registries.Registries;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
@@ -48,6 +49,10 @@ public final class ItemRegistry {
 
     private static DeferredHolder<Item, Item> armor(String id, ArmorItem.Type type) {
         return ITEMS.register(id, () -> new ApprenticeMageRobeItem(type));
+    }
+
+    private static DeferredHolder<Item, Item> enchantressArmor(String id, ArmorItem.Type type) {
+        return ITEMS.register(id, () -> new EnchantressRobeItem(type));
     }
 
     public static final DeferredHolder<Item, Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
@@ -90,6 +95,14 @@ public final class ItemRegistry {
             armor("apprentice_mage_leggings", ArmorItem.Type.LEGGINGS);
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_BOOTS =
             armor("apprentice_mage_boots", ArmorItem.Type.BOOTS);
+    public static final DeferredHolder<Item, Item> ENCHANTRESS_HAT =
+            enchantressArmor("enchantress_hat", ArmorItem.Type.HELMET);
+    public static final DeferredHolder<Item, Item> ENCHANTRESS_ROBE =
+            enchantressArmor("enchantress_robe", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredHolder<Item, Item> ENCHANTRESS_LEGGINGS =
+            enchantressArmor("enchantress_leggings", ArmorItem.Type.LEGGINGS);
+    public static final DeferredHolder<Item, Item> ENCHANTRESS_BOOTS =
+            enchantressArmor("enchantress_boots", ArmorItem.Type.BOOTS);
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
     public static final DeferredHolder<Item, Item> SPELLCASTER_WORKBENCH =
             block("spellcaster_workbench", BlockRegistry.SPELLCASTER_WORKBENCH);

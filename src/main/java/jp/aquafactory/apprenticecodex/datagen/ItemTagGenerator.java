@@ -42,6 +42,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
     private static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = Enchantments.MAGIC_ITEM_ENCHANTABLE;
     private static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_MAGIC_ENCHANTABLE;
+    private static final TagKey<Item> OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE;
+    private static final TagKey<Item> SPELL_CONTAINER_MAGIC_ENCHANTABLE = Enchantments.SPELL_CONTAINER_MAGIC_ENCHANTABLE;
     private static final TagKey<Item> SPELL_GUN_ENCHANTABLE = Enchantments.SPELL_GUN_ENCHANTABLE;
     private static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = Enchantments.TRANSCENDENCE_ENCHANTABLE;
     private static final TagKey<Item> WISDOM_ENCHANTABLE = Enchantments.WISDOM_ENCHANTABLE;
@@ -67,27 +69,51 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EXPLORERS_CODEX.get()
         );
         // 1.21.1 のバニラ防具 enchant は item tag 基準になったため、通常防具相当の分類へ入れる.
-        tag(MINECRAFT_HEAD_ARMOR).add(ItemRegistry.APPRENTICE_MAGE_SCARF.get());
-        tag(MINECRAFT_CHEST_ARMOR).add(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
-        tag(MINECRAFT_LEG_ARMOR).add(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get());
-        tag(MINECRAFT_FOOT_ARMOR).add(ItemRegistry.APPRENTICE_MAGE_BOOTS.get());
+        tag(MINECRAFT_HEAD_ARMOR).add(
+                ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
+                ItemRegistry.ENCHANTRESS_HAT.get()
+        );
+        tag(MINECRAFT_CHEST_ARMOR).add(
+                ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
+                ItemRegistry.ENCHANTRESS_ROBE.get()
+        );
+        tag(MINECRAFT_LEG_ARMOR).add(
+                ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
+                ItemRegistry.ENCHANTRESS_LEGGINGS.get()
+        );
+        tag(MINECRAFT_FOOT_ARMOR).add(
+                ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
+                ItemRegistry.ENCHANTRESS_BOOTS.get()
+        );
         tag(MINECRAFT_ENCHANTABLE_DURABILITY).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
-                ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+                ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
+                ItemRegistry.ENCHANTRESS_HAT.get(),
+                ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                ItemRegistry.ENCHANTRESS_BOOTS.get()
         );
         tag(MINECRAFT_ENCHANTABLE_EQUIPPABLE).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
-                ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+                ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
+                ItemRegistry.ENCHANTRESS_HAT.get(),
+                ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                ItemRegistry.ENCHANTRESS_BOOTS.get()
         );
         tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
-                ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+                ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
+                ItemRegistry.ENCHANTRESS_HAT.get(),
+                ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                ItemRegistry.ENCHANTRESS_BOOTS.get()
         );
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
@@ -107,7 +133,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
-                ItemRegistry.PHOTON_SIPHON.get()
+                ItemRegistry.PHOTON_SIPHON.get(),
+                ItemRegistry.ENCHANTRESS_HAT.get(),
+                ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                ItemRegistry.ENCHANTRESS_BOOTS.get()
         );
         // spell gun 専用 enchant は offhand 補助具を巻き込まないように個別タグで分離する.
         tag(SPELL_GUN_ENCHANTABLE).add(
@@ -117,14 +147,34 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
         );
         // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
-        tag(TRANSCENDENCE_ENCHANTABLE).addTag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
-        tag(WISDOM_ENCHANTABLE).addTag(SPELL_GUN_ENCHANTABLE).add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        tag(WISDOM_ENCHANTABLE).addTag(SPELL_GUN_ENCHANTABLE).add(
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                ItemRegistry.ENCHANTRESS_HAT.get(),
+                ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                ItemRegistry.ENCHANTRESS_BOOTS.get()
+        );
         tag(OFFHAND_MAGIC_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get()
         );
+        tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE)
+                .addTag(OFFHAND_MAGIC_ENCHANTABLE)
+                .add(
+                        ItemRegistry.ENCHANTRESS_HAT.get(),
+                        ItemRegistry.ENCHANTRESS_ROBE.get(),
+                        ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                        ItemRegistry.ENCHANTRESS_BOOTS.get()
+                );
+        tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
+                .addTag(OFFHAND_MAGIC_ENCHANTABLE)
+                .addTag(SPELL_GUN_ENCHANTABLE)
+                .add(ItemRegistry.ENCHANTRESS_ROBE.get());
+        tag(TRANSCENDENCE_ENCHANTABLE)
+                .addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
+                .add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
 
         // 指輪.
         tag(CURIOS_RING).add(

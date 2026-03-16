@@ -18,6 +18,14 @@ repositories {
         url = uri("https://www.cursemaven.com")
     }
 
+    // Optional MOD 検証用(EasyMagic / Puzzles Lib).
+    maven {
+        name = "Modrinth"
+        url = uri("https://api.modrinth.com/maven")
+        content {
+            includeGroup("maven.modrinth")
+        }
+    }
     // ISS
     maven {
         url = uri("https://code.redspace.io/releases")
@@ -117,6 +125,11 @@ dependencies {
     // Create.
     // 必要に応じてON、デフォルトは入れない(前提にはしないため)
     // runtimeOnly fg.deobf("curse.maven:create-328085:7178761")
+
+    // EasyMagic.
+    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
+    // localRuntime "maven.modrinth:puzzles-lib:v21.1.39-1.21.1-NeoForge"
+    // localRuntime "maven.modrinth:easy-magic:v21.1.4-1.21.1-NeoForge"
 
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
