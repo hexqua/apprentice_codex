@@ -1,6 +1,10 @@
 {
   "values": [
     "#apprenticecodex:spell_gun_enchantable",
-    "apprenticecodex:crystal_bladed_staff"
+    "apprenticecodex:crystal_bladed_staff",
+    "apprenticecodex:enchantress_hat",
+    "apprenticecodex:enchantress_robe",
+    "apprenticecodex:enchantress_leggings",
+    "apprenticecodex:enchantress_boots"
   ]
 }
