@@ -1,8 +1,12 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
+import net.minecraft.advancements.AdvancementRequirements;
+import net.minecraft.advancements.AdvancementRewards;
+import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -11,6 +15,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -143,6 +148,8 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('N', Items.GOLD_NUGGET)
                 .unlockedBy(getHasName(Items.WRITABLE_BOOK), has(Items.WRITABLE_BOOK))
                 .save(explorersCodexOutput, ItemRegistry.EXPLORERS_CODEX.getId());
+
+        saveSpellbookCarryoverSmithingRecipe(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
@@ -303,5 +310,31 @@ public final class RecipeGenerator extends RecipeProvider {
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()))
                 .save(recipeOutput, ItemRegistry.APPRENTICE_MAGE_BOOTS.getId());
+    }
+
+    private void saveSpellbookCarryoverSmithingRecipe(@NotNull RecipeOutput recipeOutput) {
+        var recipeId = ItemRegistry.SPELLSTAINED_RUNIC_TABLET.getId();
+        var defaultResult = new ItemStack(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(), 1);
+
+        var advancement = recipeOutput.advancement()
+                .addCriterion(
+                        getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.GOLD_SPELL_BOOK.get()),
+                        has(io.redspace.ironsspellbooks.registries.ItemRegistry.GOLD_SPELL_BOOK.get())
+                )
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.withPrefix("recipes/" + RecipeCategory.COMBAT.getFolderName() + "/"));
+
+        recipeOutput.accept(
+                recipeId,
+                new SpellbookCarryoverSmithingRecipe(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.GOLD_SPELL_BOOK.get()),
+                        Ingredient.of(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()),
+                        defaultResult
+                ),
+                advancement
+        );
     }
 }

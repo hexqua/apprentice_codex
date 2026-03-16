@@ -66,7 +66,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(IRONS_UPGRADE_WHITELIST).add(ItemRegistry.ENDER_GRIMOIRE.get());
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
-                ItemRegistry.EXPLORERS_CODEX.get()
+                ItemRegistry.EXPLORERS_CODEX.get(),
+                ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get()
         );
         // 1.21.1 のバニラ防具 enchant は item tag 基準になったため、通常防具相当の分類へ入れる.
         tag(MINECRAFT_HEAD_ARMOR).add(

@@ -69,6 +69,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
         output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
+        output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());
         output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
         addSpellScrollsToTab(output);
     }
