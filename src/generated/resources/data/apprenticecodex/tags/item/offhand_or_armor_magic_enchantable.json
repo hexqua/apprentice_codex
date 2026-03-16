@@ -1,9 +1,6 @@
 {
   "values": [
-    "apprenticecodex:apprentice_mage_scarf",
-    "apprenticecodex:apprentice_mage_torso",
-    "apprenticecodex:apprentice_mage_leggings",
-    "apprenticecodex:apprentice_mage_boots",
+    "#apprenticecodex:offhand_magic_enchantable",
     "apprenticecodex:enchantress_hat",
     "apprenticecodex:enchantress_robe",
     "apprenticecodex:enchantress_leggings",
