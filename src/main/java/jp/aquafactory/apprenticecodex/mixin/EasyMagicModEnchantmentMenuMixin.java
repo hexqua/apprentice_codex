@@ -1,11 +1,10 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressEnchantingTableBonusHelper;
-import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,11 +19,11 @@ public abstract class EasyMagicModEnchantmentMenuMixin {
     private Player player;
 
     @Inject(
-            method = "updateLevels(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I)V",
+            method = "updateLevelsAndClues(Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/world/item/ItemStack;I)V",
             at = @At("RETURN"),
             require = 1
     )
-    private void apprenticecodex$applyEnchantressBonus(ItemStack itemStack, Level level, BlockPos pos, int power, CallbackInfo ci) {
+    private void apprenticecodex$applyEnchantressBonus(RegistryAccess registryAccess, ItemStack itemStack, int enchantingPower, CallbackInfo ci) {
         if (EnchantressEnchantingTableBonusHelper.isFeatureDisabled()) {
             return;
         }

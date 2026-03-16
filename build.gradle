@@ -128,8 +128,8 @@ dependencies {
 
     // EasyMagic.
     // 必要に応じてON、デフォルトは入れない(前提にはしないため)
-    // localRuntime "maven.modrinth:puzzles-lib:V4g0yKzo"
-    // localRuntime "maven.modrinth:easy-magic:W2xPEG9I"
+    // localRuntime "maven.modrinth:puzzles-lib:v21.1.39-1.21.1-NeoForge"
+    // localRuntime "maven.modrinth:easy-magic:v21.1.4-1.21.1-NeoForge"
 
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
