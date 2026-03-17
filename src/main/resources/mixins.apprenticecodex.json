@@ -16,6 +16,7 @@
     "SchoolTypeAccessor"
   ],
   "client": [
+    "ArcaneAnvilJeiRecipeMixin",
     "ClientInputEventsMixin",
     "ClientSpellCastHelperMixin",
     "KeyboardHandlerMixin",
