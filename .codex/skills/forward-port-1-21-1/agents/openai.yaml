@@ -1,0 +1,4 @@
+interface:
+  display_name: "1.21.1 Forward Port"
+  short_description: "Review and execute 1.20.1 to 1.21.1 forward-port work"
+  default_prompt: "Use $forward-port-1-21-1 to plan and review a 1.20.1 to 1.21.1 forward-port in this repository."
