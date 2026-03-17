@@ -9,7 +9,6 @@ import jp.aquafactory.apprenticecodex.model.EnchantressRobeModel;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -19,7 +18,6 @@ import software.bernie.geckolib.util.RenderUtils;
 public class EnchantressRobeRenderer extends GeoArmorRenderer<EnchantressRobeItem> {
     static final String RUNE_TINT_RIGHT_BONE = "rune_tint_right";
     static final String RUNE_TINT_LEFT_BONE = "rune_tint_left";
-    private static final int FULL_BRIGHT_LIGHT = 0x00F000F0;
 
     private float runeRed = 1.0f;
     private float runeGreen = 1.0f;
@@ -28,6 +26,7 @@ public class EnchantressRobeRenderer extends GeoArmorRenderer<EnchantressRobeIte
 
     public EnchantressRobeRenderer() {
         super(new EnchantressRobeModel());
+        addRenderLayer(new EnchantressRobeGlowLayer(this));
     }
 
     @Override
@@ -71,18 +70,11 @@ public class EnchantressRobeRenderer extends GeoArmorRenderer<EnchantressRobeIte
         RenderUtils.prepMatrixForBone(poseStack, bone);
 
         if (this.renderRunes) {
-            var emissiveRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
-            var emissiveBuffer = ItemRenderer.getArmorFoilBuffer(
-                    bufferSource,
-                    emissiveRenderType,
-                    false,
-                    this.currentStack != null && this.currentStack.hasFoil()
-            );
             renderCubesOfBone(
                     poseStack,
                     bone,
-                    emissiveBuffer,
-                    FULL_BRIGHT_LIGHT,
+                    buffer,
+                    packedLight,
                     packedOverlay,
                     this.runeRed,
                     this.runeGreen,
@@ -95,6 +87,7 @@ public class EnchantressRobeRenderer extends GeoArmorRenderer<EnchantressRobeIte
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
                 packedLight, packedOverlay, red, green, blue, alpha
         );
+
         poseStack.popPose();
     }
 
@@ -116,7 +109,7 @@ public class EnchantressRobeRenderer extends GeoArmorRenderer<EnchantressRobeIte
         this.renderRunes = true;
     }
 
-    private static int resolveSchoolTintColor(SchoolType schoolType) {
+    static int resolveSchoolTintColor(SchoolType schoolType) {
         var color = schoolType.getDisplayName().getStyle().getColor();
         if (color == null) {
             return PastelStaff.DEFAULT_STONE_TINT_COLOR;

@@ -2,13 +2,11 @@ package jp.aquafactory.apprenticecodex.item.armor;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.EnchantressRobeRenderer;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -33,13 +31,6 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.function.Consumer;
 
 public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
-    private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
-    private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
-    private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
-    private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
-    private static final double ATTUNEMENT_SPELL_POWER_PER_LEVEL = 0.04D;
-    private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
-
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Type armorType;
     private final Multimap<Attribute, AttributeModifier> robeAttributeModifiers;
@@ -124,18 +115,14 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != armorType.getSlot()) {
+        if (slot != armorType.getSlot() || robeAttributeModifiers.isEmpty()) {
             return baseModifiers;
         }
 
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         builder.putAll(baseModifiers);
         builder.putAll(robeAttributeModifiers);
-        builder.putAll(createEnchantmentAttributeModifiers(stack));
-        return MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(
-                builder.build(),
-                "apprenticecodex.enchantress_robe." + armorType.getName() + ".merged"
-        );
+        return builder.build();
     }
 
     @Override
@@ -144,7 +131,7 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
     }
 
     @Override
-    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
         return EnchantressRobeStats.isRepairIngredient(repair) || super.isValidRepairItem(toRepair, repair);
     }
 
@@ -159,105 +146,8 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
         return cache;
     }
 
-    private Multimap<Attribute, AttributeModifier> createEnchantmentAttributeModifiers(ItemStack stack) {
-        if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
-            return ImmutableMultimap.of();
-        }
-        if (!EnchantmentRegistry.ALACRITY.isPresent()
-                || !EnchantmentRegistry.REFLUX.isPresent()
-                || !EnchantmentRegistry.RESERVOIR.isPresent()
-                || !EnchantmentRegistry.SURGE.isPresent()
-                || !EnchantmentRegistry.TENSE.isPresent()) {
-            return ImmutableMultimap.of();
-        }
-
-        var alacrityLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ALACRITY.get());
-        var refluxLevel = stack.getEnchantmentLevel(EnchantmentRegistry.REFLUX.get());
-        var reservoirLevel = stack.getEnchantmentLevel(EnchantmentRegistry.RESERVOIR.get());
-        var surgeLevel = stack.getEnchantmentLevel(EnchantmentRegistry.SURGE.get());
-        var tenseLevel = stack.getEnchantmentLevel(EnchantmentRegistry.TENSE.get());
-        var attunementLevel =
-                EnchantmentRegistry.ATTUNEMENT.isPresent() ? stack.getEnchantmentLevel(EnchantmentRegistry.ATTUNEMENT.get()) : 0;
-
-        if (alacrityLevel <= 0
-                && refluxLevel <= 0
-                && reservoirLevel <= 0
-                && surgeLevel <= 0
-                && tenseLevel <= 0
-                && attunementLevel <= 0) {
-            return ImmutableMultimap.of();
-        }
-
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        var prefix = "apprenticecodex.enchantress_robe." + armorType.getName() + ".enchant";
-
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                AttributeRegistry.COOLDOWN_REDUCTION.get(),
-                alacrityLevel * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".alacrity.cooldown_reduction"
-        );
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                AttributeRegistry.MANA_REGEN.get(),
-                refluxLevel * REFLUX_MANA_REGEN_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".reflux.mana_regen"
-        );
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                AttributeRegistry.MAX_MANA.get(),
-                reservoirLevel * RESERVOIR_MAX_MANA_PER_LEVEL,
-                AttributeModifier.Operation.ADDITION,
-                prefix + ".reservoir.max_mana"
-        );
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                AttributeRegistry.SPELL_POWER.get(),
-                surgeLevel * SURGE_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".surge.spell_power"
-        );
-        MagicArmorAttributeHelper.addModifier(
-                builder,
-                AttributeRegistry.CAST_TIME_REDUCTION.get(),
-                tenseLevel * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".tense.cast_time_reduction"
-        );
-
-        if (hasImbueSlot() && attunementLevel > 0) {
-            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
-            var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            MagicArmorAttributeHelper.addModifier(
-                    builder,
-                    attunementSpellPowerAttribute,
-                    attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    prefix + ".attunement.spell_power"
-            );
-        }
-
-        return builder.build();
-    }
-
     private boolean isSupportedRobeEnchantment(Enchantment enchantment) {
-        return isCommonRobeEnchantment(enchantment) || (hasImbueSlot() && isChestOnlyRobeEnchantment(enchantment));
-    }
-
-    private static boolean isCommonRobeEnchantment(Enchantment enchantment) {
-        return (EnchantmentRegistry.ALACRITY.isPresent() && enchantment == EnchantmentRegistry.ALACRITY.get())
-                || (EnchantmentRegistry.REFLUX.isPresent() && enchantment == EnchantmentRegistry.REFLUX.get())
-                || (EnchantmentRegistry.RESERVOIR.isPresent() && enchantment == EnchantmentRegistry.RESERVOIR.get())
-                || (EnchantmentRegistry.SURGE.isPresent() && enchantment == EnchantmentRegistry.SURGE.get())
-                || (EnchantmentRegistry.TENSE.isPresent() && enchantment == EnchantmentRegistry.TENSE.get())
-                || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get());
-    }
-
-    private static boolean isChestOnlyRobeEnchantment(Enchantment enchantment) {
-        return (EnchantmentRegistry.ATTUNEMENT.isPresent() && enchantment == EnchantmentRegistry.ATTUNEMENT.get())
-                || (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get());
+        return EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
     }
 
     private ItemStack createArmorProbeStack() {
