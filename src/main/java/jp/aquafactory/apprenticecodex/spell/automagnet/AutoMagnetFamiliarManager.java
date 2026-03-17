@@ -1,19 +1,20 @@
 package jp.aquafactory.apprenticecodex.spell.automagnet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public final class AutoMagnetFamiliarManager {
     private static final double MIN_RANGE = 0.5;
     private static final double DEFAULT_RANGE = 8.0;
-    private static final double CLEANUP_RADIUS = 24.0;
 
     private AutoMagnetFamiliarManager() {
     }
@@ -42,28 +43,13 @@ public final class AutoMagnetFamiliarManager {
         var fixedRange = Math.max(MIN_RANGE, summonRange);
         var fixedCollectMana = Math.max(0.0, collectMana);
         var state = spellData.get(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE);
-        var current = findByUuid(player.server, state.getFamiliarUuid());
-        if (isValidForOwner(current, player)) {
-            if (!state.active || state.range != fixedRange || state.collectMana != fixedCollectMana) {
-                spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> {
-                    s.active = true;
-                    s.range = fixedRange;
-                    s.collectMana = fixedCollectMana;
-                });
-            }
-            return;
-        }
-
-        if (current != null) {
-            current.discard();
-        }
-
-        var spawned = spawn(player, fixedRange, fixedCollectMana);
+        var managedUuid = state.getFamiliarUuid();
+        var spawned = normalizeOwnedFamiliars(player, managedUuid, fixedRange, fixedCollectMana, true);
         spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> {
             s.active = true;
             s.range = fixedRange;
             s.collectMana = fixedCollectMana;
-            s.setFamiliarUuid(spawned.getUUID());
+            s.setFamiliarUuid(spawned != null ? spawned.getUUID() : null);
         });
     }
 
@@ -74,11 +60,7 @@ public final class AutoMagnetFamiliarManager {
         }
 
         var state = spellData.get(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE);
-        var familiar = findByUuid(player.server, state.getFamiliarUuid());
-        if (familiar != null) {
-            familiar.discard();
-        }
-        discardNearbyOwnedFamiliars(player);
+        discardOwnedFamiliars(player.server, player.getUUID(), null);
 
         if (!state.active && state.getFamiliarUuid() == null) {
             return;
@@ -99,11 +81,7 @@ public final class AutoMagnetFamiliarManager {
         }
 
         var state = spellData.get(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE);
-        var familiar = findByUuid(player.server, state.getFamiliarUuid());
-        if (familiar != null) {
-            familiar.discard();
-        }
-        discardNearbyOwnedFamiliars(player);
+        discardOwnedFamiliars(player.server, player.getUUID(), null);
 
         if (state.getFamiliarUuid() != null) {
             spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> s.setFamiliarUuid(null));
@@ -123,20 +101,16 @@ public final class AutoMagnetFamiliarManager {
 
         var fixedRange = state.range > 0.0 ? state.range : DEFAULT_RANGE;
         var fixedCollectMana = Math.max(0.0, state.collectMana);
-        var familiar = findByUuid(player.server, state.getFamiliarUuid());
-        if (isValidForOwner(familiar, player)) {
+        var spawned = normalizeOwnedFamiliars(player, state.getFamiliarUuid(), fixedRange, fixedCollectMana, true);
+        var spawnedUuid = spawned != null ? spawned.getUUID() : null;
+        if (state.range == fixedRange && state.collectMana == fixedCollectMana && managedUuidEquals(state.getFamiliarUuid(), spawnedUuid)) {
             return;
         }
 
-        if (familiar != null) {
-            familiar.discard();
-        }
-
-        var spawned = spawn(player, fixedRange, fixedCollectMana);
         spellData.edit(CodexSpellStateTypeRegister.AUTO_MAGNET_STATE, s -> {
             s.range = fixedRange;
             s.collectMana = fixedCollectMana;
-            s.setFamiliarUuid(spawned.getUUID());
+            s.setFamiliarUuid(spawnedUuid);
         });
     }
 
@@ -154,13 +128,85 @@ public final class AutoMagnetFamiliarManager {
                 && familiar.getOwner() == player;
     }
 
-    private static void discardNearbyOwnedFamiliars(ServerPlayer player) {
-        var ownerUuid = player.getUUID();
-        // ゾンビ個体は通常どおり owner の近くを周回しているため、解除時は近傍だけ掃除すれば十分.
-        var nearbyArea = AABB.ofSize(player.position(), CLEANUP_RADIUS * 2.0, CLEANUP_RADIUS * 2.0, CLEANUP_RADIUS * 2.0);
-        for (var familiar : player.serverLevel().getEntitiesOfClass(AutoMagnetFamiliarEntity.class, nearbyArea,
-                entity -> !entity.isRemoved() && hasOwner(entity, ownerUuid))) {
+    private static @Nullable AutoMagnetFamiliarEntity normalizeOwnedFamiliars(ServerPlayer player,
+                                                                              @Nullable UUID managedUuid,
+                                                                              double range,
+                                                                              double collectMana,
+                                                                              boolean shouldSpawn) {
+        var ownedFamiliars = findOwnedFamiliars(player.server, player.getUUID());
+        AutoMagnetFamiliarEntity primary = null;
+
+        if (managedUuid != null) {
+            for (var familiar : ownedFamiliars) {
+                if (managedUuid.equals(familiar.getUUID())) {
+                    primary = familiar;
+                    break;
+                }
+            }
+        }
+
+        if (!isValidForOwner(primary, player)) {
+            primary = null;
+        }
+
+        if (primary == null) {
+            for (var familiar : ownedFamiliars) {
+                if (isValidForOwner(familiar, player)) {
+                    primary = familiar;
+                    break;
+                }
+            }
+        }
+
+        if (primary == null && shouldSpawn) {
+            primary = spawn(player, range, collectMana);
+            ownedFamiliars.add(primary);
+        }
+
+        discardOwnedFamiliars(player.getUUID(), ownedFamiliars, primary);
+        return primary;
+    }
+
+    private static List<AutoMagnetFamiliarEntity> findOwnedFamiliars(MinecraftServer server, UUID ownerUuid) {
+        var familiars = new ArrayList<AutoMagnetFamiliarEntity>();
+        for (var level : server.getAllLevels()) {
+            for (var entity : level.getAllEntities()) {
+                if (entity instanceof AutoMagnetFamiliarEntity familiar
+                        && !familiar.isRemoved()
+                        && hasOwner(familiar, ownerUuid)) {
+                    familiars.add(familiar);
+                }
+            }
+        }
+        return familiars;
+    }
+
+    private static void discardOwnedFamiliars(MinecraftServer server, UUID ownerUuid, @Nullable AutoMagnetFamiliarEntity keep) {
+        discardOwnedFamiliars(ownerUuid, findOwnedFamiliars(server, ownerUuid), keep);
+    }
+
+    private static void discardOwnedFamiliars(UUID ownerUuid,
+                                              List<AutoMagnetFamiliarEntity> ownedFamiliars,
+                                              @Nullable AutoMagnetFamiliarEntity keep) {
+        if (ownedFamiliars.isEmpty()) {
+            return;
+        }
+        var discardedIds = new ArrayList<UUID>();
+        for (var familiar : ownedFamiliars) {
+            if (keep != null && familiar == keep) {
+                continue;
+            }
+            discardedIds.add(familiar.getUUID());
             familiar.discard();
+        }
+
+        if (keep != null && !discardedIds.isEmpty()) {
+            ApprenticeCodex.LOGGER.debug(
+                    "AutoMagnet duplicated familiars detected for owner {}. kept={}, discarded={}",
+                    ownerUuid,
+                    keep.getUUID(),
+                    discardedIds
+            );
         }
     }
 
@@ -169,17 +215,7 @@ public final class AutoMagnetFamiliarManager {
         return owner != null && owner.getUUID().equals(ownerUuid);
     }
 
-    private static @Nullable AutoMagnetFamiliarEntity findByUuid(MinecraftServer server, @Nullable UUID entityUuid) {
-        if (entityUuid == null) {
-            return null;
-        }
-
-        for (var level : server.getAllLevels()) {
-            var entity = level.getEntity(entityUuid);
-            if (entity instanceof AutoMagnetFamiliarEntity familiar && !familiar.isRemoved()) {
-                return familiar;
-            }
-        }
-        return null;
+    private static boolean managedUuidEquals(@Nullable UUID left, @Nullable UUID right) {
+        return left == null ? right == null : left.equals(right);
     }
 }
