@@ -386,7 +386,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)
