@@ -28,7 +28,7 @@ public final class EnchantressRobeStats {
     public static final int ENCHANTING_TABLE_LEVEL_BONUS_PER_PIECE = 5;
     private static final float TOUGHNESS = 0.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
-    private static final Supplier<Ingredient> REPAIR_INGREDIENT = () -> Ingredient.of(ItemRegistry.MAGIC_CLOTH.get());
+    private static final Supplier<Ingredient> REPAIR_INGREDIENT = () -> Ingredient.of(ItemRegistry.HOGSKIN.get());
 
     private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
             ArmorItem.Type.HELMET, 1,
