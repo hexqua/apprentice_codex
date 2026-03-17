@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.block.apprenticedesk;
 
 import com.google.common.collect.Lists;
-import io.redspace.ironsspellbooks.api.config.IronConfigParameters;
 import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
+import io.redspace.ironsspellbooks.api.config.SpellConfigParameter;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -182,9 +182,9 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
                 SpellRegistry.getEnabledSpells()
                         .stream()
                         .filter(AbstractSpell::allowCrafting)
-                        .filter(spell -> SpellConfigManager.getSpellConfigValue(spell, IronConfigParameters.MIN_RARITY).getValue() == targetMinRarity)
+                        .filter(spell -> SpellConfigManager.getSpellConfigValue(spell, SpellConfigParameter.MIN_RARITY).getValue() == targetMinRarity)
                         .filter(spell -> isAllowedBySameSchoolSetting(spell, sourceSpell))
-                        .filter(spell -> !spellCraftBlacklist.contains(spell.getSpellId().toString()))
+                        .filter(spell -> !spellCraftBlacklist.contains(spell.getSpellId()))
                         .toList()
         );
 
