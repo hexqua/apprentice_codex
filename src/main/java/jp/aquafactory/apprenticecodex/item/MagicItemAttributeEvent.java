@@ -19,14 +19,14 @@ public final class MagicItemAttributeEvent {
 
         var item = stack.getItem();
         if (item instanceof AbstractSpellGunItem spellGunItem) {
-            // 1.21.1 では ATTRIBUTE_MODIFIERS component 経路が優先されるため、
-            // 実運用で参照される default modifiers を基準に enchant 分を差し戻す。
-            replaceModifiers(event, spellGunItem.buildRuntimeAttributeModifiers(stack, event.getDefaultModifiers()));
+            // 1.21.1 では ATTRIBUTE_MODIFIERS component が stack-sensitive override を上書きし得るため、
+            // item 側で定義した正規の計算結果をイベント経由で差し戻す。
+            replaceModifiers(event, spellGunItem.getDefaultAttributeModifiers(stack));
             return;
         }
 
         if (item instanceof AbstractOffhandMagicItem offhandMagicItem) {
-            replaceModifiers(event, offhandMagicItem.buildRuntimeAttributeModifiers(stack, event.getDefaultModifiers()));
+            replaceModifiers(event, offhandMagicItem.getDefaultAttributeModifiers(stack));
         }
     }
 

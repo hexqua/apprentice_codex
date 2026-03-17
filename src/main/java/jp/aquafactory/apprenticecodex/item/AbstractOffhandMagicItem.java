@@ -199,10 +199,6 @@ public abstract class AbstractOffhandMagicItem extends Item implements IPresetSp
         return builder.build();
     }
 
-    final ItemAttributeModifiers buildRuntimeAttributeModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
-        return buildOffhandModifiers(stack, defaultModifiers);
-    }
-
     private ItemAttributeModifiers buildOffhandModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
         var baseModifiers = stripManagedEnchantmentModifiers(defaultModifiers);
         if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
