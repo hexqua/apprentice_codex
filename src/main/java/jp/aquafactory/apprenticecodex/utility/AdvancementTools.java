@@ -11,9 +11,12 @@ public final class AdvancementTools {
             modAdvancement("retrieve_max_arcanum_in_a_jar");
     public static final ResourceLocation EXTRACT_SPELLCASTER_GUN_SCROLL =
             modAdvancement("extract_spellcaster_gun_scroll");
+    public static final ResourceLocation ENCHANT_MAX_LEVEL =
+            modAdvancement("enchant_max_level");
     public static final String RETRIEVE_ARCANE_ESSENCE_CRITERION = "retrieve_arcane_essence";
     public static final String RETRIEVE_FULLY_CHARGED_ARCANUM_CRITERION = "retrieve_fully_charged_arcanum";
     public static final String EXTRACT_SPELLCASTER_GUN_SCROLL_CRITERION = "extract_spellcaster_gun_scroll";
+    public static final String ENCHANT_MAX_LEVEL_CRITERION = "enchant_max_level";
 
     private AdvancementTools() {
     }
