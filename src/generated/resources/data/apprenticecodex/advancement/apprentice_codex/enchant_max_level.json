@@ -1,44 +1,39 @@
 {
-  "advancements": [
+  "neoforge:conditions": [
     {
-      "advancement": {
-        "parent": "apprenticecodex:apprentice_codex/equip_enchantress_robe",
-        "criteria": {
-          "enchant_max_level": {
-            "trigger": "minecraft:impossible"
-          }
-        },
-        "display": {
-          "announce_to_chat": true,
-          "description": {
-            "translate": "advancements.apprenticecodex.apprentice_codex.enchant_max_level.description"
-          },
-          "frame": "challenge",
-          "hidden": false,
-          "icon": {
-            "item": "minecraft:enchanting_table"
-          },
-          "show_toast": true,
-          "title": {
-            "translate": "advancements.apprenticecodex.apprentice_codex.enchant_max_level.title"
-          }
-        },
-        "requirements": [
-          [
-            "enchant_max_level"
-          ]
-        ],
-        "sends_telemetry_event": true
-      },
-      "conditions": [
-        {
-          "type": "forge:not",
-          "value": {
-            "type": "forge:mod_loaded",
-            "modid": "apotheosis"
-          }
-        }
-      ]
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:mod_loaded",
+        "modid": "apotheosis"
+      }
     }
-  ]
+  ],
+  "parent": "apprenticecodex:apprentice_codex/equip_enchantress_robe",
+  "criteria": {
+    "enchant_max_level": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.enchant_max_level.description"
+    },
+    "frame": "challenge",
+    "hidden": false,
+    "icon": {
+      "count": 1,
+      "id": "minecraft:enchanting_table"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.enchant_max_level.title"
+    }
+  },
+  "requirements": [
+    [
+      "enchant_max_level"
+    ]
+  ],
+  "sends_telemetry_event": true
 }
