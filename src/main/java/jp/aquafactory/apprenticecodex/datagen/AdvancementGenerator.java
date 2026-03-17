@@ -50,6 +50,16 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                                 .build())
                         .build()
         );
+        var enchantressRobeEquipPredicate = EntityPredicate.wrap(
+                EntityPredicate.Builder.entity()
+                        .equipment(EntityEquipmentPredicate.Builder.equipment()
+                                .head(ItemPredicate.Builder.item().of(ItemRegistry.ENCHANTRESS_HAT.get()).build())
+                                .chest(ItemPredicate.Builder.item().of(ItemRegistry.ENCHANTRESS_ROBE.get()).build())
+                                .legs(ItemPredicate.Builder.item().of(ItemRegistry.ENCHANTRESS_LEGGINGS.get()).build())
+                                .feet(ItemPredicate.Builder.item().of(ItemRegistry.ENCHANTRESS_BOOTS.get()).build())
+                                .build())
+                        .build()
+        );
 
         var root = Advancement.Builder.advancement()
                 .display(ItemRegistry.SKY_EDGE_SWORD.get(),
@@ -76,7 +86,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("crafted_explorers_codex", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.EXPLORERS_CODEX.getId()))
                 .save(saver, advancementId("craft_explorers_codex"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var apprenticeMageRobe = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_apprentice_mage_robe.title"),
@@ -88,6 +98,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("equip_apprentice_mage_robe", new PlayerTrigger.TriggerInstance(CriteriaTriggers.TICK.getId(), apprenticeMageRobeEquipPredicate))
                 .save(saver, advancementId("equip_apprentice_mage_robe"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(apprenticeMageRobe)
+                .display(ItemRegistry.ENCHANTRESS_HAT.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_enchantress_robe.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_enchantress_robe.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("equip_enchantress_robe", new PlayerTrigger.TriggerInstance(CriteriaTriggers.TICK.getId(), enchantressRobeEquipPredicate))
+                .save(saver, advancementId("equip_enchantress_robe"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)

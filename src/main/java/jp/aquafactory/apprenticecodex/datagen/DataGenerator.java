@@ -36,5 +36,6 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new SenseEvilHighlightDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new ForgeAdvancementProvider(output, lookupProvider, existing, List.of(new AdvancementGenerator())));
+        generator.addProvider(event.includeServer(), new ConditionalAdvancementDataGenerator(output));
     }
 }

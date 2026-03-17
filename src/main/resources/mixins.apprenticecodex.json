@@ -8,6 +8,7 @@
   "mixins": [
     "ArcaneAnvilMenuMixin",
     "EasyMagicModEnchantmentMenuMixin",
+    "EnchantmentMenuMixin",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",
     "LivingEntityAccessor",

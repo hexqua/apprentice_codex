@@ -1,0 +1,62 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/equip_apprentice_mage_robe",
+  "criteria": {
+    "equip_enchantress_robe": {
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "equipment": {
+                "chest": {
+                  "items": [
+                    "apprenticecodex:enchantress_robe"
+                  ]
+                },
+                "feet": {
+                  "items": [
+                    "apprenticecodex:enchantress_boots"
+                  ]
+                },
+                "head": {
+                  "items": [
+                    "apprenticecodex:enchantress_hat"
+                  ]
+                },
+                "legs": {
+                  "items": [
+                    "apprenticecodex:enchantress_leggings"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_enchantress_robe.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:enchantress_hat",
+      "nbt": "{Damage:0}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_enchantress_robe.title"
+    }
+  },
+  "requirements": [
+    [
+      "equip_enchantress_robe"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
