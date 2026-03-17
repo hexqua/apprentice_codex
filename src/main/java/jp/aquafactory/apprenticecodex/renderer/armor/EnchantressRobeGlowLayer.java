@@ -27,7 +27,7 @@ public class EnchantressRobeGlowLayer extends AutoGlowingGeoLayer<EnchantressRob
             return;
         }
 
-        var glowRenderType = getRenderType(animatable);
+        var glowRenderType = getRenderType(animatable, bufferSource);
         if (glowRenderType == null) {
             return;
         }
