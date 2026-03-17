@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:pumpkin_leggings"
-            ]
+            "items": "irons_spellbooks:pumpkin_leggings"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_pumpkin_leggings",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_pumpkin_leggings"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:enchantress_leggings"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }
