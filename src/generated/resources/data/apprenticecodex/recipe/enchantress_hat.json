@@ -7,7 +7,8 @@
     "item": "irons_spellbooks:pumpkin_helmet"
   },
   "result": {
-    "item": "apprenticecodex:enchantress_hat"
+    "count": 1,
+    "id": "apprenticecodex:enchantress_hat"
   },
   "template": {
     "item": "irons_spellbooks:hogskin"
