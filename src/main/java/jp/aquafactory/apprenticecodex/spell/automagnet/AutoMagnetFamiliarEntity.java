@@ -160,6 +160,12 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     }
 
     @Override
+    public boolean shouldBeSaved() {
+        // 実体は capability から再構築するため、ワールド保存に残して次回ログイン時の重複源にしない。
+        return false;
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
         controllerRegistrar.add(new AnimationController<>(
                 this, "main", 0,
