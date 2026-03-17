@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "minecraft:gold_ingot"
+  },
+  "base": {
+    "item": "irons_spellbooks:pumpkin_chestplate"
+  },
+  "result": {
+    "item": "apprenticecodex:enchantress_robe"
+  },
+  "template": {
+    "item": "irons_spellbooks:hogskin"
+  }
+}
