@@ -1,0 +1,38 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_spellstained_runic_tablet": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:spellstained_runic_tablet"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 8,
+          "mustEquip": true,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:spellstained_runic_tablet"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_spellstained_runic_tablet"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

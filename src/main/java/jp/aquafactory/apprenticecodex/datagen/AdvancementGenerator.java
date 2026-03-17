@@ -380,5 +380,17 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_crystal_bladed_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.CRYSTAL_BLADED_STAFF.getId()))
                 .save(saver, advancementId("craft_crystal_bladed_staff"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_spellstained_runic_tablet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.getId()))
+                .save(saver, advancementId("craft_spellstained_runic_tablet"), existingFileHelper);
     }
 }
