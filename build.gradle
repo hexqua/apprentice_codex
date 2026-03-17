@@ -133,6 +133,9 @@ dependencies {
     // JEI.
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
+
+    // Patchouli.
+    runtimeOnly fg.deobf("curse.maven:patchouli-306770:6164575")
 }
 
 tasks.named('processResources', ProcessResources).configure {
