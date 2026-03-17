@@ -14,10 +14,10 @@
   "item.apprenticecodex.empty_arcane_spellcaster_casing": "秘術の詠唱銃弾の空薬莢",
   "item.apprenticecodex.empty_advanced_spellcaster_casing": "上位用詠唱銃弾の空薬莢",
   "item.apprenticecodex.empty_spell_dominator_casing": "魔術支配の銃弾の空薬莢",
-  "item.apprenticecodex.iron_spellcaster_gun": "鉄の魔術詠唱銃",
-  "item.apprenticecodex.copper_spellcaster_gun": "銅の魔術詠唱銃",
-  "item.apprenticecodex.gold_spellcaster_gun": "金の魔術詠唱銃",
-  "item.apprenticecodex.diamond_spellcaster_gun": "ダイヤモンドの魔術詠唱銃",
+  "item.apprenticecodex.iron_spellcaster_gun": "鉄の速射型魔術銃",
+  "item.apprenticecodex.copper_spellcaster_gun": "銅の詠唱型魔術銃",
+  "item.apprenticecodex.gold_spellcaster_gun": "金の重装型魔術銃",
+  "item.apprenticecodex.diamond_spellcaster_gun": "ダイヤモンドの高位魔術銃",
   "item.apprenticecodex.iron_spell_amplifier": "鉄の魔力増幅装置",
   "item.apprenticecodex.copper_spell_amplifier": "銅の魔力増幅装置",
   "item.apprenticecodex.gold_spell_amplifier": "金の魔力増幅装置",
@@ -356,12 +356,12 @@
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title": "魔法を手に入れる魔法がない",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description": "探索者の写本を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.title": "さすがはお兄様です！",
-  "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description": "鉄の魔術詠唱銃を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description": "鉄の速射型魔術銃を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.title": "電光石火",
-  "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.description": "銅の魔術詠唱銃を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.description": "銅の詠唱型魔術銃を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.title": "流石にこれは一撃必殺ではない",
-  "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.description": "金の魔術詠唱銃を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_gold_spellcaster_gun.description": "金の重装型魔術銃を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.title": "対価と報酬",
-  "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description": "ダイヤモンドの魔術詠唱銃を作る"
+  "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description": "ダイヤモンドの高位魔術銃を作る"
 
 }
