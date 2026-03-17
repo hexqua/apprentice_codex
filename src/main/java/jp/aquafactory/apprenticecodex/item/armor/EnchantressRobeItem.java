@@ -140,7 +140,7 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
     }
 
     @Override
-    public boolean isValidRepairItem(@NotNull ItemStack toRepair, ItemStack repair) {
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
         return EnchantressRobeStats.isRepairIngredient(repair) || super.isValidRepairItem(toRepair, repair);
     }
 
@@ -260,22 +260,8 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
         return changed ? builder.build() : modifiers;
     }
 
-    private boolean isSupportedRobeEnchantment(ResourceLocation enchantmentId) {
-        return isCommonRobeEnchantment(enchantmentId) || (hasImbueSlot() && isChestOnlyRobeEnchantment(enchantmentId));
-    }
-
-    private static boolean isCommonRobeEnchantment(ResourceLocation enchantmentId) {
-        return enchantmentId.equals(Enchantments.ALACRITY.location())
-                || enchantmentId.equals(Enchantments.REFLUX.location())
-                || enchantmentId.equals(Enchantments.RESERVOIR.location())
-                || enchantmentId.equals(Enchantments.SURGE.location())
-                || enchantmentId.equals(Enchantments.TENSE.location())
-                || enchantmentId.equals(Enchantments.WISDOM.location());
-    }
-
-    private static boolean isChestOnlyRobeEnchantment(ResourceLocation enchantmentId) {
-        return enchantmentId.equals(Enchantments.ATTUNEMENT.location())
-                || enchantmentId.equals(Enchantments.TRANSCENDENCE.location());
+    private static boolean isSupportedRobeEnchantment(ResourceLocation enchantmentId) {
+        return enchantmentId.equals(Enchantments.WISDOM.location());
     }
 
     private String managedModifierPath(String key) {
