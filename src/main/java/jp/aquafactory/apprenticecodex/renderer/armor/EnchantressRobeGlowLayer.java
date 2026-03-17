@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.renderer.armor;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.renderer.LightTexture;
@@ -28,11 +27,10 @@ public class EnchantressRobeGlowLayer extends AutoGlowingGeoLayer<EnchantressRob
             return;
         }
 
-        int runeColor = EnchantressRobeRenderer.resolveSchoolTintColor(schoolType);
-        float red = ((runeColor >> 16) & 0xFF) / 255.0f;
-        float green = ((runeColor >> 8) & 0xFF) / 255.0f;
-        float blue = (runeColor & 0xFF) / 255.0f;
         var glowRenderType = getRenderType(animatable);
+        if (glowRenderType == null) {
+            return;
+        }
 
         getRenderer().reRender(
                 model,
@@ -44,10 +42,7 @@ public class EnchantressRobeGlowLayer extends AutoGlowingGeoLayer<EnchantressRob
                 partialTick,
                 LightTexture.FULL_BRIGHT,
                 OverlayTexture.NO_OVERLAY,
-                red,
-                green,
-                blue,
-                1.0f
+                0xFF000000 | EnchantressRobeRenderer.resolveSchoolTintColor(schoolType)
         );
     }
 
