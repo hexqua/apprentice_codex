@@ -429,10 +429,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return builder.build();
     }
 
-    final ItemAttributeModifiers buildRuntimeAttributeModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
-        return buildMainhandModifiers(stack, defaultModifiers);
-    }
-
     private ItemAttributeModifiers buildMainhandModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
         var baseModifiers = stripManagedEnchantmentModifiers(defaultModifiers);
         if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
