@@ -41,6 +41,10 @@ java -version
 ```powershell
 ./gradlew.bat clean build
 ```
+- Datagen 再生成:
+```powershell
+./gradlew.bat runData
+```
 - jar 出力確認:
 ```powershell
 Get-ChildItem build\libs\*.jar
@@ -53,6 +57,9 @@ Get-ChildItem build\libs\*.jar
 ```
 - 注記: `runClient` は GUI（Minecraft クライアント）を起動するため、CI やヘッドレス環境では実行しない。
 - 注記: 通常のビルド確認では `clean` を付けない。`clean` 実行後は開発実行環境の再生成や IDE 再同期が必要になる場合がある。
+- 注記: `runData` の出力先は `src/generated/resources` であり、`src/generated/resources/.cache` に記録された生成物だけが再生成・差分管理される前提で扱う。
+- 注記: `src/generated/resources/.cache` は Git 管理外のため、branch 切替・`cherry-pick`・手動コピーで持ち込んだ古い JSON は `runData` だけでは削除されない場合がある。
+- 注記: port 作業で削除・改名・出力パス変更・1.20.1 -> 1.21.1 書式移行を行う場合は、`runData` 前に影響ディレクトリの generated JSON を明示削除してから再生成する。
 - 注記: 本プロジェクトでは Gradle Wrapper の実行はパス経由を前提にしないため、`./gradlew.bat` を使用する。
 - Lint/Format:
 `現時点では専用タスク未設定。必要時に追加する。`
@@ -101,7 +108,11 @@ Get-ChildItem build\libs\*.jar
 2. リストアップした候補を確認し、実際に取り込むコミット（SHA）を確定する。
 3. `git cherry-pick -x <sha1> [<sha2> ...]` でコミットを取り込む。
 4. コンフリクト時は `1.21.1-main` の既存差分を優先しつつ、必要最小限の手動調整を行う。
-5. `./gradlew.bat build` と `./gradlew.bat runData` を実行し、取り込み後の検証成功を確認する。
+5. datagen 対象に削除・改名・出力パス変更・書式移行が含まれる場合は、`src/generated/resources` 配下の影響ディレクトリを先に削除する。通常は変更範囲のみ削除し、判断できない場合のみ `data/apprenticecodex/<対象種別>`、さらに必要な場合のみ `src/generated/resources/data/apprenticecodex` まで広げる。
+6. `./gradlew.bat runData` を実行し、現行 1.21.1 実装の生成物で上書き・再生成する。
+7. `git diff --name-status -- src/generated/resources` を確認し、不要になった generated JSON が削除差分として出ていることを確認する。
+8. `rg -n "forge:conditions|canApplyAtEnchantingTable|isBookEnchantable|supportsEnchantment|isValidRepairItem" src/generated/resources` を必要に応じて実行し、1.20.1 由来の旧書式・旧実装前提が残っていないことを確認する。
+9. `./gradlew.bat build` を実行し、取り込み後の検証成功を確認する。
 - 運用ルール:
 - 1 機能を独立した連続コミット系列として保ち、`cherry-pick` しやすくする。
 - `merge` コミットしか見つからない場合でも、その `merge` 自体は取り込まず、元になった個別コミットを洗い出してから取り込む。
@@ -113,7 +124,9 @@ Get-ChildItem build\libs\*.jar
 2. 防具を移植する場合は `minecraft:head_armor` / `chest_armor` / `leg_armor` / `foot_armor` に加え、必要に応じて `minecraft:enchantable/durability` `minecraft:enchantable/equippable` `minecraft:enchantable/vanishing` の tag 登録漏れを確認する。
 3. 武器・ツール・特殊アイテムを移植する場合は、対象 enchantment JSON が参照する `minecraft:enchantable/*` や独自 tag を洗い出し、datagen と `src/generated/resources` の両方を更新する。
 4. 1.20.1 側で `isValidRepairItem` を実装していたアイテムは、1.21.1 では素材定義だけで修理可否が復元されると決めつけず、個別 override 要否を確認する。
-5. 移植後の確認では `./gradlew.bat runData` と `./gradlew.bat build` に加え、対象アイテムのエンチャントテーブル・金床（エンチャント本）・素材修理の 3 経路を確認する。
+5. 移植後の確認では、必要な generated JSON を削除してから `./gradlew.bat runData` を実行し、`git diff --name-status -- src/generated/resources` で古い JSON の削除漏れがないことを確認する。
+6. 旧版書式が疑わしい場合は `rg -n "forge:conditions|canApplyAtEnchantingTable|isBookEnchantable|supportsEnchantment|isValidRepairItem" src/generated/resources` を実行し、1.20.1 前提の記述が残っていないことを確認する。
+7. そのうえで `./gradlew.bat build` に加え、対象アイテムのエンチャントテーブル・金床（エンチャント本）・素材修理の 3 経路を確認する。
 
 ## 9. Codex運用上の注意（コメント保全/文字化け対策）
 - 原因整理: Windows PowerShell 5.1（コードページ 932）で `Get-Content` 既定読み取りを使うと、UTF-8日本語が文字化けして表示される。
