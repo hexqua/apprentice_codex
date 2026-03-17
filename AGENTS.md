@@ -18,7 +18,7 @@
 - Mod ローダー: Minecraft Forge 47.4.10
 - 言語/実行環境: Java 17
 - ビルドツール: Gradle Wrapper（`./gradlew` / `./gradlew.bat`）
-- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.15.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
+- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.15.4）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
 - セットアップ手順:
 1. 64bit の Java 17 をインストールし、`java -version` で確認する。
 2. 既定の Java が 17 以外の場合は、ビルド実行前に一時的に `JAVA_HOME` を切り替える。
