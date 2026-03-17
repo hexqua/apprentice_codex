@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipeSerializer;
+import jp.aquafactory.apprenticecodex.recipe.crafting.IronsGuideBookRepairRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
@@ -12,6 +13,7 @@ import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWor
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -34,6 +36,11 @@ public final class RecipeRegistry {
             RECIPE_SERIALIZERS.register("spellbook_carryover_smithing", SpellbookCarryoverSmithingRecipeSerializer::new);
     public static final RegistryObject<RecipeSerializer<SpellcasterWorkbenchRecipe>> SPELLCASTER_WORKBENCH_SERIALIZER =
             RECIPE_SERIALIZERS.register("spellcaster_workbench", SpellcasterWorkbenchRecipeSerializer::new);
+    public static final RegistryObject<RecipeSerializer<IronsGuideBookRepairRecipe>> IRONS_GUIDE_BOOK_REPAIR_SERIALIZER =
+            RECIPE_SERIALIZERS.register(
+                    "irons_guide_book_repair",
+                    () -> new SimpleCraftingRecipeSerializer<>(IronsGuideBookRepairRecipe::new)
+            );
 
     public static final RegistryObject<RecipeType<GrindRunnerRecipe>> GRIND_RUNNER_RECIPE_TYPE =
             RECIPE_TYPES.register("grind_runner", () -> new RecipeType<>() {
