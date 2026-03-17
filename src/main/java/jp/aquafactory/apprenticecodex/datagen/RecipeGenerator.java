@@ -310,6 +310,46 @@ public final class RecipeGenerator extends RecipeProvider {
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_BOOTS.get()))
                 .save(recipeOutput, ItemRegistry.APPRENTICE_MAGE_BOOTS.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.HOGSKIN.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_HELMET.get()),
+                        Ingredient.of(Items.GOLD_INGOT),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.ENCHANTRESS_HAT.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_HELMET.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_HELMET.get()))
+                .save(recipeOutput, ItemRegistry.ENCHANTRESS_HAT.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.HOGSKIN.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_CHESTPLATE.get()),
+                        Ingredient.of(Items.GOLD_INGOT),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.ENCHANTRESS_ROBE.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_CHESTPLATE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_CHESTPLATE.get()))
+                .save(recipeOutput, ItemRegistry.ENCHANTRESS_ROBE.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.HOGSKIN.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_LEGGINGS.get()),
+                        Ingredient.of(Items.GOLD_INGOT),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.ENCHANTRESS_LEGGINGS.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_LEGGINGS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_LEGGINGS.get()))
+                .save(recipeOutput, ItemRegistry.ENCHANTRESS_LEGGINGS.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.HOGSKIN.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()),
+                        Ingredient.of(Items.GOLD_INGOT),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.ENCHANTRESS_BOOTS.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()))
+                .save(recipeOutput, ItemRegistry.ENCHANTRESS_BOOTS.getId());
     }
 
     private void saveSpellbookCarryoverSmithingRecipe(@NotNull RecipeOutput recipeOutput) {

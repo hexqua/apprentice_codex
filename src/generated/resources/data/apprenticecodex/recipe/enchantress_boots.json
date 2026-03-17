@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "minecraft:gold_ingot"
+  },
+  "base": {
+    "item": "irons_spellbooks:pumpkin_boots"
+  },
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:enchantress_boots"
+  },
+  "template": {
+    "item": "irons_spellbooks:hogskin"
+  }
+}
