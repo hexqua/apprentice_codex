@@ -20,15 +20,15 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class ClientInputEventsMixin {
 
     @Redirect(
-            method = "handleInputEvent",
+            method = "handleKeybinds",
             at = @At(
                     value = "INVOKE",
                     target = "Lio/redspace/ironsspellbooks/setup/PacketDistributor;sendToServer(Ljava/lang/Object;)V",
                     ordinal = 0
             )
     )
-    private static void redirectQuickCastPacket(Object packet) {
-        if (packet instanceof QuickCastPacket quickCastPacket && apprentice_codex$trySendTargetedQuickCast(quickCastPacket)) {
+    private static void redirectCastPacket(Object packet) {
+        if (packet instanceof CastPacket && apprentice_codex$trySendSelectedSpellCast()) {
             return;
         }
 
@@ -36,15 +36,15 @@ public abstract class ClientInputEventsMixin {
     }
 
     @Redirect(
-            method = "handleInputEvent",
+            method = "handleKeybinds",
             at = @At(
                     value = "INVOKE",
                     target = "Lio/redspace/ironsspellbooks/setup/PacketDistributor;sendToServer(Ljava/lang/Object;)V",
                     ordinal = 1
             )
     )
-    private static void redirectCastPacket(Object packet) {
-        if (packet instanceof CastPacket && apprentice_codex$trySendSelectedSpellCast()) {
+    private static void redirectQuickCastPacket(Object packet) {
+        if (packet instanceof QuickCastPacket quickCastPacket && apprentice_codex$trySendTargetedQuickCast(quickCastPacket)) {
             return;
         }
 
