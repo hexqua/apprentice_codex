@@ -8,6 +8,8 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.player.ClientSpellCastHelper;
 import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldClientEffectState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -43,6 +45,13 @@ public abstract class ClientSpellCastHelperMixin {
         var spell = SpellRegistry.getSpell(spellId);
         var castingSlot = ClientMagicData.getSyncedSpellData(player).getCastingEquipmentSlot();
         var castingStack = apprentice_codex$resolveCastingStack(player, castingSlot);
+        if (player == minecraft.player && castingStack.getItem() instanceof ReflectcastShield) {
+            ReflectcastShieldClientEffectState.beginLocalSuccessFlash(
+                    apprentice_codex$resolveCastingHand(castingSlot),
+                    spellId
+            );
+        }
+
         if (!(castingStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
             return;
         }
