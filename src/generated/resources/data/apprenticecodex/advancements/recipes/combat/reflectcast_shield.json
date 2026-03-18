@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_gold_spell_book": {
+    "has_shield": {
       "conditions": {
         "items": [
           {
             "items": [
-              "irons_spellbooks:gold_spell_book"
+              "minecraft:shield"
             ]
           }
         ]
@@ -15,20 +15,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:spellstained_runic_tablet"
+        "recipe": "apprenticecodex:reflectcast_shield"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_gold_spell_book",
+      "has_shield",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:spellstained_runic_tablet"
+      "apprenticecodex:reflectcast_shield"
     ]
   },
   "sends_telemetry_event": false

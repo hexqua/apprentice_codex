@@ -8,10 +8,10 @@
             "entity": "this",
             "predicate": {
               "type_specific": {
+                "type": "player",
                 "advancements": {
                   "irons_spellbooks:irons_spellbooks/spell_book_equip": true
-                },
-                "type": "player"
+                }
               }
             }
           }
