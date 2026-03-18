@@ -17,8 +17,6 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
-import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Holder;
@@ -54,7 +52,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem {
+public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
+        ManaBypassSpellItem, CastAnimationOverrideItem {
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
     private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
     private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
@@ -261,7 +260,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         ISpellContainer.set(stack, normalized.toImmutable());
     }
 
-    final boolean supportsManaBypass(@Nullable AbstractSpell spell) {
+    @Override
+    public final boolean supportsManaBypass(@Nullable AbstractSpell spell) {
         if (spell == null) {
             return false;
         }
@@ -313,6 +313,21 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     public boolean shouldSuppressSpellGunCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
         return matchesSpellGunAnimationOverrideSpell(stack, spell) && isZeroTickLongCastAnimationOverride(spell);
+    }
+
+    @Override
+    public final boolean shouldOverrideCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return shouldOverrideSpellGunCastStartAnimation(stack, spell);
+    }
+
+    @Override
+    public final AnimationHolder getCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel) {
+        return getSpellGunCastStartAnimation(stack, spell, spellLevel);
+    }
+
+    @Override
+    public final boolean shouldSuppressCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return shouldSuppressSpellGunCastFinishAnimation(stack, spell);
     }
 
     private static boolean isSupportedSpellGunEnchantment(Enchantment enchantment) {
@@ -415,7 +430,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                     slotId
             );
             if (casted) {
-                applyLongCastDurationOverride(player, spellLevel, spell, magicData, slotId);
+                TriggeredSpellCastHelper.applyLongCastDurationOverride(
+                        player,
+                        spellLevel,
+                        spell,
+                        magicData,
+                        slotId,
+                        getOverriddenLongCastTicks()
+                );
             }
             return casted;
         }
@@ -456,49 +478,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         if (borrowedMana > 0f) {
-            SpellGunCastEvent.reserveBorrowedMana(player, borrowedMana);
+            ItemManaBypassCastEvent.reserveBorrowedMana(player, borrowedMana);
         }
 
-        applyLongCastDurationOverride(player, spellLevel, spell, magicData, slotId);
-        return true;
-    }
-
-    private void applyLongCastDurationOverride(Player player, int spellLevel, AbstractSpell spell, @Nullable MagicData magicData, String slotId) {
-        if (spell.getCastType() != CastType.LONG) {
-            return;
-        }
-
-        var overriddenLongCastTicks = getOverriddenLongCastTicks();
-        if (overriddenLongCastTicks == null || !(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-
-        var resolvedMagicData = magicData != null ? magicData : MagicData.getPlayerMagicData(serverPlayer);
-        if (resolvedMagicData == null) {
-            return;
-        }
-
-        if (overriddenLongCastTicks <= 0) {
-            completeLongCastImmediately(serverPlayer, spellLevel, spell, resolvedMagicData);
-            return;
-        }
-
-        // attemptInitiateCast は魔法本来の詠唱時間で状態を作るため、spell gun 指定値へ即座に上書きして同期し直す。
-        resolvedMagicData.initiateCast(spell, spellLevel, overriddenLongCastTicks, CastSource.SWORD, slotId);
-        PacketDistributor.sendToPlayer(serverPlayer, new UpdateCastingStatePacket(
-                spell.getSpellId(),
+        TriggeredSpellCastHelper.applyLongCastDurationOverride(
+                player,
                 spellLevel,
-                overriddenLongCastTicks,
-                CastSource.SWORD,
-                slotId
-        ));
-    }
-
-    private static void completeLongCastImmediately(ServerPlayer player, int spellLevel, AbstractSpell spell, MagicData magicData) {
-        // LONG の完了待ちだけを飛ばし、CastType 自体は維持して downstream の挙動を崩さない。
-        spell.castSpell(player.level(), spellLevel, player, magicData.getCastSource(), true);
-        spell.onServerCastTick(player.level(), spellLevel, player, magicData);
-        spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
+                spell,
+                magicData,
+                slotId,
+                getOverriddenLongCastTicks()
+        );
+        return true;
     }
 
     private Multimap<Attribute, AttributeModifier> buildBaseMainhandModifiers() {
