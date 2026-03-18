@@ -33,7 +33,7 @@ import java.util.Locale;
 public abstract class AbstractImbueShieldItem extends ShieldItem implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem {
     private static final int BLOCK_READY_TICKS = 5;
-    private static final int SPELL_TRIGGER_WINDOW_TICKS = 20;
+    private static final int SPELL_TRIGGER_WINDOW_TICKS = 15;
     private static final String TRIGGER_WINDOW_START_TAG_PREFIX = "ApprenticeCodexImbueShieldWindowStart.";
     private static final String TRIGGER_WINDOW_CASTED_TAG_PREFIX = "ApprenticeCodexImbueShieldWindowCasted.";
 
@@ -113,7 +113,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand usedHand) {
         var result = super.use(level, player, usedHand);
         var usingStack = player.getItemInHand(usedHand);
         primeImmediateShieldBlock(player, usingStack);
@@ -139,7 +139,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
             }
         }
 
-        var normalized = ISpellContainer.create(1, true, false).mutableCopy();
+        var normalized = ISpellContainer.create(1, false, false).mutableCopy();
         if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
         }
@@ -317,7 +317,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
         appendTooltipSection(
                 lines,
-                List.of(Component.translatable("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none")
+                List.of(Component.translatable("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant")
                         .withStyle(ChatFormatting.GRAY)),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title"
         );

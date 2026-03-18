@@ -115,10 +115,7 @@ public final class ReflectcastShieldClientEffectState {
         }
 
         var spellData = spellContainer.getSpellAtIndex(0);
-        return spellData != null
-                && spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
-                && spellData.getSpell() != null
-                && spellId.equals(spellData.getSpell().getSpellId());
+        return spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY && spellData.getSpell() != null && spellId.equals(spellData.getSpell().getSpellId());
     }
 
     private static RenderState tintFlashState(float[] color, float strength) {
