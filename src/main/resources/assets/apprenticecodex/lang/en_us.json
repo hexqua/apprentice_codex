@@ -33,6 +33,7 @@
   "item.apprenticecodex.pastel_staff": "Pastel Staff",
   "item.apprenticecodex.photon_siphon": "Photon Siphon",
   "item.apprenticecodex.crystal_bladed_staff": "Crystal Bladed Staff",
+  "item.apprenticecodex.reflectcast_shield": "Reflectcast Shield",
 
   "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
@@ -53,6 +54,7 @@
   "item.apprenticecodex.spellgun.tooltip.restrict_none": "- [N/A]",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only": "- No casting required",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_long_only": "- Casting required",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous": "- No continuous casting",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_cooldown": "- Cooldown is %s seconds or less",
   "item.apprenticecodex.spellgun.tooltip.restrict_restrict_no_recast": "- No recast needed",
   "item.apprenticecodex.spellgun.tooltip.ammo_title": "Ammo:",
