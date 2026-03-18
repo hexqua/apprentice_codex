@@ -4,7 +4,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.jei.ArcaneAnvilJeiRecipe;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +32,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
     private void apprenticecodex$filterSpellGunImbueRecipes(
             CallbackInfoReturnable<ArcaneAnvilJeiRecipe.Tuple<List<ItemStack>, List<ItemStack>, List<ItemStack>>> cir
     ) {
-        if (!isImbueRecipe() || !(leftItem instanceof AbstractSpellGunItem spellGunItem)) {
+        if (!isImbueRecipe() || !(leftItem instanceof RestrictedSpellImbuableItem spellImbueItem)) {
             return;
         }
 
@@ -45,7 +45,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
         // 実際に imbue できる組み合わせだけを再構築して UI と実挙動を一致させる。
         for (var spell : SpellRegistry.getEnabledSpells()) {
             for (int level = spell.getMinLevel(); level <= spell.getMaxLevel(); level++) {
-                if (!spellGunItem.canImbueSpell(spell, level)) {
+                if (!spellImbueItem.canImbueSpell(spell, level)) {
                     continue;
                 }
 
@@ -55,6 +55,8 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
 
                 var imbuedStack = new ItemStack(leftItem);
                 ISpellContainer.createScrollContainer(spell, level, imbuedStack);
+                // 付与後に spell container を正規化しないと、盾の固有制約と表示がズレる。
+                spellImbueItem.normalizeImbuedSpellContainer(imbuedStack);
                 outputs.add(imbuedStack);
             }
         }

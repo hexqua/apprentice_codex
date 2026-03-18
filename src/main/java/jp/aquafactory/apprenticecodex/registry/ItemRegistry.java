@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.Prote
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import net.minecraft.core.registries.Registries;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
@@ -150,5 +151,7 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final DeferredHolder<Item, Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
+    public static final DeferredHolder<Item, Item> REFLECTCAST_SHIELD =
+            ITEMS.register("reflectcast_shield", ReflectcastShield::new);
 }
 
