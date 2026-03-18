@@ -5,7 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import jp.aquafactory.apprenticecodex.network.Networks;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ public final class TriggeredSpellCastHelper {
 
         // attemptInitiateCast は魔法本来の詠唱時間で状態を作るため、アイテム側指定値へ即座に上書きし同期し直す.
         resolvedMagicData.initiateCast(spell, spellLevel, overriddenLongCastTicks, CastSource.SWORD, slotId);
-        PacketDistributor.sendToPlayer(serverPlayer, new UpdateCastingStatePacket(
+        Networks.sendToPlayer(serverPlayer, new UpdateCastingStatePacket(
                 spell.getSpellId(),
                 spellLevel,
                 overriddenLongCastTicks,

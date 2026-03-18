@@ -94,7 +94,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
-                ItemRegistry.ENCHANTRESS_BOOTS.get()
+                ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.REFLECTCAST_SHIELD.get()
         );
         tag(MINECRAFT_ENCHANTABLE_EQUIPPABLE).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -114,7 +115,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
-                ItemRegistry.ENCHANTRESS_BOOTS.get()
+                ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.REFLECTCAST_SHIELD.get()
         );
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());

@@ -28,6 +28,5 @@
     "recipes": [
       "apprenticecodex:spellstained_runic_tablet"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

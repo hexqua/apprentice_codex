@@ -19,6 +19,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.TooltipFlag;
@@ -70,8 +71,8 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
         appendImbueTargetSpellTooltip(lines);
     }
 
@@ -250,11 +251,11 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
         var usingStack = player.getUseItem();
         if (usingStack.isEmpty()
-                || (usingStack != expectedStack && !ItemStack.isSameItemSameTags(usingStack, expectedStack))) {
+                || (usingStack != expectedStack && !ItemStack.isSameItemSameComponents(usingStack, expectedStack))) {
             return;
         }
 
-        var useDuration = usingStack.getUseDuration();
+        var useDuration = usingStack.getUseDuration(player);
         if (useDuration <= BLOCK_READY_TICKS) {
             return;
         }

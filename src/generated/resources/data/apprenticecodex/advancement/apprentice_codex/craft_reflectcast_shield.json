@@ -9,50 +9,22 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:reflectcast_shield",
-      "nbt": "{Damage:0,\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:1b}}"
-    },
-    "show_toast": true,
-    "title": {
-      "translate": "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.title"
-    }
-  },
-  "requirements": [
-    [
-      "craft_reflectcast_shield"
-    ]
-  ],
-  "sends_telemetry_event": true
-}
-{
-  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
-  "criteria": {
-    "craft_reflectcast_shield": {
-      "conditions": {
-        "recipe_id": "apprenticecodex:reflectcast_shield"
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
       },
-      "trigger": "minecraft:recipe_crafted"
-    }
-  },
-  "display": {
-    "announce_to_chat": true,
-    "description": {
-      "translate": "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description"
+      "count": 1,
+      "id": "apprenticecodex:reflectcast_shield"
     },
-    "frame": "goal",
-    "hidden": false,
-    "icon": {
-      "item": "apprenticecodex:reflectcast_shield",
-      "nbt": "{Damage:0,\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:1b}}"
-    },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.title"
     }

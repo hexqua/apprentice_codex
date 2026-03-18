@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:shield"
-            ]
+            "items": "minecraft:shield"
           }
         ]
       },
@@ -22,49 +20,13 @@
   },
   "requirements": [
     [
-      "has_shield",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_shield"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:reflectcast_shield"
     ]
-  },
-  "sends_telemetry_event": false
-}
-{
-  "parent": "minecraft:recipes/root",
-  "criteria": {
-    "has_shield": {
-      "conditions": {
-        "items": [
-          {
-            "items": [
-              "minecraft:shield"
-            ]
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
-    "has_the_recipe": {
-      "conditions": {
-        "recipe": "apprenticecodex:reflectcast_shield"
-      },
-      "trigger": "minecraft:recipe_unlocked"
-    }
-  },
-  "requirements": [
-    [
-      "has_shield",
-      "has_the_recipe"
-    ]
-  ],
-  "rewards": {
-    "recipes": [
-      "apprenticecodex:reflectcast_shield"
-    ]
-  },
-  "sends_telemetry_event": false
+  }
 }
