@@ -1,0 +1,38 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "criteria": {
+    "craft_reflectcast_shield": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:reflectcast_shield"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:reflectcast_shield"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.title"
+    }
+  },
+  "requirements": [
+    [
+      "craft_reflectcast_shield"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

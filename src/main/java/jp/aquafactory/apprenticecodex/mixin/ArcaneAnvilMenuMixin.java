@@ -1,7 +1,11 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.gui.arcane_anvil.ArcaneAnvilMenu;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import io.redspace.ironsspellbooks.item.Scroll;
 import net.minecraft.world.inventory.ItemCombinerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,14 +20,44 @@ public abstract class ArcaneAnvilMenuMixin {
     @Inject(method = "createResult()V", at = @At("RETURN"), remap = true, require = 1)
     private void apprenticecodex$blockUnsupportedSpellImbuement(CallbackInfo ci) {
         var itemCombinerMenu = (ItemCombinerMenuAccessor) (ItemCombinerMenu) (Object) this;
+        var inputSlots = itemCombinerMenu.apprenticecodex$getInputSlots();
+        var baseStack = inputSlots.getItem(0);
+        var modifierStack = inputSlots.getItem(1);
         if (!SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(
-                itemCombinerMenu.apprenticecodex$getInputSlots().getItem(0),
-                itemCombinerMenu.apprenticecodex$getInputSlots().getItem(1)
+                baseStack,
+                modifierStack
         )) {
+            normalizeRestrictedSpellImbueResult(itemCombinerMenu, baseStack, modifierStack);
             return;
         }
 
         // ArcaneAnvil 既存UIのエラー表示を使うため、結果だけ空に戻す.
         itemCombinerMenu.apprenticecodex$getResultSlots().setItem(0, ItemStack.EMPTY);
+    }
+
+    private static void normalizeRestrictedSpellImbueResult(ItemCombinerMenuAccessor itemCombinerMenu, ItemStack baseStack, ItemStack modifierStack) {
+        if (!(baseStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem)
+                || !(modifierStack.getItem() instanceof Scroll)) {
+            return;
+        }
+
+        var scrollContainer = ISpellContainer.get(modifierStack);
+        if (scrollContainer == null) {
+            return;
+        }
+
+        var spellData = scrollContainer.getSpellAtIndex(0);
+        if (spellData == SpellData.EMPTY || !spellImbueItem.canImbueSpell(spellData)) {
+            return;
+        }
+
+        var resultStack = itemCombinerMenu.apprenticecodex$getResultSlots().getItem(0);
+        if (resultStack.isEmpty()) {
+            return;
+        }
+
+        ISpellContainer.createScrollContainer(spellData.getSpell(), spellData.getLevel(), resultStack);
+        spellImbueItem.normalizeImbuedSpellContainer(resultStack);
+        itemCombinerMenu.apprenticecodex$getResultSlots().setItem(0, resultStack);
     }
 }

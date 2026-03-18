@@ -367,7 +367,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("extract_spellcaster_gun_scroll", CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
                 .save(saver, advancementId("extract_spellcaster_gun_scroll"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var bladed = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_crystal_bladed_staff.title"),
@@ -379,6 +379,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_crystal_bladed_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.CRYSTAL_BLADED_STAFF.getId()))
                 .save(saver, advancementId("craft_crystal_bladed_staff"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(bladed)
+                .display(ItemRegistry.REFLECTCAST_SHIELD.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("craft_reflectcast_shield", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.REFLECTCAST_SHIELD.getId()))
+                .save(saver, advancementId("craft_reflectcast_shield"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)

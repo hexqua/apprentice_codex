@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import net.minecraft.world.item.ItemStack;
 
 public final class SpellGunSpellValidator {
@@ -11,7 +11,7 @@ public final class SpellGunSpellValidator {
     }
 
     public static boolean isUnsupportedArcaneAnvilSpell(ItemStack baseItemStack, ItemStack modifierItemStack) {
-        if (!(baseItemStack.getItem() instanceof AbstractSpellGunItem spellGunItem)
+        if (!(baseItemStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem)
                 || !(modifierItemStack.getItem() instanceof Scroll)) {
             return false;
         }
@@ -22,6 +22,6 @@ public final class SpellGunSpellValidator {
         }
 
         var spellData = scrollContainer.getSpellAtIndex(0);
-        return spellData != SpellData.EMPTY && !spellGunItem.canImbueSpell(spellData);
+        return spellData != SpellData.EMPTY && !spellImbueItem.canImbueSpell(spellData);
     }
 }
