@@ -7,8 +7,11 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.player.ClientSpellCastHelper;
 import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldClientEffectState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,7 +25,7 @@ import java.util.UUID;
 @Mixin(value = ClientSpellCastHelper.class, remap = false)
 public abstract class ClientSpellCastHelperMixin {
 
-    // spell gun 発動時だけ開始アニメーションを差し替え、音や入力抑制など他の前処理は元の spell 実装へ委ねる.
+    // 特殊アイテム発動時だけ開始アニメーションを差し替え、音や入力抑制など他の前処理は元の spell 実装へ委ねる.
     @Inject(
             method = "handleClientBoundOnCastStarted",
             at = @At("HEAD"),
@@ -42,18 +45,25 @@ public abstract class ClientSpellCastHelperMixin {
         var spell = SpellRegistry.getSpell(spellId);
         var castingSlot = ClientMagicData.getSyncedSpellData(player).getCastingEquipmentSlot();
         var castingStack = apprentice_codex$resolveCastingStack(player, castingSlot);
-        if (!(castingStack.getItem() instanceof AbstractSpellGunItem spellGunItem)) {
+        if (player == minecraft.player && castingStack.getItem() instanceof ReflectcastShield) {
+            ReflectcastShieldClientEffectState.beginLocalSuccessFlash(
+                    apprentice_codex$resolveCastingHand(castingSlot),
+                    spellId
+            );
+        }
+
+        if (!(castingStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
             return;
         }
 
-        if (!spellGunItem.shouldOverrideSpellGunCastStartAnimation(castingStack, spell)) {
+        if (!animationOverrideItem.shouldOverrideCastStartAnimation(castingStack, spell)) {
             return;
         }
 
-        spellGunItem.getSpellGunCastStartAnimation(castingStack, spell, spellLevel)
+        animationOverrideItem.getCastStartAnimation(castingStack, spell, spellLevel)
                 .getForPlayer()
                 .ifPresent(resourceLocation -> AnimationHelper.animatePlayerStart(player, resourceLocation));
-        spell.onClientPreCast(player.level(), spellLevel, player, player.getUsedItemHand(), null);
+        spell.onClientPreCast(player.level(), spellLevel, player, apprentice_codex$resolveCastingHand(castingSlot), null);
         ci.cancel();
     }
 
@@ -76,12 +86,12 @@ public abstract class ClientSpellCastHelperMixin {
             return spell.getCastFinishAnimation();
         }
 
-        var castingStack = apprentice_codex$resolveSpellGunAnimationStack(player, spell);
-        if (!(castingStack.getItem() instanceof AbstractSpellGunItem spellGunItem)) {
+        var castingStack = apprentice_codex$resolveSpellAnimationStack(player, spell);
+        if (!(castingStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
             return spell.getCastFinishAnimation();
         }
 
-        return spellGunItem.shouldSuppressSpellGunCastFinishAnimation(castingStack, spell)
+        return animationOverrideItem.shouldSuppressCastFinishAnimation(castingStack, spell)
                 ? AnimationHolder.pass()
                 : spell.getCastFinishAnimation();
     }
@@ -98,18 +108,23 @@ public abstract class ClientSpellCastHelperMixin {
     }
 
     @Unique
-    private static ItemStack apprentice_codex$resolveSpellGunAnimationStack(net.minecraft.world.entity.player.Player player, AbstractSpell spell) {
+    private static InteractionHand apprentice_codex$resolveCastingHand(String castingSlot) {
+        return SpellSelectionManager.OFFHAND.equals(castingSlot) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+    }
+
+    @Unique
+    private static ItemStack apprentice_codex$resolveSpellAnimationStack(net.minecraft.world.entity.player.Player player, AbstractSpell spell) {
         var mainHand = player.getMainHandItem();
-        if (mainHand.getItem() instanceof AbstractSpellGunItem spellGunItem
-                && (spellGunItem.shouldOverrideSpellGunCastStartAnimation(mainHand, spell)
-                || spellGunItem.shouldSuppressSpellGunCastFinishAnimation(mainHand, spell))) {
+        if (mainHand.getItem() instanceof CastAnimationOverrideItem animationOverrideItem
+                && (animationOverrideItem.shouldOverrideCastStartAnimation(mainHand, spell)
+                || animationOverrideItem.shouldSuppressCastFinishAnimation(mainHand, spell))) {
             return mainHand;
         }
 
         var offHand = player.getOffhandItem();
-        if (offHand.getItem() instanceof AbstractSpellGunItem spellGunItem
-                && (spellGunItem.shouldOverrideSpellGunCastStartAnimation(offHand, spell)
-                || spellGunItem.shouldSuppressSpellGunCastFinishAnimation(offHand, spell))) {
+        if (offHand.getItem() instanceof CastAnimationOverrideItem animationOverrideItem
+                && (animationOverrideItem.shouldOverrideCastStartAnimation(offHand, spell)
+                || animationOverrideItem.shouldSuppressCastFinishAnimation(offHand, spell))) {
             return offHand;
         }
 

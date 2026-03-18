@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
@@ -148,4 +149,6 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final RegistryObject<Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
+    public static final RegistryObject<Item> REFLECTCAST_SHIELD =
+            ITEMS.register("reflectcast_shield", ReflectcastShield::new);
 }

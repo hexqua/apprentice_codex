@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.jei.ArcaneAnvilJeiRecipe;
-import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -30,7 +30,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
     private void apprenticecodex$filterSpellGunImbueRecipes(
             CallbackInfoReturnable<ArcaneAnvilJeiRecipe.Tuple<List<ItemStack>, List<ItemStack>, List<ItemStack>>> cir
     ) {
-        if (!isImbueRecipe() || !(leftItem instanceof AbstractSpellGunItem spellGunItem)) {
+        if (!isImbueRecipe() || !(leftItem instanceof RestrictedSpellImbuableItem spellImbueItem)) {
             return;
         }
 
@@ -43,7 +43,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
         // 銃ごとの個別制限をここで再適用して実プレイ時の判定と表示を一致させる。
         for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
             for (int level = spell.getMinLevel(); level <= spell.getMaxLevel(); level++) {
-                if (!spellGunItem.canImbueSpell(spell, level)) {
+                if (!spellImbueItem.canImbueSpell(spell, level)) {
                     continue;
                 }
 
@@ -53,6 +53,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
 
                 var imbuedStack = new ItemStack(leftItem);
                 ISpellContainer.createScrollContainer(spell, level, imbuedStack);
+                spellImbueItem.normalizeImbuedSpellContainer(imbuedStack);
                 outputs.add(imbuedStack);
             }
         }
