@@ -54,7 +54,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer {
+public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem {
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
     private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
     private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
@@ -245,6 +245,20 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         return passesImbueConditions(spell, spellLevel);
+    }
+
+    @Override
+    public final void normalizeImbuedSpellContainer(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+
+        var spellData = getPrimarySpellData(stack);
+        var normalized = ISpellContainer.create(1, false, false).mutableCopy();
+        if (spellData != null && canImbueSpell(spellData)) {
+            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
+        }
+        ISpellContainer.set(stack, normalized.toImmutable());
     }
 
     final boolean supportsManaBypass(@Nullable AbstractSpell spell) {

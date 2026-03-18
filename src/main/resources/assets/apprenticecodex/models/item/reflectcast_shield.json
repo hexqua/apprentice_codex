@@ -1,0 +1,48 @@
+{
+  "parent": "builtin/entity",
+  "gui_light": "front",
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [0, -90, 0],
+      "translation": [3.5, -8.5, 4],
+      "scale": [1.25, 1.25, 1.25]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [0, -90, 0],
+      "translation": [3.5, -8.5, 4],
+      "scale": [1.25, 1.25, 1.25]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 0, -5],
+      "translation": [0, -11, 0],
+      "scale": [1.25, 1.25, 1.25]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, 0, -5],
+      "translation": [0, -11, 0],
+      "scale": [1.25, 1.25, 1.25]
+    },
+    "gui": {
+      "rotation": [15, -25, -5],
+      "translation": [-1, -6, 0],
+      "scale": [1.1, 1.1, 1.1]
+    },
+    "fixed": {
+      "rotation": [0, 0, 0],
+      "translation": [0, -6, 0]
+    },
+    "ground": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 0, 0],
+      "scale": [1, 1, 1]
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "blocking": 1
+      },
+      "model": "apprenticecodex:item/reflectcast_shield_blocking"
+    }
+  ]
+}

@@ -53,6 +53,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.PHOTON_SIPHON.get());
         output.accept(ItemRegistry.PASTEL_STAFF.get());
         output.accept(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        output.accept(ItemRegistry.REFLECTCAST_SHIELD.get());
         output.accept(ItemRegistry.APPRENTICE_MAGE_SCARF.get());
         output.accept(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
         output.accept(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get());
