@@ -57,6 +57,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
@@ -76,6 +77,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::registerParticleProviders);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
+        modEventBus.addListener(ClientModBusEvents::registerItemColors);
     }
 
     @SuppressWarnings("removal")
@@ -119,6 +121,10 @@ public final class ClientModBusEvents {
 
     private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(SpellcasterAmmoPouchTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
+    }
+
+    private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+        event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get());
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

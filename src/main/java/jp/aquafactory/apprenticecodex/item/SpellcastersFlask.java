@@ -51,6 +51,8 @@ public class SpellcastersFlask extends Item {
     private static final float EFFECT_DURATION_MULTIPLIER = 1.0F;
     private static final float EFFECT_LEVEL_MULTIPLIER = 1.0F;
     private static final int BAR_COLOR = 0x4F88E8;
+    private static final int DEFAULT_TINT_COLOR = 0xFFFFFFFF;
+    private static final int FIRE_ALE_TINT_COLOR = 0xFF8F3028;
     private static final String STORAGE_TAG = "SpellcastersFlask";
     private static final String STORED_ITEM_TAG = "StoredItem";
     private static final String STORED_DOSES_TAG = "StoredDoses";
@@ -185,6 +187,14 @@ public class SpellcastersFlask extends Item {
         return getStoredDoseCount(stack) > 0;
     }
 
+    public static int getItemTintColor(ItemStack stack, int tintIndex) {
+        if (tintIndex != 0 || !isFilled(stack)) {
+            return DEFAULT_TINT_COLOR;
+        }
+
+        return getStoredItemTintColor(getStoredItem(stack));
+    }
+
     public static int getStoredDoseCount(ItemStack stack) {
         var storageTag = stack.getTagElement(STORAGE_TAG);
         if (storageTag == null) {
@@ -202,6 +212,28 @@ public class SpellcastersFlask extends Item {
 
         var storedItem = ItemStack.of(storageTag.getCompound(STORED_ITEM_TAG));
         return storedItem.isEmpty() ? ItemStack.EMPTY : storedItem;
+    }
+
+    private static int getStoredItemTintColor(ItemStack storedItem) {
+        if (storedItem.isEmpty()) {
+            return DEFAULT_TINT_COLOR;
+        }
+
+        if (storedItem.getItem() instanceof FireAleItem) {
+            return FIRE_ALE_TINT_COLOR;
+        }
+
+        var effects = extractEffectsFromItem(storedItem);
+        if (effects.isEmpty()) {
+            return DEFAULT_TINT_COLOR;
+        }
+
+        // PotionUtils の混色ロジックは使わず、仕様として抽出順の先頭効果色だけを表示に使う。
+        return withFullAlpha(effects.get(0).getEffect().getColor());
+    }
+
+    private static int withFullAlpha(int rgbColor) {
+        return 0xFF000000 | rgbColor;
     }
 
     private static boolean canConsumeStoredItem(ItemStack stack) {
