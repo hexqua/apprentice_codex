@@ -123,6 +123,10 @@
   "enchantment.apprenticecodex.transcendence": "超越",
   "enchantment.apprenticecodex.wisdom": "叡智",
   "enchantment.apprenticecodex.plunder": "略奪",
+  "enchantment.apprenticecodex.guzzle": "ガブ飲み",
+  "enchantment.apprenticecodex.large_mug": "大サイズ",
+  "enchantment.apprenticecodex.red_energy": "レッドエナジー",
+  "enchantment.apprenticecodex.glow_energy": "グロウエナジー",
 
   "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
   "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",
@@ -133,6 +137,10 @@
   "enchantment.apprenticecodex.transcendence.desc": "手に持っている時のみ、注入された魔法のレベルが上昇します。",
   "enchantment.apprenticecodex.wisdom.desc": "Mobからの経験値ドロップを増加させます。",
   "enchantment.apprenticecodex.plunder.desc": "魔法武器で倒したMobからのドロップを増加させます。",
+  "enchantment.apprenticecodex.guzzle.desc": "フラスコを飲む速度が上昇します。",
+  "enchantment.apprenticecodex.large_mug.desc": "フラスコの容量が上昇します。",
+  "enchantment.apprenticecodex.red_energy.desc": "フラスコ内にあるポーションの効果時間が延長されます。",
+  "enchantment.apprenticecodex.glow_energy.desc": "フラスコ内にあるポーションの効果レベルが上昇しますが、効果時間が短くなります。",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
