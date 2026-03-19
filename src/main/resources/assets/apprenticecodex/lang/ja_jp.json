@@ -63,6 +63,9 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "レア以下",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "エピック以上",
 
+  "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
+  "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
+
   "item.apprenticecodex.crystal_bladed_staff.desc": "この杖は盾を優先的に使用できる。",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
   "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",

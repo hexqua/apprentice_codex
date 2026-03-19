@@ -4,9 +4,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.level.Level;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animation.AnimationState;
@@ -54,16 +53,20 @@ public class ExplorersCaneModel extends GeoModel<ExplorersCane> {
         var minecraft = Minecraft.getInstance();
         var level = minecraft.level;
         var cameraEntity = minecraft.getCameraEntity();
-        if (level == null || cameraEntity == null) {
+        var player = cameraEntity instanceof Player viewingPlayer ? viewingPlayer : minecraft.player;
+        var itemStack = animationState.getData(DataTickets.ITEMSTACK);
+        if (level == null || player == null || itemStack == null || itemStack.isEmpty()) {
             resetToInitialTransform(compassInner);
             return;
         }
 
         var initial = compassInner.getInitialSnapshot();
         float baseRotY = initial == null ? 0.0f : initial.getRotY();
-        float cameraYaw = cameraEntity.getViewYRot(animationState.getPartialTick());
+        float cameraYaw = player.getViewYRot(animationState.getPartialTick());
+        var tickData = animationState.getData(DataTickets.TICK);
+        float tick = tickData == null ? 0.0f : tickData.floatValue() + animationState.getPartialTick();
         compassInner.setRotY(
-                baseRotY + resolveCompassAngle(level, cameraEntity.getX(), cameraEntity.getZ(), cameraYaw)
+                baseRotY + ExplorersCane.resolveCompassAngle(itemStack, level, player.getX(), player.getZ(), cameraYaw, tick)
         );
     }
 
@@ -85,25 +88,5 @@ public class ExplorersCaneModel extends GeoModel<ExplorersCane> {
         bone.setPosX(initial.getOffsetX());
         bone.setPosY(initial.getOffsetY());
         bone.setPosZ(initial.getOffsetZ());
-    }
-
-    private static float resolveCompassAngle(Level level, double sourceX, double sourceZ, float sourceYaw) {
-        var sharedSpawn = level.getSharedSpawnPos();
-        double dx = sharedSpawn.getX() + 0.5D - sourceX;
-        double dz = sharedSpawn.getZ() + 0.5D - sourceZ;
-        double distanceSq = dx * dx + dz * dz;
-
-        if (distanceSq < 1.0e-6D) {
-            return 0.0f;
-        }
-
-        double yawRad = sourceYaw * Mth.DEG_TO_RAD;
-        double sinYaw = Math.sin(yawRad);
-        double cosYaw = Math.cos(yawRad);
-
-        // 目標ベクトルをプレイヤー基準へ回し、そのローカル平面上で針角へ変換する.
-        double localX = dx * cosYaw + dz * sinYaw;
-        double localZ = -dx * sinYaw + dz * cosYaw;
-        return (float) Math.atan2(-localZ, localX);
     }
 }
