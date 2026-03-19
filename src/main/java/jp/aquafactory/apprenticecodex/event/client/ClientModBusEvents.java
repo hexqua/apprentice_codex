@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
+import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
@@ -92,6 +93,11 @@ public final class ClientModBusEvents {
                 ItemRegistry.REFLECTCAST_SHIELD.get(),
                 new ResourceLocation("blocking"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0f : 0.0f
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.SPELLCASTERS_FLASK.get(),
+                new ResourceLocation("filled"),
+                (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
         ));
     }
 
