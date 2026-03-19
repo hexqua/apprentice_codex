@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -148,6 +149,9 @@ public final class ItemRegistry {
             ITEMS.register("photon_siphon", PhotonSiphon::new);
     public static final DeferredHolder<Item, Item> EXPLORERS_CANE =
             ITEMS.register("explorers_cane", ExplorersCane::new);
+    public static final DeferredHolder<Item, Item> GRIMOIRE_MANIFEST =
+    public static final DeferredHolder<Item, Item> SPELLCASTERS_FLASK =
+            ITEMS.register("spellcasters_flask", SpellcastersFlask::new);
     public static final DeferredHolder<Item, Item> GRIMOIRE_MANIFEST =
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =
