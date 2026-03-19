@@ -34,6 +34,7 @@
   "item.apprenticecodex.photon_siphon": "Photon Siphon",
   "item.apprenticecodex.crystal_bladed_staff": "Crystal Bladed Staff",
   "item.apprenticecodex.reflectcast_shield": "Reflectcast Shield",
+  "item.apprenticecodex.explorers_cane": "Explorer's Cane",
 
   "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
@@ -364,6 +365,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "Craft an Amulet of Absorption Amplify.",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title": "No Magic to Get Magic",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description": "Craft an Explorer's Codex",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.title": "A View Worth Walking For",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.description": "Craft an Explorer's Cane",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.title": "Sasuga, Onii-sama!",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description": "Craft an Iron Quickcast Spellgun",
   "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.title": "Like Lightning",

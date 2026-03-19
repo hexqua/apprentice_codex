@@ -34,6 +34,7 @@
   "item.apprenticecodex.photon_siphon": "フォトンサイフォン",
   "item.apprenticecodex.crystal_bladed_staff": "刃の結晶杖",
   "item.apprenticecodex.reflectcast_shield": "反射詠唱の盾",
+  "item.apprenticecodex.explorers_cane": "探索者のステッキ",
 
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
@@ -364,6 +365,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "衝撃吸収増強のネックレスを作る",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title": "魔法を手に入れる魔法がない",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description": "探索者の写本を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.title": "歩いてこそ見える景色",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.description": "探索者のステッキを作る",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.title": "さすがはお兄様です！",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description": "鉄の速射型魔術銃を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.title": "電光石火",
