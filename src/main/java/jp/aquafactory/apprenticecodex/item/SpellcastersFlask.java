@@ -6,6 +6,8 @@ import io.redspace.ironsspellbooks.item.consumables.FireAleItem;
 import io.redspace.ironsspellbooks.item.consumables.NetherwardTinctureItem;
 import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
 import io.redspace.ironsspellbooks.registries.RecipeRegistry;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -18,6 +20,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.StringUtil;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -29,11 +32,14 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,11 +47,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SpellcastersFlask extends Item {
-    private static final int MAX_STORED_DOSES = 8;
+    private static final int BASE_MAX_STORED_DOSES = 8;
     private static final int MILLIBUCKETS_PER_DOSE = 250;
-    private static final float DRINK_DURATION_MULTIPLIER = 1.0F;
-    private static final float EFFECT_DURATION_MULTIPLIER = 1.0F;
-    private static final float EFFECT_LEVEL_MULTIPLIER = 1.0F;
+    private static final int ENCHANTMENT_VALUE = 10;
+    private static final float BASE_DRINK_DURATION_TICKS = 32.0F;
+    private static final float GUZZLE_REDUCTION_PER_LEVEL = 0.1F;
+    private static final int GUZZLE_LEVEL_CAP = 9;
+    private static final int LARGE_MUG_BONUS_PER_LEVEL = 2;
+    private static final float RED_ENERGY_DURATION_BONUS_PER_LEVEL = 0.25F;
     private static final int BAR_COLOR = 0x4F88E8;
     private static final int DEFAULT_TINT_COLOR = 0xFFFFFFFF;
     private static final int FIRE_ALE_TINT_COLOR = 0xFF8F3028;
@@ -73,6 +82,8 @@ public class SpellcastersFlask extends Item {
 
     @Override
     public @NotNull InteractionResult onItemUseFirst(@NotNull ItemStack stack, @NotNull UseOnContext context) {
+        normalizeStoredDosesToCapacity(stack);
+
         var level = context.getLevel();
         var blockEntity = level.getBlockEntity(context.getClickedPos());
         if (!(blockEntity instanceof AlchemistCauldronTile cauldronTile) || cauldronTile.fluidInventory == null) {
@@ -112,6 +123,7 @@ public class SpellcastersFlask extends Item {
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
+        normalizeStoredDosesToCapacity(stack);
         if (!canConsumeStoredItem(stack)) {
             return InteractionResultHolder.pass(stack);
         }
@@ -127,12 +139,13 @@ public class SpellcastersFlask extends Item {
 
     @Override
     public int getUseDuration(@NotNull ItemStack stack) {
-        return Math.max(1, Math.round(32.0F * DRINK_DURATION_MULTIPLIER));
+        return Math.max(1, Math.round(BASE_DRINK_DURATION_TICKS * getDrinkDurationMultiplier(stack)));
     }
 
     @Override
     public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, @NotNull Level level,
                                               @NotNull LivingEntity livingEntity) {
+        normalizeStoredDosesToCapacity(stack);
         var extractedEffects = extractStoredEffects(stack);
         if (extractedEffects.isEmpty()) {
             return stack;
@@ -144,7 +157,7 @@ public class SpellcastersFlask extends Item {
 
         if (!level.isClientSide) {
             for (var effect : extractedEffects) {
-                livingEntity.addEffect(scaleEffect(effect));
+                livingEntity.addEffect(scaleEffect(stack, effect));
             }
             decrementDoseAndClearIfEmpty(stack);
         }
@@ -163,7 +176,7 @@ public class SpellcastersFlask extends Item {
         super.appendHoverText(stack, level, lines, flag);
 
         var storedItem = getStoredItem(stack);
-        appendStoredEffectTooltips(lines, storedItem);
+        appendStoredEffectTooltips(lines, stack, storedItem);
         lines.add(Component.empty());
         lines.add(createStoredAmountTooltipLine(stack));
     }
@@ -176,12 +189,57 @@ public class SpellcastersFlask extends Item {
     @Override
     public int getBarWidth(@NotNull ItemStack stack) {
         var storedDoseCount = getStoredDoseCount(stack);
-        return Math.max(1, Math.round(13.0F * storedDoseCount / (float) MAX_STORED_DOSES));
+        return Math.max(1, Math.round(13.0F * storedDoseCount / (float) getMaxStoredDoseCount(stack)));
     }
 
     @Override
     public int getBarColor(@NotNull ItemStack stack) {
         return BAR_COLOR;
+    }
+
+    @Override
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId,
+                              boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+
+        if (!level.isClientSide) {
+            normalizeStoredDosesToCapacity(stack);
+        }
+    }
+
+    @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return getEnchantmentValue(stack) > 0;
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return ENCHANTMENT_VALUE;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        if (enchantmentId == null || !ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
+            return false;
+        }
+
+        return isSupportedFlaskEnchantment(enchantment);
+    }
+
+    @Override
+    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+        if (!super.isBookEnchantable(stack, book)) {
+            return false;
+        }
+
+        var enchantments = EnchantmentHelper.getEnchantments(book);
+        if (enchantments.isEmpty()) {
+            return true;
+        }
+
+        return enchantments.keySet().stream()
+                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
     }
 
     public static boolean isFilled(ItemStack stack) {
@@ -197,12 +255,7 @@ public class SpellcastersFlask extends Item {
     }
 
     public static int getStoredDoseCount(ItemStack stack) {
-        var storageTag = stack.getTagElement(STORAGE_TAG);
-        if (storageTag == null) {
-            return 0;
-        }
-
-        return Math.max(0, Math.min(MAX_STORED_DOSES, storageTag.getInt(STORED_DOSES_TAG)));
+        return Math.min(getRawStoredDoseCount(stack), getMaxStoredDoseCount(stack));
     }
 
     public static ItemStack getStoredItem(ItemStack stack) {
@@ -273,12 +326,11 @@ public class SpellcastersFlask extends Item {
         return List.of();
     }
 
-    private static MobEffectInstance scaleEffect(MobEffectInstance originalEffect) {
+    private static MobEffectInstance scaleEffect(ItemStack flaskStack, MobEffectInstance originalEffect) {
         var scaledDuration = originalEffect.getEffect().isInstantenous()
                 ? originalEffect.getDuration()
-                : Math.max(1, Math.round(originalEffect.getDuration() * EFFECT_DURATION_MULTIPLIER));
-        var originalLevel = originalEffect.getAmplifier() + 1;
-        var scaledAmplifier = Math.max(0, Math.round(originalLevel * EFFECT_LEVEL_MULTIPLIER) - 1);
+                : Math.max(1, Math.round(originalEffect.getDuration() * getEffectDurationMultiplier(flaskStack)));
+        var scaledAmplifier = Math.max(0, originalEffect.getAmplifier() + getGlowEnergyLevel(flaskStack));
         return new MobEffectInstance(
                 originalEffect.getEffect(),
                 scaledDuration,
@@ -289,8 +341,8 @@ public class SpellcastersFlask extends Item {
         );
     }
 
-    private static void appendStoredEffectTooltips(List<Component> lines, ItemStack storedItem) {
-        var effectLines = createStoredEffectTooltipLines(storedItem);
+    private static void appendStoredEffectTooltips(List<Component> lines, ItemStack flaskStack, ItemStack storedItem) {
+        var effectLines = createStoredEffectTooltipLines(flaskStack, storedItem);
         if (effectLines.isEmpty()) {
             return;
         }
@@ -300,7 +352,7 @@ public class SpellcastersFlask extends Item {
         lines.addAll(effectLines);
     }
 
-    private static List<Component> createStoredEffectTooltipLines(ItemStack storedItem) {
+    private static List<Component> createStoredEffectTooltipLines(ItemStack flaskStack, ItemStack storedItem) {
         if (storedItem.isEmpty()) {
             return List.of();
         }
@@ -312,7 +364,7 @@ public class SpellcastersFlask extends Item {
 
         var lines = new ArrayList<Component>(effects.size());
         for (var effect : effects) {
-            lines.add(formatEffectTooltipLine(scaleEffect(effect)));
+            lines.add(formatEffectTooltipLine(scaleEffect(flaskStack, effect)));
         }
         return lines;
     }
@@ -323,7 +375,7 @@ public class SpellcastersFlask extends Item {
                 .append(effect.getEffect().getDisplayName().copy().withStyle(effectColor));
         if (effect.getAmplifier() > 0) {
             line.append(Component.literal(" ").withStyle(effectColor))
-                    .append(Component.translatable("potion.potency." + effect.getAmplifier()).withStyle(effectColor));
+                    .append(Component.literal(formatEffectLevel(effect)).withStyle(effectColor));
         }
 
         if (!effect.getEffect().isInstantenous()) {
@@ -349,12 +401,35 @@ public class SpellcastersFlask extends Item {
                 .append(Component.literal(Integer.toString(getStoredDoseCount(stack)))
                         .withStyle(ChatFormatting.YELLOW))
                 .append(Component.literal("/").withStyle(ChatFormatting.YELLOW))
-                .append(Component.literal(Integer.toString(MAX_STORED_DOSES))
+                .append(Component.literal(Integer.toString(getMaxStoredDoseCount(stack)))
                         .withStyle(ChatFormatting.YELLOW));
     }
 
     private static String formatEffectDuration(MobEffectInstance effect) {
         return StringUtil.formatTickDuration(effect.getDuration());
+    }
+
+    private static String formatEffectLevel(MobEffectInstance effect) {
+        return toRomanNumeral(effect.getAmplifier() + 1);
+    }
+
+    private static String toRomanNumeral(int value) {
+        if (value <= 0) {
+            return Integer.toString(value);
+        }
+
+        var remaining = value;
+        var builder = new StringBuilder();
+        var numerals = new int[]{1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+        var symbols = new String[]{"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+
+        for (int i = 0; i < numerals.length; ++i) {
+            while (remaining >= numerals[i]) {
+                builder.append(symbols[i]);
+                remaining -= numerals[i];
+            }
+        }
+        return builder.toString();
     }
 
     @Nullable
@@ -374,7 +449,10 @@ public class SpellcastersFlask extends Item {
             return null;
         }
 
-        var transferableDoseCount = Math.min(MAX_STORED_DOSES - storedDoseCount, fluidStack.getAmount() / MILLIBUCKETS_PER_DOSE);
+        var transferableDoseCount = Math.min(
+                getMaxStoredDoseCount(flaskStack) - storedDoseCount,
+                fluidStack.getAmount() / MILLIBUCKETS_PER_DOSE
+        );
         if (transferableDoseCount <= 0) {
             return null;
         }
@@ -525,7 +603,10 @@ public class SpellcastersFlask extends Item {
 
         var storageTag = flaskStack.getOrCreateTagElement(STORAGE_TAG);
         storageTag.put(STORED_ITEM_TAG, preview.representativeItem.save(new CompoundTag()));
-        storageTag.putInt(STORED_DOSES_TAG, Math.min(MAX_STORED_DOSES, getStoredDoseCount(flaskStack) + appliedDoseCount));
+        storageTag.putInt(
+                STORED_DOSES_TAG,
+                Math.min(getMaxStoredDoseCount(flaskStack), getStoredDoseCount(flaskStack) + appliedDoseCount)
+        );
         cauldronTile.setChanged();
     }
 
@@ -559,6 +640,73 @@ public class SpellcastersFlask extends Item {
         }
 
         storageTag.putInt(STORED_DOSES_TAG, remainingDoseCount);
+    }
+
+    private static int getRawStoredDoseCount(ItemStack stack) {
+        var storageTag = stack.getTagElement(STORAGE_TAG);
+        if (storageTag == null) {
+            return 0;
+        }
+
+        return Math.max(0, storageTag.getInt(STORED_DOSES_TAG));
+    }
+
+    private static int getMaxStoredDoseCount(ItemStack stack) {
+        return BASE_MAX_STORED_DOSES + getLargeMugLevel(stack) * LARGE_MUG_BONUS_PER_LEVEL;
+    }
+
+    private static float getDrinkDurationMultiplier(ItemStack stack) {
+        var guzzleReduction = Math.min(getGuzzleLevel(stack), GUZZLE_LEVEL_CAP) * GUZZLE_REDUCTION_PER_LEVEL;
+        return Math.max(0.1F, 1.0F - guzzleReduction);
+    }
+
+    private static float getEffectDurationMultiplier(ItemStack stack) {
+        return 1.0F + getRedEnergyLevel(stack) * RED_ENERGY_DURATION_BONUS_PER_LEVEL;
+    }
+
+    private static int getGuzzleLevel(ItemStack stack) {
+        return getEnchantmentLevel(stack, EnchantmentRegistry.GUZZLE);
+    }
+
+    private static int getLargeMugLevel(ItemStack stack) {
+        return getEnchantmentLevel(stack, EnchantmentRegistry.LARGE_MUG);
+    }
+
+    private static int getRedEnergyLevel(ItemStack stack) {
+        return getEnchantmentLevel(stack, EnchantmentRegistry.RED_ENERGY);
+    }
+
+    private static int getGlowEnergyLevel(ItemStack stack) {
+        return getEnchantmentLevel(stack, EnchantmentRegistry.GLOW_ENERGY);
+    }
+
+    private static int getEnchantmentLevel(ItemStack stack,
+                                           net.minecraftforge.registries.RegistryObject<Enchantment> enchantment) {
+        return enchantment.isPresent() ? stack.getEnchantmentLevel(enchantment.get()) : 0;
+    }
+
+    private static boolean isSupportedFlaskEnchantment(Enchantment enchantment) {
+        return (EnchantmentRegistry.GUZZLE.isPresent() && enchantment == EnchantmentRegistry.GUZZLE.get())
+                || (EnchantmentRegistry.LARGE_MUG.isPresent() && enchantment == EnchantmentRegistry.LARGE_MUG.get())
+                || (EnchantmentRegistry.RED_ENERGY.isPresent() && enchantment == EnchantmentRegistry.RED_ENERGY.get())
+                || (EnchantmentRegistry.GLOW_ENERGY.isPresent() && enchantment == EnchantmentRegistry.GLOW_ENERGY.get());
+    }
+
+    private static void normalizeStoredDosesToCapacity(ItemStack stack) {
+        var storageTag = stack.getTagElement(STORAGE_TAG);
+        if (storageTag == null) {
+            return;
+        }
+
+        var normalizedDoseCount = getStoredDoseCount(stack);
+        if (normalizedDoseCount <= 0) {
+            stack.removeTagKey(STORAGE_TAG);
+            return;
+        }
+
+        if (getRawStoredDoseCount(stack) > normalizedDoseCount) {
+            storageTag.putInt(STORED_DOSES_TAG, normalizedDoseCount);
+        }
     }
 
     private record TransferPreview(ItemStack representativeItem, int transferableDoseCount) {
