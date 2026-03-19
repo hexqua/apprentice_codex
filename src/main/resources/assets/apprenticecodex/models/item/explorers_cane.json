@@ -1,0 +1,27 @@
+{
+  "parent": "builtin/entity",
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [0, -16, 0]
+    },
+    "thirdperson_lefthand": {
+      "translation": [0, -16, 0]
+    },
+    "firstperson_righthand": {
+      "translation": [0, -14, 0]
+    },
+    "firstperson_lefthand": {
+      "translation": [0, -14, 0]
+    },
+    "gui": {
+      "rotation": [0, 0, -45],
+      "translation": [-7.5, -8, 0]
+    },
+    "ground": {
+      "translation": [0, 0, 0]
+    },
+    "fixed": {
+      "translation": [0, 0, 0]
+    }
+  }
+}

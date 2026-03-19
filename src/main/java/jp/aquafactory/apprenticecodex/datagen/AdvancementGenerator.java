@@ -96,6 +96,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_explorers_codex", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.EXPLORERS_CODEX.getId()))
                 .save(saver, advancementId("craft_explorers_codex"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.EXPLORERS_CANE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_explorers_cane", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.EXPLORERS_CANE.getId()))
+                .save(saver, advancementId("craft_explorers_cane"), existingFileHelper);
+
         var apprenticeMageRobe = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
