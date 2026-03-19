@@ -95,6 +95,9 @@
 
   "item.apprenticecodex.flask_system.kind": "Kind: %s",
   "item.apprenticecodex.flask_system.amount": "Amount: %1$d/%2$d",
+  "item.apprenticecodex.flask_system.filled_name": "%1$s (%2$s)",
+  "item.apprenticecodex.flask_system.effects": "Effects:",
+  "item.apprenticecodex.flask_system.amount_label": "Amount: ",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "It takes time to build up, and breaking it causes some of the stored essence to be lost.",
