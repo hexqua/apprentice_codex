@@ -66,6 +66,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -88,6 +89,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::registerClientExtensions);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
+        modEventBus.addListener(ClientModBusEvents::registerItemColors);
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
@@ -202,6 +204,10 @@ public final class ClientModBusEvents {
 
     private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(SpellcasterAmmoPouchTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
+    }
+
+    private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
+        event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get());
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
