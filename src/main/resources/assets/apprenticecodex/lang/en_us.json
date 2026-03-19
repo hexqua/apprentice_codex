@@ -34,6 +34,7 @@
   "item.apprenticecodex.photon_siphon": "Photon Siphon",
   "item.apprenticecodex.crystal_bladed_staff": "Crystal Bladed Staff",
   "item.apprenticecodex.reflectcast_shield": "Reflectcast Shield",
+  "item.apprenticecodex.explorers_cane": "Explorer's Cane",
 
   "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
@@ -61,6 +62,9 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- None",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "Above Epic",
+
+  "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "Currently pointing at the lodestone.",
+  "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "This staff prioritizes shield usage.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
@@ -180,6 +184,7 @@
   "spell.apprenticecodex.remote_eye": "Remote Eye",
   "spell.apprenticecodex.sense_evil": "Sense Evil",
   "spell.apprenticecodex.deep_sensor": "Deep Sensor",
+  "spell.apprenticecodex.long_stride": "Long Stride",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -236,6 +241,7 @@
   "spell.apprenticecodex.remote_eye.guide": "Detach your vision and freely move your gaze for a certain period of time. You cannot pass through walls, and you are defenseless during the effect period.",
   "spell.apprenticecodex.sense_evil.guide": "Detects nearby unholy beings and highlights them in your vision. It can sense them even without a clear line of sight, and can also detect devices that create such unholy entities.",
   "spell.apprenticecodex.deep_sensor.guide": "For a time, grants heightened perception of the distinctive sounds of the Abyss.",
+  "spell.apprenticecodex.long_stride.guide": "While casting, you can move faster and can jump over small obstacles.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
@@ -254,6 +260,7 @@
   "ui.apprenticecodex.looting_level": "Looting Level: %d",
   "ui.apprenticecodex.duplicate_drop_chance": "Additional drop chance: %d%%",
   "ui.apprenticecodex.collect_cost_mana": "Collect item cost mana: %d",
+  "ui.apprenticecodex.move_speed_bonus": "%d%% Movement Speed Bonus",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -282,12 +289,14 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
+  "effect.apprenticecodex.long_stride_mobility": "Long Stride Mobility",
   "effect.apprenticecodex.palette_reception": "Reception Mode",
   "effect.apprenticecodex.phalanx_stance": "Phalanx Stance",
   "effect.apprenticecodex.thermal_processing": "Thermal Processing",
   "effect.apprenticecodex.sense_sensor": "Sense Sensor",
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
+  "effect.apprenticecodex.long_stride_mobility.description": "Helps movement while casting and makes it easier to step over one-block obstacles.",
   "effect.apprenticecodex.palette_reception.description": "The next magic you wield with the Pastel Staff will tint it.",
   "effect.apprenticecodex.phalanx_stance.description": "The shield of magic that provides a sturdy barrier. More durable than a regular shield. Special equipment increases movement speed.",
   "effect.apprenticecodex.thermal_processing.description": "Being thermally processed. As the level increases, severe debuffs and continuous damage are applied.",
@@ -359,6 +368,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "Craft an Amulet of Absorption Amplify.",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title": "No Magic to Get Magic",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description": "Craft an Explorer's Codex",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.title": "A View Worth Walking For",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.description": "Craft an Explorer's Cane",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.title": "Sasuga, Onii-sama!",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description": "Craft an Iron Quickcast Spellgun",
   "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.title": "Like Lightning",

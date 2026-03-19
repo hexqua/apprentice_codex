@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipeSerializer;
+import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCaneLodestoneBindRecipe;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.crafting.IronsGuideBookRepairRecipe;
@@ -40,6 +41,11 @@ public final class RecipeRegistry {
             RECIPE_SERIALIZERS.register(
                     "irons_guide_book_repair",
                     () -> new SimpleCraftingRecipeSerializer<>(IronsGuideBookRepairRecipe::new)
+            );
+    public static final RegistryObject<RecipeSerializer<ExplorersCaneLodestoneBindRecipe>> EXPLORERS_CANE_LODESTONE_BIND_SERIALIZER =
+            RECIPE_SERIALIZERS.register(
+                    "explorers_cane_lodestone_bind",
+                    () -> new SimpleCraftingRecipeSerializer<>(ExplorersCaneLodestoneBindRecipe::new)
             );
 
     public static final RegistryObject<RecipeType<GrindRunnerRecipe>> GRIND_RUNNER_RECIPE_TYPE =
