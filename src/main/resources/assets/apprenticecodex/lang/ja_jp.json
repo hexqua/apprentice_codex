@@ -95,6 +95,9 @@
 
   "item.apprenticecodex.flask_system.kind": "中身: %s",
   "item.apprenticecodex.flask_system.amount": "残量: %1$d/%2$d",
+  "item.apprenticecodex.flask_system.filled_name": "%1$s(%2$s)",
+  "item.apprenticecodex.flask_system.effects": "効果:",
+  "item.apprenticecodex.flask_system.amount_label": "残量: ",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "生成には時間がかかり、壊すと中のエッセンスの一部が失われる。",

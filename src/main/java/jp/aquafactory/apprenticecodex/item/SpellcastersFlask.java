@@ -26,13 +26,9 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.PotionItem;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -58,7 +54,21 @@ public class SpellcastersFlask extends Item {
     private static final String STORED_DOSES_TAG = "StoredDoses";
 
     public SpellcastersFlask() {
-        super(new Item.Properties().stacksTo(1));
+        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+    }
+
+    @Override
+    public @NotNull Component getName(@NotNull ItemStack stack) {
+        var storedItem = getStoredItem(stack);
+        if (storedItem.isEmpty()) {
+            return super.getName(stack);
+        }
+
+        return Component.translatable(
+                "item.apprenticecodex.flask_system.filled_name",
+                super.getName(stack),
+                storedItem.getHoverName()
+        );
     }
 
     @Override
@@ -153,18 +163,9 @@ public class SpellcastersFlask extends Item {
         super.appendHoverText(stack, level, lines, flag);
 
         var storedItem = getStoredItem(stack);
-        if (!storedItem.isEmpty()) {
-            lines.add(Component.translatable("item.apprenticecodex.flask_system.kind", storedItem.getHoverName())
-                    .withStyle(ChatFormatting.GRAY));
-        }
-
-        lines.add(Component.translatable(
-                "item.apprenticecodex.flask_system.amount",
-                getStoredDoseCount(stack),
-                MAX_STORED_DOSES
-        ).withStyle(ChatFormatting.GRAY));
-
         appendStoredEffectTooltips(lines, storedItem);
+        lines.add(Component.empty());
+        lines.add(createStoredAmountTooltipLine(stack));
     }
 
     @Override
@@ -289,20 +290,19 @@ public class SpellcastersFlask extends Item {
     }
 
     private static void appendStoredEffectTooltips(List<Component> lines, ItemStack storedItem) {
-        for (var effectLine : createStoredEffectTooltipLines(storedItem)) {
-            lines.add(effectLine.copy().withStyle(ChatFormatting.GRAY));
+        var effectLines = createStoredEffectTooltipLines(storedItem);
+        if (effectLines.isEmpty()) {
+            return;
         }
+
+        lines.add(Component.translatable("item.apprenticecodex.flask_system.effects")
+                .withStyle(ChatFormatting.LIGHT_PURPLE));
+        lines.addAll(effectLines);
     }
 
     private static List<Component> createStoredEffectTooltipLines(ItemStack storedItem) {
         if (storedItem.isEmpty()) {
             return List.of();
-        }
-
-        if (storedItem.getItem() instanceof FireAleItem) {
-            return List.of(Component.empty()
-                    .append(storedItem.getHoverName().copy())
-                    .append(Component.literal(" ??:??")));
         }
 
         var effects = extractEffectsFromItem(storedItem);
@@ -318,18 +318,39 @@ public class SpellcastersFlask extends Item {
     }
 
     private static Component formatEffectTooltipLine(MobEffectInstance effect) {
-        MutableComponent line = effect.getEffect().getDisplayName().copy();
+        var effectColor = getEffectTooltipColor(effect);
+        MutableComponent line = Component.literal("- ").withStyle(effectColor)
+                .append(effect.getEffect().getDisplayName().copy().withStyle(effectColor));
         if (effect.getAmplifier() > 0) {
-            line.append(Component.literal(" "))
-                    .append(Component.translatable("potion.potency." + effect.getAmplifier()));
+            line.append(Component.literal(" ").withStyle(effectColor))
+                    .append(Component.translatable("potion.potency." + effect.getAmplifier()).withStyle(effectColor));
         }
 
         if (!effect.getEffect().isInstantenous()) {
-            line.append(Component.literal(" "))
-                    .append(Component.literal(formatEffectDuration(effect)));
+            line.append(Component.literal(" ").withStyle(effectColor))
+                    .append(Component.literal(formatEffectDuration(effect)).withStyle(effectColor));
         }
 
         return line;
+    }
+
+    private static ChatFormatting getEffectTooltipColor(MobEffectInstance effect) {
+        return switch (effect.getEffect().getCategory()) {
+            case HARMFUL -> ChatFormatting.RED;
+            case NEUTRAL -> ChatFormatting.GREEN;
+            case BENEFICIAL -> ChatFormatting.BLUE;
+        };
+    }
+
+    private static Component createStoredAmountTooltipLine(ItemStack stack) {
+        return Component.empty()
+                .append(Component.translatable("item.apprenticecodex.flask_system.amount_label")
+                        .withStyle(ChatFormatting.GOLD))
+                .append(Component.literal(Integer.toString(getStoredDoseCount(stack)))
+                        .withStyle(ChatFormatting.YELLOW))
+                .append(Component.literal("/").withStyle(ChatFormatting.YELLOW))
+                .append(Component.literal(Integer.toString(MAX_STORED_DOSES))
+                        .withStyle(ChatFormatting.YELLOW));
     }
 
     private static String formatEffectDuration(MobEffectInstance effect) {
@@ -458,11 +479,10 @@ public class SpellcastersFlask extends Item {
                 new SimpleContainer(storedItem),
                 level
         );
-        if (recipe.isEmpty()) {
-            return null;
-        }
-
-        return new ExportPreview(recipe.get().result(), 1, recipe.get().fillSound().value());
+        return recipe.map(
+                fillAlchemistCauldronRecipe -> new ExportPreview(fillAlchemistCauldronRecipe.result(),
+                        1,
+                        fillAlchemistCauldronRecipe.fillSound().value())).orElse(null);
     }
 
     private static ItemStack findRepresentativeItem(Ingredient ingredient) {
