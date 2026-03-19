@@ -2,31 +2,54 @@ package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.block.alchemist_cauldron.AlchemistCauldronTile;
 import io.redspace.ironsspellbooks.fluids.PotionFluid;
-import io.redspace.ironsspellbooks.item.consumables.DrinkableItem;
-import io.redspace.ironsspellbooks.recipe_types.alchemist_cauldron.FillAlchemistCauldronRecipe;
+import io.redspace.ironsspellbooks.item.consumables.FireAleItem;
+import io.redspace.ironsspellbooks.item.consumables.NetherwardTinctureItem;
+import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
 import io.redspace.ironsspellbooks.registries.RecipeRegistry;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.util.StringUtil;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SpellcastersFlask extends Item {
     private static final int MAX_STORED_DOSES = 8;
     private static final int MILLIBUCKETS_PER_DOSE = 250;
+    private static final float DRINK_DURATION_MULTIPLIER = 1.0F;
+    private static final float EFFECT_DURATION_MULTIPLIER = 1.0F;
+    private static final float EFFECT_LEVEL_MULTIPLIER = 1.0F;
     private static final int BAR_COLOR = 0x4F88E8;
     private static final String STORAGE_TAG = "SpellcastersFlask";
     private static final String STORED_ITEM_TAG = "StoredItem";
@@ -44,17 +67,82 @@ public class SpellcastersFlask extends Item {
             return InteractionResult.PASS;
         }
 
-        var preview = previewTransfer(level, stack, cauldronTile.fluidInventory.getFluidInTank(0));
-        if (preview == null) {
-            return InteractionResult.FAIL;
+        var importPreview = previewTransfer(level, stack, cauldronTile.fluidInventory.getFluidInTank(0));
+        if (importPreview != null) {
+            if (level.isClientSide) {
+                return InteractionResult.SUCCESS;
+            }
+
+            applyTransfer(stack, cauldronTile, importPreview);
+            return InteractionResult.CONSUME;
         }
 
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
+        var exportPreview = previewExport(level, stack, cauldronTile);
+        if (exportPreview != null) {
+            if (level.isClientSide) {
+                return InteractionResult.SUCCESS;
+            }
+
+            applyExport(stack, cauldronTile, exportPreview);
+            return InteractionResult.CONSUME;
         }
 
-        applyTransfer(stack, cauldronTile, preview);
-        return InteractionResult.CONSUME;
+        var player = context.getPlayer();
+        if (player != null && canConsumeStoredItem(stack)) {
+            player.startUsingItem(context.getHand());
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
+                                                           @NotNull InteractionHand usedHand) {
+        var stack = player.getItemInHand(usedHand);
+        if (!canConsumeStoredItem(stack)) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        player.startUsingItem(usedHand);
+        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+    }
+
+    @Override
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
+        return UseAnim.DRINK;
+    }
+
+    @Override
+    public int getUseDuration(@NotNull ItemStack stack) {
+        return Math.max(1, Math.round(32.0F * DRINK_DURATION_MULTIPLIER));
+    }
+
+    @Override
+    public @NotNull ItemStack finishUsingItem(@NotNull ItemStack stack, @NotNull Level level,
+                                              @NotNull LivingEntity livingEntity) {
+        var extractedEffects = extractStoredEffects(stack);
+        if (extractedEffects.isEmpty()) {
+            return stack;
+        }
+
+        if (livingEntity instanceof ServerPlayer serverPlayer) {
+            CriteriaTriggers.CONSUME_ITEM.trigger(serverPlayer, stack);
+        }
+
+        if (!level.isClientSide) {
+            for (var effect : extractedEffects) {
+                livingEntity.addEffect(scaleEffect(effect));
+            }
+            decrementDoseAndClearIfEmpty(stack);
+        }
+
+        if (livingEntity instanceof Player player) {
+            player.awardStat(Stats.ITEM_USED.get(this));
+        }
+
+        livingEntity.gameEvent(GameEvent.DRINK);
+        return stack;
     }
 
     @Override
@@ -73,6 +161,8 @@ public class SpellcastersFlask extends Item {
                 getStoredDoseCount(stack),
                 MAX_STORED_DOSES
         ).withStyle(ChatFormatting.GRAY));
+
+        appendStoredEffectTooltips(lines, storedItem);
     }
 
     @Override
@@ -114,6 +204,106 @@ public class SpellcastersFlask extends Item {
         return storedItem.isEmpty() ? ItemStack.EMPTY : storedItem;
     }
 
+    private static boolean canConsumeStoredItem(ItemStack stack) {
+        return getStoredDoseCount(stack) > 0 && !extractStoredEffects(stack).isEmpty();
+    }
+
+    private static List<MobEffectInstance> extractStoredEffects(ItemStack flaskStack) {
+        return extractEffectsFromItem(getStoredItem(flaskStack));
+    }
+
+    private static List<MobEffectInstance> extractEffectsFromItem(ItemStack storedItem) {
+        if (storedItem.isEmpty()) {
+            return List.of();
+        }
+
+        if (storedItem.getItem() instanceof PotionItem) {
+            return PotionUtils.getMobEffects(storedItem);
+        }
+
+        if (storedItem.getItem() instanceof SimpleElixir simpleElixir) {
+            return List.of(simpleElixir.getMobEffect());
+        }
+
+        if (storedItem.getItem() instanceof FireAleItem) {
+            return List.of(
+                    new MobEffectInstance(MobEffects.CONFUSION, 20 * 5, 3, false, true, true),
+                    new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 20 * 45, 0, false, true, true),
+                    new MobEffectInstance(MobEffects.DIG_SPEED, 20 * 45, 2, false, true, true)
+            );
+        }
+
+        if (storedItem.getItem() instanceof NetherwardTinctureItem) {
+            return List.of(new MobEffectInstance(MobEffects.CONFUSION, 10 * 20));
+        }
+
+        return List.of();
+    }
+
+    private static MobEffectInstance scaleEffect(MobEffectInstance originalEffect) {
+        var scaledDuration = originalEffect.getEffect().isInstantenous()
+                ? originalEffect.getDuration()
+                : Math.max(1, Math.round(originalEffect.getDuration() * EFFECT_DURATION_MULTIPLIER));
+        var originalLevel = originalEffect.getAmplifier() + 1;
+        var scaledAmplifier = Math.max(0, Math.round(originalLevel * EFFECT_LEVEL_MULTIPLIER) - 1);
+        return new MobEffectInstance(
+                originalEffect.getEffect(),
+                scaledDuration,
+                scaledAmplifier,
+                originalEffect.isAmbient(),
+                originalEffect.isVisible(),
+                originalEffect.showIcon()
+        );
+    }
+
+    private static void appendStoredEffectTooltips(List<Component> lines, ItemStack storedItem) {
+        for (var effectLine : createStoredEffectTooltipLines(storedItem)) {
+            lines.add(effectLine.copy().withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    private static List<Component> createStoredEffectTooltipLines(ItemStack storedItem) {
+        if (storedItem.isEmpty()) {
+            return List.of();
+        }
+
+        if (storedItem.getItem() instanceof FireAleItem) {
+            return List.of(Component.empty()
+                    .append(storedItem.getHoverName().copy())
+                    .append(Component.literal(" ??:??")));
+        }
+
+        var effects = extractEffectsFromItem(storedItem);
+        if (effects.isEmpty()) {
+            return List.of();
+        }
+
+        var lines = new ArrayList<Component>(effects.size());
+        for (var effect : effects) {
+            lines.add(formatEffectTooltipLine(scaleEffect(effect)));
+        }
+        return lines;
+    }
+
+    private static Component formatEffectTooltipLine(MobEffectInstance effect) {
+        MutableComponent line = effect.getEffect().getDisplayName().copy();
+        if (effect.getAmplifier() > 0) {
+            line.append(Component.literal(" "))
+                    .append(Component.translatable("potion.potency." + effect.getAmplifier()));
+        }
+
+        if (!effect.getEffect().isInstantenous()) {
+            line.append(Component.literal(" "))
+                    .append(Component.literal(formatEffectDuration(effect)));
+        }
+
+        return line;
+    }
+
+    private static String formatEffectDuration(MobEffectInstance effect) {
+        return StringUtil.formatTickDuration(effect.getDuration());
+    }
+
     @Nullable
     private static TransferPreview previewTransfer(Level level, ItemStack flaskStack, FluidStack fluidStack) {
         if (fluidStack.isEmpty()) {
@@ -139,6 +329,47 @@ public class SpellcastersFlask extends Item {
         return new TransferPreview(representativeItem, transferableDoseCount);
     }
 
+    @Nullable
+    private static ExportPreview previewExport(Level level, ItemStack flaskStack, AlchemistCauldronTile cauldronTile) {
+        if (cauldronTile.getFluidAmount() > 0 || getStoredDoseCount(flaskStack) <= 0) {
+            return null;
+        }
+
+        var storedItem = getStoredItem(flaskStack);
+        if (storedItem.isEmpty()) {
+            return null;
+        }
+
+        var preview = createExportPreview(level, storedItem);
+        if (preview == null) {
+            return null;
+        }
+
+        var exportableDoseCount = Math.min(
+                getStoredDoseCount(flaskStack),
+                cauldronTile.fluidInventory.getTankCapacity(0) / MILLIBUCKETS_PER_DOSE
+        );
+        if (exportableDoseCount <= 0) {
+            return null;
+        }
+
+        var exportFluid = preview.singleDoseFluid().copy();
+        exportFluid.setAmount(exportableDoseCount * MILLIBUCKETS_PER_DOSE);
+
+        var fillAmount = cauldronTile.fluidInventory.fill(exportFluid, IFluidHandler.FluidAction.SIMULATE);
+        if (fillAmount <= 0) {
+            return null;
+        }
+
+        var appliedDoseCount = fillAmount / MILLIBUCKETS_PER_DOSE;
+        if (appliedDoseCount <= 0) {
+            return null;
+        }
+
+        exportFluid.setAmount(appliedDoseCount * MILLIBUCKETS_PER_DOSE);
+        return new ExportPreview(exportFluid, appliedDoseCount, preview.fillSound);
+    }
+
     private static ItemStack createRepresentativeItem(Level level, FluidStack fluidStack) {
         var representativeItem = createRepresentativeItemFromRecipe(level, fluidStack);
         if (!representativeItem.isEmpty()) {
@@ -153,6 +384,21 @@ public class SpellcastersFlask extends Item {
         }
 
         return normalizeAcceptedItem(representativeItem);
+    }
+
+    @Nullable
+    private static ExportPreview createExportPreview(Level level, ItemStack storedItem) {
+        var recipePreview = createExportPreviewFromRecipe(level, storedItem);
+        if (recipePreview != null) {
+            return recipePreview;
+        }
+
+        var potionFluid = PotionFluid.from(storedItem);
+        if (potionFluid.isEmpty()) {
+            return null;
+        }
+
+        return new ExportPreview(potionFluid, 1, SoundEvents.BOTTLE_EMPTY);
     }
 
     private static ItemStack createRepresentativeItemFromRecipe(Level level, FluidStack fluidStack) {
@@ -173,6 +419,20 @@ public class SpellcastersFlask extends Item {
         return ItemStack.EMPTY;
     }
 
+    @Nullable
+    private static ExportPreview createExportPreviewFromRecipe(Level level, ItemStack storedItem) {
+        var recipe = level.getRecipeManager().getRecipeFor(
+                RecipeRegistry.ALCHEMIST_CAULDRON_FILL_TYPE.get(),
+                new SimpleContainer(storedItem),
+                level
+        );
+        if (recipe.isEmpty()) {
+            return null;
+        }
+
+        return new ExportPreview(recipe.get().result(), 1, recipe.get().fillSound().value());
+    }
+
     private static ItemStack findRepresentativeItem(Ingredient ingredient) {
         for (var candidate : ingredient.getItems()) {
             var normalizedItem = normalizeAcceptedItem(candidate);
@@ -184,14 +444,21 @@ public class SpellcastersFlask extends Item {
     }
 
     private static ItemStack normalizeAcceptedItem(ItemStack representativeItem) {
-        var item = representativeItem.getItem();
-        if (!(item instanceof PotionItem) && !(item instanceof DrinkableItem)) {
+        if (!isSupportedStoredItem(representativeItem)) {
             return ItemStack.EMPTY;
         }
 
         var normalizedItem = representativeItem.copy();
         normalizedItem.setCount(1);
         return normalizedItem;
+    }
+
+    private static boolean isSupportedStoredItem(ItemStack stack) {
+        var item = stack.getItem();
+        return item instanceof PotionItem
+                || item instanceof SimpleElixir
+                || item instanceof FireAleItem
+                || item instanceof NetherwardTinctureItem;
     }
 
     private static void applyTransfer(ItemStack flaskStack, AlchemistCauldronTile cauldronTile, TransferPreview preview) {
@@ -210,6 +477,46 @@ public class SpellcastersFlask extends Item {
         cauldronTile.setChanged();
     }
 
+    private static void applyExport(ItemStack flaskStack, AlchemistCauldronTile cauldronTile, ExportPreview preview) {
+        var filledAmount = cauldronTile.fluidInventory.fill(preview.fluidStack, IFluidHandler.FluidAction.EXECUTE);
+        if (filledAmount != preview.fluidStack.getAmount()) {
+            return;
+        }
+
+        decrementDoseAndClearIfEmpty(flaskStack, preview.doseCount);
+        cauldronTile.setChanged();
+        if (cauldronTile.getLevel() != null) {
+            cauldronTile.getLevel().playSound(null, cauldronTile.getBlockPos(), preview.fillSound, SoundSource.BLOCKS);
+        }
+    }
+
+    private static void decrementDoseAndClearIfEmpty(ItemStack flaskStack) {
+        decrementDoseAndClearIfEmpty(flaskStack, 1);
+    }
+
+    private static void decrementDoseAndClearIfEmpty(ItemStack flaskStack, int consumedDoseCount) {
+        var storageTag = flaskStack.getTagElement(STORAGE_TAG);
+        if (storageTag == null) {
+            return;
+        }
+
+        var remainingDoseCount = Math.max(0, getStoredDoseCount(flaskStack) - consumedDoseCount);
+        if (remainingDoseCount <= 0) {
+            flaskStack.removeTagKey(STORAGE_TAG);
+            return;
+        }
+
+        storageTag.putInt(STORED_DOSES_TAG, remainingDoseCount);
+    }
+
     private record TransferPreview(ItemStack representativeItem, int transferableDoseCount) {
+    }
+
+    private record ExportPreview(FluidStack fluidStack, int doseCount, SoundEvent fillSound) {
+        private FluidStack singleDoseFluid() {
+            var fluid = fluidStack.copy();
+            fluid.setAmount(MILLIBUCKETS_PER_DOSE);
+            return fluid;
+        }
     }
 }
