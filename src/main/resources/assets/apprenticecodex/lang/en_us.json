@@ -63,6 +63,9 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "Above Epic",
 
+  "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "Currently pointing at the lodestone.",
+  "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
+
   "item.apprenticecodex.crystal_bladed_staff.desc": "This staff prioritizes shield usage.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
   "item.apprenticecodex.basic_spellcaster_round.desc": "Ammo for instant casting spells",
