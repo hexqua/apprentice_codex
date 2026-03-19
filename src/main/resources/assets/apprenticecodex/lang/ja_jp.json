@@ -256,6 +256,7 @@
   "ui.apprenticecodex.looting_level": "ドロップ増加レベル: %d",
   "ui.apprenticecodex.duplicate_drop_chance": "追加ドロップ確率: %d%%",
   "ui.apprenticecodex.collect_cost_mana": "アイテム回収時消費マナ: %d",
+  "ui.apprenticecodex.move_speed_bonus": "%d%% 移動速度上昇",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -284,12 +285,14 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
+  "effect.apprenticecodex.long_stride_mobility": "長距離歩法",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",
   "effect.apprenticecodex.phalanx_stance": "ファランクススタンス",
   "effect.apprenticecodex.thermal_processing": "熱加工",
   "effect.apprenticecodex.sense_sensor": "センスセンサー",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
+  "effect.apprenticecodex.long_stride_mobility.description": "詠唱中の移動を補助し、1ブロック程度の段差を乗り越えやすくする。",
   "effect.apprenticecodex.palette_reception.description": "次にパステルスタッフで振るった魔力で杖を染める。",
   "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。特殊な装備で移動速度も上昇する。",
   "effect.apprenticecodex.thermal_processing.description": "熱加工を受けている状態。レベルが進行すると強力なデバフとダメージが発生し続ける。",
