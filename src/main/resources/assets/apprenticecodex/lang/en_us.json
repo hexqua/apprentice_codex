@@ -256,6 +256,7 @@
   "ui.apprenticecodex.looting_level": "Looting Level: %d",
   "ui.apprenticecodex.duplicate_drop_chance": "Additional drop chance: %d%%",
   "ui.apprenticecodex.collect_cost_mana": "Collect item cost mana: %d",
+  "ui.apprenticecodex.move_speed_bonus": "%d%% Movement Speed Bonus",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -284,12 +285,14 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
+  "effect.apprenticecodex.long_stride_mobility": "Long Stride Mobility",
   "effect.apprenticecodex.palette_reception": "Reception Mode",
   "effect.apprenticecodex.phalanx_stance": "Phalanx Stance",
   "effect.apprenticecodex.thermal_processing": "Thermal Processing",
   "effect.apprenticecodex.sense_sensor": "Sense Sensor",
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
+  "effect.apprenticecodex.long_stride_mobility.description": "Helps movement while casting and makes it easier to step over one-block obstacles.",
   "effect.apprenticecodex.palette_reception.description": "The next magic you wield with the Pastel Staff will tint it.",
   "effect.apprenticecodex.phalanx_stance.description": "The shield of magic that provides a sturdy barrier. More durable than a regular shield. Special equipment increases movement speed.",
   "effect.apprenticecodex.thermal_processing.description": "Being thermally processed. As the level increases, severe debuffs and continuous damage are applied.",
