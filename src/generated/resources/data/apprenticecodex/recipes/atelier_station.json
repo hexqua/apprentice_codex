@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "apprenticecodex:spellcasters_flask"
+    },
+    "F": {
+      "tag": "minecraft:wooden_fences"
+    },
+    "M": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "R": {
+      "item": "minecraft:blaze_rod"
+    },
+    "S": {
+      "tag": "minecraft:wooden_slabs"
+    }
+  },
+  "pattern": [
+    "BMR",
+    "SSS",
+    "F F"
+  ],
+  "result": {
+    "item": "apprenticecodex:atelier_station"
+  },
+  "show_notification": true
+}
