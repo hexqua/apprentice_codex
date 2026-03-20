@@ -426,6 +426,10 @@ public class SpellcastersFlask extends Item {
             return List.of();
         }
 
+        if (storedItem.getItem() instanceof FireAleItem) {
+            return List.of(formatHiddenStoredEffectTooltipLine(storedItem));
+        }
+
         var effects = extractEffectsFromItem(storedItem);
         if (effects.isEmpty()) {
             return List.of();
@@ -436,6 +440,13 @@ public class SpellcastersFlask extends Item {
             lines.add(formatEffectTooltipLine(scaleEffect(flaskStack, effect)));
         }
         return lines;
+    }
+
+    private static Component formatHiddenStoredEffectTooltipLine(ItemStack storedItem) {
+        var effectColor = ChatFormatting.GREEN;
+        return Component.literal("- ").withStyle(effectColor)
+                .append(storedItem.getHoverName().copy().withStyle(effectColor))
+                .append(Component.literal(" ??:??").withStyle(effectColor));
     }
 
     private static Component formatEffectTooltipLine(MobEffectInstance effect) {
