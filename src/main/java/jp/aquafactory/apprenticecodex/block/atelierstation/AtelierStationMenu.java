@@ -17,6 +17,8 @@ import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public final class AtelierStationMenu extends AbstractContainerMenu {
     static final int FILTER_SLOT_X = 44;
     static final int FILTER_SLOT_Y = 20;
@@ -40,25 +42,30 @@ public final class AtelierStationMenu extends AbstractContainerMenu {
     private static final int FILTER_SET_BUTTON_BASE = 0;
     private static final int FILTER_CLEAR_BUTTON_BASE = FILTER_SET_BUTTON_BASE + AtelierStationBlockEntity.FILTER_SLOT_COUNT;
 
+    private final Inventory playerInventory;
+    private final BlockPos blockPos;
     private final ContainerLevelAccess access;
     private final Container filterContainer;
     @Nullable
     private final AtelierStationBlockEntity blockEntity;
 
     public AtelierStationMenu(int containerId, Inventory playerInventory, AtelierStationBlockEntity blockEntity) {
-        this(containerId, playerInventory, blockEntity, blockEntity.getFlaskInventory(),
+        this(containerId, playerInventory, blockEntity.getBlockPos(), blockEntity, blockEntity.getFlaskInventory(),
                 ContainerLevelAccess.create(playerInventory.player.level(), blockEntity.getBlockPos()));
     }
 
     public AtelierStationMenu(int containerId, Inventory playerInventory, BlockPos pos) {
-        this(containerId, playerInventory, resolveBlockEntity(playerInventory, pos), resolveFlaskInventory(playerInventory, pos),
+        this(containerId, playerInventory, pos, resolveBlockEntity(playerInventory, pos), resolveFlaskInventory(playerInventory, pos),
                 ContainerLevelAccess.create(playerInventory.player.level(), pos));
     }
 
-    private AtelierStationMenu(int containerId, Inventory playerInventory, @Nullable AtelierStationBlockEntity blockEntity,
+    private AtelierStationMenu(int containerId, Inventory playerInventory, BlockPos blockPos,
+                               @Nullable AtelierStationBlockEntity blockEntity,
                                ItemStackHandler flaskInventory,
                                ContainerLevelAccess access) {
         super(MenuRegistry.ATELIER_STATION.get(), containerId);
+        this.playerInventory = playerInventory;
+        this.blockPos = blockPos;
         this.access = access;
         this.blockEntity = blockEntity;
         this.filterContainer = createFilterContainer(blockEntity);
@@ -158,6 +165,33 @@ public final class AtelierStationMenu extends AbstractContainerMenu {
         }
 
         return slots.get(FILTER_SLOT_START + slot).getItem();
+    }
+
+    public @NotNull BlockPos getBlockPos() {
+        return blockPos;
+    }
+
+    public @Nullable AtelierStationBlockEntity getBlockEntity() {
+        if (blockEntity != null) {
+            return blockEntity;
+        }
+
+        var currentBlockEntity = playerInventory.player.level().getBlockEntity(blockPos);
+        if (currentBlockEntity instanceof AtelierStationBlockEntity atelierStation) {
+            return atelierStation;
+        }
+
+        return null;
+    }
+
+    public int getStoredFluidAmount() {
+        var currentBlockEntity = getBlockEntity();
+        return currentBlockEntity == null ? 0 : currentBlockEntity.getStoredFluidAmount();
+    }
+
+    public @NotNull List<AtelierStationBlockEntity.StoredPotionEntry> getStoredFluidsForDisplay() {
+        var currentBlockEntity = getBlockEntity();
+        return currentBlockEntity == null ? List.of() : currentBlockEntity.getStoredFluidsForDisplay();
     }
 
     public static int encodeFilterSetButtonId(int slot) {

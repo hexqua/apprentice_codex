@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.atelierstation;
 
+import io.redspace.ironsspellbooks.block.alchemist_cauldron.AlchemistCauldronTile;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -8,27 +9,42 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class AtelierStationBlockEntity extends BlockEntity implements MenuProvider {
     public static final int FLASK_SLOT_COUNT = 5;
     public static final int FILTER_SLOT_COUNT = 6;
+    public static final int MAX_STORED_FLUID_AMOUNT = 16000;
+    public static final int MILLIBUCKETS_PER_USE = 250;
 
     private static final String FLASKS_TAG = "Flasks";
     private static final String FILTERS_TAG = "Filters";
     private static final String SLOT_TAG = "Slot";
-    private static final String STORED_FLUID_AMOUNT_TAG = "StoredFluidAmount";
+    private static final String STORED_FLUIDS_TAG = "StoredFluids";
+    private static final String STORED_ITEM_TAG = "Item";
+    private static final String STORED_AMOUNT_TAG = "Amount";
+    private static final int SCAN_INTERVAL_TICKS = 20;
+    private static final int SCAN_RADIUS = 2;
 
     private final ItemStackHandler flaskInventory = new ItemStackHandler(FLASK_SLOT_COUNT) {
         @Override
@@ -47,6 +63,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         }
     };
     private final NonNullList<ItemStack> filters = NonNullList.withSize(FILTER_SLOT_COUNT, ItemStack.EMPTY);
+    private final List<StoredPotionEntry> storedFluids = new ArrayList<>();
     private int storedFluidAmount;
 
     public AtelierStationBlockEntity(BlockPos pos, BlockState state) {
@@ -78,6 +95,23 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
     public boolean hasFilter(int slot) {
         return !getFilter(slot).isEmpty();
+    }
+
+    public boolean hasAnyFilterConfigured() {
+        for (var filter : filters) {
+            if (!filter.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getStoredFluidAmount() {
+        return storedFluidAmount;
+    }
+
+    public @NotNull List<StoredPotionEntry> getStoredFluidsForDisplay() {
+        return storedFluids.stream().map(StoredPotionEntry::copy).toList();
     }
 
     public boolean setFilter(int slot, @NotNull ItemStack filterStack) {
@@ -126,11 +160,38 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     @Override
+    public @NotNull CompoundTag getUpdateTag() {
+        var tag = new CompoundTag();
+        saveAdditional(tag);
+        return tag;
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    public static void serverTick(Level level, BlockPos pos, BlockState state, AtelierStationBlockEntity blockEntity) {
+        if (level.isClientSide || !(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        if (serverLevel.getGameTime() % SCAN_INTERVAL_TICKS != 0L) {
+            return;
+        }
+
+        if (!blockEntity.hasAnyFilterConfigured() || blockEntity.storedFluidAmount >= MAX_STORED_FLUID_AMOUNT) {
+            return;
+        }
+
+        blockEntity.collectFromNearbyCauldrons(serverLevel);
+    }
+
+    @Override
     protected void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
 
         tag.put(FLASKS_TAG, flaskInventory.serializeNBT());
-        tag.putInt(STORED_FLUID_AMOUNT_TAG, Math.max(0, storedFluidAmount));
 
         var filterList = new ListTag();
         for (var slot = 0; slot < filters.size(); ++slot) {
@@ -145,6 +206,19 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             filterList.add(filterTag);
         }
         tag.put(FILTERS_TAG, filterList);
+
+        var storedFluidList = new ListTag();
+        for (var entry : storedFluids) {
+            if (entry.amountMb() <= 0 || entry.representativeItem().isEmpty()) {
+                continue;
+            }
+
+            var storedFluidTag = new CompoundTag();
+            storedFluidTag.put(STORED_ITEM_TAG, entry.representativeItem().save(new CompoundTag()));
+            storedFluidTag.putInt(STORED_AMOUNT_TAG, entry.amountMb());
+            storedFluidList.add(storedFluidTag);
+        }
+        tag.put(STORED_FLUIDS_TAG, storedFluidList);
     }
 
     @Override
@@ -152,7 +226,8 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         super.load(tag);
 
         flaskInventory.deserializeNBT(tag.getCompound(FLASKS_TAG));
-        storedFluidAmount = Math.max(0, tag.getInt(STORED_FLUID_AMOUNT_TAG));
+        storedFluids.clear();
+        storedFluidAmount = 0;
 
         for (var index = 0; index < FILTER_SLOT_COUNT; ++index) {
             filters.set(index, ItemStack.EMPTY);
@@ -172,6 +247,140 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                     filters.set(slot, normalizedFilter);
                 }
             }
+        }
+
+        if (tag.contains(STORED_FLUIDS_TAG, Tag.TAG_LIST)) {
+            var storedFluidList = tag.getList(STORED_FLUIDS_TAG, Tag.TAG_COMPOUND);
+            for (var i = 0; i < storedFluidList.size(); ++i) {
+                var storedFluidTag = storedFluidList.getCompound(i);
+                if (!storedFluidTag.contains(STORED_ITEM_TAG, Tag.TAG_COMPOUND)) {
+                    continue;
+                }
+
+                var representativeItem = SpellcastersFlask.copyFilterItem(ItemStack.of(storedFluidTag.getCompound(STORED_ITEM_TAG)));
+                var amountMb = normalizeFluidAmount(storedFluidTag.getInt(STORED_AMOUNT_TAG));
+                if (representativeItem.isEmpty() || amountMb <= 0) {
+                    continue;
+                }
+
+                insertStoredFluid(representativeItem, amountMb);
+            }
+        }
+    }
+
+    private void collectFromNearbyCauldrons(ServerLevel level) {
+        var minPos = worldPosition.offset(-SCAN_RADIUS, -SCAN_RADIUS, -SCAN_RADIUS);
+        var maxPos = worldPosition.offset(SCAN_RADIUS, SCAN_RADIUS, SCAN_RADIUS);
+        for (var pos : BlockPos.betweenClosed(minPos, maxPos)) {
+            if (storedFluidAmount >= MAX_STORED_FLUID_AMOUNT) {
+                return;
+            }
+
+            if (worldPosition.equals(pos) || !level.isLoaded(pos)) {
+                continue;
+            }
+
+            var targetBlockEntity = level.getBlockEntity(pos);
+            if (!(targetBlockEntity instanceof AlchemistCauldronTile cauldronTile) || cauldronTile.fluidInventory == null) {
+                continue;
+            }
+
+            collectFromCauldron(level, cauldronTile);
+        }
+    }
+
+    private void collectFromCauldron(ServerLevel level, AlchemistCauldronTile cauldronTile) {
+        var fluidStack = cauldronTile.fluidInventory.getFluidInTank(0);
+        if (fluidStack.isEmpty()) {
+            return;
+        }
+
+        // Flask と同じ代表化ルールに揃えて、表示色とフィルタ一致条件を一致させる。
+        var representativeItem = SpellcastersFlask.resolveRepresentativeItem(level, fluidStack);
+        if (representativeItem.isEmpty() || !matchesAnyFilter(representativeItem)) {
+            return;
+        }
+
+        var remainingCapacity = MAX_STORED_FLUID_AMOUNT - storedFluidAmount;
+        var requestedAmount = normalizeFluidAmount(Math.min(remainingCapacity, fluidStack.getAmount()));
+        if (requestedAmount <= 0) {
+            return;
+        }
+
+        var simulatedDrain = cauldronTile.fluidInventory.drain(requestedAmount, IFluidHandler.FluidAction.SIMULATE);
+        var drainAmount = normalizeFluidAmount(simulatedDrain.getAmount());
+        if (drainAmount <= 0) {
+            return;
+        }
+
+        var drained = cauldronTile.fluidInventory.drain(drainAmount, IFluidHandler.FluidAction.EXECUTE);
+        var extractedAmount = normalizeFluidAmount(drained.getAmount());
+        if (extractedAmount <= 0) {
+            return;
+        }
+
+        insertStoredFluid(representativeItem, extractedAmount);
+        cauldronTile.setChanged();
+        markUpdated();
+    }
+
+    private boolean matchesAnyFilter(ItemStack representativeItem) {
+        for (var filter : filters) {
+            if (!filter.isEmpty() && ItemStack.isSameItemSameTags(filter, representativeItem)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void insertStoredFluid(ItemStack representativeItem, int amountMb) {
+        var normalizedAmount = normalizeFluidAmount(amountMb);
+        if (representativeItem.isEmpty() || normalizedAmount <= 0) {
+            return;
+        }
+
+        for (var index = 0; index < storedFluids.size(); ++index) {
+            var current = storedFluids.get(index);
+            if (!ItemStack.isSameItemSameTags(current.representativeItem(), representativeItem)) {
+                continue;
+            }
+
+            storedFluids.set(index, new StoredPotionEntry(representativeItem, current.amountMb() + normalizedAmount));
+            storedFluidAmount = Math.min(MAX_STORED_FLUID_AMOUNT, storedFluidAmount + normalizedAmount);
+            return;
+        }
+
+        storedFluids.add(new StoredPotionEntry(representativeItem, normalizedAmount));
+        storedFluidAmount = Math.min(MAX_STORED_FLUID_AMOUNT, storedFluidAmount + normalizedAmount);
+    }
+
+    private void markUpdated() {
+        setChanged();
+        syncToClient();
+    }
+
+    private void syncToClient() {
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
+
+    private static int normalizeFluidAmount(int amountMb) {
+        if (amountMb <= 0) {
+            return 0;
+        }
+
+        return Math.min(MAX_STORED_FLUID_AMOUNT, amountMb - amountMb % MILLIBUCKETS_PER_USE);
+    }
+
+    public record StoredPotionEntry(ItemStack representativeItem, int amountMb) {
+        public StoredPotionEntry {
+            representativeItem = SpellcastersFlask.copyFilterItem(representativeItem);
+            amountMb = normalizeFluidAmount(amountMb);
+        }
+
+        public StoredPotionEntry copy() {
+            return new StoredPotionEntry(representativeItem, amountMb);
         }
     }
 }

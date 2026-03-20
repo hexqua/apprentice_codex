@@ -190,6 +190,9 @@
   "container.apprenticecodex.atelier_station.filter.clear_hint": "削除するにはShiftキーを押しながらクリックする",
   "container.apprenticecodex.atelier_station.filter.replace_hint": "別の対象を置くと上書きできる",
   "container.apprenticecodex.atelier_station.flask": "フラスコ置き場",
+  "container.apprenticecodex.atelier_station.fluid.summary": "中身:",
+  "container.apprenticecodex.atelier_station.fluid.summary_count": " %1$d/%2$d 回分",
+  "container.apprenticecodex.atelier_station.fluid.count": "(%d回分)",
 
   "spell.apprenticecodex.sky_edge": "スカイエッジ",
   "spell.apprenticecodex.archer_multiple": "アーチャーオプション",

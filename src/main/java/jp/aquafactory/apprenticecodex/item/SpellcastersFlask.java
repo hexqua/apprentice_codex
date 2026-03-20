@@ -262,6 +262,10 @@ public class SpellcastersFlask extends Item {
         return getStoredItemTintColor(getStoredItem(stack));
     }
 
+    public static int getStoredItemTintColorForDisplay(@NotNull ItemStack storedItem) {
+        return getStoredItemTintColor(storedItem);
+    }
+
     public static int getStoredDoseCount(ItemStack stack) {
         return Math.min(getRawStoredDoseCount(stack), getMaxStoredDoseCount(stack));
     }
@@ -343,6 +347,26 @@ public class SpellcastersFlask extends Item {
         var result = flaskStack.copy();
         decrementStoredDoseCount(result, 1);
         return result;
+    }
+
+    public static @NotNull ItemStack resolveRepresentativeItem(@NotNull Level level, @NotNull FluidStack fluidStack) {
+        return createRepresentativeItem(level, fluidStack);
+    }
+
+    public static @Nullable FluidStack createFluidForStoredItem(@NotNull Level level, @NotNull ItemStack storedItem,
+                                                                int amountMb) {
+        if (amountMb <= 0) {
+            return null;
+        }
+
+        var preview = createExportPreview(level, storedItem);
+        if (preview == null) {
+            return null;
+        }
+
+        var fluidStack = preview.singleDoseFluid();
+        fluidStack.setAmount(amountMb);
+        return fluidStack;
     }
 
     private static int getStoredItemTintColor(ItemStack storedItem) {

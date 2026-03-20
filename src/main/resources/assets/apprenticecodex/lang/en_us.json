@@ -163,6 +163,9 @@
   "container.apprenticecodex.atelier_station.filter.clear_hint": "Shift-click to remove",
   "container.apprenticecodex.atelier_station.filter.replace_hint": "Place another target to overwrite",
   "container.apprenticecodex.atelier_station.flask": "Flask Storage",
+  "container.apprenticecodex.atelier_station.fluid.summary": "Contents:",
+  "container.apprenticecodex.atelier_station.fluid.summary_count": " %1$d/%2$d uses",
+  "container.apprenticecodex.atelier_station.fluid.count": "(%d uses)",
 
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",
