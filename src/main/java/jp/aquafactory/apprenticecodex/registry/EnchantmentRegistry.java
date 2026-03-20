@@ -3,7 +3,11 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.AlacrityEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.AttunementEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.GlowEnergyEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.GuzzleEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.LargeMugEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.RedEnergyEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.RefluxEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.ReservoirEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.SurgeEnchantment;
@@ -40,6 +44,14 @@ public final class EnchantmentRegistry {
             ENCHANTMENTS.register("wisdom", WisdomEnchantment::new);
     public static final RegistryObject<Enchantment> PLUNDER =
             ENCHANTMENTS.register("plunder", PlunderEnchantment::new);
+    public static final RegistryObject<Enchantment> GUZZLE =
+            ENCHANTMENTS.register("guzzle", GuzzleEnchantment::new);
+    public static final RegistryObject<Enchantment> LARGE_MUG =
+            ENCHANTMENTS.register("large_mug", LargeMugEnchantment::new);
+    public static final RegistryObject<Enchantment> RED_ENERGY =
+            ENCHANTMENTS.register("red_energy", RedEnergyEnchantment::new);
+    public static final RegistryObject<Enchantment> GLOW_ENERGY =
+            ENCHANTMENTS.register("glow_energy", GlowEnergyEnchantment::new);
 
     public static void register(IEventBus bus) {
         ENCHANTMENTS.register(bus);

@@ -35,6 +35,7 @@
   "item.apprenticecodex.crystal_bladed_staff": "刃の結晶杖",
   "item.apprenticecodex.reflectcast_shield": "反射詠唱の盾",
   "item.apprenticecodex.explorers_cane": "探索者のステッキ",
+  "item.apprenticecodex.spellcasters_flask": "魔術詠唱者のフラスコ",
 
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
@@ -92,6 +93,12 @@
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_3": "装備をしていなくても弾薬を収納/自動使用することは可能。",
   "item.apprenticecodex.spellcaster_ammo_pouch.stored_amount": "収納数: %s / %s",
 
+  "item.apprenticecodex.flask_system.kind": "中身: %s",
+  "item.apprenticecodex.flask_system.amount": "残量: %1$d/%2$d",
+  "item.apprenticecodex.flask_system.filled_name": "%1$s(%2$s)",
+  "item.apprenticecodex.flask_system.effects": "効果:",
+  "item.apprenticecodex.flask_system.amount_label": "残量: ",
+
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "生成には時間がかかり、壊すと中のエッセンスの一部が失われる。",
   "jei.apprenticecodex.craftsmans_delight.desc_1": "ツールチップに書かれている魔法の消費マナ消費量が減少する。",
@@ -116,6 +123,10 @@
   "enchantment.apprenticecodex.transcendence": "超越",
   "enchantment.apprenticecodex.wisdom": "叡智",
   "enchantment.apprenticecodex.plunder": "略奪",
+  "enchantment.apprenticecodex.guzzle": "ガブ飲み",
+  "enchantment.apprenticecodex.large_mug": "大サイズ",
+  "enchantment.apprenticecodex.red_energy": "レッドエナジー",
+  "enchantment.apprenticecodex.glow_energy": "グロウエナジー",
 
   "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
   "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",
@@ -126,6 +137,10 @@
   "enchantment.apprenticecodex.transcendence.desc": "手に持っている時のみ、注入された魔法のレベルが上昇します。",
   "enchantment.apprenticecodex.wisdom.desc": "Mobからの経験値ドロップを増加させます。",
   "enchantment.apprenticecodex.plunder.desc": "魔法武器で倒したMobからのドロップを増加させます。",
+  "enchantment.apprenticecodex.guzzle.desc": "フラスコを飲む速度が上昇します。",
+  "enchantment.apprenticecodex.large_mug.desc": "フラスコの容量が上昇します。",
+  "enchantment.apprenticecodex.red_energy.desc": "フラスコ内にあるポーションの効果時間が延長されます。",
+  "enchantment.apprenticecodex.glow_energy.desc": "フラスコ内にあるポーションの効果レベルが上昇しますが、効果時間が短くなります。",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
@@ -379,6 +394,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.title": "対価と報酬",
   "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description": "ダイヤモンドの高位魔術銃を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title": "君だけのキャンバス",
-  "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description": "魔術染めのルーンタブレットを作る"
+  "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description": "魔術染めのルーンタブレットを作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "アイアンのアトリエ",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "魔術詠唱者のフラスコを作る"
 
 }

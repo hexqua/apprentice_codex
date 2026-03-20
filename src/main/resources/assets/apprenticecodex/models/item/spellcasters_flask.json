@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "apprenticecodex:item/spellcasters_flask"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "filled": 1.0
+      },
+      "model": "apprenticecodex:item/spellcasters_flask_filled"
+    }
+  ]
+}
