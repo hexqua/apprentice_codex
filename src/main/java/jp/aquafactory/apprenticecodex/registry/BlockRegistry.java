@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDesk;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStation;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJar;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbench;
@@ -34,6 +35,9 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> ESSENCE_SMOKER =
             BLOCKS.register("essence_smoker", () -> new EssenceSmoker());
+
+    public static final DeferredHolder<Block, Block> ATELIER_STATION =
+            BLOCKS.register("atelier_station", () -> new AtelierStation());
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

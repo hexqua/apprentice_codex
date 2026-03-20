@@ -1,5 +1,5 @@
 {
-  "parent": "apprenticecodex:block/spellcaster_workbench",
+  "parent": "apprenticecodex:block/atelier_station",
   "display": {
     "thirdperson_righthand": {
       "rotation": [10, -45, 170],

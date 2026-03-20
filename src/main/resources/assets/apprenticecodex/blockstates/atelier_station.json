@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "apprenticecodex:block/atelier_station"
+    },
+    "facing=east": {
+      "model": "apprenticecodex:block/atelier_station",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "apprenticecodex:block/atelier_station",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "apprenticecodex:block/atelier_station",
+      "y": 270
+    }
+  }
+}

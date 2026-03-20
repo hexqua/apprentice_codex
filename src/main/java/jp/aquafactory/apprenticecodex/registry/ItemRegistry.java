@@ -114,6 +114,7 @@ public final class ItemRegistry {
             ITEMS.register("arcanum_in_a_jar",
                     () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));
     public static final DeferredHolder<Item, Item> ESSENCE_SMOKER = block("essence_smoker", BlockRegistry.ESSENCE_SMOKER);
+    public static final DeferredHolder<Item, Item> ATELIER_STATION = block("atelier_station", BlockRegistry.ATELIER_STATION);
 
     public static final DeferredHolder<Item, Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);

@@ -148,6 +148,7 @@
   "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの神秘",
   "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
   "block.apprenticecodex.spellcaster_workbench" : "魔術師の作業台",
+  "block.apprenticecodex.atelier_station" : "アトリエステーション",
 
   "block.apprenticecodex.arcanum_in_a_jar.fill": "中で粉が神秘的に舞っている",
 
@@ -183,6 +184,15 @@
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
   "container.apprenticecodex.spellcaster_workbench": "魔術師の作業台",
   "container.apprenticecodex.ender_grimoire_inscription": "エンダーグリモア",
+  "container.apprenticecodex.atelier_station": "アトリエステーション",
+  "container.apprenticecodex.atelier_station.filter.empty": "抽出対象の設定無し",
+  "container.apprenticecodex.atelier_station.filter.empty_hint": "%sに入れられるアイテムを設定できる",
+  "container.apprenticecodex.atelier_station.filter.clear_hint": "削除するにはShiftキーを押しながらクリックする",
+  "container.apprenticecodex.atelier_station.filter.replace_hint": "別の対象を置くと上書きできる",
+  "container.apprenticecodex.atelier_station.flask": "フラスコ置き場",
+  "container.apprenticecodex.atelier_station.fluid.summary": "中身:",
+  "container.apprenticecodex.atelier_station.fluid.summary_count": " %1$d/%2$d 回分",
+  "container.apprenticecodex.atelier_station.fluid.count": "(%d回分)",
 
   "spell.apprenticecodex.sky_edge": "スカイエッジ",
   "spell.apprenticecodex.archer_multiple": "アーチャーオプション",
@@ -395,7 +405,9 @@
   "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description": "ダイヤモンドの高位魔術銃を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title": "君だけのキャンバス",
   "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description": "魔術染めのルーンタブレットを作る",
-  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "アイアンのアトリエ",
-  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "魔術詠唱者のフラスコを作る"
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "司祭も魔女も皆大好き",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "魔術詠唱者のフラスコを作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.title": "アイアンのアトリエ",
+  "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description": "アトリエステーションを作る"
 
 }
