@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -63,6 +64,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> BREACHING_ENEMY_SHOTGUN = simple("breaching_enemy_shotgun");
     public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
+    public static final RegistryObject<Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
     public static final RegistryObject<Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
     public static final RegistryObject<Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);

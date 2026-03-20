@@ -25,6 +25,10 @@ public final class ApprenticeCodexServerConfig {
         return DAMAGE_MULTIPLIER_CONFIG.value(key);
     }
 
+    public static boolean limitArcaneCinderSpeedupToVanillaFurnaces() {
+        return ITEMS_CONFIG.limitArcaneCinderSpeedupToVanillaFurnaces();
+    }
+
     public static int arcanumInAJarTicksPerStoredParameter() {
         return BLOCKS_CONFIG.arcanumInAJarTicksPerStoredParameter();
     }
