@@ -120,6 +120,7 @@
   "block.apprenticecodex.arcanum_in_a_jar" : "Arcanum in a Jar",
   "block.apprenticecodex.essence_smoker" : "Essence Smoker",
   "block.apprenticecodex.spellcaster_workbench" : "Spellcaster Workbench",
+  "block.apprenticecodex.atelier_station" : "Atelier Station",
 
   "block.apprenticecodex.arcanum_in_a_jar.fill": "Powder is dancing mysteriously inside.",
 
@@ -156,6 +157,9 @@
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
   "container.apprenticecodex.spellcaster_workbench": "Spellcaster Workbench",
   "container.apprenticecodex.ender_grimoire_inscription": "Ender Grimoire",
+  "container.apprenticecodex.atelier_station": "Atelier Station",
+  "container.apprenticecodex.atelier_station.filter": "Extraction Target",
+  "container.apprenticecodex.atelier_station.flask": "Flask Storage",
 
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",
