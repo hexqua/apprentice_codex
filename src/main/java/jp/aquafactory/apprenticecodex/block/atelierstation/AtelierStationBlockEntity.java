@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.atelierstation;
 
+import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -67,6 +68,47 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         return flaskInventory;
     }
 
+    public @NotNull ItemStack getFilter(int slot) {
+        if (slot < 0 || slot >= FILTER_SLOT_COUNT) {
+            return ItemStack.EMPTY;
+        }
+
+        return filters.get(slot);
+    }
+
+    public boolean hasFilter(int slot) {
+        return !getFilter(slot).isEmpty();
+    }
+
+    public boolean setFilter(int slot, @NotNull ItemStack filterStack) {
+        if (slot < 0 || slot >= FILTER_SLOT_COUNT) {
+            return false;
+        }
+
+        var normalizedFilter = SpellcastersFlask.copyFilterItem(filterStack);
+        if (normalizedFilter.isEmpty()) {
+            return false;
+        }
+
+        if (ItemStack.matches(filters.get(slot), normalizedFilter)) {
+            return false;
+        }
+
+        filters.set(slot, normalizedFilter);
+        setChanged();
+        return true;
+    }
+
+    public boolean clearFilter(int slot) {
+        if (!hasFilter(slot)) {
+            return false;
+        }
+
+        filters.set(slot, ItemStack.EMPTY);
+        setChanged();
+        return true;
+    }
+
     public void dropStoredFlasks() {
         if (level == null || level.isClientSide) {
             return;
@@ -125,7 +167,10 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                     continue;
                 }
 
-                filters.set(slot, ItemStack.of(filterTag.getCompound("Item")));
+                var normalizedFilter = SpellcastersFlask.copyFilterItem(ItemStack.of(filterTag.getCompound("Item")));
+                if (!normalizedFilter.isEmpty()) {
+                    filters.set(slot, normalizedFilter);
+                }
             }
         }
     }

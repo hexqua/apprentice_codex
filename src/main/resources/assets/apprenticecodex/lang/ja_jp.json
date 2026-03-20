@@ -185,7 +185,10 @@
   "container.apprenticecodex.spellcaster_workbench": "魔術師の作業台",
   "container.apprenticecodex.ender_grimoire_inscription": "エンダーグリモア",
   "container.apprenticecodex.atelier_station": "アトリエステーション",
-  "container.apprenticecodex.atelier_station.filter": "抽出対象",
+  "container.apprenticecodex.atelier_station.filter.empty": "抽出対象の設定無し",
+  "container.apprenticecodex.atelier_station.filter.empty_hint": "%sに入れられるアイテムを設定できる",
+  "container.apprenticecodex.atelier_station.filter.clear_hint": "削除するにはShiftキーを押しながらクリックする",
+  "container.apprenticecodex.atelier_station.filter.replace_hint": "別の対象を置くと上書きできる",
   "container.apprenticecodex.atelier_station.flask": "フラスコ置き場",
 
   "spell.apprenticecodex.sky_edge": "スカイエッジ",
