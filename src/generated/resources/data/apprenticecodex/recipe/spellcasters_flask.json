@@ -21,7 +21,7 @@
     " G "
   ],
   "result": {
-    "item": "apprenticecodex:spellcasters_flask"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:spellcasters_flask"
+  }
 }

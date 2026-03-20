@@ -425,7 +425,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description"),
                         null,
-                        FrameType.TASK,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)

@@ -26,18 +26,25 @@ public final class Enchantments {
     public static final ResourceKey<Enchantment> TRANSCENDENCE = key("transcendence");
     public static final ResourceKey<Enchantment> WISDOM = key("wisdom");
     public static final ResourceKey<Enchantment> PLUNDER = key("plunder");
+    public static final ResourceKey<Enchantment> GUZZLE = key("guzzle");
+    public static final ResourceKey<Enchantment> LARGE_MUG = key("large_mug");
+    public static final ResourceKey<Enchantment> RED_ENERGY = key("red_energy");
+    public static final ResourceKey<Enchantment> GLOW_ENERGY = key("glow_energy");
 
     public static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = itemTag("magic_item_enchantable");
     public static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = itemTag("offhand_magic_enchantable");
     public static final TagKey<Item> OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE = itemTag("offhand_or_armor_magic_enchantable");
     public static final TagKey<Item> SPELL_CONTAINER_MAGIC_ENCHANTABLE = itemTag("spell_container_magic_enchantable");
     public static final TagKey<Item> SPELL_GUN_ENCHANTABLE = itemTag("spell_gun_enchantable");
+    public static final TagKey<Item> FLASK_ENCHANTABLE = itemTag("flask_enchantable");
     public static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = itemTag("transcendence_enchantable");
     public static final TagKey<Item> WISDOM_ENCHANTABLE = itemTag("wisdom_enchantable");
     public static final TagKey<Enchantment> EXCLUSIVE_REFLUX_RESERVOIR = enchantmentTag("exclusive_set/reflux_reservoir");
     public static final TagKey<Enchantment> EXCLUSIVE_ALACRITY_TENSE = enchantmentTag("exclusive_set/alacrity_tense");
     public static final TagKey<Enchantment> EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE =
             enchantmentTag("exclusive_set/surge_attunement_transcendence");
+    public static final TagKey<Enchantment> EXCLUSIVE_RED_GLOW_ENERGY =
+            enchantmentTag("exclusive_set/red_glow_energy");
 
     private static ResourceKey<Enchantment> key(String name) {
         return ResourceKey.create(
@@ -86,6 +93,7 @@ public final class Enchantments {
         var offhandOrArmorMagicItems = itemLookup.getOrThrow(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE);
         var spellContainerMagicItems = itemLookup.getOrThrow(SPELL_CONTAINER_MAGIC_ENCHANTABLE);
         var spellGunItems = itemLookup.getOrThrow(SPELL_GUN_ENCHANTABLE);
+        var flaskItems = itemLookup.getOrThrow(FLASK_ENCHANTABLE);
         var transcendenceItems = itemLookup.getOrThrow(TRANSCENDENCE_ENCHANTABLE);
         var wisdomItems = itemLookup.getOrThrow(WISDOM_ENCHANTABLE);
 
@@ -247,6 +255,76 @@ public final class Enchantments {
                                         EquipmentSlotGroup.HAND
                                 )
                         )
+        );
+
+        register(
+                context,
+                GUZZLE,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        flaskItems,
+                                        flaskItems,
+                                        5,
+                                        5,
+                                        Enchantment.dynamicCost(5, 11),
+                                        Enchantment.dynamicCost(25, 11),
+                                        1,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
+        );
+
+        register(
+                context,
+                LARGE_MUG,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        flaskItems,
+                                        flaskItems,
+                                        10,
+                                        4,
+                                        Enchantment.dynamicCost(1, 10),
+                                        Enchantment.dynamicCost(51, 10),
+                                        1,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
+        );
+
+        register(
+                context,
+                RED_ENERGY,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        flaskItems,
+                                        flaskItems,
+                                        2,
+                                        4,
+                                        Enchantment.dynamicCost(20, 9),
+                                        Enchantment.dynamicCost(70, 9),
+                                        2,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
+                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_RED_GLOW_ENERGY))
+        );
+
+        register(
+                context,
+                GLOW_ENERGY,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        flaskItems,
+                                        flaskItems,
+                                        1,
+                                        3,
+                                        Enchantment.dynamicCost(20, 9),
+                                        Enchantment.dynamicCost(70, 9),
+                                        2,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
+                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_RED_GLOW_ENERGY))
         );
     }
 

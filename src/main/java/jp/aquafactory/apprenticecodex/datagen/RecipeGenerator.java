@@ -245,7 +245,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('B', Items.GLASS_BOTTLE)
                 .define('G', Items.GOLD_INGOT)
                 .unlockedBy(getHasName(Items.GLASS_BOTTLE), has(Items.GLASS_BOTTLE))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.IRON_SPELLCASTER_GUN.get())
                 .pattern("IAE")

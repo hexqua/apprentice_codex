@@ -42,12 +42,12 @@ public final class RecipeRegistry {
                     "explorers_cane_lodestone_bind",
                     () -> new SimpleCraftingRecipeSerializer<>(ExplorersCaneLodestoneBindRecipe::new)
             );
-    public static final RegistryObject<RecipeSerializer<SpellcastersFlaskTransferRecipe>> SPELLCASTERS_FLASK_TRANSFER_SERIALIZER =
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SpellcastersFlaskTransferRecipe>> SPELLCASTERS_FLASK_TRANSFER_SERIALIZER =
             RECIPE_SERIALIZERS.register(
                     "spellcasters_flask_transfer",
                     () -> new SimpleCraftingRecipeSerializer<>(SpellcastersFlaskTransferRecipe::new)
             );
-    public static final RegistryObject<RecipeSerializer<SpellcastersFlaskExtractRecipe>> SPELLCASTERS_FLASK_EXTRACT_SERIALIZER =
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SpellcastersFlaskExtractRecipe>> SPELLCASTERS_FLASK_EXTRACT_SERIALIZER =
             RECIPE_SERIALIZERS.register(
                     "spellcasters_flask_extract",
                     () -> new SimpleCraftingRecipeSerializer<>(SpellcastersFlaskExtractRecipe::new)

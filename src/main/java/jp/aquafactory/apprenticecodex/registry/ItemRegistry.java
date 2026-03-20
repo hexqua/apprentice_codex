@@ -149,7 +149,6 @@ public final class ItemRegistry {
             ITEMS.register("photon_siphon", PhotonSiphon::new);
     public static final DeferredHolder<Item, Item> EXPLORERS_CANE =
             ITEMS.register("explorers_cane", ExplorersCane::new);
-    public static final DeferredHolder<Item, Item> GRIMOIRE_MANIFEST =
     public static final DeferredHolder<Item, Item> SPELLCASTERS_FLASK =
             ITEMS.register("spellcasters_flask", SpellcastersFlask::new);
     public static final DeferredHolder<Item, Item> GRIMOIRE_MANIFEST =

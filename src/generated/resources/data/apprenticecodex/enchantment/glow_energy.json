@@ -1,0 +1,22 @@
+{
+  "anvil_cost": 2,
+  "description": {
+    "translate": "enchantment.apprenticecodex.glow_energy"
+  },
+  "exclusive_set": "#apprenticecodex:exclusive_set/red_glow_energy",
+  "max_cost": {
+    "base": 70,
+    "per_level_above_first": 9
+  },
+  "max_level": 3,
+  "min_cost": {
+    "base": 20,
+    "per_level_above_first": 9
+  },
+  "primary_items": "#apprenticecodex:flask_enchantable",
+  "slots": [
+    "hand"
+  ],
+  "supported_items": "#apprenticecodex:flask_enchantable",
+  "weight": 1
+}
