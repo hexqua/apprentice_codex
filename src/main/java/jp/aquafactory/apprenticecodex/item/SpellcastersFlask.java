@@ -329,7 +329,7 @@ public class SpellcastersFlask extends Item {
         }
 
         var storedItem = normalizeAcceptedItem(getStoredItem(flaskStack));
-        return !storedItem.isEmpty() && ItemStack.isSameItemSameTags(storedItem, candidateItem);
+        return !storedItem.isEmpty() && ItemStack.isSameItemSameComponents(storedItem, candidateItem);
     }
 
     public static ItemStack copyWithAddedDose(ItemStack flaskStack, ItemStack candidateStack) {

@@ -274,13 +274,12 @@ public final class AtelierStationBlockEntityRenderer implements BlockEntityRende
 
     private static void vertex(VertexConsumer consumer, Matrix4f pose, float x, float y, float z,
                                int red, int green, int blue, int alpha) {
-        consumer.vertex(pose, x, y, z).color(red, green, blue, alpha).endVertex();
+        consumer.addVertex(pose, x, y, z).setColor(red, green, blue, alpha);
     }
 
     private static int getRenderSeed(ItemStack stack, int salt) {
         return (net.minecraft.world.item.Item.getId(stack.getItem()) * 37)
                 + (stack.getDamageValue() * 17)
-                + (stack.hasTag() ? stack.getTag().hashCode() : 0)
                 + (salt * 31);
     }
 }

@@ -36,8 +36,8 @@ public final class BlockRegistry {
     public static final DeferredHolder<Block, Block> ESSENCE_SMOKER =
             BLOCKS.register("essence_smoker", () -> new EssenceSmoker());
 
-    public static final RegistryObject<Block> ATELIER_STATION =
-            BLOCKS.register("atelier_station", AtelierStation::new);
+    public static final DeferredHolder<Block, Block> ATELIER_STATION =
+            BLOCKS.register("atelier_station", () -> new AtelierStation());
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

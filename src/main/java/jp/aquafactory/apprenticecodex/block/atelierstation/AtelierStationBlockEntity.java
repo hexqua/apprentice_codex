@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPa
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -28,8 +29,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -171,9 +172,9 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         var tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 
@@ -220,10 +221,10 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
 
-        tag.put(FLASKS_TAG, flaskInventory.serializeNBT());
+        tag.put(FLASKS_TAG, flaskInventory.serializeNBT(registries));
 
         var filterList = new ListTag();
         for (var slot = 0; slot < filters.size(); ++slot) {
@@ -234,7 +235,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
             var filterTag = new CompoundTag();
             filterTag.putInt(SLOT_TAG, slot);
-            filterTag.put("Item", stack.save(new CompoundTag()));
+            filterTag.put("Item", stack.saveOptional(registries));
             filterList.add(filterTag);
         }
         tag.put(FILTERS_TAG, filterList);
@@ -246,7 +247,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             }
 
             var storedFluidTag = new CompoundTag();
-            storedFluidTag.put(STORED_ITEM_TAG, entry.representativeItem().save(new CompoundTag()));
+            storedFluidTag.put(STORED_ITEM_TAG, entry.representativeItem().saveOptional(registries));
             storedFluidTag.putInt(STORED_AMOUNT_TAG, entry.amountMb());
             storedFluidList.add(storedFluidTag);
         }
@@ -255,10 +256,10 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
 
-        flaskInventory.deserializeNBT(tag.getCompound(FLASKS_TAG));
+        flaskInventory.deserializeNBT(registries, tag.getCompound(FLASKS_TAG));
         storedFluids.clear();
         storedFluidAmount = 0;
         flaskSupplyCooldownUntilGameTime = tag.getLong(FLASK_SUPPLY_COOLDOWN_UNTIL_TAG);
@@ -276,7 +277,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                     continue;
                 }
 
-                var normalizedFilter = SpellcastersFlask.copyFilterItem(ItemStack.of(filterTag.getCompound("Item")));
+                var normalizedFilter = SpellcastersFlask.copyFilterItem(ItemStack.parseOptional(registries, filterTag.getCompound("Item")));
                 if (!normalizedFilter.isEmpty()) {
                     filters.set(slot, normalizedFilter);
                 }
@@ -291,7 +292,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                     continue;
                 }
 
-                var representativeItem = SpellcastersFlask.copyFilterItem(ItemStack.of(storedFluidTag.getCompound(STORED_ITEM_TAG)));
+                var representativeItem = SpellcastersFlask.copyFilterItem(ItemStack.parseOptional(registries, storedFluidTag.getCompound(STORED_ITEM_TAG)));
                 var amountMb = normalizeFluidAmount(storedFluidTag.getInt(STORED_AMOUNT_TAG));
                 if (representativeItem.isEmpty() || amountMb <= 0) {
                     continue;
@@ -579,7 +580,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
     private boolean matchesAnyFilter(ItemStack representativeItem) {
         for (var filter : filters) {
-            if (!filter.isEmpty() && ItemStack.isSameItemSameTags(filter, representativeItem)) {
+            if (!filter.isEmpty() && ItemStack.isSameItemSameComponents(filter, representativeItem)) {
                 return true;
             }
         }
@@ -594,7 +595,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
         for (var index = 0; index < storedFluids.size(); ++index) {
             var current = storedFluids.get(index);
-            if (!ItemStack.isSameItemSameTags(current.representativeItem(), representativeItem)) {
+            if (!ItemStack.isSameItemSameComponents(current.representativeItem(), representativeItem)) {
                 continue;
             }
 
@@ -617,7 +618,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         }
 
         for (var entry : storedFluids) {
-            if (ItemStack.isSameItemSameTags(entry.representativeItem(), representativeItem)) {
+            if (ItemStack.isSameItemSameComponents(entry.representativeItem(), representativeItem)) {
                 return entry.amountMb();
             }
         }
@@ -633,7 +634,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
         for (var index = 0; index < storedFluids.size(); ++index) {
             var current = storedFluids.get(index);
-            if (!ItemStack.isSameItemSameTags(current.representativeItem(), representativeItem)) {
+            if (!ItemStack.isSameItemSameComponents(current.representativeItem(), representativeItem)) {
                 continue;
             }
 

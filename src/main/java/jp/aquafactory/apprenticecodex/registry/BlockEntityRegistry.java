@@ -49,7 +49,7 @@ public final class BlockEntityRegistry {
             "essence_smoker", EssenceSmokerBlockEntity::new, BlockRegistry.ESSENCE_SMOKER
     );
 
-    public static final RegistryObject<BlockEntityType<AtelierStationBlockEntity>> ATELIER_STATION = reg(
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AtelierStationBlockEntity>> ATELIER_STATION = reg(
             "atelier_station", AtelierStationBlockEntity::new, BlockRegistry.ATELIER_STATION
     );
 

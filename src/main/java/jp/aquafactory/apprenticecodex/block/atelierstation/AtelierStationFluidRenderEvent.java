@@ -20,20 +20,20 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class AtelierStationFluidRenderEvent {
     private static final RenderType WATER_CUBE_RENDER_TYPE = RenderType.entityTranslucent(InventoryMenu.BLOCK_ATLAS);
     private static final int WATER_TINT = 0x3F76E4;
@@ -94,11 +94,7 @@ public final class AtelierStationFluidRenderEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         if (Minecraft.getInstance().level == null) {
             ACTIVE_CAULDRON_EFFECTS.clear();
             ACTIVE_SUPPLY_EFFECTS.clear();
@@ -132,7 +128,7 @@ public final class AtelierStationFluidRenderEvent {
         var buffer = bufferSource.getBuffer(WATER_CUBE_RENDER_TYPE);
         var cameraPosition = event.getCamera().getPosition();
         var gameTime = level.getGameTime();
-        var partialTick = event.getPartialTick();
+        var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
 
         poseStack.pushPose();
         poseStack.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
@@ -297,13 +293,15 @@ public final class AtelierStationFluidRenderEvent {
 
     private static void vertex(VertexConsumer buffer, Matrix4f poseMatrix, Matrix3f normalMatrix, Vec3 position,
                                float u, float v, Vec3 normal) {
-        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(WATER_RED, WATER_GREEN, WATER_BLUE, AtelierStationFluidEffectTuning.WATER_ALPHA)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, (float) normal.x, (float) normal.y, (float) normal.z)
-                .endVertex();
+        var transformedNormal = new org.joml.Vector3f((float) normal.x, (float) normal.y, (float) normal.z)
+                .mul(normalMatrix)
+                .normalize();
+        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(WATER_RED, WATER_GREEN, WATER_BLUE, AtelierStationFluidEffectTuning.WATER_ALPHA)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 
     private static TextureAtlasSprite resolveWaterSprite() {

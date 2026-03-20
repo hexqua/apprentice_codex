@@ -24,7 +24,7 @@
     "F F"
   ],
   "result": {
-    "item": "apprenticecodex:atelier_station"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:atelier_station"
+  }
 }

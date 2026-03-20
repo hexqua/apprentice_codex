@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:spellcasters_flask"
-            ]
+            "items": "apprenticecodex:spellcasters_flask"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_spellcasters_flask",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_spellcasters_flask"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:atelier_station"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

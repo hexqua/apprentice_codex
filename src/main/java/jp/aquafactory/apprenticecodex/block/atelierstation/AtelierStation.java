@@ -1,10 +1,10 @@
 package jp.aquafactory.apprenticecodex.block.atelierstation;
 
+import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -22,26 +22,29 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
 public final class AtelierStation extends BaseEntityBlock {
+    public static final MapCodec<AtelierStation> CODEC = simpleCodec(AtelierStation::new);
     public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING =
             HorizontalDirectionalBlock.FACING;
 
     private static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D);
 
-    public AtelierStation() {
-        super(Properties.of()
+    public AtelierStation(Properties properties) {
+        super(properties
                 .strength(2.0F)
                 .sound(SoundType.WOOD)
                 .noOcclusion());
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+
+    public AtelierStation() {
+        this(Properties.of());
     }
 
     @Override
@@ -104,16 +107,15 @@ public final class AtelierStation extends BaseEntityBlock {
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                          @NotNull Player player, @NotNull InteractionHand hand,
-                                          @NotNull BlockHitResult hitResult) {
+    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
+                                                        @NotNull Player player, @NotNull net.minecraft.world.phys.BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
 
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof AtelierStationBlockEntity atelier && player instanceof ServerPlayer serverPlayer) {
-            NetworkHooks.openScreen(serverPlayer, atelier, pos);
+            serverPlayer.openMenu(atelier, buffer -> buffer.writeBlockPos(pos));
             return InteractionResult.CONSUME;
         }
 
@@ -131,5 +133,10 @@ public final class AtelierStation extends BaseEntityBlock {
         }
 
         super.onRemove(state, level, pos, newState, isMoving);
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 }
