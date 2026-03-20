@@ -158,7 +158,10 @@
   "container.apprenticecodex.spellcaster_workbench": "Spellcaster Workbench",
   "container.apprenticecodex.ender_grimoire_inscription": "Ender Grimoire",
   "container.apprenticecodex.atelier_station": "Atelier Station",
-  "container.apprenticecodex.atelier_station.filter": "Extraction Target",
+  "container.apprenticecodex.atelier_station.filter.empty": "No extraction target configured",
+  "container.apprenticecodex.atelier_station.filter.empty_hint": "You can set an item that can be stored in %s",
+  "container.apprenticecodex.atelier_station.filter.clear_hint": "Shift-click to remove",
+  "container.apprenticecodex.atelier_station.filter.replace_hint": "Place another target to overwrite",
   "container.apprenticecodex.atelier_station.flask": "Flask Storage",
 
   "spell.apprenticecodex.sky_edge": "Sky Edge",

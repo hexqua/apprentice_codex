@@ -265,6 +265,14 @@ public class SpellcastersFlask extends Item {
         return getStoredDoseCount(stack) > 0;
     }
 
+    public static @NotNull ItemStack copyFilterItem(@NotNull ItemStack stack) {
+        if (stack.getItem() instanceof SpellcastersFlask) {
+            return normalizeAcceptedItem(getStoredItem(stack));
+        }
+
+        return normalizeAcceptedItem(stack);
+    }
+
     public static int getItemTintColor(ItemStack stack, int tintIndex) {
         if (tintIndex != 0 || !isFilled(stack)) {
             return DEFAULT_TINT_COLOR;

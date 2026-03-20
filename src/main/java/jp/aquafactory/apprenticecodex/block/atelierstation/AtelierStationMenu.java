@@ -4,6 +4,8 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -13,8 +15,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class AtelierStationMenu extends AbstractContainerMenu {
+    static final int FILTER_SLOT_X = 44;
+    static final int FILTER_SLOT_Y = 20;
+    static final int FILTER_SLOT_SPACING = 18;
     private static final int FLASK_SLOT_X = 53;
     private static final int FLASK_SLOT_Y = 52;
     private static final int PLAYER_INVENTORY_X = 8;
@@ -23,32 +29,45 @@ public final class AtelierStationMenu extends AbstractContainerMenu {
 
     private static final int FLASK_SLOT_START = 0;
     private static final int FLASK_SLOT_END = FLASK_SLOT_START + AtelierStationBlockEntity.FLASK_SLOT_COUNT;
-    private static final int PLAYER_INVENTORY_START = FLASK_SLOT_END;
+    private static final int FILTER_SLOT_START = FLASK_SLOT_END;
+    private static final int FILTER_SLOT_END = FILTER_SLOT_START + AtelierStationBlockEntity.FILTER_SLOT_COUNT;
+    private static final int PLAYER_INVENTORY_START = FILTER_SLOT_END;
     private static final int PLAYER_INVENTORY_SLOT_COUNT = 27;
     private static final int HOTBAR_SLOT_COUNT = 9;
     private static final int PLAYER_INVENTORY_END = PLAYER_INVENTORY_START + PLAYER_INVENTORY_SLOT_COUNT;
     private static final int HOTBAR_START = PLAYER_INVENTORY_END;
     private static final int HOTBAR_END = HOTBAR_START + HOTBAR_SLOT_COUNT;
+    private static final int FILTER_SET_BUTTON_BASE = 0;
+    private static final int FILTER_CLEAR_BUTTON_BASE = FILTER_SET_BUTTON_BASE + AtelierStationBlockEntity.FILTER_SLOT_COUNT;
 
     private final ContainerLevelAccess access;
+    private final Container filterContainer;
+    @Nullable
+    private final AtelierStationBlockEntity blockEntity;
 
     public AtelierStationMenu(int containerId, Inventory playerInventory, AtelierStationBlockEntity blockEntity) {
-        this(containerId, playerInventory, blockEntity.getFlaskInventory(),
+        this(containerId, playerInventory, blockEntity, blockEntity.getFlaskInventory(),
                 ContainerLevelAccess.create(playerInventory.player.level(), blockEntity.getBlockPos()));
     }
 
     public AtelierStationMenu(int containerId, Inventory playerInventory, BlockPos pos) {
-        this(containerId, playerInventory, resolveFlaskInventory(playerInventory, pos),
+        this(containerId, playerInventory, resolveBlockEntity(playerInventory, pos), resolveFlaskInventory(playerInventory, pos),
                 ContainerLevelAccess.create(playerInventory.player.level(), pos));
     }
 
-    private AtelierStationMenu(int containerId, Inventory playerInventory, ItemStackHandler flaskInventory,
+    private AtelierStationMenu(int containerId, Inventory playerInventory, @Nullable AtelierStationBlockEntity blockEntity,
+                               ItemStackHandler flaskInventory,
                                ContainerLevelAccess access) {
         super(MenuRegistry.ATELIER_STATION.get(), containerId);
         this.access = access;
+        this.blockEntity = blockEntity;
+        this.filterContainer = createFilterContainer(blockEntity);
 
         for (var slot = 0; slot < AtelierStationBlockEntity.FLASK_SLOT_COUNT; ++slot) {
             addSlot(new FlaskSlot(flaskInventory, slot, FLASK_SLOT_X + slot * 18, FLASK_SLOT_Y));
+        }
+        for (var slot = 0; slot < AtelierStationBlockEntity.FILTER_SLOT_COUNT; ++slot) {
+            addSlot(new FilterSlot(filterContainer, slot, FILTER_SLOT_X + slot * FILTER_SLOT_SPACING, FILTER_SLOT_Y));
         }
 
         for (var row = 0; row < 3; ++row) {
@@ -82,6 +101,8 @@ public final class AtelierStationMenu extends AbstractContainerMenu {
             if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
                 return ItemStack.EMPTY;
             }
+        } else if (slotIndex < FILTER_SLOT_END) {
+            return ItemStack.EMPTY;
         } else {
             if (!stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())
                     || !moveItemStackTo(stack, FLASK_SLOT_START, FLASK_SLOT_END, false)) {
@@ -99,14 +120,169 @@ public final class AtelierStationMenu extends AbstractContainerMenu {
         return copy;
     }
 
+    @Override
+    public boolean clickMenuButton(@NotNull Player player, int buttonId) {
+        if (!isFilterButton(buttonId)) {
+            return false;
+        }
+
+        if (player.level().isClientSide) {
+            return true;
+        }
+
+        if (blockEntity == null) {
+            return false;
+        }
+
+        var filterSlot = decodeFilterSlot(buttonId);
+        if (filterSlot < 0 || filterSlot >= AtelierStationBlockEntity.FILTER_SLOT_COUNT) {
+            return false;
+        }
+
+        boolean changed;
+        if (isFilterClearButton(buttonId)) {
+            changed = blockEntity.clearFilter(filterSlot);
+        } else {
+            changed = blockEntity.setFilter(filterSlot, getCarried());
+        }
+
+        if (changed) {
+            broadcastChanges();
+        }
+        return true;
+    }
+
+    public @NotNull ItemStack getFilterItem(int slot) {
+        if (slot < 0 || slot >= AtelierStationBlockEntity.FILTER_SLOT_COUNT) {
+            return ItemStack.EMPTY;
+        }
+
+        return slots.get(FILTER_SLOT_START + slot).getItem();
+    }
+
+    public static int encodeFilterSetButtonId(int slot) {
+        return FILTER_SET_BUTTON_BASE + slot;
+    }
+
+    public static int encodeFilterClearButtonId(int slot) {
+        return FILTER_CLEAR_BUTTON_BASE + slot;
+    }
+
     private static @NotNull ItemStackHandler resolveFlaskInventory(Inventory playerInventory, BlockPos pos) {
-        var level = playerInventory.player.level();
-        var blockEntity = level.getBlockEntity(pos);
-        if (blockEntity instanceof AtelierStationBlockEntity atelierStation) {
-            return atelierStation.getFlaskInventory();
+        var blockEntity = resolveBlockEntity(playerInventory, pos);
+        if (blockEntity != null) {
+            return blockEntity.getFlaskInventory();
         }
 
         return new ItemStackHandler(AtelierStationBlockEntity.FLASK_SLOT_COUNT);
+    }
+
+    @Nullable
+    private static AtelierStationBlockEntity resolveBlockEntity(Inventory playerInventory, BlockPos pos) {
+        var level = playerInventory.player.level();
+        var blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof AtelierStationBlockEntity atelierStation) {
+            return atelierStation;
+        }
+
+        return null;
+    }
+
+    private static @NotNull Container createFilterContainer(@Nullable AtelierStationBlockEntity blockEntity) {
+        if (blockEntity == null) {
+            return new SimpleContainer(AtelierStationBlockEntity.FILTER_SLOT_COUNT);
+        }
+
+        return new Container() {
+            @Override
+            public int getContainerSize() {
+                return AtelierStationBlockEntity.FILTER_SLOT_COUNT;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                for (var slot = 0; slot < AtelierStationBlockEntity.FILTER_SLOT_COUNT; ++slot) {
+                    if (blockEntity.hasFilter(slot)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            @Override
+            public @NotNull ItemStack getItem(int slot) {
+                return blockEntity.getFilter(slot);
+            }
+
+            @Override
+            public @NotNull ItemStack removeItem(int slot, int amount) {
+                var stack = getItem(slot);
+                if (stack.isEmpty()) {
+                    return ItemStack.EMPTY;
+                }
+
+                var removed = stack.copy();
+                removed.setCount(Math.min(amount, removed.getCount()));
+                blockEntity.clearFilter(slot);
+                return removed;
+            }
+
+            @Override
+            public @NotNull ItemStack removeItemNoUpdate(int slot) {
+                var stack = getItem(slot);
+                if (stack.isEmpty()) {
+                    return ItemStack.EMPTY;
+                }
+
+                blockEntity.clearFilter(slot);
+                return stack.copy();
+            }
+
+            @Override
+            public void setItem(int slot, @NotNull ItemStack stack) {
+                if (stack.isEmpty()) {
+                    blockEntity.clearFilter(slot);
+                    return;
+                }
+
+                blockEntity.setFilter(slot, stack);
+            }
+
+            @Override
+            public void setChanged() {
+                blockEntity.setChanged();
+            }
+
+            @Override
+            public boolean stillValid(@NotNull Player player) {
+                return true;
+            }
+
+            @Override
+            public void clearContent() {
+                for (var slot = 0; slot < AtelierStationBlockEntity.FILTER_SLOT_COUNT; ++slot) {
+                    blockEntity.clearFilter(slot);
+                }
+            }
+        };
+    }
+
+    private static boolean isFilterButton(int buttonId) {
+        return (buttonId >= FILTER_SET_BUTTON_BASE
+                && buttonId < FILTER_SET_BUTTON_BASE + AtelierStationBlockEntity.FILTER_SLOT_COUNT)
+                || isFilterClearButton(buttonId);
+    }
+
+    private static boolean isFilterClearButton(int buttonId) {
+        return buttonId >= FILTER_CLEAR_BUTTON_BASE
+                && buttonId < FILTER_CLEAR_BUTTON_BASE + AtelierStationBlockEntity.FILTER_SLOT_COUNT;
+    }
+
+    private static int decodeFilterSlot(int buttonId) {
+        return buttonId >= FILTER_CLEAR_BUTTON_BASE
+                ? buttonId - FILTER_CLEAR_BUTTON_BASE
+                : buttonId - FILTER_SET_BUTTON_BASE;
     }
 
     private static final class FlaskSlot extends SlotItemHandler {
@@ -117,6 +293,27 @@ public final class AtelierStationMenu extends AbstractContainerMenu {
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
             return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get());
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1;
+        }
+    }
+
+    private static final class FilterSlot extends Slot {
+        private FilterSlot(Container container, int index, int xPosition, int yPosition) {
+            super(container, index, xPosition, yPosition);
+        }
+
+        @Override
+        public boolean mayPlace(@NotNull ItemStack stack) {
+            return false;
+        }
+
+        @Override
+        public boolean mayPickup(@NotNull Player player) {
+            return false;
         }
 
         @Override
