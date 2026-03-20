@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
@@ -130,6 +131,7 @@ public final class ClientModBusEvents {
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(BlockEntityRegistry.ATELIER_STATION.get(), AtelierStationBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ARCANUM_IN_A_JAR.get(), ArcanumInAJarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ESSENCE_SMOKER.get(), EssenceSmokerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);

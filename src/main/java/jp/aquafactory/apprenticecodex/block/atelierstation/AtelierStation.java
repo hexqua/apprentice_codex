@@ -34,7 +34,7 @@ public final class AtelierStation extends BaseEntityBlock {
     public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING =
             HorizontalDirectionalBlock.FACING;
 
-    private static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D);
+    private static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D);
 
     public AtelierStation() {
         super(Properties.of()
@@ -52,6 +52,12 @@ public final class AtelierStation extends BaseEntityBlock {
     @Override
     public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level,
                                         @NotNull BlockPos pos, @NotNull CollisionContext context) {
+        return SHAPE;
+    }
+
+    @Override
+    public @NotNull VoxelShape getCollisionShape(@NotNull BlockState state, @NotNull BlockGetter level,
+                                                 @NotNull BlockPos pos, @NotNull CollisionContext context) {
         return SHAPE;
     }
 
