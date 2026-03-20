@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 import jp.aquafactory.apprenticecodex.accessor.ArcaneCinderFurnaceAccess;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
@@ -36,13 +37,13 @@ public abstract class AbstractFurnaceBlockEntityMixin implements ArcaneCinderFur
     @Shadow
     int cookingTotalTime;
 
-    @Inject(method = "load", at = @At("RETURN"))
-    private void apprenticeCodex$loadArcaneCinderFuelState(CompoundTag tag, CallbackInfo ci) {
+    @Inject(method = "loadAdditional", at = @At("RETURN"))
+    private void apprenticeCodex$loadArcaneCinderFuelState(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
         apprenticeCodex$arcaneCinderFuelActive = tag.getBoolean(APPRENTICE_CODEX_ARCANE_CINDER_FUEL_ACTIVE_TAG);
     }
 
     @Inject(method = "saveAdditional", at = @At("RETURN"))
-    private void apprenticeCodex$saveArcaneCinderFuelState(CompoundTag tag, CallbackInfo ci) {
+    private void apprenticeCodex$saveArcaneCinderFuelState(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
         tag.putBoolean(APPRENTICE_CODEX_ARCANE_CINDER_FUEL_ACTIVE_TAG, apprenticeCodex$arcaneCinderFuelActive);
     }
 

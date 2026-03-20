@@ -1,15 +1,15 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ArcaneCinderServerConfig {
-    private final ForgeConfigSpec.BooleanValue limitArcaneCinderSpeedupToVanillaFurnaces;
+    private final ModConfigSpec.BooleanValue limitArcaneCinderSpeedupToVanillaFurnaces;
 
-    private ArcaneCinderServerConfig(ForgeConfigSpec.BooleanValue limitArcaneCinderSpeedupToVanillaFurnaces) {
+    private ArcaneCinderServerConfig(ModConfigSpec.BooleanValue limitArcaneCinderSpeedupToVanillaFurnaces) {
         this.limitArcaneCinderSpeedupToVanillaFurnaces = limitArcaneCinderSpeedupToVanillaFurnaces;
     }
 
-    public static ArcaneCinderServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ArcaneCinderServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ArcaneCinder");
         var limitArcaneCinderSpeedupToVanillaFurnaces =
                 builder.comment(

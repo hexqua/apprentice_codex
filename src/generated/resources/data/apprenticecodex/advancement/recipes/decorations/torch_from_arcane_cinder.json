@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:arcane_cinder"
-            ]
+            "items": "apprenticecodex:arcane_cinder"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_arcane_cinder",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_arcane_cinder"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:torch_from_arcane_cinder"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }
