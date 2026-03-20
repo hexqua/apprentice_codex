@@ -90,7 +90,11 @@ public final class AtelierStation extends BaseEntityBlock {
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level,
                                                                             @NotNull BlockState state,
                                                                             @NotNull BlockEntityType<T> type) {
-        return null;
+        return level.isClientSide ? null : createTickerHelper(
+                type,
+                BlockEntityRegistry.ATELIER_STATION.get(),
+                AtelierStationBlockEntity::serverTick
+        );
     }
 
     @Override
