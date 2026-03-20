@@ -270,6 +270,10 @@ public class SpellcastersFlask extends Item {
         return Math.min(getRawStoredDoseCount(stack), getMaxStoredDoseCount(stack));
     }
 
+    public static int getMaxDoseCapacity(ItemStack stack) {
+        return getMaxStoredDoseCount(stack);
+    }
+
     public static ItemStack getStoredItem(ItemStack stack) {
         var storageTag = stack.getTagElement(STORAGE_TAG);
         if (storageTag == null || !storageTag.contains(STORED_ITEM_TAG, Tag.TAG_COMPOUND)) {
@@ -299,6 +303,16 @@ public class SpellcastersFlask extends Item {
         return !storedItem.isEmpty() && ItemStack.isSameItemSameTags(storedItem, candidateItem);
     }
 
+    public static boolean matchesStoredItem(ItemStack flaskStack, ItemStack candidateStack) {
+        var candidateItem = normalizeAcceptedItem(candidateStack);
+        if (candidateItem.isEmpty()) {
+            return false;
+        }
+
+        var storedItem = normalizeAcceptedItem(getStoredItem(flaskStack));
+        return !storedItem.isEmpty() && ItemStack.isSameItemSameTags(storedItem, candidateItem);
+    }
+
     public static ItemStack copyWithAddedDose(ItemStack flaskStack, ItemStack candidateStack) {
         if (!canAddDoseFromItem(flaskStack, candidateStack)) {
             return ItemStack.EMPTY;
@@ -307,6 +321,27 @@ public class SpellcastersFlask extends Item {
         var result = flaskStack.copy();
         var storedDoseCount = getStoredDoseCount(result);
         setStoredState(result, normalizeAcceptedItem(candidateStack), storedDoseCount + 1);
+        return result;
+    }
+
+    public static ItemStack copyWithAddedDoses(ItemStack flaskStack, ItemStack candidateStack, int addedDoseCount) {
+        var candidateItem = normalizeAcceptedItem(candidateStack);
+        if (candidateItem.isEmpty() || addedDoseCount <= 0) {
+            return ItemStack.EMPTY;
+        }
+
+        var storedDoseCount = getStoredDoseCount(flaskStack);
+        var targetDoseCount = Math.min(getMaxStoredDoseCount(flaskStack), storedDoseCount + addedDoseCount);
+        if (targetDoseCount <= storedDoseCount) {
+            return ItemStack.EMPTY;
+        }
+
+        if (storedDoseCount > 0 && !matchesStoredItem(flaskStack, candidateItem)) {
+            return ItemStack.EMPTY;
+        }
+
+        var result = flaskStack.copy();
+        setStoredState(result, candidateItem, targetDoseCount);
         return result;
     }
 
@@ -346,6 +381,16 @@ public class SpellcastersFlask extends Item {
 
         var result = flaskStack.copy();
         decrementStoredDoseCount(result, 1);
+        return result;
+    }
+
+    public static ItemStack copyAfterExtractingDoses(ItemStack flaskStack, int extractedDoseCount) {
+        if (!canExtractOneDose(flaskStack) || extractedDoseCount <= 0) {
+            return ItemStack.EMPTY;
+        }
+
+        var result = flaskStack.copy();
+        decrementStoredDoseCount(result, extractedDoseCount);
         return result;
     }
 
