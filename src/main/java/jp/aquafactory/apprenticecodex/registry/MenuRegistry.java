@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionMenu;
@@ -28,6 +29,9 @@ public final class MenuRegistry {
 
     public static final DeferredHolder<MenuType<?>, MenuType<SpellcasterWorkbenchMenu>> SPELLCASTER_WORKBENCH =
             MENUS.register("spellcaster_workbench", () -> IMenuTypeExtension.create((windowId, inv, data) -> new SpellcasterWorkbenchMenu(windowId, inv)));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<AtelierStationMenu>> ATELIER_STATION =
+            MENUS.register("atelier_station", () -> IMenuTypeExtension.create((windowId, inv, data) -> new AtelierStationMenu(windowId, inv, data.readBlockPos())));
 
     public static final DeferredHolder<MenuType<?>, MenuType<EnderGrimoireInscriptionMenu>> ENDER_GRIMOIRE_INSCRIPTION =
             MENUS.register("ender_grimoire_inscription", () -> IMenuTypeExtension.create((windowId, inv, data) -> new EnderGrimoireInscriptionMenu(windowId, inv)));
