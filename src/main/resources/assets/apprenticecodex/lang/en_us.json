@@ -120,6 +120,7 @@
   "block.apprenticecodex.arcanum_in_a_jar" : "Arcanum in a Jar",
   "block.apprenticecodex.essence_smoker" : "Essence Smoker",
   "block.apprenticecodex.spellcaster_workbench" : "Spellcaster Workbench",
+  "block.apprenticecodex.atelier_station" : "Atelier Station",
 
   "block.apprenticecodex.arcanum_in_a_jar.fill": "Powder is dancing mysteriously inside.",
 
@@ -156,6 +157,15 @@
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
   "container.apprenticecodex.spellcaster_workbench": "Spellcaster Workbench",
   "container.apprenticecodex.ender_grimoire_inscription": "Ender Grimoire",
+  "container.apprenticecodex.atelier_station": "Atelier Station",
+  "container.apprenticecodex.atelier_station.filter.empty": "No extraction target configured",
+  "container.apprenticecodex.atelier_station.filter.empty_hint": "You can set an item that can be stored in %s",
+  "container.apprenticecodex.atelier_station.filter.clear_hint": "Shift-click to remove",
+  "container.apprenticecodex.atelier_station.filter.replace_hint": "Place another target to overwrite",
+  "container.apprenticecodex.atelier_station.flask": "Flask Storage",
+  "container.apprenticecodex.atelier_station.fluid.summary": "Contents:",
+  "container.apprenticecodex.atelier_station.fluid.summary_count": " %1$d/%2$d uses",
+  "container.apprenticecodex.atelier_station.fluid.count": "(%d uses)",
 
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",
@@ -395,6 +405,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description": "Craft a Diamond Grandcast Spellgun",
   "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title": "Your Own Canvas",
   "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description": "Craft a Spell-stained Runic Tablet",
-  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "Atelier Iron",
-  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "Craft a Spellcasters Flask"
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "Both priests and witches love",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "Craft a Spellcasters Flask",
+  "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.title": "Atelier Iron",
+  "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description": "Craft an Atelier Station"
 }
