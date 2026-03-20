@@ -108,11 +108,16 @@
 				{
 					"name": "compass_inner",
 					"parent": "compass",
-					"pivot": [0, 17.75, 0],
+					"pivot": [0, 17.5, 0]
+				},
+				{
+					"name": "compass_cube",
+					"parent": "compass_inner",
+					"pivot": [1.5, 17.5, 0],
 					"cubes": [
 						{
-							"origin": [1, 17.25, -0.5],
-							"size": [1, 1, 1],
+							"origin": [1.1, 17.1, -0.4],
+							"size": [0.8, 0.8, 0.8],
 							"uv": {
 								"north": {"uv": [19.5, 3.5], "uv_size": [1, 1]},
 								"east": {"uv": [21, 3.5], "uv_size": [1, 1]},
