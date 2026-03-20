@@ -359,11 +359,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                 continue;
             }
 
-            if (SpellcastersFlask.getStoredDoseCount(stack) <= 0) {
-                continue;
-            }
-
-            var representativeItem = SpellcastersFlask.copyFilterItem(SpellcastersFlask.getStoredItem(stack));
+            var representativeItem = SpellcastersFlask.copyFilterItem(stack);
             if (representativeItem.isEmpty()) {
                 continue;
             }
@@ -378,6 +374,11 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             }
 
             if (SpellcastersFlask.getStoredDoseCount(stack) > 0) {
+                continue;
+            }
+
+            // 残量0でも中身情報が残るフラスコは、自動供給のフィルタとして維持する。
+            if (!SpellcastersFlask.copyFilterItem(stack).isEmpty()) {
                 continue;
             }
 
@@ -438,11 +439,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             }
 
             var storedDoseCount = SpellcastersFlask.getStoredDoseCount(stack);
-            if (storedDoseCount <= 0) {
-                continue;
-            }
-
-            var representativeItem = SpellcastersFlask.copyFilterItem(SpellcastersFlask.getStoredItem(stack));
+            var representativeItem = SpellcastersFlask.copyFilterItem(stack);
             if (representativeItem.isEmpty()) {
                 continue;
             }
