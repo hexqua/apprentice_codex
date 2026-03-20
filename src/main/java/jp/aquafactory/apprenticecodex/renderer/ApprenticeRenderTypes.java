@@ -87,4 +87,5 @@ public class ApprenticeRenderTypes extends RenderStateShard {
                         .createCompositeState(false)
         );
     }
+
 }
