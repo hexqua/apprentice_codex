@@ -3,21 +3,25 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 final class ItemsServerConfig {
+    private final ArcaneCinderServerConfig arcaneCinderConfig;
     private final AbsorptionAmplifyAmuletServerConfig absorptionAmplifyAmuletConfig;
     private final ScarletThirstServerConfig scarletThirstConfig;
     private final CraftsmansDelightServerConfig craftsmansDelightConfig;
     private final PastelStaffServerConfig pastelStaffConfig;
 
     private ItemsServerConfig(
+            ArcaneCinderServerConfig arcaneCinderConfig,
             AbsorptionAmplifyAmuletServerConfig absorptionAmplifyAmuletConfig,
             ScarletThirstServerConfig scarletThirstConfig,
             CraftsmansDelightServerConfig craftsmansDelightConfig,
             PastelStaffServerConfig pastelStaffConfig
     ) {
+        this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
         this.scarletThirstConfig = scarletThirstConfig;
         this.craftsmansDelightConfig = craftsmansDelightConfig;
@@ -26,6 +30,7 @@ final class ItemsServerConfig {
 
     static ItemsServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("Items");
+        var arcaneCinderConfig = ArcaneCinderServerConfig.define(builder);
         var absorptionAmplifyAmuletConfig = AbsorptionAmplifyAmuletServerConfig.define(builder);
         var scarletThirstConfig = ScarletThirstServerConfig.define(builder);
         var craftsmansDelightConfig = CraftsmansDelightServerConfig.define(builder);
@@ -33,11 +38,16 @@ final class ItemsServerConfig {
         builder.pop();
 
         return new ItemsServerConfig(
+                arcaneCinderConfig,
                 absorptionAmplifyAmuletConfig,
                 scarletThirstConfig,
                 craftsmansDelightConfig,
                 pastelStaffConfig
         );
+    }
+
+    boolean limitArcaneCinderSpeedupToVanillaFurnaces() {
+        return arcaneCinderConfig.limitArcaneCinderSpeedupToVanillaFurnaces();
     }
 
     int absorptionAmplifyAmuletRecoveryDelayTicks() {
