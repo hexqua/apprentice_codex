@@ -317,6 +317,14 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.GUNPOWDER), has(Items.GUNPOWDER))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, Items.TORCH, 6)
+                .pattern("A")
+                .pattern("S")
+                .define('A', ItemRegistry.ARCANE_CINDER.get())
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(ItemRegistry.ARCANE_CINDER.get()), has(ItemRegistry.ARCANE_CINDER.get()))
+                .save(recipeWriter, ResourceLocation.fromNamespaceAndPath(ItemRegistry.ARCANE_CINDER.getId().getNamespace(), "torch_from_arcane_cinder"));
+
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.WANDERING_MAGICIAN_HELMET.get()),
