@@ -1,0 +1,32 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_spellcasters_flask",
+  "criteria": {
+    "crafted_atelier_station": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:atelier_station"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:atelier_station"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_atelier_station"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

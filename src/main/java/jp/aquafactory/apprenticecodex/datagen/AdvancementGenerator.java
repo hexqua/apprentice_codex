@@ -419,7 +419,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_spellstained_runic_tablet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.getId()))
                 .save(saver, advancementId("craft_spellstained_runic_tablet"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var flask = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.SPELLCASTERS_FLASK.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title"),
@@ -431,5 +431,18 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_spellcasters_flask", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLCASTERS_FLASK.getId()))
                 .save(saver, advancementId("craft_spellcasters_flask"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(flask)
+                .display(ItemRegistry.ATELIER_STATION.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_atelier_station.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_atelier_station", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ATELIER_STATION.getId()))
+                .save(saver, advancementId("craft_atelier_station"), existingFileHelper);
     }
 }

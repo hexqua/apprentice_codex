@@ -405,7 +405,9 @@
   "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description": "ダイヤモンドの高位魔術銃を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title": "君だけのキャンバス",
   "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description": "魔術染めのルーンタブレットを作る",
-  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "アイアンのアトリエ",
-  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "魔術詠唱者のフラスコを作る"
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "司祭も魔女も皆大好き",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "魔術詠唱者のフラスコを作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.title": "アイアンのアトリエ",
+  "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description": "アトリエステーションを作る"
 
 }
