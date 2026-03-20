@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
@@ -44,6 +45,10 @@ public final class BlockEntityRegistry {
 
     public static final RegistryObject<BlockEntityType<EssenceSmokerBlockEntity>> ESSENCE_SMOKER = reg(
             "essence_smoker", EssenceSmokerBlockEntity::new, BlockRegistry.ESSENCE_SMOKER
+    );
+
+    public static final RegistryObject<BlockEntityType<AtelierStationBlockEntity>> ATELIER_STATION = reg(
+            "atelier_station", AtelierStationBlockEntity::new, BlockRegistry.ATELIER_STATION
     );
 
     public static void register(IEventBus eventBus) {

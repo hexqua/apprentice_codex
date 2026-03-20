@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
@@ -84,6 +85,7 @@ public final class ClientModBusEvents {
     private static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.APPRENTICE_DESK.get(), ApprenticeDeskScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELLCASTER_WORKBENCH.get(), SpellcasterWorkbenchScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ATELIER_STATION.get(), AtelierStationScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENDER_GRIMOIRE.get(), SpellBookCurioRenderer::new));
