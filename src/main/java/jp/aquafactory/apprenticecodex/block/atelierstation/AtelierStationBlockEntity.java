@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.block.atelierstation;
 
 import io.redspace.ironsspellbooks.block.alchemist_cauldron.AlchemistCauldronTile;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -46,10 +48,13 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     private static final String STORED_FLUIDS_TAG = "StoredFluids";
     private static final String STORED_ITEM_TAG = "Item";
     private static final String STORED_AMOUNT_TAG = "Amount";
+    private static final String FLASK_SUPPLY_COOLDOWN_UNTIL_TAG = "FlaskSupplyCooldownUntil";
     private static final int SCAN_INTERVAL_TICKS = 20;
     private static final int SCAN_RADIUS = 2;
     private static final double PLAYER_SUPPLY_RANGE = 8.0D;
     private static final int EXPORT_PHASE_OFFSET_TICKS = 10;
+    private static final int FLASK_SUPPLY_COOLDOWN_TICKS = 20;
+    private static final double EFFECT_BROADCAST_RANGE = 48.0D;
 
     private final ItemStackHandler flaskInventory = new ItemStackHandler(FLASK_SLOT_COUNT) {
         @Override
@@ -70,6 +75,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     private final NonNullList<ItemStack> filters = NonNullList.withSize(FILTER_SLOT_COUNT, ItemStack.EMPTY);
     private final List<StoredPotionEntry> storedFluids = new ArrayList<>();
     private int storedFluidAmount;
+    private long flaskSupplyCooldownUntilGameTime;
 
     public AtelierStationBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.ATELIER_STATION.get(), pos, state);
@@ -81,8 +87,8 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     @Override
-    public @Nullable AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory,
-                                                      @NotNull Player player) {
+    public @NotNull AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory,
+                                                     @NotNull Player player) {
         return new AtelierStationMenu(containerId, inventory, this);
     }
 
@@ -188,8 +194,10 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             changed |= blockEntity.collectFromNearbyCauldrons(serverLevel);
         }
         if (blockEntity.shouldRunExportTick(serverLevel)) {
-            changed |= blockEntity.exportToFlaskStorage(serverLevel);
-            changed |= blockEntity.supplyNearestPlayer(serverLevel, state);
+            if (!blockEntity.isFlaskSupplyCoolingDown(serverLevel.getGameTime())) {
+                changed |= blockEntity.exportToFlaskStorage(serverLevel);
+                changed |= blockEntity.supplyNearestPlayer(serverLevel, state);
+            }
         }
 
         if (changed) {
@@ -243,6 +251,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             storedFluidList.add(storedFluidTag);
         }
         tag.put(STORED_FLUIDS_TAG, storedFluidList);
+        tag.putLong(FLASK_SUPPLY_COOLDOWN_UNTIL_TAG, flaskSupplyCooldownUntilGameTime);
     }
 
     @Override
@@ -252,6 +261,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         flaskInventory.deserializeNBT(tag.getCompound(FLASKS_TAG));
         storedFluids.clear();
         storedFluidAmount = 0;
+        flaskSupplyCooldownUntilGameTime = tag.getLong(FLASK_SUPPLY_COOLDOWN_UNTIL_TAG);
 
         for (var index = 0; index < FILTER_SLOT_COUNT; ++index) {
             filters.set(index, ItemStack.EMPTY);
@@ -347,6 +357,8 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
         insertStoredFluid(representativeItem, extractedAmount);
         cauldronTile.setChanged();
+        startFlaskSupplyCooldown(level.getGameTime());
+        emitCauldronToStationEffect(level, cauldronTile.getBlockPos());
         return true;
     }
 
@@ -484,9 +496,19 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.containerMenu.broadcastChanges();
             }
+            emitStationToPlayerEffect(level, state, player);
         }
 
         return changed;
+    }
+
+    private boolean isFlaskSupplyCoolingDown(long gameTime) {
+        return gameTime < flaskSupplyCooldownUntilGameTime;
+    }
+
+    // 搬入直後は中身キューブの表示時間を優先し、全てのフラスコ供給を 20tick 停止する。
+    private void startFlaskSupplyCooldown(long gameTime) {
+        flaskSupplyCooldownUntilGameTime = Math.max(flaskSupplyCooldownUntilGameTime, gameTime + FLASK_SUPPLY_COOLDOWN_TICKS);
     }
 
     @Nullable
@@ -642,6 +664,73 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         }
 
         return candidates.get(level.getRandom().nextInt(candidates.size())).copy();
+    }
+
+    private void emitCauldronToStationEffect(ServerLevel level, BlockPos cauldronPos) {
+        var state = getBlockState();
+        if (!state.hasProperty(AtelierStation.FACING)) {
+            return;
+        }
+
+        Networks.sendToPlayersNear(
+                level,
+                Vec3.atCenterOf(worldPosition),
+                EFFECT_BROADCAST_RANGE,
+                AtelierStationFluidEffectPacket.createCauldronToStation(
+                        worldPosition,
+                        state.getValue(AtelierStation.FACING),
+                        cauldronPos,
+                        level.getGameTime()
+                )
+        );
+    }
+
+    private void emitStationToPlayerEffect(ServerLevel level, BlockState state, Player player) {
+        if (!state.hasProperty(AtelierStation.FACING)) {
+            return;
+        }
+
+        var orbData = createSupplyEffectOrbData(level);
+        if (orbData.isEmpty()) {
+            return;
+        }
+
+        Networks.sendToPlayersNear(
+                level,
+                Vec3.atCenterOf(worldPosition),
+                EFFECT_BROADCAST_RANGE,
+                AtelierStationFluidEffectPacket.createStationToPlayer(
+                        worldPosition,
+                        state.getValue(AtelierStation.FACING),
+                        player.getId(),
+                        level.getGameTime(),
+                        orbData
+                )
+        );
+    }
+
+    private List<AtelierStationFluidEffectPacket.SupplyOrbData> createSupplyEffectOrbData(ServerLevel level) {
+        var random = level.getRandom();
+        var orbs = new ArrayList<AtelierStationFluidEffectPacket.SupplyOrbData>(AtelierStationFluidEffectTuning.SUPPLY_ORB_COUNT);
+        for (var index = 0; index < AtelierStationFluidEffectTuning.SUPPLY_ORB_COUNT; ++index) {
+            var cubeHalfExtent = AtelierStationFluidEffectTuning.SUPPLY_CONTROL_CUBE_HALF_EXTENT;
+            var controlOffsetX = (float) ((random.nextDouble() * 2.0d - 1.0d) * cubeHalfExtent);
+            var controlOffsetZ = (float) ((random.nextDouble() * 2.0d - 1.0d) * cubeHalfExtent);
+            var controlOffsetY = (float) (AtelierStationFluidEffectTuning.SUPPLY_CONTROL_BASE_HEIGHT
+                    + (random.nextDouble() * 2.0d - 1.0d) * cubeHalfExtent);
+            var spinOffset = random.nextFloat() * 360.0f;
+            var spinSpeed = 20.0f + random.nextFloat() * 10.0f;
+            orbs.add(new AtelierStationFluidEffectPacket.SupplyOrbData(
+                    controlOffsetX,
+                    controlOffsetY,
+                    controlOffsetZ,
+                    index,
+                    AtelierStationFluidEffectTuning.SUPPLY_TOTAL_TICKS,
+                    spinOffset,
+                    spinSpeed
+            ));
+        }
+        return orbs;
     }
 
     private void markUpdated() {

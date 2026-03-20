@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
@@ -9,8 +10,10 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookP
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -79,6 +82,13 @@ public final class Networks {
                 SenseEvilHighlightsPacket::decode,
                 SenseEvilHighlightsPacket::handle
         );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                AtelierStationFluidEffectPacket.class,
+                AtelierStationFluidEffectPacket::encode,
+                AtelierStationFluidEffectPacket::decode,
+                AtelierStationFluidEffectPacket::handle
+        );
     }
 
     public static void sendToPlayer(ServerPlayer serverPlayer, Object packet) {
@@ -87,6 +97,15 @@ public final class Networks {
 
     public static void sendToTrackingEntityAndSelf(Entity entity, Object packet) {
         CHANNEL.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity), packet);
+    }
+
+    public static void sendToPlayersNear(ServerLevel level, Vec3 center, double radius, Object packet) {
+        var radiusSqr = radius * radius;
+        for (var player : level.players()) {
+            if (player.distanceToSqr(center) <= radiusSqr) {
+                sendToPlayer(player, packet);
+            }
+        }
     }
 
     public static void sendToServer(Object packet) {
