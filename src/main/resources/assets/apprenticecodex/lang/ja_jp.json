@@ -148,6 +148,7 @@
   "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの神秘",
   "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
   "block.apprenticecodex.spellcaster_workbench" : "魔術師の作業台",
+  "block.apprenticecodex.atelier_station" : "アトリエステーション",
 
   "block.apprenticecodex.arcanum_in_a_jar.fill": "中で粉が神秘的に舞っている",
 
@@ -183,6 +184,9 @@
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
   "container.apprenticecodex.spellcaster_workbench": "魔術師の作業台",
   "container.apprenticecodex.ender_grimoire_inscription": "エンダーグリモア",
+  "container.apprenticecodex.atelier_station": "アトリエステーション",
+  "container.apprenticecodex.atelier_station.filter": "抽出対象",
+  "container.apprenticecodex.atelier_station.flask": "フラスコ置き場",
 
   "spell.apprenticecodex.sky_edge": "スカイエッジ",
   "spell.apprenticecodex.archer_multiple": "アーチャーオプション",
