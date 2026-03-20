@@ -20,20 +20,20 @@ public class ExplorersCaneRenderer extends GeoItemRenderer<ExplorersCane> {
     @Override
     public void renderRecursively(PoseStack poseStack, ExplorersCane animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         if (isBoneOrChildOf(bone, COMPASS_CUBE_BONE)) {
             // compass_cube は常時発光表示し、アイテム glint を乗せない。
             var cubeBuffer = bufferSource.getBuffer(renderType);
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, cubeBuffer, isReRender, partialTick,
-                    LightTexture.FULL_BRIGHT, packedOverlay, red, green, blue, alpha
+                    LightTexture.FULL_BRIGHT, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 

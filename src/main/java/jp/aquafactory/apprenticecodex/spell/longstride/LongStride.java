@@ -85,7 +85,7 @@ public class LongStride extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundEvents.TRIDENT_RIPTIDE_1);
+        return Optional.of(SoundEvents.TRIDENT_RIPTIDE_1.value());
     }
 
     @Override
