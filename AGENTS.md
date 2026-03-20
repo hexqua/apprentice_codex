@@ -122,6 +122,12 @@ Get-ChildItem build\libs\*.jar
 - 対策: 日本語を含むファイルをターミナルで読む前に、`[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)` を設定し、`Get-Content -Encoding UTF8` を使用する。
 - 対策: PowerShell 5.1 で `Set-Content` / `Out-File` の既定エンコーディング書き込みは使わない（BOM付与や文字化け混入の原因になる）。
 - 対策: シェル経由で保存が必要な場合は UTF-8 BOM なしを明示する（例: `[System.IO.File]::WriteAllText($path, $text, [System.Text.UTF8Encoding]::new($false))`）。
+- 対策: Python スクリプトが UTF-8 の skill / Markdown を読む場合、Windows 既定の `cp932` で `UnicodeDecodeError` になることがある。`quick_validate.py` などを実行するときは `PYTHONUTF8=1` を付けて UTF-8 モードで実行する。
+- 例:
+```powershell
+$env:PYTHONUTF8='1'
+python C:\Users\hexqu\.codex\skills\.system\skill-creator\scripts\quick_validate.py .codex/skills/forward-port-1-21-1
+```
 - 対策: 編集は必要最小限の差分に限定し、ファイル全体の再書き込みや無関係なコメント整理を行わない。
 - 対策: 文字化けした表示（例: `縺` など）が出た状態では編集を続行しない。UTF-8指定で再読込して正常表示を確認してから編集する。
 - 対策: 変更後は `git diff` を確認し、依頼範囲外コメントの削除と日本語の文字化け差分があれば修正してから完了とする。

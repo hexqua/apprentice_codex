@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
+import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
@@ -145,6 +146,8 @@ public final class ItemRegistry {
             ITEMS.register("gold_spell_amplifier", GoldSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> PHOTON_SIPHON =
             ITEMS.register("photon_siphon", PhotonSiphon::new);
+    public static final DeferredHolder<Item, Item> EXPLORERS_CANE =
+            ITEMS.register("explorers_cane", ExplorersCane::new);
     public static final DeferredHolder<Item, Item> GRIMOIRE_MANIFEST =
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =

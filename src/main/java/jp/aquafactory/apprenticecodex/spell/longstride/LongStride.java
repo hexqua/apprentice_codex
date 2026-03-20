@@ -1,0 +1,123 @@
+package jp.aquafactory.apprenticecodex.spell.longstride;
+
+import io.redspace.ironsspellbooks.api.config.DefaultConfig;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Optional;
+
+public class LongStride extends AbstractSpell {
+    private static final int EFFECT_REFRESH_TICKS = 5;
+    private static final int SPELL_POWER_PER_MOVE_SPEED_STAGE = 75;
+
+    private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "long_stride");
+
+    private final DefaultConfig config = new DefaultConfig()
+            .setMinRarity(SpellRarity.RARE)
+            .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
+            .setMaxLevel(3)
+            .setCooldownSeconds(12)
+            .build();
+
+    public LongStride() {
+        baseSpellPower = 100;
+        spellPowerPerLevel = 50;
+        baseManaCost = 10;
+        manaCostPerLevel = 2;
+        castTime = 20 * 60;
+    }
+
+    @Override
+    public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
+        return List.of(
+                Component.translatable("ui.apprenticecodex.move_speed_bonus", getMoveSpeedBonusPercent(spellLevel, caster))
+        );
+    }
+
+    @Override
+    public int getEffectiveCastTime(int spellLevel, LivingEntity entity) {
+        // 詠唱時間短縮による延長は乗らない.
+        return getCastTime(spellLevel);
+    }
+
+    private int getMobEffectAmplifier(int spellLevel, LivingEntity caster) {
+        var stagedBonus = Math.round((getSpellPower(spellLevel, caster) - 100.0f) / SPELL_POWER_PER_MOVE_SPEED_STAGE);
+        return Math.max(0, Math.min(2, stagedBonus));
+    }
+
+    private int getMoveSpeedBonusPercent(int spellLevel, LivingEntity caster) {
+        var amplifier = getMobEffectAmplifier(spellLevel, caster);
+        return (int) Math.round(100.0 * 0.05 * (amplifier + 1));
+    }
+
+    @Override
+    public ResourceLocation getSpellResource() {
+        return spellId;
+    }
+
+    @Override
+    public DefaultConfig getDefaultConfig() {
+        return config;
+    }
+
+    @Override
+    public CastType getCastType() {
+        return CastType.CONTINUOUS;
+    }
+
+    @Override
+    public Optional<SoundEvent> getCastStartSound() {
+        return Optional.of(SoundEvents.CAMEL_DASH);
+    }
+
+    @Override
+    public Optional<SoundEvent> getCastFinishSound() {
+        return Optional.empty();
+    }
+
+    @Override
+    public AnimationHolder getCastStartAnimation() {
+        return SpellAnimations.ANIMATION_CONTINUOUS_OVERHEAD;
+    }
+
+    @Override
+    public AnimationHolder getCastFinishAnimation() {
+        return AnimationHolder.none();
+    }
+
+    @Override
+    public void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        entity.addEffect(new MobEffectInstance(
+                EffectRegistry.LONG_STRIDE_MOBILITY,
+                EFFECT_REFRESH_TICKS,
+                getMobEffectAmplifier(spellLevel, entity),
+                false,
+                true,
+                true
+        ));
+        super.onServerCastTick(level, spellLevel, entity, playerMagicData);
+    }
+
+    @Override
+    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+}

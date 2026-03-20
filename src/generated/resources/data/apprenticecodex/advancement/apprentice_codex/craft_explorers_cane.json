@@ -1,0 +1,44 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_explorers_cane": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:explorers_cane"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.description"
+    },
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [
+            {
+              "id": "apprenticecodex:long_stride",
+              "index": 0,
+              "level": 1,
+              "locked": true
+            }
+          ],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:explorers_cane"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_explorers_cane"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

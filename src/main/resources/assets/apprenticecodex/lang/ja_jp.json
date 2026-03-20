@@ -34,6 +34,7 @@
   "item.apprenticecodex.photon_siphon": "フォトンサイフォン",
   "item.apprenticecodex.crystal_bladed_staff": "刃の結晶杖",
   "item.apprenticecodex.reflectcast_shield": "反射詠唱の盾",
+  "item.apprenticecodex.explorers_cane": "探索者のステッキ",
 
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
@@ -61,6 +62,9 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- 特に無し",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "レア以下",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "エピック以上",
+
+  "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
+  "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "この杖は盾を優先的に使用できる。",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
@@ -200,6 +204,7 @@
   "spell.apprenticecodex.remote_eye": "リモートアイ",
   "spell.apprenticecodex.sense_evil": "センスイービル",
   "spell.apprenticecodex.deep_sensor": "ディープセンサー",
+  "spell.apprenticecodex.long_stride": "ロングストライド",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -236,6 +241,7 @@
   "spell.apprenticecodex.remote_eye.guide": "視覚を切り離し、一定時間自由に視線を移動させられる。壁を抜けることはできず、効果時間中は無防備。",
   "spell.apprenticecodex.sense_evil.guide": "周囲の不浄な存在を感知して術者の視界に表示する。視線が通っていなくても感知することができ、その不浄な存在を生み出す装置も感知する。",
   "spell.apprenticecodex.deep_sensor.guide": "一定時間、深淵のもの特有の音に関する知覚を得る。",
+  "spell.apprenticecodex.long_stride.guide": "詠唱中、速く歩くことができ、多少の段差なら乗り越えられるようになる。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
@@ -254,6 +260,7 @@
   "ui.apprenticecodex.looting_level": "ドロップ増加レベル: %d",
   "ui.apprenticecodex.duplicate_drop_chance": "追加ドロップ確率: %d%%",
   "ui.apprenticecodex.collect_cost_mana": "アイテム回収時消費マナ: %d",
+  "ui.apprenticecodex.move_speed_bonus": "%d%% 移動速度上昇",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -282,12 +289,14 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
+  "effect.apprenticecodex.long_stride_mobility": "長距離歩法",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",
   "effect.apprenticecodex.phalanx_stance": "ファランクススタンス",
   "effect.apprenticecodex.thermal_processing": "熱加工",
   "effect.apprenticecodex.sense_sensor": "センスセンサー",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
+  "effect.apprenticecodex.long_stride_mobility.description": "詠唱中の移動を補助し、1ブロック程度の段差を乗り越えやすくする。",
   "effect.apprenticecodex.palette_reception.description": "次にパステルスタッフで振るった魔力で杖を染める。",
   "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。特殊な装備で移動速度も上昇する。",
   "effect.apprenticecodex.thermal_processing.description": "熱加工を受けている状態。レベルが進行すると強力なデバフとダメージが発生し続ける。",
@@ -359,6 +368,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_absorption_amplify_amulet.description": "衝撃吸収増強のネックレスを作る",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.title": "魔法を手に入れる魔法がない",
   "advancements.apprenticecodex.apprentice_codex.craft_explorers_codex.description": "探索者の写本を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.title": "歩いてこそ見える景色",
+  "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.description": "探索者のステッキを作る",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.title": "さすがはお兄様です！",
   "advancements.apprenticecodex.apprentice_codex.craft_iron_spellcaster_gun.description": "鉄の速射型魔術銃を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_copper_spellcaster_gun.title": "電光石火",

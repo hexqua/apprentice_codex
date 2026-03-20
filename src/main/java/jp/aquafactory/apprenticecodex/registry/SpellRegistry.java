@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunner;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
+import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
@@ -70,6 +71,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> AUTO_MAGNET = reg("auto_magnet", AutoMagnet::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> REMOTE_EYE = reg("remote_eye", RemoteEye::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_SLASH = reg("mana_slash", ManaSlash::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> LONG_STRIDE = reg("long_stride", LongStride::new);
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);

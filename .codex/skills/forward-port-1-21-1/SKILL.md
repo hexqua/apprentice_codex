@@ -28,6 +28,7 @@ description: Forward-port tasks from the `main` branch (Minecraft 1.20.1) to `1.
 
 - 削除・改名・出力パス変更・旧書式からの移行がある場合は、`runData` の前に影響する generated JSON を明示削除する。
 - `src/generated/resources/.cache` は Git 管理外なので、`runData` だけでは古い JSON が消えない前提で扱う。
+- `src/main/resources/data` 配下の手置き datapack JSON は datagen では直らない。custom recipe などを port する場合は、1.21.1 側の配置規約との差分も別途確認する。
 - 削除範囲の判断基準は `references/generated-cleanup.md` を使う。
 
 ### 3. 1.21.1 差分を確認する
@@ -40,6 +41,7 @@ description: Forward-port tasks from the `main` branch (Minecraft 1.20.1) to `1.
 ### 4. 検証する
 
 - `./gradlew.bat runData` 後に `git diff --name-status -- src/generated/resources` を確認し、不要 JSON の削除漏れを見逃さない。
+- custom recipe など手置き JSON を動かした場合は、`src/main/resources/data` と `build/resources/main/data` の両方に旧配置が残っていないことを確認する。
 - 必要に応じて `rg -n "forge:conditions|canApplyAtEnchantingTable|isBookEnchantable|supportsEnchantment|isValidRepairItem" src/generated/resources` を実行し、1.20.1 前提が残っていないか確認する。
 - 最後に `./gradlew.bat build` を成功させる。
 
