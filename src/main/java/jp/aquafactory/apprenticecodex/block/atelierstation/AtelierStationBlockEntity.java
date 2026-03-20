@@ -14,6 +14,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -23,6 +24,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +48,8 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     private static final String STORED_AMOUNT_TAG = "Amount";
     private static final int SCAN_INTERVAL_TICKS = 20;
     private static final int SCAN_RADIUS = 2;
+    private static final double PLAYER_SUPPLY_RANGE = 8.0D;
+    private static final int EXPORT_PHASE_OFFSET_TICKS = 10;
 
     private final ItemStackHandler flaskInventory = new ItemStackHandler(FLASK_SLOT_COUNT) {
         @Override
@@ -176,15 +181,34 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             return;
         }
 
-        if (serverLevel.getGameTime() % SCAN_INTERVAL_TICKS != 0L) {
-            return;
+        var changed = false;
+        if (blockEntity.shouldRunCollectionTick(serverLevel)
+                && blockEntity.hasAnyFilterConfigured()
+                && blockEntity.storedFluidAmount < MAX_STORED_FLUID_AMOUNT) {
+            changed |= blockEntity.collectFromNearbyCauldrons(serverLevel);
+        }
+        if (blockEntity.shouldRunExportTick(serverLevel)) {
+            changed |= blockEntity.exportToFlaskStorage(serverLevel);
+            changed |= blockEntity.supplyNearestPlayer(serverLevel, state);
         }
 
-        if (!blockEntity.hasAnyFilterConfigured() || blockEntity.storedFluidAmount >= MAX_STORED_FLUID_AMOUNT) {
-            return;
+        if (changed) {
+            blockEntity.markUpdated();
         }
+    }
 
-        blockEntity.collectFromNearbyCauldrons(serverLevel);
+    private boolean shouldRunCollectionTick(ServerLevel level) {
+        return isScheduledPhase(level.getGameTime(), 0);
+    }
+
+    private boolean shouldRunExportTick(ServerLevel level) {
+        return isScheduledPhase(level.getGameTime(), EXPORT_PHASE_OFFSET_TICKS);
+    }
+
+    private boolean isScheduledPhase(long gameTime, int phaseOffsetTicks) {
+        var blockPhase = Math.floorMod(Long.hashCode(worldPosition.asLong()), SCAN_INTERVAL_TICKS);
+        var scheduledPhase = Math.floorMod(blockPhase + phaseOffsetTicks, SCAN_INTERVAL_TICKS);
+        return Math.floorMod(gameTime, SCAN_INTERVAL_TICKS) == scheduledPhase;
     }
 
     @Override
@@ -268,12 +292,13 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         }
     }
 
-    private void collectFromNearbyCauldrons(ServerLevel level) {
+    private boolean collectFromNearbyCauldrons(ServerLevel level) {
+        var changed = false;
         var minPos = worldPosition.offset(-SCAN_RADIUS, -SCAN_RADIUS, -SCAN_RADIUS);
         var maxPos = worldPosition.offset(SCAN_RADIUS, SCAN_RADIUS, SCAN_RADIUS);
         for (var pos : BlockPos.betweenClosed(minPos, maxPos)) {
             if (storedFluidAmount >= MAX_STORED_FLUID_AMOUNT) {
-                return;
+                return changed;
             }
 
             if (worldPosition.equals(pos) || !level.isLoaded(pos)) {
@@ -285,43 +310,252 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                 continue;
             }
 
-            collectFromCauldron(level, cauldronTile);
+            changed |= collectFromCauldron(level, cauldronTile);
         }
+        return changed;
     }
 
-    private void collectFromCauldron(ServerLevel level, AlchemistCauldronTile cauldronTile) {
+    private boolean collectFromCauldron(ServerLevel level, AlchemistCauldronTile cauldronTile) {
         var fluidStack = cauldronTile.fluidInventory.getFluidInTank(0);
         if (fluidStack.isEmpty()) {
-            return;
+            return false;
         }
 
         // Flask と同じ代表化ルールに揃えて、表示色とフィルタ一致条件を一致させる。
         var representativeItem = SpellcastersFlask.resolveRepresentativeItem(level, fluidStack);
         if (representativeItem.isEmpty() || !matchesAnyFilter(representativeItem)) {
-            return;
+            return false;
         }
 
         var remainingCapacity = MAX_STORED_FLUID_AMOUNT - storedFluidAmount;
         var requestedAmount = normalizeFluidAmount(Math.min(remainingCapacity, fluidStack.getAmount()));
         if (requestedAmount <= 0) {
-            return;
+            return false;
         }
 
         var simulatedDrain = cauldronTile.fluidInventory.drain(requestedAmount, IFluidHandler.FluidAction.SIMULATE);
         var drainAmount = normalizeFluidAmount(simulatedDrain.getAmount());
         if (drainAmount <= 0) {
-            return;
+            return false;
         }
 
         var drained = cauldronTile.fluidInventory.drain(drainAmount, IFluidHandler.FluidAction.EXECUTE);
         var extractedAmount = normalizeFluidAmount(drained.getAmount());
         if (extractedAmount <= 0) {
-            return;
+            return false;
         }
 
         insertStoredFluid(representativeItem, extractedAmount);
         cauldronTile.setChanged();
-        markUpdated();
+        return true;
+    }
+
+    private boolean exportToFlaskStorage(ServerLevel level) {
+        var changed = false;
+
+        for (var slot = 0; slot < flaskInventory.getSlots(); ++slot) {
+            var stack = flaskInventory.getStackInSlot(slot);
+            if (stack.isEmpty() || !stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+                continue;
+            }
+
+            if (SpellcastersFlask.getStoredDoseCount(stack) <= 0) {
+                continue;
+            }
+
+            var representativeItem = SpellcastersFlask.copyFilterItem(SpellcastersFlask.getStoredItem(stack));
+            if (representativeItem.isEmpty()) {
+                continue;
+            }
+
+            changed |= fillStationFlaskFromTank(slot, representativeItem);
+        }
+
+        for (var slot = 0; slot < flaskInventory.getSlots(); ++slot) {
+            var stack = flaskInventory.getStackInSlot(slot);
+            if (stack.isEmpty() || !stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+                continue;
+            }
+
+            if (SpellcastersFlask.getStoredDoseCount(stack) > 0) {
+                continue;
+            }
+
+            var representativeItem = getRandomStoredFluidRepresentative(level);
+            if (representativeItem.isEmpty()) {
+                break;
+            }
+
+            changed |= fillStationFlaskFromTank(slot, representativeItem);
+        }
+
+        return changed;
+    }
+
+    private boolean fillStationFlaskFromTank(int slot, ItemStack representativeItem) {
+        var stack = flaskInventory.getStackInSlot(slot);
+        if (stack.isEmpty() || representativeItem.isEmpty()) {
+            return false;
+        }
+
+        var currentDoseCount = SpellcastersFlask.getStoredDoseCount(stack);
+        var remainingCapacity = SpellcastersFlask.getMaxDoseCapacity(stack) - currentDoseCount;
+        if (remainingCapacity <= 0) {
+            return false;
+        }
+
+        var movableDoseCount = Math.min(remainingCapacity, getStoredFluidDoseCount(representativeItem));
+        if (movableDoseCount <= 0) {
+            return false;
+        }
+
+        var updatedStack = SpellcastersFlask.copyWithAddedDoses(stack, representativeItem, movableDoseCount);
+        if (updatedStack.isEmpty()) {
+            return false;
+        }
+
+        var consumedAmount = consumeStoredFluid(representativeItem, movableDoseCount * MILLIBUCKETS_PER_USE);
+        if (consumedAmount <= 0) {
+            return false;
+        }
+
+        flaskInventory.setStackInSlot(slot, updatedStack);
+        return true;
+    }
+
+    private boolean supplyNearestPlayer(ServerLevel level, BlockState state) {
+        var player = findNearestPlayer(level, state);
+        if (player == null) {
+            return false;
+        }
+
+        var changed = false;
+        var playerItems = player.getInventory().items;
+        for (var slot = 0; slot < playerItems.size(); ++slot) {
+            var stack = playerItems.get(slot);
+            if (stack.isEmpty() || !stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+                continue;
+            }
+
+            var storedDoseCount = SpellcastersFlask.getStoredDoseCount(stack);
+            if (storedDoseCount <= 0) {
+                continue;
+            }
+
+            var representativeItem = SpellcastersFlask.copyFilterItem(SpellcastersFlask.getStoredItem(stack));
+            if (representativeItem.isEmpty()) {
+                continue;
+            }
+
+            var targetStack = stack;
+            var remainingCapacity = SpellcastersFlask.getMaxDoseCapacity(targetStack) - storedDoseCount;
+            if (remainingCapacity <= 0) {
+                continue;
+            }
+
+            var tankDoseCount = Math.min(remainingCapacity, getStoredFluidDoseCount(representativeItem));
+            if (tankDoseCount > 0) {
+                var updatedStack = SpellcastersFlask.copyWithAddedDoses(targetStack, representativeItem, tankDoseCount);
+                if (!updatedStack.isEmpty()) {
+                    var consumedAmount = consumeStoredFluid(representativeItem, tankDoseCount * MILLIBUCKETS_PER_USE);
+                    if (consumedAmount > 0) {
+                        targetStack = updatedStack;
+                        remainingCapacity -= tankDoseCount;
+                        changed = true;
+                    }
+                }
+            }
+
+            if (remainingCapacity > 0) {
+                var extractedDoseCount = extractDoseCountFromStoredFlasks(representativeItem, remainingCapacity);
+                if (extractedDoseCount > 0) {
+                    var updatedStack = SpellcastersFlask.copyWithAddedDoses(targetStack, representativeItem, extractedDoseCount);
+                    if (!updatedStack.isEmpty()) {
+                        targetStack = updatedStack;
+                        changed = true;
+                    }
+                }
+            }
+
+            if (!ItemStack.matches(stack, targetStack)) {
+                playerItems.set(slot, targetStack);
+            }
+        }
+
+        if (changed) {
+            player.getInventory().setChanged();
+            if (player instanceof ServerPlayer serverPlayer) {
+                serverPlayer.containerMenu.broadcastChanges();
+            }
+        }
+
+        return changed;
+    }
+
+    @Nullable
+    private Player findNearestPlayer(ServerLevel level, BlockState state) {
+        var searchBox = createPlayerSupplyAabb(state);
+        var players = level.getEntitiesOfClass(Player.class, searchBox, player -> player.isAlive() && !player.isSpectator());
+        if (players.isEmpty()) {
+            return null;
+        }
+
+        var center = Vec3.atCenterOf(worldPosition);
+        Player nearestPlayer = null;
+        var nearestDistanceSqr = Double.MAX_VALUE;
+        for (var player : players) {
+            var distanceSqr = player.distanceToSqr(center);
+            if (distanceSqr < nearestDistanceSqr) {
+                nearestPlayer = player;
+                nearestDistanceSqr = distanceSqr;
+            }
+        }
+
+        return nearestPlayer;
+    }
+
+    private AABB createPlayerSupplyAabb(BlockState state) {
+        var facing = state.getValue(AtelierStation.FACING);
+        var center = Vec3.atCenterOf(worldPosition);
+        var minX = center.x - PLAYER_SUPPLY_RANGE * Math.abs(facing.getStepZ()) + Math.min(0.0D, facing.getStepX() * PLAYER_SUPPLY_RANGE);
+        var maxX = center.x + PLAYER_SUPPLY_RANGE * Math.abs(facing.getStepZ()) + Math.max(0.0D, facing.getStepX() * PLAYER_SUPPLY_RANGE);
+        var minZ = center.z - PLAYER_SUPPLY_RANGE * Math.abs(facing.getStepX()) + Math.min(0.0D, facing.getStepZ() * PLAYER_SUPPLY_RANGE);
+        var maxZ = center.z + PLAYER_SUPPLY_RANGE * Math.abs(facing.getStepX()) + Math.max(0.0D, facing.getStepZ() * PLAYER_SUPPLY_RANGE);
+        return new AABB(
+                minX,
+                center.y - PLAYER_SUPPLY_RANGE,
+                minZ,
+                maxX,
+                center.y + PLAYER_SUPPLY_RANGE,
+                maxZ
+        );
+    }
+
+    private int extractDoseCountFromStoredFlasks(ItemStack representativeItem, int requestedDoseCount) {
+        var remainingDoseCount = requestedDoseCount;
+        var extractedDoseCount = 0;
+        for (var slot = 0; slot < flaskInventory.getSlots() && remainingDoseCount > 0; ++slot) {
+            var stack = flaskInventory.getStackInSlot(slot);
+            if (stack.isEmpty() || SpellcastersFlask.getStoredDoseCount(stack) <= 0) {
+                continue;
+            }
+
+            if (!SpellcastersFlask.matchesStoredItem(stack, representativeItem)) {
+                continue;
+            }
+
+            var movableDoseCount = Math.min(remainingDoseCount, SpellcastersFlask.getStoredDoseCount(stack));
+            var updatedStack = SpellcastersFlask.copyAfterExtractingDoses(stack, movableDoseCount);
+            if (updatedStack.isEmpty()) {
+                continue;
+            }
+
+            flaskInventory.setStackInSlot(slot, updatedStack);
+            remainingDoseCount -= movableDoseCount;
+            extractedDoseCount += movableDoseCount;
+        }
+
+        return extractedDoseCount;
     }
 
     private boolean matchesAnyFilter(ItemStack representativeItem) {
@@ -352,6 +586,65 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
         storedFluids.add(new StoredPotionEntry(representativeItem, normalizedAmount));
         storedFluidAmount = Math.min(MAX_STORED_FLUID_AMOUNT, storedFluidAmount + normalizedAmount);
+    }
+
+    private int getStoredFluidDoseCount(ItemStack representativeItem) {
+        return getStoredFluidAmount(representativeItem) / MILLIBUCKETS_PER_USE;
+    }
+
+    private int getStoredFluidAmount(ItemStack representativeItem) {
+        if (representativeItem.isEmpty()) {
+            return 0;
+        }
+
+        for (var entry : storedFluids) {
+            if (ItemStack.isSameItemSameTags(entry.representativeItem(), representativeItem)) {
+                return entry.amountMb();
+            }
+        }
+
+        return 0;
+    }
+
+    private int consumeStoredFluid(ItemStack representativeItem, int requestedAmountMb) {
+        var normalizedAmount = normalizeFluidAmount(requestedAmountMb);
+        if (representativeItem.isEmpty() || normalizedAmount <= 0) {
+            return 0;
+        }
+
+        for (var index = 0; index < storedFluids.size(); ++index) {
+            var current = storedFluids.get(index);
+            if (!ItemStack.isSameItemSameTags(current.representativeItem(), representativeItem)) {
+                continue;
+            }
+
+            var consumedAmount = Math.min(current.amountMb(), normalizedAmount);
+            var remainingAmount = current.amountMb() - consumedAmount;
+            storedFluidAmount = Math.max(0, storedFluidAmount - consumedAmount);
+            if (remainingAmount > 0) {
+                storedFluids.set(index, new StoredPotionEntry(representativeItem, remainingAmount));
+            } else {
+                storedFluids.remove(index);
+            }
+            return consumedAmount;
+        }
+
+        return 0;
+    }
+
+    private ItemStack getRandomStoredFluidRepresentative(ServerLevel level) {
+        var candidates = new ArrayList<ItemStack>();
+        for (var entry : storedFluids) {
+            if (entry.amountMb() >= MILLIBUCKETS_PER_USE) {
+                candidates.add(entry.representativeItem());
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        return candidates.get(level.getRandom().nextInt(candidates.size())).copy();
     }
 
     private void markUpdated() {
