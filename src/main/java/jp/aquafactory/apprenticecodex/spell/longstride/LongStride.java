@@ -40,7 +40,7 @@ public class LongStride extends AbstractSpell {
     public LongStride() {
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        baseManaCost = 10;
+        baseManaCost = 12;
         manaCostPerLevel = 2;
         castTime = 20 * 60;
     }
@@ -65,7 +65,7 @@ public class LongStride extends AbstractSpell {
 
     private int getMoveSpeedBonusPercent(int spellLevel, LivingEntity caster) {
         var amplifier = getMobEffectAmplifier(spellLevel, caster);
-        return (int) Math.round(100.0 * 0.05 * (amplifier + 1));
+        return (int) Math.round(100.0 * 0.075 * (amplifier + 1));
     }
 
     @Override
@@ -85,7 +85,7 @@ public class LongStride extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundEvents.CAMEL_DASH);
+        return Optional.of(SoundEvents.TRIDENT_RIPTIDE_1.value());
     }
 
     @Override
@@ -95,7 +95,8 @@ public class LongStride extends AbstractSpell {
 
     @Override
     public AnimationHolder getCastStartAnimation() {
-        return SpellAnimations.ANIMATION_CONTINUOUS_OVERHEAD;
+        // 手元のコンパスを見せるため、意図的にモーションオフ.
+        return AnimationHolder.none();
     }
 
     @Override

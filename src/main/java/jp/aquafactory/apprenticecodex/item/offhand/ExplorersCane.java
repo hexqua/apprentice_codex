@@ -31,6 +31,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.LodestoneTracker;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RespawnAnchorBlock;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +47,7 @@ import java.util.function.Consumer;
 public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, UniqueItem {
     private static final int ENCHANTMENT_VALUE = 15;
     private static final String NETHER_PORTAL_POS_TAG = "NetherPortalPos";
+    private static final String WAS_IN_NETHER_TAG = "WasInNether";
     private static final String RESPAWN_TARGET_POS_TAG = "RespawnTargetPos";
     private static final String RESPAWN_TARGET_DIMENSION_TAG = "RespawnTargetDimension";
     private static final String LODESTONE_POS_TAG = "LodestonePos";
@@ -80,12 +82,12 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
         if (level.isClientSide() || !(entity instanceof ServerPlayer serverPlayer) || !(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if ((serverLevel.getGameTime() + slotId) % LODESTONE_VALIDATION_INTERVAL != 0L) {
-            return;
-        }
 
-        boolean changed = refreshStoredRespawnTarget(stack, serverPlayer);
-        changed |= invalidateLodestoneIfMissing(stack, serverLevel);
+        boolean changed = updateNetherPortalTarget(stack, serverPlayer);
+        if ((serverLevel.getGameTime() + slotId) % LODESTONE_VALIDATION_INTERVAL == 0L) {
+            changed |= refreshStoredRespawnTarget(stack, serverPlayer);
+            changed |= invalidateLodestoneIfMissing(stack, serverLevel);
+        }
         if (changed) {
             syncInventory(serverPlayer);
         }
@@ -189,34 +191,45 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
         return stack.get(DataComponents.LODESTONE_TRACKER) != null;
     }
 
-    public static void captureNetherPortalDestination(ServerPlayer player, @Nullable BlockPos portalPos) {
-        var resolvedPortalPos = portalPos != null ? portalPos.immutable() : findNearbyNetherPortal(player.serverLevel(), player.blockPosition());
-        boolean changed = false;
-
-        for (int i = 0; i < player.getInventory().getContainerSize(); ++i) {
-            var stack = player.getInventory().getItem(i);
-            if (!(stack.getItem() instanceof ExplorersCane)) {
-                continue;
-            }
-
-            changed |= setStoredNetherPortalPos(stack, resolvedPortalPos);
-        }
-
-        if (changed) {
-            syncInventory(player);
-        }
-    }
-
     private static void syncInventory(ServerPlayer player) {
         player.getInventory().setChanged();
         player.inventoryMenu.broadcastChanges();
     }
 
-    private static @Nullable BlockPos findNearbyNetherPortal(ServerLevel level, BlockPos origin) {
-        return level.getPortalForcer()
-                .findClosestPortalPosition(origin, true, level.getWorldBorder())
-                .map(BlockPos::immutable)
-                .orElse(null);
+    private static boolean updateNetherPortalTarget(ItemStack stack, ServerPlayer player) {
+        boolean inNether = player.serverLevel().dimension() == Level.NETHER;
+        var tag = getCustomDataTag(stack);
+        if (tag == null || !tag.contains(WAS_IN_NETHER_TAG, Tag.TAG_BYTE)) {
+            // ネザー内で新規入手した杖が現在地を入口扱いしないよう、最初は次元状態だけ合わせる。
+            return setWasInNether(stack, inNether);
+        }
+
+        boolean wasInNether = tag.getBoolean(WAS_IN_NETHER_TAG);
+        if (inNether) {
+            if (!wasInNether && player.serverLevel().getBlockState(player.blockPosition()).is(Blocks.NETHER_PORTAL)) {
+                boolean changed = setWasInNether(stack, true);
+                changed |= setStoredNetherPortalPos(stack, player.blockPosition());
+                return changed;
+            }
+
+            return false;
+        }
+
+        if (!wasInNether) {
+            return false;
+        }
+
+        return setWasInNether(stack, false);
+    }
+
+    private static boolean setWasInNether(ItemStack stack, boolean inNether) {
+        var tag = getCustomDataTag(stack);
+        if (tag != null && tag.contains(WAS_IN_NETHER_TAG, Tag.TAG_BYTE) && tag.getBoolean(WAS_IN_NETHER_TAG) == inNether) {
+            return false;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, dataTag -> dataTag.putBoolean(WAS_IN_NETHER_TAG, inNether));
+        return true;
     }
 
     private static boolean invalidateLodestoneIfMissing(ItemStack stack, ServerLevel level) {
