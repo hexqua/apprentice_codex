@@ -15,6 +15,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
@@ -316,6 +317,14 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('G', Items.GUNPOWDER)
                 .unlockedBy(getHasName(Items.GUNPOWDER), has(Items.GUNPOWDER))
                 .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, Items.TORCH, 6)
+                .pattern("A")
+                .pattern("S")
+                .define('A', ItemRegistry.ARCANE_CINDER.get())
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(ItemRegistry.ARCANE_CINDER.get()), has(ItemRegistry.ARCANE_CINDER.get()))
+                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(ItemRegistry.ARCANE_CINDER.getId().getNamespace(), "torch_from_arcane_cinder"));
 
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),

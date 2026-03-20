@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_arcane_cinder": {
+      "conditions": {
+        "items": [
+          {
+            "items": "apprenticecodex:arcane_cinder"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:torch_from_arcane_cinder"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_arcane_cinder"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:torch_from_arcane_cinder"
+    ]
+  }
+}
