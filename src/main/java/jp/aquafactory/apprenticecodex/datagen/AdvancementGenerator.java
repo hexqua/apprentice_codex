@@ -398,5 +398,18 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_spellstained_runic_tablet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.getId()))
                 .save(saver, advancementId("craft_spellstained_runic_tablet"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.SPELLCASTERS_FLASK.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_spellcasters_flask", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLCASTERS_FLASK.getId()))
+                .save(saver, advancementId("craft_spellcasters_flask"), existingFileHelper);
     }
 }

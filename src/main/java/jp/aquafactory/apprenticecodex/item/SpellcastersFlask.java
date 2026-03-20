@@ -159,7 +159,7 @@ public class SpellcastersFlask extends Item {
             for (var effect : extractedEffects) {
                 livingEntity.addEffect(scaleEffect(stack, effect));
             }
-            decrementDoseAndClearIfEmpty(stack);
+            decrementStoredDoseCount(stack);
         }
 
         if (livingEntity instanceof Player player) {
@@ -266,6 +266,75 @@ public class SpellcastersFlask extends Item {
 
         var storedItem = ItemStack.of(storageTag.getCompound(STORED_ITEM_TAG));
         return storedItem.isEmpty() ? ItemStack.EMPTY : storedItem;
+    }
+
+    public static boolean canAddDoseFromItem(ItemStack flaskStack, ItemStack candidateStack) {
+        var candidateItem = normalizeAcceptedItem(candidateStack);
+        if (candidateItem.isEmpty()) {
+            return false;
+        }
+
+        var storedDoseCount = getStoredDoseCount(flaskStack);
+        if (storedDoseCount >= getMaxStoredDoseCount(flaskStack)) {
+            return false;
+        }
+
+        if (storedDoseCount <= 0) {
+            return true;
+        }
+
+        var storedItem = getStoredItem(flaskStack);
+        return !storedItem.isEmpty() && ItemStack.isSameItemSameTags(storedItem, candidateItem);
+    }
+
+    public static ItemStack copyWithAddedDose(ItemStack flaskStack, ItemStack candidateStack) {
+        if (!canAddDoseFromItem(flaskStack, candidateStack)) {
+            return ItemStack.EMPTY;
+        }
+
+        var result = flaskStack.copy();
+        var storedDoseCount = getStoredDoseCount(result);
+        setStoredState(result, normalizeAcceptedItem(candidateStack), storedDoseCount + 1);
+        return result;
+    }
+
+    public static ItemStack getTransferCraftingRemainder(ItemStack candidateStack) {
+        if (candidateStack.hasCraftingRemainingItem()) {
+            var remainder = candidateStack.getCraftingRemainingItem().copy();
+            remainder.setCount(1);
+            return remainder;
+        }
+
+        var item = candidateStack.getItem();
+        if (item instanceof PotionItem || item instanceof SimpleElixir || item instanceof FireAleItem) {
+            return new ItemStack(Items.GLASS_BOTTLE);
+        }
+
+        return ItemStack.EMPTY;
+    }
+
+    public static boolean canExtractOneDose(ItemStack flaskStack) {
+        return getStoredDoseCount(flaskStack) > 0 && !normalizeAcceptedItem(getStoredItem(flaskStack)).isEmpty();
+    }
+
+    public static ItemStack copyStoredItemForCrafting(ItemStack flaskStack) {
+        if (!canExtractOneDose(flaskStack)) {
+            return ItemStack.EMPTY;
+        }
+
+        var storedItem = getStoredItem(flaskStack).copy();
+        storedItem.setCount(1);
+        return storedItem;
+    }
+
+    public static ItemStack copyAfterExtractingOneDose(ItemStack flaskStack) {
+        if (!canExtractOneDose(flaskStack)) {
+            return ItemStack.EMPTY;
+        }
+
+        var result = flaskStack.copy();
+        decrementStoredDoseCount(result, 1);
+        return result;
     }
 
     private static int getStoredItemTintColor(ItemStack storedItem) {
@@ -445,7 +514,7 @@ public class SpellcastersFlask extends Item {
 
         var storedDoseCount = getStoredDoseCount(flaskStack);
         var storedItem = getStoredItem(flaskStack);
-        if (!storedItem.isEmpty() && !ItemStack.isSameItemSameTags(storedItem, representativeItem)) {
+        if (storedDoseCount > 0 && !storedItem.isEmpty() && !ItemStack.isSameItemSameTags(storedItem, representativeItem)) {
             return null;
         }
 
@@ -601,12 +670,7 @@ public class SpellcastersFlask extends Item {
             return;
         }
 
-        var storageTag = flaskStack.getOrCreateTagElement(STORAGE_TAG);
-        storageTag.put(STORED_ITEM_TAG, preview.representativeItem.save(new CompoundTag()));
-        storageTag.putInt(
-                STORED_DOSES_TAG,
-                Math.min(getMaxStoredDoseCount(flaskStack), getStoredDoseCount(flaskStack) + appliedDoseCount)
-        );
+        setStoredState(flaskStack, preview.representativeItem, getStoredDoseCount(flaskStack) + appliedDoseCount);
         cauldronTile.setChanged();
     }
 
@@ -616,30 +680,26 @@ public class SpellcastersFlask extends Item {
             return;
         }
 
-        decrementDoseAndClearIfEmpty(flaskStack, preview.doseCount);
+        decrementStoredDoseCount(flaskStack, preview.doseCount);
         cauldronTile.setChanged();
         if (cauldronTile.getLevel() != null) {
             cauldronTile.getLevel().playSound(null, cauldronTile.getBlockPos(), preview.fillSound, SoundSource.BLOCKS);
         }
     }
 
-    private static void decrementDoseAndClearIfEmpty(ItemStack flaskStack) {
-        decrementDoseAndClearIfEmpty(flaskStack, 1);
+    private static void decrementStoredDoseCount(ItemStack flaskStack) {
+        decrementStoredDoseCount(flaskStack, 1);
     }
 
-    private static void decrementDoseAndClearIfEmpty(ItemStack flaskStack, int consumedDoseCount) {
-        var storageTag = flaskStack.getTagElement(STORAGE_TAG);
-        if (storageTag == null) {
-            return;
-        }
-
-        var remainingDoseCount = Math.max(0, getStoredDoseCount(flaskStack) - consumedDoseCount);
-        if (remainingDoseCount <= 0) {
+    private static void decrementStoredDoseCount(ItemStack flaskStack, int consumedDoseCount) {
+        var storedItem = getStoredItem(flaskStack);
+        if (storedItem.isEmpty()) {
             flaskStack.removeTagKey(STORAGE_TAG);
             return;
         }
 
-        storageTag.putInt(STORED_DOSES_TAG, remainingDoseCount);
+        var remainingDoseCount = Math.max(0, getStoredDoseCount(flaskStack) - consumedDoseCount);
+        setStoredState(flaskStack, storedItem, remainingDoseCount);
     }
 
     private static int getRawStoredDoseCount(ItemStack stack) {
@@ -653,6 +713,21 @@ public class SpellcastersFlask extends Item {
 
     private static int getMaxStoredDoseCount(ItemStack stack) {
         return BASE_MAX_STORED_DOSES + getLargeMugLevel(stack) * LARGE_MUG_BONUS_PER_LEVEL;
+    }
+
+    private static void setStoredState(ItemStack flaskStack, ItemStack storedItem, int storedDoseCount) {
+        var normalizedItem = normalizeAcceptedItem(storedItem);
+        if (normalizedItem.isEmpty()) {
+            flaskStack.removeTagKey(STORAGE_TAG);
+            return;
+        }
+
+        var storageTag = flaskStack.getOrCreateTagElement(STORAGE_TAG);
+        storageTag.put(STORED_ITEM_TAG, normalizedItem.save(new CompoundTag()));
+        storageTag.putInt(
+                STORED_DOSES_TAG,
+                Math.max(0, Math.min(getMaxStoredDoseCount(flaskStack), storedDoseCount))
+        );
     }
 
     private static float getDrinkDurationMultiplier(ItemStack stack) {
@@ -698,13 +773,14 @@ public class SpellcastersFlask extends Item {
             return;
         }
 
-        var normalizedDoseCount = getStoredDoseCount(stack);
-        if (normalizedDoseCount <= 0) {
+        var storedItem = getStoredItem(stack);
+        if (storedItem.isEmpty() || !isSupportedStoredItem(storedItem)) {
             stack.removeTagKey(STORAGE_TAG);
             return;
         }
 
-        if (getRawStoredDoseCount(stack) > normalizedDoseCount) {
+        var normalizedDoseCount = getStoredDoseCount(stack);
+        if (getRawStoredDoseCount(stack) != normalizedDoseCount) {
             storageTag.putInt(STORED_DOSES_TAG, normalizedDoseCount);
         }
     }
