@@ -28,6 +28,8 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                 .add(Enchantments.ALACRITY, Enchantments.TENSE);
         tag(Enchantments.EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE)
                 .add(Enchantments.SURGE, Enchantments.ATTUNEMENT, Enchantments.TRANSCENDENCE);
+        tag(Enchantments.EXCLUSIVE_RED_GLOW_ENERGY)
+                .add(Enchantments.RED_ENERGY, Enchantments.GLOW_ENERGY);
 
         tag(EnchantmentTags.NON_TREASURE)
                 .add(
@@ -38,7 +40,11 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.SURGE,
                         Enchantments.ATTUNEMENT,
                         Enchantments.WISDOM,
-                        Enchantments.PLUNDER
+                        Enchantments.PLUNDER,
+                        Enchantments.GUZZLE,
+                        Enchantments.LARGE_MUG,
+                        Enchantments.RED_ENERGY,
+                        Enchantments.GLOW_ENERGY
                 );
         tag(EnchantmentTags.TREASURE)
                 .add(Enchantments.TRANSCENDENCE);
@@ -52,7 +58,11 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.SURGE,
                         Enchantments.ATTUNEMENT,
                         Enchantments.WISDOM,
-                        Enchantments.PLUNDER
+                        Enchantments.PLUNDER,
+                        Enchantments.GUZZLE,
+                        Enchantments.LARGE_MUG,
+                        Enchantments.RED_ENERGY,
+                        Enchantments.GLOW_ENERGY
                 );
 
         tag(EnchantmentTags.ON_RANDOM_LOOT)
@@ -65,7 +75,11 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.ATTUNEMENT,
                         Enchantments.TRANSCENDENCE,
                         Enchantments.WISDOM,
-                        Enchantments.PLUNDER
+                        Enchantments.PLUNDER,
+                        Enchantments.GUZZLE,
+                        Enchantments.LARGE_MUG,
+                        Enchantments.RED_ENERGY,
+                        Enchantments.GLOW_ENERGY
                 );
     }
 }

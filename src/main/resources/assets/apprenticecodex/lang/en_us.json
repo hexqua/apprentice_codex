@@ -35,6 +35,7 @@
   "item.apprenticecodex.crystal_bladed_staff": "Crystal Bladed Staff",
   "item.apprenticecodex.reflectcast_shield": "Reflectcast Shield",
   "item.apprenticecodex.explorers_cane": "Explorer's Cane",
+  "item.apprenticecodex.spellcasters_flask": "Spellcaster's Flask",
 
   "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
@@ -91,6 +92,12 @@
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_2": "Automatically stores ammo items.",
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_3": "Can store and automatically use cartridges even without equipping.",
   "item.apprenticecodex.spellcaster_ammo_pouch.stored_amount": "Stored: %s / %s",
+
+  "item.apprenticecodex.flask_system.kind": "Kind: %s",
+  "item.apprenticecodex.flask_system.amount": "Amount: %1$d/%2$d",
+  "item.apprenticecodex.flask_system.filled_name": "%1$s (%2$s)",
+  "item.apprenticecodex.flask_system.effects": "Effects:",
+  "item.apprenticecodex.flask_system.amount_label": "Amount: ",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "It takes time to build up, and breaking it causes some of the stored essence to be lost.",
@@ -195,6 +202,10 @@
   "enchantment.apprenticecodex.transcendence": "Transcendence",
   "enchantment.apprenticecodex.wisdom": "Wisdom",
   "enchantment.apprenticecodex.plunder": "Plunder",
+  "enchantment.apprenticecodex.guzzle": "Guzzle",
+  "enchantment.apprenticecodex.large_mug": "Large Mug",
+  "enchantment.apprenticecodex.red_energy": "Red Energy",
+  "enchantment.apprenticecodex.glow_energy": "Glow Energy",
 
   "enchantment.apprenticecodex.reflux.desc": "Increases mana regeneration rate.",
   "enchantment.apprenticecodex.reservoir.desc": "Increases maximum mana.",
@@ -205,6 +216,15 @@
   "enchantment.apprenticecodex.transcendence.desc": "Only while held, increases the level of the imbued spell.",
   "enchantment.apprenticecodex.wisdom.desc": "Mobs will drop more experience when killed.",
   "enchantment.apprenticecodex.plunder.desc": "Mobs will drop more loot when killed with magic weapons.",
+  "enchantment.apprenticecodex.guzzle.desc": "Increases drink flask speed.",
+  "enchantment.apprenticecodex.large_mug.desc": "Increases capacity of flask.",
+  "enchantment.apprenticecodex.red_energy.desc": "Increases duration of effects in flask.",
+  "enchantment.apprenticecodex.glow_energy.desc": "Increases potency of effects in flask.",
+  "enchantment.apprenticecodex.plunder.desc": "Mobs will drop more loot when killed with magic weapons.",
+  "enchantment.apprenticecodex.guzzle.desc": "Increases drink flask speed.",
+  "enchantment.apprenticecodex.large_mug.desc": "Increases capacity of flask.",
+  "enchantment.apprenticecodex.red_energy.desc": "Increases duration of effects in flask.",
+  "enchantment.apprenticecodex.glow_energy.desc": "Increases potency of effects in flask.",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and keeps firing until it runs out of shots, prioritizing your chosen target or nearby enemies.",
@@ -379,5 +399,7 @@
   "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.title": "The Price and the Reward",
   "advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description": "Craft a Diamond Grandcast Spellgun",
   "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title": "Your Own Canvas",
-  "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description": "Craft a Spell-stained Runic Tablet"
+  "advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.description": "Craft a Spell-stained Runic Tablet",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "Atelier Iron",
+  "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "Craft a Spellcasters Flask"
 }

@@ -1,0 +1,29 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_spellcasters_flask": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:spellcasters_flask"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:spellcasters_flask"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_spellcasters_flask"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
