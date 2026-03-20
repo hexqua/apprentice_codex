@@ -12,7 +12,7 @@ import java.util.UUID;
 public class LongStrideMobility extends MobEffect {
     public static final double CASTING_MOVE_SPEED_BONUS = 0.85;
     public static final double STEP_HEIGHT_ADDITION = 0.6;
-    private static final double MOVE_SPEED_BONUS_PER_LEVEL = 0.05;
+    private static final double MOVE_SPEED_BONUS_PER_LEVEL = 0.075;
     private static final int MAX_AMPLIFIER = 2;
     private static final String CASTING_MOVE_SPEED_MODIFIER_ID = "af643a1d-1f2d-4677-bb7e-57dd7af7624d";
     private static final String MOVE_SPEED_MODIFIER_ID = "26d44a42-e899-41f6-9c6d-7a2ae6f68ef9";
