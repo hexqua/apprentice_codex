@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:compass"
-            ]
+            "items": "minecraft:compass"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_compass",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_compass"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:explorers_cane"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

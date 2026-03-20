@@ -106,7 +106,7 @@ public class LongStride extends AbstractSpell {
     @Override
     public void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
         entity.addEffect(new MobEffectInstance(
-                EffectRegistry.LONG_STRIDE_MOBILITY.get(),
+                EffectRegistry.LONG_STRIDE_MOBILITY,
                 EFFECT_REFRESH_TICKS,
                 getMobEffectAmplifier(spellLevel, entity),
                 false,

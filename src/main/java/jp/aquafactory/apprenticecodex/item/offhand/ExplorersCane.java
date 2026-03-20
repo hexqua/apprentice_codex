@@ -8,6 +8,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -22,20 +23,21 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
-import net.minecraft.world.item.CompassItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.LodestoneTracker;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.RespawnAnchorBlock;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
@@ -60,8 +62,8 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
                 1,
                 Rarity.RARE,
                 "explorers_cane",
-                bonus(Attributes.MOVEMENT_SPEED, 0.10D, AttributeModifier.Operation.MULTIPLY_TOTAL),
-                bonus(ForgeMod.STEP_HEIGHT_ADDITION, 0.5D, AttributeModifier.Operation.ADDITION)
+                bonus(Attributes.MOVEMENT_SPEED, 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL),
+                bonus(Attributes.STEP_HEIGHT, 0.5D, AttributeModifier.Operation.ADD_VALUE)
         );
         GeoItem.registerSyncedAnimatable(this);
     }
@@ -90,11 +92,15 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(
+            @NotNull ItemStack stack,
+            @NotNull Item.TooltipContext context,
+            @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
 
         var lodestonePos = getLodestoneTarget(stack);
+        var level = context.level();
         if (lodestonePos == null || level == null) {
             return;
         }
@@ -158,21 +164,29 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
     }
 
     public static boolean copyLodestoneData(ItemStack caneStack, ItemStack compassStack) {
-        var compassTag = compassStack.getTag();
-        var globalPos = compassTag == null ? null : CompassItem.getLodestonePosition(compassTag);
-        if (globalPos == null) {
+        var lodestoneTracker = compassStack.get(DataComponents.LODESTONE_TRACKER);
+        if (lodestoneTracker == null) {
             return false;
         }
 
-        var caneTag = caneStack.getOrCreateTag();
-        copyTagElement(compassTag, caneTag, LODESTONE_POS_TAG);
-        copyTagElement(compassTag, caneTag, LODESTONE_DIMENSION_TAG);
-        if (compassTag.contains(LODESTONE_TRACKED_TAG, Tag.TAG_BYTE)) {
-            caneTag.putBoolean(LODESTONE_TRACKED_TAG, compassTag.getBoolean(LODESTONE_TRACKED_TAG));
-        } else {
-            caneTag.putBoolean(LODESTONE_TRACKED_TAG, true);
-        }
+        CustomData.update(DataComponents.CUSTOM_DATA, caneStack, tag -> {
+            if (lodestoneTracker.target().isPresent()) {
+                var target = lodestoneTracker.target().orElseThrow();
+                tag.put(LODESTONE_POS_TAG, NbtUtils.writeBlockPos(target.pos()));
+                tag.putString(LODESTONE_DIMENSION_TAG, target.dimension().location().toString());
+                tag.putBoolean(LODESTONE_TRACKED_TAG, lodestoneTracker.tracked());
+            } else {
+                tag.remove(LODESTONE_POS_TAG);
+                tag.remove(LODESTONE_DIMENSION_TAG);
+                tag.remove(LODESTONE_TRACKED_TAG);
+            }
+        });
+        caneStack.set(DataComponents.LODESTONE_TRACKER, lodestoneTracker);
         return true;
+    }
+
+    public static boolean hasTransferableLodestoneData(ItemStack stack) {
+        return stack.get(DataComponents.LODESTONE_TRACKER) != null;
     }
 
     public static void captureNetherPortalDestination(ServerPlayer player, @Nullable BlockPos portalPos) {
@@ -200,30 +214,44 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
 
     private static @Nullable BlockPos findNearbyNetherPortal(ServerLevel level, BlockPos origin) {
         return level.getPortalForcer()
-                .findPortalAround(origin, false, level.getWorldBorder())
-                .map(rectangle -> rectangle.minCorner)
+                .findClosestPortalPosition(origin, true, level.getWorldBorder())
                 .map(BlockPos::immutable)
                 .orElse(null);
     }
 
     private static boolean invalidateLodestoneIfMissing(ItemStack stack, ServerLevel level) {
-        var lodestonePos = getLodestoneTarget(stack);
-        if (lodestonePos == null || lodestonePos.dimension() != level.dimension()) {
+        var lodestoneTracker = stack.get(DataComponents.LODESTONE_TRACKER);
+        if (lodestoneTracker == null || lodestoneTracker.target().isEmpty()) {
+            return false;
+        }
+        var lodestonePos = lodestoneTracker.target().orElseThrow();
+        if (lodestonePos.dimension() != level.dimension()) {
             return false;
         }
         if (!level.isInWorldBounds(lodestonePos.pos()) || !level.hasChunkAt(lodestonePos.pos())) {
             return false;
         }
-        if (level.getPoiManager().existsAtPosition(PoiTypes.LODESTONE, lodestonePos.pos())) {
+        var updatedTracker = lodestoneTracker.tick(level);
+        if (updatedTracker == lodestoneTracker) {
             return false;
         }
 
-        return clearLodestoneData(stack);
+        if (updatedTracker.target().isEmpty()) {
+            return clearLodestoneData(stack);
+        }
+
+        stack.set(DataComponents.LODESTONE_TRACKER, updatedTracker);
+        return true;
     }
 
     private static @Nullable GlobalPos getLodestoneTarget(ItemStack stack) {
-        var tag = stack.getTag();
-        return tag == null ? null : CompassItem.getLodestonePosition(tag);
+        var customDataTarget = getStoredLodestoneTarget(stack);
+        if (customDataTarget != null) {
+            return customDataTarget;
+        }
+
+        var lodestoneTracker = stack.get(DataComponents.LODESTONE_TRACKER);
+        return lodestoneTracker == null ? null : lodestoneTracker.target().orElse(null);
     }
 
     private static CompassTarget resolveCompassTarget(ItemStack stack, Level level) {
@@ -256,16 +284,22 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
     }
 
     private static boolean clearLodestoneData(ItemStack stack) {
-        var tag = stack.getTag();
+        boolean changed = stack.remove(DataComponents.LODESTONE_TRACKER) != null;
+        var tag = getCustomDataTag(stack);
         if (tag == null) {
-            return false;
+            return changed;
         }
 
-        boolean changed = false;
-        changed |= removeTag(tag, LODESTONE_POS_TAG);
-        changed |= removeTag(tag, LODESTONE_DIMENSION_TAG);
-        changed |= removeTag(tag, LODESTONE_TRACKED_TAG);
-        return changed;
+        if (!tag.contains(LODESTONE_POS_TAG) && !tag.contains(LODESTONE_DIMENSION_TAG) && !tag.contains(LODESTONE_TRACKED_TAG)) {
+            return changed;
+        }
+
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, dataTag -> {
+            dataTag.remove(LODESTONE_POS_TAG);
+            dataTag.remove(LODESTONE_DIMENSION_TAG);
+            dataTag.remove(LODESTONE_TRACKED_TAG);
+        });
+        return true;
     }
 
     private static boolean setStoredNetherPortalPos(ItemStack stack, @Nullable BlockPos pos) {
@@ -274,23 +308,23 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
             return false;
         }
 
-        var tag = stack.getOrCreateTag();
-        if (pos == null) {
-            tag.remove(NETHER_PORTAL_POS_TAG);
-            return true;
-        }
-
-        tag.put(NETHER_PORTAL_POS_TAG, NbtUtils.writeBlockPos(pos));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            if (pos == null) {
+                tag.remove(NETHER_PORTAL_POS_TAG);
+            } else {
+                tag.put(NETHER_PORTAL_POS_TAG, NbtUtils.writeBlockPos(pos));
+            }
+        });
         return true;
     }
 
     private static @Nullable BlockPos getStoredNetherPortalPos(ItemStack stack) {
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(NETHER_PORTAL_POS_TAG, Tag.TAG_COMPOUND)) {
+        var tag = getCustomDataTag(stack);
+        if (tag == null || !tag.contains(NETHER_PORTAL_POS_TAG, Tag.TAG_INT_ARRAY)) {
             return null;
         }
 
-        return NbtUtils.readBlockPos(tag.getCompound(NETHER_PORTAL_POS_TAG));
+        return NbtUtils.readBlockPos(tag, NETHER_PORTAL_POS_TAG).orElse(null);
     }
 
     private static boolean refreshStoredRespawnTarget(ItemStack stack, ServerPlayer player) {
@@ -328,22 +362,22 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
             return false;
         }
 
-        var tag = stack.getOrCreateTag();
-        if (target == null) {
-            tag.remove(RESPAWN_TARGET_POS_TAG);
-            tag.remove(RESPAWN_TARGET_DIMENSION_TAG);
-            return true;
-        }
-
-        tag.put(RESPAWN_TARGET_POS_TAG, NbtUtils.writeBlockPos(target.pos()));
-        tag.putString(RESPAWN_TARGET_DIMENSION_TAG, target.dimension().location().toString());
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            if (target == null) {
+                tag.remove(RESPAWN_TARGET_POS_TAG);
+                tag.remove(RESPAWN_TARGET_DIMENSION_TAG);
+            } else {
+                tag.put(RESPAWN_TARGET_POS_TAG, NbtUtils.writeBlockPos(target.pos()));
+                tag.putString(RESPAWN_TARGET_DIMENSION_TAG, target.dimension().location().toString());
+            }
+        });
         return true;
     }
 
     private static @Nullable GlobalPos getStoredRespawnTarget(ItemStack stack) {
-        var tag = stack.getTag();
+        var tag = getCustomDataTag(stack);
         if (tag == null
-                || !tag.contains(RESPAWN_TARGET_POS_TAG, Tag.TAG_COMPOUND)
+                || !tag.contains(RESPAWN_TARGET_POS_TAG, Tag.TAG_INT_ARRAY)
                 || !tag.contains(RESPAWN_TARGET_DIMENSION_TAG, Tag.TAG_STRING)) {
             return null;
         }
@@ -355,24 +389,34 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
 
         return GlobalPos.of(
                 ResourceKey.create(Registries.DIMENSION, dimensionId),
-                NbtUtils.readBlockPos(tag.getCompound(RESPAWN_TARGET_POS_TAG))
+                NbtUtils.readBlockPos(tag, RESPAWN_TARGET_POS_TAG).orElseThrow()
         );
     }
 
-    private static void copyTagElement(CompoundTag from, CompoundTag to, String key) {
-        var value = from.get(key);
-        if (value != null) {
-            to.put(key, value.copy());
+    private static @Nullable GlobalPos getStoredLodestoneTarget(ItemStack stack) {
+        var tag = getCustomDataTag(stack);
+        if (tag == null
+                || !tag.contains(LODESTONE_POS_TAG, Tag.TAG_INT_ARRAY)
+                || !tag.contains(LODESTONE_DIMENSION_TAG, Tag.TAG_STRING)) {
+            return null;
         }
+
+        var dimensionId = ResourceLocation.tryParse(tag.getString(LODESTONE_DIMENSION_TAG));
+        if (dimensionId == null) {
+            return null;
+        }
+
+        var pos = NbtUtils.readBlockPos(tag, LODESTONE_POS_TAG).orElse(null);
+        if (pos == null) {
+            return null;
+        }
+
+        return GlobalPos.of(ResourceKey.create(Registries.DIMENSION, dimensionId), pos);
     }
 
-    private static boolean removeTag(CompoundTag tag, String key) {
-        if (!tag.contains(key)) {
-            return false;
-        }
-
-        tag.remove(key);
-        return true;
+    private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
     }
 
     private record CompassTarget(@Nullable BlockPos pos, boolean spinning) {

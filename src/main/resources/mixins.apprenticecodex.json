@@ -9,7 +9,6 @@
     "ArcaneAnvilMenuMixin",
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
-    "EntityAccessor",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",
     "LivingEntityAccessor",

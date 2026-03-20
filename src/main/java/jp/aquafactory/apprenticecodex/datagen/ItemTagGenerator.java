@@ -136,7 +136,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
-                ItemRegistry.PHOTON_SIPHON.get()
+                ItemRegistry.PHOTON_SIPHON.get(),
+                ItemRegistry.EXPLORERS_CANE.get()
         );
         // spell gun 専用 enchant は offhand 補助具を巻き込まないように個別タグで分離する.
         tag(SPELL_GUN_ENCHANTABLE).add(
@@ -157,7 +158,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
-                ItemRegistry.PHOTON_SIPHON.get()
+                ItemRegistry.PHOTON_SIPHON.get(),
+                ItemRegistry.EXPLORERS_CANE.get()
         );
         // 付呪魔女防具は 1.20.1 と同様に叡智のみを許可し、専用エンチャ系タグから外す.
         tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE)

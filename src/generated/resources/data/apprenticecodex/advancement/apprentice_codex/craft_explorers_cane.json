@@ -9,17 +9,28 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:explorers_cane",
-      "nbt": "{\"irons_spellbooks:spell_container\":{data:[{id:\"apprenticecodex:long_stride\",index:0,level:1,locked:1b}],maxSpells:1,mustEquip:0b,spellWheel:1b}}"
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [
+            {
+              "id": "apprenticecodex:long_stride",
+              "index": 0,
+              "level": 1,
+              "locked": true
+            }
+          ],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:explorers_cane"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_explorers_cane.title"
     }

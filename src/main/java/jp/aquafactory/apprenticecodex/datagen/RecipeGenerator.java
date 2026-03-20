@@ -234,7 +234,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.GRAYBEARD_STAFF.get())
                 .define('S', Items.STICK)
                 .unlockedBy(getHasName(Items.COMPASS), has(Items.COMPASS))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.IRON_SPELLCASTER_GUN.get())
                 .pattern("IAE")

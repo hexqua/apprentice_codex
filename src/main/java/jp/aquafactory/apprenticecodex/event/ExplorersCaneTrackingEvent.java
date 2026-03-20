@@ -2,14 +2,13 @@ package jp.aquafactory.apprenticecodex.event;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
-import jp.aquafactory.apprenticecodex.mixin.EntityAccessor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ExplorersCaneTrackingEvent {
     private ExplorersCaneTrackingEvent() {
     }
@@ -23,7 +22,7 @@ public final class ExplorersCaneTrackingEvent {
         // ポータル由来で取得できる位置を優先し、取れないケースだけ近傍探索へフォールバックする.
         ExplorersCane.captureNetherPortalDestination(
                 serverPlayer,
-                ((EntityAccessor) serverPlayer).apprenticecodex$getPortalEntrancePos()
+                serverPlayer.portalProcess == null ? null : serverPlayer.portalProcess.getEntryPosition()
         );
     }
 }
