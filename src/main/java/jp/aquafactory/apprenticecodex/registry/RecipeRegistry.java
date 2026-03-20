@@ -4,6 +4,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCaneLodestoneBindRecipe;
+import jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe;
+import jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskTransferRecipe;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
@@ -39,6 +41,16 @@ public final class RecipeRegistry {
             RECIPE_SERIALIZERS.register(
                     "explorers_cane_lodestone_bind",
                     () -> new SimpleCraftingRecipeSerializer<>(ExplorersCaneLodestoneBindRecipe::new)
+            );
+    public static final RegistryObject<RecipeSerializer<SpellcastersFlaskTransferRecipe>> SPELLCASTERS_FLASK_TRANSFER_SERIALIZER =
+            RECIPE_SERIALIZERS.register(
+                    "spellcasters_flask_transfer",
+                    () -> new SimpleCraftingRecipeSerializer<>(SpellcastersFlaskTransferRecipe::new)
+            );
+    public static final RegistryObject<RecipeSerializer<SpellcastersFlaskExtractRecipe>> SPELLCASTERS_FLASK_EXTRACT_SERIALIZER =
+            RECIPE_SERIALIZERS.register(
+                    "spellcasters_flask_extract",
+                    () -> new SimpleCraftingRecipeSerializer<>(SpellcastersFlaskExtractRecipe::new)
             );
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<GrindRunnerRecipe>> GRIND_RUNNER_RECIPE_TYPE =
