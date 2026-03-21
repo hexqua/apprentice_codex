@@ -3,45 +3,44 @@ package jp.aquafactory.apprenticecodex.spell.quickarms;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
 
-public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunEntity> {
+public class QuickArms extends AbstractSpell {
+    private static final int LIFETIME_TICKS = 20;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "quick_arms");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.COMMON)
-            .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
-            .setMaxLevel(10)
-            .setCooldownSeconds(6)
+            .setMinRarity(SpellRarity.RARE)
+            .setSchoolResource(SchoolRegistry.EVOCATION_RESOURCE)
+            .setMaxLevel(5)
+            .setCooldownSeconds(8)
             .build();
 
     public QuickArms() {
-        super(QuickArmsHandgunEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 10;
-        manaCostPerLevel = 5;
+        spellPowerPerLevel = 30;
+        manaCostPerLevel = 15;
         baseManaCost = 30;
         castTime = 0;
     }
@@ -50,7 +49,7 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster))
+                Component.translatable("ui.apprenticecodex.sneak_damage_multiplier", getSneakPercent(spellLevel, caster))
         );
     }
 
@@ -59,40 +58,22 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.QUICK_ARMS);
     }
 
-    @Override
-    public int getActivateCount(int spellLevel, LivingEntity entity) {
-        return 2 + Math.round(2 * getSpellPower(spellLevel, entity) / 100.0f);
+    private float getOverSpellPower(int spellLevel, LivingEntity entity) {
+        return getSpellPower(spellLevel, entity) - baseSpellPower;
+    }
+
+    private int getSneakPercent(int spellLevel, LivingEntity entity) {
+        return Math.min(300, 150 + Math.round(25 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
     }
 
     @Override
-    public int getDurationTick() {
-        return 20 * 3;
-    }
-
-    @Override
-    public Optional<SoundEvent> getPreFireSound() {
-        return Optional.empty();
-    }
-    @Override
-    public Optional<SoundEvent> getPreSummonSound() {
-        return Optional.empty();
-    }
-    @Override
-    public Optional<SoundEvent> getFireSound() {
-        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
-    }
-    @Override
-    public Optional<SoundEvent> getSummonSound() {
+    public Optional<SoundEvent> getCastFinishSound() {
         return Optional.of(SoundEvents.SHULKER_TELEPORT);
     }
 
     private int getRange(){
         // ハンドガンイメージなので近距離(2チャンク程度)
         return 16 * 2;
-    }
-
-    private int getFirstDelay(){
-        return 20;
     }
 
     @Override
@@ -121,39 +102,13 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     }
 
     @Override
-    protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull QuickArmsHandgunEntity weapon) {
-        if (!weapon.canFire()){
-            if (entity instanceof ServerPlayer serverPlayer) {
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.during_standby", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
-            }
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    protected boolean onPreRecastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        return false;
-    }
-
-    @Override
-    public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer, @NotNull QuickArmsHandgunEntity weapon) {
-        return CompleteRecastTypes.RELEASE_WEAPON;
-    }
-
-    @Override
-    public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull QuickArmsHandgunEntity weapon){
-        weapon.fire(level);
-    }
-
-    @Override
-    public QuickArmsHandgunEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData){
+    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var summonWeapon = new QuickArmsHandgunEntity(EntityRegistry.QUICK_ARMS_HANDGUN.get(), level, entity);
-        summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setDamage(getDamage(spellLevel, entity), getSneakPercent(spellLevel, entity));
         summonWeapon.setRange(getRange());
-        summonWeapon.setFireStandby(getFirstDelay());
+        summonWeapon.setLifetimeTicks(LIFETIME_TICKS);
         level.addFreshEntity(summonWeapon);
-        return summonWeapon;
+        summonWeapon.fire(level);
+        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }
