@@ -46,6 +46,10 @@
   "item.apprenticecodex.enchantress_robe": "Enchantress's Robe",
   "item.apprenticecodex.enchantress_leggings": "Enchantress's Leggings",
   "item.apprenticecodex.enchantress_boots": "Enchantress's Boots",
+  "item.apprenticecodex.stealth_rune_head": "Stealth Rune's Amulet",
+  "item.apprenticecodex.stealth_rune_body": "Stealth Rune's Talisman",
+  "item.apprenticecodex.stealth_rune_leg": "Stealth Rune's Bracelet",
+  "item.apprenticecodex.stealth_rune_foot": "Stealth Rune's Anklet",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift for details.",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",
