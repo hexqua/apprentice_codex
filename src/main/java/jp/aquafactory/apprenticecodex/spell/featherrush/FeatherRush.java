@@ -51,7 +51,7 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "feather_rush");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.COMMON)
+            .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.EVOCATION_RESOURCE)
             .setMaxLevel(5)
             .setCooldownSeconds(12)
