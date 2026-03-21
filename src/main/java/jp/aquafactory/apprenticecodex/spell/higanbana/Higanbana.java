@@ -53,18 +53,18 @@ public class Higanbana extends AbstractSummonWeaponRecastSpell<HiganbanaKatanaEn
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster))
+                Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster) + 1)
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 2 + getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 1 + getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.HIGANBANA);
     }
 
     @Override
     public int getActivateCount(int spellLevel, @Nullable LivingEntity entity) {
-        return Math.min(8, Math.round(getSpellPower(spellLevel, entity) / 100.0f));
+        return Math.min(8, Math.max(1, Math.round(getSpellPower(spellLevel, entity) / 200.0f)));
     }
 
     @Override

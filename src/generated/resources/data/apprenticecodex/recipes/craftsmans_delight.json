@@ -8,13 +8,16 @@
     "I": {
       "item": "irons_spellbooks:arcane_ingot"
     },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
     "R": {
       "item": "irons_spellbooks:nature_rune"
     }
   },
   "pattern": [
-    "RI ",
-    "IDI",
+    "RID",
+    "IMI",
     " I "
   ],
   "result": {

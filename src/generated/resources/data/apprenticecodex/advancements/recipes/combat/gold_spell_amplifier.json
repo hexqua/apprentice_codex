@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_amethyst_cluster": {
+    "has_arcane_ingot": {
       "conditions": {
         "items": [
           {
             "items": [
-              "minecraft:amethyst_cluster"
+              "irons_spellbooks:arcane_ingot"
             ]
           }
         ]
@@ -22,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_amethyst_cluster",
+      "has_arcane_ingot",
       "has_the_recipe"
     ]
   ],

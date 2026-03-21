@@ -2,6 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
     "B": {
       "tag": "minecraft:buttons"
     },
@@ -11,15 +14,12 @@
     "L": {
       "item": "irons_spellbooks:lightning_bottle"
     },
-    "M": {
-      "item": "irons_spellbooks:mithril_scrap"
-    },
     "R": {
       "item": "minecraft:redstone"
     }
   },
   "pattern": [
-    "CML",
+    "CAL",
     " CR",
     " BC"
   ],

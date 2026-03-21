@@ -32,17 +32,6 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
     @Override
     public @NotNull CompletableFuture<?> run(@NotNull CachedOutput cachedOutput) {
         var recipes = List.of(
-                recipe(Items.STONE_SWORD, true, result(Items.COBBLESTONE, 2)),
-                recipe(Items.STONE_AXE, true, result(Items.COBBLESTONE, 3)),
-                recipe(Items.STONE_SHOVEL, true, result(Items.COBBLESTONE, 1)),
-                recipe(Items.IRON_SWORD, true, result(Items.IRON_INGOT, 2)),
-                recipe(Items.IRON_SHOVEL, true, result(Items.IRON_INGOT, 1)),
-                recipe(Items.IRON_AXE, true, result(Items.IRON_INGOT, 3)),
-                recipe(Items.GOLDEN_SWORD, true, result(Items.GOLD_INGOT, 2)),
-                recipe(Items.GOLDEN_AXE, true, result(Items.GOLD_INGOT, 3)),
-                recipe(Items.GOLDEN_SHOVEL, true, result(Items.GOLD_INGOT, 1)),
-                recipe(Items.BOW, true, result(Items.STRING, 3)),
-
                 recipe(Items.AMETHYST_BLOCK, result(Items.AMETHYST_SHARD, 4)),
                 recipe(Items.BONE, result(Items.BONE_MEAL, 6)),
                 recipe(Items.BLAZE_ROD, result(Items.BLAZE_POWDER, 4)),

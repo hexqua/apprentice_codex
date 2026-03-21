@@ -58,26 +58,14 @@ public final class EssenceSmokerRecipeDataGenerator implements DataProvider {
                         new ItemStack(Items.GUNPOWDER)
                 ),
                 recipe(
-                        "blaze_glowstone_to_gunpowder",
-                        Ingredient.of(Items.BLAZE_POWDER),
-                        Ingredient.of(Items.GLOWSTONE_DUST),
-                        new ItemStack(Items.GUNPOWDER)
-                ),
-                recipe(
-                        "infuse_glowstone_to_redstone",
-                        Ingredient.of(ItemRegistry.ARCANE_ESSENCE.get()),
-                        Ingredient.of(Items.GLOWSTONE_DUST),
-                        new ItemStack(Items.REDSTONE)
-                ),
-                recipe(
                         "infuse_coal_to_arcane_cinder",
-                        Ingredient.of(ItemRegistry.ARCANE_ESSENCE.get()),
+                        Ingredient.of(ItemRegistry.CINDER_ESSENCE.get()),
                         Ingredient.of(Items.COAL),
                         new ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.ARCANE_CINDER.get())
                 ),
                 recipe(
                         "infuse_charcoal_to_arcane_cinder",
-                        Ingredient.of(ItemRegistry.ARCANE_ESSENCE.get()),
+                        Ingredient.of(ItemRegistry.CINDER_ESSENCE.get()),
                         Ingredient.of(Items.CHARCOAL),
                         new ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.ARCANE_CINDER.get())
                 ),

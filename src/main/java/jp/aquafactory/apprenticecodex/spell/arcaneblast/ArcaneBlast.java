@@ -57,7 +57,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1))
         );
     }
 
@@ -66,8 +66,8 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.ARCANE_BLAST);
     }
 
-    private double getRange(){
-        return 16;
+    private double getRange(int spellLevel, LivingEntity entity){
+        return 8 * getSpellPower(spellLevel, entity) /10.0f;
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
     @Override
     @Nullable
     public Entity getHighlightEntity(@NotNull Player player, int skillLevel) {
-        return RaycastTools.raycastFromEye(player, getRange(), RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, player)).hitEntity();
+        return RaycastTools.raycastFromEye(player, getRange(skillLevel, player), RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, player)).hitEntity();
     }
 
     @Override
@@ -118,7 +118,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        var result = RaycastTools.raycastFromEye(entity, getRange(), RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, entity));
+        var result = RaycastTools.raycastFromEye(entity, getRange(spellLevel, entity), RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, entity));
         if (result.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(result.hitEntity());
             var source = CombatTools.getDamageSource(level, entity, DamageTypes.ARCANE_BLAST);

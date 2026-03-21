@@ -64,7 +64,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 0.5f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.TINY_LUMBERJACK);
     }
 
