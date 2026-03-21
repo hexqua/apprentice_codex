@@ -1,7 +1,7 @@
 {
   "type": "apprenticecodex:essence_smoker",
   "catalyst": {
-    "item": "irons_spellbooks:arcane_essence"
+    "item": "irons_spellbooks:cinder_essence"
   },
   "material": {
     "item": "minecraft:charcoal"

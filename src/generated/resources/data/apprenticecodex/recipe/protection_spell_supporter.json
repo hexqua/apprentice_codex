@@ -8,13 +8,16 @@
     "L": {
       "item": "minecraft:leather"
     },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
     "R": {
       "item": "irons_spellbooks:protection_rune"
     }
   },
   "pattern": [
     " L ",
-    "L L",
+    "LML",
     "ARA"
   ],
   "result": {
