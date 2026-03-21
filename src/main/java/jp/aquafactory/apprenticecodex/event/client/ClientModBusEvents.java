@@ -25,9 +25,11 @@ import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteMana
 import jp.aquafactory.apprenticecodex.renderer.item.CopperSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
@@ -203,6 +205,28 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+        event.registerItem(new IClientItemExtensions() {
+            private ExplorersCaneRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new ExplorersCaneRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.EXPLORERS_CANE.get());
+        event.registerItem(new IClientItemExtensions() {
+            private ReflectcastShieldRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new ReflectcastShieldRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.REFLECTCAST_SHIELD.get());
     }
 
     private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
