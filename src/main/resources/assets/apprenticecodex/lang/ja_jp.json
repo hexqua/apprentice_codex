@@ -46,6 +46,10 @@
   "item.apprenticecodex.enchantress_robe": "付呪魔女のローブ",
   "item.apprenticecodex.enchantress_leggings": "付呪魔女のズボン",
   "item.apprenticecodex.enchantress_boots": "付呪魔女の靴",
+  "item.apprenticecodex.stealth_rune_armor_head": "隠形ルーンのサークレット",
+  "item.apprenticecodex.stealth_rune_armor_body": "隠形ルーンの護符",
+  "item.apprenticecodex.stealth_rune_armor_leg": "隠形ルーンのブレスレット",
+  "item.apprenticecodex.stealth_rune_armor_foot": "隠形ルーンのアンクレット",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "シフトキーで詳細を表示",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入した魔法への特殊効果:",
@@ -69,6 +73,7 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "この杖は盾を優先的に使用できる。",
+  "item.apprenticecodex.stealth_rune_armor.desc": "この防具は透明化の効果を阻害しない。",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
   "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",
   "item.apprenticecodex.arcane_spellcaster_round.desc": "やや複雑な即時詠唱魔法用の実包",
@@ -236,7 +241,7 @@
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
   "spell.apprenticecodex.commence_fire.guide": "自身に追従する魔法のライフルを召喚する。続いて使用することで強力な射撃攻撃を行う。",
   "spell.apprenticecodex.compound_phial.guide": "その場で即座にポーションを調合して投擲する。防御力を無視するが、自分にも当たる。",
-  "spell.apprenticecodex.quick_arms.guide": "魔法のハンドガンを召喚し攻撃する。一定時間以内であれば自壊するまで連射可能。",
+  "spell.apprenticecodex.quick_arms.guide": "魔法のハンドガンを召喚すると同時に射撃する。こちらに気づいていないMobを狙うとダメージが上昇する。",
   "spell.apprenticecodex.breaching_enemy.guide": "魔法のショットガンを召喚し攻撃する。射程が短いがノックバックが非常に強力。",
   "spell.apprenticecodex.bullet_stream.guide": "魔法のガトリングガンを召喚し攻撃し続ける。ノックバックは無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.arcane_blast.guide": "魔力を対象の体内で爆破させ、自分の魔力の循環を加速させる。魔力による攻撃のため防具に阻まれないが、魔の存在に対しては無力。織物の魔術師の魔法のレプリカ。",
@@ -270,6 +275,7 @@
   "spell.apprenticecodex.long_stride.guide": "詠唱中、速く歩くことができ、多少の段差なら乗り越えられるようになる。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
+  "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
   "ui.apprenticecodex.splash_reduce": "範囲ダメージ割合: %d%%",
   "ui.apprenticecodex.start_up_time": "起動時間: %s ",
   "ui.apprenticecodex.warm_up_time": "最高速度までの時間: %s ",

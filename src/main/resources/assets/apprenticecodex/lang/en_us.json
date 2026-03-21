@@ -46,6 +46,10 @@
   "item.apprenticecodex.enchantress_robe": "Enchantress's Robe",
   "item.apprenticecodex.enchantress_leggings": "Enchantress's Leggings",
   "item.apprenticecodex.enchantress_boots": "Enchantress's Boots",
+  "item.apprenticecodex.stealth_rune_armor_head": "Stealth Runic Amulet",
+  "item.apprenticecodex.stealth_rune_armor_body": "Stealth Runic Talisman",
+  "item.apprenticecodex.stealth_rune_armor_leg": "Stealth Runic Bracelet",
+  "item.apprenticecodex.stealth_rune_armor_foot": "Stealth Runic Anklet",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift for details.",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",
@@ -69,6 +73,7 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "This staff prioritizes shield usage.",
+  "item.apprenticecodex.stealth_rune_armor.desc": "This armor dose not prevent invisibility effects.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
   "item.apprenticecodex.basic_spellcaster_round.desc": "Ammo for instant casting spells",
   "item.apprenticecodex.arcane_spellcaster_round.desc": "Ammo for slightly complex instant casting spells",
@@ -236,7 +241,7 @@
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and keeps firing until it runs out of shots, prioritizing your chosen target or nearby enemies.",
   "spell.apprenticecodex.commence_fire.guide": "Summons a magical rifle that follows you. Use it again to unleash a powerful shot.",
   "spell.apprenticecodex.compound_phial.guide": "Instantly brews a potion on the spot and hurls it. It bypasses armor, but it can hit you as well.",
-  "spell.apprenticecodex.quick_arms.guide": "Summons a magical handgun and fires. As long as you act again within a short time, you can keep firing until it self-destructs.",
+  "spell.apprenticecodex.quick_arms.guide": "Summons a magical handgun that fires immediately. It deals heavy damage to enemies not targeting you.",
   "spell.apprenticecodex.breaching_enemy.guide": "Summons a magical shotgun and fires. Its range is short, but the knockback is extremely powerful.",
   "spell.apprenticecodex.bullet_stream.guide": "Summons a magical gatling gun and keeps firing. It deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.arcane_blast.guide": "Detonates arcane power inside the target and accelerates your mana circulation. As an arcane attack, it bypasses armor, but it is powerless against demonic beings. A replica of the Weaver Mage's spell.",
@@ -270,6 +275,7 @@
   "spell.apprenticecodex.long_stride.guide": "While casting, you can move faster and can jump over small obstacles.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
+  "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
   "ui.apprenticecodex.splash_reduce": "Splash Damage Multiplier: %d%%",
   "ui.apprenticecodex.start_up_time": "Start up time: %s ",
   "ui.apprenticecodex.warm_up_time": "Max warm up time: %s ",
