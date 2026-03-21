@@ -72,7 +72,7 @@ public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpe
             ResourceLocation.withDefaultNamespace("fortune"),
             ResourceLocation.withDefaultNamespace("silk_touch")
     );
-    private static final StaffTier WEAPON_TIER = new StaffTier(5.0F, -2.4F);
+    private static final StaffTier WEAPON_TIER = new StaffTier(4.0F, -2.4F);
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_ACTIVATE = RawAnimation.begin().thenPlay("activate");
     private static final double ENTITY_REACH_BONUS = 0.5D;
