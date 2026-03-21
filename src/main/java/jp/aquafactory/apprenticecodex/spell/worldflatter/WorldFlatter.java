@@ -66,7 +66,7 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 0.5f + 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 0.5f * getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.WORLD_FLATTER);
     }
 
