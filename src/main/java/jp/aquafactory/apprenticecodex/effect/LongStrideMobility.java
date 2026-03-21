@@ -10,7 +10,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 public class LongStrideMobility extends MobEffect {
     public static final double CASTING_MOVE_SPEED_BONUS = 0.85;
     public static final double STEP_HEIGHT_ADDITION = 0.6;
-    private static final double MOVE_SPEED_BONUS_PER_LEVEL = 0.075;
+    private static final double MOVE_SPEED_BONUS_PER_LEVEL = 0.15;
     private static final int MAX_AMPLIFIER = 2;
     private static final ResourceLocation CASTING_MOVE_SPEED_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "long_stride_casting_move_speed");
