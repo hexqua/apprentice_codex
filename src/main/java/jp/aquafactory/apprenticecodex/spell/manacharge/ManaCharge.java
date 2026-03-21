@@ -37,14 +37,13 @@ public class ManaCharge extends AbstractSpell{
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
             .setSchoolResource(SchoolRegistry.HOLY_RESOURCE)
-            .setMaxLevel(1)
-            .setCooldownSeconds(30)
-            .setAllowCrafting(false)
+            .setMaxLevel(3)
+            .setCooldownSeconds(120)
             .build();
 
     public ManaCharge() {
-        baseSpellPower = 100;
-        spellPowerPerLevel = 50;
+        baseSpellPower = 50;
+        spellPowerPerLevel = 25;
         baseManaCost = 0;
         manaCostPerLevel = 0;
         castTime = 100;
