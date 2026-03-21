@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
@@ -58,6 +59,10 @@ public final class ItemRegistry {
         return ITEMS.register(id, () -> new EnchantressRobeItem(type));
     }
 
+    private static RegistryObject<Item> stealthRuneArmor(String id, ArmorItem.Type type) {
+        return ITEMS.register(id, () -> new StealthRuneArmorItem(type));
+    }
+
     public static final RegistryObject<Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
     public static final RegistryObject<Item> COMMENCE_FIRE_RIFLE = simple("commence_fire_rifle");
     public static final RegistryObject<Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
@@ -107,6 +112,14 @@ public final class ItemRegistry {
             enchantressArmor("enchantress_leggings", ArmorItem.Type.LEGGINGS);
     public static final RegistryObject<Item> ENCHANTRESS_BOOTS =
             enchantressArmor("enchantress_boots", ArmorItem.Type.BOOTS);
+    public static final RegistryObject<Item> STEALTH_RUNE_ARMOR_HEAD =
+            stealthRuneArmor("stealth_rune_armor_head", ArmorItem.Type.HELMET);
+    public static final RegistryObject<Item> STEALTH_RUNE_ARMOR_BODY =
+            stealthRuneArmor("stealth_rune_armor_body", ArmorItem.Type.CHESTPLATE);
+    public static final RegistryObject<Item> STEALTH_RUNE_ARMOR_LEG =
+            stealthRuneArmor("stealth_rune_armor_leg", ArmorItem.Type.LEGGINGS);
+    public static final RegistryObject<Item> STEALTH_RUNE_ARMOR_FOOT =
+            stealthRuneArmor("stealth_rune_armor_foot", ArmorItem.Type.BOOTS);
     public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
     public static final RegistryObject<Item> SPELLCASTER_WORKBENCH =
             block("spellcaster_workbench", BlockRegistry.SPELLCASTER_WORKBENCH);
