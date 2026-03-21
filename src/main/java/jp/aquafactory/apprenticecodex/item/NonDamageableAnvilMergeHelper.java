@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import net.minecraft.core.Holder;
-import net.minecraft.Util;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
@@ -41,7 +41,8 @@ public final class NonDamageableAnvilMergeHelper {
         var resultStack = leftStack.copy();
         var mergedEnchantments = new ItemEnchantments.Mutable(EnchantmentHelper.getEnchantmentsForCrafting(resultStack));
         var rightEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(rightStack);
-        var baseCost = leftStack.getBaseRepairCost() + rightStack.getBaseRepairCost();
+        var baseCost = leftStack.getOrDefault(DataComponents.REPAIR_COST, 0)
+                + rightStack.getOrDefault(DataComponents.REPAIR_COST, 0);
         var addedCost = 0;
         var renameCost = 0;
         var appliedAnyEnchantment = false;
@@ -83,16 +84,16 @@ public final class NonDamageableAnvilMergeHelper {
             return null;
         }
 
-        if (itemName != null && !Util.isBlank(itemName)) {
+        if (itemName != null && !itemName.isBlank()) {
             if (!itemName.equals(leftStack.getHoverName().getString())) {
                 renameCost = 1;
                 addedCost += renameCost;
-                resultStack.setHoverName(Component.literal(itemName));
+                resultStack.set(DataComponents.CUSTOM_NAME, Component.literal(itemName));
             }
-        } else if (leftStack.hasCustomHoverName()) {
+        } else if (leftStack.get(DataComponents.CUSTOM_NAME) != null) {
             renameCost = 1;
             addedCost += renameCost;
-            resultStack.resetHoverName();
+            resultStack.remove(DataComponents.CUSTOM_NAME);
         }
 
         if (addedCost <= 0) {
@@ -107,15 +108,16 @@ public final class NonDamageableAnvilMergeHelper {
             return null;
         }
 
-        var updatedRepairCost = resultStack.getBaseRepairCost();
-        if (updatedRepairCost < rightStack.getBaseRepairCost()) {
-            updatedRepairCost = rightStack.getBaseRepairCost();
+        var updatedRepairCost = resultStack.getOrDefault(DataComponents.REPAIR_COST, 0);
+        var rightRepairCost = rightStack.getOrDefault(DataComponents.REPAIR_COST, 0);
+        if (updatedRepairCost < rightRepairCost) {
+            updatedRepairCost = rightRepairCost;
         }
         if (renameCost != addedCost || renameCost == 0) {
             updatedRepairCost = AnvilMenu.calculateIncreasedRepairCost(updatedRepairCost);
         }
 
-        resultStack.setRepairCost(updatedRepairCost);
+        resultStack.set(DataComponents.REPAIR_COST, updatedRepairCost);
         EnchantmentHelper.setEnchantments(resultStack, mergedEnchantments.toImmutable());
         return new MergeResult(resultStack, totalCost, 1);
     }
