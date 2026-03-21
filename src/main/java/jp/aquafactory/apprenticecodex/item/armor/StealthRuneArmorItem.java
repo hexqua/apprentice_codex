@@ -24,7 +24,10 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -33,6 +36,7 @@ import java.util.function.Consumer;
 public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/stealth_rune_armor.png");
+    private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Type armorType;
@@ -73,6 +77,10 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "main", 0, state -> {
+            state.setAnimation(ANIM_IDLE);
+            return PlayState.CONTINUE;
+        }));
     }
 
     @Override
