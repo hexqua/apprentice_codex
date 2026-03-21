@@ -27,14 +27,14 @@ import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLight;
 import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
+import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
-import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
-import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
-import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
+import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
@@ -75,6 +75,7 @@ public final class SpellRegistry {
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> QUICK_ARMS = reg("quick_arms", QuickArms::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FEATHER_RUSH = reg("feather_rush", FeatherRush::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> PRECISION_JACK = reg("precision_jack", PrecisionJack::new);
@@ -95,11 +96,9 @@ public final class SpellRegistry {
     // 雷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SKY_EDGE = reg("sky_edge", SkyEdge::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMMENCE_FIRE = reg("commence_fire", CommenceFire::new);
-    public static final DeferredHolder<AbstractSpell, AbstractSpell> QUICK_ARMS = reg("quick_arms", QuickArms::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BREACHING_ENEMY = reg("breaching_enemy", BreachingEnemy::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BULLET_STREAM = reg("bullet_stream", BulletStream::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FLY_SWATTER = reg("fly_swatter", FlySwatter::new);
-
 
     // 自然.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);
@@ -114,4 +113,3 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MOON_LIGHT = reg("moon_light", MoonLight::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> DEEP_SENSOR = reg("deep_sensor", DeepSensor::new);
 }
-

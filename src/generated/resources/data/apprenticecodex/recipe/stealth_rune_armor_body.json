@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "irons_spellbooks:invisibility_elixir"
+  },
+  "base": {
+    "item": "minecraft:golden_chestplate"
+  },
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": true,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:stealth_rune_armor_body"
+  },
+  "template": {
+    "item": "irons_spellbooks:magic_cloth"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "irons_spellbooks:invisibility_elixir"
+  },
+  "base": {
+    "item": "minecraft:golden_leggings"
+  },
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:stealth_rune_armor_leg"
+  },
+  "template": {
+    "item": "irons_spellbooks:magic_cloth"
+  }
+}

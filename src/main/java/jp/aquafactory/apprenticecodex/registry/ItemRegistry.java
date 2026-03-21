@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
@@ -58,6 +59,10 @@ public final class ItemRegistry {
 
     private static DeferredHolder<Item, Item> enchantressArmor(String id, ArmorItem.Type type) {
         return ITEMS.register(id, () -> new EnchantressRobeItem(type));
+    }
+
+    private static DeferredHolder<Item, Item> stealthRuneArmor(String id, ArmorItem.Type type) {
+        return ITEMS.register(id, () -> new StealthRuneArmorItem(type));
     }
 
     public static final DeferredHolder<Item, Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
@@ -109,6 +114,14 @@ public final class ItemRegistry {
             enchantressArmor("enchantress_leggings", ArmorItem.Type.LEGGINGS);
     public static final DeferredHolder<Item, Item> ENCHANTRESS_BOOTS =
             enchantressArmor("enchantress_boots", ArmorItem.Type.BOOTS);
+    public static final DeferredHolder<Item, Item> STEALTH_RUNE_ARMOR_HEAD =
+            stealthRuneArmor("stealth_rune_armor_head", ArmorItem.Type.HELMET);
+    public static final DeferredHolder<Item, Item> STEALTH_RUNE_ARMOR_BODY =
+            stealthRuneArmor("stealth_rune_armor_body", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredHolder<Item, Item> STEALTH_RUNE_ARMOR_LEG =
+            stealthRuneArmor("stealth_rune_armor_leg", ArmorItem.Type.LEGGINGS);
+    public static final DeferredHolder<Item, Item> STEALTH_RUNE_ARMOR_FOOT =
+            stealthRuneArmor("stealth_rune_armor_foot", ArmorItem.Type.BOOTS);
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
     public static final DeferredHolder<Item, Item> SPELLCASTER_WORKBENCH =
             block("spellcaster_workbench", BlockRegistry.SPELLCASTER_WORKBENCH);
@@ -163,4 +176,3 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> REFLECTCAST_SHIELD =
             ITEMS.register("reflectcast_shield", ReflectcastShield::new);
 }
-

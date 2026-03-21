@@ -73,19 +73,23 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // 1.21.1 のバニラ防具 enchant は item tag 基準になったため、通常防具相当の分類へ入れる.
         tag(MINECRAFT_HEAD_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
-                ItemRegistry.ENCHANTRESS_HAT.get()
+                ItemRegistry.ENCHANTRESS_HAT.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()
         );
         tag(MINECRAFT_CHEST_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
-                ItemRegistry.ENCHANTRESS_ROBE.get()
+                ItemRegistry.ENCHANTRESS_ROBE.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get()
         );
         tag(MINECRAFT_LEG_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
-                ItemRegistry.ENCHANTRESS_LEGGINGS.get()
+                ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get()
         );
         tag(MINECRAFT_FOOT_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
-                ItemRegistry.ENCHANTRESS_BOOTS.get()
+                ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
         );
         tag(MINECRAFT_ENCHANTABLE_DURABILITY).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -96,6 +100,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
         tag(MINECRAFT_ENCHANTABLE_EQUIPPABLE).add(
@@ -106,7 +114,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
-                ItemRegistry.ENCHANTRESS_BOOTS.get()
+                ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
         );
         tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -117,6 +129,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
@@ -154,7 +170,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
-                ItemRegistry.ENCHANTRESS_BOOTS.get()
+                ItemRegistry.ENCHANTRESS_BOOTS.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
+                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
         );
         tag(OFFHAND_MAGIC_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),

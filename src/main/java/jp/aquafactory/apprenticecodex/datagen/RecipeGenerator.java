@@ -405,6 +405,46 @@ public final class RecipeGenerator extends RecipeProvider {
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()))
                 .save(recipeOutput, ItemRegistry.ENCHANTRESS_BOOTS.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(Items.GOLDEN_HELMET),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
+                .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(Items.GOLDEN_CHESTPLATE),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
+                .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_BODY.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(Items.GOLDEN_LEGGINGS),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
+                .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_LEG.getId());
+
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(Items.GOLDEN_BOOTS),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()),
+                        RecipeCategory.COMBAT,
+                        ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
+                .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.getId());
     }
 
     private void saveSpellbookCarryoverSmithingRecipe(@NotNull RecipeOutput recipeOutput) {
