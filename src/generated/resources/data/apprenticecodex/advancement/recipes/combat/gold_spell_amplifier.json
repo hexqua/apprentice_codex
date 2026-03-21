@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:arcane_ingot"
-            ]
+            "items": "irons_spellbooks:arcane_ingot"
           }
         ]
       },
@@ -22,8 +20,8 @@
   },
   "requirements": [
     [
-      "has_arcane_ingot",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_arcane_ingot"
     ]
   ],
   "rewards": {

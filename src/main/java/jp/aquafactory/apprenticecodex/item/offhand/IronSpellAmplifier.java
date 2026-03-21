@@ -11,7 +11,7 @@ public class IronSpellAmplifier extends AbstractOffhandMagicItem {
         super(
                 Rarity.COMMON,
                 "iron_spell_amplifier",
-                bonus(AttributeRegistry.MAX_MANA, 50.0, AttributeModifier.Operation.ADDITION)
+                bonus(AttributeRegistry.MAX_MANA, 50.0, AttributeModifier.Operation.ADD_VALUE)
         );
     }
 
