@@ -57,7 +57,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import net.minecraft.world.phys.Vec3;
 
-public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellContainer, UniqueItem, NonDamageableAnvilMergeItem {
     private static final String MAIN_CONTROLLER = "main";
     private static final String ACTIVATE_ANIMATION = "activate";
     private static final String VANILLA_NAMESPACE = "minecraft";
@@ -226,6 +226,11 @@ public class CrystalBladedStaff extends Item implements GeoItem, IPresetSpellCon
 
         return enchantments.keySet().stream()
                 .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+    }
+
+    @Override
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
+        return canApplyAtEnchantingTable(stack, enchantment);
     }
 
     @Override
