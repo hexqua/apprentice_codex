@@ -1,0 +1,341 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.stealth_rune_armor",
+				"texture_width": 32,
+				"texture_height": 32,
+				"visible_bounds_width": 3,
+				"visible_bounds_height": 3.5,
+				"visible_bounds_offset": [0, 1.25, 0]
+			},
+			"bones": [
+				{
+					"name": "bipedHead",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "armorHead",
+					"parent": "bipedHead",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "head1",
+					"parent": "armorHead",
+					"pivot": [0, 30.5, -4.25],
+					"cubes": [
+						{
+							"origin": [-1.5, 29, -4.5],
+							"size": [3, 3, 0.5],
+							"uv": {
+								"north": {"uv": [12, 10], "uv_size": [3, 3]}
+							}
+						}
+					]
+				},
+				{
+					"name": "head2",
+					"parent": "armorHead",
+					"pivot": [0, 28.25, 4],
+					"cubes": [
+						{
+							"origin": [-3.5, 24.75, 3.75],
+							"size": [7, 7, 0.5],
+							"uv": {
+								"south": {"uv": [0, 8], "uv_size": [7, 7]}
+							}
+						}
+					]
+				},
+				{
+					"name": "bipedBody",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "armorBody",
+					"parent": "bipedBody",
+					"pivot": [0, 24, 0]
+				},
+				{
+					"name": "body1",
+					"parent": "armorBody",
+					"pivot": [0, 20.5, -2.5],
+					"cubes": [
+						{
+							"origin": [-2.5, 18, -2.75],
+							"size": [5, 5, 0.5],
+							"uv": {
+								"north": {"uv": [8, 0], "uv_size": [5, 5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "body2",
+					"parent": "armorBody",
+					"pivot": [3, 16, 2.25],
+					"cubes": [
+						{
+							"origin": [-4, 15, 2],
+							"size": [8, 8, 0.5],
+							"uv": {
+								"south": {"uv": [0, 0], "uv_size": [8, 8]}
+							}
+						}
+					]
+				},
+				{
+					"name": "bipedRightArm",
+					"pivot": [-5, 22, 0]
+				},
+				{
+					"name": "armorRightArm",
+					"parent": "bipedRightArm",
+					"pivot": [-5, 22, 0]
+				},
+				{
+					"name": "aright1",
+					"parent": "armorRightArm",
+					"pivot": [-6, 14, 0],
+					"cubes": [
+						{
+							"origin": [-8, 13, -2],
+							"size": [4, 2, 4],
+							"inflate": 0.5,
+							"uv": {
+								"north": {"uv": [13, 0], "uv_size": [4, 2]},
+								"east": {"uv": [13, 2], "uv_size": [4, 2]},
+								"south": {"uv": [13, 4], "uv_size": [4, 2]},
+								"west": {"uv": [13, 6], "uv_size": [4, 2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "aright2",
+					"parent": "armorRightArm",
+					"pivot": [-8, 21.5, 0],
+					"cubes": [
+						{
+							"origin": [-8.25, 19, -2.5],
+							"size": [0.5, 5, 5],
+							"inflate": 0.5,
+							"uv": {
+								"east": {"uv": [8, 5], "uv_size": [5, 5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "bipedLeftArm",
+					"pivot": [5, 22, 0]
+				},
+				{
+					"name": "armorLeftArm",
+					"parent": "bipedLeftArm",
+					"pivot": [5, 22, 0]
+				},
+				{
+					"name": "aleft1",
+					"parent": "armorLeftArm",
+					"pivot": [6, 14, 0],
+					"cubes": [
+						{
+							"origin": [4, 13, -2],
+							"size": [4, 2, 4],
+							"inflate": 0.5,
+							"uv": {
+								"north": {"uv": [16, 14], "uv_size": [4, 2]},
+								"east": {"uv": [16, 16], "uv_size": [4, 2]},
+								"south": {"uv": [0, 17], "uv_size": [4, 2]},
+								"west": {"uv": [17, 0], "uv_size": [4, 2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "aleft2",
+					"parent": "armorLeftArm",
+					"pivot": [8, 21.5, 0],
+					"cubes": [
+						{
+							"origin": [7.75, 19, -2.5],
+							"size": [0.5, 5, 5],
+							"inflate": 0.5,
+							"uv": {
+								"west": {"uv": [7, 10], "uv_size": [5, 5]}
+							}
+						}
+					]
+				},
+				{
+					"name": "bipedLeftLeg",
+					"pivot": [2, 12, 0]
+				},
+				{
+					"name": "armorLeftLeg",
+					"parent": "bipedLeftLeg",
+					"pivot": [2, 12, 0]
+				},
+				{
+					"name": "lleft1",
+					"parent": "armorLeftLeg",
+					"pivot": [2, 10, 0],
+					"cubes": [
+						{
+							"origin": [0, 9, -2],
+							"size": [4, 2, 4],
+							"inflate": 0.5,
+							"uv": {
+								"north": {"uv": [13, 8], "uv_size": [4, 2]},
+								"east": {"uv": [12, 13], "uv_size": [4, 2]},
+								"south": {"uv": [0, 15], "uv_size": [4, 2]},
+								"west": {"uv": [4, 15], "uv_size": [4, 2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "lleft2",
+					"parent": "armorLeftLeg",
+					"pivot": [2, 12, 0],
+					"cubes": [
+						{
+							"origin": [3.75, 6, -1],
+							"size": [0.5, 2, 2],
+							"inflate": 0.25,
+							"uv": {
+								"west": {"uv": [20, 12], "uv_size": [2, 2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "armorLeftBoot",
+					"parent": "bipedLeftLeg",
+					"pivot": [2, 12, 0]
+				},
+				{
+					"name": "bleft1",
+					"parent": "armorLeftBoot",
+					"pivot": [2, 1.5, 0],
+					"cubes": [
+						{
+							"origin": [0, 0.5, -2],
+							"size": [4, 2, 4],
+							"inflate": 0.5,
+							"uv": {
+								"north": {"uv": [8, 15], "uv_size": [4, 2]},
+								"east": {"uv": [15, 10], "uv_size": [4, 2]},
+								"south": {"uv": [12, 15], "uv_size": [4, 2]},
+								"west": {"uv": [16, 12], "uv_size": [4, 2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "bleft2",
+					"parent": "armorLeftBoot",
+					"pivot": [1.75, 4, 0],
+					"cubes": [
+						{
+							"origin": [-0.5, 3.5, -2.25],
+							"size": [4.5, 1, 4.5],
+							"inflate": 0.25,
+							"uv": {
+								"north": {"uv": [0, 19], "uv_size": [4.5, 1]},
+								"east": {"uv": [5, 19], "uv_size": [4.5, 1]},
+								"south": {"uv": [10, 19], "uv_size": [4.5, 1]},
+								"west": {"uv": [19, 10], "uv_size": [4.5, 1]}
+							}
+						}
+					]
+				},
+				{
+					"name": "bipedRightLeg",
+					"pivot": [-2, 12, 0]
+				},
+				{
+					"name": "armorRightLeg",
+					"parent": "bipedRightLeg",
+					"pivot": [-2, 12, 0]
+				},
+				{
+					"name": "lright1",
+					"parent": "armorRightLeg",
+					"pivot": [-2, 10, 0],
+					"cubes": [
+						{
+							"origin": [-4, 9, -2],
+							"size": [4, 2, 4],
+							"inflate": 0.5,
+							"uv": {
+								"north": {"uv": [17, 2], "uv_size": [4, 2]},
+								"east": {"uv": [4, 17], "uv_size": [4, 2]},
+								"south": {"uv": [17, 4], "uv_size": [4, 2]},
+								"west": {"uv": [17, 6], "uv_size": [4, 2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "lright2",
+					"parent": "armorRightLeg",
+					"pivot": [-2, 12, 0],
+					"cubes": [
+						{
+							"origin": [-4.25, 6, -1],
+							"size": [0.5, 2, 2],
+							"inflate": 0.25,
+							"uv": {
+								"east": {"uv": [20, 14], "uv_size": [2, 2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "armorRightBoot",
+					"parent": "bipedRightLeg",
+					"pivot": [-2, 12, 0]
+				},
+				{
+					"name": "bright1",
+					"parent": "armorRightBoot",
+					"pivot": [-2, 1.5, 0],
+					"cubes": [
+						{
+							"origin": [-4, 0.5, -2],
+							"size": [4, 2, 4],
+							"inflate": 0.5,
+							"uv": {
+								"north": {"uv": [8, 17], "uv_size": [4, 2]},
+								"east": {"uv": [17, 8], "uv_size": [4, 2]},
+								"south": {"uv": [12, 17], "uv_size": [4, 2]},
+								"west": {"uv": [16, 18], "uv_size": [4, 2]}
+							}
+						}
+					]
+				},
+				{
+					"name": "bright2",
+					"parent": "armorRightBoot",
+					"pivot": [-1.75, 4, 0],
+					"cubes": [
+						{
+							"origin": [-4, 3.5, -2.25],
+							"size": [4.5, 1, 4.5],
+							"inflate": 0.25,
+							"uv": {
+								"north": {"uv": [19, 11], "uv_size": [4.5, 1]},
+								"east": {"uv": [0, 20], "uv_size": [4.5, 1]},
+								"south": {"uv": [5, 20], "uv_size": [4.5, 1]},
+								"west": {"uv": [10, 20], "uv_size": [4.5, 1]}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

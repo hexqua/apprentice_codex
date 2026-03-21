@@ -46,6 +46,10 @@
   "item.apprenticecodex.enchantress_robe": "付呪魔女のローブ",
   "item.apprenticecodex.enchantress_leggings": "付呪魔女のズボン",
   "item.apprenticecodex.enchantress_boots": "付呪魔女の靴",
+  "item.apprenticecodex.stealth_rune_head": "隠形ルーンのサークレット",
+  "item.apprenticecodex.stealth_rune_body": "隠形ルーンの護符",
+  "item.apprenticecodex.stealth_rune_leg": "隠形ルーンのブレスレット",
+  "item.apprenticecodex.stealth_rune_foot": "隠形ルーンのアンクレット",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "シフトキーで詳細を表示",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入した魔法への特殊効果:",
