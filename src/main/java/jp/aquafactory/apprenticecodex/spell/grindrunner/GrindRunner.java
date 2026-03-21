@@ -147,7 +147,8 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull GrindRunnerWheelEntity weapon) {
-        weapon.setLaunchSustainTicks(resolveCastTicks(playerMagicData) / 2);
+        var runTicks = Math.min(30, resolveCastTicks(playerMagicData) / 2);
+        weapon.setLaunchSustainTicks(runTicks);
         return CompleteCastTypes.RELEASE_WEAPON;
     }
 
