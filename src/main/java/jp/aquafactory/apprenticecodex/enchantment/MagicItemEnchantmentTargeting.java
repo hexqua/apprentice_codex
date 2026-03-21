@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import net.minecraft.world.item.Item;
 
 final class MagicItemEnchantmentTargeting {
@@ -45,7 +46,8 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedWisdomEnchantingItem(Item item) {
         return item instanceof AbstractSpellGunItem
                 || item instanceof CrystalBladedStaff
-                || item instanceof EnchantressRobeItem;
+                || item instanceof EnchantressRobeItem
+                || item instanceof StealthRuneArmorItem;
     }
 
     static boolean isSupportedHeldWisdomMagicItem(Item item) {
