@@ -154,7 +154,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         }
 
         if (targetType == RaycastTools.TargetType.LIVING_ENTITY) {
-            if(tickCount % 2 == 0){
+            if(tickCount % 3 == 0){
                 var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.TINY_LUMBERJACK);
                 var hitResult = RaycastTools.sampleBeamHits(level,
                         position(),
