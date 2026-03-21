@@ -65,7 +65,7 @@ public class LongStride extends AbstractSpell {
 
     private int getMoveSpeedBonusPercent(int spellLevel, LivingEntity caster) {
         var amplifier = getMobEffectAmplifier(spellLevel, caster);
-        return (int) Math.round(100.0 * 0.075 * (amplifier + 1));
+        return (int) Math.round(100.0 * 0.15 * (amplifier + 1));
     }
 
     @Override

@@ -5,13 +5,16 @@
     "I": {
       "item": "irons_spellbooks:arcane_ingot"
     },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
     "V": {
       "item": "irons_spellbooks:blood_vial"
     }
   },
   "pattern": [
     "VI ",
-    "I I",
+    "IMI",
     " I "
   ],
   "result": {
