@@ -7,7 +7,8 @@
     "item": "minecraft:golden_leggings"
   },
   "result": {
-    "item": "apprenticecodex:stealth_rune_armor_leg"
+    "count": 1,
+    "id": "apprenticecodex:stealth_rune_armor_leg"
   },
   "template": {
     "item": "irons_spellbooks:magic_cloth"

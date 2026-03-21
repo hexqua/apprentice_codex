@@ -414,7 +414,7 @@ public final class RecipeGenerator extends RecipeProvider {
                         ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
-                .save(recipeWriter, ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.getId());
+                .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.getId());
 
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
@@ -424,7 +424,7 @@ public final class RecipeGenerator extends RecipeProvider {
                         ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get()
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
-                .save(recipeWriter, ItemRegistry.STEALTH_RUNE_ARMOR_BODY.getId());
+                .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_BODY.getId());
 
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
@@ -434,7 +434,7 @@ public final class RecipeGenerator extends RecipeProvider {
                         ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get()
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
-                .save(recipeWriter, ItemRegistry.STEALTH_RUNE_ARMOR_LEG.getId());
+                .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_LEG.getId());
 
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),

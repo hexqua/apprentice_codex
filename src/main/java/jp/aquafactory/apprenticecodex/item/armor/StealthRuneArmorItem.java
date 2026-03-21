@@ -1,62 +1,52 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.armor.StealthRuneArmorRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
-    private static final ResourceLocation ARMOR_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/stealth_rune_armor.png");
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Type armorType;
-    private final Multimap<Attribute, AttributeModifier> armorAttributeModifiers;
+    private final ItemAttributeModifiers armorAttributeModifiers;
 
     public StealthRuneArmorItem(Type type) {
-        super(StealthRuneArmorStats.MATERIAL, type, new Properties());
-        this.armorType = type;
+        super(Holder.direct(StealthRuneArmorStats.MATERIAL), type, StealthRuneArmorStats.createProperties(type));
         this.armorAttributeModifiers = StealthRuneArmorStats.createAttributeModifiers(type);
         GeoItem.registerSyncedAnimatable(this);
     }
 
     public boolean hasImbueSlot() {
-        return armorType == Type.CHESTPLATE;
+        return getType() == Type.CHESTPLATE;
     }
 
     public static boolean isStealthRuneArmor(ItemStack stack) {
@@ -64,27 +54,29 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private GeoArmorRenderer<?> renderer;
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private StealthRuneArmorRenderer renderer;
 
             @Override
-            public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack,
-                                                                   EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
-                if (renderer == null) {
-                    renderer = new StealthRuneArmorRenderer();
+            public <T extends LivingEntity> HumanoidModel<?> getGeoArmorRenderer(
+                    @Nullable T livingEntity,
+                    ItemStack itemStack,
+                    @Nullable EquipmentSlot equipmentSlot,
+                    @Nullable HumanoidModel<T> original
+            ) {
+                if (this.renderer == null) {
+                    this.renderer = new StealthRuneArmorRenderer();
                 }
-
-                renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
-                return renderer;
+                return this.renderer;
             }
         });
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "main", 0, state -> {
-            state.setAnimation(ANIM_IDLE);
+        controllers.add(new AnimationController<>(this, "main", state -> {
+            state.getController().setAnimation(ANIM_IDLE);
             return PlayState.CONTINUE;
         }));
     }
@@ -100,22 +92,35 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
     }
 
     @Override
-    public boolean isEnchantable(@NotNull ItemStack stack) {
-        return getEnchantmentValue(stack) > 0;
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var baseModifiers = super.getDefaultAttributeModifiers(stack);
+        if (armorAttributeModifiers.modifiers().isEmpty()) {
+            return baseModifiers;
+        }
+
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : baseModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+        for (var entry : armorAttributeModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+        return builder.build();
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
-            return false;
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
         }
 
-        if (ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
-            return isSupportedArmorEnchantment(enchantment);
-        }
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        return enchantmentId != null && isSupportedArmorEnchantment(enchantmentId);
+    }
 
-        return enchantment.canApplyAtEnchantingTable(createArmorProbeStack());
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -124,26 +129,12 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
-        return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
-    }
-
-    @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != armorType.getSlot() || armorAttributeModifiers.isEmpty()) {
-            return baseModifiers;
-        }
-
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(baseModifiers);
-        builder.putAll(armorAttributeModifiers);
-        return builder.build();
+        return enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
@@ -153,20 +144,14 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
 
     @Override
     public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
-        return false;
+        return StealthRuneArmorStats.isRepairIngredient(repair) || super.isValidRepairItem(toRepair, repair);
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable("item." + ApprenticeCodex.MODID + ".stealth_rune_armor.desc")
                 .withStyle(ChatFormatting.GRAY));
-    }
-
-    @Override
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        // GeoArmor とは別に vanilla の問い合わせも来るため、既存テクスチャへ明示解決して警告を避ける.
-        return ARMOR_TEXTURE.toString();
     }
 
     @Override
@@ -174,16 +159,7 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         return cache;
     }
 
-    private boolean isSupportedArmorEnchantment(Enchantment enchantment) {
-        return EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
-    }
-
-    private ItemStack createArmorProbeStack() {
-        return switch (armorType) {
-            case HELMET -> new ItemStack(Items.LEATHER_HELMET);
-            case CHESTPLATE -> new ItemStack(Items.LEATHER_CHESTPLATE);
-            case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
-            case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
-        };
+    private static boolean isSupportedArmorEnchantment(ResourceLocation enchantmentId) {
+        return enchantmentId.equals(Enchantments.WISDOM.location());
     }
 }

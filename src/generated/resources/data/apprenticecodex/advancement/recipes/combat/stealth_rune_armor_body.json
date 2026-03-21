@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:invisibility_elixir"
-            ]
+            "items": "irons_spellbooks:invisibility_elixir"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_invisibility_elixir",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_invisibility_elixir"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:stealth_rune_armor_body"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

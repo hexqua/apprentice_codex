@@ -7,7 +7,8 @@
     "item": "minecraft:golden_helmet"
   },
   "result": {
-    "item": "apprenticecodex:stealth_rune_armor_head"
+    "count": 1,
+    "id": "apprenticecodex:stealth_rune_armor_head"
   },
   "template": {
     "item": "irons_spellbooks:magic_cloth"
