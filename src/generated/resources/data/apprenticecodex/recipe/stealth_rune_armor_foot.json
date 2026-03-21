@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "irons_spellbooks:invisibility_elixir"
+  },
+  "base": {
+    "item": "minecraft:golden_boots"
+  },
+  "result": {
+    "item": "apprenticecodex:stealth_rune_armor_foot"
+  },
+  "template": {
+    "item": "irons_spellbooks:magic_cloth"
+  }
+}

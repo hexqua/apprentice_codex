@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_invisibility_elixir": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "irons_spellbooks:invisibility_elixir"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:stealth_rune_armor_head"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_invisibility_elixir",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:stealth_rune_armor_head"
+    ]
+  },
+  "sends_telemetry_event": false
+}
