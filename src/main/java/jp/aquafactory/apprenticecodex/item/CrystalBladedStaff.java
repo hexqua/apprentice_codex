@@ -57,7 +57,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 
-public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem {
+public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpellContainer, UniqueItem, NonDamageableAnvilMergeItem {
     private static final String MAIN_CONTROLLER = "main";
     private static final String ACTIVATE_ANIMATION = "activate";
     private static final ResourceLocation ENTITY_REACH_MODIFIER_ID =
@@ -210,6 +210,11 @@ public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpe
         }
 
         return enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
+    }
+
+    @Override
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
+        return supportsEnchantment(stack, enchantment);
     }
 
     @Override
