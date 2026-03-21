@@ -720,7 +720,7 @@ public class SpellcastersFlask extends Item {
         sampleFluid.setAmount(MILLIBUCKETS_PER_DOSE);
 
         for (var recipe : level.getRecipeManager().getAllRecipesFor(RecipeRegistry.ALCHEMIST_CAULDRON_FILL_TYPE.get())) {
-            if (!recipe.value().result().isFluidStackIdentical(sampleFluid)) {
+            if (!FluidStack.matches(recipe.value().result(), sampleFluid)) {
                 continue;
             }
 

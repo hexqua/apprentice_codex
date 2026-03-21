@@ -3,9 +3,7 @@ package jp.aquafactory.apprenticecodex.item.offhand;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponents;
@@ -33,7 +31,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RespawnAnchorBlock;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -42,7 +39,6 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, UniqueItem {
     private static final int ENCHANTMENT_VALUE = 15;
@@ -113,22 +109,6 @@ public class ExplorersCane extends AbstractOffhandMagicItem implements GeoItem, 
                         ? "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension"
                         : "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension"
         ).withStyle(sameDimension ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private ExplorersCaneRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new ExplorersCaneRenderer();
-                }
-
-                return renderer;
-            }
-        });
     }
 
     @Override

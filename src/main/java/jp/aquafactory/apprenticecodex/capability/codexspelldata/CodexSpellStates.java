@@ -20,8 +20,8 @@ public class CodexSpellStates {
         return type;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T extends ICodexSpellState> CodexSpellStateType<T> get(ResourceLocation id) {
-        //noinspection unchecked
         return (CodexSpellStateType<T>) TYPES.get(id);
     }
 

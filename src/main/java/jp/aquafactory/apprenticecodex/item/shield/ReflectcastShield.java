@@ -1,19 +1,14 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
-import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
-
-import java.util.function.Consumer;
 
 public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem {
     private static final int ENCHANTMENT_VALUE = 1;
@@ -38,22 +33,6 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return ENCHANTMENT_VALUE;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private ReflectcastShieldRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new ReflectcastShieldRenderer();
-                }
-
-                return renderer;
-            }
-        });
     }
 
     @Override

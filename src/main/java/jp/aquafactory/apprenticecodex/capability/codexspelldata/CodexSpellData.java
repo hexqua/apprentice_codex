@@ -13,9 +13,9 @@ public class CodexSpellData {
     private final Map<ResourceLocation, ICodexSpellState> states = new HashMap<>();
     private final Set<ResourceLocation> dirty = new HashSet<>();
 
+    @SuppressWarnings("unchecked")
     public <T extends ICodexSpellState> T get(CodexSpellStateType<T> type) {
         // 必要になった時だけ生成.
-        //noinspection unchecked
         return (T) states.computeIfAbsent(type.id(), id -> type.create());
     }
 
