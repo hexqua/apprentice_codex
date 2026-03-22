@@ -2,11 +2,13 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
+import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
+import jp.aquafactory.apprenticecodex.item.AtelierStationItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
-import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
+import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -124,13 +126,15 @@ public final class ItemRegistry {
             stealthRuneArmor("stealth_rune_armor_foot", ArmorItem.Type.BOOTS);
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
     public static final DeferredHolder<Item, Item> SPELLCASTER_WORKBENCH =
-            block("spellcaster_workbench", BlockRegistry.SPELLCASTER_WORKBENCH);
+            ITEMS.register("spellcaster_workbench",
+                    () -> new SpellcasterWorkbenchItem(BlockRegistry.SPELLCASTER_WORKBENCH.get(), new Item.Properties()));
     public static final DeferredHolder<Item, Item> ARCANUM_IN_A_JAR =
             ITEMS.register("arcanum_in_a_jar",
                     () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));
     public static final DeferredHolder<Item, Item> ESSENCE_SMOKER = block("essence_smoker", BlockRegistry.ESSENCE_SMOKER);
-    public static final DeferredHolder<Item, Item> ATELIER_STATION = block("atelier_station", BlockRegistry.ATELIER_STATION);
-
+    public static final DeferredHolder<Item, Item> ATELIER_STATION =
+            ITEMS.register("atelier_station",
+                    () -> new AtelierStationItem(BlockRegistry.ATELIER_STATION.get(), new Item.Properties()));
     public static final DeferredHolder<Item, Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);
     public static final DeferredHolder<Item, Item> CRAFTSMANS_DELIGHT =
