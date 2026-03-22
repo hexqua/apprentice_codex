@@ -62,6 +62,7 @@ public class SpellcastersFlask extends Item {
     private static final String STORAGE_TAG = "SpellcastersFlask";
     private static final String STORED_ITEM_TAG = "StoredItem";
     private static final String STORED_DOSES_TAG = "StoredDoses";
+    private static final String PARTICLES_SUPPRESSED_TAG = "ParticlesSuppressed";
 
     public SpellcastersFlask() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
@@ -178,6 +179,7 @@ public class SpellcastersFlask extends Item {
 
         var storedItem = getStoredItem(stack);
         appendStoredEffectTooltips(lines, stack, storedItem);
+        appendSuppressedParticlesTooltip(lines, stack);
         lines.add(Component.empty());
         lines.add(createStoredAmountTooltipLine(stack));
     }
@@ -245,6 +247,21 @@ public class SpellcastersFlask extends Item {
 
     public static boolean isFilled(ItemStack stack) {
         return getStoredDoseCount(stack) > 0;
+    }
+
+    public static boolean isEffectParticlesSuppressed(ItemStack stack) {
+        var storageTag = stack.getTagElement(STORAGE_TAG);
+        return storageTag != null && storageTag.getBoolean(PARTICLES_SUPPRESSED_TAG);
+    }
+
+    public static @NotNull ItemStack copyWithToggledEffectParticles(@NotNull ItemStack flaskStack) {
+        if (!(flaskStack.getItem() instanceof SpellcastersFlask)) {
+            return ItemStack.EMPTY;
+        }
+
+        var result = flaskStack.copy();
+        setEffectParticlesSuppressed(result, !isEffectParticlesSuppressed(result));
+        return result;
     }
 
     public static @NotNull ItemStack copyFilterItem(@NotNull ItemStack stack) {
@@ -478,12 +495,13 @@ public class SpellcastersFlask extends Item {
                 ? originalEffect.getDuration()
                 : Math.max(1, Math.round(originalEffect.getDuration() * getEffectDurationMultiplier(flaskStack)));
         var scaledAmplifier = Math.max(0, originalEffect.getAmplifier() + getGlowEnergyLevel(flaskStack));
+        var visible = !isEffectParticlesSuppressed(flaskStack) && originalEffect.isVisible();
         return new MobEffectInstance(
                 originalEffect.getEffect(),
                 scaledDuration,
                 scaledAmplifier,
                 originalEffect.isAmbient(),
-                originalEffect.isVisible(),
+                visible,
                 originalEffect.showIcon()
         );
     }
@@ -497,6 +515,15 @@ public class SpellcastersFlask extends Item {
         lines.add(Component.translatable("item.apprenticecodex.flask_system.effects")
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
         lines.addAll(effectLines);
+    }
+
+    private static void appendSuppressedParticlesTooltip(List<Component> lines, ItemStack flaskStack) {
+        if (!isEffectParticlesSuppressed(flaskStack)) {
+            return;
+        }
+
+        lines.add(Component.translatable("item.apprenticecodex.flask_system.particles_suppressed")
+                .withStyle(ChatFormatting.GRAY));
     }
 
     private static List<Component> createStoredEffectTooltipLines(ItemStack flaskStack, ItemStack storedItem) {
@@ -798,7 +825,7 @@ public class SpellcastersFlask extends Item {
     private static void decrementStoredDoseCount(ItemStack flaskStack, int consumedDoseCount) {
         var storedItem = getStoredItem(flaskStack);
         if (storedItem.isEmpty()) {
-            flaskStack.removeTagKey(STORAGE_TAG);
+            clearStoredState(flaskStack);
             return;
         }
 
@@ -822,7 +849,7 @@ public class SpellcastersFlask extends Item {
     private static void setStoredState(ItemStack flaskStack, ItemStack storedItem, int storedDoseCount) {
         var normalizedItem = normalizeAcceptedItem(storedItem);
         if (normalizedItem.isEmpty()) {
-            flaskStack.removeTagKey(STORAGE_TAG);
+            clearStoredState(flaskStack);
             return;
         }
 
@@ -871,6 +898,38 @@ public class SpellcastersFlask extends Item {
                 || (EnchantmentRegistry.GLOW_ENERGY.isPresent() && enchantment == EnchantmentRegistry.GLOW_ENERGY.get());
     }
 
+    private static void setEffectParticlesSuppressed(ItemStack flaskStack, boolean suppressed) {
+        if (suppressed) {
+            flaskStack.getOrCreateTagElement(STORAGE_TAG).putBoolean(PARTICLES_SUPPRESSED_TAG, true);
+            return;
+        }
+
+        var storageTag = flaskStack.getTagElement(STORAGE_TAG);
+        if (storageTag == null) {
+            return;
+        }
+
+        storageTag.remove(PARTICLES_SUPPRESSED_TAG);
+        cleanupStorageTag(flaskStack, storageTag);
+    }
+
+    private static void clearStoredState(ItemStack flaskStack) {
+        var storageTag = flaskStack.getTagElement(STORAGE_TAG);
+        if (storageTag == null) {
+            return;
+        }
+
+        storageTag.remove(STORED_ITEM_TAG);
+        storageTag.remove(STORED_DOSES_TAG);
+        cleanupStorageTag(flaskStack, storageTag);
+    }
+
+    private static void cleanupStorageTag(ItemStack flaskStack, CompoundTag storageTag) {
+        if (storageTag.getAllKeys().isEmpty()) {
+            flaskStack.removeTagKey(STORAGE_TAG);
+        }
+    }
+
     private static void normalizeStoredDosesToCapacity(ItemStack stack) {
         var storageTag = stack.getTagElement(STORAGE_TAG);
         if (storageTag == null) {
@@ -879,7 +938,7 @@ public class SpellcastersFlask extends Item {
 
         var storedItem = getStoredItem(stack);
         if (storedItem.isEmpty() || !isSupportedStoredItem(storedItem)) {
-            stack.removeTagKey(STORAGE_TAG);
+            clearStoredState(stack);
             return;
         }
 

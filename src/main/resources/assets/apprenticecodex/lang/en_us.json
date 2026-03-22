@@ -104,6 +104,7 @@
   "item.apprenticecodex.flask_system.filled_name": "%1$s (%2$s)",
   "item.apprenticecodex.flask_system.effects": "Effects:",
   "item.apprenticecodex.flask_system.amount_label": "Amount: ",
+  "item.apprenticecodex.flask_system.particles_suppressed": "Effects visuals suppressed",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "Breaking it drops any finished Arcane Essence and any unused redstone.",
