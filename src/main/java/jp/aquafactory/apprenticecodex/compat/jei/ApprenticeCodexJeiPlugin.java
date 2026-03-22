@@ -3,21 +3,37 @@ package jp.aquafactory.apprenticecodex.compat.jei;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
+import io.redspace.ironsspellbooks.fluids.PotionFluid;
+import io.redspace.ironsspellbooks.jei.AlchemistCauldronJeiRecipe;
+import io.redspace.ironsspellbooks.jei.AlchemistCauldronRecipeCategory;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.recipe.vanilla.IJeiBrewingRecipe;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +52,7 @@ import java.util.Set;
 public class ApprenticeCodexJeiPlugin implements IModPlugin {
     private static final String EN_US_RESOURCE_PATH = "assets/" + ApprenticeCodex.MODID + "/lang/en_us.json";
     private static final int MAX_INFO_LINES = 32;
+    private static final List<Item> BREWING_CONTAINERS = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
 
     private static final ResourceLocation PLUGIN_UID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "jei_plugin");
@@ -66,6 +83,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(@NotNull IRecipeRegistration registration) {
+        registerAffinityPotionJeiRecipes(registration);
         registerCustomRecipes(registration);
         Map<String, GroupedJeiInfo> groupedInfos = new LinkedHashMap<>();
 
@@ -130,6 +148,16 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         );
     }
 
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+        var hiddenStacks = collectHiddenAffinityPotionStacks();
+        if (hiddenStacks.isEmpty()) {
+            return;
+        }
+
+        jeiRuntime.getIngredientManager().removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, hiddenStacks);
+    }
+
     private static String resolveGroupId(ResourceLocation itemId, String groupId) {
         if (groupId == null || groupId.isBlank()) {
             return itemId.toString();
@@ -178,10 +206,226 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         );
     }
 
+    private static void registerAffinityPotionJeiRecipes(IRecipeRegistration registration) {
+        var brewingRecipes = createAffinityBrewingRecipes(registration);
+        if (!brewingRecipes.isEmpty()) {
+            registration.addRecipes(RecipeTypes.BREWING, brewingRecipes);
+        }
+
+        var cauldronRecipes = createAffinityCauldronRecipes();
+        if (!cauldronRecipes.isEmpty()) {
+            registration.addRecipes(AlchemistCauldronRecipeCategory.ALCHEMIST_CAULDRON_RECIPE_TYPE, cauldronRecipes);
+        }
+    }
+
+    private static List<IJeiBrewingRecipe> createAffinityBrewingRecipes(IRecipeRegistration registration) {
+        var vanillaRecipeFactory = registration.getVanillaRecipeFactory();
+        var recipes = new ArrayList<IJeiBrewingRecipe>();
+
+        for (var entry : SchoolAffinityRegistry.getBrewingDefinitionsByCatalyst().entrySet()) {
+            var catalyst = entry.getKey();
+            var definition = entry.getValue();
+
+            for (var container : BREWING_CONTAINERS) {
+                addBrewingRecipe(
+                        recipes,
+                        vanillaRecipeFactory,
+                        catalyst,
+                        createPotionStack(container, PotionRegistry.INTELLIGENCE.get()),
+                        createPotionStack(container, definition.basePotion()),
+                        "affinity_from_intelligence",
+                        definition.basePotionId(),
+                        BuiltInRegistries.ITEM.getKey(catalyst),
+                        BuiltInRegistries.ITEM.getKey(container)
+                );
+                addBrewingRecipe(
+                        recipes,
+                        vanillaRecipeFactory,
+                        catalyst,
+                        createPotionStack(container, PotionRegistry.LONG_INTELLIGENCE.get()),
+                        createPotionStack(container, definition.longPotion()),
+                        "affinity_from_long_intelligence",
+                        definition.longPotionId(),
+                        BuiltInRegistries.ITEM.getKey(catalyst),
+                        BuiltInRegistries.ITEM.getKey(container)
+                );
+                addBrewingRecipe(
+                        recipes,
+                        vanillaRecipeFactory,
+                        catalyst,
+                        createPotionStack(container, PotionRegistry.STRONG_INTELLIGENCE.get()),
+                        createPotionStack(container, definition.strongPotion()),
+                        "affinity_from_strong_intelligence",
+                        definition.strongPotionId(),
+                        BuiltInRegistries.ITEM.getKey(catalyst),
+                        BuiltInRegistries.ITEM.getKey(container)
+                );
+                addBrewingRecipe(
+                        recipes,
+                        vanillaRecipeFactory,
+                        Items.REDSTONE,
+                        createPotionStack(container, definition.basePotion()),
+                        createPotionStack(container, definition.longPotion()),
+                        "affinity_extend",
+                        definition.longPotionId(),
+                        BuiltInRegistries.ITEM.getKey(Items.REDSTONE),
+                        BuiltInRegistries.ITEM.getKey(container)
+                );
+                addBrewingRecipe(
+                        recipes,
+                        vanillaRecipeFactory,
+                        Items.GLOWSTONE_DUST,
+                        createPotionStack(container, definition.basePotion()),
+                        createPotionStack(container, definition.strongPotion()),
+                        "affinity_amplify",
+                        definition.strongPotionId(),
+                        BuiltInRegistries.ITEM.getKey(Items.GLOWSTONE_DUST),
+                        BuiltInRegistries.ITEM.getKey(container)
+                );
+            }
+        }
+
+        return recipes;
+    }
+
+    private static List<AlchemistCauldronJeiRecipe> createAffinityCauldronRecipes() {
+        if (!ServerConfigs.ALLOW_CAULDRON_BREWING.get()) {
+            return List.of();
+        }
+
+        var recipes = new ArrayList<AlchemistCauldronJeiRecipe>();
+        for (var entry : SchoolAffinityRegistry.getBrewingDefinitionsByCatalyst().entrySet()) {
+            var catalyst = entry.getKey();
+            var definition = entry.getValue();
+
+            for (var container : BREWING_CONTAINERS) {
+                addCauldronRecipe(
+                        recipes,
+                        catalyst,
+                        createPotionStack(container, PotionRegistry.INTELLIGENCE.get()),
+                        createPotionStack(container, definition.basePotion())
+                );
+                addCauldronRecipe(
+                        recipes,
+                        catalyst,
+                        createPotionStack(container, PotionRegistry.LONG_INTELLIGENCE.get()),
+                        createPotionStack(container, definition.longPotion())
+                );
+                addCauldronRecipe(
+                        recipes,
+                        catalyst,
+                        createPotionStack(container, PotionRegistry.STRONG_INTELLIGENCE.get()),
+                        createPotionStack(container, definition.strongPotion())
+                );
+                addCauldronRecipe(
+                        recipes,
+                        Items.REDSTONE,
+                        createPotionStack(container, definition.basePotion()),
+                        createPotionStack(container, definition.longPotion())
+                );
+                addCauldronRecipe(
+                        recipes,
+                        Items.GLOWSTONE_DUST,
+                        createPotionStack(container, definition.basePotion()),
+                        createPotionStack(container, definition.strongPotion())
+                );
+            }
+        }
+        return recipes;
+    }
+
+    private static void addBrewingRecipe(
+            List<IJeiBrewingRecipe> recipes,
+            mezz.jei.api.recipe.vanilla.IVanillaRecipeFactory vanillaRecipeFactory,
+            Item catalyst,
+            ItemStack input,
+            ItemStack output,
+            String transitionKey,
+            ResourceLocation outputPotionId,
+            ResourceLocation catalystId,
+            ResourceLocation containerId
+    ) {
+        recipes.add(vanillaRecipeFactory.createBrewingRecipe(
+                List.of(new ItemStack(catalyst)),
+                input,
+                output,
+                createAffinityPotionRecipeId(transitionKey, outputPotionId, catalystId, containerId)
+        ));
+    }
+
+    private static void addCauldronRecipe(
+            List<AlchemistCauldronJeiRecipe> recipes,
+            Item catalyst,
+            ItemStack input,
+            ItemStack output
+    ) {
+        recipes.add(new AlchemistCauldronJeiRecipe(
+                Ingredient.of(catalyst),
+                PotionFluid.from(input),
+                List.of(PotionFluid.from(output)),
+                ItemStack.EMPTY
+        ));
+    }
+
+    private static ResourceLocation createAffinityPotionRecipeId(
+            String transitionKey,
+            ResourceLocation outputPotionId,
+            ResourceLocation catalystId,
+            ResourceLocation containerId
+    ) {
+        return ResourceLocation.fromNamespaceAndPath(
+                ApprenticeCodex.MODID,
+                String.join(
+                        "/",
+                        "jei",
+                        "potion",
+                        transitionKey,
+                        toUidSegment(outputPotionId),
+                        toUidSegment(catalystId),
+                        toUidSegment(containerId)
+                )
+        );
+    }
+
+    private static String toUidSegment(ResourceLocation id) {
+        return id.getNamespace() + "_" + id.getPath().replace('/', '_');
+    }
+
     private static RecipeManager getClientRecipeManager() {
         var minecraft = Minecraft.getInstance();
         var connection = minecraft.getConnection();
         return connection == null ? null : connection.getRecipeManager();
+    }
+
+    private static List<ItemStack> collectHiddenAffinityPotionStacks() {
+        var hiddenStacks = new ArrayList<ItemStack>();
+
+        for (var definition : SchoolAffinityRegistry.getDefinitions()) {
+            if (SchoolAffinityRegistry.getAssignedSchool(definition.slotIndex()).isPresent()) {
+                continue;
+            }
+
+            hiddenStacks.addAll(createPotionStacks(definition.basePotion()));
+            hiddenStacks.addAll(createPotionStacks(definition.longPotion()));
+            hiddenStacks.addAll(createPotionStacks(definition.strongPotion()));
+        }
+
+        return hiddenStacks;
+    }
+
+    private static List<ItemStack> createPotionStacks(Potion potion) {
+        var stacks = new ArrayList<ItemStack>(4);
+        stacks.add(createPotionStack(Items.POTION, potion));
+        stacks.add(createPotionStack(Items.SPLASH_POTION, potion));
+        stacks.add(createPotionStack(Items.LINGERING_POTION, potion));
+        stacks.add(createPotionStack(Items.TIPPED_ARROW, potion));
+        return stacks;
+    }
+
+    private static ItemStack createPotionStack(Item item, Potion potion) {
+        var stack = new ItemStack(item);
+        PotionUtils.setPotion(stack, potion);
+        return stack;
     }
 
     private static ItemStack buildGrindRunnerCatalyst() {

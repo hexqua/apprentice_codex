@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.potion.SchoolAffinityBrewingRecipe;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
@@ -13,6 +15,7 @@ import net.neoforged.neoforge.common.brewing.BrewingRecipe;
 import net.neoforged.neoforge.event.brewing.RegisterBrewingRecipesEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 public final class PotionRegistry {
     private static final int BASE_DURATION_TICKS = 20 * 60 * 3;
@@ -43,7 +46,18 @@ public final class PotionRegistry {
 
     public static void register(IEventBus eventBus) {
         POTIONS.register(eventBus);
+        eventBus.addListener(PotionRegistry::registerDynamicPotions);
         eventBus.addListener(PotionRegistry::addRecipes);
+    }
+
+    private static void registerDynamicPotions(RegisterEvent event) {
+        event.register(Registries.POTION, helper -> {
+            for (var definition : SchoolAffinityRegistry.getDefinitions()) {
+                helper.register(definition.basePotionId(), definition.basePotion());
+                helper.register(definition.longPotionId(), definition.longPotion());
+                helper.register(definition.strongPotionId(), definition.strongPotion());
+            }
+        });
     }
 
     public static void addRecipes(RegisterBrewingRecipesEvent event) {
@@ -73,5 +87,6 @@ public final class PotionRegistry {
                 Ingredient.of(Items.GLOWSTONE_DUST),
                 new ItemStack(STRONG_INTELLIGENCE.asItem())
         ));
+        builder.addRecipe(new SchoolAffinityBrewingRecipe());
     }
 }

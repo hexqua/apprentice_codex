@@ -10,10 +10,12 @@
     "ArcaneAnvilMenuMixin",
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
+    "ItemNameMixin",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",
     "LivingEntityAccessor",
     "LivingEntityPhalanxGuardMixin",
+    "PotionFluidTypeMixin",
     "SchoolTypeAccessor"
   ],
   "client": [
