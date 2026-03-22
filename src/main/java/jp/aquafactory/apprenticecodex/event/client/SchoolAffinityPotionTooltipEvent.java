@@ -2,10 +2,10 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.SchoolAffinityEffect;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.effect.MobEffectUtil;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -23,7 +23,7 @@ public final class SchoolAffinityPotionTooltipEvent {
             return;
         }
 
-        for (var effectInstance : PotionUtils.getMobEffects(event.getItemStack())) {
+        for (var effectInstance : PotionContentsHelper.getMobEffects(event.getItemStack())) {
             if (!(effectInstance.getEffect().value() instanceof SchoolAffinityEffect schoolAffinityEffect)) {
                 continue;
             }
@@ -48,7 +48,7 @@ public final class SchoolAffinityPotionTooltipEvent {
             line = Component.translatable(
                     "potion.withDuration",
                     line,
-                    MobEffectUtil.formatDuration(effectInstance, 1.0F)
+                    MobEffectUtil.formatDuration(effectInstance, 1.0F, 1.0F)
             );
         }
 

@@ -269,7 +269,7 @@ public class SpellcastersFlask extends Item {
     }
 
     public static boolean isEffectParticlesSuppressed(ItemStack stack) {
-        var storageTag = stack.getTagElement(STORAGE_TAG);
+        var storageTag = getStorageTag(stack);
         return storageTag != null && storageTag.getBoolean(PARTICLES_SUPPRESSED_TAG);
     }
 
@@ -880,11 +880,9 @@ public class SpellcastersFlask extends Item {
         }
 
         var clampedStoredDoseCount = Math.max(0, Math.min(getMaxStoredDoseCount(flaskStack), storedDoseCount));
-        CustomData.update(DataComponents.CUSTOM_DATA, flaskStack, tag -> {
-            var storageTag = new CompoundTag();
+        updateStorageTag(flaskStack, storageTag -> {
             storageTag.put(STORED_ITEM_TAG, normalizedItem.saveOptional(SERIALIZATION_LOOKUP));
             storageTag.putInt(STORED_DOSES_TAG, clampedStoredDoseCount);
-            tag.put(STORAGE_TAG, storageTag);
         });
     }
 
@@ -914,35 +912,38 @@ public class SpellcastersFlask extends Item {
     }
 
     private static void setEffectParticlesSuppressed(ItemStack flaskStack, boolean suppressed) {
-        if (suppressed) {
-            flaskStack.getOrCreateTagElement(STORAGE_TAG).putBoolean(PARTICLES_SUPPRESSED_TAG, true);
-            return;
-        }
-
-        var storageTag = flaskStack.getTagElement(STORAGE_TAG);
-        if (storageTag == null) {
-            return;
-        }
-
-        storageTag.remove(PARTICLES_SUPPRESSED_TAG);
-        cleanupStorageTag(flaskStack, storageTag);
+        updateStorageTag(flaskStack, storageTag -> {
+            if (suppressed) {
+                storageTag.putBoolean(PARTICLES_SUPPRESSED_TAG, true);
+            } else {
+                storageTag.remove(PARTICLES_SUPPRESSED_TAG);
+            }
+        });
     }
 
     private static void clearStoredState(ItemStack flaskStack) {
-        var storageTag = flaskStack.getTagElement(STORAGE_TAG);
-        if (storageTag == null) {
-            return;
-        }
-
-        storageTag.remove(STORED_ITEM_TAG);
-        storageTag.remove(STORED_DOSES_TAG);
-        cleanupStorageTag(flaskStack, storageTag);
+        updateStorageTag(flaskStack, storageTag -> {
+            storageTag.remove(STORED_ITEM_TAG);
+            storageTag.remove(STORED_DOSES_TAG);
+        });
     }
 
-    private static void cleanupStorageTag(ItemStack flaskStack, CompoundTag storageTag) {
+    private static void cleanupStorageTag(CompoundTag rootTag, CompoundTag storageTag) {
         if (storageTag.getAllKeys().isEmpty()) {
-            flaskStack.removeTagKey(STORAGE_TAG);
+            rootTag.remove(STORAGE_TAG);
+        } else {
+            rootTag.put(STORAGE_TAG, storageTag);
         }
+    }
+
+    private static void updateStorageTag(ItemStack flaskStack, java.util.function.Consumer<CompoundTag> updater) {
+        CustomData.update(DataComponents.CUSTOM_DATA, flaskStack, tag -> {
+            var storageTag = tag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)
+                    ? tag.getCompound(STORAGE_TAG).copy()
+                    : new CompoundTag();
+            updater.accept(storageTag);
+            cleanupStorageTag(tag, storageTag);
+        });
     }
 
     private static void normalizeStoredDosesToCapacity(ItemStack stack) {

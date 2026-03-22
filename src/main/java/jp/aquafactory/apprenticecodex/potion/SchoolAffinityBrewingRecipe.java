@@ -1,10 +1,10 @@
 package jp.aquafactory.apprenticecodex.potion;
 
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.neoforged.neoforge.common.brewing.IBrewingRecipe;
 
 public class SchoolAffinityBrewingRecipe implements IBrewingRecipe {
@@ -14,7 +14,7 @@ public class SchoolAffinityBrewingRecipe implements IBrewingRecipe {
             return false;
         }
 
-        var potion = PotionUtils.getPotion(input);
+        var potion = PotionContentsHelper.getPotion(input);
         if (potion == PotionRegistry.INTELLIGENCE.get()
                 || potion == PotionRegistry.LONG_INTELLIGENCE.get()
                 || potion == PotionRegistry.STRONG_INTELLIGENCE.get()) {
@@ -41,7 +41,7 @@ public class SchoolAffinityBrewingRecipe implements IBrewingRecipe {
             return ItemStack.EMPTY;
         }
 
-        var inputPotion = PotionUtils.getPotion(input);
+        var inputPotion = PotionContentsHelper.getPotion(input);
 
         if (inputPotion == PotionRegistry.INTELLIGENCE.get()
                 || inputPotion == PotionRegistry.LONG_INTELLIGENCE.get()
@@ -78,7 +78,7 @@ public class SchoolAffinityBrewingRecipe implements IBrewingRecipe {
     private static ItemStack createOutput(ItemStack input, net.minecraft.world.item.alchemy.Potion potion) {
         var output = input.copy();
         output.setCount(1);
-        PotionUtils.setPotion(output, potion);
+        PotionContentsHelper.setPotion(output, potion);
         return output;
     }
 }

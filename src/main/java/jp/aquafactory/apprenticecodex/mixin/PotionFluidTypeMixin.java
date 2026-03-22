@@ -3,9 +3,9 @@ package jp.aquafactory.apprenticecodex.mixin;
 import io.redspace.ironsspellbooks.fluids.PotionFluid;
 import io.redspace.ironsspellbooks.fluids.PotionFluidType;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectUtil;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,12 +29,12 @@ public abstract class PotionFluidTypeMixin {
             return;
         }
 
-        var potion = PotionUtils.getPotion(potionStack);
+        var potion = PotionContentsHelper.getPotion(potionStack);
         if (!(potion instanceof SchoolAffinityPotion)) {
             return;
         }
 
-        var effects = PotionUtils.getMobEffects(potionStack);
+        var effects = PotionContentsHelper.getMobEffects(potionStack);
         if (effects.isEmpty()) {
             cir.setReturnValue(potionStack.getHoverName());
             return;
@@ -55,7 +55,7 @@ public abstract class PotionFluidTypeMixin {
             description = Component.translatable(
                     "potion.withDuration",
                     description,
-                    MobEffectUtil.formatDuration(primary, 1.0F)
+                    MobEffectUtil.formatDuration(primary, 1.0F, 1.0F)
             );
         }
 

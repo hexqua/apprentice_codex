@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.registry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -12,7 +13,6 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.minecraft.world.item.alchemy.PotionUtils;
 
 public final class CreativeTabRegistry {
     private CreativeTabRegistry() {}
@@ -118,7 +118,11 @@ public final class CreativeTabRegistry {
     }
 
     private static boolean shouldHideFromCreativeTab(ItemStack stack) {
-        var potion = PotionUtils.getPotion(stack);
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+
+        var potion = PotionContentsHelper.getPotion(stack);
         if (!(potion instanceof SchoolAffinityPotion schoolAffinityPotion)) {
             return false;
         }

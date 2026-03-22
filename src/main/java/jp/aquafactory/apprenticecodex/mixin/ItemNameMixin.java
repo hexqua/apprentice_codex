@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,7 +23,7 @@ public abstract class ItemNameMixin {
             return;
         }
 
-        var potion = PotionUtils.getPotion(stack);
+        var potion = PotionContentsHelper.getPotion(stack);
         if (!(potion instanceof SchoolAffinityPotion schoolAffinityPotion)) {
             return;
         }

@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -32,7 +33,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
@@ -423,9 +423,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     }
 
     private static ItemStack createPotionStack(Item item, Potion potion) {
-        var stack = new ItemStack(item);
-        PotionUtils.setPotion(stack, potion);
-        return stack;
+        return PotionContentsHelper.createPotionStack(item, potion);
     }
 
     private static ItemStack buildGrindRunnerCatalyst() {

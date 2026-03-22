@@ -3,16 +3,15 @@ package jp.aquafactory.apprenticecodex.effect;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 public class SchoolAffinityEffect extends MobEffect {
     private static final double SPELL_POWER_BONUS_PER_LEVEL = 0.10D;
@@ -52,12 +51,12 @@ public class SchoolAffinityEffect extends MobEffect {
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return false;
     }
 
     @Override
-    public void addAttributeModifiers(LivingEntity livingEntity, AttributeMap attributeMap, int amplifier) {
+    public void addAttributeModifiers(AttributeMap attributeMap, int amplifier) {
         var schoolType = getAssignedSchool();
         if (schoolType == null) {
             return;
@@ -68,17 +67,17 @@ public class SchoolAffinityEffect extends MobEffect {
             return;
         }
 
-        var attributeInstance = attributeMap.getInstance(spellPowerAttribute);
+        var attributeInstance = attributeMap.getInstance(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute));
         if (attributeInstance == null) {
             return;
         }
 
-        attributeInstance.removeModifier(getModifierUuid());
+        attributeInstance.removeModifier(getModifierId());
         attributeInstance.addPermanentModifier(createModifier(amplifier));
     }
 
     @Override
-    public void removeAttributeModifiers(LivingEntity livingEntity, AttributeMap attributeMap, int amplifier) {
+    public void removeAttributeModifiers(AttributeMap attributeMap) {
         var schoolType = getAssignedSchool();
         if (schoolType == null) {
             return;
@@ -89,22 +88,21 @@ public class SchoolAffinityEffect extends MobEffect {
             return;
         }
 
-        var attributeInstance = attributeMap.getInstance(spellPowerAttribute);
+        var attributeInstance = attributeMap.getInstance(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute));
         if (attributeInstance != null) {
-            attributeInstance.removeModifier(getModifierUuid());
+            attributeInstance.removeModifier(getModifierId());
         }
     }
 
-    private UUID getModifierUuid() {
-        return SchoolAffinityRegistry.createModifierUuid(slotIndex);
+    private ResourceLocation getModifierId() {
+        return ResourceLocation.fromNamespaceAndPath("apprenticecodex", "school_affinity_slot_" + slotIndex);
     }
 
     private AttributeModifier createModifier(int amplifier) {
         return new AttributeModifier(
-                getModifierUuid(),
-                this.getDescriptionId() + " " + amplifier,
+                getModifierId(),
                 SPELL_POWER_BONUS_PER_LEVEL * (amplifier + 1),
-                AttributeModifier.Operation.MULTIPLY_TOTAL
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
         );
     }
 }

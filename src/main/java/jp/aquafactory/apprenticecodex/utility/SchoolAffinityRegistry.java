@@ -195,17 +195,17 @@ public final class SchoolAffinityRegistry {
         DEFINITION_BY_SCHOOL_ID.clear();
         catalystDefinitionByItem = new LinkedHashMap<>();
 
-        var schoolRegistry = SchoolRegistry.REGISTRY.get();
+        var schoolRegistry = SchoolRegistry.REGISTRY;
         var supportedDefinitionsByCatalyst = new LinkedHashMap<Item, List<SchoolAffinityDefinition>>();
 
         // Iron's 本体分はスロットを固定し、今後もセーブデータ上の対応がずれないようにする.
         for (var slotIndex = 0; slotIndex < BUILTIN_AFFINITY_SLOT_COUNT; slotIndex++) {
             var schoolId = BUILTIN_IRONS_SCHOOL_IDS.get(slotIndex);
-            var schoolType = schoolRegistry.getValue(schoolId);
+            var schoolType = schoolRegistry.get(schoolId);
             bindSchoolToSlot(slotIndex, schoolType, supportedDefinitionsByCatalyst);
         }
 
-        var extraSchools = schoolRegistry.getValues().stream()
+        var extraSchools = java.util.stream.StreamSupport.stream(schoolRegistry.spliterator(), false)
                 .filter(school -> !BUILTIN_IRONS_SCHOOL_IDS.contains(school.getId()))
                 .filter(school -> MagicTools.resolveSchoolPowerAttribute(school) != null)
                 .sorted(Comparator.comparing(SchoolAffinityRegistry::getExtraSchoolSortKey))
