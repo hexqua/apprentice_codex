@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,6 +23,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class ArcanumInAJarBlockEntity extends BlockEntity {
     public static final int MAX_STORED_PARAMETER = 8;
@@ -65,57 +68,6 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
 
     public boolean hasNoWorkLoaded() {
         return storedParameterCount <= 0 && remainingOperationCount <= 0 && progressStartGameTime < 0L;
-    }
-
-    public void restoreState(int storedParameterCount, int remainingOperationCount, long gameTime) {
-        var clampedStoredParameterCount = Mth.clamp(storedParameterCount, 0, MAX_STORED_PARAMETER);
-        var clampedRemainingOperationCount = Mth.clamp(remainingOperationCount, 0, MAX_STORED_PARAMETER);
-        this.storedParameterCount = clampedStoredParameterCount;
-        this.remainingOperationCount = clampedRemainingOperationCount;
-        progressStartGameTime = shouldProcess() ? gameTime : -1L;
-        dispensing = false;
-        nextReleaseGameTime = -1L;
-        legacyPlacedGameTime = -1L;
-        setChanged();
-        syncToClient();
-    }
-
-    public static int getStoredParameterCount(ItemStack stack) {
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(STORED_PARAMETER_COUNT_TAG)) {
-            return 0;
-        }
-
-        return Mth.clamp(tag.getInt(STORED_PARAMETER_COUNT_TAG), 0, MAX_STORED_PARAMETER);
-    }
-
-    public static void setStoredParameterCount(ItemStack stack, int storedParameterCount) {
-        var clampedStoredParameterCount = Mth.clamp(storedParameterCount, 0, MAX_STORED_PARAMETER);
-        if (clampedStoredParameterCount <= 0) {
-            removeStackTag(stack, STORED_PARAMETER_COUNT_TAG);
-            return;
-        }
-
-        stack.getOrCreateTag().putInt(STORED_PARAMETER_COUNT_TAG, clampedStoredParameterCount);
-    }
-
-    public static int getRemainingOperationCount(ItemStack stack) {
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(REMAINING_OPERATION_COUNT_TAG)) {
-            return 0;
-        }
-
-        return Mth.clamp(tag.getInt(REMAINING_OPERATION_COUNT_TAG), 0, MAX_STORED_PARAMETER);
-    }
-
-    public static void setRemainingOperationCount(ItemStack stack, int remainingOperationCount) {
-        var clampedRemainingOperationCount = Mth.clamp(remainingOperationCount, 0, MAX_STORED_PARAMETER);
-        if (clampedRemainingOperationCount <= 0) {
-            removeStackTag(stack, REMAINING_OPERATION_COUNT_TAG);
-            return;
-        }
-
-        stack.getOrCreateTag().putInt(REMAINING_OPERATION_COUNT_TAG, clampedRemainingOperationCount);
     }
 
     public boolean isDispensing() {
@@ -315,6 +267,21 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         return true;
     }
 
+    public void appendRemovalDrops(List<ItemStack> drops) {
+        var counts = getRemovalDropCounts();
+        if (counts.storedParameterCount > 0) {
+            var arcaneEssence = ForgeRegistries.ITEMS.getValue(ARCANE_ESSENCE_ITEM_ID);
+            if (arcaneEssence == null) {
+                ApprenticeCodex.LOGGER.warn("Missing item: {}", ARCANE_ESSENCE_ITEM_ID);
+            } else {
+                drops.add(new ItemStack(arcaneEssence, counts.storedParameterCount));
+            }
+        }
+        if (counts.remainingOperationCount > 0) {
+            drops.add(new ItemStack(Items.REDSTONE, counts.remainingOperationCount));
+        }
+    }
+
     private void setOpen(boolean open) {
         if (level == null) {
             return;
@@ -386,19 +353,26 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         return remainingOperationCount > 0 && storedParameterCount < MAX_STORED_PARAMETER;
     }
 
-    private static void removeStackTag(ItemStack stack, String tagKey) {
-        var tag = stack.getTag();
-        if (tag == null) {
-            return;
+    private RemovalDropCounts getRemovalDropCounts() {
+        var effectiveStoredParameterCount = storedParameterCount;
+        var effectiveRemainingOperationCount = remainingOperationCount;
+        if (progressStartGameTime >= 0L && level != null) {
+            var completed = (int)((level.getGameTime() - progressStartGameTime) / ticksPerStoredParameter());
+            if (completed > 0) {
+                completed = Math.min(completed, effectiveRemainingOperationCount);
+                completed = Math.min(completed, MAX_STORED_PARAMETER - effectiveStoredParameterCount);
+                effectiveStoredParameterCount += completed;
+                effectiveRemainingOperationCount -= completed;
+            }
         }
 
-        tag.remove(tagKey);
-        if (tag.isEmpty()) {
-            stack.setTag(null);
-        }
+        return new RemovalDropCounts(effectiveStoredParameterCount, effectiveRemainingOperationCount);
     }
 
     private static long ticksPerStoredParameter() {
         return ApprenticeCodexServerConfig.arcanumInAJarTicksPerStoredParameter();
+    }
+
+    private record RemovalDropCounts(int storedParameterCount, int remainingOperationCount) {
     }
 }

@@ -106,7 +106,7 @@
   "item.apprenticecodex.flask_system.amount_label": "Amount: ",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
-  "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "It takes time to build up, and breaking it causes some of the stored essence to be lost.",
+  "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "Breaking it drops any finished Arcane Essence and any unused redstone.",
   "jei.apprenticecodex.craftsmans_delight.desc_1": "Reduces the mana cost of the spells listed in the tooltip.",
   "jei.apprenticecodex.craftsmans_delight.desc_2": "For spells that break blocks, ring enchantments apply and mining speed increases.",
   "jei.apprenticecodex.craftsmans_delight.desc_3": "For spells that process items, the number of items processed at once increases.",
@@ -127,8 +127,6 @@
   "block.apprenticecodex.essence_smoker" : "Essence Smoker",
   "block.apprenticecodex.spellcaster_workbench" : "Spellcaster Workbench",
   "block.apprenticecodex.atelier_station" : "Atelier Station",
-
-  "block.apprenticecodex.arcanum_in_a_jar.fill": "Powder is dancing mysteriously inside.",
 
   "entity.apprenticecodex.sky_edge_projectile" : "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow" : "Archer Multiple Bow",

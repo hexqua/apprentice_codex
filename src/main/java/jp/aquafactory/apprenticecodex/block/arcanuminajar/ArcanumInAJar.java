@@ -8,7 +8,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -174,17 +173,6 @@ public class ArcanumInAJar extends BaseEntityBlock {
     }
 
     @Override
-    public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state,
-                            LivingEntity placer, @NotNull ItemStack stack) {
-        super.setPlacedBy(level, pos, state, placer, stack);
-        if (level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity) {
-            var storedParameterCount = ArcanumInAJarBlockEntity.getStoredParameterCount(stack);
-            var remainingOperationCount = ArcanumInAJarBlockEntity.getRemainingOperationCount(stack);
-            blockEntity.restoreState(storedParameterCount, remainingOperationCount, level.getGameTime());
-        }
-    }
-
-    @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         return BlockEntityRegistry.ARCANUM_IN_A_JAR.get().create(pos, state);
     }
@@ -206,21 +194,7 @@ public class ArcanumInAJar extends BaseEntityBlock {
             return drops;
         }
 
-        var storedParameterCount = blockEntity.getStoredParameterCount();
-        var remainingOperationCount = blockEntity.getRemainingOperationCount();
-        if (storedParameterCount <= 0 && remainingOperationCount <= 0) {
-            return drops;
-        }
-
-        for (var drop : drops) {
-            if (!drop.is(asItem())) {
-                continue;
-            }
-
-            ArcanumInAJarBlockEntity.setStoredParameterCount(drop, storedParameterCount);
-            ArcanumInAJarBlockEntity.setRemainingOperationCount(drop, remainingOperationCount);
-            break;
-        }
+        blockEntity.appendRemovalDrops(drops);
         return drops;
     }
 

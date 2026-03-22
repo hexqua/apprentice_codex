@@ -106,7 +106,7 @@
   "item.apprenticecodex.flask_system.amount_label": "残量: ",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
-  "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "生成には時間がかかり、壊すと中のエッセンスの一部が失われる。",
+  "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "壊すと完成済みの秘術のエッセンスと未使用のレッドストーンがそのまま落ちる。",
   "jei.apprenticecodex.craftsmans_delight.desc_1": "ツールチップに書かれている魔法の消費マナ消費量が減少する。",
   "jei.apprenticecodex.craftsmans_delight.desc_2": "ブロックを破壊する魔法の場合は指輪のエンチャントが有効な上で破壊速度が上昇する。",
   "jei.apprenticecodex.craftsmans_delight.desc_3": "アイテムを加工する魔法の場合は一度に加工できるアイテム数が上昇する。",
@@ -155,8 +155,6 @@
   "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
   "block.apprenticecodex.spellcaster_workbench" : "魔術師の作業台",
   "block.apprenticecodex.atelier_station" : "アトリエステーション",
-
-  "block.apprenticecodex.arcanum_in_a_jar.fill": "中で粉が神秘的に舞っている",
 
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
   "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",
