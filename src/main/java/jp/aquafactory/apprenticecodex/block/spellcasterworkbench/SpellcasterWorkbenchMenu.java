@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -465,19 +466,31 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         var extraction = getActiveSpellExtraction();
-        if (extraction == null) {
+        if (extraction != null) {
+            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
+            if (!removeSpellFromSpellGun(extraction.sourceSlotIndex())) {
+                return;
+            }
+
+            if (player instanceof ServerPlayer serverPlayer) {
+                AdvancementTools.award(serverPlayer,
+                        AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL,
+                        AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL_CRITERION);
+            }
+
+            playCraftSound();
+            setupResultSlot();
+            return;
+        }
+
+        var flaskToggle = getActiveFlaskParticleToggle();
+        if (flaskToggle == null) {
             return;
         }
 
         craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
-        if (!removeSpellFromSpellGun(extraction.sourceSlotIndex())) {
+        if (!consumeFlaskForParticleToggle(flaskToggle.sourceSlotIndex())) {
             return;
-        }
-
-        if (player instanceof ServerPlayer serverPlayer) {
-            AdvancementTools.award(serverPlayer,
-                    AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL,
-                    AdvancementTools.EXTRACT_SPELLCASTER_GUN_SCROLL_CRITERION);
         }
 
         playCraftSound();
@@ -559,6 +572,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return buildSpellExtraction();
     }
 
+    private @Nullable FlaskParticleToggle getActiveFlaskParticleToggle() {
+        return buildFlaskParticleToggle();
+    }
+
     private @NotNull ItemStack getActiveResult() {
         var activeRecipe = getActiveRecipe();
         if (activeRecipe != null) {
@@ -566,7 +583,12 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         var extraction = getActiveSpellExtraction();
-        return extraction == null ? ItemStack.EMPTY : extraction.resultTemplate().copy();
+        if (extraction != null) {
+            return extraction.resultTemplate().copy();
+        }
+
+        var flaskToggle = getActiveFlaskParticleToggle();
+        return flaskToggle == null ? ItemStack.EMPTY : flaskToggle.resultTemplate().copy();
     }
 
     private @Nullable RecipeSelection getSelectedSelection() {
@@ -641,6 +663,25 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return new SpellExtraction(sourceSlotIndex, scrollStack);
     }
 
+    private @Nullable FlaskParticleToggle buildFlaskParticleToggle() {
+        var sourceSlotIndex = findSingleOccupiedInputSlot();
+        if (sourceSlotIndex < 0) {
+            return null;
+        }
+
+        var inputStack = container.getItem(sourceSlotIndex);
+        if (!(inputStack.getItem() instanceof SpellcastersFlask)) {
+            return null;
+        }
+
+        var toggledStack = SpellcastersFlask.copyWithToggledEffectParticles(inputStack);
+        if (toggledStack.isEmpty()) {
+            return null;
+        }
+
+        return new FlaskParticleToggle(sourceSlotIndex, toggledStack);
+    }
+
     private int getBlockedSpellExtractionSourceSlot() {
         var sourceSlotIndex = findSingleOccupiedInputSlot();
         if (sourceSlotIndex < 0) {
@@ -702,6 +743,20 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return true;
     }
 
+    private boolean consumeFlaskForParticleToggle(int sourceSlotIndex) {
+        var inputStack = container.getItem(sourceSlotIndex);
+        if (!(inputStack.getItem() instanceof SpellcastersFlask)) {
+            return false;
+        }
+
+        inputStack.shrink(1);
+        if (inputStack.isEmpty()) {
+            container.setItem(sourceSlotIndex, ItemStack.EMPTY);
+        }
+        container.setChanged();
+        return true;
+    }
+
     private static @Nullable MutableRecipeSelection findSelection(List<MutableRecipeSelection> groupedSelections, ItemStack icon) {
         for (var selection : groupedSelections) {
             if (ItemStack.isSameItemSameComponents(selection.icon(), icon)) {
@@ -735,6 +790,12 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     }
 
     private record SpellExtraction(
+            int sourceSlotIndex,
+            ItemStack resultTemplate
+    ) {
+    }
+
+    private record FlaskParticleToggle(
             int sourceSlotIndex,
             ItemStack resultTemplate
     ) {
