@@ -11,8 +11,11 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -26,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity> {
+public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity> implements IClientBlockTargetingSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "graced_rain");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -59,6 +62,11 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
 
     private double getTargetRange() {
         return 16.0;
+    }
+
+    @Override
+    public double getClientBlockTargetingRange(int spellLevel, LivingEntity entity) {
+        return getTargetRange();
     }
 
     private int getEffectRadiusBlocks(int spellLevel, LivingEntity entity) {
@@ -115,7 +123,13 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
             cloud.setFollowTarget(result.hitEntity());
         } else {
             Vec3 basePos;
-            if (result.hitType() == RaycastTools.TargetType.BLOCK && result.hitBlock() != null) {
+            // 植物のような collider を持たない対象へ合わせるため、クライアントで見えていた枠線対象を優先復元する。
+            var outlinedTarget = resolveOutlinedTarget(level, spellLevel, entity);
+            if (outlinedTarget.isPresent()) {
+                cloud.setAnchorBlock(outlinedTarget.get());
+                level.addFreshEntity(cloud);
+                return cloud;
+            } else if (result.hitType() == RaycastTools.TargetType.BLOCK && result.hitBlock() != null) {
                 cloud.setAnchorBlock(result.hitBlock());
                 level.addFreshEntity(cloud);
                 return cloud;
@@ -136,5 +150,10 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull GracedRainCloudEntity weapon) {
         return CompleteCastTypes.RELEASE_WEAPON;
+    }
+
+    private Optional<BlockPos> resolveOutlinedTarget(Level level, int spellLevel, LivingEntity entity) {
+        return BlockTargetingHelper.getValidatedPendingTarget(level, entity, getSpellResource(), getClientBlockTargetingRange(spellLevel, entity))
+                .map(target -> target.getHitBlockPos().immutable());
     }
 }
