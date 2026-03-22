@@ -2,13 +2,16 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
+import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.effect.SenseSensor;
 import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -19,6 +22,8 @@ public final class EffectRegistry {
 
     public static final RegistryObject<MobEffect> ARCANE_CHARGE =
             EFFECTS.register("arcane_charge", ArcaneCharge::new);
+    public static final RegistryObject<MobEffect> INTELLIGENCE =
+            EFFECTS.register("intelligence", Intelligence::new);
     public static final RegistryObject<MobEffect> LONG_STRIDE_MOBILITY =
             EFFECTS.register("long_stride_mobility", LongStrideMobility::new);
     public static final RegistryObject<MobEffect> PALETTE_RECEPTION =
@@ -32,5 +37,14 @@ public final class EffectRegistry {
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);
+        eventBus.addListener(EffectRegistry::registerDynamicEffects);
+    }
+
+    private static void registerDynamicEffects(RegisterEvent event) {
+        event.register(ForgeRegistries.Keys.MOB_EFFECTS, helper -> {
+            for (var definition : SchoolAffinityRegistry.getDefinitions()) {
+                helper.register(definition.effectId(), definition.effect());
+            }
+        });
     }
 }

@@ -2,10 +2,14 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
@@ -26,6 +30,7 @@ public final class CreativeTabRegistry {
 
     public static void register(IEventBus bus) {
         TABS.register(bus);
+        bus.addListener(CreativeTabRegistry::filterHiddenAffinityPotions);
     }
 
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
@@ -96,5 +101,25 @@ public final class CreativeTabRegistry {
                 output.accept(scrollStack);
             }
         }
+    }
+
+    private static void filterHiddenAffinityPotions(BuildCreativeModeTabContentsEvent event) {
+        // 固定スロット登録の副作用で未割当の親和ポーション候補が自動露出するため、ここで除外する.
+        var iterator = event.getEntries().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            if (shouldHideFromCreativeTab(entry.getKey())) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private static boolean shouldHideFromCreativeTab(ItemStack stack) {
+        var potion = PotionUtils.getPotion(stack);
+        if (!(potion instanceof SchoolAffinityPotion schoolAffinityPotion)) {
+            return false;
+        }
+
+        return SchoolAffinityRegistry.getAssignedSchool(schoolAffinityPotion.getSlotIndex()).isEmpty();
     }
 }

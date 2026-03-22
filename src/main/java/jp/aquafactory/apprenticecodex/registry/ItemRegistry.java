@@ -1,8 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
-import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
+import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
@@ -11,16 +10,11 @@ import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.Absorp
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
-import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
-import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
-import jp.aquafactory.apprenticecodex.item.PastelStaff;
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
@@ -122,13 +116,15 @@ public final class ItemRegistry {
             stealthRuneArmor("stealth_rune_armor_foot", ArmorItem.Type.BOOTS);
     public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
     public static final RegistryObject<Item> SPELLCASTER_WORKBENCH =
-            block("spellcaster_workbench", BlockRegistry.SPELLCASTER_WORKBENCH);
+            ITEMS.register("spellcaster_workbench",
+                    () -> new SpellcasterWorkbenchItem(BlockRegistry.SPELLCASTER_WORKBENCH.get(), new Item.Properties()));
     public static final RegistryObject<Item> ARCANUM_IN_A_JAR =
             ITEMS.register("arcanum_in_a_jar",
                     () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));
     public static final RegistryObject<Item> ESSENCE_SMOKER = block("essence_smoker", BlockRegistry.ESSENCE_SMOKER);
-    public static final RegistryObject<Item> ATELIER_STATION = block("atelier_station", BlockRegistry.ATELIER_STATION);
-
+    public static final RegistryObject<Item> ATELIER_STATION =
+            ITEMS.register("atelier_station",
+                    () -> new AtelierStationItem(BlockRegistry.ATELIER_STATION.get(), new Item.Properties()));
     public static final RegistryObject<Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);
     public static final RegistryObject<Item> CRAFTSMANS_DELIGHT =
