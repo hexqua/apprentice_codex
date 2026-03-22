@@ -626,7 +626,7 @@ public class SpellcastersFlask extends Item {
                 return false;
             }
 
-            if (storedDoseCount > 0 && !storedItem.isEmpty() && !ItemStack.isSameItemSameTags(storedItem, representativeItem)) {
+            if (storedDoseCount > 0 && !storedItem.isEmpty() && !ItemStack.isSameItemSameComponents(storedItem, representativeItem)) {
                 return false;
             }
 
