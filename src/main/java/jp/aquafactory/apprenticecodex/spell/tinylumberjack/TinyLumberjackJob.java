@@ -5,9 +5,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayDeque;
@@ -60,7 +58,7 @@ public class TinyLumberjackJob {
             }
 
             var state = level.getBlockState(pos);
-            var isLog = state.is(BlockTags.LOGS);
+            var isLog = TinyLumberjackBlockClassifier.isLog(state);
             if (isLog) {
                 breakBlock(level, pos);
                 ++logsBroken;
@@ -99,7 +97,7 @@ public class TinyLumberjackJob {
             }
 
             var state = level.getBlockState(mutable);
-            if (!state.is(BlockTags.LOGS)) {
+            if (!TinyLumberjackBlockClassifier.isLog(state)) {
                 continue;
             }
 
@@ -171,11 +169,7 @@ public class TinyLumberjackJob {
     }
 
     private static boolean isBreakableLeaf(BlockState state) {
-        if (!state.is(BlockTags.LEAVES)) {
-            return false;
-        }
-
-        return !state.hasProperty(LeavesBlock.PERSISTENT) || !state.getValue(LeavesBlock.PERSISTENT);
+        return TinyLumberjackBlockClassifier.isBreakableLeaf(state);
     }
 
     private void addLogInfluence(BlockPos logPos) {
