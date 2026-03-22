@@ -328,6 +328,9 @@
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
   "effect.apprenticecodex.intelligence.description": "Greatly increases spell power.",
+  "effect.apprenticecodex.school_affinity": "Affinity",
+  "effect.apprenticecodex.school_affinity.dynamic": "%s Affinity",
+  "effect.apprenticecodex.school_affinity.description": "A state of deep resonance with a specific school of magic. Increases the power of spells from the corresponding school.",
   "effect.apprenticecodex.long_stride_mobility.description": "Helps movement while casting and makes it easier to step over one-block obstacles.",
   "effect.apprenticecodex.palette_reception.description": "The next magic you wield with the Pastel Staff will tint it.",
   "effect.apprenticecodex.phalanx_stance.description": "The shield of magic that provides a sturdy barrier. More durable than a regular shield. Special equipment increases movement speed.",
@@ -338,6 +341,10 @@
   "item.minecraft.splash_potion.effect.intelligence": "Splash Potion of Intelligence",
   "item.minecraft.lingering_potion.effect.intelligence": "Lingering Potion of Intelligence",
   "item.minecraft.tipped_arrow.effect.intelligence": "Arrow of Intelligence",
+  "item.apprenticecodex.school_affinity.potion": "Potion of %s",
+  "item.apprenticecodex.school_affinity.splash_potion": "Splash Potion of %s",
+  "item.apprenticecodex.school_affinity.lingering_potion": "Lingering Potion of %s",
+  "item.apprenticecodex.school_affinity.tipped_arrow": "Arrow of %s",
 
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
   "death.attack.apprenticecodex.archer_multiple": "%1$s was riddled with %2$s's arrows.",

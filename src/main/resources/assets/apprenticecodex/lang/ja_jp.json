@@ -328,6 +328,9 @@
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
   "effect.apprenticecodex.intelligence.description": "魔法の力を大きく引き上げる。",
+  "effect.apprenticecodex.school_affinity": "親和",
+  "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
+  "effect.apprenticecodex.school_affinity.description": "特定系統の魔力と深く共鳴している状態。対応する系統の魔法の力が上昇する。",
   "effect.apprenticecodex.long_stride_mobility.description": "詠唱中の移動を補助し、1ブロック程度の段差を乗り越えやすくする。",
   "effect.apprenticecodex.palette_reception.description": "次にパステルスタッフで振るった魔力で杖を染める。",
   "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。特殊な装備で移動速度も上昇する。",
@@ -338,6 +341,10 @@
   "item.minecraft.splash_potion.effect.intelligence": "知性のスプラッシュポーション",
   "item.minecraft.lingering_potion.effect.intelligence": "知性の残留ポーション",
   "item.minecraft.tipped_arrow.effect.intelligence": "知性の矢",
+  "item.apprenticecodex.school_affinity.potion": "%sのポーション",
+  "item.apprenticecodex.school_affinity.splash_potion": "%sのスプラッシュポーション",
+  "item.apprenticecodex.school_affinity.lingering_potion": "%sの残留ポーション",
+  "item.apprenticecodex.school_affinity.tipped_arrow": "%sの矢",
 
   "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた",
   "death.attack.apprenticecodex.archer_multiple": "%1$sは%2$sに蜂の巣にされた",
