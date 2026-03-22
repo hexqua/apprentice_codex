@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.AlchemistCauldronFluidTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -327,30 +328,46 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     private boolean collectFromCauldron(ServerLevel level, AlchemistCauldronTile cauldronTile) {
-        var fluidStack = cauldronTile.fluidInventory.getFluidInTank(0);
-        if (fluidStack.isEmpty()) {
-            return false;
-        }
-
-        // Flask と同じ代表化ルールに揃えて、表示色とフィルタ一致条件を一致させる。
-        var representativeItem = SpellcastersFlask.resolveRepresentativeItem(level, fluidStack);
-        if (representativeItem.isEmpty() || !matchesAnyFilter(representativeItem)) {
-            return false;
-        }
-
         var remainingCapacity = MAX_STORED_FLUID_AMOUNT - storedFluidAmount;
+        if (remainingCapacity <= 0) {
+            return false;
+        }
+
+        var fluidStack = AlchemistCauldronFluidTools.findFirstFluidFromTop(cauldronTile, candidate -> {
+            var representativeItem = SpellcastersFlask.resolveRepresentativeItem(level, candidate);
+            return !representativeItem.isEmpty() && matchesAnyFilter(representativeItem);
+        });
+        if (fluidStack == null || fluidStack.isEmpty()) {
+            return false;
+        }
+
+        var representativeItem = SpellcastersFlask.resolveRepresentativeItem(level, fluidStack);
+        if (representativeItem.isEmpty()) {
+            return false;
+        }
+
         var requestedAmount = normalizeFluidAmount(Math.min(remainingCapacity, fluidStack.getAmount()));
         if (requestedAmount <= 0) {
             return false;
         }
 
-        var simulatedDrain = cauldronTile.fluidInventory.drain(requestedAmount, IFluidHandler.FluidAction.SIMULATE);
+        var simulatedDrain = AlchemistCauldronFluidTools.drainMatchingFluid(
+                cauldronTile,
+                fluidStack,
+                requestedAmount,
+                IFluidHandler.FluidAction.SIMULATE
+        );
         var drainAmount = normalizeFluidAmount(simulatedDrain.getAmount());
         if (drainAmount <= 0) {
             return false;
         }
 
-        var drained = cauldronTile.fluidInventory.drain(drainAmount, IFluidHandler.FluidAction.EXECUTE);
+        var drained = AlchemistCauldronFluidTools.drainMatchingFluid(
+                cauldronTile,
+                fluidStack,
+                drainAmount,
+                IFluidHandler.FluidAction.EXECUTE
+        );
         var extractedAmount = normalizeFluidAmount(drained.getAmount());
         if (extractedAmount <= 0) {
             return false;
