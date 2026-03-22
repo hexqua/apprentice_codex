@@ -12,7 +12,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -174,7 +173,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         if (targetType == RaycastTools.TargetType.BLOCK && ownerTargetBlockPos != null) {
             var targetPos = ownerTargetBlockPos;
             var state = level.getBlockState(targetPos);
-            if (state.is(BlockTags.LOGS)) {
+            if (TinyLumberjackBlockClassifier.isLog(state)) {
                 var hitPosition = ownerTargetHitPos;
                 var distanceBeforeMove = position().distanceTo(hitPosition);
                 if (distanceBeforeMove <= BREAK_START_DISTANCE) {
@@ -249,7 +248,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         moveToTarget(owner, targetPos, true);
 
         var state = level.getBlockState(breakTargetPos);
-        if (!state.is(BlockTags.LOGS)) {
+        if (!TinyLumberjackBlockClassifier.isLog(state)) {
             cancelChop(level);
             sawState = SawStates.RETURNING;
             return;
@@ -376,7 +375,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
             }
 
             var state = level.getBlockState(pos);
-            if (!state.is(BlockTags.LOGS)) {
+            if (!TinyLumberjackBlockClassifier.isLog(state)) {
                 continue;
             }
 
@@ -394,7 +393,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
                 visited.add(key);
 
                 var neighborState = level.getBlockState(mutable);
-                if (!neighborState.is(BlockTags.LOGS)) {
+                if (!TinyLumberjackBlockClassifier.isLog(neighborState)) {
                     continue;
                 }
                 queue.add(mutable.immutable());

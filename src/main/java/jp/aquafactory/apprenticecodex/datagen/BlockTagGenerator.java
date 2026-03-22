@@ -32,5 +32,15 @@ public final class BlockTagGenerator extends BlockTagsProvider {
                 Blocks.SUGAR_CANE,
                 Blocks.CACTUS
         );
+
+        // TinyLumberjack の強制原木判定.
+        tag(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LOGS);
+
+        // TinyLumberjack の強制葉っぱ判定.
+        tag(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LEAVES).add(
+                Blocks.NETHER_WART_BLOCK,
+                Blocks.WARPED_WART_BLOCK,
+                Blocks.SHROOMLIGHT
+        );
     }
 }
