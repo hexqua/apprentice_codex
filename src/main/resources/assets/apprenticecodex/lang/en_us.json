@@ -108,6 +108,10 @@
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "Breaking it drops any finished Arcane Essence and any unused redstone.",
+  "jei.apprenticecodex.spellcaster_workbench.desc_1": "Spellcaster Workbench for crafting Spellcaster Bullets.",
+  "jei.apprenticecodex.spellcaster_workbench.desc_2": "Extracts magic from Spellgun and can also adjust Spellcaster's Flask partially.",
+  "jei.apprenticecodex.atelier_station.desc_1": "Assists in refilling Spellcaster's Flask.",
+  "jei.apprenticecodex.atelier_station.desc_2": "Extracts potions from 2 blocks away from an Alchemist's Cauldron and refills Spellcaster's Flask remotely.",
   "jei.apprenticecodex.craftsmans_delight.desc_1": "Reduces the mana cost of the spells listed in the tooltip.",
   "jei.apprenticecodex.craftsmans_delight.desc_2": "For spells that break blocks, ring enchantments apply and mining speed increases.",
   "jei.apprenticecodex.craftsmans_delight.desc_3": "For spells that process items, the number of items processed at once increases.",

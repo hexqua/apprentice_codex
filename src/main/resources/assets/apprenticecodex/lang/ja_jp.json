@@ -108,6 +108,10 @@
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "壊すと完成済みの秘術のエッセンスと未使用のレッドストーンがそのまま落ちる。",
+  "jei.apprenticecodex.spellcaster_workbench.desc_1": "詠唱銃の銃弾を作るための作業台。",
+  "jei.apprenticecodex.spellcaster_workbench.desc_2": "詠唱銃に注入した魔法を取り出すこともできるほか、詠唱者のフラスコの一部調整も行える。",
+  "jei.apprenticecodex.atelier_station.desc_1": "詠唱者のフラスコへの補充を補助する装置。",
+  "jei.apprenticecodex.atelier_station.desc_2": "2ブロック以内の錬金術師の大釜から条件にあったポーションを抽出し、合わせて詠唱者のフラスコに遠距離から補充することができる。",
   "jei.apprenticecodex.craftsmans_delight.desc_1": "ツールチップに書かれている魔法の消費マナ消費量が減少する。",
   "jei.apprenticecodex.craftsmans_delight.desc_2": "ブロックを破壊する魔法の場合は指輪のエンチャントが有効な上で破壊速度が上昇する。",
   "jei.apprenticecodex.craftsmans_delight.desc_3": "アイテムを加工する魔法の場合は一度に加工できるアイテム数が上昇する。",
