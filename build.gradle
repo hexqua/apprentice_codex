@@ -11,7 +11,6 @@ tasks.named('wrapper', Wrapper).configure {
 
 version = mod_version
 group = mod_group_id
-
 repositories {
     // 前提MODをCFから引っ張るため.
     maven {

@@ -76,6 +76,7 @@ public class SpellcastersFlask extends Item {
             Enchantments.RED_ENERGY.location(),
             Enchantments.GLOW_ENERGY.location()
     );
+    private static final String PARTICLES_SUPPRESSED_TAG = "ParticlesSuppressed";
 
     public SpellcastersFlask() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
@@ -192,6 +193,7 @@ public class SpellcastersFlask extends Item {
 
         var storedItem = getStoredItem(stack);
         appendStoredEffectTooltips(lines, stack, storedItem);
+        appendSuppressedParticlesTooltip(lines, stack);
         lines.add(Component.empty());
         lines.add(createStoredAmountTooltipLine(stack));
     }
@@ -264,6 +266,21 @@ public class SpellcastersFlask extends Item {
 
     public static boolean isFilled(ItemStack stack) {
         return getStoredDoseCount(stack) > 0;
+    }
+
+    public static boolean isEffectParticlesSuppressed(ItemStack stack) {
+        var storageTag = getStorageTag(stack);
+        return storageTag != null && storageTag.getBoolean(PARTICLES_SUPPRESSED_TAG);
+    }
+
+    public static @NotNull ItemStack copyWithToggledEffectParticles(@NotNull ItemStack flaskStack) {
+        if (!(flaskStack.getItem() instanceof SpellcastersFlask)) {
+            return ItemStack.EMPTY;
+        }
+
+        var result = flaskStack.copy();
+        setEffectParticlesSuppressed(result, !isEffectParticlesSuppressed(result));
+        return result;
     }
 
     public static @NotNull ItemStack copyFilterItem(@NotNull ItemStack stack) {
@@ -504,12 +521,13 @@ public class SpellcastersFlask extends Item {
                 ? originalEffect.getDuration()
                 : Math.max(1, Math.round(originalEffect.getDuration() * getEffectDurationMultiplier(flaskStack)));
         var scaledAmplifier = Math.max(0, originalEffect.getAmplifier() + getGlowEnergyLevel(flaskStack));
+        var visible = !isEffectParticlesSuppressed(flaskStack) && originalEffect.isVisible();
         return new MobEffectInstance(
                 originalEffect.getEffect(),
                 scaledDuration,
                 scaledAmplifier,
                 originalEffect.isAmbient(),
-                originalEffect.isVisible(),
+                visible,
                 originalEffect.showIcon()
         );
     }
@@ -523,6 +541,15 @@ public class SpellcastersFlask extends Item {
         lines.add(Component.translatable("item.apprenticecodex.flask_system.effects")
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
         lines.addAll(effectLines);
+    }
+
+    private static void appendSuppressedParticlesTooltip(List<Component> lines, ItemStack flaskStack) {
+        if (!isEffectParticlesSuppressed(flaskStack)) {
+            return;
+        }
+
+        lines.add(Component.translatable("item.apprenticecodex.flask_system.particles_suppressed")
+                .withStyle(ChatFormatting.GRAY));
     }
 
     private static List<Component> createStoredEffectTooltipLines(ItemStack flaskStack, ItemStack storedItem) {
@@ -824,7 +851,7 @@ public class SpellcastersFlask extends Item {
     private static void decrementStoredDoseCount(ItemStack flaskStack, int consumedDoseCount) {
         var storedItem = getStoredItem(flaskStack);
         if (storedItem.isEmpty()) {
-            removeStorageTag(flaskStack);
+            clearStoredState(flaskStack);
             return;
         }
 
@@ -848,16 +875,14 @@ public class SpellcastersFlask extends Item {
     private static void setStoredState(ItemStack flaskStack, ItemStack storedItem, int storedDoseCount) {
         var normalizedItem = normalizeAcceptedItem(storedItem);
         if (normalizedItem.isEmpty()) {
-            removeStorageTag(flaskStack);
+            clearStoredState(flaskStack);
             return;
         }
 
         var clampedStoredDoseCount = Math.max(0, Math.min(getMaxStoredDoseCount(flaskStack), storedDoseCount));
-        CustomData.update(DataComponents.CUSTOM_DATA, flaskStack, tag -> {
-            var storageTag = new CompoundTag();
+        updateStorageTag(flaskStack, storageTag -> {
             storageTag.put(STORED_ITEM_TAG, normalizedItem.saveOptional(SERIALIZATION_LOOKUP));
             storageTag.putInt(STORED_DOSES_TAG, clampedStoredDoseCount);
-            tag.put(STORAGE_TAG, storageTag);
         });
     }
 
@@ -886,6 +911,41 @@ public class SpellcastersFlask extends Item {
         return Enchantments.getLevel(stack, Enchantments.GLOW_ENERGY);
     }
 
+    private static void setEffectParticlesSuppressed(ItemStack flaskStack, boolean suppressed) {
+        updateStorageTag(flaskStack, storageTag -> {
+            if (suppressed) {
+                storageTag.putBoolean(PARTICLES_SUPPRESSED_TAG, true);
+            } else {
+                storageTag.remove(PARTICLES_SUPPRESSED_TAG);
+            }
+        });
+    }
+
+    private static void clearStoredState(ItemStack flaskStack) {
+        updateStorageTag(flaskStack, storageTag -> {
+            storageTag.remove(STORED_ITEM_TAG);
+            storageTag.remove(STORED_DOSES_TAG);
+        });
+    }
+
+    private static void cleanupStorageTag(CompoundTag rootTag, CompoundTag storageTag) {
+        if (storageTag.getAllKeys().isEmpty()) {
+            rootTag.remove(STORAGE_TAG);
+        } else {
+            rootTag.put(STORAGE_TAG, storageTag);
+        }
+    }
+
+    private static void updateStorageTag(ItemStack flaskStack, java.util.function.Consumer<CompoundTag> updater) {
+        CustomData.update(DataComponents.CUSTOM_DATA, flaskStack, tag -> {
+            var storageTag = tag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)
+                    ? tag.getCompound(STORAGE_TAG).copy()
+                    : new CompoundTag();
+            updater.accept(storageTag);
+            cleanupStorageTag(tag, storageTag);
+        });
+    }
+
     private static void normalizeStoredDosesToCapacity(ItemStack stack) {
         var storageTag = getStorageTag(stack);
         if (storageTag == null) {
@@ -894,7 +954,7 @@ public class SpellcastersFlask extends Item {
 
         var storedItem = getStoredItem(stack);
         if (storedItem.isEmpty() || !isSupportedStoredItem(storedItem)) {
-            removeStorageTag(stack);
+            clearStoredState(stack);
             return;
         }
 
