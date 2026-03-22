@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.item.consumables.NetherwardTinctureItem;
 import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
 import io.redspace.ironsspellbooks.registries.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.utility.AlchemistCauldronFluidTools;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -104,7 +105,7 @@ public class SpellcastersFlask extends Item {
             return InteractionResult.PASS;
         }
 
-        var importPreview = previewTransfer(level, stack, cauldronTile.fluidInventory.getFluidInTank(0));
+        var importPreview = previewTransfer(level, stack, cauldronTile);
         if (importPreview != null) {
             if (level.isClientSide) {
                 return InteractionResult.SUCCESS;
@@ -616,19 +617,30 @@ public class SpellcastersFlask extends Item {
     }
 
     @Nullable
-    private static TransferPreview previewTransfer(Level level, ItemStack flaskStack, FluidStack fluidStack) {
-        if (fluidStack.isEmpty()) {
+    private static TransferPreview previewTransfer(Level level, ItemStack flaskStack, AlchemistCauldronTile cauldronTile) {
+        var storedDoseCount = getStoredDoseCount(flaskStack);
+        var storedItem = getStoredItem(flaskStack);
+        var fluidStack = AlchemistCauldronFluidTools.findFirstFluidFromTop(cauldronTile, candidate -> {
+            var representativeItem = createRepresentativeItem(level, candidate);
+            if (representativeItem.isEmpty()) {
+                return false;
+            }
+
+            if (storedDoseCount > 0 && !storedItem.isEmpty() && !ItemStack.isSameItemSameTags(storedItem, representativeItem)) {
+                return false;
+            }
+
+            return Math.min(
+                    getMaxStoredDoseCount(flaskStack) - storedDoseCount,
+                    candidate.getAmount() / MILLIBUCKETS_PER_DOSE
+            ) > 0;
+        });
+        if (fluidStack == null || fluidStack.isEmpty()) {
             return null;
         }
 
         var representativeItem = createRepresentativeItem(level, fluidStack);
         if (representativeItem.isEmpty()) {
-            return null;
-        }
-
-        var storedDoseCount = getStoredDoseCount(flaskStack);
-        var storedItem = getStoredItem(flaskStack);
-        if (storedDoseCount > 0 && !storedItem.isEmpty() && !ItemStack.isSameItemSameComponents(storedItem, representativeItem)) {
             return null;
         }
 
@@ -640,7 +652,9 @@ public class SpellcastersFlask extends Item {
             return null;
         }
 
-        return new TransferPreview(representativeItem, transferableDoseCount);
+        var drainFluid = fluidStack.copy();
+        drainFluid.setAmount(transferableDoseCount * MILLIBUCKETS_PER_DOSE);
+        return new TransferPreview(representativeItem, drainFluid, transferableDoseCount);
     }
 
     @Nullable
@@ -775,8 +789,10 @@ public class SpellcastersFlask extends Item {
     }
 
     private static void applyTransfer(ItemStack flaskStack, AlchemistCauldronTile cauldronTile, TransferPreview preview) {
-        var transferredFluid = cauldronTile.fluidInventory.drain(
-                preview.transferableDoseCount * MILLIBUCKETS_PER_DOSE,
+        var transferredFluid = AlchemistCauldronFluidTools.drainMatchingFluid(
+                cauldronTile,
+                preview.drainFluid,
+                preview.drainFluid.getAmount(),
                 IFluidHandler.FluidAction.EXECUTE
         );
         var appliedDoseCount = transferredFluid.getAmount() / MILLIBUCKETS_PER_DOSE;
@@ -910,7 +926,7 @@ public class SpellcastersFlask extends Item {
         CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove(STORAGE_TAG));
     }
 
-    private record TransferPreview(ItemStack representativeItem, int transferableDoseCount) {
+    private record TransferPreview(ItemStack representativeItem, FluidStack drainFluid, int transferableDoseCount) {
     }
 
     private record ExportPreview(FluidStack fluidStack, int doseCount, SoundEvent fillSound) {
