@@ -94,11 +94,12 @@ public final class AtelierStationBlockEntityRenderer implements BlockEntityRende
         }
 
         poseStack.translate(0.5F, 0.0F, 0.5F);
+        // 演出側の localToWorld と同じ見た目になるよう、PoseStack の回転系では東西を逆符号で補正する。
         poseStack.mulPose(Axis.YP.rotationDegrees(switch (state.getValue(AtelierStation.FACING)) {
             case NORTH -> 0.0F;
-            case EAST -> 90.0F;
+            case EAST -> 270.0F;
             case SOUTH -> 180.0F;
-            case WEST -> 270.0F;
+            case WEST -> 90.0F;
             default -> 0.0F;
         }));
         poseStack.translate(-0.5F, 0.0F, -0.5F);
