@@ -319,6 +319,7 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
+  "effect.apprenticecodex.intelligence": "Intelligence",
   "effect.apprenticecodex.long_stride_mobility": "Long Stride Mobility",
   "effect.apprenticecodex.palette_reception": "Reception Mode",
   "effect.apprenticecodex.phalanx_stance": "Phalanx Stance",
@@ -326,11 +327,17 @@
   "effect.apprenticecodex.sense_sensor": "Sense Sensor",
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
+  "effect.apprenticecodex.intelligence.description": "Greatly increases spell power.",
   "effect.apprenticecodex.long_stride_mobility.description": "Helps movement while casting and makes it easier to step over one-block obstacles.",
   "effect.apprenticecodex.palette_reception.description": "The next magic you wield with the Pastel Staff will tint it.",
   "effect.apprenticecodex.phalanx_stance.description": "The shield of magic that provides a sturdy barrier. More durable than a regular shield. Special equipment increases movement speed.",
   "effect.apprenticecodex.thermal_processing.description": "Being thermally processed. As the level increases, severe debuffs and continuous damage are applied.",
   "effect.apprenticecodex.sense_sensor.description": "Synced with the Sculk Sensor. Can sense sounds.",
+
+  "item.minecraft.potion.effect.intelligence": "Potion of Intelligence",
+  "item.minecraft.splash_potion.effect.intelligence": "Splash Potion of Intelligence",
+  "item.minecraft.lingering_potion.effect.intelligence": "Lingering Potion of Intelligence",
+  "item.minecraft.tipped_arrow.effect.intelligence": "Arrow of Intelligence",
 
   "death.attack.apprenticecodex.sky_edge": "%1$s was torn to shreds by %2$s.",
   "death.attack.apprenticecodex.archer_multiple": "%1$s was riddled with %2$s's arrows.",

@@ -40,6 +40,7 @@ public class ApprenticeCodex
         SoundRegistry.register(bus);
         RecipeRegistry.register(bus);
         EffectRegistry.register(bus);
+        PotionRegistry.register(bus);
         EnchantmentRegistry.register(bus);
         MenuRegistry.register(bus);
         CreativeTabRegistry.register(bus);

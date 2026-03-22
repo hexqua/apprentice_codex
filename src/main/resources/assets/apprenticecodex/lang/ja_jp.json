@@ -319,6 +319,7 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
+  "effect.apprenticecodex.intelligence": "知性",
   "effect.apprenticecodex.long_stride_mobility": "長距離歩法",
   "effect.apprenticecodex.palette_reception": "魔力受付モード",
   "effect.apprenticecodex.phalanx_stance": "ファランクススタンス",
@@ -326,11 +327,17 @@
   "effect.apprenticecodex.sense_sensor": "センスセンサー",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
+  "effect.apprenticecodex.intelligence.description": "魔法の力を大きく引き上げる。",
   "effect.apprenticecodex.long_stride_mobility.description": "詠唱中の移動を補助し、1ブロック程度の段差を乗り越えやすくする。",
   "effect.apprenticecodex.palette_reception.description": "次にパステルスタッフで振るった魔力で杖を染める。",
   "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。特殊な装備で移動速度も上昇する。",
   "effect.apprenticecodex.thermal_processing.description": "熱加工を受けている状態。レベルが進行すると強力なデバフとダメージが発生し続ける。",
   "effect.apprenticecodex.sense_sensor.description": "自身をスカルクセンサーと同調させている状態。音を感知できる。",
+
+  "item.minecraft.potion.effect.intelligence": "知性のポーション",
+  "item.minecraft.splash_potion.effect.intelligence": "知性のスプラッシュポーション",
+  "item.minecraft.lingering_potion.effect.intelligence": "知性の残留ポーション",
+  "item.minecraft.tipped_arrow.effect.intelligence": "知性の矢",
 
   "death.attack.apprenticecodex.sky_edge": "%1$sは%2$sによってズタズタに引き裂かれた",
   "death.attack.apprenticecodex.archer_multiple": "%1$sは%2$sに蜂の巣にされた",
