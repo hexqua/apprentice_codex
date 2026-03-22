@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -41,12 +42,12 @@ public class ApprenticeCodex
         modContainer.registerConfig(ModConfig.Type.CLIENT, ApprenticeCodexClientConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.COMMON, ApprenticeCodexCommonConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
-
         BlockRegistry.register(modEventBus);
         ItemRegistry.ITEMS.register(modEventBus);
         BlockEntityRegistry.register(modEventBus);
         EntityRegistry.register(modEventBus);
         EffectRegistry.register(modEventBus);
+        PotionRegistry.register(modEventBus);
         SpellRegistry.register(modEventBus);
         ApprenticeAttributeRegistry.register(modEventBus);
         SoundRegistry.register(modEventBus);

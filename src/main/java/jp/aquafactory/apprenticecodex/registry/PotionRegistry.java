@@ -1,0 +1,77 @@
+package jp.aquafactory.apprenticecodex.registry;
+
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.brewing.BrewingRecipe;
+import net.neoforged.neoforge.event.brewing.RegisterBrewingRecipesEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+public final class PotionRegistry {
+    private static final int BASE_DURATION_TICKS = 20 * 60 * 3;
+    private static final int LONG_DURATION_TICKS = 20 * 60 * 8;
+    private static final int STRONG_DURATION_TICKS = 20 * 90;
+
+    public static final DeferredRegister<Potion> POTIONS =
+            DeferredRegister.create(Registries.POTION, ApprenticeCodex.MODID);
+
+    public static final DeferredHolder<Potion, Potion> INTELLIGENCE =
+            POTIONS.register("intelligence", () -> new Potion(
+                    "intelligence",
+                    new MobEffectInstance(EffectRegistry.INTELLIGENCE.get(), BASE_DURATION_TICKS)
+            ));
+    public static final DeferredHolder<Potion, Potion> LONG_INTELLIGENCE =
+            POTIONS.register("long_intelligence", () -> new Potion(
+                    "intelligence",
+                    new MobEffectInstance(EffectRegistry.INTELLIGENCE.get(), LONG_DURATION_TICKS)
+            ));
+    public static final DeferredHolder<Potion, Potion> STRONG_INTELLIGENCE =
+            POTIONS.register("strong_intelligence", () -> new Potion(
+                    "intelligence",
+                    new MobEffectInstance(EffectRegistry.INTELLIGENCE.get(), STRONG_DURATION_TICKS, 1)
+            ));
+
+    private PotionRegistry() {
+    }
+
+    public static void register(IEventBus eventBus) {
+        POTIONS.register(eventBus);
+        eventBus.addListener(PotionRegistry::addRecipes);
+    }
+
+    public static void addRecipes(RegisterBrewingRecipesEvent event) {
+        var builder = event.getBuilder();
+        builder.addRecipe(new BrewingRecipe(
+                Ingredient.of(Potions.STRENGTH),
+                Ingredient.of(ItemRegistry.ARCANE_CINDER.get()),
+                new ItemStack(INTELLIGENCE.asItem())
+        ));
+        builder.addRecipe(new BrewingRecipe(
+                Ingredient.of(Potions.LONG_STRENGTH),
+                Ingredient.of(ItemRegistry.ARCANE_CINDER.get()),
+                new ItemStack(LONG_INTELLIGENCE.asItem())
+        ));
+        builder.addRecipe(new BrewingRecipe(
+                Ingredient.of(Potions.STRONG_STRENGTH),
+                Ingredient.of(ItemRegistry.ARCANE_CINDER.get()),
+                new ItemStack(STRONG_INTELLIGENCE.asItem())
+        ));
+        builder.addRecipe(new BrewingRecipe(
+                Ingredient.of(INTELLIGENCE),
+                Ingredient.of(Items.REDSTONE),
+                new ItemStack(LONG_INTELLIGENCE.asItem())
+        ));
+        builder.addRecipe(new BrewingRecipe(
+                Ingredient.of(INTELLIGENCE),
+                Ingredient.of(Items.GLOWSTONE_DUST),
+                new ItemStack(STRONG_INTELLIGENCE.asItem())
+        ));
+    }
+}
