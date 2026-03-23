@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import top.theillusivec4.curios.api.SlotContext;
 
 final class AbsorptionAmplifyAmuletLogic {
@@ -177,11 +178,11 @@ final class AbsorptionAmplifyAmuletLogic {
         clearPendingRecovery(state);
     }
 
-    private static float getTargetAbsorption(ServerPlayer player) {
+    static float getTargetAbsorption(LivingEntity entity) {
         // 既定値8.0は Iron's Spells 'n Spellbooks 3.15.0 の Fortify Lv3 基礎値相当.
         var baseAbsorptionTarget = ApprenticeCodexServerConfig.absorptionAmplifyAmuletBaseAbsorptionTarget();
-        var spellPowerModifier = (float) player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
-        var holyPowerModifier = (float) SchoolRegistry.HOLY.get().getPowerFor(player);
+        var spellPowerModifier = (float) entity.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
+        var holyPowerModifier = (float) SchoolRegistry.HOLY.get().getPowerFor(entity);
         return baseAbsorptionTarget * spellPowerModifier * holyPowerModifier;
     }
 
