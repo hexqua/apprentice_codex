@@ -92,6 +92,7 @@
   "item.apprenticecodex.protection_spell_supporter.desc_1": "Enhances specific defensive spells and boosts mana efficiency.",
   "item.apprenticecodex.protection_spell_supporter.desc_2": "Target spells include:",
   "item.apprenticecodex.absorption_amplify_amulet.desc_1": "Consumes mana to generate an absorption shield that automatically recovers to a certain value.",
+  "item.apprenticecodex.absorption_amplify_amulet.desc_current": "With your current equipment, it refills up to %s HP.",
   "item.apprenticecodex.absorption_amplify_amulet.desc_2": "The recovery amount is amplified by the strength of holy school.",
   "item.apprenticecodex.absorption_amplify_amulet.desc_3": "Removing this accessory causes loses all absorption shields.",
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_1": "Increase chance of returning empty casing.",

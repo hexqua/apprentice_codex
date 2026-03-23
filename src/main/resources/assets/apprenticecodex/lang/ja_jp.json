@@ -92,6 +92,7 @@
   "item.apprenticecodex.protection_spell_supporter.desc_1": "特定の防御魔法を強化し、マナ効率も上昇させる。",
   "item.apprenticecodex.protection_spell_supporter.desc_2": "対象の魔法は以下:",
   "item.apprenticecodex.absorption_amplify_amulet.desc_1": "マナを消費して衝撃吸収のシールドを強化した上で一定値まで自動回復する。",
+  "item.apprenticecodex.absorption_amplify_amulet.desc_current": "現在の装備状態では %s HP まで補充される。",
   "item.apprenticecodex.absorption_amplify_amulet.desc_2": "回復量の値は聖魔法の強さによって強化される。",
   "item.apprenticecodex.absorption_amplify_amulet.desc_3": "このアクセサリを外すと反動で全ての衝撃吸収のシールドを失う。",
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_1": "空薬莢が戻って来る確率が上昇する。",
