@@ -2,32 +2,24 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityBrewingRecipe;
-import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.brewing.BrewingRecipe;
 import net.neoforged.neoforge.event.brewing.RegisterBrewingRecipesEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
-import java.util.List;
-
 public final class PotionRegistry {
     private static final int BASE_DURATION_TICKS = 20 * 60 * 3;
     private static final int LONG_DURATION_TICKS = 20 * 60 * 8;
     private static final int STRONG_DURATION_TICKS = 20 * 90;
-    private static final List<Item> BREWING_CONTAINERS = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
 
     public static final DeferredRegister<Potion> POTIONS =
             DeferredRegister.create(Registries.POTION, ApprenticeCodex.MODID);
@@ -69,33 +61,13 @@ public final class PotionRegistry {
 
     public static void addRecipes(RegisterBrewingRecipesEvent event) {
         var builder = event.getBuilder();
-        for (var container : BREWING_CONTAINERS) {
-            builder.addRecipe(new BrewingRecipe(
-                    Ingredient.of(PotionContentsHelper.createPotionStack(container, Potions.STRENGTH.value())),
-                    Ingredient.of(ItemRegistry.ARCANE_CINDER.get()),
-                    PotionContentsHelper.createPotionStack(container, INTELLIGENCE.get())
-            ));
-            builder.addRecipe(new BrewingRecipe(
-                    Ingredient.of(PotionContentsHelper.createPotionStack(container, Potions.LONG_STRENGTH.value())),
-                    Ingredient.of(ItemRegistry.ARCANE_CINDER.get()),
-                    PotionContentsHelper.createPotionStack(container, LONG_INTELLIGENCE.get())
-            ));
-            builder.addRecipe(new BrewingRecipe(
-                    Ingredient.of(PotionContentsHelper.createPotionStack(container, Potions.STRONG_STRENGTH.value())),
-                    Ingredient.of(ItemRegistry.ARCANE_CINDER.get()),
-                    PotionContentsHelper.createPotionStack(container, STRONG_INTELLIGENCE.get())
-            ));
-            builder.addRecipe(new BrewingRecipe(
-                    Ingredient.of(PotionContentsHelper.createPotionStack(container, INTELLIGENCE.get())),
-                    Ingredient.of(Items.REDSTONE),
-                    PotionContentsHelper.createPotionStack(container, LONG_INTELLIGENCE.get())
-            ));
-            builder.addRecipe(new BrewingRecipe(
-                    Ingredient.of(PotionContentsHelper.createPotionStack(container, INTELLIGENCE.get())),
-                    Ingredient.of(Items.GLOWSTONE_DUST),
-                    PotionContentsHelper.createPotionStack(container, STRONG_INTELLIGENCE.get())
-            ));
-        }
+        // 1.21.1 の Ingredient は ItemStack のポーション内容を見ず item 種別だけで一致するため、
+        // 通常のポーション派生は addMix を使って Holder<Potion> で判定させる。
+        builder.addMix(Potions.STRENGTH, ItemRegistry.ARCANE_CINDER.get(), INTELLIGENCE);
+        builder.addMix(Potions.LONG_STRENGTH, ItemRegistry.ARCANE_CINDER.get(), LONG_INTELLIGENCE);
+        builder.addMix(Potions.STRONG_STRENGTH, ItemRegistry.ARCANE_CINDER.get(), STRONG_INTELLIGENCE);
+        builder.addMix(INTELLIGENCE, Items.REDSTONE, LONG_INTELLIGENCE);
+        builder.addMix(INTELLIGENCE, Items.GLOWSTONE_DUST, STRONG_INTELLIGENCE);
         builder.addRecipe(new SchoolAffinityBrewingRecipe());
     }
 }
