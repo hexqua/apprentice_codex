@@ -1,27 +1,24 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import io.redspace.ironsspellbooks.fluids.PotionFluidType;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityTooltipHelper;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.fluids.FluidStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(PotionFluidType.class)
-public abstract class PotionFluidTypeMixin {
+import net.neoforged.neoforge.fluids.FluidStack;
+
+@Mixin(FluidStack.class)
+public abstract class FluidStackMixin {
     @Inject(
-            method = "getDescription(Lnet/neoforged/neoforge/fluids/FluidStack;)Lnet/minecraft/network/chat/Component;",
+            method = "getHoverName()Lnet/minecraft/network/chat/Component;",
             at = @At("HEAD"),
             cancellable = true,
             remap = false
     )
-    private void apprenticecodex$overrideSchoolAffinityPotionFluidName(
-            FluidStack stack,
-            CallbackInfoReturnable<Component> cir
-    ) {
-        var description = SchoolAffinityTooltipHelper.tryBuildFluidDescription(stack);
+    private void apprenticecodex$overrideSchoolAffinityFluidHoverName(CallbackInfoReturnable<Component> cir) {
+        var description = SchoolAffinityTooltipHelper.tryBuildFluidDescription((FluidStack) (Object) this);
         if (description == null) {
             return;
         }
