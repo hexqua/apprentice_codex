@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -43,6 +44,11 @@ public final class Networks {
                 SyncScarletThirstHealthPacket.TYPE,
                 SyncScarletThirstHealthPacket.STREAM_CODEC,
                 SyncScarletThirstHealthPacket::handle
+        );
+        registrar.playToClient(
+                SyncSchoolAffinityAssignmentsPacket.TYPE,
+                SyncSchoolAffinityAssignmentsPacket.STREAM_CODEC,
+                SyncSchoolAffinityAssignmentsPacket::handle
         );
         registrar.playToClient(
                 ForceFieldDefenseEffectPacket.TYPE,

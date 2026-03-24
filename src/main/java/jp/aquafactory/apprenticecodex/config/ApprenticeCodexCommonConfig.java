@@ -1,7 +1,14 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = EventBusSubscriber.Bus.MOD)
 public final class ApprenticeCodexCommonConfig {
     public static final ModConfigSpec SPEC;
 
@@ -9,6 +16,8 @@ public final class ApprenticeCodexCommonConfig {
     private static final ModConfigSpec.BooleanValue DISABLE_APPRENTICE_DESK_RECIPE;
     private static final ModConfigSpec.BooleanValue DISABLE_ARCANUM_IN_A_JAR_RECIPE;
     private static final ModConfigSpec.BooleanValue DISABLE_EXPLORERS_CODEX_RECIPE;
+    private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_PRIORITY;
+    private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_DENY;
 
     static {
         var builder = new ModConfigSpec.Builder();
@@ -16,6 +25,14 @@ public final class ApprenticeCodexCommonConfig {
         DISABLE_APPRENTICE_DESK_RECIPE = builder.define("disableApprenticeDeskRecipe", false);
         DISABLE_ARCANUM_IN_A_JAR_RECIPE = builder.define("disableArcanumInAJarRecipe", false);
         DISABLE_EXPLORERS_CODEX_RECIPE = builder.define("disableExplorersCodexRecipe", false);
+        builder.pop();
+        builder.comment(" schoolAffinityPriority / schoolAffinityDeny : \"modid:school_id\"",
+                        " If datapack(data/" + ApprenticeCodex.MODID + "/school_affinity_policies/*.json) exists, use that instead.")
+                .push("SchoolAffinity");
+        SCHOOL_AFFINITY_PRIORITY = builder.defineList("schoolAffinityPriority", java.util.List.<String>of(),
+                value -> value instanceof String text && !text.isBlank());
+        SCHOOL_AFFINITY_DENY = builder.defineList("schoolAffinityDeny", java.util.List.<String>of(),
+                value -> value instanceof String text && !text.isBlank());
         builder.pop();
         SPEC = builder.build();
     }
@@ -33,5 +50,38 @@ public final class ApprenticeCodexCommonConfig {
 
     public static boolean disableExplorersCodexRecipe() {
         return DISABLE_EXPLORERS_CODEX_RECIPE.get();
+    }
+
+    public static java.util.List<String> schoolAffinityPriority() {
+        return SCHOOL_AFFINITY_PRIORITY.get().stream()
+                .map(String::valueOf)
+                .toList();
+    }
+
+    public static java.util.List<String> schoolAffinityDeny() {
+        return SCHOOL_AFFINITY_DENY.get().stream()
+                .map(String::valueOf)
+                .toList();
+    }
+
+    @SubscribeEvent
+    public static void onConfigLoading(ModConfigEvent.Loading event) {
+        invalidateSchoolAffinityBindings(event);
+    }
+
+    @SubscribeEvent
+    public static void onConfigReloading(ModConfigEvent.Reloading event) {
+        invalidateSchoolAffinityBindings(event);
+    }
+
+    private static void invalidateSchoolAffinityBindings(ModConfigEvent event) {
+        if (event.getConfig().getType() != ModConfig.Type.COMMON) {
+            return;
+        }
+        if (!ApprenticeCodex.MODID.equals(event.getConfig().getModId())) {
+            return;
+        }
+
+        SchoolAffinityRegistry.invalidateBindings();
     }
 }

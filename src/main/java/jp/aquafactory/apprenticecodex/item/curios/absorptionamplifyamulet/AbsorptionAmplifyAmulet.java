@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet;
 
 import io.redspace.ironsspellbooks.compat.Curios;
+import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.util.MinecraftInstanceHelper;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -49,6 +51,7 @@ public class AbsorptionAmplifyAmulet extends Item implements ICurioItem {
             result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_1"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            appendCurrentRecoveryTooltip(result);
             result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_2"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
@@ -58,6 +61,21 @@ public class AbsorptionAmplifyAmulet extends Item implements ICurioItem {
         }
 
         return result;
+    }
+
+    private void appendCurrentRecoveryTooltip(List<Component> tooltips) {
+        var player = MinecraftInstanceHelper.getPlayer();
+        if (player == null) {
+            return;
+        }
+
+        var targetAbsorption = AbsorptionAmplifyAmuletLogic.getTargetAbsorption(player);
+        tooltips.add(Component.literal(" ")
+                .append(Component.translatable(
+                        getDescriptionId() + ".desc_current",
+                        Utils.stringTruncation(targetAbsorption, 1)
+                ))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
     }
 
     @Override
