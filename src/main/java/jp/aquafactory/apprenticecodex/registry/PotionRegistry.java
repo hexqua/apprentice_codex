@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.potion.SchoolAffinityBrewingRecipe;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityPotionBrewing;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -62,12 +62,19 @@ public final class PotionRegistry {
     public static void addRecipes(RegisterBrewingRecipesEvent event) {
         var builder = event.getBuilder();
         // 1.21.1 の Ingredient は ItemStack のポーション内容を見ず item 種別だけで一致するため、
-        // 通常のポーション派生は addMix を使って Holder<Potion> で判定させる。
+        // 大釜と JEI も potion mix を参照するため、親和派生も addMix へ統一する。
         builder.addMix(Potions.STRENGTH, ItemRegistry.ARCANE_CINDER.get(), INTELLIGENCE);
         builder.addMix(Potions.LONG_STRENGTH, ItemRegistry.ARCANE_CINDER.get(), LONG_INTELLIGENCE);
         builder.addMix(Potions.STRONG_STRENGTH, ItemRegistry.ARCANE_CINDER.get(), STRONG_INTELLIGENCE);
         builder.addMix(INTELLIGENCE, Items.REDSTONE, LONG_INTELLIGENCE);
         builder.addMix(INTELLIGENCE, Items.GLOWSTONE_DUST, STRONG_INTELLIGENCE);
-        builder.addRecipe(new SchoolAffinityBrewingRecipe());
+
+        for (var transition : SchoolAffinityPotionBrewing.getTransitions()) {
+            builder.addMix(
+                    BuiltInRegistries.POTION.wrapAsHolder(transition.inputPotion()),
+                    transition.catalyst(),
+                    BuiltInRegistries.POTION.wrapAsHolder(transition.outputPotion())
+            );
+        }
     }
 }

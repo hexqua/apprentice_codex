@@ -3,10 +3,6 @@ package jp.aquafactory.apprenticecodex.compat.jei;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.config.ServerConfigs;
-import io.redspace.ironsspellbooks.fluids.PotionFluid;
-import io.redspace.ironsspellbooks.jei.AlchemistCauldronJeiRecipe;
-import io.redspace.ironsspellbooks.jei.AlchemistCauldronRecipeCategory;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -14,6 +10,7 @@ import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityPotionBrewing;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -33,7 +30,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -211,123 +207,27 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         if (!brewingRecipes.isEmpty()) {
             registration.addRecipes(RecipeTypes.BREWING, brewingRecipes);
         }
-
-        var cauldronRecipes = createAffinityCauldronRecipes();
-        if (!cauldronRecipes.isEmpty()) {
-            registration.addRecipes(AlchemistCauldronRecipeCategory.ALCHEMIST_CAULDRON_RECIPE_TYPE, cauldronRecipes);
-        }
     }
 
     private static List<IJeiBrewingRecipe> createAffinityBrewingRecipes(IRecipeRegistration registration) {
         var vanillaRecipeFactory = registration.getVanillaRecipeFactory();
         var recipes = new ArrayList<IJeiBrewingRecipe>();
 
-        for (var entry : SchoolAffinityRegistry.getBrewingDefinitionsByCatalyst().entrySet()) {
-            var catalyst = entry.getKey();
-            var definition = entry.getValue();
+        for (var transition : SchoolAffinityPotionBrewing.getTransitions()) {
+            var catalystId = BuiltInRegistries.ITEM.getKey(transition.catalyst());
+            var outputPotionId = BuiltInRegistries.POTION.getKey(transition.outputPotion());
 
             for (var container : BREWING_CONTAINERS) {
                 addBrewingRecipe(
                         recipes,
                         vanillaRecipeFactory,
-                        catalyst,
-                        createPotionStack(container, PotionRegistry.INTELLIGENCE.get()),
-                        createPotionStack(container, definition.basePotion()),
-                        "affinity_from_intelligence",
-                        definition.basePotionId(),
-                        BuiltInRegistries.ITEM.getKey(catalyst),
+                        transition.catalyst(),
+                        createPotionStack(container, transition.inputPotion()),
+                        createPotionStack(container, transition.outputPotion()),
+                        transition.transitionKey(),
+                        outputPotionId,
+                        catalystId,
                         BuiltInRegistries.ITEM.getKey(container)
-                );
-                addBrewingRecipe(
-                        recipes,
-                        vanillaRecipeFactory,
-                        catalyst,
-                        createPotionStack(container, PotionRegistry.LONG_INTELLIGENCE.get()),
-                        createPotionStack(container, definition.longPotion()),
-                        "affinity_from_long_intelligence",
-                        definition.longPotionId(),
-                        BuiltInRegistries.ITEM.getKey(catalyst),
-                        BuiltInRegistries.ITEM.getKey(container)
-                );
-                addBrewingRecipe(
-                        recipes,
-                        vanillaRecipeFactory,
-                        catalyst,
-                        createPotionStack(container, PotionRegistry.STRONG_INTELLIGENCE.get()),
-                        createPotionStack(container, definition.strongPotion()),
-                        "affinity_from_strong_intelligence",
-                        definition.strongPotionId(),
-                        BuiltInRegistries.ITEM.getKey(catalyst),
-                        BuiltInRegistries.ITEM.getKey(container)
-                );
-                addBrewingRecipe(
-                        recipes,
-                        vanillaRecipeFactory,
-                        Items.REDSTONE,
-                        createPotionStack(container, definition.basePotion()),
-                        createPotionStack(container, definition.longPotion()),
-                        "affinity_extend",
-                        definition.longPotionId(),
-                        BuiltInRegistries.ITEM.getKey(Items.REDSTONE),
-                        BuiltInRegistries.ITEM.getKey(container)
-                );
-                addBrewingRecipe(
-                        recipes,
-                        vanillaRecipeFactory,
-                        Items.GLOWSTONE_DUST,
-                        createPotionStack(container, definition.basePotion()),
-                        createPotionStack(container, definition.strongPotion()),
-                        "affinity_amplify",
-                        definition.strongPotionId(),
-                        BuiltInRegistries.ITEM.getKey(Items.GLOWSTONE_DUST),
-                        BuiltInRegistries.ITEM.getKey(container)
-                );
-            }
-        }
-
-        return recipes;
-    }
-
-    private static List<AlchemistCauldronJeiRecipe> createAffinityCauldronRecipes() {
-        if (!ServerConfigs.ALLOW_CAULDRON_BREWING.get()) {
-            return List.of();
-        }
-
-        var recipes = new ArrayList<AlchemistCauldronJeiRecipe>();
-        for (var entry : SchoolAffinityRegistry.getBrewingDefinitionsByCatalyst().entrySet()) {
-            var catalyst = entry.getKey();
-            var definition = entry.getValue();
-
-            for (var container : BREWING_CONTAINERS) {
-                addCauldronRecipe(
-                        recipes,
-                        catalyst,
-                        createPotionStack(container, PotionRegistry.INTELLIGENCE.get()),
-                        createPotionStack(container, definition.basePotion())
-                );
-                addCauldronRecipe(
-                        recipes,
-                        catalyst,
-                        createPotionStack(container, PotionRegistry.LONG_INTELLIGENCE.get()),
-                        createPotionStack(container, definition.longPotion())
-                );
-                addCauldronRecipe(
-                        recipes,
-                        catalyst,
-                        createPotionStack(container, PotionRegistry.STRONG_INTELLIGENCE.get()),
-                        createPotionStack(container, definition.strongPotion())
-                );
-                addCauldronRecipe(
-                        recipes,
-                        Items.REDSTONE,
-                        createPotionStack(container, definition.basePotion()),
-                        createPotionStack(container, definition.longPotion())
-                );
-                addCauldronRecipe(
-                        recipes,
-                        Items.GLOWSTONE_DUST,
-                        createPotionStack(container, definition.basePotion()),
-                        createPotionStack(container, definition.strongPotion())
                 );
             }
         }
@@ -350,20 +250,6 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 input,
                 output,
                 createAffinityPotionRecipeId(transitionKey, outputPotionId, catalystId, containerId)
-        ));
-    }
-
-    private static void addCauldronRecipe(
-            List<AlchemistCauldronJeiRecipe> recipes,
-            Item catalyst,
-            ItemStack input,
-            ItemStack output
-    ) {
-        recipes.add(new AlchemistCauldronJeiRecipe(
-                Ingredient.of(catalyst),
-                PotionFluid.from(input),
-                List.of(PotionFluid.from(output)),
-                ItemStack.EMPTY
         ));
     }
 
