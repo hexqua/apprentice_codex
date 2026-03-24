@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.effect.SchoolAffinityEffect;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotionVariant;
@@ -24,6 +25,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,19 +44,21 @@ public final class SchoolAffinityRegistry {
             SchoolRegistry.ELDRITCH_RESOURCE
     );
     private static final int BUILTIN_AFFINITY_SLOT_COUNT = BUILTIN_IRONS_SCHOOL_IDS.size();
-    private static final int EXTRA_AFFINITY_SLOT_COUNT = 8;
+    private static final int EXTRA_AFFINITY_SLOT_COUNT = 16;
     public static final int MAX_AFFINITY_SLOTS = BUILTIN_AFFINITY_SLOT_COUNT + EXTRA_AFFINITY_SLOT_COUNT;
 
     private static final List<SchoolAffinityDefinition> DEFINITIONS = new ArrayList<>();
     private static final Map<MobEffect, SchoolAffinityDefinition> DEFINITION_BY_EFFECT = new IdentityHashMap<>();
     private static final Map<Potion, SchoolAffinityDefinition> DEFINITION_BY_POTION = new IdentityHashMap<>();
     private static final SchoolType[] ASSIGNED_SCHOOLS = new SchoolType[MAX_AFFINITY_SLOTS];
+    private static final ResourceLocation[] SYNCED_SCHOOL_IDS = new ResourceLocation[MAX_AFFINITY_SLOTS];
     private static final Map<ResourceLocation, SchoolAffinityDefinition> DEFINITION_BY_SCHOOL_ID = new LinkedHashMap<>();
 
     @Nullable
     private static Map<Item, SchoolAffinityDefinition> catalystDefinitionByItem;
 
     private static boolean bindingsResolved;
+    private static boolean hasSyncedAssignments;
     private static boolean warnedExtraSchoolCount;
 
     private SchoolAffinityRegistry() {
@@ -168,6 +172,37 @@ public final class SchoolAffinityRegistry {
         return Optional.ofNullable(ASSIGNED_SCHOOLS[slotIndex]);
     }
 
+    public static synchronized List<ResourceLocation> createAssignmentSnapshot() {
+        ensureBindingsResolved();
+
+        var assignments = new ArrayList<ResourceLocation>(ASSIGNED_SCHOOLS.length);
+        for (var schoolType : ASSIGNED_SCHOOLS) {
+            assignments.add(schoolType != null ? schoolType.getId() : null);
+        }
+        return java.util.Collections.unmodifiableList(assignments);
+    }
+
+    public static synchronized void applySyncedAssignments(List<ResourceLocation> schoolIdsBySlot) {
+        Arrays.fill(SYNCED_SCHOOL_IDS, null);
+
+        for (int slotIndex = 0; slotIndex < Math.min(SYNCED_SCHOOL_IDS.length, schoolIdsBySlot.size()); slotIndex++) {
+            SYNCED_SCHOOL_IDS[slotIndex] = schoolIdsBySlot.get(slotIndex);
+        }
+
+        hasSyncedAssignments = true;
+        invalidateBindings();
+    }
+
+    public static synchronized void clearSyncedAssignments() {
+        if (!hasSyncedAssignments) {
+            return;
+        }
+
+        Arrays.fill(SYNCED_SCHOOL_IDS, null);
+        hasSyncedAssignments = false;
+        invalidateBindings();
+    }
+
     public static UUID createModifierUuid(int slotIndex) {
         return UUID.nameUUIDFromBytes(("apprenticecodex:school_affinity_slot:" + slotIndex).getBytes(StandardCharsets.UTF_8));
     }
@@ -198,6 +233,12 @@ public final class SchoolAffinityRegistry {
         var schoolRegistry = SchoolRegistry.REGISTRY.get();
         var supportedDefinitionsByCatalyst = new LinkedHashMap<Item, List<SchoolAffinityDefinition>>();
 
+        if (hasSyncedAssignments) {
+            applyResolvedAssignmentsFromIds(schoolRegistry, supportedDefinitionsByCatalyst);
+            finalizeResolvedBindings(supportedDefinitionsByCatalyst);
+            return;
+        }
+
         // Iron's 本体分はスロットを固定し、今後もセーブデータ上の対応がずれないようにする.
         for (var slotIndex = 0; slotIndex < BUILTIN_AFFINITY_SLOT_COUNT; slotIndex++) {
             var schoolId = BUILTIN_IRONS_SCHOOL_IDS.get(slotIndex);
@@ -211,20 +252,43 @@ public final class SchoolAffinityRegistry {
                 .sorted(Comparator.comparing(SchoolAffinityRegistry::getExtraSchoolSortKey))
                 .toList();
 
-        if (extraSchools.size() > EXTRA_AFFINITY_SLOT_COUNT && !warnedExtraSchoolCount) {
+        var selectedExtraSchools = resolveSelectedExtraSchools(extraSchools);
+        if (selectedExtraSchools.size() < extraSchools.size() && !warnedExtraSchoolCount) {
+            var selectedSchoolIds = selectedExtraSchools.stream()
+                    .map(SchoolType::getId)
+                    .collect(java.util.stream.Collectors.toSet());
             ApprenticeCodex.LOGGER.warn(
-                    "School Affinity has {} extra schools loaded, but only {} extra slots are available. Some schools may be unsupported.",
+                    "School Affinity has {} extra schools loaded, but only {} extra slots are available. Some schools are unsupported: {}",
                     extraSchools.size(),
-                    EXTRA_AFFINITY_SLOT_COUNT
+                    EXTRA_AFFINITY_SLOT_COUNT,
+                    extraSchools.stream()
+                            .map(SchoolType::getId)
+                            .filter(id -> !selectedSchoolIds.contains(id))
+                            .map(ResourceLocation::toString)
+                            .toList()
             );
             warnedExtraSchoolCount = true;
         }
 
-        for (var extraIndex = 0; extraIndex < Math.min(extraSchools.size(), EXTRA_AFFINITY_SLOT_COUNT); extraIndex++) {
+        for (var extraIndex = 0; extraIndex < Math.min(selectedExtraSchools.size(), EXTRA_AFFINITY_SLOT_COUNT); extraIndex++) {
             var slotIndex = BUILTIN_AFFINITY_SLOT_COUNT + extraIndex;
-            bindSchoolToSlot(slotIndex, extraSchools.get(extraIndex), supportedDefinitionsByCatalyst);
+            bindSchoolToSlot(slotIndex, selectedExtraSchools.get(extraIndex), supportedDefinitionsByCatalyst);
         }
 
+        finalizeResolvedBindings(supportedDefinitionsByCatalyst);
+    }
+
+    private static void applyResolvedAssignmentsFromIds(
+            net.minecraftforge.registries.IForgeRegistry<SchoolType> schoolRegistry,
+            Map<Item, List<SchoolAffinityDefinition>> supportedDefinitionsByCatalyst
+    ) {
+        for (int slotIndex = 0; slotIndex < SYNCED_SCHOOL_IDS.length; slotIndex++) {
+            var schoolId = SYNCED_SCHOOL_IDS[slotIndex];
+            bindSchoolToSlot(slotIndex, schoolId != null ? schoolRegistry.getValue(schoolId) : null, supportedDefinitionsByCatalyst);
+        }
+    }
+
+    private static void finalizeResolvedBindings(Map<Item, List<SchoolAffinityDefinition>> supportedDefinitionsByCatalyst) {
         var uniqueDefinitionsByCatalyst = new LinkedHashMap<Item, SchoolAffinityDefinition>();
         for (var entry : supportedDefinitionsByCatalyst.entrySet()) {
             if (entry.getValue().size() != 1) {
@@ -237,6 +301,81 @@ public final class SchoolAffinityRegistry {
         catalystDefinitionByItem = uniqueDefinitionsByCatalyst;
         bindingsResolved = true;
         logResolvedAssignments();
+    }
+
+    private static List<SchoolType> resolveSelectedExtraSchools(List<SchoolType> extraSchools) {
+        var candidatesById = new LinkedHashMap<ResourceLocation, SchoolType>();
+        for (var school : extraSchools) {
+            candidatesById.put(school.getId(), school);
+        }
+
+        var policy = resolveSelectionPolicy();
+        var denyIds = new LinkedHashSet<>(policy.deny());
+        var selected = new ArrayList<SchoolType>(EXTRA_AFFINITY_SLOT_COUNT);
+
+        for (var deniedId : denyIds) {
+            if (BUILTIN_IRONS_SCHOOL_IDS.contains(deniedId)) {
+                ApprenticeCodex.LOGGER.warn("School Affinity deny entry {} was ignored because builtin schools always remain assigned.", deniedId);
+            }
+        }
+
+        for (var priorityId : policy.priorities()) {
+            if (BUILTIN_IRONS_SCHOOL_IDS.contains(priorityId)) {
+                ApprenticeCodex.LOGGER.warn("School Affinity priority entry {} was ignored because builtin schools already have fixed slots.", priorityId);
+                continue;
+            }
+            if (denyIds.contains(priorityId)) {
+                ApprenticeCodex.LOGGER.warn("School Affinity priority entry {} was ignored because the same school is denylisted.", priorityId);
+                continue;
+            }
+
+            var school = candidatesById.remove(priorityId);
+            if (school == null) {
+                ApprenticeCodex.LOGGER.warn("School Affinity priority entry {} did not match any supported extra school.", priorityId);
+                continue;
+            }
+
+            if (selected.size() >= EXTRA_AFFINITY_SLOT_COUNT) {
+                break;
+            }
+            selected.add(school);
+        }
+
+        for (var school : candidatesById.values()) {
+            if (denyIds.contains(school.getId())) {
+                continue;
+            }
+            if (selected.size() >= EXTRA_AFFINITY_SLOT_COUNT) {
+                break;
+            }
+            selected.add(school);
+        }
+
+        return List.copyOf(selected);
+    }
+
+    private static SchoolAffinitySelectionPolicy resolveSelectionPolicy() {
+        if (SchoolAffinitySelectionPolicyManager.hasDatapackEntries()) {
+            return SchoolAffinitySelectionPolicyManager.getResolvedPolicy();
+        }
+
+        return new SchoolAffinitySelectionPolicy(
+                parseSchoolIds(ApprenticeCodexCommonConfig.schoolAffinityPriority()),
+                parseSchoolIds(ApprenticeCodexCommonConfig.schoolAffinityDeny())
+        );
+    }
+
+    private static List<ResourceLocation> parseSchoolIds(List<String> rawSchoolIds) {
+        var resolved = new LinkedHashSet<ResourceLocation>();
+        for (var rawSchoolId : rawSchoolIds) {
+            var schoolId = ResourceLocation.tryParse(rawSchoolId);
+            if (schoolId == null) {
+                ApprenticeCodex.LOGGER.warn("Ignored invalid School Affinity school id in config: {}", rawSchoolId);
+                continue;
+            }
+            resolved.add(schoolId);
+        }
+        return resolved.stream().toList();
     }
 
     private static void bindSchoolToSlot(int slotIndex, @Nullable SchoolType schoolType, Map<Item, List<SchoolAffinityDefinition>> supportedDefinitionsByCatalyst) {

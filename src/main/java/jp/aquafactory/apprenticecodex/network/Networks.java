@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -53,6 +54,13 @@ public final class Networks {
                 SyncScarletThirstHealthPacket::encode,
                 SyncScarletThirstHealthPacket::decode,
                 SyncScarletThirstHealthPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncSchoolAffinityAssignmentsPacket.class,
+                SyncSchoolAffinityAssignmentsPacket::encode,
+                SyncSchoolAffinityAssignmentsPacket::decode,
+                SyncSchoolAffinityAssignmentsPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
