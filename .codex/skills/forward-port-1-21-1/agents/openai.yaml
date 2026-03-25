@@ -1,0 +1,4 @@
+interface:
+  display_name: "1.21.1 Forward Port"
+  short_description: "1.20.1から1.21.1への移植手順と確認観点を整理する"
+  default_prompt: "Use $forward-port-1-21-1 to plan or review a 1.20.1 Forge to 1.21.1 NeoForge forward-port in this repository."
