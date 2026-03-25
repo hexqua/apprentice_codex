@@ -291,12 +291,12 @@ public final class SchoolAffinityRegistry {
     private static void finalizeResolvedBindings(Map<Item, List<SchoolAffinityDefinition>> supportedDefinitionsByCatalyst) {
         var uniqueDefinitionsByCatalyst = new LinkedHashMap<Item, SchoolAffinityDefinition>();
         for (var entry : supportedDefinitionsByCatalyst.entrySet()) {
-            if (entry.getValue().size() != 1) {
-                logCatalystConflict(entry.getKey(), entry.getValue());
+            var resolvedDefinition = resolveCatalystDefinition(entry.getKey(), entry.getValue());
+            if (resolvedDefinition == null) {
                 continue;
             }
 
-            uniqueDefinitionsByCatalyst.put(entry.getKey(), entry.getValue().get(0));
+            uniqueDefinitionsByCatalyst.put(entry.getKey(), resolvedDefinition);
         }
 
         catalystDefinitionByItem = uniqueDefinitionsByCatalyst;
@@ -448,6 +448,50 @@ public final class SchoolAffinityRegistry {
     private static String getItemSortKey(Item item) {
         var itemId = ForgeRegistries.ITEMS.getKey(item);
         return itemId != null ? itemId.toString() : item.toString();
+    }
+
+    @Nullable
+    private static SchoolAffinityDefinition resolveCatalystDefinition(Item catalyst, List<SchoolAffinityDefinition> definitions) {
+        if (definitions.size() == 1) {
+            return definitions.get(0);
+        }
+
+        var builtinDefinitions = definitions.stream()
+                .filter(SchoolAffinityRegistry::isBuiltinDefinition)
+                .toList();
+        if (builtinDefinitions.size() == 1) {
+            var retainedDefinition = builtinDefinitions.get(0);
+            logBuiltinCatalystConflictResolution(catalyst, retainedDefinition, definitions);
+            return retainedDefinition;
+        }
+
+        logCatalystConflict(catalyst, definitions);
+        return null;
+    }
+
+    private static boolean isBuiltinDefinition(SchoolAffinityDefinition definition) {
+        var schoolType = ASSIGNED_SCHOOLS[definition.slotIndex()];
+        return schoolType != null && BUILTIN_IRONS_SCHOOL_IDS.contains(schoolType.getId());
+    }
+
+    private static void logBuiltinCatalystConflictResolution(
+            Item catalyst,
+            SchoolAffinityDefinition retainedDefinition,
+            List<SchoolAffinityDefinition> definitions
+    ) {
+        var catalystId = ForgeRegistries.ITEMS.getKey(catalyst);
+        var retainedSchoolId = getAssignedSchoolId(retainedDefinition);
+        var droppedSchoolIds = definitions.stream()
+                .map(SchoolAffinityRegistry::getAssignedSchoolId)
+                .filter(schoolId -> !schoolId.equals(retainedSchoolId))
+                .distinct()
+                .toList();
+        ApprenticeCodex.LOGGER.warn(
+                "School Affinity catalyst conflict detected for {}. Builtin school {} was kept and conflicting non-builtin schools were disabled: {}.",
+                catalystId != null ? catalystId : catalyst,
+                retainedSchoolId,
+                droppedSchoolIds
+        );
     }
 
     private static void logCatalystConflict(Item catalyst, List<SchoolAffinityDefinition> definitions) {
