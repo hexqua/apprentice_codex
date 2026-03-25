@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.datagen.recipe.EssenceSmokerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.GrindRunnerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.SpellcasterWorkbenchRecipeDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinityCatalystOverrideDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinitySelectionPolicyDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SenseEvilHighlightDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellGunSpellListDataGenerator;
@@ -34,6 +35,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new EnchantmentTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SchoolAffinitySelectionPolicyDataGenerator(output, lookupProvider, existing));
+        generator.addProvider(event.includeServer(), new SchoolAffinityCatalystOverrideDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new RecipeGenerator(output, lookupProvider));
         generator.addProvider(event.includeServer(), new GrindRunnerRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new LootTableGenerator(output, lookupProvider));
