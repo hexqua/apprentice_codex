@@ -475,7 +475,7 @@ public final class SchoolAffinityRegistry {
             SchoolAffinityDefinition retainedDefinition,
             List<SchoolAffinityDefinition> definitions
     ) {
-        var catalystId = ForgeRegistries.ITEMS.getKey(catalyst);
+        var catalystId = BuiltInRegistries.ITEM.getKey(catalyst);
         var retainedSchoolId = getAssignedSchoolId(retainedDefinition);
         var droppedSchoolIds = definitions.stream()
                 .map(SchoolAffinityRegistry::getAssignedSchoolId)
