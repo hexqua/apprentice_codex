@@ -27,7 +27,7 @@ public final class ApprenticeCodexCommonConfig {
         DISABLE_EXPLORERS_CODEX_RECIPE = builder.define("disableExplorersCodexRecipe", false);
         builder.pop();
         builder.comment(" schoolAffinityPriority / schoolAffinityDeny : \"modid:school_id\"",
-                        " If datapack(data/" + ApprenticeCodex.MODID + "/school_affinity_policies/*.json) exists, use that instead.")
+                        " If exists not empty \"data/" + ApprenticeCodex.MODID + "/school_affinity_policies/*.json\", use that instead.")
                 .push("SchoolAffinity");
         SCHOOL_AFFINITY_PRIORITY = builder.defineList("schoolAffinityPriority", java.util.List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());

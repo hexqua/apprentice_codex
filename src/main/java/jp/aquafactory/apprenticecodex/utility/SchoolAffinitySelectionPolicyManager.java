@@ -53,11 +53,12 @@ public final class SchoolAffinitySelectionPolicyManager extends SimpleJsonResour
                 .sorted(Map.Entry.comparingByKey(Comparator.comparing(ResourceLocation::toString)))
                 .forEach(entry -> mergePolicy(entry.getKey(), entry.getValue(), resolvedPriorities, resolvedDeny));
 
-        hasDatapackEntries = !resourceMap.isEmpty();
         resolvedPolicy = new SchoolAffinitySelectionPolicy(
                 resolvedPriorities.stream().toList(),
                 resolvedDeny.stream().toList()
         );
+        // 空 policy は datapack 未指定相当として扱い、config フォールバックを潰さない.
+        hasDatapackEntries = !resolvedPolicy.isEmpty();
         SchoolAffinityRegistry.invalidateBindings();
     }
 
