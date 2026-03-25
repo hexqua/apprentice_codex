@@ -10,13 +10,19 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class SyncSchoolAffinityAssignmentsPacket {
     private final List<ResourceLocation> schoolIdsBySlot;
+    private final Map<ResourceLocation, Integer> catalystSlotsByItemId;
 
-    public SyncSchoolAffinityAssignmentsPacket(List<ResourceLocation> schoolIdsBySlot) {
+    public SyncSchoolAffinityAssignmentsPacket(
+            List<ResourceLocation> schoolIdsBySlot,
+            Map<ResourceLocation, Integer> catalystSlotsByItemId
+    ) {
         this.schoolIdsBySlot = java.util.Collections.unmodifiableList(new ArrayList<>(schoolIdsBySlot));
+        this.catalystSlotsByItemId = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(catalystSlotsByItemId));
     }
 
     public static void encode(SyncSchoolAffinityAssignmentsPacket packet, FriendlyByteBuf buffer) {
@@ -27,6 +33,12 @@ public class SyncSchoolAffinityAssignmentsPacket {
                 buffer.writeResourceLocation(schoolId);
             }
         }
+
+        buffer.writeVarInt(packet.catalystSlotsByItemId.size());
+        for (var entry : packet.catalystSlotsByItemId.entrySet()) {
+            buffer.writeResourceLocation(entry.getKey());
+            buffer.writeVarInt(entry.getValue());
+        }
     }
 
     public static SyncSchoolAffinityAssignmentsPacket decode(FriendlyByteBuf buffer) {
@@ -35,7 +47,14 @@ public class SyncSchoolAffinityAssignmentsPacket {
         for (int i = 0; i < size; i++) {
             schoolIdsBySlot.add(buffer.readBoolean() ? buffer.readResourceLocation() : null);
         }
-        return new SyncSchoolAffinityAssignmentsPacket(schoolIdsBySlot);
+
+        var catalystBindingCount = buffer.readVarInt();
+        var catalystSlotsByItemId = new java.util.LinkedHashMap<ResourceLocation, Integer>(catalystBindingCount);
+        for (int i = 0; i < catalystBindingCount; i++) {
+            catalystSlotsByItemId.put(buffer.readResourceLocation(), buffer.readVarInt());
+        }
+
+        return new SyncSchoolAffinityAssignmentsPacket(schoolIdsBySlot, catalystSlotsByItemId);
     }
 
     public static void handle(SyncSchoolAffinityAssignmentsPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -52,7 +71,7 @@ public class SyncSchoolAffinityAssignmentsPacket {
         }
 
         private static void handle(SyncSchoolAffinityAssignmentsPacket packet) {
-            SchoolAffinityRegistry.applySyncedAssignments(packet.schoolIdsBySlot);
+            SchoolAffinityRegistry.applySyncedAssignments(packet.schoolIdsBySlot, packet.catalystSlotsByItemId);
         }
     }
 }
