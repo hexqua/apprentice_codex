@@ -17,7 +17,10 @@ public final class SchoolAffinityAssignmentSyncEvents {
 
     @SubscribeEvent
     public static void onDatapackSync(OnDatapackSyncEvent event) {
-        var packet = new SyncSchoolAffinityAssignmentsPacket(SchoolAffinityRegistry.createAssignmentSnapshot());
+        var packet = new SyncSchoolAffinityAssignmentsPacket(
+                SchoolAffinityRegistry.createAssignmentSnapshot(),
+                SchoolAffinityRegistry.createCatalystBindingSnapshot()
+        );
         for (var player : event.getPlayers()) {
             Networks.sendToPlayer(player, packet);
         }
