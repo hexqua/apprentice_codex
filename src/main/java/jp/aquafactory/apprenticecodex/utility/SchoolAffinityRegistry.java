@@ -155,9 +155,9 @@ public final class SchoolAffinityRegistry {
             return new ItemStack(runeItem);
         }
 
-        var focusItem = resolveSingleFocusItem(schoolType);
-        if (focusItem != null) {
-            return new ItemStack(focusItem);
+        var focusItems = resolveFocusItems(schoolType);
+        if (!focusItems.isEmpty()) {
+            return new ItemStack(focusItems.get(0));
         }
 
         return new ItemStack(ItemRegistry.ARCANE_CINDER.get());
@@ -291,11 +291,12 @@ public final class SchoolAffinityRegistry {
     private static void finalizeResolvedBindings(Map<Item, List<SchoolAffinityDefinition>> supportedDefinitionsByCatalyst) {
         var uniqueDefinitionsByCatalyst = new LinkedHashMap<Item, SchoolAffinityDefinition>();
         for (var entry : supportedDefinitionsByCatalyst.entrySet()) {
-            if (entry.getValue().size() != 1) {
+            var resolvedDefinition = resolveCatalystDefinition(entry.getKey(), entry.getValue());
+            if (resolvedDefinition == null) {
                 continue;
             }
 
-            uniqueDefinitionsByCatalyst.put(entry.getKey(), entry.getValue().get(0));
+            uniqueDefinitionsByCatalyst.put(entry.getKey(), resolvedDefinition);
         }
 
         catalystDefinitionByItem = uniqueDefinitionsByCatalyst;
@@ -393,14 +394,21 @@ public final class SchoolAffinityRegistry {
         ASSIGNED_SCHOOLS[slotIndex] = schoolType;
         DEFINITION_BY_SCHOOL_ID.put(schoolType.getId(), definition);
 
-        var focusItem = resolveSingleFocusItem(schoolType);
-        if (focusItem == null) {
+        var focusItems = resolveFocusItems(schoolType);
+        if (focusItems.isEmpty()) {
             return;
         }
 
-        // 素材の競合はここで潰す. レッドストーン/グロウストーン粉は先にブロックへ置換する.
-        var catalyst = substituteCatalystItem(focusItem);
-        supportedDefinitionsByCatalyst.computeIfAbsent(catalyst, ignored -> new ArrayList<>()).add(definition);
+        // 同一 School の複数フォーカスは全部許容するが、別 School との触媒衝突は曖昧さ回避のため未登録にする。
+        var catalysts = new LinkedHashSet<Item>();
+        for (var focusItem : focusItems) {
+            catalysts.add(substituteCatalystItem(focusItem));
+        }
+
+        // 素材の競合はここで集約する. レッドストーン/グロウストーン粉は先にブロックへ置換する.
+        for (var catalyst : catalysts) {
+            supportedDefinitionsByCatalyst.computeIfAbsent(catalyst, ignored -> new ArrayList<>()).add(definition);
+        }
     }
 
     private static synchronized Map<Item, SchoolAffinityDefinition> getCatalystDefinitionByItem() {
@@ -412,22 +420,11 @@ public final class SchoolAffinityRegistry {
         return catalystDefinitionByItem;
     }
 
-    @Nullable
-    private static Item resolveSingleFocusItem(SchoolType schoolType) {
-        Item matchedItem = null;
-
-        for (var item : ForgeRegistries.ITEMS.getValues()) {
-            if (!new ItemStack(item).is(schoolType.getFocus())) {
-                continue;
-            }
-
-            if (matchedItem != null && matchedItem != item) {
-                return null;
-            }
-            matchedItem = item;
-        }
-
-        return matchedItem;
+    private static List<Item> resolveFocusItems(SchoolType schoolType) {
+        return ForgeRegistries.ITEMS.getValues().stream()
+                .filter(item -> new ItemStack(item).is(schoolType.getFocus()))
+                .sorted(Comparator.comparing(SchoolAffinityRegistry::getItemSortKey))
+                .toList();
     }
 
     private static Item substituteCatalystItem(Item item) {
@@ -446,6 +443,73 @@ public final class SchoolAffinityRegistry {
             return translatableContents.getKey();
         }
         return schoolType.getId().toString();
+    }
+
+    private static String getItemSortKey(Item item) {
+        var itemId = ForgeRegistries.ITEMS.getKey(item);
+        return itemId != null ? itemId.toString() : item.toString();
+    }
+
+    @Nullable
+    private static SchoolAffinityDefinition resolveCatalystDefinition(Item catalyst, List<SchoolAffinityDefinition> definitions) {
+        if (definitions.size() == 1) {
+            return definitions.get(0);
+        }
+
+        var builtinDefinitions = definitions.stream()
+                .filter(SchoolAffinityRegistry::isBuiltinDefinition)
+                .toList();
+        if (builtinDefinitions.size() == 1) {
+            var retainedDefinition = builtinDefinitions.get(0);
+            logBuiltinCatalystConflictResolution(catalyst, retainedDefinition, definitions);
+            return retainedDefinition;
+        }
+
+        logCatalystConflict(catalyst, definitions);
+        return null;
+    }
+
+    private static boolean isBuiltinDefinition(SchoolAffinityDefinition definition) {
+        var schoolType = ASSIGNED_SCHOOLS[definition.slotIndex()];
+        return schoolType != null && BUILTIN_IRONS_SCHOOL_IDS.contains(schoolType.getId());
+    }
+
+    private static void logBuiltinCatalystConflictResolution(
+            Item catalyst,
+            SchoolAffinityDefinition retainedDefinition,
+            List<SchoolAffinityDefinition> definitions
+    ) {
+        var catalystId = ForgeRegistries.ITEMS.getKey(catalyst);
+        var retainedSchoolId = getAssignedSchoolId(retainedDefinition);
+        var droppedSchoolIds = definitions.stream()
+                .map(SchoolAffinityRegistry::getAssignedSchoolId)
+                .filter(schoolId -> !schoolId.equals(retainedSchoolId))
+                .distinct()
+                .toList();
+        ApprenticeCodex.LOGGER.warn(
+                "School Affinity catalyst conflict detected for {}. Builtin school {} was kept and conflicting non-builtin schools were disabled: {}.",
+                catalystId != null ? catalystId : catalyst,
+                retainedSchoolId,
+                droppedSchoolIds
+        );
+    }
+
+    private static void logCatalystConflict(Item catalyst, List<SchoolAffinityDefinition> definitions) {
+        var catalystId = ForgeRegistries.ITEMS.getKey(catalyst);
+        var conflictedSchoolIds = definitions.stream()
+                .map(SchoolAffinityRegistry::getAssignedSchoolId)
+                .distinct()
+                .toList();
+        ApprenticeCodex.LOGGER.warn(
+                "School Affinity catalyst conflict detected for {}. Conflicted schools: {}. The conflicted affinity recipes stay disabled to avoid ambiguous brewing outputs.",
+                catalystId != null ? catalystId : catalyst,
+                conflictedSchoolIds
+        );
+    }
+
+    private static String getAssignedSchoolId(SchoolAffinityDefinition definition) {
+        var schoolType = ASSIGNED_SCHOOLS[definition.slotIndex()];
+        return schoolType != null ? schoolType.getId().toString() : "<empty>";
     }
 
     private static void logResolvedAssignments() {

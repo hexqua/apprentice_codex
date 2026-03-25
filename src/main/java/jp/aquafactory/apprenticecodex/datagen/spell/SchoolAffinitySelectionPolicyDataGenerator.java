@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinitySelectionPolicy;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinitySelectionPolicyManager;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.JsonCodecProvider;
@@ -22,10 +21,7 @@ public final class SchoolAffinitySelectionPolicyDataGenerator extends JsonCodecP
                 PackType.SERVER_DATA,
                 SchoolAffinitySelectionPolicyManager.DIRECTORY,
                 SchoolAffinitySelectionPolicy.CODEC,
-                Map.of(
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "default"),
-                        SchoolAffinitySelectionPolicy.EMPTY
-                )
+                Map.of()
         );
     }
 }
