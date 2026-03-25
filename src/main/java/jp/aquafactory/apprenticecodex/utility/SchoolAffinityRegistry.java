@@ -8,10 +8,10 @@ import jp.aquafactory.apprenticecodex.effect.SchoolAffinityEffect;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotionVariant;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -53,6 +53,7 @@ public final class SchoolAffinityRegistry {
     private static final SchoolType[] ASSIGNED_SCHOOLS = new SchoolType[MAX_AFFINITY_SLOTS];
     private static final ResourceLocation[] SYNCED_SCHOOL_IDS = new ResourceLocation[MAX_AFFINITY_SLOTS];
     private static final Map<ResourceLocation, SchoolAffinityDefinition> DEFINITION_BY_SCHOOL_ID = new LinkedHashMap<>();
+    private static Map<ResourceLocation, Integer> syncedCatalystSlotsByItemId = Map.of();
 
     @Nullable
     private static Map<Item, SchoolAffinityDefinition> catalystDefinitionByItem;
@@ -132,6 +133,20 @@ public final class SchoolAffinityRegistry {
         return Map.copyOf(getCatalystDefinitionByItem());
     }
 
+    public static synchronized Map<ResourceLocation, Integer> createCatalystBindingSnapshot() {
+        ensureBindingsResolved();
+
+        var bindings = new LinkedHashMap<ResourceLocation, Integer>();
+        for (var entry : getCatalystDefinitionByItem().entrySet()) {
+            var catalystId = BuiltInRegistries.ITEM.getKey(entry.getKey());
+            if (catalystId == null) {
+                continue;
+            }
+            bindings.put(catalystId, entry.getValue().slotIndex());
+        }
+        return java.util.Collections.unmodifiableMap(bindings);
+    }
+
     public static synchronized void invalidateBindings() {
         Arrays.fill(ASSIGNED_SCHOOLS, null);
         DEFINITION_BY_SCHOOL_ID.clear();
@@ -182,13 +197,17 @@ public final class SchoolAffinityRegistry {
         return java.util.Collections.unmodifiableList(assignments);
     }
 
-    public static synchronized void applySyncedAssignments(List<ResourceLocation> schoolIdsBySlot) {
+    public static synchronized void applySyncedAssignments(
+            List<ResourceLocation> schoolIdsBySlot,
+            Map<ResourceLocation, Integer> catalystSlotsByItemId
+    ) {
         Arrays.fill(SYNCED_SCHOOL_IDS, null);
 
         for (int slotIndex = 0; slotIndex < Math.min(SYNCED_SCHOOL_IDS.length, schoolIdsBySlot.size()); slotIndex++) {
             SYNCED_SCHOOL_IDS[slotIndex] = schoolIdsBySlot.get(slotIndex);
         }
 
+        syncedCatalystSlotsByItemId = java.util.Collections.unmodifiableMap(new LinkedHashMap<>(catalystSlotsByItemId));
         hasSyncedAssignments = true;
         invalidateBindings();
     }
@@ -199,6 +218,7 @@ public final class SchoolAffinityRegistry {
         }
 
         Arrays.fill(SYNCED_SCHOOL_IDS, null);
+        syncedCatalystSlotsByItemId = Map.of();
         hasSyncedAssignments = false;
         invalidateBindings();
     }
@@ -233,8 +253,8 @@ public final class SchoolAffinityRegistry {
         var supportedDefinitionsByCatalyst = new LinkedHashMap<Item, List<SchoolAffinityDefinition>>();
 
         if (hasSyncedAssignments) {
-            applyResolvedAssignmentsFromIds(supportedDefinitionsByCatalyst);
-            finalizeResolvedBindings(supportedDefinitionsByCatalyst);
+            applyResolvedAssignmentsFromIds();
+            finalizeSyncedBindings();
             return;
         }
 
@@ -277,10 +297,10 @@ public final class SchoolAffinityRegistry {
         finalizeResolvedBindings(supportedDefinitionsByCatalyst);
     }
 
-    private static void applyResolvedAssignmentsFromIds(Map<Item, List<SchoolAffinityDefinition>> supportedDefinitionsByCatalyst) {
+    private static void applyResolvedAssignmentsFromIds() {
         for (int slotIndex = 0; slotIndex < SYNCED_SCHOOL_IDS.length; slotIndex++) {
             var schoolId = SYNCED_SCHOOL_IDS[slotIndex];
-            bindSchoolToSlot(slotIndex, schoolId != null ? SchoolRegistry.REGISTRY.get(schoolId) : null, supportedDefinitionsByCatalyst);
+            assignSchoolToSlot(slotIndex, schoolId != null ? SchoolRegistry.REGISTRY.get(schoolId) : null);
         }
     }
 
@@ -293,6 +313,33 @@ public final class SchoolAffinityRegistry {
             }
 
             uniqueDefinitionsByCatalyst.put(entry.getKey(), resolvedDefinition);
+        }
+
+        catalystDefinitionByItem = uniqueDefinitionsByCatalyst;
+        bindingsResolved = true;
+        logResolvedAssignments();
+    }
+
+    private static void finalizeSyncedBindings() {
+        var uniqueDefinitionsByCatalyst = new LinkedHashMap<Item, SchoolAffinityDefinition>();
+        for (var entry : syncedCatalystSlotsByItemId.entrySet()) {
+            var catalyst = BuiltInRegistries.ITEM.getOptional(entry.getKey()).orElse(null);
+            if (catalyst == null || catalyst == Items.AIR) {
+                ApprenticeCodex.LOGGER.warn("Skipped synced School Affinity catalyst {} because the item does not exist on this client.", entry.getKey());
+                continue;
+            }
+
+            var slotIndex = entry.getValue();
+            if (slotIndex < 0 || slotIndex >= DEFINITIONS.size()) {
+                ApprenticeCodex.LOGGER.warn("Skipped synced School Affinity catalyst {} because slot {} is out of range.", entry.getKey(), slotIndex);
+                continue;
+            }
+            if (ASSIGNED_SCHOOLS[slotIndex] == null) {
+                ApprenticeCodex.LOGGER.warn("Skipped synced School Affinity catalyst {} because slot {} is not assigned on this client.", entry.getKey(), slotIndex);
+                continue;
+            }
+
+            uniqueDefinitionsByCatalyst.put(catalyst, DEFINITIONS.get(slotIndex));
         }
 
         catalystDefinitionByItem = uniqueDefinitionsByCatalyst;
@@ -376,35 +423,77 @@ public final class SchoolAffinityRegistry {
     }
 
     private static void bindSchoolToSlot(int slotIndex, @Nullable SchoolType schoolType, Map<Item, List<SchoolAffinityDefinition>> supportedDefinitionsByCatalyst) {
-        if (schoolType == null || slotIndex < 0 || slotIndex >= DEFINITIONS.size()) {
+        var definition = assignSchoolToSlot(slotIndex, schoolType);
+        if (definition == null) {
             return;
+        }
+
+        var catalysts = resolveBrewingCatalysts(schoolType);
+        if (catalysts.isEmpty()) {
+            return;
+        }
+
+        // override がある school は単一素材へ差し替え、未指定 school は従来通り focus 全候補を使う.
+        for (var catalyst : catalysts) {
+            supportedDefinitionsByCatalyst.computeIfAbsent(catalyst, ignored -> new ArrayList<>()).add(definition);
+        }
+    }
+
+    @Nullable
+    private static SchoolAffinityDefinition assignSchoolToSlot(int slotIndex, @Nullable SchoolType schoolType) {
+        if (schoolType == null || slotIndex < 0 || slotIndex >= DEFINITIONS.size()) {
+            return null;
         }
 
         var spellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(schoolType);
         if (spellPowerAttribute == null) {
             ApprenticeCodex.LOGGER.warn("Skipped School Affinity for {} because spell power attribute could not be resolved.", schoolType.getId());
-            return;
+            return null;
         }
 
         var definition = DEFINITIONS.get(slotIndex);
         ASSIGNED_SCHOOLS[slotIndex] = schoolType;
         DEFINITION_BY_SCHOOL_ID.put(schoolType.getId(), definition);
+        return definition;
+    }
+
+    private static List<Item> resolveBrewingCatalysts(SchoolType schoolType) {
+        var overrideItem = resolveOverrideCatalystItem(schoolType);
+        if (overrideItem != null) {
+            return List.of(overrideItem);
+        }
 
         var focusItems = resolveFocusItems(schoolType);
         if (focusItems.isEmpty()) {
-            return;
+            return List.of();
         }
 
-        // 同一 School の複数フォーカスは全部許容するが、別 School との触媒衝突は曖昧さ回避のため未登録にする。
+        // 同一 School の複数 focus は従来通り全部許容する。
         var catalysts = new LinkedHashSet<Item>();
         for (var focusItem : focusItems) {
             catalysts.add(substituteCatalystItem(focusItem));
         }
+        return List.copyOf(catalysts);
+    }
 
-        // 素材の競合はここで集約する. レッドストーン/グロウストーン粉は先にブロックへ置換する.
-        for (var catalyst : catalysts) {
-            supportedDefinitionsByCatalyst.computeIfAbsent(catalyst, ignored -> new ArrayList<>()).add(definition);
+    @Nullable
+    private static Item resolveOverrideCatalystItem(SchoolType schoolType) {
+        var itemId = SchoolAffinityCatalystOverrideManager.getResolvedOverrides().get(schoolType.getId());
+        if (itemId == null) {
+            return null;
         }
+
+        var item = BuiltInRegistries.ITEM.getOptional(itemId).orElse(null);
+        if (item == null || item == Items.AIR) {
+            ApprenticeCodex.LOGGER.warn(
+                    "School Affinity catalyst override for {} references missing item {}. Falling back to focus items.",
+                    schoolType.getId(),
+                    itemId
+            );
+            return null;
+        }
+
+        return substituteCatalystItem(item);
     }
 
     private static synchronized Map<Item, SchoolAffinityDefinition> getCatalystDefinitionByItem() {
@@ -510,14 +599,26 @@ public final class SchoolAffinityRegistry {
 
     private static void logResolvedAssignments() {
         ApprenticeCodex.LOGGER.info("School Affinity potion assignments resolved.");
+        var catalystsBySlot = new LinkedHashMap<Integer, List<String>>();
+        for (var entry : getCatalystDefinitionByItem().entrySet()) {
+            var catalystId = BuiltInRegistries.ITEM.getKey(entry.getKey());
+            if (catalystId == null) {
+                continue;
+            }
+            catalystsBySlot.computeIfAbsent(entry.getValue().slotIndex(), ignored -> new ArrayList<>())
+                    .add(catalystId.toString());
+        }
+
         for (var definition : DEFINITIONS) {
             var schoolType = ASSIGNED_SCHOOLS[definition.slotIndex()];
             var assignedSchoolId = schoolType != null ? schoolType.getId().toString() : "<empty>";
+            var catalystIds = catalystsBySlot.getOrDefault(definition.slotIndex(), List.of());
             ApprenticeCodex.LOGGER.info(
-                    "School Affinity slot {}: {} -> {}",
+                    "School Affinity slot {}: {} -> {} catalysts={}",
                     String.format("%02d", definition.slotIndex()),
                     definition.basePotionId(),
-                    assignedSchoolId
+                    assignedSchoolId,
+                    catalystIds
             );
         }
     }

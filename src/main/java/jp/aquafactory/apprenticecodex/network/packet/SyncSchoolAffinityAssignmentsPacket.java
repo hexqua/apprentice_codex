@@ -14,6 +14,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class SyncSchoolAffinityAssignmentsPacket implements CustomPacketPayload {
     public static final Type<SyncSchoolAffinityAssignmentsPacket> TYPE =
@@ -22,9 +23,14 @@ public class SyncSchoolAffinityAssignmentsPacket implements CustomPacketPayload 
             StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncSchoolAffinityAssignmentsPacket::decode);
 
     private final List<ResourceLocation> schoolIdsBySlot;
+    private final Map<ResourceLocation, Integer> catalystSlotsByItemId;
 
-    public SyncSchoolAffinityAssignmentsPacket(List<ResourceLocation> schoolIdsBySlot) {
+    public SyncSchoolAffinityAssignmentsPacket(
+            List<ResourceLocation> schoolIdsBySlot,
+            Map<ResourceLocation, Integer> catalystSlotsByItemId
+    ) {
         this.schoolIdsBySlot = java.util.Collections.unmodifiableList(new ArrayList<>(schoolIdsBySlot));
+        this.catalystSlotsByItemId = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(catalystSlotsByItemId));
     }
 
     @Override
@@ -40,6 +46,12 @@ public class SyncSchoolAffinityAssignmentsPacket implements CustomPacketPayload 
                 buffer.writeResourceLocation(schoolId);
             }
         }
+
+        buffer.writeVarInt(packet.catalystSlotsByItemId.size());
+        for (var entry : packet.catalystSlotsByItemId.entrySet()) {
+            buffer.writeResourceLocation(entry.getKey());
+            buffer.writeVarInt(entry.getValue());
+        }
     }
 
     public static SyncSchoolAffinityAssignmentsPacket decode(FriendlyByteBuf buffer) {
@@ -48,7 +60,14 @@ public class SyncSchoolAffinityAssignmentsPacket implements CustomPacketPayload 
         for (int i = 0; i < size; i++) {
             schoolIdsBySlot.add(buffer.readBoolean() ? buffer.readResourceLocation() : null);
         }
-        return new SyncSchoolAffinityAssignmentsPacket(schoolIdsBySlot);
+
+        var catalystBindingCount = buffer.readVarInt();
+        var catalystSlotsByItemId = new java.util.LinkedHashMap<ResourceLocation, Integer>(catalystBindingCount);
+        for (int i = 0; i < catalystBindingCount; i++) {
+            catalystSlotsByItemId.put(buffer.readResourceLocation(), buffer.readVarInt());
+        }
+
+        return new SyncSchoolAffinityAssignmentsPacket(schoolIdsBySlot, catalystSlotsByItemId);
     }
 
     public static void handle(SyncSchoolAffinityAssignmentsPacket packet, IPayloadContext context) {
@@ -65,7 +84,7 @@ public class SyncSchoolAffinityAssignmentsPacket implements CustomPacketPayload 
         }
 
         private static void handle(SyncSchoolAffinityAssignmentsPacket packet) {
-            SchoolAffinityRegistry.applySyncedAssignments(packet.schoolIdsBySlot);
+            SchoolAffinityRegistry.applySyncedAssignments(packet.schoolIdsBySlot, packet.catalystSlotsByItemId);
         }
     }
 }
