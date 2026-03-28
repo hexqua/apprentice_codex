@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbench;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
+import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -23,6 +24,9 @@ public final class BlockRegistry {
 
     public static final RegistryObject<Block> PERSONAL_SHELF_CHEST =
             BLOCKS.register("personal_shelf_chest", PersonalShelfChestBlock::new);
+
+    public static final RegistryObject<Block> RIFT_HOLE =
+            BLOCKS.register("rift_hole", RiftHoleBlock::new);
 
     public static final RegistryObject<Block> APPRENTICE_DESK =
             BLOCKS.register("apprentice_desk", ApprenticeDesk::new);

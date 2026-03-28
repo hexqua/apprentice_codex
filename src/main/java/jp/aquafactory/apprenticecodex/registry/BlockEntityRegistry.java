@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -41,6 +42,10 @@ public final class BlockEntityRegistry {
 
     public static final RegistryObject<BlockEntityType<PersonalShelfChestBlockEntity>> PERSONAL_SHELF_CHEST = reg(
             "personal_shelf_chest", PersonalShelfChestBlockEntity::new, BlockRegistry.PERSONAL_SHELF_CHEST
+    );
+
+    public static final RegistryObject<BlockEntityType<RiftHoleBlockEntity>> RIFT_HOLE = reg(
+            "rift_hole", RiftHoleBlockEntity::new, BlockRegistry.RIFT_HOLE
     );
 
     public static final RegistryObject<BlockEntityType<EssenceSmokerBlockEntity>> ESSENCE_SMOKER = reg(

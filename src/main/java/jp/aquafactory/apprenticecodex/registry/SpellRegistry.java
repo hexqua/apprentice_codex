@@ -34,6 +34,7 @@ import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
+import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHole;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
@@ -72,6 +73,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> REMOTE_EYE = reg("remote_eye", RemoteEye::new);
     public static final RegistryObject<AbstractSpell> MANA_SLASH = reg("mana_slash", ManaSlash::new);
     public static final RegistryObject<AbstractSpell> LONG_STRIDE = reg("long_stride", LongStride::new);
+    public static final RegistryObject<AbstractSpell> RIFT_HOLE = reg("rift_hole", RiftHole::new);
 
     // 召喚.
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
