@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEnti
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import net.minecraft.core.registries.Registries;
+import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -43,6 +44,10 @@ public final class BlockEntityRegistry {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PersonalShelfChestBlockEntity>> PERSONAL_SHELF_CHEST = reg(
             "personal_shelf_chest", PersonalShelfChestBlockEntity::new, BlockRegistry.PERSONAL_SHELF_CHEST
+    );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RiftHoleBlockEntity>> RIFT_HOLE = reg(
+            "rift_hole", RiftHoleBlockEntity::new, BlockRegistry.RIFT_HOLE
     );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EssenceSmokerBlockEntity>> ESSENCE_SMOKER = reg(

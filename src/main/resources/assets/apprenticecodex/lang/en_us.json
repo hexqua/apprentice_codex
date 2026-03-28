@@ -128,6 +128,7 @@
 
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
+  "block.apprenticecodex.rift_hole" : "Rift Hole",
   "block.apprenticecodex.apprentice_desk" : "Apprentice Desk",
   "block.apprenticecodex.arcanum_in_a_jar" : "Arcanum in a Jar",
   "block.apprenticecodex.essence_smoker" : "Essence Smoker",
@@ -190,6 +191,7 @@
   "spell.apprenticecodex.graced_rain": "Graced Rain",
   "spell.apprenticecodex.mage_light": "Mage Light",
   "spell.apprenticecodex.personal_shelf": "Personal Shelf",
+  "spell.apprenticecodex.rift_hole": "Rift Hole",
   "spell.apprenticecodex.fly_swatter": "Fly Swatter",
   "spell.apprenticecodex.assist_wings": "Assist Wings",
   "spell.apprenticecodex.world_flatter": "World Flatter",
@@ -259,6 +261,7 @@
   "spell.apprenticecodex.graced_rain.guide": "Summons a rain cloud with healing power, restoring the life of those beneath it. The healing also nourishes vegetation.",
   "spell.apprenticecodex.mage_light.guide": "Summons and places a magical torch that lights up the area. The torch does not require a supporting block.",
   "spell.apprenticecodex.personal_shelf.guide": "Materializes a magical vault for a limited time. It vanishes after a while or if you move away. The vault is merely an interface to each person's private space. Use while sneaking to attempt to transfer its contents to a chest or similar container.",
+  "spell.apprenticecodex.rift_hole.guide": "Open an otherworldly hole on a block face and carve a temporary tunnel through the wall. Cast it again, or wait a short while, to seal the passage.",
   "spell.apprenticecodex.fly_swatter.guide": "Summons a magical launcher that attacks a target you lock onto in your line of sight. Its shots home in on the enemy.",
   "spell.apprenticecodex.assist_wings.guide": "Summons magical wings and leaps with a flap. It can also be activated midair a limited number of times based on your mana. After use, you gain Slow Falling until you land and take no fall damage.",
   "spell.apprenticecodex.world_flatter.guide": "Summons a magical drill that bores into the target in your line of sight. Swing it into the ground to quickly carve out a large hole.",
@@ -326,6 +329,7 @@
   "ui.apprenticecodex.need_ignite": "%1$s or %2$s is required to ignite!",
   "ui.apprenticecodex.now_smoke_processing": "Still needs time",
   "ui.apprenticecodex.missing_spell_gun_ammo": "Out of ammo!(Ammo:%1$s)",
+  "ui.apprenticecodex.cant_open_hole": "Can't open hole on %s",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
 

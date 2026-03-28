@@ -156,6 +156,7 @@
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
+  "block.apprenticecodex.rift_hole" : "リフトホール",
   "block.apprenticecodex.apprentice_desk" : "見習い用の机",
   "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの神秘",
   "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
@@ -217,6 +218,7 @@
   "spell.apprenticecodex.graced_rain": "恵みの雨",
   "spell.apprenticecodex.mage_light": "メイジライト",
   "spell.apprenticecodex.personal_shelf": "パーソナルシェルフ",
+  "spell.apprenticecodex.rift_hole": "リフトホール",
   "spell.apprenticecodex.fly_swatter": "フライスワッター",
   "spell.apprenticecodex.assist_wings": "アシストウィング",
   "spell.apprenticecodex.world_flatter": "ワールドフラッター",
@@ -254,6 +256,7 @@
   "spell.apprenticecodex.graced_rain.guide": "癒やしの効果を持つ雨雲を召喚し、浴びている生命を癒やす。癒やしは植生には栄養となる。",
   "spell.apprenticecodex.mage_light.guide": "周囲を照らす魔法の松明を召喚して設置する。魔法の松明は支えを必要としない。",
   "spell.apprenticecodex.personal_shelf.guide": "魔法の保管庫を一定時間顕現化させる。保管庫は一定時間経過するか離れると消失する。保管庫は個々人の空間のインターフェースに過ぎない。スニークしながら使用すると使用したチェストなどに搬出しようとする。",
+  "spell.apprenticecodex.rift_hole.guide": "ブロックに対して異界への穴を開き、一時的に壁の中へ通路を作る。もう一度使うか、しばらくすると穴は閉じる。",
   "spell.apprenticecodex.fly_swatter.guide": "魔法のランチャーを召喚し、視線先に捕捉した対象に向かって攻撃する。攻撃は敵を追尾する。",
   "spell.apprenticecodex.assist_wings.guide": "魔法の翼を召喚し、羽ばたいてジャンプする。空中でも魔法力に応じて一定回数のみ発動可能。発動後、着地するまで低速落下となり、落下ダメージを受けない。",
   "spell.apprenticecodex.world_flatter.guide": "魔法のドリルを召喚し、視線の先の対象を穿つ。大地に向かって振るうことで素早く大穴を開けることもできる。",
@@ -321,6 +324,7 @@
   "ui.apprenticecodex.need_ignite": "%1$sか%2$sで着火する必要がある！",
   "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
   "ui.apprenticecodex.missing_spell_gun_ammo": "弾切れだ！(弾:%1$s)",
+  "ui.apprenticecodex.cant_open_hole": "%sを対象に取るには不安定すぎる",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
 
