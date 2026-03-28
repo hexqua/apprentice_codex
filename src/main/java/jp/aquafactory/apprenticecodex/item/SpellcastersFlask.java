@@ -159,7 +159,7 @@ public class SpellcastersFlask extends Item {
 
         if (!level.isClientSide) {
             for (var effect : extractedEffects) {
-                livingEntity.addEffect(scaleEffect(stack, effect));
+                applyScaledEffect(stack, livingEntity, effect);
             }
             decrementStoredDoseCount(stack);
         }
@@ -504,6 +504,24 @@ public class SpellcastersFlask extends Item {
                 visible,
                 originalEffect.showIcon()
         );
+    }
+
+    private static void applyScaledEffect(ItemStack flaskStack, LivingEntity livingEntity,
+                                          MobEffectInstance originalEffect) {
+        var scaledEffect = scaleEffect(flaskStack, originalEffect);
+        if (scaledEffect.getEffect().isInstantenous()) {
+            // 即時効果は addEffect では発火しないため、PotionItem 相当の経路で適用する。
+            scaledEffect.getEffect().applyInstantenousEffect(
+                    livingEntity,
+                    livingEntity,
+                    livingEntity,
+                    scaledEffect.getAmplifier(),
+                    1.0D
+            );
+            return;
+        }
+
+        livingEntity.addEffect(scaledEffect);
     }
 
     private static void appendStoredEffectTooltips(List<Component> lines, ItemStack flaskStack, ItemStack storedItem) {
