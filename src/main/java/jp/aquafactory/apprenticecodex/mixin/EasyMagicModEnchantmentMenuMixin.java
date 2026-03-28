@@ -1,11 +1,9 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressEnchantingTableBonusHelper;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,11 +18,11 @@ public abstract class EasyMagicModEnchantmentMenuMixin {
     private Player player;
 
     @Inject(
-            method = "updateLevels(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I)V",
-            at = @At("RETURN"),
+            method = "createClues(Lnet/minecraft/world/item/ItemStack;)V",
+            at = @At("HEAD"),
             require = 1
     )
-    private void apprenticecodex$applyEnchantressBonus(ItemStack itemStack, Level level, BlockPos pos, int power, CallbackInfo ci) {
+    private void apprenticecodex$applyEnchantressBonus(ItemStack itemStack, CallbackInfo ci) {
         if (EnchantressEnchantingTableBonusHelper.isFeatureDisabled()) {
             return;
         }
@@ -41,5 +39,7 @@ public abstract class EasyMagicModEnchantmentMenuMixin {
         }
 
         menu.costs[targetRow] += bonus;
+        // 1.20.1 の EasyMagic は cost 算出と clue 生成が別メソッドなので、
+        // clue 生成直前に bonus を反映して予告と実結果が同じ cost を参照するようにする。
     }
 }
