@@ -2,13 +2,11 @@ package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = EventBusSubscriber.Bus.MOD)
 public final class ApprenticeCodexCommonConfig {
     public static final ModConfigSpec SPEC;
 
@@ -40,6 +38,11 @@ public final class ApprenticeCodexCommonConfig {
     private ApprenticeCodexCommonConfig() {
     }
 
+    public static void register(IEventBus modEventBus) {
+        modEventBus.addListener(ApprenticeCodexCommonConfig::onConfigLoading);
+        modEventBus.addListener(ApprenticeCodexCommonConfig::onConfigReloading);
+    }
+
     public static boolean disableApprenticeDeskRecipe() {
         return DISABLE_APPRENTICE_DESK_RECIPE.get();
     }
@@ -64,12 +67,10 @@ public final class ApprenticeCodexCommonConfig {
                 .toList();
     }
 
-    @SubscribeEvent
     public static void onConfigLoading(ModConfigEvent.Loading event) {
         invalidateSchoolAffinityBindings(event);
     }
 
-    @SubscribeEvent
     public static void onConfigReloading(ModConfigEvent.Reloading event) {
         invalidateSchoolAffinityBindings(event);
     }

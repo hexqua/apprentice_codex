@@ -156,6 +156,7 @@
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
+  "block.apprenticecodex.rift_hole" : "リフトホール",
   "block.apprenticecodex.apprentice_desk" : "見習い用の机",
   "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの神秘",
   "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
@@ -189,6 +190,7 @@
   "entity.apprenticecodex.precision_jack_knife": "\"ナイフ\"",
   "entity.apprenticecodex.auto_magnet_familiar": "マグネッター",
   "entity.apprenticecodex.grind_runner_wheel": "魔導ホイール",
+  "entity.apprenticecodex.auto_turret": "オートクロスボウ",
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
@@ -217,6 +219,7 @@
   "spell.apprenticecodex.graced_rain": "恵みの雨",
   "spell.apprenticecodex.mage_light": "メイジライト",
   "spell.apprenticecodex.personal_shelf": "パーソナルシェルフ",
+  "spell.apprenticecodex.rift_hole": "リフトホール",
   "spell.apprenticecodex.fly_swatter": "フライスワッター",
   "spell.apprenticecodex.assist_wings": "アシストウィング",
   "spell.apprenticecodex.world_flatter": "ワールドフラッター",
@@ -240,6 +243,8 @@
   "spell.apprenticecodex.sense_evil": "センスイービル",
   "spell.apprenticecodex.deep_sensor": "ディープセンサー",
   "spell.apprenticecodex.long_stride": "ロングストライド",
+  "spell.apprenticecodex.spectral_wing": "スペクトラルウィング",
+  "spell.apprenticecodex.auto_turret": "オートタレット",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -254,6 +259,7 @@
   "spell.apprenticecodex.graced_rain.guide": "癒やしの効果を持つ雨雲を召喚し、浴びている生命を癒やす。癒やしは植生には栄養となる。",
   "spell.apprenticecodex.mage_light.guide": "周囲を照らす魔法の松明を召喚して設置する。魔法の松明は支えを必要としない。",
   "spell.apprenticecodex.personal_shelf.guide": "魔法の保管庫を一定時間顕現化させる。保管庫は一定時間経過するか離れると消失する。保管庫は個々人の空間のインターフェースに過ぎない。スニークしながら使用すると使用したチェストなどに搬出しようとする。",
+  "spell.apprenticecodex.rift_hole.guide": "ブロックに対して異界への穴を開き、一時的に壁の中へ通路を作る。もう一度使うか、しばらくすると穴は閉じる。",
   "spell.apprenticecodex.fly_swatter.guide": "魔法のランチャーを召喚し、視線先に捕捉した対象に向かって攻撃する。攻撃は敵を追尾する。",
   "spell.apprenticecodex.assist_wings.guide": "魔法の翼を召喚し、羽ばたいてジャンプする。空中でも魔法力に応じて一定回数のみ発動可能。発動後、着地するまで低速落下となり、落下ダメージを受けない。",
   "spell.apprenticecodex.world_flatter.guide": "魔法のドリルを召喚し、視線の先の対象を穿つ。大地に向かって振るうことで素早く大穴を開けることもできる。",
@@ -277,6 +283,8 @@
   "spell.apprenticecodex.sense_evil.guide": "周囲の不浄な存在を感知して術者の視界に表示する。視線が通っていなくても感知することができ、その不浄な存在を生み出す装置も感知する。",
   "spell.apprenticecodex.deep_sensor.guide": "一定時間、深淵のもの特有の音に関する知覚を得る。",
   "spell.apprenticecodex.long_stride.guide": "詠唱中、速く歩くことができ、多少の段差なら乗り越えられるようになる。",
+  "spell.apprenticecodex.spectral_wing.guide": "魔力の翼で空中へ打ち上がり、そのまま滑空する。飛行中に再使用すると視線方向へ激しく加速する。地上か水面へ降りると翼は消える。",
+  "spell.apprenticecodex.auto_turret.guide": "自動で近くの敵を攻撃するクロスボウを召喚する。弾を撃ち切るか耐久力が無くなると消滅する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -321,6 +329,9 @@
   "ui.apprenticecodex.need_ignite": "%1$sか%2$sで着火する必要がある！",
   "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
   "ui.apprenticecodex.missing_spell_gun_ammo": "弾切れだ！(弾:%1$s)",
+  "ui.apprenticecodex.cant_open_hole": "%sを対象に取るには不安定すぎる",
+  "ui.apprenticecodex.spectral_wing.conflict": "魔力が干渉して翼を展開できない！",
+  "ui.apprenticecodex.spectral_wing.underwater": "水中では翼を展開できない！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
 
@@ -331,6 +342,7 @@
   "effect.apprenticecodex.phalanx_stance": "ファランクススタンス",
   "effect.apprenticecodex.thermal_processing": "熱加工",
   "effect.apprenticecodex.sense_sensor": "センスセンサー",
+  "effect.apprenticecodex.spectral_wing": "スペクトラルウィング",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
   "effect.apprenticecodex.intelligence.description": "魔法の力を大きく引き上げる。",
@@ -342,6 +354,7 @@
   "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。特殊な装備で移動速度も上昇する。",
   "effect.apprenticecodex.thermal_processing.description": "熱加工を受けている状態。レベルが進行すると強力なデバフとダメージが発生し続ける。",
   "effect.apprenticecodex.sense_sensor.description": "自身をスカルクセンサーと同調させている状態。音を感知できる。",
+  "effect.apprenticecodex.spectral_wing.description": "魔力の翼で滑空している状態。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.splash_potion.effect.intelligence": "知性のスプラッシュポーション",
@@ -375,6 +388,7 @@
   "death.attack.apprenticecodex.precision_jack": "%1$sは%2$sに解体された",
   "death.attack.apprenticecodex.grind_runner": "%1$sは%2$sによって何を見てヨシといったのかわからないままになった",
   "death.attack.apprenticecodex.mana_slash": "%1$sは%2$sの魔力によって切り裂かれた",
+  "death.attack.apprenticecodex.auto_turret": "%1$sは%2$sに蜂の巣にされた",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

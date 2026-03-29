@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWork
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import net.minecraft.core.registries.Registries;
+import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlock;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -23,6 +24,9 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> PERSONAL_SHELF_CHEST =
             BLOCKS.register("personal_shelf_chest", () -> new PersonalShelfChestBlock());
+
+    public static final DeferredHolder<Block, Block> RIFT_HOLE =
+            BLOCKS.register("rift_hole", () -> new RiftHoleBlock());
 
     public static final DeferredHolder<Block, Block> APPRENTICE_DESK =
             BLOCKS.register("apprentice_desk", ApprenticeDesk::new);

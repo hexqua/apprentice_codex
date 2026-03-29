@@ -5,8 +5,10 @@ import io.redspace.ironsspellbooks.network.casting.CastPacket;
 import io.redspace.ironsspellbooks.network.casting.QuickCastPacket;
 import io.redspace.ironsspellbooks.player.ClientInputEvents;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
+import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
+import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
 import net.minecraft.client.Minecraft;
@@ -94,10 +96,13 @@ public abstract class ClientInputEventsMixin {
         }
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        var targetData = ClientBlockTargetingHelper.captureOutlinedTarget(
-                player,
-                targetingSpell.getClientBlockTargetingRange(spellLevel, player)
-        );
+        var targetData = spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell
+                ? customCaptureSpell.captureClientBlockTarget(player, spellLevel)
+                : ClientBlockTargetingHelper.captureOutlinedTarget(
+                        player,
+                        targetingSpell.getClientBlockTargetingRange(spellLevel, player)
+                );
+        ClientPlacementPreviewManager.rememberPendingTarget(spell.getSpellResource(), targetData);
         Networks.sendToServer(new ClientBlockTargetCastPacket(quickCastSlot, spell.getSpellResource(), targetData));
         return true;
     }
