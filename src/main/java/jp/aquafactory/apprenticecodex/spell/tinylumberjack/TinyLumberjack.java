@@ -102,6 +102,11 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
     }
 
     @Override
+    public boolean isCraftsmansDelightCastingMobilityEnabled() {
+        return true;
+    }
+
+    @Override
     public DefaultConfig getDefaultConfig() {
         return config;
     }
@@ -138,12 +143,18 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
         summonWeapon.setReachSpeed(getReachSpeed());
         summonWeapon.setToolSpeed(getBreakSpeed(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
+        if (isCraftsmansDelightCastingMobilityEnabled()) {
+            CraftsmansDelight.applyCastingMobility(entity);
+        }
         AudioTools.playSoundFromEntity(level, entity, SoundRegistry.SAW_START.get(), SoundSource.PLAYERS);
         return summonWeapon;
     }
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull TinyLumberjackSawEntity weapon) {
+        if (isCraftsmansDelightCastingMobilityEnabled()) {
+            CraftsmansDelight.applyCastingMobility(entity);
+        }
         var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
         weapon.updateOwnerTarget(result);
     }

@@ -80,6 +80,11 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     }
 
     @Override
+    public boolean isCraftsmansDelightCastingMobilityEnabled() {
+        return true;
+    }
+
+    @Override
     public DefaultConfig getDefaultConfig() {
         return config;
     }
@@ -116,11 +121,17 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
         summonWeapon.setRange(getRange(spellLevel, entity));
         summonWeapon.setBurnItemPerSecond(getBurnItemPerSecond(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
+        if (isCraftsmansDelightCastingMobilityEnabled()) {
+            CraftsmansDelight.applyCastingMobility(entity);
+        }
         return summonWeapon;
     }
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull ThermalProcessThrowerEntity weapon) {
+        if (isCraftsmansDelightCastingMobilityEnabled()) {
+            CraftsmansDelight.applyCastingMobility(entity);
+        }
     }
 
     @Override

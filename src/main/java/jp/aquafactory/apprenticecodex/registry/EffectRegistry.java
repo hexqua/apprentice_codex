@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
+import jp.aquafactory.apprenticecodex.effect.CraftsmansDelightMobility;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
@@ -23,6 +24,8 @@ public final class EffectRegistry {
 
     public static final RegistryObject<MobEffect> ARCANE_CHARGE =
             EFFECTS.register("arcane_charge", ArcaneCharge::new);
+    public static final RegistryObject<MobEffect> CRAFTSMANS_DELIGHT_MOBILITY =
+            EFFECTS.register("craftsmans_delight_mobility", CraftsmansDelightMobility::new);
     public static final RegistryObject<MobEffect> INTELLIGENCE =
             EFFECTS.register("intelligence", Intelligence::new);
     public static final RegistryObject<MobEffect> LONG_STRIDE_MOBILITY =
