@@ -154,7 +154,6 @@
   "entity.apprenticecodex.slash_blade_katana": "Magic Blade",
   "entity.apprenticecodex.feather_rush_wing" : "Rush Wings",
   "entity.apprenticecodex.mantis_leap_blade" : "Mantis Blade",
-  "spell.apprenticecodex.palette_shift": "Palette Shift",
   "entity.apprenticecodex.phalanx_weaponry" : "Phalanx Weaponry",
   "entity.apprenticecodex.higanbana_katana": "Cursed Blade \"Higanbana\"",
   "entity.apprenticecodex.thermal_process_thrower" : "Magic Thrower",
@@ -163,6 +162,7 @@
   "entity.apprenticecodex.precision_jack_knife": "\"Knife\"",
   "entity.apprenticecodex.auto_magnet_familiar": "Magnet",
   "entity.apprenticecodex.grind_runner_wheel": "Arcane Wheel",
+  "entity.apprenticecodex.auto_turret": "Auto Crossbow",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -216,6 +216,7 @@
   "spell.apprenticecodex.long_stride": "Long Stride",
   "spell.apprenticecodex.spectral_wing": "Spectral Wing",
   "spell.apprenticecodex.auto_turret": "Auto Turret",
+  "spell.apprenticecodex.palette_shift": "Palette Shift",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
