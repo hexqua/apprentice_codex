@@ -12,4 +12,8 @@ public interface ICraftsmansDelightAffectedSpell {
     default boolean isCraftsmansDelightManaCostDiscountEnabled() {
         return true;
     }
+
+    default boolean isCraftsmansDelightCastingMobilityEnabled() {
+        return false;
+    }
 }

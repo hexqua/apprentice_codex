@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -18,6 +19,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -40,6 +42,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final float BREAK_SPEED_BONUS_MULTIPLIER = 2.0f;
     private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
+    private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
     private static final List<RegistryObject<AbstractSpell>> TARGET_SPELLS = List.of(
@@ -182,6 +185,22 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         }
 
         return Math.max(1, Math.round(manaCost * MANA_COST_DISCOUNT_MULTIPLIER));
+    }
+
+    public static void applyCastingMobility(@Nullable LivingEntity entity) {
+        if (entity == null || entity.level().isClientSide || !isEquippedBy(entity)) {
+            return;
+        }
+
+        // 防御魔法とは切り離し、CraftsmansDelight 専用の継続詠唱補助として扱う.
+        entity.addEffect(new MobEffectInstance(
+                EffectRegistry.CRAFTSMANS_DELIGHT_MOBILITY.get(),
+                CASTING_MOBILITY_EFFECT_REFRESH_TICKS,
+                0,
+                false,
+                false,
+                true
+        ));
     }
 
     public static ItemStack applyEnchantsToTool(ItemStack baseTool, @Nullable LivingEntity entity) {
