@@ -24,35 +24,36 @@ public final class ExtrudedSpriteMesher {
 
         List<ExtrudedSpriteMesh.Quad> quads = new ArrayList<>();
 
-        // Front.
-        // ここでは「表＝手前に向く」を +Z として扱う.
-        {
-            var q = new ExtrudedSpriteMesh.Quad(0, 0, 1);
-            q.x[0] = 0; q.y[0] = 0; q.z[0] = zFront;
-            q.x[1] = 1; q.y[1] = 0; q.z[1] = zFront;
-            q.x[2] = 1; q.y[2] = 1; q.z[2] = zFront;
-            q.x[3] = 0; q.y[3] = 1; q.z[3] = zFront;
-
-            q.u[0] = 0; q.v[0] = 1;
-            q.u[1] = 1; q.v[1] = 1;
-            q.u[2] = 1; q.v[2] = 0;
-            q.u[3] = 0; q.v[3] = 0;
-
-            quads.add(q);
-        }
-
-        // Back.
+        // Min Z face.
+        // 押し出しボリュームの手前面は -Z を向く.
         {
             var q = new ExtrudedSpriteMesh.Quad(0, 0, -1);
-            q.x[0] = 0; q.y[0] = 0; q.z[0] = zBack;
-            q.x[1] = 0; q.y[1] = 1; q.z[1] = zBack;
-            q.x[2] = 1; q.y[2] = 1; q.z[2] = zBack;
-            q.x[3] = 1; q.y[3] = 0; q.z[3] = zBack;
+            q.x[0] = 0; q.y[0] = 0; q.z[0] = zFront;
+            q.x[1] = 0; q.y[1] = 1; q.z[1] = zFront;
+            q.x[2] = 1; q.y[2] = 1; q.z[2] = zFront;
+            q.x[3] = 1; q.y[3] = 0; q.z[3] = zFront;
 
             q.u[0] = 0; q.v[0] = 1;
             q.u[1] = 0; q.v[1] = 0;
             q.u[2] = 1; q.v[2] = 0;
             q.u[3] = 1; q.v[3] = 1;
+
+            quads.add(q);
+        }
+
+        // Max Z face.
+        // 押し出しボリュームの奥面は +Z を向く.
+        {
+            var q = new ExtrudedSpriteMesh.Quad(0, 0, 1);
+            q.x[0] = 0; q.y[0] = 0; q.z[0] = zBack;
+            q.x[1] = 1; q.y[1] = 0; q.z[1] = zBack;
+            q.x[2] = 1; q.y[2] = 1; q.z[2] = zBack;
+            q.x[3] = 0; q.y[3] = 1; q.z[3] = zBack;
+
+            q.u[0] = 0; q.v[0] = 1;
+            q.u[1] = 1; q.v[1] = 1;
+            q.u[2] = 1; q.v[2] = 0;
+            q.u[3] = 0; q.v[3] = 0;
 
             quads.add(q);
         }
