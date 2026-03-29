@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.spell.arcaneblast.ArcaneBlast;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultiple;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWings;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnet;
+import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurret;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
@@ -34,7 +35,9 @@ import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
+import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHole;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
+import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
@@ -72,6 +75,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> REMOTE_EYE = reg("remote_eye", RemoteEye::new);
     public static final RegistryObject<AbstractSpell> MANA_SLASH = reg("mana_slash", ManaSlash::new);
     public static final RegistryObject<AbstractSpell> LONG_STRIDE = reg("long_stride", LongStride::new);
+    public static final RegistryObject<AbstractSpell> RIFT_HOLE = reg("rift_hole", RiftHole::new);
 
     // 召喚.
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
@@ -79,6 +83,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> FEATHER_RUSH = reg("feather_rush", FeatherRush::new);
     public static final RegistryObject<AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
     public static final RegistryObject<AbstractSpell> PRECISION_JACK = reg("precision_jack", PrecisionJack::new);
+    public static final RegistryObject<AbstractSpell> AUTO_TURRET = reg("auto_turret", AutoTurret::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
@@ -114,4 +119,5 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
     public static final RegistryObject<AbstractSpell> MOON_LIGHT = reg("moon_light", MoonLight::new);
     public static final RegistryObject<AbstractSpell> DEEP_SENSOR = reg("deep_sensor", DeepSensor::new);
+    public static final RegistryObject<AbstractSpell> SPECTRAL_WING = reg("spectral_wing", SpectralWing::new);
 }

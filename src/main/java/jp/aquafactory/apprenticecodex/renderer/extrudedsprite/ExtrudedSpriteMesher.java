@@ -24,35 +24,36 @@ public final class ExtrudedSpriteMesher {
 
         List<ExtrudedSpriteMesh.Quad> quads = new ArrayList<>();
 
-        // Front.
-        // ここでは「表＝手前に向く」を +Z として扱う.
-        {
-            var q = new ExtrudedSpriteMesh.Quad(0, 0, 1);
-            q.x[0] = 0; q.y[0] = 0; q.z[0] = zFront;
-            q.x[1] = 1; q.y[1] = 0; q.z[1] = zFront;
-            q.x[2] = 1; q.y[2] = 1; q.z[2] = zFront;
-            q.x[3] = 0; q.y[3] = 1; q.z[3] = zFront;
-
-            q.u[0] = 0; q.v[0] = 1;
-            q.u[1] = 1; q.v[1] = 1;
-            q.u[2] = 1; q.v[2] = 0;
-            q.u[3] = 0; q.v[3] = 0;
-
-            quads.add(q);
-        }
-
-        // Back.
+        // Min Z face.
+        // 押し出しボリュームの手前面は -Z を向く.
         {
             var q = new ExtrudedSpriteMesh.Quad(0, 0, -1);
-            q.x[0] = 0; q.y[0] = 0; q.z[0] = zBack;
-            q.x[1] = 0; q.y[1] = 1; q.z[1] = zBack;
-            q.x[2] = 1; q.y[2] = 1; q.z[2] = zBack;
-            q.x[3] = 1; q.y[3] = 0; q.z[3] = zBack;
+            q.x[0] = 0; q.y[0] = 0; q.z[0] = zFront;
+            q.x[1] = 0; q.y[1] = 1; q.z[1] = zFront;
+            q.x[2] = 1; q.y[2] = 1; q.z[2] = zFront;
+            q.x[3] = 1; q.y[3] = 0; q.z[3] = zFront;
 
             q.u[0] = 0; q.v[0] = 1;
             q.u[1] = 0; q.v[1] = 0;
             q.u[2] = 1; q.v[2] = 0;
             q.u[3] = 1; q.v[3] = 1;
+
+            quads.add(q);
+        }
+
+        // Max Z face.
+        // 押し出しボリュームの奥面は +Z を向く.
+        {
+            var q = new ExtrudedSpriteMesh.Quad(0, 0, 1);
+            q.x[0] = 0; q.y[0] = 0; q.z[0] = zBack;
+            q.x[1] = 1; q.y[1] = 0; q.z[1] = zBack;
+            q.x[2] = 1; q.y[2] = 1; q.z[2] = zBack;
+            q.x[3] = 0; q.y[3] = 1; q.z[3] = zBack;
+
+            q.u[0] = 0; q.v[0] = 1;
+            q.u[1] = 1; q.v[1] = 1;
+            q.u[2] = 1; q.v[2] = 0;
+            q.u[3] = 0; q.v[3] = 0;
 
             quads.add(q);
         }
@@ -71,21 +72,24 @@ public final class ExtrudedSpriteMesher {
                 var u1 = x1;
                 var v0 = y0;
                 var v1 = y1;
+                var uCenter = (px + 0.5f) / (float) w;
+                // UV の V は画像上端が 0 のため、側面用サンプルはここで反転しない.
+                var vCenter = (py + 0.5f) / (float) h;
 
                 // 左境界 -> 壁(法線 -X)
+                // 側面は宣言法線と頂点順を一致させないと陰影が反転する.
                 if (!isSolid(img, px - 1, py)) {
                     var q = new ExtrudedSpriteMesh.Quad(-1, 0, 0);
 
                     q.x[0] = x0; q.y[0] = y0; q.z[0] = zFront;
-                    q.x[1] = x0; q.y[1] = y1; q.z[1] = zFront;
+                    q.x[1] = x0; q.y[1] = y0; q.z[1] = zBack;
                     q.x[2] = x0; q.y[2] = y1; q.z[2] = zBack;
-                    q.x[3] = x0; q.y[3] = y0; q.z[3] = zBack;
+                    q.x[3] = x0; q.y[3] = y1; q.z[3] = zFront;
 
-                    var us = u0;
-                    q.u[0] = us; q.v[0] = v0;
-                    q.u[1] = us; q.v[1] = v1;
-                    q.u[2] = us; q.v[2] = v1;
-                    q.u[3] = us; q.v[3] = v0;
+                    q.u[0] = uCenter; q.v[0] = vCenter;
+                    q.u[1] = uCenter; q.v[1] = vCenter;
+                    q.u[2] = uCenter; q.v[2] = vCenter;
+                    q.u[3] = uCenter; q.v[3] = vCenter;
 
                     quads.add(q);
                 }
@@ -95,51 +99,48 @@ public final class ExtrudedSpriteMesher {
                     var q = new ExtrudedSpriteMesh.Quad(1, 0, 0);
 
                     q.x[0] = x1; q.y[0] = y0; q.z[0] = zBack;
-                    q.x[1] = x1; q.y[1] = y1; q.z[1] = zBack;
+                    q.x[1] = x1; q.y[1] = y0; q.z[1] = zFront;
                     q.x[2] = x1; q.y[2] = y1; q.z[2] = zFront;
-                    q.x[3] = x1; q.y[3] = y0; q.z[3] = zFront;
+                    q.x[3] = x1; q.y[3] = y1; q.z[3] = zBack;
 
-                    var us = u1;
-                    q.u[0] = us; q.v[0] = v0;
-                    q.u[1] = us; q.v[1] = v1;
-                    q.u[2] = us; q.v[2] = v1;
-                    q.u[3] = us; q.v[3] = v0;
+                    q.u[0] = uCenter; q.v[0] = vCenter;
+                    q.u[1] = uCenter; q.v[1] = vCenter;
+                    q.u[2] = uCenter; q.v[2] = vCenter;
+                    q.u[3] = uCenter; q.v[3] = vCenter;
 
                     quads.add(q);
                 }
 
-                // 上境界 -> 壁(法線 -Y)
+                // 上境界 -> モデル上面(法線 +Y)
                 if (!isSolid(img, px, py - 1)) {
-                    var q = new ExtrudedSpriteMesh.Quad(0, -1, 0);
-
-                    q.x[0] = x0; q.y[0] = y0; q.z[0] = zBack;
-                    q.x[1] = x1; q.y[1] = y0; q.z[1] = zBack;
-                    q.x[2] = x1; q.y[2] = y0; q.z[2] = zFront;
-                    q.x[3] = x0; q.y[3] = y0; q.z[3] = zFront;
-
-                    var vs = v0;
-                    q.u[0] = u0; q.v[0] = vs;
-                    q.u[1] = u1; q.v[1] = vs;
-                    q.u[2] = u1; q.v[2] = vs;
-                    q.u[3] = u0; q.v[3] = vs;
-
-                    quads.add(q);
-                }
-
-                // 下境界 -> 壁(法線 +Y)
-                if (!isSolid(img, px, py + 1)) {
                     var q = new ExtrudedSpriteMesh.Quad(0, 1, 0);
 
                     q.x[0] = x0; q.y[0] = y1; q.z[0] = zFront;
-                    q.x[1] = x1; q.y[1] = y1; q.z[1] = zFront;
+                    q.x[1] = x0; q.y[1] = y1; q.z[1] = zBack;
                     q.x[2] = x1; q.y[2] = y1; q.z[2] = zBack;
-                    q.x[3] = x0; q.y[3] = y1; q.z[3] = zBack;
+                    q.x[3] = x1; q.y[3] = y1; q.z[3] = zFront;
 
-                    var vs = v1;
-                    q.u[0] = u0; q.v[0] = vs;
-                    q.u[1] = u1; q.v[1] = vs;
-                    q.u[2] = u1; q.v[2] = vs;
-                    q.u[3] = u0; q.v[3] = vs;
+                    q.u[0] = uCenter; q.v[0] = vCenter;
+                    q.u[1] = uCenter; q.v[1] = vCenter;
+                    q.u[2] = uCenter; q.v[2] = vCenter;
+                    q.u[3] = uCenter; q.v[3] = vCenter;
+
+                    quads.add(q);
+                }
+
+                // 下境界 -> モデル下面(法線 -Y)
+                if (!isSolid(img, px, py + 1)) {
+                    var q = new ExtrudedSpriteMesh.Quad(0, -1, 0);
+
+                    q.x[0] = x0; q.y[0] = y0; q.z[0] = zBack;
+                    q.x[1] = x0; q.y[1] = y0; q.z[1] = zFront;
+                    q.x[2] = x1; q.y[2] = y0; q.z[2] = zFront;
+                    q.x[3] = x1; q.y[3] = y0; q.z[3] = zBack;
+
+                    q.u[0] = uCenter; q.v[0] = vCenter;
+                    q.u[1] = uCenter; q.v[1] = vCenter;
+                    q.u[2] = uCenter; q.v[2] = vCenter;
+                    q.u[3] = uCenter; q.v[3] = vCenter;
 
                     quads.add(q);
                 }

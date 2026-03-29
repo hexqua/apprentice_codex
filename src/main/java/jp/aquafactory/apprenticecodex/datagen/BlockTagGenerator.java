@@ -33,6 +33,9 @@ public final class BlockTagGenerator extends BlockTagsProvider {
                 Blocks.CACTUS
         );
 
+        // RiftHole でトンネル化させたくないブロックをデータパックから追加する。
+        tag(TagRegistry.Blocks.RIFT_HOLE_TUNNEL_DENYLIST);
+
         // TinyLumberjack の強制原木判定.
         tag(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LOGS);
 

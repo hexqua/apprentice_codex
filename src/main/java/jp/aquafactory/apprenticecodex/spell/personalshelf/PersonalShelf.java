@@ -8,7 +8,10 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.spell.ClientPlacementPreviewData;
+import jp.aquafactory.apprenticecodex.spell.IClientPlacementPreviewSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
@@ -29,11 +32,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Optional;
 
-public class PersonalShelf extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell {
+public class PersonalShelf extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell, IClientPlacementPreviewSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "personal_shelf");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -129,12 +133,36 @@ public class PersonalShelf extends AbstractSpell implements jp.aquafactory.appre
         return true;
     }
 
+    @Override
+    public Optional<ClientPlacementPreviewData> getClientPlacementPreview(Level level, LivingEntity entity, int spellLevel, BlockTargetData targetData) {
+        return findPlaceData(level, entity, targetData)
+                .map(placeData -> ClientPlacementPreviewData.singleBlockColumn(new Vec3(
+                        placeData.pos().getX() + 0.5,
+                        placeData.pos().getY(),
+                        placeData.pos().getZ() + 0.5
+                )));
+    }
+
     private Optional<BlockTools.PlaceData> findPlaceData(Level level, LivingEntity entity) {
         var result = BlockTargetingHelper.findClientPlacePos(level, entity, getSpellResource(), getRange());
         if (result.isEmpty()) {
             result = BlockTools.findPlacePos(level, entity, getRange());
         }
         return result;
+    }
+
+    private Optional<BlockTools.PlaceData> findPlaceData(Level level, LivingEntity entity, BlockTargetData targetData) {
+        if (targetData != null) {
+            var validatedTarget = BlockTargetingHelper.validateTarget(level, entity, getRange(), targetData);
+            if (validatedTarget.isPresent()) {
+                return Optional.of(new BlockTools.PlaceData(
+                        validatedTarget.get().getPlacePos(),
+                        validatedTarget.get().getPlaceFacing()
+                ));
+            }
+        }
+
+        return findPlaceData(level, entity);
     }
 
     @Override

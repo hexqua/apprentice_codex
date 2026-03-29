@@ -24,6 +24,7 @@ import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarRenderer;
+import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretRenderer;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunRenderer;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunRenderer;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRenderer;
@@ -46,8 +47,10 @@ import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamRende
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryRenderer;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeRenderer;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunRenderer;
+import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
+import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingLayer;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerRenderer;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
@@ -78,6 +81,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::onReloadListeners);
         modEventBus.addListener(ClientModBusEvents::registerParticleProviders);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
+        modEventBus.addListener(ClientModBusEvents::addLayers);
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
         modEventBus.addListener(ClientModBusEvents::registerItemColors);
     }
@@ -130,12 +134,26 @@ public final class ClientModBusEvents {
         event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get());
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void addLayers(EntityRenderersEvent.AddLayers event) {
+        var defaultPlayerRenderer = event.getSkin("default");
+        if (defaultPlayerRenderer != null) {
+            defaultPlayerRenderer.addLayer(new SpectralWingLayer(defaultPlayerRenderer));
+        }
+
+        var slimPlayerRenderer = event.getSkin("slim");
+        if (slimPlayerRenderer != null) {
+            slimPlayerRenderer.addLayer(new SpectralWingLayer(slimPlayerRenderer));
+        }
+    }
+
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(BlockEntityRegistry.ATELIER_STATION.get(), AtelierStationBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ARCANUM_IN_A_JAR.get(), ArcanumInAJarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ESSENCE_SMOKER.get(), EssenceSmokerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.PERSONAL_SHELF_CHEST.get(), PersonalShelfChestBlockRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityRegistry.RIFT_HOLE.get(), RiftHoleBlockEntityRenderer::new);
 
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCHER_MULTIPLE_BOW.get(), ArcherMultipleBowRenderer::new);
@@ -153,6 +171,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), FlySwatterProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ASSIST_WINGS_WING.get(), AssistWingsWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), AutoMagnetFamiliarRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.AUTO_TURRET.get(), AutoTurretRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_PROJECTILE.get(), FeatherRushProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_WING.get(), FeatherRushWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);

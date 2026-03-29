@@ -10,11 +10,13 @@
     "ArcaneAnvilMenuMixin",
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
+    "EntitySharedFlagAccessor",
     "ItemNameMixin",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",
     "LivingEntityAccessor",
     "LivingEntityPhalanxGuardMixin",
+    "LivingEntitySpectralWingMixin",
     "PotionFluidTypeMixin",
     "SchoolTypeAccessor"
   ],
