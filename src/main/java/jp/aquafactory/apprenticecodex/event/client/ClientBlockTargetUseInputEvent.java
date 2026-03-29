@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
@@ -60,6 +61,7 @@ public final class ClientBlockTargetUseInputEvent {
             return;
         }
 
+        ClientPlacementPreviewManager.rememberPendingTarget(resolvedSpell.get().spellResource(), targetData);
         Networks.sendToServer(new ClientBlockTargetCastPacket(-1, resolvedSpell.get().spellResource(), targetData, false));
     }
 
