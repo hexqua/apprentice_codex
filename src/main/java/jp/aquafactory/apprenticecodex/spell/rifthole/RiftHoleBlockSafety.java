@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.rifthole;
 
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -26,6 +27,11 @@ public final class RiftHoleBlockSafety {
 
     private static boolean passesCommonChecks(Level level, BlockPos pos, BlockState state) {
         if (state.isAir() || state.canBeReplaced()) {
+            return false;
+        }
+        // 開始地点は詠唱失敗、途中は部分トンネルになる既存仕様に合わせて、
+        // データパックから追加した拒否対象も共通の安全判定へ寄せる。
+        if (state.is(TagRegistry.Blocks.RIFT_HOLE_TUNNEL_DENYLIST)) {
             return false;
         }
         if (!state.getFluidState().isEmpty()) {
