@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.network;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
@@ -20,7 +21,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "7";
+    private static final String PROTOCOL_VERSION = "8";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -40,6 +41,13 @@ public final class Networks {
                 ClientBlockTargetCastPacket::encode,
                 ClientBlockTargetCastPacket::decode,
                 ClientBlockTargetCastPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientSwingMagicAttackPacket.class,
+                ClientSwingMagicAttackPacket::encode,
+                ClientSwingMagicAttackPacket::decode,
+                ClientSwingMagicAttackPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
