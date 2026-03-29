@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.effect.SenseSensor;
+import jp.aquafactory.apprenticecodex.effect.SpectralWingEffect;
 import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.registries.Registries;
@@ -32,6 +33,8 @@ public final class EffectRegistry {
             EFFECTS.register("phalanx_stance", PhalanxStance::new);
     public static final DeferredHolder<MobEffect, MobEffect> SENSE_SENSOR =
             EFFECTS.register("sense_sensor", SenseSensor::new);
+    public static final DeferredHolder<MobEffect, MobEffect> SPECTRAL_WING =
+            EFFECTS.register("spectral_wing", SpectralWingEffect::new);
     public static final DeferredHolder<MobEffect, MobEffect> THERMAL_PROCESSING =
             EFFECTS.register("thermal_processing", ThermalProcessing::new);
 

@@ -214,6 +214,7 @@
   "spell.apprenticecodex.sense_evil": "Sense Evil",
   "spell.apprenticecodex.deep_sensor": "Deep Sensor",
   "spell.apprenticecodex.long_stride": "Long Stride",
+  "spell.apprenticecodex.spectral_wing": "Spectral Wing",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -285,6 +286,7 @@
   "spell.apprenticecodex.sense_evil.guide": "Detects nearby unholy beings and highlights them in your vision. It can sense them even without a clear line of sight, and can also detect devices that create such unholy entities.",
   "spell.apprenticecodex.deep_sensor.guide": "For a time, grants heightened perception of the distinctive sounds of the Abyss.",
   "spell.apprenticecodex.long_stride.guide": "While casting, you can move faster and can jump over small obstacles.",
+  "spell.apprenticecodex.spectral_wing.guide": "Launches you into the air with mana wings and immediately transitions into a glide. Recast while flying to surge hard in the direction you are looking. The wings vanish when you land or touch water.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -330,6 +332,8 @@
   "ui.apprenticecodex.now_smoke_processing": "Still needs time",
   "ui.apprenticecodex.missing_spell_gun_ammo": "Out of ammo!(Ammo:%1$s)",
   "ui.apprenticecodex.cant_open_hole": "Can't open hole on %s",
+  "ui.apprenticecodex.spectral_wing.conflict": "Your mana interferes and the wings cannot unfold!",
+  "ui.apprenticecodex.spectral_wing.underwater": "You cannot unfold the wings underwater!",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
 
@@ -340,6 +344,7 @@
   "effect.apprenticecodex.phalanx_stance": "Phalanx Stance",
   "effect.apprenticecodex.thermal_processing": "Thermal Processing",
   "effect.apprenticecodex.sense_sensor": "Sense Sensor",
+  "effect.apprenticecodex.spectral_wing": "Spectral Wing",
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
   "effect.apprenticecodex.intelligence.description": "Greatly increases spell power.",
@@ -351,6 +356,7 @@
   "effect.apprenticecodex.phalanx_stance.description": "The shield of magic that provides a sturdy barrier. More durable than a regular shield. Special equipment increases movement speed.",
   "effect.apprenticecodex.thermal_processing.description": "Being thermally processed. As the level increases, severe debuffs and continuous damage are applied.",
   "effect.apprenticecodex.sense_sensor.description": "Synced with the Sculk Sensor. Can sense sounds.",
+  "effect.apprenticecodex.spectral_wing.description": "You are gliding with manifested magical wings.",
 
   "item.minecraft.potion.effect.intelligence": "Potion of Intelligence",
   "item.minecraft.splash_potion.effect.intelligence": "Splash Potion of Intelligence",
