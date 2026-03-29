@@ -64,6 +64,29 @@ public final class BlockTargetingHelper {
                 .map(target -> new BlockTools.PlaceData(target.getPlacePos(), target.getPlaceFacing()));
     }
 
+    public static Optional<BlockTargetData> getValidatedPendingHitTarget(Level level, LivingEntity entity, ResourceLocation expectedSpellId, double range) {
+        if (!(entity instanceof ServerPlayer serverPlayer)) {
+            return Optional.empty();
+        }
+
+        var pendingTarget = PENDING_SERVER_TARGETS.get(serverPlayer.getUUID());
+        if (pendingTarget == null) {
+            return Optional.empty();
+        }
+        if (level.getGameTime() > pendingTarget.expireGameTime()) {
+            PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID());
+            return Optional.empty();
+        }
+        if (!pendingTarget.spellId().equals(expectedSpellId)) {
+            PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID());
+            return Optional.empty();
+        }
+
+        var validated = validateHitTarget(level, entity, range, pendingTarget.targetData());
+        validated.ifPresent(unused -> PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID()));
+        return validated;
+    }
+
     public static Optional<BlockTargetData> validateTarget(Level level, LivingEntity entity, double range, @Nullable BlockTargetData targetData) {
         if (targetData == null || !targetData.hasTarget()) {
             return Optional.empty();
@@ -89,6 +112,23 @@ public final class BlockTargetingHelper {
             return Optional.empty();
         }
         if (!level.getBlockState(targetData.getPlacePos()).canBeReplaced()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(targetData.copy());
+    }
+
+    public static Optional<BlockTargetData> validateHitTarget(Level level, LivingEntity entity, double range, @Nullable BlockTargetData targetData) {
+        if (targetData == null || !targetData.hasTarget()) {
+            return Optional.empty();
+        }
+        if (targetData.getHitBlockPos() == null || targetData.getHitFace() == null) {
+            return Optional.empty();
+        }
+
+        var allowedRange = range + RANGE_EPSILON;
+        var distanceSq = entity.getEyePosition(1.0F).distanceToSqr(targetData.getHitLocation());
+        if (distanceSq > allowedRange * allowedRange) {
             return Optional.empty();
         }
 
