@@ -157,6 +157,10 @@ tasks.named('processResources', ProcessResources).configure {
 
 // メタ情報系.
 tasks.named('jar', Jar).configure {
+    // GameTest 用のクラス/structure は dev 実行だけで使い、配布 jar には含めない。
+    exclude('jp/aquafactory/apprenticecodex/gametest/**')
+    exclude('data/apprenticecodex/structures/gametest/**')
+
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,
