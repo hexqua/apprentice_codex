@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
@@ -7,12 +8,16 @@ import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.LinkedHashMap;
+import java.util.List;
 
 public final class CreativeTabRegistry {
     private CreativeTabRegistry() {}
@@ -89,18 +94,40 @@ public final class CreativeTabRegistry {
     }
 
     private static void addSpellScrollsToTab(CreativeModeTab.Output output) {
-        for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
-            var spellResource = spell.getSpellResource();
-            if (spellResource == null || !ApprenticeCodex.MODID.equals(spellResource.getNamespace())) {
-                continue;
-            }
-
+        for (var spell : getCreativeTabSpells()) {
             for (var level = spell.getMinLevel(); level <= spell.getMaxLevel(); ++level) {
                 var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
                 ISpellContainer.createScrollContainer(spell, level, scrollStack);
                 output.accept(scrollStack);
             }
         }
+    }
+
+    // School ごとに固めておくと、登録順が崩れても creative tab 上で魔法が混ざりにくい。
+    public static List<AbstractSpell> getCreativeTabSpells() {
+        var schoolOrder = new LinkedHashMap<ResourceLocation, Integer>();
+        var orderIndex = 0;
+        for (var schoolType : io.redspace.ironsspellbooks.api.registry.SchoolRegistry.REGISTRY) {
+            schoolOrder.putIfAbsent(schoolType.getId(), orderIndex++);
+        }
+
+        return io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells().stream()
+                .filter(CreativeTabRegistry::isApprenticeSpell)
+                .sorted(java.util.Comparator.comparingInt(spell -> resolveSchoolOrderIndex(spell, schoolOrder)))
+                .toList();
+    }
+
+    private static boolean isApprenticeSpell(AbstractSpell spell) {
+        var spellResource = spell.getSpellResource();
+        return spellResource != null && ApprenticeCodex.MODID.equals(spellResource.getNamespace());
+    }
+
+    private static int resolveSchoolOrderIndex(AbstractSpell spell, LinkedHashMap<ResourceLocation, Integer> schoolOrder) {
+        var schoolType = spell.getSchoolType();
+        if (schoolType == null) {
+            return Integer.MAX_VALUE;
+        }
+        return schoolOrder.getOrDefault(schoolType.getId(), Integer.MAX_VALUE);
     }
 
     private static void filterHiddenAffinityPotions(BuildCreativeModeTabContentsEvent event) {
