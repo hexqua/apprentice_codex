@@ -44,12 +44,15 @@ public final class ExtrudedSpriteRenderer {
         var vc = buffer.getBuffer(RenderType.entityCutoutNoCull(texture));
         for (var q : mesh.quads) {
             for (var i = 0; i < 4; ++i) {
+                var transformedNormal = new org.joml.Vector3f(q.nx, q.ny, q.nz)
+                        .mul(normalMatrix)
+                        .normalize();
                 vc.addVertex(poseMatrix, q.x[i], q.y[i], q.z[i])
                         .setColor(255, 255, 255, 255)
                         .setUv(q.u[i], q.v[i])
                         .setOverlay(OverlayTexture.NO_OVERLAY)
                         .setLight(packedLight)
-                        .setNormal(normalMatrix, q.nx, q.ny, q.nz);
+                        .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
             }
         }
     }

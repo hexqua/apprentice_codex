@@ -26,7 +26,7 @@ public final class BlockRegistry {
             BLOCKS.register("personal_shelf_chest", () -> new PersonalShelfChestBlock());
 
     public static final DeferredHolder<Block, Block> RIFT_HOLE =
-            BLOCKS.register("rift_hole", RiftHoleBlock::new);
+            BLOCKS.register("rift_hole", () -> new RiftHoleBlock());
 
     public static final DeferredHolder<Block, Block> APPRENTICE_DESK =
             BLOCKS.register("apprentice_desk", ApprenticeDesk::new);

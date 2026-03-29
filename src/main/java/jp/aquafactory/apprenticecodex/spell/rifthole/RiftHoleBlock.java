@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.rifthole;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -18,13 +20,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RiftHoleBlock extends BaseEntityBlock implements LiquidBlockContainer {
-    public RiftHoleBlock() {
-        super(Properties.of()
+    public static final MapCodec<RiftHoleBlock> CODEC = simpleCodec(RiftHoleBlock::new);
+
+    public RiftHoleBlock(Properties properties) {
+        super(properties
                 .strength(-1.0F, 3600000.0F)
                 .noCollission()
                 .noOcclusion()
                 .sound(SoundType.GLASS)
                 .lightLevel(state -> 5));
+    }
+
+    public RiftHoleBlock() {
+        this(Properties.of());
     }
 
     @Override
@@ -53,7 +61,8 @@ public class RiftHoleBlock extends BaseEntityBlock implements LiquidBlockContain
     }
 
     @Override
-    public boolean canPlaceLiquid(@NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Fluid fluid) {
+    public boolean canPlaceLiquid(@Nullable Player player, @NotNull BlockGetter level, @NotNull BlockPos pos,
+                                  @NotNull BlockState state, @NotNull Fluid fluid) {
         // 水流側は LiquidBlockContainer を優先して流入可否を見るため、ここで明示的に拒否する。
         return false;
     }
@@ -67,5 +76,10 @@ public class RiftHoleBlock extends BaseEntityBlock implements LiquidBlockContain
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         return new RiftHoleBlockEntity(pos, state);
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 }

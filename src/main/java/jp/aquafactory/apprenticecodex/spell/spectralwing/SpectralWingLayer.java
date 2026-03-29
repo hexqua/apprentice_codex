@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -47,12 +48,12 @@ public class SpectralWingLayer<T extends LivingEntity, M extends EntityModel<T>>
         this.getParentModel().copyPropertiesTo(this.spectralWingModel);
         this.spectralWingModel.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
         VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucent(WINGS_TEXTURE));
-        this.spectralWingModel.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, WING_ALPHA);
+        this.spectralWingModel.renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
     }
 
     private boolean shouldRender(T entity) {
         return !entity.getItemBySlot(EquipmentSlot.CHEST).is(Items.ELYTRA)
-                && entity.hasEffect(EffectRegistry.SPECTRAL_WING.get());
+                && entity.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SPECTRAL_WING.get()));
     }
 }

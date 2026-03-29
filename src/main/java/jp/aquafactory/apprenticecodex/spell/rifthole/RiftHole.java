@@ -20,8 +20,10 @@ import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
@@ -485,7 +487,7 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             tag.putString("Mode", mode.name());
             if (tunnelId != null) {
@@ -507,7 +509,7 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             mode = nbt.contains("Mode") ? RiftHoleMode.valueOf(nbt.getString("Mode")) : RiftHoleMode.NONE;
             tunnelId = nbt.hasUUID("TunnelId") ? nbt.getUUID("TunnelId") : null;
             positions.clear();
@@ -515,12 +517,13 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
 
             var positionsTag = nbt.getList("Positions", Tag.TAG_COMPOUND);
             for (var index = 0; index < positionsTag.size(); ++index) {
-                positions.add(NbtUtils.readBlockPos(positionsTag.getCompound(index)));
+                var posTag = positionsTag.getCompound(index);
+                positions.add(new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z")));
             }
 
             var statesTag = nbt.getList("OriginalStates", Tag.TAG_COMPOUND);
             for (var index = 0; index < statesTag.size(); ++index) {
-                originalStates.add(NbtUtils.readBlockState(BuiltInRegistries.BLOCK.asLookup(), statesTag.getCompound(index)));
+                originalStates.add(NbtUtils.readBlockState(provider.lookupOrThrow(Registries.BLOCK), statesTag.getCompound(index)));
             }
         }
     }

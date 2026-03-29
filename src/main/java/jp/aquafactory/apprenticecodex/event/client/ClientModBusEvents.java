@@ -69,6 +69,8 @@ import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.resources.PlayerSkin;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -243,12 +245,12 @@ public final class ClientModBusEvents {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static void addLayers(EntityRenderersEvent.AddLayers event) {
-        var defaultPlayerRenderer = event.getSkin("default");
+        var defaultPlayerRenderer = (PlayerRenderer) event.getSkin(PlayerSkin.Model.WIDE);
         if (defaultPlayerRenderer != null) {
             defaultPlayerRenderer.addLayer(new SpectralWingLayer(defaultPlayerRenderer));
         }
 
-        var slimPlayerRenderer = event.getSkin("slim");
+        var slimPlayerRenderer = (PlayerRenderer) event.getSkin(PlayerSkin.Model.SLIM);
         if (slimPlayerRenderer != null) {
             slimPlayerRenderer.addLayer(new SpectralWingLayer(slimPlayerRenderer));
         }

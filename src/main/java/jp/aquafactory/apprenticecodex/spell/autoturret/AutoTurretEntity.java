@@ -31,11 +31,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Comparator;
@@ -112,14 +112,14 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        entityData.define(CHARGE_STAGE, 0);
-        entityData.define(HIT_SEQUENCE, 0);
-        entityData.define(HIT_POSITION_X, 0.0f);
-        entityData.define(HIT_POSITION_Y, 0.0f);
-        entityData.define(HIT_POSITION_Z, 0.0f);
-        entityData.define(AIM_PITCH, 0.0f);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(CHARGE_STAGE, 0);
+        builder.define(HIT_SEQUENCE, 0);
+        builder.define(HIT_POSITION_X, 0.0f);
+        builder.define(HIT_POSITION_Y, 0.0f);
+        builder.define(HIT_POSITION_Z, 0.0f);
+        builder.define(AIM_PITCH, 0.0f);
     }
 
     @Override
@@ -268,7 +268,7 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     private void playCrossbowLoadingEnd(ServerLevel level) {
-        AudioTools.playSoundFromEntity(level, this, SoundEvents.CROSSBOW_LOADING_END, SoundSource.PLAYERS, 1.0f, 1.0f, 0.0f);
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.CROSSBOW_LOADING_END.value(), SoundSource.PLAYERS, 1.0f, 1.0f, 0.0f);
     }
 
     private void fire(Entity target, ServerLevel level, LivingEntity owner) {

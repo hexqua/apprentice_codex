@@ -83,7 +83,6 @@ public final class EntityRegistry {
                 false);
     }
 
-    public static final DeferredHolder<EntityType<?>, EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
     private static <T extends net.minecraft.world.entity.Entity> DeferredHolder<EntityType<?>, EntityType<T>> regLiving(
             String id,
             EntityType.EntityFactory<T> factory,
@@ -142,7 +141,6 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<AutoMagnetFamiliarEntity>> AUTO_MAGNET_FAMILIAR =
             regWeapon("auto_magnet_familiar", AutoMagnetFamiliarEntity::new, 1);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
     public static final DeferredHolder<EntityType<?>, EntityType<AutoTurretEntity>> AUTO_TURRET =
             regLiving("auto_turret", AutoTurretEntity::new, AutoTurretEntity.WIDTH, AutoTurretEntity.HEIGHT, 32);
 

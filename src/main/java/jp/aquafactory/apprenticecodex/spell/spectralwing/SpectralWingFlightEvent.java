@@ -6,12 +6,13 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SpectralWingFlightEvent {
     private static final int WATER_DEACTIVATE_GRACE_TICKS = 4;
 
@@ -19,12 +20,8 @@ public final class SpectralWingFlightEvent {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) {
-            return;
-        }
-
-        var player = event.player;
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
+        var player = event.getEntity();
         var level = player.level();
         if (level.isClientSide) {
             return;
@@ -101,7 +98,7 @@ public final class SpectralWingFlightEvent {
             player.stopFallFlying();
         }
 
-        player.removeEffect(EffectRegistry.SPECTRAL_WING.get());
+        player.removeEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SPECTRAL_WING.get()));
         if (!state.active && !state.startedBySpell && state.launchGraceTicks == 0) {
             return;
         }
@@ -110,8 +107,9 @@ public final class SpectralWingFlightEvent {
     }
 
     private static void clearLingeringVisual(Player player) {
-        if (player.hasEffect(EffectRegistry.SPECTRAL_WING.get())) {
-            player.removeEffect(EffectRegistry.SPECTRAL_WING.get());
+        var spectralWing = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SPECTRAL_WING.get());
+        if (player.hasEffect(spectralWing)) {
+            player.removeEffect(spectralWing);
         }
     }
 }

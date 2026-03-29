@@ -7,12 +7,13 @@ import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ClientPlacementPreviewRenderEvent {
     private static final RenderType RENDER_TYPE = ApprenticeRenderTypes.translucentColorNoCull("placement_preview_translucent");
     private static final int SEGMENT_COUNT = 8;
@@ -22,7 +23,7 @@ public final class ClientPlacementPreviewRenderEvent {
     private ClientPlacementPreviewRenderEvent() {
     }
 
-    @net.minecraftforge.eventbus.api.SubscribeEvent
+    @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             return;
@@ -80,9 +81,8 @@ public final class ClientPlacementPreviewRenderEvent {
 
     private static void addVertex(VertexConsumer buffer, Matrix4f poseMatrix, float x, float y, float z,
                                   float red, float green, float blue, float alpha) {
-        buffer.vertex(poseMatrix, x, y, z)
-                .color(red, green, blue, alpha)
-                .endVertex();
+        buffer.addVertex(poseMatrix, x, y, z)
+                .setColor(red, green, blue, alpha);
     }
 
     private static UnitVertex[] buildUnitRing() {

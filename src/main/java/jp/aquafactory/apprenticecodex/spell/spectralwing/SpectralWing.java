@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Spec
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -137,7 +138,7 @@ public class SpectralWing extends AbstractSpell {
         player.setDeltaMovement(player.getDeltaMovement().scale(0.15).add(boostVelocity));
         player.startFallFlying();
         // 激流の見た目だけを再利用し、加速の主処理は SpectralWing 側で維持する。
-        player.startAutoSpinAttack(BOOST_SPIN_TICKS);
+        player.startAutoSpinAttack(BOOST_SPIN_TICKS, 0.0f, Items.TRIDENT.getDefaultInstance());
         player.hasImpulse = true;
         player.hurtMarked = true;
         player.fallDistance = 0.0f;
@@ -145,10 +146,11 @@ public class SpectralWing extends AbstractSpell {
     }
 
     public static void refreshVisualEffect(Player player) {
-        var effect = player.getEffect(EffectRegistry.SPECTRAL_WING.get());
+        var spectralWing = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SPECTRAL_WING.get());
+        var effect = player.getEffect(spectralWing);
         if (effect == null || effect.getDuration() <= 8) {
             player.addEffect(new MobEffectInstance(
-                    EffectRegistry.SPECTRAL_WING.get(),
+                    spectralWing,
                     VISUAL_EFFECT_DURATION_TICKS,
                     0,
                     true,
@@ -160,7 +162,7 @@ public class SpectralWing extends AbstractSpell {
 
     public static boolean hasWingConflict(Player player) {
         return player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST).is(Items.ELYTRA)
-                || player.hasEffect(MobEffectRegistry.ANGEL_WINGS.get());
+                || player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(MobEffectRegistry.ANGEL_WINGS.get()));
     }
 
     public static void notifyConflict(Player player) {
