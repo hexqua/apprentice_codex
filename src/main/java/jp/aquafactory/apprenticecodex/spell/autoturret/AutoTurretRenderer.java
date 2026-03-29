@@ -44,7 +44,7 @@ public class AutoTurretRenderer extends GeoEntityRenderer<AutoTurretEntity> {
         float lerpBodyRot = Mth.rotLerp(partialTicks, entity.yBodyRotO, entity.yBodyRot);
 
         poseStack.scale(nativeScale, nativeScale, nativeScale);
-        applyRotations(entity, poseStack, ageInTicks, lerpBodyRot, partialTicks);
+        applyRotations(entity, poseStack, ageInTicks, lerpBodyRot, partialTicks, nativeScale);
 
         // bone 行列ではなく、root 回転とアンカー位置を明示的に積んで描画姿勢を確定させる.
         poseStack.translate(0.0f, MODEL_RENDER_Y_OFFSET + SPRITE_ANCHOR_Y, 0.0f);

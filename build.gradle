@@ -33,7 +33,7 @@ repositories {
     // GeckoLib
     maven {
         name = 'GeckoLib'
-        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        url = uri('https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/')
         content {
             includeGroupByRegex("software\\.bernie.*")
             includeGroup("com.eliotlash.mclib")
@@ -205,7 +205,7 @@ publishing {
     }
     repositories {
         maven {
-            url "file://${project.projectDir}/repo"
+            url = uri(project.file("repo"))
         }
     }
 }

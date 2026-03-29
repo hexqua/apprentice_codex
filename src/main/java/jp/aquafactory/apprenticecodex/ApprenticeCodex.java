@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
@@ -42,6 +43,7 @@ public class ApprenticeCodex
         modContainer.registerConfig(ModConfig.Type.CLIENT, ApprenticeCodexClientConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.COMMON, ApprenticeCodexCommonConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
+        ApprenticeCodexCommonConfig.register(modEventBus);
         BlockRegistry.register(modEventBus);
         ItemRegistry.ITEMS.register(modEventBus);
         BlockEntityRegistry.register(modEventBus);
@@ -57,6 +59,7 @@ public class ApprenticeCodex
         RecipeRegistry.register(modEventBus);
         RecipeConditionRegistry.register(modEventBus);
         AttachmentRegistry.register(modEventBus);
+        ModEntityAttributeEvent.register(modEventBus);
         CodexSpellStateTypeRegister.register();
         Networks.register(modEventBus);
 
