@@ -14,9 +14,9 @@ public final class ExtrudedSpriteRenderer {
         render(pose.pose(), pose.normal(), buffer, packedLight, texture);
     }
 
-    public static void renderCenter(PoseStack poseStack, MultiBufferSource buffer, int packedLight, ResourceLocation texture) {
+    public static void renderCenteredWithIndependentRotation(PoseStack poseStack, MultiBufferSource buffer, int packedLight, ResourceLocation texture) {
         var pose = poseStack.last();
-        renderCenter(pose.pose(), pose.normal(), buffer, packedLight, texture);
+        renderCenteredWithIndependentRotation(pose.pose(), pose.normal(), buffer, packedLight, texture);
     }
 
     public static void render(Matrix4f poseMatrix, Matrix3f normalMatrix, MultiBufferSource buffer, int packedLight, ResourceLocation texture) {
@@ -28,13 +28,13 @@ public final class ExtrudedSpriteRenderer {
         render(mesh, poseMatrix, normalMatrix, buffer, packedLight, texture);
     }
 
-    public static void renderCenter(Matrix4f poseMatrix, Matrix3f normalMatrix, MultiBufferSource buffer, int packedLight, ResourceLocation texture) {
+    public static void renderCenteredWithIndependentRotation(Matrix4f poseMatrix, Matrix3f normalMatrix, MultiBufferSource buffer, int packedLight, ResourceLocation texture) {
         ExtrudedSpriteMesh mesh = ExtrudedSpriteManager.get(texture);
         if (mesh.quads.isEmpty()) {
             return;
         }
 
-        // メッシュの中心をローカル原点へ寄せてから既存の行列を適用する.
+        // 呼び出し側が独立に組んだ回転を崩さないよう、原点寄せだけここで行う.
         Matrix4f centeredPoseMatrix = new Matrix4f(poseMatrix).translate(-mesh.centerX, -mesh.centerY, -mesh.centerZ);
         render(mesh, centeredPoseMatrix, normalMatrix, buffer, packedLight, texture);
     }
