@@ -51,7 +51,13 @@ Get-ChildItem build\libs\*.jar
 ```powershell
 ./gradlew.bat runClient
 ```
+- 結合テスト（GameTest サーバー）:
+```powershell
+./gradlew.bat runGameTestServer
+```
 - 注記: `runClient` は GUI（Minecraft クライアント）を起動するため、CI やヘッドレス環境では実行しない。
+- 注記: `runGameTestServer` はサーバー側の登録・データ読込・レシピ・生成まわりの結合テストに使う。GUI を必要としないため、ヘッドレス環境でも実行しやすい。
+- 注記: `runGameTestServer` では renderer / screen など client 専用の起動不良は検知できないため、その確認は別途 `runClient` で行う。
 - 注記: 通常のビルド確認では `clean` を付けない。`clean` 実行後は開発実行環境の再生成（例: `genIntellijRuns`）が必要になる場合がある。
 - 注記: 本プロジェクトでは Gradle Wrapper の実行はパス経由を前提にしないため、`./gradlew.bat` を使用する。
 - Lint/Format:
@@ -79,11 +85,13 @@ Get-ChildItem build\libs\*.jar
 3. 実装する。
 4. 差分確認を行い、依頼範囲外のコメント削除/改変と文字化け差分がないこと、無関係な整形・rename・広域整理が混在していないことを確認する。
 5. `./gradlew.bat build` が成功することを確認する（ここだけ必須）。
-6. 必要に応じて `./gradlew.bat runClient` で動作確認する。
-7. 必要に応じて関連ドキュメントを更新する。
+6. サーバー側の登録・データ読込・レシピ・生成・GameTest 対象構造に影響する変更では、`./gradlew.bat runGameTestServer` が成功することを確認する。
+7. 必要に応じて `./gradlew.bat runClient` で動作確認する。
+8. 必要に応じて関連ドキュメントを更新する。
 
 ## 6. レビューチェックリスト
 - 必須チェック項目: Java 17 環境で `./gradlew.bat build` が成功すること。
+- 必須チェック項目: サーバー側の登録・データ読込・レシピ・生成に影響する変更では、`./gradlew.bat runGameTestServer` が成功すること。
 - 必須チェック項目: 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - 必須チェック項目: サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - 必須チェック項目: 1 機能が `cherry-pick` しやすい独立したコミット列として保たれ、無関係な整形・rename・広域整理が同一コミットに混ざっていないこと。
