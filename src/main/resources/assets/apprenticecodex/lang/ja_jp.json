@@ -34,6 +34,7 @@
   "item.apprenticecodex.pastel_staff": "パステルスタッフ",
   "item.apprenticecodex.photon_siphon": "フォトンサイフォン",
   "item.apprenticecodex.crystal_bladed_staff": "刃の結晶杖",
+  "item.apprenticecodex.illuminate_stellar_staff": "星照らしの杖",
   "item.apprenticecodex.reflectcast_shield": "反射詠唱の盾",
   "item.apprenticecodex.explorers_cane": "探索者のステッキ",
   "item.apprenticecodex.spellcasters_flask": "魔術詠唱者のフラスコ",
@@ -73,6 +74,7 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "この杖は盾を優先的に使用できる。",
+  "item.apprenticecodex.illuminate_stellar_staff.desc": "この杖は攻撃時に注入した魔法を放つ。",
   "item.apprenticecodex.stealth_rune_armor.desc": "この防具は透明化の効果を阻害しない。",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
   "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",

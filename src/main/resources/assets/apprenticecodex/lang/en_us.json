@@ -34,6 +34,7 @@
   "item.apprenticecodex.pastel_staff": "Pastel Staff",
   "item.apprenticecodex.photon_siphon": "Photon Siphon",
   "item.apprenticecodex.crystal_bladed_staff": "Crystal Bladed Staff",
+  "item.apprenticecodex.illuminate_stellar_staff": "Illuminate Stellar Staff",
   "item.apprenticecodex.reflectcast_shield": "Reflectcast Shield",
   "item.apprenticecodex.explorers_cane": "Explorer's Cane",
   "item.apprenticecodex.spellcasters_flask": "Spellcaster's Flask",
@@ -73,6 +74,7 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "This staff prioritizes shield usage.",
+  "item.apprenticecodex.illuminate_stellar_staff.desc": "This staff casts its imbued spell with each full swing.",
   "item.apprenticecodex.stealth_rune_armor.desc": "This armor dose not prevent invisibility effects.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
   "item.apprenticecodex.basic_spellcaster_round.desc": "Ammo for instant casting spells",

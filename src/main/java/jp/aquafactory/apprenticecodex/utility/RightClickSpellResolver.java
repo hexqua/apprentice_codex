@@ -6,8 +6,8 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -31,9 +31,9 @@ public final class RightClickSpellResolver {
         if (mainHandStack.getItem() instanceof Scroll) {
             return resolveContainerSpell(mainHandStack, player, "scroll");
         }
-        // CrystalBladedStaff は CastingItem 継承ではないが、右クリック時は選択 spell を使う独自実装。
-        if (mainHandStack.getItem() instanceof CrystalBladedStaff) {
-            return resolveSelectionSpell(player, "crystal_bladed_staff_selection");
+        // 独自右クリック武器は CastingItem 継承ではないが、右クリック時は選択 spell を使う。
+        if (mainHandStack.getItem() instanceof AbstractRightClickMagicWeaponItem) {
+            return resolveSelectionSpell(player, "right_click_magic_weapon_selection");
         }
         if (mainHandStack.getItem() instanceof CastingItem || RightClickSpellItemHelper.isRightClickSpellItem(mainHandStack)) {
             return resolveSelectionSpell(player, "casting_item_selection");
