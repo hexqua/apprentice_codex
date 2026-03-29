@@ -12,7 +12,8 @@
 8. `src/main/resources/data` に手置きの custom recipe などがある場合は、1.21.1 側の配置規約を確認する。特に recipe 系は `recipes/` のままではなく `recipe/` へ揃える必要がないかを先に確認する。
 9. 手置き JSON を移動・削除した場合は、`build/resources/main/data` に旧配置が残っていないことを確認する。必要なら旧ディレクトリを掃除してから jar を作り直す。
 10. 必要に応じて `rg -n "forge:conditions|canApplyAtEnchantingTable|isBookEnchantable|supportsEnchantment|isValidRepairItem" src/generated/resources` を実行し、1.20.1 由来の旧前提が残っていないことを確認する。
-11. `./gradlew.bat build` を実行し、取り込み後の検証成功を確認する。
+11. 変更内容に関係なく `./gradlew.bat runGameTestServer` を実行し、取り込み後の結合テスト成功を確認する。
+12. `./gradlew.bat build` を実行し、取り込み後の検証成功を確認する。
 
 ## 実務ルール
 
