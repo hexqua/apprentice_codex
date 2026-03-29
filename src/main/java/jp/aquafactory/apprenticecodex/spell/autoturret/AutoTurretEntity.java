@@ -38,6 +38,7 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.Comparator;
 import java.util.UUID;
 
 public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
@@ -107,6 +108,7 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     protected void registerGoals() {
+        super.registerGoals();
     }
 
     @Override
@@ -121,10 +123,27 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
     }
 
     @Override
+    public void onClientRemoval(){
+        var level = level();
+        EffectTools.createRingParticle(
+                position(),
+                new Vec3(0, 1, 0),
+                0.4f,
+                8,
+                0.015f,
+                0.01,
+                ParticleTypes.END_ROD,
+                level
+        );
+        super.onClientRemoval();
+    }
+
+    @Override
     public void tick() {
         super.tick();
         if (level().isClientSide) {
-            if (firstTick) {
+            // super.tickが走るとfirstTickが使えないため少し遅らせる.
+            if (tickCount == 2) {
                 EffectTools.createRingParticle(
                         position().add(0.0, 0.2, 0.0),
                         new Vec3(0.0, 1.0, 0.0),
@@ -138,10 +157,11 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
             }
 
             var hitSequence = entityData.get(HIT_SEQUENCE);
+            var crossbowHeight = 11.0f / 16.0f;
             if (currentHitSequence != hitSequence) {
                 currentHitSequence = hitSequence;
                 var hitPosition = new Vec3(entityData.get(HIT_POSITION_X), entityData.get(HIT_POSITION_Y), entityData.get(HIT_POSITION_Z));
-                EffectTools.createLineParticle(position().add(0.0, 1.0, 0.0), hitPosition, 0.5, 0.1, 0.1, ParticleTypes.CRIT, level());
+                EffectTools.createLineParticle(position().add(0.0, crossbowHeight, 0.0), hitPosition, 0.5, 0.1, 0.1, ParticleTypes.CRIT, level());
             }
             return;
         }
@@ -225,8 +245,13 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
         if (currentCoolDownTick > 0) {
             --currentCoolDownTick;
         } else if (target != null && target.isAlive()) {
-            ++currentChargeTick;
-            if (currentChargeTick >= CHARGE_TICK) {
+            if (currentChargeTick < CHARGE_TICK) {
+                ++currentChargeTick;
+                // 最大ステージになるには10～15.
+                if (currentChargeTick == 10) {
+                    playCrossbowLoadingEnd(level);
+                }
+            } else {
                 fire(target, level, owner);
                 currentChargeTick = 0;
                 currentCoolDownTick = COOLDOWN_TICK;
@@ -237,11 +262,13 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
                     discardDelayTick = DISCARD_DELAY_TICK;
                 }
             }
-        } else if (tickCount % 2 == 0 && currentChargeTick > 0) {
-            --currentChargeTick;
         }
 
         setStageByCurrentCharge();
+    }
+
+    private void playCrossbowLoadingEnd(ServerLevel level) {
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.CROSSBOW_LOADING_END, SoundSource.PLAYERS, 1.0f, 1.0f, 0.0f);
     }
 
     private void fire(Entity target, ServerLevel level, LivingEntity owner) {
@@ -260,8 +287,6 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
         entityData.set(HIT_POSITION_X, (float) targetPosition.x);
         entityData.set(HIT_POSITION_Y, (float) targetPosition.y);
         entityData.set(HIT_POSITION_Z, (float) targetPosition.z);
-
-        ArcherMultipleBowEntity.createLineParticleServer(position().add(0.0, 1.0, 0.0), targetPosition, 0.2, 0.01, 0.01, ParticleTypes.END_ROD, level);
     }
 
     private Entity searchAutoTarget(Level level) {
@@ -270,17 +295,25 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
             return null;
         }
 
-        var forward = Vec3.directionFromRotation(0.0f, getYRot()).normalize();
-        return RaycastTools.findNearestEntityInForwardBox(
-                level,
-                this,
-                forward,
-                24,
-                8,
-                8,
-                e -> CombatTools.isValidCombatTarget(e, owner) && CombatTools.canBeHostileToMe(e, owner),
-                true
-        ).orElse(null);
+        var searchRange = getAttributeValue(Attributes.FOLLOW_RANGE);
+        if (searchRange <= 0.0) {
+            searchRange = 24.0;
+        }
+
+        var rangeSqr = searchRange * searchRange;
+        var searchBox = getBoundingBox().inflate(searchRange);
+
+        // 設置向きに依存せず全方位を拾うが、再探索自体は 10tick ごとなので負荷は増やしすぎない.
+        return level.getEntities(this, searchBox, e ->
+                        e.isAlive()
+                                && e.distanceToSqr(this) <= rangeSqr
+                                && CombatTools.isValidCombatTarget(e, owner)
+                                && CombatTools.canBeHostileToMe(e, owner)
+                ).stream()
+                .sorted(Comparator.comparingDouble(this::distanceToSqr))
+                .filter(e -> RaycastTools.hasLineOfSight(level, this, e))
+                .findFirst()
+                .orElse(null);
     }
 
     private void setStageByCurrentCharge() {
