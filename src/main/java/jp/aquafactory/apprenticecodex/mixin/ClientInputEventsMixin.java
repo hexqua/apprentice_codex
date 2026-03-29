@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.network.casting.CastPacket;
 import io.redspace.ironsspellbooks.network.casting.QuickCastPacket;
 import io.redspace.ironsspellbooks.player.ClientInputEvents;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
+import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
@@ -101,6 +102,7 @@ public abstract class ClientInputEventsMixin {
                         player,
                         targetingSpell.getClientBlockTargetingRange(spellLevel, player)
                 );
+        ClientPlacementPreviewManager.rememberPendingTarget(spell.getSpellResource(), targetData);
         Networks.sendToServer(new ClientBlockTargetCastPacket(quickCastSlot, spell.getSpellResource(), targetData));
         return true;
     }

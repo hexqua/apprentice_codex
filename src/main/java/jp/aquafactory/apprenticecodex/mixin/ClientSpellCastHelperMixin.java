@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.player.ClientSpellCastHelper;
 import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
+import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldClientEffectState;
@@ -44,6 +45,8 @@ public abstract class ClientSpellCastHelperMixin {
 
         var spell = SpellRegistry.getSpell(spellId);
         var castingSlot = ClientMagicData.getSyncedSpellData(player).getCastingEquipmentSlot();
+        // 配置 preview は開始時 target を固定したいので、clientbound の cast start に合わせて初期化する。
+        ClientPlacementPreviewManager.beginPreview(spell, player, spellLevel);
         var castingStack = apprentice_codex$resolveCastingStack(player, castingSlot);
         if (player == minecraft.player && castingStack.getItem() instanceof ReflectcastShield) {
             ReflectcastShieldClientEffectState.beginLocalSuccessFlash(
@@ -94,6 +97,15 @@ public abstract class ClientSpellCastHelperMixin {
         return animationOverrideItem.shouldSuppressCastFinishAnimation(castingStack, spell)
                 ? AnimationHolder.pass()
                 : spell.getCastFinishAnimation();
+    }
+
+    @Inject(
+            method = "handleClientBoundOnCastFinished",
+            at = @At("HEAD")
+    )
+    private static void handleClientBoundOnCastFinished(UUID castingEntityId, String spellId, boolean cancelled, CallbackInfo ci) {
+        // 完了/キャンセルの区別なく preview をここで落とし、残留を防ぐ。
+        ClientPlacementPreviewManager.finishPreview(net.minecraft.resources.ResourceLocation.tryParse(spellId));
     }
 
     @Unique

@@ -15,7 +15,9 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.spell.ClientPlacementPreviewData;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
+import jp.aquafactory.apprenticecodex.spell.IClientPlacementPreviewSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.ChatFormatting;
@@ -37,7 +39,7 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Optional;
 
-public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSpell, IClientBlockTargetCaptureSpell {
+public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSpell, IClientBlockTargetCaptureSpell, IClientPlacementPreviewSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "auto_turret");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -89,6 +91,18 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
     @Override
     public BlockTargetData captureClientBlockTarget(Player player, int spellLevel) {
         return AutoTurretPlacementHelper.captureClientTarget(player, getClientBlockTargetingRange(spellLevel, player));
+    }
+
+    @Override
+    public Optional<ClientPlacementPreviewData> getClientPlacementPreview(Level level, LivingEntity entity, int spellLevel, BlockTargetData targetData) {
+        var placement = targetData != null
+                ? AutoTurretPlacementHelper.resolve(level, targetData)
+                : AutoTurretPlacementHelper.resolveClientPreview(level, entity, getTargetingRange());
+        if (placement.isEmpty() || hasNearbyTurret(level, placement.get())) {
+            return Optional.empty();
+        }
+
+        return Optional.of(ClientPlacementPreviewData.singleBlockColumn(placement.get().center()));
     }
 
     @Override
