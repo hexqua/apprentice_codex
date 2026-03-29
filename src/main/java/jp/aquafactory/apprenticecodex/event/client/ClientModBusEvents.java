@@ -49,6 +49,7 @@ import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
+import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingLayer;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerRenderer;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
@@ -79,6 +80,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::onReloadListeners);
         modEventBus.addListener(ClientModBusEvents::registerParticleProviders);
         modEventBus.addListener(ClientModBusEvents::registerRenderers);
+        modEventBus.addListener(ClientModBusEvents::addLayers);
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
         modEventBus.addListener(ClientModBusEvents::registerItemColors);
     }
@@ -129,6 +131,19 @@ public final class ClientModBusEvents {
 
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
         event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void addLayers(EntityRenderersEvent.AddLayers event) {
+        var defaultPlayerRenderer = event.getSkin("default");
+        if (defaultPlayerRenderer != null) {
+            defaultPlayerRenderer.addLayer(new SpectralWingLayer(defaultPlayerRenderer));
+        }
+
+        var slimPlayerRenderer = event.getSkin("slim");
+        if (slimPlayerRenderer != null) {
+            slimPlayerRenderer.addLayer(new SpectralWingLayer(slimPlayerRenderer));
+        }
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {

@@ -242,6 +242,7 @@
   "spell.apprenticecodex.sense_evil": "センスイービル",
   "spell.apprenticecodex.deep_sensor": "ディープセンサー",
   "spell.apprenticecodex.long_stride": "ロングストライド",
+  "spell.apprenticecodex.spectral_wing": "スペクトラルウィング",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -280,6 +281,7 @@
   "spell.apprenticecodex.sense_evil.guide": "周囲の不浄な存在を感知して術者の視界に表示する。視線が通っていなくても感知することができ、その不浄な存在を生み出す装置も感知する。",
   "spell.apprenticecodex.deep_sensor.guide": "一定時間、深淵のもの特有の音に関する知覚を得る。",
   "spell.apprenticecodex.long_stride.guide": "詠唱中、速く歩くことができ、多少の段差なら乗り越えられるようになる。",
+  "spell.apprenticecodex.spectral_wing.guide": "魔力の翼で空中へ打ち上がり、そのまま滑空する。飛行中に再使用すると視線方向へ激しく加速する。地上か水面へ降りると翼は消える。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -325,6 +327,8 @@
   "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
   "ui.apprenticecodex.missing_spell_gun_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.cant_open_hole": "%sを対象に取るには不安定すぎる",
+  "ui.apprenticecodex.spectral_wing.conflict": "魔力が干渉して翼を展開できない！",
+  "ui.apprenticecodex.spectral_wing.underwater": "水中では翼を展開できない！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
 
@@ -335,6 +339,7 @@
   "effect.apprenticecodex.phalanx_stance": "ファランクススタンス",
   "effect.apprenticecodex.thermal_processing": "熱加工",
   "effect.apprenticecodex.sense_sensor": "センスセンサー",
+  "effect.apprenticecodex.spectral_wing": "スペクトラルウィング",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
   "effect.apprenticecodex.intelligence.description": "魔法の力を大きく引き上げる。",
@@ -346,6 +351,7 @@
   "effect.apprenticecodex.phalanx_stance.description": "魔法の盾による鉄壁の姿勢。通常の盾より守りが堅い。特殊な装備で移動速度も上昇する。",
   "effect.apprenticecodex.thermal_processing.description": "熱加工を受けている状態。レベルが進行すると強力なデバフとダメージが発生し続ける。",
   "effect.apprenticecodex.sense_sensor.description": "自身をスカルクセンサーと同調させている状態。音を感知できる。",
+  "effect.apprenticecodex.spectral_wing.description": "魔力の翼で滑空している状態。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.splash_potion.effect.intelligence": "知性のスプラッシュポーション",
