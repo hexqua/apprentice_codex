@@ -71,6 +71,9 @@ public final class ExtrudedSpriteMesher {
                 var u1 = x1;
                 var v0 = y0;
                 var v1 = y1;
+                var uCenter = (px + 0.5f) / (float) w;
+                // UV の V は画像上端が 0 のため、側面用サンプルはここで反転しない.
+                var vCenter = (py + 0.5f) / (float) h;
 
                 // 左境界 -> 壁(法線 -X)
                 // 側面は宣言法線と頂点順を一致させないと陰影が反転する.
@@ -82,11 +85,10 @@ public final class ExtrudedSpriteMesher {
                     q.x[2] = x0; q.y[2] = y1; q.z[2] = zBack;
                     q.x[3] = x0; q.y[3] = y1; q.z[3] = zFront;
 
-                    var us = u0;
-                    q.u[0] = us; q.v[0] = v0;
-                    q.u[1] = us; q.v[1] = v0;
-                    q.u[2] = us; q.v[2] = v1;
-                    q.u[3] = us; q.v[3] = v1;
+                    q.u[0] = uCenter; q.v[0] = vCenter;
+                    q.u[1] = uCenter; q.v[1] = vCenter;
+                    q.u[2] = uCenter; q.v[2] = vCenter;
+                    q.u[3] = uCenter; q.v[3] = vCenter;
 
                     quads.add(q);
                 }
@@ -100,11 +102,10 @@ public final class ExtrudedSpriteMesher {
                     q.x[2] = x1; q.y[2] = y1; q.z[2] = zFront;
                     q.x[3] = x1; q.y[3] = y1; q.z[3] = zBack;
 
-                    var us = u1;
-                    q.u[0] = us; q.v[0] = v0;
-                    q.u[1] = us; q.v[1] = v0;
-                    q.u[2] = us; q.v[2] = v1;
-                    q.u[3] = us; q.v[3] = v1;
+                    q.u[0] = uCenter; q.v[0] = vCenter;
+                    q.u[1] = uCenter; q.v[1] = vCenter;
+                    q.u[2] = uCenter; q.v[2] = vCenter;
+                    q.u[3] = uCenter; q.v[3] = vCenter;
 
                     quads.add(q);
                 }
@@ -118,11 +119,10 @@ public final class ExtrudedSpriteMesher {
                     q.x[2] = x1; q.y[2] = y1; q.z[2] = zBack;
                     q.x[3] = x1; q.y[3] = y1; q.z[3] = zFront;
 
-                    var vs = v1;
-                    q.u[0] = u0; q.v[0] = vs;
-                    q.u[1] = u0; q.v[1] = vs;
-                    q.u[2] = u1; q.v[2] = vs;
-                    q.u[3] = u1; q.v[3] = vs;
+                    q.u[0] = uCenter; q.v[0] = vCenter;
+                    q.u[1] = uCenter; q.v[1] = vCenter;
+                    q.u[2] = uCenter; q.v[2] = vCenter;
+                    q.u[3] = uCenter; q.v[3] = vCenter;
 
                     quads.add(q);
                 }
@@ -136,11 +136,10 @@ public final class ExtrudedSpriteMesher {
                     q.x[2] = x1; q.y[2] = y0; q.z[2] = zFront;
                     q.x[3] = x1; q.y[3] = y0; q.z[3] = zBack;
 
-                    var vs = v0;
-                    q.u[0] = u0; q.v[0] = vs;
-                    q.u[1] = u0; q.v[1] = vs;
-                    q.u[2] = u1; q.v[2] = vs;
-                    q.u[3] = u1; q.v[3] = vs;
+                    q.u[0] = uCenter; q.v[0] = vCenter;
+                    q.u[1] = uCenter; q.v[1] = vCenter;
+                    q.u[2] = uCenter; q.v[2] = vCenter;
+                    q.u[3] = uCenter; q.v[3] = vCenter;
 
                     quads.add(q);
                 }
