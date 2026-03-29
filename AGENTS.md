@@ -91,13 +91,14 @@ Get-ChildItem build\libs\*.jar
 2. 実装する。
 3. `./gradlew.bat build` が成功することを確認する（ここだけ必須）。
 4. サーバー側の登録・データ読込・レシピ・生成・GameTest 対象構造に影響する変更では、`./gradlew.bat runGameTestServer` が成功することを確認する。
-5. 必要に応じて `./gradlew.bat runClient` で動作確認する。
-6. 必要に応じて関連ドキュメントを更新する。
+5. `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` が成功することを確認する。
+6. 必要に応じて `./gradlew.bat runClient` で動作確認する。
+7. 必要に応じて関連ドキュメントを更新する。
 
 ## 6. レビューチェックリスト
 - 必須チェック項目: Java 21 環境で `./gradlew.bat build` が成功すること。
 - 必須チェック項目: サーバー側の登録・データ読込・レシピ・生成に影響する変更では、`./gradlew.bat runGameTestServer` が成功すること。
-- 必須チェック項目: サーバー側の登録・データ読込・レシピ・生成に影響する変更では、`./gradlew.bat runGameTestServer` が成功すること。
+- 必須チェック項目: `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` が成功すること。
 - 必須チェック項目: 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - 必須チェック項目: サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - リグレッション確認: 既存コンテンツの ID 変更や削除による互換性破壊を避ける。
@@ -117,7 +118,7 @@ Get-ChildItem build\libs\*.jar
 - AGENTS.md では次の原則だけを常設ルールとして保持する。
 1. 取り込み前に対象コミットを個別 SHA で確定し、`git cherry-pick -x` を使う。
 2. 削除・改名・出力パス変更・旧書式移行を含む datagen 作業では、`runData` 前に影響ディレクトリの generated JSON を明示削除する。
-3. 移植後は `./gradlew.bat build` を成功させ、generated 差分と旧書式の残留を確認する。
+3. 移植後は実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させ、generated 差分と旧書式の残留を確認する。
 4. 1.21.1 の enchant 適用可否や修理可否は Java の override だけで完了と判断せず、enchantment JSON と item tag も確認する。
 - 運用ルール:
 - 1 機能を独立した連続コミット系列として保ち、`cherry-pick` しやすくする。
