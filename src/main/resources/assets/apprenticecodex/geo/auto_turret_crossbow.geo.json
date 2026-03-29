@@ -6,7 +6,7 @@
 				"identifier": "geometry.auto_turret_crossbow",
 				"texture_width": 32,
 				"texture_height": 32,
-				"visible_bounds_width": 2,
+				"visible_bounds_width": 3,
 				"visible_bounds_height": 2.5,
 				"visible_bounds_offset": [0, 0.75, 0]
 			},
@@ -184,15 +184,15 @@
 				{
 					"name": "sprite_anchor",
 					"parent": "corssbow",
-					"pivot": [0, 10, 0]
+					"pivot": [0, 11, 0]
 				},
 				{
 					"name": "cog1",
 					"parent": "corssbow",
-					"pivot": [-3.75, 10.125, -3.75],
+					"pivot": [-3.75, 11.375, -3.75],
 					"cubes": [
 						{
-							"origin": [-5, 9.75, -5],
+							"origin": [-5, 11, -5],
 							"size": [2.5, 0.75, 2.5],
 							"uv": {
 								"north": {"uv": [9, 16], "uv_size": [2.5, 1]},
@@ -208,10 +208,10 @@
 				{
 					"name": "cog2",
 					"parent": "corssbow",
-					"pivot": [4, 10.125, 0],
+					"pivot": [4, 10.375, 0],
 					"cubes": [
 						{
-							"origin": [3.25, 9.75, -0.75],
+							"origin": [3.25, 10, -0.75],
 							"size": [1.5, 0.75, 1.5],
 							"uv": {
 								"north": {"uv": [12, 9], "uv_size": [1.5, 1]},

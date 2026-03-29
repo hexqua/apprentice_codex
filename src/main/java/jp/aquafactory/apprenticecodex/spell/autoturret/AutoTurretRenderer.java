@@ -14,7 +14,7 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 public class AutoTurretRenderer extends GeoEntityRenderer<AutoTurretEntity> {
     private static final float MODEL_RENDER_Y_OFFSET = 0.01f;
-    private static final float SPRITE_ANCHOR_Y = 10.0f / 16.0f;
+    private static final float SPRITE_ANCHOR_Y = 11.0f / 16.0f;
     private static final ResourceLocation[] CROSSBOW_TEX = new ResourceLocation[]{
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/auto_turret_crossbow_0.png"),
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/auto_turret_crossbow_1.png"),
