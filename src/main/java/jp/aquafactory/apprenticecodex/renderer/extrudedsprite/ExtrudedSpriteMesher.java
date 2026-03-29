@@ -73,19 +73,20 @@ public final class ExtrudedSpriteMesher {
                 var v1 = y1;
 
                 // 左境界 -> 壁(法線 -X)
+                // 側面は宣言法線と頂点順を一致させないと陰影が反転する.
                 if (!isSolid(img, px - 1, py)) {
                     var q = new ExtrudedSpriteMesh.Quad(-1, 0, 0);
 
                     q.x[0] = x0; q.y[0] = y0; q.z[0] = zFront;
-                    q.x[1] = x0; q.y[1] = y1; q.z[1] = zFront;
+                    q.x[1] = x0; q.y[1] = y0; q.z[1] = zBack;
                     q.x[2] = x0; q.y[2] = y1; q.z[2] = zBack;
-                    q.x[3] = x0; q.y[3] = y0; q.z[3] = zBack;
+                    q.x[3] = x0; q.y[3] = y1; q.z[3] = zFront;
 
                     var us = u0;
                     q.u[0] = us; q.v[0] = v0;
-                    q.u[1] = us; q.v[1] = v1;
+                    q.u[1] = us; q.v[1] = v0;
                     q.u[2] = us; q.v[2] = v1;
-                    q.u[3] = us; q.v[3] = v0;
+                    q.u[3] = us; q.v[3] = v1;
 
                     quads.add(q);
                 }
@@ -95,51 +96,51 @@ public final class ExtrudedSpriteMesher {
                     var q = new ExtrudedSpriteMesh.Quad(1, 0, 0);
 
                     q.x[0] = x1; q.y[0] = y0; q.z[0] = zBack;
-                    q.x[1] = x1; q.y[1] = y1; q.z[1] = zBack;
+                    q.x[1] = x1; q.y[1] = y0; q.z[1] = zFront;
                     q.x[2] = x1; q.y[2] = y1; q.z[2] = zFront;
-                    q.x[3] = x1; q.y[3] = y0; q.z[3] = zFront;
+                    q.x[3] = x1; q.y[3] = y1; q.z[3] = zBack;
 
                     var us = u1;
                     q.u[0] = us; q.v[0] = v0;
-                    q.u[1] = us; q.v[1] = v1;
+                    q.u[1] = us; q.v[1] = v0;
                     q.u[2] = us; q.v[2] = v1;
-                    q.u[3] = us; q.v[3] = v0;
+                    q.u[3] = us; q.v[3] = v1;
 
                     quads.add(q);
                 }
 
-                // 上境界 -> 壁(法線 -Y)
+                // 上境界 -> モデル上面(法線 +Y)
                 if (!isSolid(img, px, py - 1)) {
-                    var q = new ExtrudedSpriteMesh.Quad(0, -1, 0);
-
-                    q.x[0] = x0; q.y[0] = y0; q.z[0] = zBack;
-                    q.x[1] = x1; q.y[1] = y0; q.z[1] = zBack;
-                    q.x[2] = x1; q.y[2] = y0; q.z[2] = zFront;
-                    q.x[3] = x0; q.y[3] = y0; q.z[3] = zFront;
-
-                    var vs = v0;
-                    q.u[0] = u0; q.v[0] = vs;
-                    q.u[1] = u1; q.v[1] = vs;
-                    q.u[2] = u1; q.v[2] = vs;
-                    q.u[3] = u0; q.v[3] = vs;
-
-                    quads.add(q);
-                }
-
-                // 下境界 -> 壁(法線 +Y)
-                if (!isSolid(img, px, py + 1)) {
                     var q = new ExtrudedSpriteMesh.Quad(0, 1, 0);
 
                     q.x[0] = x0; q.y[0] = y1; q.z[0] = zFront;
-                    q.x[1] = x1; q.y[1] = y1; q.z[1] = zFront;
+                    q.x[1] = x0; q.y[1] = y1; q.z[1] = zBack;
                     q.x[2] = x1; q.y[2] = y1; q.z[2] = zBack;
-                    q.x[3] = x0; q.y[3] = y1; q.z[3] = zBack;
+                    q.x[3] = x1; q.y[3] = y1; q.z[3] = zFront;
 
                     var vs = v1;
                     q.u[0] = u0; q.v[0] = vs;
-                    q.u[1] = u1; q.v[1] = vs;
+                    q.u[1] = u0; q.v[1] = vs;
                     q.u[2] = u1; q.v[2] = vs;
-                    q.u[3] = u0; q.v[3] = vs;
+                    q.u[3] = u1; q.v[3] = vs;
+
+                    quads.add(q);
+                }
+
+                // 下境界 -> モデル下面(法線 -Y)
+                if (!isSolid(img, px, py + 1)) {
+                    var q = new ExtrudedSpriteMesh.Quad(0, -1, 0);
+
+                    q.x[0] = x0; q.y[0] = y0; q.z[0] = zBack;
+                    q.x[1] = x0; q.y[1] = y0; q.z[1] = zFront;
+                    q.x[2] = x1; q.y[2] = y0; q.z[2] = zFront;
+                    q.x[3] = x1; q.y[3] = y0; q.z[3] = zBack;
+
+                    var vs = v0;
+                    q.u[0] = u0; q.v[0] = vs;
+                    q.u[1] = u0; q.v[1] = vs;
+                    q.u[2] = u1; q.v[2] = vs;
+                    q.u[3] = u1; q.v[3] = vs;
 
                     quads.add(q);
                 }
