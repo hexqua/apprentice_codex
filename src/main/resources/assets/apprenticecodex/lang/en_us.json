@@ -215,6 +215,7 @@
   "spell.apprenticecodex.deep_sensor": "Deep Sensor",
   "spell.apprenticecodex.long_stride": "Long Stride",
   "spell.apprenticecodex.spectral_wing": "Spectral Wing",
+  "spell.apprenticecodex.auto_turret": "Auto Turret",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -287,6 +288,7 @@
   "spell.apprenticecodex.deep_sensor.guide": "For a time, grants heightened perception of the distinctive sounds of the Abyss.",
   "spell.apprenticecodex.long_stride.guide": "While casting, you can move faster and can jump over small obstacles.",
   "spell.apprenticecodex.spectral_wing.guide": "Launches you into the air with mana wings and immediately transitions into a glide. Recast while flying to surge hard in the direction you are looking. The wings vanish when you land or touch water.",
+  "spell.apprenticecodex.auto_turret.guide": "Summons Automatically attacks nearby enemies with a crossbow. Disappears when out of ammo or durability runs out.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -390,6 +392,7 @@
   "death.attack.apprenticecodex.precision_jack": "%1$s was disassembled by %2$s",
   "death.attack.apprenticecodex.grind_runner": "%1$s never found out what made this \"OSHA-approved.\" by %2$s",
   "death.attack.apprenticecodex.mana_slash": "%1$s was cut apart by %2$s's mana.",
+  "death.attack.apprenticecodex.auto_turret": "%1$s was riddled with %2$s's arrows.",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",

@@ -24,6 +24,7 @@ public enum DamageMultiplierKey {
     PRECISION_JACK("precisionJack"),
     GRIND_RUNNER("grindRunner"),
     MANA_SLASH("manaSlash"),
+    AUTO_TURRET("autoTurret"),
     ;
 
     private final String configKey;

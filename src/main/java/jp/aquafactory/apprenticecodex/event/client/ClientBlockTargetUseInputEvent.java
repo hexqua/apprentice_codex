@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
+import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
@@ -54,10 +55,7 @@ public final class ClientBlockTargetUseInputEvent {
             return;
         }
 
-        var targetData = ClientBlockTargetingHelper.captureOutlinedTarget(
-                player,
-                targetingSpell.getClientBlockTargetingRange(resolvedSpell.get().spellLevel(), player)
-        );
+        var targetData = captureTargetData(spell, player, resolvedSpell.get().spellLevel(), targetingSpell);
         if (shouldSuppressDuplicate(player.level().getGameTime(), resolvedSpell.get().spellResource(), player.getMainHandItem(), player.getOffhandItem(), targetData)) {
             return;
         }
@@ -90,6 +88,18 @@ public final class ClientBlockTargetUseInputEvent {
     @Nullable
     private static ResourceLocation getItemId(ItemStack stack) {
         return stack.isEmpty() ? null : BuiltInRegistries.ITEM.getKey(stack.getItem());
+    }
+
+    private static BlockTargetData captureTargetData(Object spell, net.minecraft.world.entity.player.Player player, int spellLevel,
+                                                     IClientBlockTargetingSpell targetingSpell) {
+        if (spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell) {
+            return customCaptureSpell.captureClientBlockTarget(player, spellLevel);
+        }
+
+        return ClientBlockTargetingHelper.captureOutlinedTarget(
+                player,
+                targetingSpell.getClientBlockTargetingRange(spellLevel, player)
+        );
     }
 
     private record TargetSyncSignature(

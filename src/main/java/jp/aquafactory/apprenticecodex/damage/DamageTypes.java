@@ -35,6 +35,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> PRECISION_JACK = register("precision_jack");
     public static final ResourceKey<DamageType> GRIND_RUNNER = register("grind_runner");
     public static final ResourceKey<DamageType> MANA_SLASH = register("mana_slash");
+    public static final ResourceKey<DamageType> AUTO_TURRET = register("auto_turret");
 
 
     private static ResourceKey<DamageType> register(String name){
@@ -75,5 +76,6 @@ public final class DamageTypes {
         context.register(PRECISION_JACK, createTemplate(PRECISION_JACK));
         context.register(GRIND_RUNNER, createTemplate(GRIND_RUNNER));
         context.register(MANA_SLASH, createTemplate(MANA_SLASH));
+        context.register(AUTO_TURRET, createTemplate(AUTO_TURRET));
     }
 }

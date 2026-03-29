@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
+import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
@@ -83,6 +84,17 @@ public final class EntityRegistry {
     }
 
     public static final DeferredHolder<EntityType<?>, EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
+    private static <T extends net.minecraft.world.entity.Entity> DeferredHolder<EntityType<?>, EntityType<T>> regLiving(
+            String id,
+            EntityType.EntityFactory<T> factory,
+            float width,
+            float height,
+            int trackingRange
+    ) {
+        return reg(id, factory, MobCategory.MISC, width, height, trackingRange, 1, false);
+    }
+
+    public static final DeferredHolder<EntityType<?>, EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
             regProjectile("sky_edge_projectile", SkyEdgeProjectileEntity::new, 128, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<ArcherMultipleBowEntity>> ARCHER_MULTIPLE_BOW =
@@ -129,6 +141,10 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<AutoMagnetFamiliarEntity>> AUTO_MAGNET_FAMILIAR =
             regWeapon("auto_magnet_familiar", AutoMagnetFamiliarEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
+    public static final DeferredHolder<EntityType<?>, EntityType<AutoTurretEntity>> AUTO_TURRET =
+            regLiving("auto_turret", AutoTurretEntity::new, AutoTurretEntity.WIDTH, AutoTurretEntity.HEIGHT, 32);
 
     public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
             regProjectile("feather_rush_projectile", FeatherRushProjectileEntity::new, 96, 1);
