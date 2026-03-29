@@ -87,6 +87,11 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
     }
 
     @Override
+    public boolean isCraftsmansDelightCastingMobilityEnabled() {
+        return true;
+    }
+
+    @Override
     public DefaultConfig getDefaultConfig() {
         return config;
     }
@@ -138,11 +143,17 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setGrindItemPerSecond(getGrindItemPerSecond(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
+        if (isCraftsmansDelightCastingMobilityEnabled()) {
+            CraftsmansDelight.applyCastingMobility(entity);
+        }
         return summonWeapon;
     }
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull GrindRunnerWheelEntity weapon) {
+        if (isCraftsmansDelightCastingMobilityEnabled()) {
+            CraftsmansDelight.applyCastingMobility(entity);
+        }
     }
 
     @Override
