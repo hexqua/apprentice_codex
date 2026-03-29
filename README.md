@@ -9,6 +9,32 @@ Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 - `mods`配下に`jar`を入れればOKです。
 - 現時点でIron's Spells 'n Spellbooks及びそれの前提MOD以外の前提MODはありません.
 
+## 開発時テスト
+
+- 通常のビルド確認:
+
+```powershell
+./gradlew.bat build
+```
+
+- サーバー側の結合テスト:
+
+```powershell
+./gradlew.bat runGameTestServer
+```
+
+- `runGameTestServer` では現在、次の項目を確認します。
+- Registry と動的登録の確認:
+  item / block / block entity / entity / mob effect / enchantment / attribute / potion / recipe serializer / recipe type / creative tab / apprenticecodex の spell / School Affinity の動的 effect・potion・catalyst
+- レシピ読込の確認:
+  custom serializer を使う recipe と custom recipe type の recipe が `RecipeManager` に載ること
+- サーバー側生成の確認:
+  代表的な custom block / block entity が実際に生成でき、custom entity type がサーバー world 上で生成可能なこと
+- クリエイティブタブ順の確認:
+  apprenticecodex の scroll が School 順で並び、school をまたいでごちゃ混ぜにならないこと
+- 注意:
+  これらはサーバー側の起動・読込・登録ミスの検知が主目的です。renderer や screen など client 専用の起動不良は別途 `runClient` で確認が必要です。
+
 ## データパック調整
 
 - 親和ポーションの素材は、既定では各 school の `focus` を使います。
