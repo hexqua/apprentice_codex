@@ -191,7 +191,7 @@ tasks.named('processResources', ProcessResources).configure {
 tasks.named('jar', Jar).configure {
     // GameTest 用のクラス/structure は dev 実行だけで使い、配布 jar には含めない。
     exclude('jp/aquafactory/apprenticecodex/gametest/**')
-    exclude('data/apprenticecodex/structures/gametest/**')
+    exclude('data/apprenticecodex/structure/gametest/**')
 
     archiveBaseName.set(mod_artifact_name)
     archiveVersion.set("${project.mod_version}+mc${project.minecraft_version}")

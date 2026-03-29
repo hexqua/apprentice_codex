@@ -2,12 +2,12 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
@@ -16,17 +16,21 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -44,12 +48,12 @@ public final class ApprenticeCodexGameTests {
             assertBuiltinRegistryEntries(helper, "block entity", BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityRegistry.BLOCK_ENTITY_TYPES.getEntries());
             assertBuiltinRegistryEntries(helper, "entity", BuiltInRegistries.ENTITY_TYPE, EntityRegistry.ENTITIES.getEntries());
             assertBuiltinRegistryEntries(helper, "mob effect", BuiltInRegistries.MOB_EFFECT, EffectRegistry.EFFECTS.getEntries());
-            assertBuiltinRegistryEntries(helper, "enchantment", BuiltInRegistries.ENCHANTMENT, EnchantmentRegistry.ENCHANTMENTS.getEntries());
             assertBuiltinRegistryEntries(helper, "attribute", BuiltInRegistries.ATTRIBUTE, ApprenticeAttributeRegistry.ATTRIBUTES.getEntries());
             assertBuiltinRegistryEntries(helper, "recipe serializer", BuiltInRegistries.RECIPE_SERIALIZER, RecipeRegistry.RECIPE_SERIALIZERS.getEntries());
             assertBuiltinRegistryEntries(helper, "potion", BuiltInRegistries.POTION, PotionRegistry.POTIONS.getEntries());
             assertBuiltinRegistryEntries(helper, "recipe type", BuiltInRegistries.RECIPE_TYPE, RecipeRegistry.RECIPE_TYPES.getEntries());
             assertBuiltinRegistryEntries(helper, "creative tab", BuiltInRegistries.CREATIVE_MODE_TAB, CreativeTabRegistry.TABS.getEntries());
+            assertEnchantmentsRegistered(helper);
 
             for (var spellEntry : SpellRegistry.SPELLS.getEntries()) {
                 var spell = spellEntry.get();
@@ -92,8 +96,8 @@ public final class ApprenticeCodexGameTests {
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcasters_flask_extract"),
                     RecipeRegistry.SPELLCASTERS_FLASK_EXTRACT_SERIALIZER.get(), null);
             assertRecipeLoaded(helper, recipeManager,
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "irons_guide_book_repair"),
-                    RecipeRegistry.IRONS_GUIDE_BOOK_REPAIR_SERIALIZER.get(), null);
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellstained_runic_tablet"),
+                    RecipeRegistry.SPELLBOOK_CARRYOVER_SMITHING_SERIALIZER.get(), null);
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_cane_lodestone_bind"),
                     RecipeRegistry.EXPLORERS_CANE_LODESTONE_BIND_SERIALIZER.get(), null);
@@ -122,8 +126,7 @@ public final class ApprenticeCodexGameTests {
         helper.succeedIf(() -> {
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 0), BlockRegistry.MAGE_LIGHT_TORCH.get(), BlockEntityRegistry.MAGE_LIGHT_TORCH.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 0), BlockRegistry.PERSONAL_SHELF_CHEST.get(), BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
-            placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 0), BlockRegistry.RIFT_HOLE.get(), BlockEntityRegistry.RIFT_HOLE.get());
-            placeAndAssertBlockEntity(helper, new BlockPos(3, 1, 0), BlockRegistry.ARCANUM_IN_A_JAR.get(), BlockEntityRegistry.ARCANUM_IN_A_JAR.get());
+            placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 0), BlockRegistry.ARCANUM_IN_A_JAR.get(), BlockEntityRegistry.ARCANUM_IN_A_JAR.get());
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 1), BlockRegistry.ESSENCE_SMOKER.get(), BlockEntityRegistry.ESSENCE_SMOKER.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 1), BlockRegistry.ATELIER_STATION.get(), BlockEntityRegistry.ATELIER_STATION.get());
 
@@ -195,14 +198,41 @@ public final class ApprenticeCodexGameTests {
             net.minecraft.world.item.crafting.RecipeSerializer<?> expectedSerializer,
             net.minecraft.world.item.crafting.RecipeType<?> expectedType
     ) {
-        var recipe = recipeManager.byKey(recipeId).orElse(null);
-        helper.assertTrue(recipe != null, "Missing recipe: " + recipeId);
+        var recipeHolder = recipeManager.byKey(recipeId).orElse(null);
+        helper.assertTrue(recipeHolder != null, "Missing recipe: " + recipeId);
+
+        var recipe = recipeHolder.value();
         helper.assertTrue(recipe.getSerializer() == expectedSerializer,
                 "Recipe serializer mismatch for " + recipeId + ": " + BuiltInRegistries.RECIPE_SERIALIZER.getKey(recipe.getSerializer()));
         if (expectedType != null) {
             helper.assertTrue(recipe.getType() == expectedType,
                     "Recipe type mismatch for " + recipeId + ": " + BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType()));
         }
+    }
+
+    private static void assertEnchantmentsRegistered(GameTestHelper helper) {
+        var enchantmentRegistry = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        for (var key : getRegisteredEnchantments()) {
+            helper.assertTrue(enchantmentRegistry.get(key).isPresent(), "Missing enchantment registry entry: " + key.location());
+        }
+    }
+
+    private static List<ResourceKey<Enchantment>> getRegisteredEnchantments() {
+        return List.of(
+                Enchantments.REFLUX,
+                Enchantments.RESERVOIR,
+                Enchantments.ALACRITY,
+                Enchantments.TENSE,
+                Enchantments.SURGE,
+                Enchantments.ATTUNEMENT,
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER,
+                Enchantments.GUZZLE,
+                Enchantments.LARGE_MUG,
+                Enchantments.RED_ENERGY,
+                Enchantments.GLOW_ENERGY
+        );
     }
 
     private static <T> void assertBuiltinRegistryEntries(
