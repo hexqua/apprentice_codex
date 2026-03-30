@@ -3,16 +3,12 @@
 	"animations": {
 		"idle": {
 			"loop": true,
-			"animation_length": 4,
+			"animation_length": 10,
 			"bones": {
 				"orbit": {
 					"rotation": {
-						"0.0": {
-							"vector": [0, 0, 0]
-						},
-						"4.0": {
-							"vector": [0, -360, 0]
-						}
+						"0.0": [0, 0, 0],
+						"10.0": [0, -360, 0]
 					}
 				}
 			}

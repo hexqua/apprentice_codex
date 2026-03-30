@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
@@ -82,6 +83,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.fml.ModList;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
 import java.util.concurrent.CompletableFuture;
@@ -118,6 +120,11 @@ public final class ClientModBusEvents {
                 ResourceLocation.withDefaultNamespace("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
         ));
+        event.enqueueWork(() -> {
+            if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
+                BetterCombatClientCompat.register();
+            }
+        });
     }
 
     private static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {

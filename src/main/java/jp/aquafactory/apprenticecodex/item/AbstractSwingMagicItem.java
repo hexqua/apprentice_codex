@@ -116,12 +116,16 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
     }
 
     public final boolean tryTriggerImbuedSpellOnSwing(Player player) {
+        return tryTriggerImbuedSpellOnSwing(player, false);
+    }
+
+    public final boolean tryTriggerImbuedSpellOnSwing(Player player, boolean bypassChargeCheck) {
         if (player.level().isClientSide) {
             return false;
         }
 
         var stack = player.getMainHandItem();
-        if (!isSameItem(stack) || !isFullyChargedAttack(player)) {
+        if (!isSameItem(stack) || (!bypassChargeCheck && !isFullyChargedAttack(player))) {
             return false;
         }
 
