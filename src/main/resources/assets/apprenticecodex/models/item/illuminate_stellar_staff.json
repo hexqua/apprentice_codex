@@ -2,19 +2,19 @@
   "parent": "builtin/entity",
   "display": {
     "thirdperson_righthand": {
-      "translation": [0, -15, 0],
+      "translation": [0, -12, 0],
       "scale": [1.6, 1.6, 1.6]
     },
     "thirdperson_lefthand": {
-      "translation": [0, -15, 0],
+      "translation": [0, -12, 0],
       "scale": [1.6, 1.6, 1.6]
     },
     "firstperson_righthand": {
-      "translation": [0, -6, 0],
+      "translation": [0, -9, 0],
       "scale": [1.0, 1.0, 1.0]
     },
     "firstperson_lefthand": {
-      "translation": [0, -6, 0],
+      "translation": [0, -9, 0],
       "scale": [1.0, 1.0, 1.0]
     },
     "gui": {

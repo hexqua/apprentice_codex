@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
@@ -67,6 +68,7 @@ import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEv
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
@@ -108,6 +110,11 @@ public final class ClientModBusEvents {
                 new ResourceLocation("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
         ));
+        event.enqueueWork(() -> {
+            if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
+                BetterCombatClientCompat.register();
+            }
+        });
     }
 
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
