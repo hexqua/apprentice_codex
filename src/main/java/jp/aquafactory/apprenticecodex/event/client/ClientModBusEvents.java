@@ -11,6 +11,8 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticleP
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
+import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
@@ -148,6 +150,12 @@ public final class ClientModBusEvents {
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleRegistry.RETICLE_DOT.get(), ReticleDotParticle.Provider::new);
+        event.registerSpriteSet(ParticleRegistry.ADDITIVE_CIRCLE.get(),
+                sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.CIRCLE));
+        event.registerSpriteSet(ParticleRegistry.ADDITIVE_RHOMBUS.get(),
+                sprites -> new AdditiveRhombusParticle.Provider(sprites, AdditiveRhombusParticle.Preset.RHOMBUS));
+        event.registerSpriteSet(ParticleRegistry.ADDITIVE_SPARK.get(),
+                sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.SPARK));
         event.registerSpriteSet(ParticleRegistry.MUZZLE_FLASH.get(), MuzzleFlashParticle.Provider::new);
     }
 
