@@ -4,7 +4,6 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
-import jp.aquafactory.apprenticecodex.block.particletest.ParticleTestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import net.minecraft.core.registries.Registries;
@@ -57,10 +56,6 @@ public final class BlockEntityRegistry {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AtelierStationBlockEntity>> ATELIER_STATION = reg(
             "atelier_station", AtelierStationBlockEntity::new, BlockRegistry.ATELIER_STATION
-    );
-
-    public static final RegistryObject<BlockEntityType<ParticleTestBlockEntity>> PARTICLE_TEST_BLOCK = reg(
-            "particle_test_block", ParticleTestBlockEntity::new, BlockRegistry.PARTICLE_TEST_BLOCK
     );
 
     public static void register(IEventBus eventBus) {

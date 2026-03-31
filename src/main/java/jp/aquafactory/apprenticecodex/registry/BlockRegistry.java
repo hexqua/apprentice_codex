@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDesk;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStation;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJar;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
-import jp.aquafactory.apprenticecodex.block.particletest.ParticleTestBlock;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbench;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
@@ -43,9 +42,6 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> ATELIER_STATION =
             BLOCKS.register("atelier_station", () -> new AtelierStation());
-
-    public static final RegistryObject<Block> PARTICLE_TEST_BLOCK =
-            BLOCKS.register("particle_test_block", ParticleTestBlock::new);
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);
