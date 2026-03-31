@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -33,7 +33,7 @@ public class IlluminateStellarStaff extends AbstractSwingMagicItem implements Ge
     private static final double ATTACK_SPEED = -2.4D;
     private static final double ENTITY_REACH_BONUS = 0.25D;
     private static final double SPELL_POWER_BONUS = 0.05D;
-    private static final double ENDER_SPELL_POWER_BONUS = 0.10D;
+    private static final double HOLY_SPELL_POWER_BONUS = 0.10D;
     private static final int ENCHANTMENT_VALUE = 14;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -41,7 +41,7 @@ public class IlluminateStellarStaff extends AbstractSwingMagicItem implements Ge
     public IlluminateStellarStaff() {
         super(
                 new Item.Properties().stacksTo(1).rarity(Rarity.RARE),
-                SpellRegistry.MAGIC_MISSILE_SPELL,
+                SpellRegistry.ILLUMINATE_STELLAR,
                 1,
                 ENCHANTMENT_VALUE,
                 "IlluminateStellarStaff",
@@ -49,7 +49,7 @@ public class IlluminateStellarStaff extends AbstractSwingMagicItem implements Ge
                 ATTACK_SPEED,
                 bonus(net.minecraftforge.common.ForgeMod.ENTITY_REACH, ENTITY_REACH_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADDITION, "entity_reach"),
                 bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "spell_power"),
-                bonus(AttributeRegistry.ENDER_SPELL_POWER, ENDER_SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "ender_spell_power")
+                bonus(AttributeRegistry.HOLY_SPELL_POWER, HOLY_SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "holy_spell_power")
         );
         GeoItem.registerSyncedAnimatable(this);
     }

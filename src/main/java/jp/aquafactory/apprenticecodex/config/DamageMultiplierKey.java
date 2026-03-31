@@ -25,6 +25,7 @@ public enum DamageMultiplierKey {
     GRIND_RUNNER("grindRunner"),
     MANA_SLASH("manaSlash"),
     AUTO_TURRET("autoTurret"),
+    ILLUMINATE_STELLAR("illuminateStellar"),
     ;
 
     private final String configKey;

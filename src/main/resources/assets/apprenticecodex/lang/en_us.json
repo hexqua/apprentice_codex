@@ -168,6 +168,7 @@
   "entity.apprenticecodex.auto_magnet_familiar": "Magnet",
   "entity.apprenticecodex.grind_runner_wheel": "Arcane Wheel",
   "entity.apprenticecodex.auto_turret": "Auto Crossbow",
+  "entity.apprenticecodex.illuminate_stellar_star": "Star the \"Akari\"",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -222,6 +223,7 @@
   "spell.apprenticecodex.spectral_wing": "Spectral Wing",
   "spell.apprenticecodex.auto_turret": "Auto Turret",
   "spell.apprenticecodex.palette_shift": "Palette Shift",
+  "spell.apprenticecodex.illuminate_stellar": "Illuminate Stellar",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -295,6 +297,7 @@
   "spell.apprenticecodex.long_stride.guide": "While casting, you can move faster and can jump over small obstacles.",
   "spell.apprenticecodex.spectral_wing.guide": "Launches you into the air with mana wings and immediately transitions into a glide. Recast while flying to surge hard in the direction you are looking. The wings vanish when you land or touch water.",
   "spell.apprenticecodex.auto_turret.guide": "Summons Automatically attacks nearby enemies with a crossbow. Disappears when out of ammo or durability runs out.",
+  "spell.apprenticecodex.illuminate_stellar.guide": "A latent spell unique to the Illuminate Stellar Staff. By waving it, spreads twinkling stars and flies towards entities with malevolent intent.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -401,6 +404,7 @@
   "death.attack.apprenticecodex.grind_runner": "%1$s never found out what made this \"OSHA-approved.\" by %2$s",
   "death.attack.apprenticecodex.mana_slash": "%1$s was cut apart by %2$s's mana.",
   "death.attack.apprenticecodex.auto_turret": "%1$s was riddled with %2$s's arrows.",
+  "death.attack.apprenticecodex.illuminate_stellar": "%1$s was purified by %2$s's dazzling magic.",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",

@@ -36,7 +36,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> GRIND_RUNNER = register("grind_runner");
     public static final ResourceKey<DamageType> MANA_SLASH = register("mana_slash");
     public static final ResourceKey<DamageType> AUTO_TURRET = register("auto_turret");
-
+    public static final ResourceKey<DamageType> ILLUMINATE_STELLAR = register("illuminate_stellar");
 
     private static ResourceKey<DamageType> register(String name){
         return ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
@@ -77,5 +77,6 @@ public final class DamageTypes {
         context.register(GRIND_RUNNER, createTemplate(GRIND_RUNNER));
         context.register(MANA_SLASH, createTemplate(MANA_SLASH));
         context.register(AUTO_TURRET, createTemplate(AUTO_TURRET));
+        context.register(ILLUMINATE_STELLAR, createTemplate(ILLUMINATE_STELLAR));
     }
 }
