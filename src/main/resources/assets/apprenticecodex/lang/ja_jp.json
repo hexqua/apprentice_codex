@@ -166,6 +166,7 @@
   "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
   "block.apprenticecodex.spellcaster_workbench" : "魔術師の作業台",
   "block.apprenticecodex.atelier_station" : "アトリエステーション",
+  "block.apprenticecodex.particle_test_block" : "パーティクル実験ブロック",
 
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
   "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",
