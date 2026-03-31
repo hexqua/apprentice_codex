@@ -34,4 +34,14 @@ final class AdditiveParticleUtil {
         var fadeOut = 1.0F - easeInCubic(fadeOutProgress);
         return baseAlpha * Mth.clamp(fadeIn, 0.0F, 1.0F) * Mth.clamp(fadeOut, 0.0F, 1.0F);
     }
+
+    static float computeAlphaLinear(int age, int lifetime, float fadeInEnd, float fadeOutStart, float baseAlpha) {
+        var lifetimeProgress = Mth.clamp((float) age / (float) lifetime, 0.0F, 1.0F);
+        var safeFadeInEnd = Math.max(1.0e-4F, fadeInEnd);
+        var safeFadeOutRange = Math.max(1.0e-4F, 1.0F - fadeOutStart);
+        var fadeIn = Mth.clamp(lifetimeProgress / safeFadeInEnd, 0.0F, 1.0F);
+        var fadeOutProgress = (lifetimeProgress - fadeOutStart) / safeFadeOutRange;
+        var fadeOut = 1.0F - Mth.clamp(fadeOutProgress, 0.0F, 1.0F);
+        return baseAlpha * fadeIn * fadeOut;
+    }
 }

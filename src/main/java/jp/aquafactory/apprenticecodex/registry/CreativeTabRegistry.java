@@ -44,7 +44,6 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ARCANUM_IN_A_JAR.get());
         output.accept(ItemRegistry.ESSENCE_SMOKER.get());
         output.accept(ItemRegistry.ATELIER_STATION.get());
-        output.accept(ItemRegistry.PARTICLE_TEST_BLOCK.get());
         output.accept(ItemRegistry.ARCANE_CINDER.get());
         output.accept(ItemRegistry.RAPID_SPELLCASTER_ROUND.get());
         output.accept(ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get());

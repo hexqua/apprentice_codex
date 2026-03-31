@@ -15,7 +15,33 @@ public record AdditiveGlowParticleOptions(ParticleType<AdditiveGlowParticleOptio
                                           float red,
                                           float green,
                                           float blue,
-                                          int whitenTicks) implements ParticleOptions {
+                                          int whitenTicks,
+                                          int lifetime,
+                                          int lifetimeVariance,
+                                          float minSizeMultiplier,
+                                          float maxSizeMultiplier,
+                                          float minAlpha,
+                                          float maxAlpha,
+                                          float fadeInEnd,
+                                          float fadeOutStart,
+                                          float endScaleMultiplier,
+                                          boolean useLinearAlphaFade) implements ParticleOptions {
+    private static final int DEFAULT_INT_OVERRIDE = -1;
+    private static final float DEFAULT_FLOAT_OVERRIDE = -1.0F;
+
+    public AdditiveGlowParticleOptions(ParticleType<AdditiveGlowParticleOptions> type,
+                                       float size,
+                                       float red,
+                                       float green,
+                                       float blue,
+                                       int whitenTicks) {
+        this(type, size, red, green, blue, whitenTicks,
+                DEFAULT_INT_OVERRIDE, DEFAULT_INT_OVERRIDE,
+                DEFAULT_FLOAT_OVERRIDE, DEFAULT_FLOAT_OVERRIDE,
+                DEFAULT_FLOAT_OVERRIDE, DEFAULT_FLOAT_OVERRIDE,
+                DEFAULT_FLOAT_OVERRIDE, DEFAULT_FLOAT_OVERRIDE,
+                DEFAULT_FLOAT_OVERRIDE, false);
+    }
 
     public static Codec<AdditiveGlowParticleOptions> codec(ParticleType<AdditiveGlowParticleOptions> type) {
         return RecordCodecBuilder.create(instance ->
@@ -34,9 +60,33 @@ public record AdditiveGlowParticleOptions(ParticleType<AdditiveGlowParticleOptio
                                 .forGetter(AdditiveGlowParticleOptions::blue),
                         Codec.intRange(0, 200)
                                 .fieldOf("whiten_ticks")
-                                .forGetter(AdditiveGlowParticleOptions::whitenTicks)
-                ).apply(instance, (size, red, green, blue, whitenTicks) ->
-                        new AdditiveGlowParticleOptions(type, size, red, green, blue, whitenTicks))
+                                .forGetter(AdditiveGlowParticleOptions::whitenTicks),
+                        Codec.INT.optionalFieldOf("lifetime", DEFAULT_INT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::lifetime),
+                        Codec.INT.optionalFieldOf("lifetime_variance", DEFAULT_INT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::lifetimeVariance),
+                        Codec.FLOAT.optionalFieldOf("min_size_multiplier", DEFAULT_FLOAT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::minSizeMultiplier),
+                        Codec.FLOAT.optionalFieldOf("max_size_multiplier", DEFAULT_FLOAT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::maxSizeMultiplier),
+                        Codec.FLOAT.optionalFieldOf("min_alpha", DEFAULT_FLOAT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::minAlpha),
+                        Codec.FLOAT.optionalFieldOf("max_alpha", DEFAULT_FLOAT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::maxAlpha),
+                        Codec.FLOAT.optionalFieldOf("fade_in_end", DEFAULT_FLOAT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::fadeInEnd),
+                        Codec.FLOAT.optionalFieldOf("fade_out_start", DEFAULT_FLOAT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::fadeOutStart),
+                        Codec.FLOAT.optionalFieldOf("end_scale_multiplier", DEFAULT_FLOAT_OVERRIDE)
+                                .forGetter(AdditiveGlowParticleOptions::endScaleMultiplier),
+                        Codec.BOOL.optionalFieldOf("use_linear_alpha_fade", false)
+                                .forGetter(AdditiveGlowParticleOptions::useLinearAlphaFade)
+                ).apply(instance, (size, red, green, blue, whitenTicks, lifetime, lifetimeVariance,
+                                   minSizeMultiplier, maxSizeMultiplier, minAlpha, maxAlpha,
+                                   fadeInEnd, fadeOutStart, endScaleMultiplier, useLinearAlphaFade) ->
+                        new AdditiveGlowParticleOptions(type, size, red, green, blue, whitenTicks,
+                                lifetime, lifetimeVariance, minSizeMultiplier, maxSizeMultiplier,
+                                minAlpha, maxAlpha, fadeInEnd, fadeOutStart, endScaleMultiplier, useLinearAlphaFade))
         );
     }
 
@@ -68,7 +118,19 @@ public record AdditiveGlowParticleOptions(ParticleType<AdditiveGlowParticleOptio
                 float green = buf.readFloat();
                 float blue = buf.readFloat();
                 int whitenTicks = buf.readVarInt();
-                return new AdditiveGlowParticleOptions(type, size, red, green, blue, whitenTicks);
+                int lifetime = buf.readVarInt();
+                int lifetimeVariance = buf.readVarInt();
+                float minSizeMultiplier = buf.readFloat();
+                float maxSizeMultiplier = buf.readFloat();
+                float minAlpha = buf.readFloat();
+                float maxAlpha = buf.readFloat();
+                float fadeInEnd = buf.readFloat();
+                float fadeOutStart = buf.readFloat();
+                float endScaleMultiplier = buf.readFloat();
+                boolean useLinearAlphaFade = buf.readBoolean();
+                return new AdditiveGlowParticleOptions(type, size, red, green, blue, whitenTicks,
+                        lifetime, lifetimeVariance, minSizeMultiplier, maxSizeMultiplier,
+                        minAlpha, maxAlpha, fadeInEnd, fadeOutStart, endScaleMultiplier, useLinearAlphaFade);
             }
         };
     }
@@ -85,6 +147,16 @@ public record AdditiveGlowParticleOptions(ParticleType<AdditiveGlowParticleOptio
         buf.writeFloat(green);
         buf.writeFloat(blue);
         buf.writeVarInt(whitenTicks);
+        buf.writeVarInt(lifetime);
+        buf.writeVarInt(lifetimeVariance);
+        buf.writeFloat(minSizeMultiplier);
+        buf.writeFloat(maxSizeMultiplier);
+        buf.writeFloat(minAlpha);
+        buf.writeFloat(maxAlpha);
+        buf.writeFloat(fadeInEnd);
+        buf.writeFloat(fadeOutStart);
+        buf.writeFloat(endScaleMultiplier);
+        buf.writeBoolean(useLinearAlphaFade);
     }
 
     @Override

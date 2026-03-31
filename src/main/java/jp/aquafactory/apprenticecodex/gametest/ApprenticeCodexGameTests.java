@@ -128,7 +128,6 @@ public final class ApprenticeCodexGameTests {
             placeAndAssertBlockEntity(helper, new BlockPos(3, 1, 0), BlockRegistry.ARCANUM_IN_A_JAR.get(), BlockEntityRegistry.ARCANUM_IN_A_JAR.get());
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 1), BlockRegistry.ESSENCE_SMOKER.get(), BlockEntityRegistry.ESSENCE_SMOKER.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 1), BlockRegistry.ATELIER_STATION.get(), BlockEntityRegistry.ATELIER_STATION.get());
-            placeAndAssertBlockWithoutEntity(helper, new BlockPos(2, 1, 1), BlockRegistry.PARTICLE_TEST_BLOCK.get());
 
             var level = helper.getLevel();
             for (var entityEntry : EntityRegistry.ENTITIES.getEntries()) {
@@ -189,17 +188,6 @@ public final class ApprenticeCodexGameTests {
         helper.assertTrue(blockEntity != null, "Missing block entity for " + BuiltInRegistries.BLOCK.getKey(block));
         helper.assertTrue(blockEntity.getType() == expectedType,
                 "Block entity type mismatch for " + BuiltInRegistries.BLOCK.getKey(block) + ": " + BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType()));
-    }
-
-    private static void placeAndAssertBlockWithoutEntity(
-            GameTestHelper helper,
-            BlockPos pos,
-            net.minecraft.world.level.block.Block block
-    ) {
-        helper.setBlock(pos, block);
-        helper.assertBlockPresent(block, pos);
-        helper.assertTrue(helper.getBlockEntity(pos) == null,
-                "Unexpected block entity for " + BuiltInRegistries.BLOCK.getKey(block));
     }
 
     private static void assertRecipeLoaded(

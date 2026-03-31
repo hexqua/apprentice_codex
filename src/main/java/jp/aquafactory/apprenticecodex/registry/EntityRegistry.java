@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntit
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
+import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutEntity;
@@ -143,6 +144,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<AutoTurretEntity>> AUTO_TURRET =
             regLiving("auto_turret", AutoTurretEntity::new, AutoTurretEntity.WIDTH, AutoTurretEntity.HEIGHT, 32);
+
+    public static final RegistryObject<EntityType<IlluminateStellarStarEntity>> ILLUMINATE_STELLAR_STAR =
+            regProjectile("illuminate_stellar_star", IlluminateStellarStarEntity::new, 96, 1);
 
     public static final RegistryObject<EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
             regProjectile("feather_rush_projectile", FeatherRushProjectileEntity::new, 96, 1);

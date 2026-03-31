@@ -27,6 +27,9 @@ public class AdditiveRhombusParticle extends TextureSheetParticle {
     private final int whitenTicks;
     private final float scaleX;
     private final float scaleY;
+    private final float fadeInEnd;
+    private final float fadeOutStart;
+    private final float endScaleMultiplier;
 
     protected AdditiveRhombusParticle(ClientLevel level, double x, double y, double z,
                                       double xd, double yd, double zd,
@@ -35,12 +38,19 @@ public class AdditiveRhombusParticle extends TextureSheetParticle {
                                       Preset preset) {
         super(level, x, y, z);
         this.preset = preset;
-        this.startSize = options.size() * Mth.lerp(random.nextFloat(), preset.minSizeMultiplier, preset.maxSizeMultiplier);
-        this.baseAlpha = Mth.lerp(random.nextFloat(), preset.minAlpha, preset.maxAlpha);
+        this.startSize = options.size() * pickRange(random,
+                options.minSizeMultiplier(), options.maxSizeMultiplier(),
+                preset.minSizeMultiplier, preset.maxSizeMultiplier);
+        this.baseAlpha = pickRange(random,
+                options.minAlpha(), options.maxAlpha(),
+                preset.minAlpha, preset.maxAlpha);
         this.targetRed = options.red();
         this.targetGreen = options.green();
         this.targetBlue = options.blue();
         this.whitenTicks = options.whitenTicks();
+        this.fadeInEnd = options.fadeInEnd() >= 0.0F ? options.fadeInEnd() : preset.fadeInEnd;
+        this.fadeOutStart = options.fadeOutStart() >= 0.0F ? options.fadeOutStart() : preset.fadeOutStart;
+        this.endScaleMultiplier = options.endScaleMultiplier() >= 0.0F ? options.endScaleMultiplier() : preset.endScaleMultiplier;
         if (random.nextBoolean()) {
             this.scaleX = HORIZONTAL_SCALE;
             this.scaleY = VERTICAL_SCALE;
@@ -53,7 +63,7 @@ public class AdditiveRhombusParticle extends TextureSheetParticle {
         hasPhysics = false;
         friction = preset.friction;
         gravity = preset.gravity;
-        lifetime = preset.minLifetime + random.nextInt(preset.lifetimeVariance + 1);
+        lifetime = resolveLifetime(random, options, preset.minLifetime, preset.lifetimeVariance);
         quadSize = startSize;
         roll = 0.0F;
         oRoll = 0.0F;
@@ -70,7 +80,7 @@ public class AdditiveRhombusParticle extends TextureSheetParticle {
         }
 
         applyTint();
-        alpha = AdditiveParticleUtil.computeAlpha(age, lifetime, preset.fadeInEnd, preset.fadeOutStart, baseAlpha);
+        alpha = AdditiveParticleUtil.computeAlpha(age, lifetime, fadeInEnd, fadeOutStart, baseAlpha);
     }
 
     @Override
@@ -110,7 +120,7 @@ public class AdditiveRhombusParticle extends TextureSheetParticle {
     @Override
     public float getQuadSize(float partialTick) {
         var progress = Mth.clamp(((float) age + partialTick) / (float) lifetime, 0.0F, 1.0F);
-        return startSize * Mth.lerp(progress, 1.0F, preset.endScaleMultiplier);
+        return startSize * Mth.lerp(progress, 1.0F, endScaleMultiplier);
     }
 
     @Override
@@ -132,6 +142,27 @@ public class AdditiveRhombusParticle extends TextureSheetParticle {
         rCol = AdditiveParticleUtil.mixFromWhite(targetRed, age, whitenTicks);
         gCol = AdditiveParticleUtil.mixFromWhite(targetGreen, age, whitenTicks);
         bCol = AdditiveParticleUtil.mixFromWhite(targetBlue, age, whitenTicks);
+    }
+
+    private static int resolveLifetime(net.minecraft.util.RandomSource random, AdditiveGlowParticleOptions options,
+                                       int presetMinLifetime, int presetLifetimeVariance) {
+        if (options.lifetime() >= 0) {
+            var variance = Math.max(0, options.lifetimeVariance());
+            return Math.max(1, options.lifetime()) + random.nextInt(variance + 1);
+        }
+
+        return presetMinLifetime + random.nextInt(presetLifetimeVariance + 1);
+    }
+
+    private static float pickRange(net.minecraft.util.RandomSource random,
+                                   float minOverride, float maxOverride,
+                                   float presetMin, float presetMax) {
+        var min = minOverride >= 0.0F ? minOverride : presetMin;
+        var max = maxOverride >= 0.0F ? maxOverride : presetMax;
+        if (max < min) {
+            max = min;
+        }
+        return Mth.lerp(random.nextFloat(), min, max);
     }
 
     public static class Provider implements ParticleProvider<AdditiveGlowParticleOptions> {
