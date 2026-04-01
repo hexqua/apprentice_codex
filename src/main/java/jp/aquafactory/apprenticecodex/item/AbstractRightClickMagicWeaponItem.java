@@ -43,11 +43,6 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
-    private static final ResourceLocation ATTACK_DAMAGE_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "right_click_magic_weapon_attack_damage");
-    private static final ResourceLocation ATTACK_SPEED_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "right_click_magic_weapon_attack_speed");
-
     private final @Nullable Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;
     private final boolean startsWithPresetSpell;
@@ -316,7 +311,8 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
         builder.add(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
-                        ATTACK_DAMAGE_MODIFIER_ID,
+                        // Tooltip と実攻撃値の契約を vanilla sword/staff と揃えるため base ID を使う。
+                        BASE_ATTACK_DAMAGE_ID,
                         attackDamage,
                         AttributeModifier.Operation.ADD_VALUE
                 ),
@@ -325,7 +321,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
         builder.add(
                 Attributes.ATTACK_SPEED,
                 new AttributeModifier(
-                        ATTACK_SPEED_MODIFIER_ID,
+                        BASE_ATTACK_SPEED_ID,
                         attackSpeed,
                         AttributeModifier.Operation.ADD_VALUE
                 ),

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -22,6 +23,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -171,9 +176,48 @@ public final class ApprenticeCodexGameTests {
         });
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void swingMagicWeaponsUseBaseAttackModifierIds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var testedItems = 0;
+            for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
+                var item = itemEntry.get();
+                if (!(item instanceof AbstractSwingMagicItem)) {
+                    continue;
+                }
+
+                testedItems++;
+                assertBaseAttackModifier(helper, itemEntry.getId(), item, Attributes.ATTACK_DAMAGE, Item.BASE_ATTACK_DAMAGE_ID);
+                assertBaseAttackModifier(helper, itemEntry.getId(), item, Attributes.ATTACK_SPEED, Item.BASE_ATTACK_SPEED_ID);
+            }
+
+            helper.assertTrue(testedItems > 0, "No AbstractSwingMagicItem entries were registered");
+        });
+    }
+
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
+    }
+
+    private static void assertBaseAttackModifier(
+            GameTestHelper helper,
+            ResourceLocation itemId,
+            Item item,
+            net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute,
+            ResourceLocation expectedModifierId
+    ) {
+        var stack = new ItemStack(item);
+        var modifiers = item.getDefaultAttributeModifiers(stack).modifiers().stream()
+                .filter(entry -> entry.attribute().equals(attribute) && entry.slot().equals(EquipmentSlotGroup.MAINHAND))
+                .toList();
+        helper.assertTrue(modifiers.size() == 1,
+                "Expected exactly one " + attribute.unwrapKey().map(key -> key.location()).orElse(ResourceLocation.withDefaultNamespace("unknown"))
+                        + " modifier on " + itemId + " but got " + modifiers.size());
+        helper.assertTrue(modifiers.getFirst().modifier().id().equals(expectedModifierId),
+                "Unexpected modifier id for " + itemId + " / "
+                        + attribute.unwrapKey().map(key -> key.location()).orElse(ResourceLocation.withDefaultNamespace("unknown"))
+                        + ": " + modifiers.getFirst().modifier().id());
     }
 
     private static void placeAndAssertBlockEntity(
