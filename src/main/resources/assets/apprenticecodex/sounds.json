@@ -196,5 +196,23 @@
     "sounds": [
       "apprenticecodex:mana_slash"
     ]
+  },
+  "stellar_fire": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:stellar_fire"
+    ]
+  },
+  "stellar_launch": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:stellar_launch"
+    ]
+  },
+  "stellar_impact": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:stellar_impact"
+    ]
   }
 }

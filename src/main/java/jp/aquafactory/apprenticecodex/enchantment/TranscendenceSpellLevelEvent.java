@@ -6,8 +6,8 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -43,11 +43,12 @@ public final class TranscendenceSpellLevelEvent {
         }
 
         var item = stack.getItem();
-        // 魔法補助具は従来通りオフハンド限定、spell gun は両手、CrystalBladedStaff はメイン限定にする。
+        // 魔法補助具は従来通りオフハンド限定、spell gun は両手、
+        // 右クリック武器系はメイン限定にする。
         var isSupportedSlot =
                 (isOffhandSlot && item instanceof AbstractOffhandMagicItem)
                         || item instanceof AbstractSpellGunItem
-                        || (!isOffhandSlot && item instanceof CrystalBladedStaff);
+                        || (!isOffhandSlot && item instanceof AbstractRightClickMagicWeaponItem);
         if (!isSupportedSlot) {
             return 0;
         }

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -14,6 +15,33 @@ public final class ParticleRegistry {
 
     public static final RegistryObject<SimpleParticleType> RETICLE_DOT =
             PARTICLES.register("reticle_dot", () -> new SimpleParticleType(true));
+
+    public static final RegistryObject<ParticleType<AdditiveGlowParticleOptions>> ADDITIVE_CIRCLE =
+            PARTICLES.register("additive_circle", () -> new ParticleType<>(false,
+                    AdditiveGlowParticleOptions.deserializer()) {
+                @Override
+                public com.mojang.serialization.@NotNull Codec<AdditiveGlowParticleOptions> codec() {
+                    return AdditiveGlowParticleOptions.codec(this);
+                }
+            });
+
+    public static final RegistryObject<ParticleType<AdditiveGlowParticleOptions>> ADDITIVE_RHOMBUS =
+            PARTICLES.register("additive_rhombus", () -> new ParticleType<>(false,
+                    AdditiveGlowParticleOptions.deserializer()) {
+                @Override
+                public com.mojang.serialization.@NotNull Codec<AdditiveGlowParticleOptions> codec() {
+                    return AdditiveGlowParticleOptions.codec(this);
+                }
+            });
+
+    public static final RegistryObject<ParticleType<AdditiveGlowParticleOptions>> ADDITIVE_SPARK =
+            PARTICLES.register("additive_spark", () -> new ParticleType<>(false,
+                    AdditiveGlowParticleOptions.deserializer()) {
+                @Override
+                public com.mojang.serialization.@NotNull Codec<AdditiveGlowParticleOptions> codec() {
+                    return AdditiveGlowParticleOptions.codec(this);
+                }
+            });
 
     public static final RegistryObject<ParticleType<MuzzleFlashParticleOptions>> MUZZLE_FLASH =
             PARTICLES.register("muzzle_flash", () -> new ParticleType<>(false, MuzzleFlashParticleOptions.DESERIALIZER) {

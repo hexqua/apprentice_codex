@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "S": {
+      "item": "minecraft:netherite_sword"
+    },
+    "Y": {
+      "item": "minecraft:yellow_stained_glass"
+    }
+  },
+  "pattern": [
+    " YS",
+    " NY",
+    "D  "
+  ],
+  "result": {
+    "item": "apprenticecodex:illuminate_stellar_staff"
+  },
+  "show_notification": true
+}

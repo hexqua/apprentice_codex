@@ -167,6 +167,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final RegistryObject<Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
+    public static final RegistryObject<Item> ILLUMINATE_STELLAR_STAFF =
+            ITEMS.register("illuminate_stellar_staff", IlluminateStellarStaff::new);
     public static final RegistryObject<Item> REFLECTCAST_SHIELD =
             ITEMS.register("reflectcast_shield", ReflectcastShield::new);
 }

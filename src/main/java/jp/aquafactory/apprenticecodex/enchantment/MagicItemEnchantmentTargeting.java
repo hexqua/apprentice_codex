@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import net.minecraft.world.item.Item;
@@ -36,6 +36,7 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedSpellContainerMagicItem(Item item) {
         return isSupportedOffhandMagicItem(item)
                 || isSupportedSpellGunItem(item)
+                || item instanceof AbstractRightClickMagicWeaponItem
                 || isSupportedSpellContainerArmorItem(item);
     }
 
@@ -45,13 +46,13 @@ final class MagicItemEnchantmentTargeting {
 
     static boolean isSupportedWisdomEnchantingItem(Item item) {
         return item instanceof AbstractSpellGunItem
-                || item instanceof CrystalBladedStaff
+                || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof EnchantressRobeItem
                 || item instanceof StealthRuneArmorItem;
     }
 
     static boolean isSupportedHeldWisdomMagicItem(Item item) {
-        return item instanceof AbstractSpellGunItem || item instanceof CrystalBladedStaff;
+        return item instanceof AbstractSpellGunItem || item instanceof AbstractRightClickMagicWeaponItem;
     }
 
     static boolean isSupportedLootingMagicItem(Item item) {

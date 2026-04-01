@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunner;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
+import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
@@ -94,6 +95,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> MANA_CHARGE = reg("mana_charge", ManaCharge::new);
     public static final RegistryObject<AbstractSpell> FORCE_FIELD = reg("force_field", ForceField::new);
     public static final RegistryObject<AbstractSpell> SENSE_EVIL = reg("sense_evil", SenseEvil::new);
+    public static final RegistryObject<AbstractSpell> ILLUMINATE_STELLAR = reg("illuminate_stellar", IlluminateStellar::new);
 
 
     // 氷.
