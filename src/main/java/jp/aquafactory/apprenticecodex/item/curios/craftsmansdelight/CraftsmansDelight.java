@@ -200,7 +200,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
 
         // 防御魔法とは切り離し、CraftsmansDelight 専用の継続詠唱補助として扱う.
         entity.addEffect(new MobEffectInstance(
-                EffectRegistry.CRAFTSMANS_DELIGHT_MOBILITY.get(),
+                EffectRegistry.CRAFTSMANS_DELIGHT_MOBILITY,
                 CASTING_MOBILITY_EFFECT_REFRESH_TICKS,
                 0,
                 false,
