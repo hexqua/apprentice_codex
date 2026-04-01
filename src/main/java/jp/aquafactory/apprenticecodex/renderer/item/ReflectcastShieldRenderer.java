@@ -33,7 +33,7 @@ public class ReflectcastShieldRenderer extends GeoItemRenderer<ReflectcastShield
                 return;
             }
 
-            var flashRenderType = ApprenticeRenderTypes.additiveEntityNoCull(
+            var flashRenderType = ApprenticeRenderTypes.entityAdditiveGlowNoCull(
                     "reflectcast_shield_plate_flash_additive",
                     getTextureLocation(animatable)
             );

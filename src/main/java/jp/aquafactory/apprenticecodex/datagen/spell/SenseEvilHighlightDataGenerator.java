@@ -24,7 +24,7 @@ public class SenseEvilHighlightDataGenerator extends JsonCodecProvider<SenseEvil
                 SenseEvilHighlightManager.DIRECTORY,
                 SenseEvilHighlightEntityList.CODEC,
                 Map.of(
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, SenseEvilHighlightVariant.LIGHT_STRONG.getDataFileName()),
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, SenseEvilHighlightVariant.STRONG.getDataFileName()),
                         new SenseEvilHighlightEntityList(java.util.List.of(
                                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "necromancer")
                         ))
