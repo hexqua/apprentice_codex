@@ -14,6 +14,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -29,7 +30,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -126,9 +126,9 @@ public class IlluminateStellarStarEntity extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_PHASE, PHASE_DRIFT);
-        entityData.define(DATA_DRIFT_DURATION, MIN_DRIFT_TICKS);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_PHASE, PHASE_DRIFT);
+        builder.define(DATA_DRIFT_DURATION, MIN_DRIFT_TICKS);
     }
 
     @Override
@@ -205,7 +205,7 @@ public class IlluminateStellarStarEntity extends Projectile {
         setDeltaMovement(launchDirection.scale(LAUNCH_SPEED));
 
         var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitResult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult.getType() != HitResult.Type.MISS) {
             onHit(hitResult);
         }
 
@@ -343,8 +343,8 @@ public class IlluminateStellarStarEntity extends Projectile {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity entity) {
+        return super.getAddEntityPacket(entity);
     }
 
     @Override
@@ -381,13 +381,13 @@ public class IlluminateStellarStarEntity extends Projectile {
 
     public AABB makeSpawnCheckAabb(Vec3 position) {
         var dimensions = getDimensions(getPose());
-        var halfWidth = dimensions.width / 2.0f;
+        var halfWidth = dimensions.width() / 2.0f;
         return new AABB(
                 position.x - halfWidth,
                 position.y,
                 position.z - halfWidth,
                 position.x + halfWidth,
-                position.y + dimensions.height,
+                position.y + dimensions.height(),
                 position.z + halfWidth
         );
     }

@@ -3,13 +3,13 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ClientSwingMagicAttackInputEvent {
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
 
@@ -23,6 +23,10 @@ public final class ClientSwingMagicAttackInputEvent {
         }
 
         var minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) {
+            return;
+        }
+
         if (ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)
                 && BetterCombatClientCompat.usesBetterCombatAttackTiming(minecraft.player)) {
             return;

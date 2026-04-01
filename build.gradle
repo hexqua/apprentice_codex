@@ -133,8 +133,8 @@ dependencies {
     // Better Combat.
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
     // 必要に応じてランタイムも入れる.
-    compileOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
-    // runtimeOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
+    compileOnly "maven.modrinth:better-combat:rnhiaw3t"
+    // runtimeOnly "maven.modrinth:better-combat:rnhiaw3t"
 
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"

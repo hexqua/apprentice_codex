@@ -6,21 +6,23 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
@@ -44,14 +46,18 @@ public class IlluminateStellarStaff extends AbstractSwingMagicItem implements Ge
                 SpellRegistry.ILLUMINATE_STELLAR,
                 1,
                 ENCHANTMENT_VALUE,
-                "IlluminateStellarStaff",
+                "illuminate_stellar_staff",
                 ATTACK_DAMAGE,
                 ATTACK_SPEED,
-                bonus(net.minecraftforge.common.ForgeMod.ENTITY_REACH, ENTITY_REACH_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADDITION, "entity_reach"),
-                bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "spell_power"),
-                bonus(AttributeRegistry.HOLY_SPELL_POWER, HOLY_SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "holy_spell_power")
+                bonus(Attributes.ENTITY_INTERACTION_RANGE, ENTITY_REACH_BONUS, AttributeModifier.Operation.ADD_VALUE, "entity_reach"),
+                bonus((Holder<Attribute>) AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_BASE, "spell_power"),
+                bonus((Holder<Attribute>) AttributeRegistry.HOLY_SPELL_POWER, HOLY_SPELL_POWER_BONUS, AttributeModifier.Operation.ADD_MULTIPLIED_BASE, "holy_spell_power")
         );
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    public boolean hasCustomRendering() {
+        return true;
     }
 
     @Override
@@ -81,10 +87,9 @@ public class IlluminateStellarStaff extends AbstractSwingMagicItem implements Ge
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
-                                @NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         lines.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
     }
 
     @Override

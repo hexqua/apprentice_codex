@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -34,10 +35,8 @@ public class IlluminateStellarStaffRenderer extends GeoItemRenderer<IlluminateSt
 
     @Override
     public void preRender(PoseStack poseStack, IlluminateStellarStaff animatable, BakedGeoModel model, MultiBufferSource bufferSource,
-                          VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                          float red, float green, float blue, float alpha) {
-        super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay,
-                red, green, blue, alpha);
+                          VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
+        super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
 
         this.bladeGlowAlpha = resolveBladeGlowAlpha(partialTick);
         this.glowCoreBrightness = resolveGlowCoreBrightness(partialTick);
@@ -46,14 +45,13 @@ public class IlluminateStellarStaffRenderer extends GeoItemRenderer<IlluminateSt
     @Override
     public void renderRecursively(PoseStack poseStack, IlluminateStellarStaff animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         if (isBoneOrChildOf(bone, GLOW_CORE_BONE)) {
             var emissiveRenderType = RenderType.entityTranslucent(STAFF_TEXTURE);
-            float emissiveBrightness = this.glowCoreBrightness;
+            var emissiveBuffer = getFoilAwareBuffer(bufferSource, emissiveRenderType);
             super.renderRecursively(
-                    poseStack, animatable, bone, emissiveRenderType, bufferSource, bufferSource.getBuffer(emissiveRenderType),
-                    isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
-                    red * emissiveBrightness, green * emissiveBrightness, blue * emissiveBrightness, alpha
+                    poseStack, animatable, bone, emissiveRenderType, bufferSource, emissiveBuffer,
+                    isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay, scaleColour(colour, this.glowCoreBrightness, 1.0f)
             );
             return;
         }
@@ -61,32 +59,33 @@ public class IlluminateStellarStaffRenderer extends GeoItemRenderer<IlluminateSt
         if (isBoneOrChildOf(bone, BLADE_BONE)) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
 
             if (this.bladeGlowAlpha > 0.0f) {
                 // blade 本体の glint は base pass に残し、発光だけを別パスで薄く重ねる。
                 var emissiveRenderType = RenderType.entityTranslucent(STAFF_TEXTURE);
+                var emissiveBuffer = getFoilAwareBuffer(bufferSource, emissiveRenderType);
                 super.renderRecursively(
-                        poseStack, animatable, bone, emissiveRenderType, bufferSource, bufferSource.getBuffer(emissiveRenderType),
-                        isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
-                        red, green, blue, alpha * this.bladeGlowAlpha
+                        poseStack, animatable, bone, emissiveRenderType, bufferSource, emissiveBuffer,
+                        isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay, scaleColour(colour, 1.0f, this.bladeGlowAlpha)
                 );
             }
             return;
         }
 
         if (isOrbBoneOrChild(bone)) {
+            var additiveBuffer = getFoilAwareBuffer(bufferSource, ORB_ADDITIVE_RENDER_TYPE);
             super.renderRecursively(
-                    poseStack, animatable, bone, ORB_ADDITIVE_RENDER_TYPE, bufferSource, bufferSource.getBuffer(ORB_ADDITIVE_RENDER_TYPE),
-                    isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay, red, green, blue, alpha
+                    poseStack, animatable, bone, ORB_ADDITIVE_RENDER_TYPE, bufferSource, additiveBuffer,
+                    isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -157,5 +156,26 @@ public class IlluminateStellarStaffRenderer extends GeoItemRenderer<IlluminateSt
         return boneName.length() == 4
                 && boneName.startsWith("orb")
                 && Character.isDigit(boneName.charAt(3));
+    }
+
+    private VertexConsumer getFoilAwareBuffer(MultiBufferSource bufferSource, RenderType renderType) {
+        return ItemRenderer.getFoilBufferDirect(
+                bufferSource,
+                renderType,
+                this.renderPerspective == ItemDisplayContext.GUI,
+                this.currentItemStack != null && this.currentItemStack.hasFoil()
+        );
+    }
+
+    private static int scaleColour(int colour, float brightness, float alphaMultiplier) {
+        var safeBrightness = Math.max(0.0f, brightness);
+        var alpha = Math.round(((colour >>> 24) & 0xFF) * Mth.clamp(alphaMultiplier, 0.0f, 1.0f));
+        var red = Math.round(((colour >>> 16) & 0xFF) * safeBrightness);
+        var green = Math.round(((colour >>> 8) & 0xFF) * safeBrightness);
+        var blue = Math.round((colour & 0xFF) * safeBrightness);
+        return (Mth.clamp(alpha, 0, 255) << 24)
+                | (Mth.clamp(red, 0, 255) << 16)
+                | (Mth.clamp(green, 0, 255) << 8)
+                | Mth.clamp(blue, 0, 255);
     }
 }

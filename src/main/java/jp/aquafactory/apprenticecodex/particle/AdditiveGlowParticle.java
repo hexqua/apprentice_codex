@@ -93,11 +93,6 @@ public class AdditiveGlowParticle extends TextureSheetParticle {
         return AdditiveParticleRenderType.PARTICLE_SHEET_ADDITIVE;
     }
 
-    @Override
-    public boolean shouldCull() {
-        return false;
-    }
-
     private void applyTint() {
         rCol = AdditiveParticleUtil.mixFromWhite(targetRed, age, whitenTicks);
         gCol = AdditiveParticleUtil.mixFromWhite(targetGreen, age, whitenTicks);

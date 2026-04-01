@@ -145,7 +145,6 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<AutoTurretEntity>> AUTO_TURRET =
             regLiving("auto_turret", AutoTurretEntity::new, AutoTurretEntity.WIDTH, AutoTurretEntity.HEIGHT, 32);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
     public static final DeferredHolder<EntityType<?>, EntityType<IlluminateStellarStarEntity>> ILLUMINATE_STELLAR_STAR =
             regProjectile("illuminate_stellar_star", IlluminateStellarStarEntity::new, 96, 1);
     public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =

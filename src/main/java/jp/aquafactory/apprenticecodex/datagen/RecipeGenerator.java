@@ -198,7 +198,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('Y', Items.YELLOW_STAINED_GLASS)
                 .define('D', Items.DIAMOND)
                 .unlockedBy(getHasName(Items.NETHER_STAR), has(Items.NETHER_STAR))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())
                 .pattern("AGA")

@@ -1,19 +1,17 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -22,39 +20,35 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item implements IPresetSpellContainer, NonDamageableAnvilMergeItem {
-    private static final String VANILLA_NAMESPACE = "minecraft";
-    private static final ResourceLocation FORGE_SHIELDS_TAG_ID = ResourceLocation.fromNamespaceAndPath("forge", "shields");
-    private static final ResourceLocation FORGE_TOOLS_SHIELDS_TAG_ID =
-            ResourceLocation.fromNamespaceAndPath("forge", "tools/shields");
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
-    private static final UUID ATTACK_DAMAGE_MODIFIER_ID = Item.BASE_ATTACK_DAMAGE_UUID;
-    private static final UUID ATTACK_SPEED_MODIFIER_ID = Item.BASE_ATTACK_SPEED_UUID;
+    private static final ResourceLocation ATTACK_DAMAGE_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "right_click_magic_weapon_attack_damage");
+    private static final ResourceLocation ATTACK_SPEED_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "right_click_magic_weapon_attack_speed");
 
-    private final Supplier<? extends AbstractSpell> configuredSpell;
+    private final @Nullable Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;
     private final boolean startsWithPresetSpell;
     private final boolean spellWheelEnabled;
@@ -63,7 +57,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     private final double attackDamage;
     private final double attackSpeed;
     private final List<AttributeBonus> handBonuses;
-    private final Multimap<Attribute, AttributeModifier> mainhandModifiers;
+    private final ItemAttributeModifiers mainhandModifiers;
 
     protected AbstractRightClickMagicWeaponItem(
             Properties properties,
@@ -163,6 +157,9 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
 
         var spellContainer = ISpellContainer.create(1, spellWheelEnabled, false).mutableCopy();
         if (startsWithPresetSpell) {
+            if (configuredSpell instanceof net.neoforged.neoforge.registries.DeferredHolder<?, ?> deferredHolder && !deferredHolder.isBound()) {
+                return;
+            }
             spellContainer.addSpellAtIndex(configuredSpell.get(), configuredSpellLevel, 0, true);
         }
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
@@ -184,12 +181,8 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot == EquipmentSlot.MAINHAND) {
-            return mainhandModifiers;
-        }
-
-        return super.getAttributeModifiers(slot, stack);
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return mainhandModifiers;
     }
 
     @Override
@@ -208,13 +201,13 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
-            return false;
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
         }
 
-        if (isDurabilityTargetEnchantment(enchantment)) {
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
             return false;
         }
 
@@ -222,11 +215,12 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             return true;
         }
 
-        if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-            return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
-        }
+        return enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD));
+    }
 
-        return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -235,18 +229,18 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
         return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
-        return canApplyAtEnchantingTable(stack, enchantment);
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
+        return supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -255,8 +249,8 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     @Override
-    public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
-        return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
+    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+        return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
     }
 
     public static boolean isFullyChargedAttack(Player player) {
@@ -264,11 +258,8 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     public static boolean isShieldLikeOffhandItem(ItemStack stack) {
-        // 継承元ではなく Forge の盾契約で判定し、ShieldItem 非継承の MOD 盾や
-        // Shield Expansion のタグ拡張にも追従する。
-        return stack.canPerformAction(ToolActions.SHIELD_BLOCK)
-                || stack.is(ItemTags.create(FORGE_SHIELDS_TAG_ID))
-                || stack.is(ItemTags.create(FORGE_TOOLS_SHIELDS_TAG_ID));
+        return stack.canPerformAction(ItemAbilities.SHIELD_BLOCK)
+                || stack.is(Tags.Items.TOOLS_SHIELD);
     }
 
     protected final boolean isSameItem(ItemStack stack) {
@@ -320,28 +311,28 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
         return casted ? CastResult.SUCCESS : CastResult.FAIL;
     }
 
-    private Multimap<Attribute, AttributeModifier> buildBaseMainhandModifiers() {
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.put(
+    private ItemAttributeModifiers buildBaseMainhandModifiers() {
+        var builder = ItemAttributeModifiers.builder();
+        builder.add(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
                         ATTACK_DAMAGE_MODIFIER_ID,
-                        "Weapon modifier",
                         attackDamage,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
-        builder.put(
+        builder.add(
                 Attributes.ATTACK_SPEED,
                 new AttributeModifier(
                         ATTACK_SPEED_MODIFIER_ID,
-                        "Weapon modifier",
                         attackSpeed,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
 
-        var prefix = "apprenticecodex." + itemKey + ".mainhand";
+        var prefix = itemKey + "_mainhand_";
         for (int i = 0; i < handBonuses.size(); ++i) {
             var bonus = handBonuses.get(i);
             var attribute = bonus.attributeSupplier().get();
@@ -350,18 +341,21 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             }
 
             var attributeKey = resolveAttributeKey(bonus, attribute, i);
-            var modifierIdSeed = prefix + "." + attributeKey + "." + i;
-            var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
-            builder.put(
-                    attribute,
-                    new AttributeModifier(modifierId, modifierIdSeed, bonus.amount(), bonus.operation())
+            var modifierId = ResourceLocation.fromNamespaceAndPath(
+                    "apprenticecodex",
+                    prefix + attributeKey + "_" + i
+            );
+            builder.add(
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute),
+                    new AttributeModifier(modifierId, bonus.amount(), bonus.operation()),
+                    EquipmentSlotGroup.MAINHAND
             );
         }
         return builder.build();
     }
 
-    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
+    private static boolean isDurabilityTargetEnchantment(Holder<Enchantment> enchantment) {
+        return enchantment.value().canEnchant(DURABILITY_ENCHANTMENT_PROBE_STACK);
     }
 
     private static String resolveAttributeKey(AttributeBonus bonus, Attribute attribute, int index) {
@@ -369,7 +363,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             return normalizeKeyToken(bonus.key());
         }
 
-        var registryKey = ForgeRegistries.ATTRIBUTES.getKey(attribute);
+        var registryKey = BuiltInRegistries.ATTRIBUTE.getKey(attribute);
         if (registryKey != null) {
             return normalizeKeyToken(registryKey.toString());
         }
@@ -381,9 +375,10 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     protected static String normalizeKeyToken(String token) {
         return Objects.requireNonNull(token)
                 .toLowerCase(Locale.ROOT)
-                .replace(':', '.')
-                .replace('/', '.')
-                .replaceAll("[^a-z0-9._-]", "_");
+                .replace(':', '_')
+                .replace('/', '_')
+                .replace('.', '_')
+                .replaceAll("[^a-z0-9_-]", "_");
     }
 
     protected static AttributeBonus bonus(

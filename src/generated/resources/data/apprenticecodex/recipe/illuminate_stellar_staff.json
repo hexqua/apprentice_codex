@@ -21,7 +21,22 @@
     "D  "
   ],
   "result": {
-    "item": "apprenticecodex:illuminate_stellar_staff"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:illuminate_stellar",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:illuminate_stellar_staff"
+  }
 }
