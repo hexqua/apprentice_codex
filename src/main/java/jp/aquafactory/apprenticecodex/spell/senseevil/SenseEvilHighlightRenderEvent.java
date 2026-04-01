@@ -257,7 +257,7 @@ public final class SenseEvilHighlightRenderEvent {
     }
 
     private static RenderType renderType(String name, ResourceLocation texture) {
-        return ApprenticeRenderTypes.additiveEntityNoCullNoDepth(name + "_additive_no_depth", texture);
+        return ApprenticeRenderTypes.entityAdditiveGlowNoCullNoDepth(name + "_additive_no_depth", texture);
     }
 
     private static RenderType getRenderType(SenseEvilHighlightVariant variant) {

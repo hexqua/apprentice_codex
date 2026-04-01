@@ -32,7 +32,7 @@ public final class ManaSiphonOrbRenderEvent {
     private static final ResourceLocation ORB_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/mana_siphon_orb.png");
     private static final net.minecraft.client.renderer.RenderType ORB_RENDER_TYPE =
-            ApprenticeRenderTypes.additiveEntityNoCull("mana_siphon_orb_additive", ORB_TEXTURE);
+            ApprenticeRenderTypes.entityAdditiveGlowNoCull("mana_siphon_orb_additive", ORB_TEXTURE);
     private static final int MAX_ACTIVE_ORBS = 192;
     private static final float SCATTER_DURATION_TICKS = 6.0f;
     private static final double SCATTER_GRAVITY = 0.012d;

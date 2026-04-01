@@ -19,7 +19,7 @@ public class ManaSlashProjectileRenderer extends EntityRenderer<ManaSlashProject
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/entity/mana_slash.png");
     private static final net.minecraft.client.renderer.RenderType RENDER_TYPE =
-            ApprenticeRenderTypes.additiveEntityNoCull("mana_slash_additive", TEXTURE);
+            ApprenticeRenderTypes.entityAdditiveGlowNoCull("mana_slash_additive", TEXTURE);
 
     private static final float BASE_RED = 0.30f;
     private static final float BASE_GREEN = 0.78f;
