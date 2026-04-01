@@ -132,9 +132,10 @@ dependencies {
 
     // Better Combat.
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
-    // 必要に応じてランタイムも入れる.
-    compileOnly "maven.modrinth:better-combat:rnhiaw3t"
-    // runtimeOnly "maven.modrinth:better-combat:rnhiaw3t"
+    // ランタイムは必要に応じてON(1.20.1と異なり前提が増えている点に注意)
+    compileOnly "maven.modrinth:better-combat:2NyTus6V"
+    // runtimeOnly "maven.modrinth:cloth-config:DqgODWcH"
+    // runtimeOnly "maven.modrinth:better-combat:2NyTus6V"
 
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
