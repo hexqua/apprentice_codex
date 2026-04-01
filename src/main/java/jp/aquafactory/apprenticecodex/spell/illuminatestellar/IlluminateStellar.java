@@ -47,8 +47,8 @@ public class IlluminateStellar extends AbstractSpell {
     public IlluminateStellar() {
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        baseManaCost = 50;
-        manaCostPerLevel = 50;
+        baseManaCost = 80;
+        manaCostPerLevel = 80;
         castTime = 0;
     }
 
@@ -60,7 +60,7 @@ public class IlluminateStellar extends AbstractSpell {
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 4.0f * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 2.0f * getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.ILLUMINATE_STELLAR);
     }
 
