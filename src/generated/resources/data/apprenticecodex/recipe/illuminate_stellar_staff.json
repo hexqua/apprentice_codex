@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "S": {
+      "item": "minecraft:netherite_sword"
+    },
+    "Y": {
+      "item": "minecraft:yellow_stained_glass"
+    }
+  },
+  "pattern": [
+    " YS",
+    " NY",
+    "D  "
+  ],
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:illuminate_stellar",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:illuminate_stellar_staff"
+  }
+}

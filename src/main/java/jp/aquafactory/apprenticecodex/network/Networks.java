@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
@@ -19,7 +20,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "7";
+    private static final String PROTOCOL_VERSION = "8";
 
     private Networks() {
     }
@@ -34,6 +35,11 @@ public final class Networks {
                 ClientBlockTargetCastPacket.TYPE,
                 ClientBlockTargetCastPacket.STREAM_CODEC,
                 ClientBlockTargetCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientSwingMagicAttackPacket.TYPE,
+                ClientSwingMagicAttackPacket.STREAM_CODEC,
+                ClientSwingMagicAttackPacket::handle
         );
         registrar.playToClient(
                 SyncEnderGrimoireSpellbookPacket.TYPE,

@@ -18,6 +18,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BEAM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BLAST;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE_LAST;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.AUTO_TURRET;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BREACHING_ENEMY;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BULLET_STREAM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMMENCE_FIRE;
@@ -27,6 +28,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FLY_SWATTER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRIND_RUNNER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_SLASH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;
@@ -95,7 +97,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MOON_LIGHT,
                 PRECISION_JACK,
                 GRIND_RUNNER,
-                MANA_SLASH
+                MANA_SLASH,
+                AUTO_TURRET,
+                ILLUMINATE_STELLAR
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -124,7 +128,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANTIS_LEAP,
                 HIGANBANA,
                 MOON_LIGHT,
-                GRIND_RUNNER
+                GRIND_RUNNER,
+                ILLUMINATE_STELLAR
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -152,7 +157,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MOON_LIGHT,
                 PRECISION_JACK,
                 GRIND_RUNNER,
-                MANA_SLASH
+                MANA_SLASH,
+                AUTO_TURRET,
+                ILLUMINATE_STELLAR
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

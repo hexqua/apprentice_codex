@@ -189,6 +189,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.DIAMOND_SWORD), has(Items.DIAMOND_SWORD))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ILLUMINATE_STELLAR_STAFF.get())
+                .pattern(" YS")
+                .pattern(" NY")
+                .pattern("D  ")
+                .define('N', Items.NETHER_STAR)
+                .define('S', Items.NETHERITE_SWORD)
+                .define('Y', Items.YELLOW_STAINED_GLASS)
+                .define('D', Items.DIAMOND)
+                .unlockedBy(getHasName(Items.NETHER_STAR), has(Items.NETHER_STAR))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())
                 .pattern("AGA")
                 .pattern("DSD")

@@ -27,6 +27,11 @@ public final class MagicItemAttributeEvent {
 
         if (item instanceof AbstractOffhandMagicItem offhandMagicItem) {
             replaceModifiers(event, offhandMagicItem.getDefaultAttributeModifiers(stack));
+            return;
+        }
+
+        if (item instanceof AbstractRightClickMagicWeaponItem rightClickMagicWeaponItem) {
+            replaceModifiers(event, rightClickMagicWeaponItem.getDefaultAttributeModifiers(stack));
         }
     }
 

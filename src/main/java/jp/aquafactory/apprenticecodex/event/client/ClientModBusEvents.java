@@ -9,7 +9,10 @@ import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
+import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
@@ -47,6 +50,7 @@ import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileRende
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelRenderer;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaRenderer;
+import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeRenderer;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileRenderer;
@@ -82,6 +86,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.fml.ModList;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
 import java.util.concurrent.CompletableFuture;
@@ -118,6 +123,11 @@ public final class ClientModBusEvents {
                 ResourceLocation.withDefaultNamespace("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
         ));
+        event.enqueueWork(() -> {
+            if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
+                BetterCombatClientCompat.register();
+            }
+        });
     }
 
     private static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
@@ -141,6 +151,12 @@ public final class ClientModBusEvents {
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleRegistry.RETICLE_DOT.get(), ReticleDotParticle.Provider::new);
+        event.registerSpriteSet(ParticleRegistry.ADDITIVE_CIRCLE.get(),
+                sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.CIRCLE));
+        event.registerSpriteSet(ParticleRegistry.ADDITIVE_RHOMBUS.get(),
+                sprites -> new AdditiveRhombusParticle.Provider(sprites, AdditiveRhombusParticle.Preset.RHOMBUS));
+        event.registerSpriteSet(ParticleRegistry.ADDITIVE_SPARK.get(),
+                sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.SPARK));
         event.registerSpriteSet(ParticleRegistry.MUZZLE_FLASH.get(), MuzzleFlashParticle.Provider::new);
     }
 
@@ -281,6 +297,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.ASSIST_WINGS_WING.get(), AssistWingsWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), AutoMagnetFamiliarRenderer::new);
         event.registerEntityRenderer(EntityRegistry.AUTO_TURRET.get(), AutoTurretRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ILLUMINATE_STELLAR_STAR.get(), IlluminateStellarStarRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_PROJECTILE.get(), FeatherRushProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_WING.get(), FeatherRushWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);

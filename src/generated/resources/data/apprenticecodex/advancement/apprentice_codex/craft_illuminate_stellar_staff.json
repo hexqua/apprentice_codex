@@ -1,0 +1,46 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "criteria": {
+    "crafted_illuminate_stellar_staff": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:illuminate_stellar_staff"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_illuminate_stellar_staff.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [
+            {
+              "id": "apprenticecodex:illuminate_stellar",
+              "index": 0,
+              "level": 1,
+              "locked": true
+            }
+          ],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": false
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:illuminate_stellar_staff"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_illuminate_stellar_staff.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_illuminate_stellar_staff"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
