@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensor;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
@@ -77,6 +78,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> MANA_SLASH = reg("mana_slash", ManaSlash::new);
     public static final RegistryObject<AbstractSpell> LONG_STRIDE = reg("long_stride", LongStride::new);
     public static final RegistryObject<AbstractSpell> RIFT_HOLE = reg("rift_hole", RiftHole::new);
+    public static final RegistryObject<AbstractSpell> DEMICREATOR_WINGS = reg("demicreator_wings", DemicreatorWings::new);
 
     // 召喚.
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
