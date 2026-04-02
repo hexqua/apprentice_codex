@@ -32,7 +32,7 @@ public class SenseEvilHighlightDataGenerator extends JsonCodecProvider<SenseEvil
     @Override
     protected void gather() {
         unconditional(
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, SenseEvilHighlightVariant.LIGHT_STRONG.getDataFileName()),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, SenseEvilHighlightVariant.STRONG.getDataFileName()),
                 new SenseEvilHighlightEntityList(List.of(
                         ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "necromancer")
                 ))

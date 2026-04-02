@@ -30,7 +30,8 @@ public class ApprenticeRenderTypes extends RenderStateShard {
         );
     }
 
-    public static RenderType additiveEntityNoCull(String renderTypeName, ResourceLocation tex) {
+    // 加算合成の glow 用 RenderType。発光自体は呼び出し側で FULL_BRIGHT を渡して成立させる。
+    public static RenderType entityAdditiveGlowNoCull(String renderTypeName, ResourceLocation tex) {
         return RenderType.create(
                 renderTypeName,
                 DefaultVertexFormat.NEW_ENTITY,
@@ -49,7 +50,8 @@ public class ApprenticeRenderTypes extends RenderStateShard {
         );
     }
 
-    public static RenderType additiveEntityNoCullNoDepth(String renderTypeName, ResourceLocation tex) {
+    // 奥行き無視の加算 glow 用 RenderType。発光自体は呼び出し側で FULL_BRIGHT を渡して成立させる。
+    public static RenderType entityAdditiveGlowNoCullNoDepth(String renderTypeName, ResourceLocation tex) {
         return RenderType.create(
                 renderTypeName,
                 DefaultVertexFormat.NEW_ENTITY,

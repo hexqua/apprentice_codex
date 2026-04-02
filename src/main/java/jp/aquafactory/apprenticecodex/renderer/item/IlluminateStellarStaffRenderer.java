@@ -24,7 +24,7 @@ public class IlluminateStellarStaffRenderer extends GeoItemRenderer<IlluminateSt
     private static final ResourceLocation STAFF_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/illuminate_stellar_staff.png");
     private static final RenderType ORB_ADDITIVE_RENDER_TYPE =
-            ApprenticeRenderTypes.additiveEntityNoCull("illuminate_stellar_staff_orb_additive", STAFF_TEXTURE);
+            ApprenticeRenderTypes.entityAdditiveGlowNoCull("illuminate_stellar_staff_orb_additive", STAFF_TEXTURE);
 
     private float bladeGlowAlpha = 0.0f;
     private float glowCoreBrightness = 1.0f;

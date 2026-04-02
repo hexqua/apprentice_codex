@@ -489,7 +489,7 @@ public final class ForceFieldDefenseEffectRenderEvent {
     }
 
     private static RenderType createAdditiveEntityRenderType(String renderTypeName, ResourceLocation texture) {
-        return ApprenticeRenderTypes.additiveEntityNoCull(renderTypeName, texture);
+        return ApprenticeRenderTypes.entityAdditiveGlowNoCull(renderTypeName, texture);
     }
 
     private static Vec3 normalizeOrFallback(Vec3 vector, Vec3 fallback) {
