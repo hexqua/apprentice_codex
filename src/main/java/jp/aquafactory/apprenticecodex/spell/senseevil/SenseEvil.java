@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.UndeadTools;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -19,7 +20,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -114,7 +114,7 @@ public class SenseEvil extends AbstractSpell {
         for (var target : level.getEntitiesOfClass(LivingEntity.class, searchBox, living ->
                 living.isAlive() && living != caster)) {
             var configuredVariant = SenseEvilHighlightManager.getConfiguredVariant(target.getType());
-            if (configuredVariant == null && !target.getType().is(EntityTypeTags.UNDEAD)) {
+            if (configuredVariant == null && !UndeadTools.isUndead(target.getType())) {
                 continue;
             }
             var scale = Mth.clamp((float) target.getBbWidth() * 1.2f, MIN_ENTITY_HIGHLIGHT_SCALE, MAX_ENTITY_HIGHLIGHT_SCALE);
@@ -152,7 +152,7 @@ public class SenseEvil extends AbstractSpell {
                     if (center.distanceToSqr(origin) > rangeSqr) {
                         continue;
                     }
-                    var highlightVariant = getSpawnerHighlightVariant(level, spawner);
+                    var highlightVariant = getSpawnerHighlightVariant(spawner);
                     if (highlightVariant != null) {
                         highlights.add(new SenseEvilHighlightsPacket.TargetData(center, SPAWNER_HIGHLIGHT_SCALE, highlightVariant));
                     }
@@ -161,10 +161,10 @@ public class SenseEvil extends AbstractSpell {
         }
     }
 
-    private static SenseEvilHighlightVariant getSpawnerHighlightVariant(ServerLevel level, SpawnerBlockEntity spawner) {
+    private static SenseEvilHighlightVariant getSpawnerHighlightVariant(SpawnerBlockEntity spawner) {
         var tag = new CompoundTag();
         spawner.getSpawner().save(tag);
-        var highlightVariant = getHighlightVariantForSpawnData(level, tag.getCompound("SpawnData"));
+        var highlightVariant = getHighlightVariantForSpawnData(tag.getCompound("SpawnData"));
         if (highlightVariant != null) {
             return highlightVariant;
         }
@@ -172,7 +172,7 @@ public class SenseEvil extends AbstractSpell {
         var spawnPotentials = tag.getList("SpawnPotentials", Tag.TAG_COMPOUND);
         for (int i = 0; i < spawnPotentials.size(); i++) {
             var wrappedData = spawnPotentials.getCompound(i);
-            var spawnVariant = getHighlightVariantForSpawnData(level, wrappedData.getCompound("data"));
+            var spawnVariant = getHighlightVariantForSpawnData(wrappedData.getCompound("data"));
             if (spawnVariant != null) {
                 highlightVariant = highlightVariant == null ? spawnVariant : SenseEvilHighlightVariant.max(highlightVariant, spawnVariant);
             }
@@ -180,30 +180,29 @@ public class SenseEvil extends AbstractSpell {
         return highlightVariant;
     }
 
-    private static SenseEvilHighlightVariant getHighlightVariantForSpawnData(ServerLevel level, CompoundTag spawnDataTag) {
+    private static SenseEvilHighlightVariant getHighlightVariantForSpawnData(CompoundTag spawnDataTag) {
         if (spawnDataTag.getAllKeys().isEmpty()) {
             return null;
         }
         if (spawnDataTag.contains("entity", Tag.TAG_COMPOUND)) {
-            return getHighlightVariantForEntityTag(level, spawnDataTag.getCompound("entity"));
+            return getHighlightVariantForEntityTag(spawnDataTag.getCompound("entity"));
         }
-        return getHighlightVariantForEntityTag(level, spawnDataTag);
+        return getHighlightVariantForEntityTag(spawnDataTag);
     }
 
-    private static SenseEvilHighlightVariant getHighlightVariantForEntityTag(ServerLevel level, CompoundTag entityTag) {
+    private static SenseEvilHighlightVariant getHighlightVariantForEntityTag(CompoundTag entityTag) {
         var entityType = EntityType.by(entityTag);
         if (entityType.isEmpty()) {
             return null;
         }
 
-        // datapack 明示指定は種族判定より優先し、非アンデッドを強制的に表示対象へ含められるようにする。
+        // datapack 明示指定は「特別表示したい相手」の設定なので、アンデッド共通判定より先に見る。
         var configuredVariant = SenseEvilHighlightManager.getConfiguredVariant(entityType.get());
         if (configuredVariant != null) {
             return configuredVariant;
         }
 
-        var previewEntity = entityType.get().create(level);
-        if (!(previewEntity instanceof LivingEntity) || !entityType.get().is(EntityTypeTags.UNDEAD)) {
+        if (!UndeadTools.isUndead(entityType.get())) {
             return null;
         }
         return SenseEvilHighlightVariant.NORMAL;
