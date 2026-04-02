@@ -222,6 +222,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get()
         );
+        tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE);
+
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
                 ItemRegistry.SKY_EDGE_SWORD.get(),

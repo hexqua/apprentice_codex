@@ -46,6 +46,8 @@ public final class TagRegistry {
                 createItemTag("spellcaster_ammo_pouch_storable");
         public static final TagKey<Item> SPELLCASTER_EMPTY_CASINGS =
                 createItemTag("spellcaster_empty_casings");
+        public static final TagKey<Item> SPELLCASTER_WORKBENCH_EXTRACTABLE =
+                createItemTag("spellcaster_workbench_extractable");
     }
 
     public static final class EntityTypes {
