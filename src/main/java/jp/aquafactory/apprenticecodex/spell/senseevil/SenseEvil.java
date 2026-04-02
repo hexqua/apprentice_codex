@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.UndeadTools;
 import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -22,7 +23,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -114,7 +114,7 @@ public class SenseEvil extends AbstractSpell {
         for (var target : level.getEntitiesOfClass(LivingEntity.class, searchBox, living ->
                 living.isAlive() && living != caster)) {
             var configuredVariant = SenseEvilHighlightManager.getConfiguredVariant(target.getType());
-            if (configuredVariant == null && target.getMobType() != MobType.UNDEAD) {
+            if (configuredVariant == null && !UndeadTools.isUndead(target)) {
                 continue;
             }
 
@@ -197,14 +197,13 @@ public class SenseEvil extends AbstractSpell {
             return null;
         }
 
-        // datapack 明示指定は種族判定より優先し、非アンデッドを強制的に表示対象へ含められるようにする。
+        // datapack 明示指定は「特別表示したい相手」の設定なので、アンデッド共通判定より先に見る。
         var configuredVariant = SenseEvilHighlightManager.getConfiguredVariant(entityType.get());
         if (configuredVariant != null) {
             return configuredVariant;
         }
 
-        var previewEntity = entityType.get().create(level);
-        if (!(previewEntity instanceof LivingEntity livingEntity) || livingEntity.getMobType() != MobType.UNDEAD) {
+        if (!UndeadTools.isUndead(level, entityType.get())) {
             return null;
         }
         return SenseEvilHighlightVariant.NORMAL;

@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
@@ -17,6 +18,10 @@ public final class TagRegistry {
 
     private static TagKey<Item> createItemTag(String name) {
         return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
+    }
+
+    private static TagKey<EntityType<?>> createEntityTypeTag(String name) {
+        return TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
     }
 
     public static final class Blocks {
@@ -41,5 +46,13 @@ public final class TagRegistry {
                 createItemTag("spellcaster_ammo_pouch_storable");
         public static final TagKey<Item> SPELLCASTER_EMPTY_CASINGS =
                 createItemTag("spellcaster_empty_casings");
+    }
+
+    public static final class EntityTypes {
+        private EntityTypes() {
+        }
+
+        public static final TagKey<EntityType<?>> COUNTS_AS_UNDEAD =
+                createEntityTypeTag("counts_as_undead");
     }
 }
