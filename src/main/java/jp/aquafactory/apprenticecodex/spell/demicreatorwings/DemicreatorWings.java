@@ -6,13 +6,18 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -39,8 +44,8 @@ public class DemicreatorWings extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(GetActivateArea(spellLevel, caster), 0)),
-                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(GetDuration(spellLevel, caster), 1))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getActivateArea(spellLevel, caster), 0)),
+                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDuration(spellLevel, caster), 1))
         );
     }
 
@@ -54,12 +59,17 @@ public class DemicreatorWings extends AbstractSpell {
         return config;
     }
 
-    private int GetActivateArea(int skillLevel, LivingEntity entity) {
+    int getActivateArea(int skillLevel, LivingEntity entity) {
         return 1 + Math.round(getSpellPower(skillLevel, entity) / 100.0f);
     }
 
-    private int GetDuration(int skillLevel, LivingEntity entity) {
+    int getDuration(int skillLevel, LivingEntity entity) {
         return 20 * Math.round(30 * getSpellPower(skillLevel, entity) / 800.0f);
+    }
+
+    @Override
+    public ICastDataSerializable getEmptyCastData() {
+        return new DemicreatorWingsCastData();
     }
 
     @Override
@@ -93,7 +103,112 @@ public class DemicreatorWings extends AbstractSpell {
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        if (!(entity instanceof Player player)) {
+            return false;
+        }
+
+        var recasts = playerMagicData.getPlayerRecasts();
+        if (recasts.hasRecastForSpell(this)) {
+            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer
+                    && !DemicreatorWingsManager.hasActiveCore(serverPlayer)) {
+                var staleRecast = recasts.getRecastInstance(getSpellId());
+                if (staleRecast != null) {
+                    recasts.removeRecast(staleRecast, RecastResult.USED_ALL_RECASTS);
+                }
+            } else {
+                playerMagicData.setAdditionalCastData(DemicreatorWingsCastData.closeCast());
+                return true;
+            }
+        }
+
+        playerMagicData.setAdditionalCastData(DemicreatorWingsCastData.openCast());
+        return true;
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (entity instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            var castData = playerMagicData.getAdditionalCastData() instanceof DemicreatorWingsCastData data ? data : null;
+            if (castData != null && castData.isCloseCast()) {
+                DemicreatorWingsManager.deactivate(serverPlayer, true);
+            } else {
+                DemicreatorWingsManager.activate(serverPlayer, spellLevel, castSource, playerMagicData, this);
+            }
+        }
+
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    @Override
+    public void onRecastFinished(net.minecraft.server.level.ServerPlayer serverPlayer, RecastInstance recastInstance,
+                                 RecastResult recastResult, ICastDataSerializable castDataSerializable) {
+        DemicreatorWingsManager.deactivate(serverPlayer, false);
+        super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
+    }
+
+    @Override
+    public void onServerCastComplete(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled) {
+        if (playerMagicData != null) {
+            if (playerMagicData.getAdditionalCastData() instanceof DemicreatorWingsCastData castData) {
+                castData.reset();
+            }
+            playerMagicData.setAdditionalCastData(null);
+        }
+
+        super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
+    }
+
+    private enum DemicreatorWingsMode {
+        NONE,
+        OPEN,
+        CLOSE
+    }
+
+    public static class DemicreatorWingsCastData implements ICastDataSerializable {
+        private DemicreatorWingsMode mode = DemicreatorWingsMode.NONE;
+
+        public static DemicreatorWingsCastData openCast() {
+            var castData = new DemicreatorWingsCastData();
+            castData.mode = DemicreatorWingsMode.OPEN;
+            return castData;
+        }
+
+        public static DemicreatorWingsCastData closeCast() {
+            var castData = new DemicreatorWingsCastData();
+            castData.mode = DemicreatorWingsMode.CLOSE;
+            return castData;
+        }
+
+        public boolean isCloseCast() {
+            return mode == DemicreatorWingsMode.CLOSE;
+        }
+
+        @Override
+        public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
+            friendlyByteBuf.writeEnum(mode);
+        }
+
+        @Override
+        public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
+            mode = friendlyByteBuf.readEnum(DemicreatorWingsMode.class);
+        }
+
+        @Override
+        public void reset() {
+            mode = DemicreatorWingsMode.NONE;
+        }
+
+        @Override
+        public CompoundTag serializeNBT() {
+            var tag = new CompoundTag();
+            tag.putString("Mode", mode.name());
+            return tag;
+        }
+
+        @Override
+        public void deserializeNBT(CompoundTag nbt) {
+            mode = nbt.contains("Mode") ? DemicreatorWingsMode.valueOf(nbt.getString("Mode")) : DemicreatorWingsMode.NONE;
+        }
     }
 }
