@@ -19,6 +19,8 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/spellcaster_workbench.png");
     private static final Component CANT_REMOVE_DEFAULT_TOOLTIP =
             Component.translatable("ui.apprenticecodex.spellcaster_workbench.cant_remove_default");
+    private static final Component CANT_REMOVE_NOT_ALLOW_TOOLTIP =
+            Component.translatable("ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow");
     private static final int ICON_GRID_X = 121;
     private static final int ICON_GRID_Y = 16;
     private static final int ICON_COLUMNS = 2;
@@ -87,8 +89,16 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
             }
         }
 
-        if (menu.isBlockedByDefaultSpellExtraction() && isHoveringResultSlot(mouseX, mouseY)) {
-            gui.renderTooltip(font, CANT_REMOVE_DEFAULT_TOOLTIP, mouseX, mouseY);
+        if (isHoveringResultSlot(mouseX, mouseY)) {
+            if (menu.isBlockedByDefaultSpellExtraction()) {
+                gui.renderTooltip(font, CANT_REMOVE_DEFAULT_TOOLTIP, mouseX, mouseY);
+                return;
+            }
+
+            if (menu.isBlockedByUnsupportedSpellExtraction()) {
+                gui.renderTooltip(font, CANT_REMOVE_NOT_ALLOW_TOOLTIP, mouseX, mouseY);
+                return;
+            }
         }
     }
 
@@ -188,7 +198,7 @@ public final class SpellcasterWorkbenchScreen extends AbstractContainerScreen<Sp
     }
 
     private void renderBlockedResultOverlay(GuiGraphics gui) {
-        if (!menu.isBlockedByDefaultSpellExtraction()) {
+        if (!menu.isBlockedByDefaultSpellExtraction() && !menu.isBlockedByUnsupportedSpellExtraction()) {
             return;
         }
 

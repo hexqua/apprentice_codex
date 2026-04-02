@@ -341,6 +341,7 @@
   "ui.apprenticecodex.spectral_wing.underwater": "水中では翼を展開できない！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
+  "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.intelligence": "知性",
@@ -410,8 +411,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_essence_smoker.description": "エッセンス燻製台を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.title": "没入、もしくはザリガニ",
   "advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.description": "魔術師の作業台を作る",
-  "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.title": "一種のスペルブック",
-  "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.description": "魔術師の作業台を使って詠唱銃からスクロールを取り出す",
+  "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.title": "これ、もはや杖星では？",
+  "advancements.apprenticecodex.apprentice_codex.extract_spellcaster_gun_scroll.description": "魔術師の作業台を使ってスクロールを取り出す",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title": "一狩り行かない",
   "advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description": "瓶詰めの神秘から秘術のエッセンスを入手する",
   "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.title": "これはソーラー発電機ではないからね",
