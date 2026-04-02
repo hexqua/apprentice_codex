@@ -295,7 +295,7 @@
   "spell.apprenticecodex.spectral_wing.guide": "Launches you into the air with mana wings and immediately transitions into a glide. Recast while flying to surge hard in the direction you are looking. The wings vanish when you land or touch water.",
   "spell.apprenticecodex.auto_turret.guide": "Summons Automatically attacks nearby enemies with a crossbow. Disappears when out of ammo or durability runs out.",
   "spell.apprenticecodex.illuminate_stellar.guide": "A latent spell unique to the Illuminate Stellar Staff. By waving it, spreads twinkling stars and flies towards entities with malevolent intent.",
-  "spell.apprenticecodex.demicreator_wings.guide": "TODO:(要翻訳)現在位置を起点として魔力に応じた範囲においてクリエイティブ飛行ができるようになる。時間が経過するだけでなく、範囲外に出た瞬間に効果が失われる。",
+  "spell.apprenticecodex.demicreator_wings.guide": "Place a demi-creator core at your current position and gain creative flight only while you remain inside its area. Recast it, let the timer expire, or leave the area to dismiss the wings.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",

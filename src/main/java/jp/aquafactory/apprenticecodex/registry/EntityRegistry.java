@@ -10,6 +10,8 @@ import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgun
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
@@ -138,6 +140,13 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
             regWeapon("assist_wings_wing", AssistWingsWingEntity::new, 1);
+
+    public static final RegistryObject<EntityType<DemicreatorWingsCoreEntity>> DEMICREATOR_WINGS_CORE =
+            reg("demicreator_wings_core", DemicreatorWingsCoreEntity::new, MobCategory.MISC,
+                    0.2f, 0.2f, 64, 1, false);
+
+    public static final RegistryObject<EntityType<DemicreatorWingsWingEntity>> DEMICREATOR_WINGS_WING =
+            regWeapon("demicreator_wings_wing", DemicreatorWingsWingEntity::new, 1);
 
     public static final RegistryObject<EntityType<AutoMagnetFamiliarEntity>> AUTO_MAGNET_FAMILIAR =
             regWeapon("auto_magnet_familiar", AutoMagnetFamiliarEntity::new, 1);

@@ -32,6 +32,8 @@ import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgun
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunRenderer;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRenderer;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileRenderer;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreRenderer;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherRenderer;
@@ -186,6 +188,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), FlySwatterProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ASSIST_WINGS_WING.get(), AssistWingsWingRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.DEMICREATOR_WINGS_CORE.get(), DemicreatorWingsCoreRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.DEMICREATOR_WINGS_WING.get(), DemicreatorWingsWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), AutoMagnetFamiliarRenderer::new);
         event.registerEntityRenderer(EntityRegistry.AUTO_TURRET.get(), AutoTurretRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ILLUMINATE_STELLAR_STAR.get(), IlluminateStellarStarRenderer::new);
