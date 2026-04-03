@@ -1,0 +1,72 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.healing_bloom",
+				"texture_width": 64,
+				"texture_height": 64,
+				"visible_bounds_width": 2.6,
+				"visible_bounds_height": 4.9,
+				"visible_bounds_offset": [0, 1.55, 0]
+			},
+			"bones": [
+				{
+					"name": "root",
+					"pivot": [0, 0, 0],
+					"cubes": [
+						{"origin": [-4, 0, -4], "size": [8, 4, 8], "uv": [0, 17]},
+						{"origin": [-6, 0, -6], "size": [3, 4, 3], "uv": [33, 13]},
+						{"origin": [3, 0, -6], "size": [3, 4, 3], "uv": [33, 13]},
+						{"origin": [-6, 0, 3], "size": [3, 4, 3], "uv": [33, 13]},
+						{"origin": [3, 0, 3], "size": [3, 4, 3], "uv": [33, 13]}
+					]
+				},
+				{
+					"name": "stem",
+					"parent": "root",
+					"pivot": [0, 4, 0],
+					"cubes": [
+						{"origin": [-3, 4, -3], "size": [6, 16, 6], "uv": [0, 30]},
+						{"origin": [-1, 6, -4], "size": [2, 10, 1], "uv": [25, 30]},
+						{"origin": [-4, 6, -1], "size": [1, 8, 2], "uv": [32, 30]},
+						{"origin": [3, 6, -1], "size": [1, 8, 2], "uv": [32, 30]}
+					]
+				},
+				{
+					"name": "canopy",
+					"parent": "stem",
+					"pivot": [0, 20, 0],
+					"cubes": [
+						{"origin": [-4, 21, -4], "size": [8, 2, 8], "uv": [31, 48]},
+						{"origin": [-6, 20, -6], "size": [12, 2, 3], "uv": [0, 53]},
+						{"origin": [-6, 20, 3], "size": [12, 2, 3], "uv": [0, 53]},
+						{"origin": [-6, 20, -3], "size": [3, 2, 6], "uv": [45, 39]},
+						{"origin": [3, 20, -3], "size": [3, 2, 6], "uv": [45, 39]}
+					]
+				},
+				{
+					"name": "bud",
+					"parent": "canopy",
+					"pivot": [0, 24, 0],
+					"cubes": [
+						{"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]},
+						{"origin": [-7, 25, -3], "size": [3, 6, 6], "uv": [33, 0]},
+						{"origin": [4, 25, -3], "size": [3, 6, 6], "uv": [33, 0]}
+					]
+				},
+				{
+					"name": "fruit_cluster",
+					"parent": "stem",
+					"pivot": [0, 10, 0],
+					"cubes": [
+						{"origin": [-6, 7, 2], "size": [3, 3, 3], "uv": [33, 21]},
+						{"origin": [3, 8, 1], "size": [3, 3, 3], "uv": [33, 21]},
+						{"origin": [-7, 0, 5], "size": [3, 3, 3], "uv": [33, 21]},
+						{"origin": [4, 0, 5], "size": [3, 3, 3], "uv": [33, 21]}
+					]
+				}
+			]
+		}
+	]
+}
