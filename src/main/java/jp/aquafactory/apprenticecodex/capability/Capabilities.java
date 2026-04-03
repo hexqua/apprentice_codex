@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.capability;
 
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventory;
+import jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventory;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookData;
 import net.minecraft.world.entity.Entity;
@@ -12,6 +13,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class Capabilities {
     public static Capability<PersonalInventory> PERSONAL_INVENTORY = CapabilityManager.get(new CapabilityToken<>() {
+    });
+    public static Capability<CompanionTrunkInventory> COMPANION_TRUNK_INVENTORY = CapabilityManager.get(new CapabilityToken<>() {
     });
     public static Capability<CodexSpellData> SPELL_DATA = CapabilityManager.get(new CapabilityToken<>() {
     });
@@ -30,6 +33,11 @@ public final class Capabilities {
     public @Nullable
     static CodexSpellData getSpellDataOrNull(Entity entity) {
         return entity.getCapability(Capabilities.SPELL_DATA).orElse(null);
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    public static @Nullable CompanionTrunkInventory getCompanionTrunkInventoryOrNull(Entity entity) {
+        return entity.getCapability(Capabilities.COMPANION_TRUNK_INVENTORY).orElse(null);
     }
 
     @SuppressWarnings("DataFlowIssue")

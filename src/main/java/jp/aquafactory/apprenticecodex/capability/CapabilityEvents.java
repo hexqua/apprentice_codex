@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellDataProvider;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookDataProvider;
+import jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventoryProvider;
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventoryProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -18,6 +19,7 @@ public class CapabilityEvents {
     public static void onAttachCapabilities(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof Player) {
             event.addCapability(PersonalInventoryProvider.ID, new PersonalInventoryProvider());
+            event.addCapability(CompanionTrunkInventoryProvider.ID, new CompanionTrunkInventoryProvider());
             event.addCapability(CodexSpellDataProvider.ID, new CodexSpellDataProvider());
             event.addCapability(EnderGrimoireSpellbookDataProvider.ID, new EnderGrimoireSpellbookDataProvider());
         }
@@ -33,12 +35,28 @@ public class CapabilityEvents {
                         newInventory -> newInventory.deserializeNBT(oldInventory.serializeNBT())
                 )
         );
+        event.getOriginal().getCapability(Capabilities.COMPANION_TRUNK_INVENTORY).ifPresent(
+                oldInventory -> event.getEntity().getCapability(Capabilities.COMPANION_TRUNK_INVENTORY).ifPresent(
+                        newInventory -> {
+                            if (event.isWasDeath()) {
+                                newInventory.copyNameOnlyFrom(oldInventory);
+                            } else {
+                                newInventory.copyAllFrom(oldInventory);
+                            }
+                        }
+                )
+        );
         event.getOriginal().getCapability(Capabilities.SPELL_DATA).ifPresent(
                 oldSpellData -> event.getEntity().getCapability(Capabilities.SPELL_DATA).ifPresent(
                         newSpellData -> {
                             newSpellData.loadAll(oldSpellData.saveAll());
                             if (event.isWasDeath()) {
                                 newSpellData.edit(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE, state -> state.reset());
+                                newSpellData.edit(CodexSpellStateTypeRegister.COMPANION_TRUNK_STATE, state -> {
+                                    state.active = false;
+                                    state.maxHealth = 0.0;
+                                    state.setTrunkUuid(null);
+                                });
                                 newSpellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> state.reset());
                             }
                         }
