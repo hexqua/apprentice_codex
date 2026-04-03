@@ -26,6 +26,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -64,6 +65,14 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final RegistryObject<Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
+    public static final RegistryObject<Item> COMFORT_BERRIES =
+            ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
+                    BlockRegistry.COMFORT_BERRY_BUSH.get(),
+                    new Item.Properties().food(new net.minecraft.world.food.FoodProperties.Builder()
+                            .nutrition(5)
+                            .saturationMod(0.84f)
+                            .build())
+            ));
     public static final RegistryObject<Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
     public static final RegistryObject<Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);

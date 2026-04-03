@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntity;
@@ -34,6 +35,10 @@ public final class BlockEntityRegistry {
 
     public static final RegistryObject<BlockEntityType<MageLightTorchBlockEntity>> MAGE_LIGHT_TORCH = reg(
             "mage_light_torch", MageLightTorchBlockEntity::new, BlockRegistry.MAGE_LIGHT_TORCH
+    );
+
+    public static final RegistryObject<BlockEntityType<HealingBloomLightBlockEntity>> HEALING_BLOOM_LIGHT = reg(
+            "healing_bloom_light", HealingBloomLightBlockEntity::new, BlockRegistry.HEALING_BLOOM_LIGHT
     );
 
     public static final RegistryObject<BlockEntityType<ArcanumInAJarBlockEntity>> ARCANUM_IN_A_JAR = reg(
