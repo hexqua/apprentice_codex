@@ -170,6 +170,7 @@
   "entity.apprenticecodex.illuminate_stellar_star": "Star the \"Akari\"",
   "entity.apprenticecodex.demicreator_wings_core": "Demi-creator Core",
   "entity.apprenticecodex.demicreator_wings_wing": "Demi-creator Wing",
+  "entity.apprenticecodex.companion_trunk": "Trunk-Kun",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -184,6 +185,7 @@
   "container.apprenticecodex.atelier_station.fluid.summary": "Contents:",
   "container.apprenticecodex.atelier_station.fluid.summary_count": " %1$d/%2$d uses",
   "container.apprenticecodex.atelier_station.fluid.count": "(%d uses)",
+  "container.apprenticecodex.companion_trunk.default": "Companion Trunk",
 
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",
@@ -226,6 +228,7 @@
   "spell.apprenticecodex.palette_shift": "Palette Shift",
   "spell.apprenticecodex.illuminate_stellar": "Illuminate Stellar",
   "spell.apprenticecodex.demicreator_wings": "Demi-creator Wings",
+  "spell.apprenticecodex.companion_trunk": "Companion Trunk",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -296,6 +299,7 @@
   "spell.apprenticecodex.auto_turret.guide": "Summons Automatically attacks nearby enemies with a crossbow. Disappears when out of ammo or durability runs out.",
   "spell.apprenticecodex.illuminate_stellar.guide": "A latent spell unique to the Illuminate Stellar Staff. By waving it, spreads twinkling stars and flies towards entities with malevolent intent.",
   "spell.apprenticecodex.demicreator_wings.guide": "Place a demi-creator core at your current position and gain creative flight only while you remain inside its area. Recast it, let the timer expire, or leave the area to dismiss the wings.",
+  "spell.apprenticecodex.companion_trunk.guide": "todo:(翻訳)魔導仕掛けのチェストを召喚し追従させる。通常のチェストと同程度のアイテムを保持できるが、体力がなくなったり等で消滅すると中身を全て落とす。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -343,6 +347,7 @@
   "ui.apprenticecodex.cant_open_hole": "Can't open hole on %s",
   "ui.apprenticecodex.spectral_wing.conflict": "Your mana interferes and the wings cannot unfold!",
   "ui.apprenticecodex.spectral_wing.underwater": "You cannot unfold the wings underwater!",
+  "ui.apprenticecodex.companion_trunk.cannot_despawn": "todo:(翻訳)%sの中にアイテムが残っているため送還できない！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

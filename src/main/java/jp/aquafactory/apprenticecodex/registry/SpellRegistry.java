@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurret;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
+import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunk;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensor;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
@@ -87,6 +88,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
     public static final RegistryObject<AbstractSpell> PRECISION_JACK = reg("precision_jack", PrecisionJack::new);
     public static final RegistryObject<AbstractSpell> AUTO_TURRET = reg("auto_turret", AutoTurret::new);
+    public static final RegistryObject<AbstractSpell> COMPANION_TRUNK = reg("companion_trunk", CompanionTrunk::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
