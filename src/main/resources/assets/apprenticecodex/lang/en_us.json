@@ -4,6 +4,7 @@
   "attribute.name.apprenticecodex.max_enchantment_table_level": "Max Enchantment Table Level",
 
   "item.apprenticecodex.arcane_cinder": "Arcane Cinder",
+  "item.apprenticecodex.comfort_berries": "Comfort Berries",
   "item.apprenticecodex.spellstained_arcane_ingot": "Spell-stained Arcane Ingot",
   "item.apprenticecodex.rapid_spellcaster_round": "Rapid Spellcaster Round",
   "item.apprenticecodex.basic_spellcaster_round": "Basic Spellcaster Round",
@@ -171,6 +172,7 @@
   "entity.apprenticecodex.demicreator_wings_core": "Demi-creator Core",
   "entity.apprenticecodex.demicreator_wings_wing": "Demi-creator Wing",
   "entity.apprenticecodex.companion_trunk": "Trunk-Kun",
+  "entity.apprenticecodex.healing_bloom": "Healing Bloom",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -230,6 +232,7 @@
   "spell.apprenticecodex.demicreator_wings": "Demi-creator Wings",
   "spell.apprenticecodex.companion_trunk": "Companion Trunk",
   "spell.apprenticecodex.treasure_divination": "Treasure Divination",
+  "spell.apprenticecodex.healing_bloom": "Healing Bloom",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -302,6 +305,7 @@
   "spell.apprenticecodex.demicreator_wings.guide": "Place a demi-creator core at your current position and gain creative flight only while you remain inside its area. Recast it, let the timer expire, or leave the area to dismiss the wings.",
   "spell.apprenticecodex.companion_trunk.guide": "todo:(翻訳)魔導仕掛けのチェストを召喚し追従させる。通常のチェストと同程度のアイテムを保持できるが、体力がなくなったり等で消滅すると中身を全て落とす。",
   "spell.apprenticecodex.treasure_divination.guide": "todo:(翻訳)マナを集中させることで最寄りの価値の高そうなものまでの距離を知る。必ずしも価値が高いとは限らず、探知できるものも限定される。",
+  "spell.apprenticecodex.healing_bloom.guide": "todo:(翻訳)周囲を優しく照らす魔法の花を召喚する。近くにいることで癒しの効果を得る事ができ、寿命で枯れた時に空腹を満たすための果実を落とす。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -323,6 +327,7 @@
   "ui.apprenticecodex.collect_cost_mana": "Collect item cost mana: %d",
   "ui.apprenticecodex.move_speed_bonus": "%d%% Movement Speed Bonus",
   "ui.apprenticecodex.max_search_distance": "Maximum search distance: %d blocks",
+  "ui.apprenticecodex.bloom_wither_time": "Bloom wither time: %s",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -416,6 +421,7 @@
   "death.attack.apprenticecodex.mana_slash": "%1$s was cut apart by %2$s's mana.",
   "death.attack.apprenticecodex.auto_turret": "%1$s was riddled with %2$s's arrows.",
   "death.attack.apprenticecodex.illuminate_stellar": "%1$s was purified by %2$s's dazzling magic.",
+  "death.attack.apprenticecodex.healing_bloom": "The power of healing was too harmful to %1$s.",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",
