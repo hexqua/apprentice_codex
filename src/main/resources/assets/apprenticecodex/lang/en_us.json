@@ -352,13 +352,13 @@
   "ui.apprenticecodex.spectral_wing.underwater": "You cannot unfold the wings underwater!",
   "ui.apprenticecodex.companion_trunk.cannot_despawn": "todo:(翻訳)%sの中にアイテムが残っているため送還できない！",
   "ui.apprenticecodex.treasure_divination.not_found": "todo:(翻訳)%dブロック以内に特殊な気配は感じない",
-  "ui.apprenticecodex.treasure_divination.found_ore": "todo:(翻訳)特殊な鉱石の気配が%dブロックのところにある！",
-  "ui.apprenticecodex.treasure_divination.found_other": "todo:(翻訳)特殊な気配が%dブロックのところにある！",
+  "ui.apprenticecodex.treasure_divination.found": "todo:(翻訳)特殊な気配が%dブロックのところにある！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
+  "effect.apprenticecodex.casting_mobility": "Casting Mobility",
   "effect.apprenticecodex.intelligence": "Intelligence",
   "effect.apprenticecodex.craftsmans_delight_mobility": "Craftsman's Footwork",
   "effect.apprenticecodex.long_stride_mobility": "Long Stride Mobility",
@@ -369,6 +369,7 @@
   "effect.apprenticecodex.spectral_wing": "Spectral Wing",
 
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
+  "effect.apprenticecodex.casting_mobility.description": "Negates only the movement penalty caused by continuous casting.",
   "effect.apprenticecodex.intelligence.description": "Greatly increases spell power.",
   "effect.apprenticecodex.school_affinity": "Affinity",
   "effect.apprenticecodex.school_affinity.dynamic": "%s Affinity",
