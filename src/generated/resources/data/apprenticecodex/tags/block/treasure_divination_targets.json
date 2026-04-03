@@ -1,0 +1,39 @@
+{
+  "values": [
+    "minecraft:ancient_debris",
+    "minecraft:spawner",
+    "#minecraft:shulker_boxes",
+    {
+      "id": "#forge:ores/mithril",
+      "required": false
+    },
+    {
+      "id": "#forge:chests",
+      "required": false
+    },
+    {
+      "id": "#forge:barrels",
+      "required": false
+    },
+    {
+      "id": "#forge:shulker_boxes",
+      "required": false
+    },
+    {
+      "id": "lootr:lootr_chest",
+      "required": false
+    },
+    {
+      "id": "lootr:lootr_trapped_chest",
+      "required": false
+    },
+    {
+      "id": "lootr:lootr_barrel",
+      "required": false
+    },
+    {
+      "id": "lootr:lootr_shulker",
+      "required": false
+    }
+  ]
+}

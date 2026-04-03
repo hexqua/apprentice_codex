@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
+import jp.aquafactory.apprenticecodex.effect.CastingMobility;
 import jp.aquafactory.apprenticecodex.effect.CraftsmansDelightMobility;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
@@ -24,6 +25,8 @@ public final class EffectRegistry {
 
     public static final DeferredHolder<MobEffect, MobEffect> ARCANE_CHARGE =
             EFFECTS.register("arcane_charge", ArcaneCharge::new);
+    public static final DeferredHolder<MobEffect, MobEffect> CASTING_MOBILITY =
+            EFFECTS.register("casting_mobility", CastingMobility::new);
     public static final DeferredHolder<MobEffect, MobEffect> CRAFTSMANS_DELIGHT_MOBILITY =
             EFFECTS.register("craftsmans_delight_mobility", CraftsmansDelightMobility::new);
     public static final DeferredHolder<MobEffect, MobEffect> INTELLIGENCE =

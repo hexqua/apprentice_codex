@@ -352,13 +352,13 @@
   "ui.apprenticecodex.spectral_wing.underwater": "水中では翼を展開できない！",
   "ui.apprenticecodex.companion_trunk.cannot_despawn": "%sの中にアイテムが残っているため送還できない！",
   "ui.apprenticecodex.treasure_divination.not_found": "%dブロック以内に特殊な気配は感じない",
-  "ui.apprenticecodex.treasure_divination.found_ore": "特殊な鉱石の気配が%dブロックのところにある！",
-  "ui.apprenticecodex.treasure_divination.found_other": "特殊な気配が%dブロックのところにある！",
+  "ui.apprenticecodex.treasure_divination.found": "特殊な気配が%dブロックのところにある！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
+  "effect.apprenticecodex.casting_mobility": "詠唱移動補助",
   "effect.apprenticecodex.intelligence": "知性",
   "effect.apprenticecodex.craftsmans_delight_mobility": "職人の足運び",
   "effect.apprenticecodex.long_stride_mobility": "長距離歩法",
@@ -369,6 +369,7 @@
   "effect.apprenticecodex.spectral_wing": "スペクトラルウィング",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
+  "effect.apprenticecodex.casting_mobility.description": "継続詠唱に伴う移動速度低下だけを打ち消す。",
   "effect.apprenticecodex.intelligence.description": "魔法の力を大きく引き上げる。",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
