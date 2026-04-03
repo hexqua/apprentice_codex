@@ -99,7 +99,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 GRIND_RUNNER,
                 MANA_SLASH,
                 AUTO_TURRET,
-                ILLUMINATE_STELLAR
+                ILLUMINATE_STELLAR,
+                HEALING_BLOOM
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -109,7 +110,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 COMPOUND_PHIAL,
                 GRACED_RAIN,
                 HIGANBANA,
-                MOON_LIGHT
+                MOON_LIGHT,
+                HEALING_BLOOM
         );
 
         // FIRE_DAMAGE: 火炎耐性有効.
@@ -129,7 +131,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HIGANBANA,
                 MOON_LIGHT,
                 GRIND_RUNNER,
-                ILLUMINATE_STELLAR
+                ILLUMINATE_STELLAR,
+                HEALING_BLOOM
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -159,7 +162,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 GRIND_RUNNER,
                 MANA_SLASH,
                 AUTO_TURRET,
-                ILLUMINATE_STELLAR
+                ILLUMINATE_STELLAR,
+                HEALING_BLOOM
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

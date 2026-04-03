@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunner;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
@@ -120,6 +121,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> EARTH_FORGE = reg("earth_forge", EarthForge::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> GRIND_RUNNER = reg("grind_runner", GrindRunner::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> TREASURE_DIVINATION = reg("treasure_divination", TreasureDivination::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> HEALING_BLOOM = reg("healing_bloom", HealingBloom::new);
 
     // エルドリッチ.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
