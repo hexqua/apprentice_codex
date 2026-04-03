@@ -4,8 +4,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDesk;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStation;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJar;
+import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbench;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlock;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import net.minecraft.core.registries.Registries;
@@ -21,6 +23,9 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> MAGE_LIGHT_TORCH =
             BLOCKS.register("mage_light_torch", MageLightTorchBlock::new);
+
+    public static final DeferredHolder<Block, Block> HEALING_BLOOM_LIGHT =
+            BLOCKS.register("healing_bloom_light", HealingBloomLightBlock::new);
 
     public static final DeferredHolder<Block, Block> PERSONAL_SHELF_CHEST =
             BLOCKS.register("personal_shelf_chest", () -> new PersonalShelfChestBlock());
@@ -42,6 +47,9 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> ATELIER_STATION =
             BLOCKS.register("atelier_station", () -> new AtelierStation());
+
+    public static final DeferredHolder<Block, Block> COMFORT_BERRY_BUSH =
+            BLOCKS.register("comfort_berry_bush", ComfortBerryBushBlock::new);
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

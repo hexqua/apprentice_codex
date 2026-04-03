@@ -36,6 +36,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -75,6 +76,14 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final DeferredHolder<Item, Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final DeferredHolder<Item, Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
+    public static final DeferredHolder<Item, Item> COMFORT_BERRIES =
+            ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
+                    BlockRegistry.COMFORT_BERRY_BUSH.get(),
+                    new Item.Properties().food(new net.minecraft.world.food.FoodProperties.Builder()
+                            .nutrition(5)
+                            .saturationMod(0.84f)
+                            .build())
+            ));
     public static final DeferredHolder<Item, Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
     public static final DeferredHolder<Item, Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", () -> new SpellcasterRoundItem());
