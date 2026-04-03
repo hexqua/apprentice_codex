@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventory;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookData;
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventory;
@@ -48,6 +49,24 @@ public final class AttachmentRegistry {
                         @Override
                         public CompoundTag write(CodexSpellData attachment, net.minecraft.core.HolderLookup.Provider provider) {
                             return attachment.saveAll();
+                        }
+                    })
+                    .copyOnDeath()
+                    .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<CompanionTrunkInventory>> COMPANION_TRUNK_INVENTORY =
+            ATTACHMENT_TYPES.register("companion_trunk_inventory", () -> AttachmentType.builder(CompanionTrunkInventory::new)
+                    .serialize(new IAttachmentSerializer<CompoundTag, CompanionTrunkInventory>() {
+                        @Override
+                        public CompanionTrunkInventory read(IAttachmentHolder holder, CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
+                            var value = new CompanionTrunkInventory();
+                            value.deserializeNBT(provider, tag);
+                            return value;
+                        }
+
+                        @Override
+                        public CompoundTag write(CompanionTrunkInventory attachment, net.minecraft.core.HolderLookup.Provider provider) {
+                            return attachment.serializeNBT(provider);
                         }
                     })
                     .copyOnDeath()
