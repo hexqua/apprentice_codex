@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
+import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -118,6 +119,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> WORLD_FLATTER = reg("world_flatter", WorldFlatter::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> EARTH_FORGE = reg("earth_forge", EarthForge::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> GRIND_RUNNER = reg("grind_runner", GrindRunner::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> TREASURE_DIVINATION = reg("treasure_divination", TreasureDivination::new);
 
     // エルドリッチ.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
