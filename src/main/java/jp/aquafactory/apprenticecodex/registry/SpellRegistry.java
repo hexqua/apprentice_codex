@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
+import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -120,6 +121,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> WORLD_FLATTER = reg("world_flatter", WorldFlatter::new);
     public static final RegistryObject<AbstractSpell> EARTH_FORGE = reg("earth_forge", EarthForge::new);
     public static final RegistryObject<AbstractSpell> GRIND_RUNNER = reg("grind_runner", GrindRunner::new);
+    public static final RegistryObject<AbstractSpell> TREASURE_DIVINATION = reg("treasure_divination", TreasureDivination::new);
 
     // エルドリッチ.
     public static final RegistryObject<AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
