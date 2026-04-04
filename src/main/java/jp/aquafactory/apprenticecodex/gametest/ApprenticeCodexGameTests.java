@@ -1,7 +1,9 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
@@ -16,6 +18,7 @@ import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,6 +30,8 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -246,6 +251,59 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()),
+                    "Ender Grimoire should remain upgradeable via explicit whitelist entry");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get()),
+                    "AbstractOffhandMagicItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.PHOTON_SIPHON.get()),
+                    "Direct AbstractOffhandMagicItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    "AbstractSpellGunItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
+                    "AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
+                    "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+
+            var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
+                    "Reflectcast Shield should not be in the upgrade whitelist");
+            helper.assertFalse(Utils.canBeUpgraded(shieldStack),
+                    "Reflectcast Shield should remain excluded from the upgrade system");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get());
+            var upgradeData = createUpgradeData(
+                    helper.getLevel().registryAccess(),
+                    stack,
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    EquipmentSlot.MAINHAND.getName()
+            );
+
+            var event = new ItemAttributeModifierEvent(
+                    stack,
+                    EquipmentSlot.OFFHAND,
+                    ItemRegistry.COPPER_SPELL_AMPLIFIER.get().getAttributeModifiers(EquipmentSlot.OFFHAND, stack)
+            );
+            MinecraftForge.EVENT_BUS.post(event);
+
+            var maxManaAmount = sumModifierAmount(
+                    event.getModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
+                    AttributeModifier.Operation.ADDITION
+            );
+            helper.assertTrue(Math.abs(maxManaAmount - 50.0D) < 1.0e-9D,
+                    "Offhand upgrade bridge regression: expected +50 max mana from mainhand-stored upgrade but got "
+                            + maxManaAmount + " upgradeData=" + upgradeData
+                            + " modifiers=" + describeModifiers(event.getModifiers()));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertCastingMoveSpeedAdjustment(helper, 0.0D, 0.8D, "No external bonus should keep full cancellation");
@@ -302,6 +360,28 @@ public final class ApprenticeCodexGameTests {
         var actualAmount = CastingMoveSpeedAdjustment.computeAvailableBonus(externalBonus);
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected " + expectedAmount + " but got " + actualAmount + " for external bonus " + externalBonus);
+    }
+
+    private static void assertUpgradeable(GameTestHelper helper, ItemStack stack, String message) {
+        helper.assertTrue(stack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
+                message + " (missing upgrade whitelist tag on " + ForgeRegistries.ITEMS.getKey(stack.getItem()) + ")");
+        helper.assertTrue(Utils.canBeUpgraded(stack),
+                message + " (Utils.canBeUpgraded returned false for " + ForgeRegistries.ITEMS.getKey(stack.getItem()) + ")");
+    }
+
+    private static UpgradeData createUpgradeData(
+            RegistryAccess registryAccess,
+            ItemStack stack,
+            net.minecraft.resources.ResourceKey<io.redspace.ironsspellbooks.item.armor.UpgradeOrbType> upgradeKey,
+            String slotName
+    ) {
+        io.redspace.ironsspellbooks.api.backwards_compat.UpgradeTypeCache.doCache(registryAccess);
+        var upgradeRegistry = registryAccess.registryOrThrow(io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.UPGRADE_ORB_REGISTRY_KEY);
+        var upgradeHolder = upgradeRegistry.getHolder(upgradeKey)
+                .orElseThrow(() -> new IllegalStateException("Missing upgrade orb type: " + upgradeKey.location()));
+        var upgradeData = new UpgradeData(java.util.Map.of(upgradeHolder, 1), slotName);
+        UpgradeData.set(stack, upgradeData);
+        return upgradeData;
     }
 
     private static double sumModifierAmount(
