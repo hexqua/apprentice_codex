@@ -4,6 +4,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -11,6 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -19,6 +22,8 @@ import java.util.UUID;
 
 public final class CompanionTrunkManager {
     private static final double DEFAULT_MAX_HEALTH = 20.0;
+    private static final int SUMMON_SEARCH_RADIUS = 3;
+    private static final int[] SUMMON_Y_OFFSETS = {0, 1, -1, 2, -2};
 
     private CompanionTrunkManager() {
     }
@@ -72,7 +77,12 @@ public final class CompanionTrunkManager {
             return false;
         }
 
-        discardOwnedTrunks(player.server, player.getUUID(), null);
+        var ownedTrunks = findOwnedTrunks(player.server, player.getUUID());
+        if (!ownedTrunks.isEmpty()) {
+            // 手動送還だけ送還音を鳴らして、他の自動消滅経路とは演出を分ける。
+            ownedTrunks.get(0).playManualDismissSound();
+        }
+        discardOwnedTrunks(player.getUUID(), ownedTrunks, null);
         clearState(player, false);
         return true;
     }
@@ -146,10 +156,95 @@ public final class CompanionTrunkManager {
     private static CompanionTrunkEntity spawn(ServerPlayer player, double maxHealth) {
         var level = player.serverLevel();
         var trunk = new CompanionTrunkEntity(EntityRegistry.COMPANION_TRUNK.get(), level, player);
+        var summonPosition = findSummonPosition(player, trunk);
+        trunk.moveTo(summonPosition.x, summonPosition.y, summonPosition.z, player.getYRot(), 0.0f);
         trunk.setCompanionMaxHealth((float) maxHealth);
         trunk.applyStoredCustomName();
         level.addFreshEntity(trunk);
         return trunk;
+    }
+
+    private static Vec3 findSummonPosition(ServerPlayer player, CompanionTrunkEntity trunk) {
+        var basePos = player.blockPosition();
+        var forward = getHorizontalLook(player);
+        var candidateOffsets = new ArrayList<SummonOffset>();
+
+        for (var x = -SUMMON_SEARCH_RADIUS; x <= SUMMON_SEARCH_RADIUS; ++x) {
+            for (var z = -SUMMON_SEARCH_RADIUS; z <= SUMMON_SEARCH_RADIUS; ++z) {
+                if (x == 0 && z == 0) {
+                    continue;
+                }
+
+                var distanceSqr = x * x + z * z;
+                if (distanceSqr > SUMMON_SEARCH_RADIUS * SUMMON_SEARCH_RADIUS) {
+                    continue;
+                }
+
+                var horizontalOffset = new Vec3(x, 0.0, z).normalize();
+                var priority = horizontalOffset.dot(forward) * 100.0 - distanceSqr;
+                candidateOffsets.add(new SummonOffset(x, z, priority));
+            }
+        }
+
+        candidateOffsets.sort((left, right) -> Double.compare(right.priority(), left.priority()));
+        for (var offset : candidateOffsets) {
+            var placement = tryBuildSummonPlacement(player, trunk, basePos.offset(offset.x(), 0, offset.z()));
+            if (placement != null) {
+                return placement;
+            }
+        }
+
+        var fallback = tryBuildSummonPlacement(player, trunk, basePos);
+        return fallback != null ? fallback : player.position();
+    }
+
+    private static @Nullable Vec3 tryBuildSummonPlacement(ServerPlayer player,
+                                                          CompanionTrunkEntity trunk,
+                                                          BlockPos basePos) {
+        var level = player.serverLevel();
+        for (var yOffset : SUMMON_Y_OFFSETS) {
+            var placementPos = basePos.offset(0, yOffset, 0);
+            if (!level.getBlockState(placementPos).canBeReplaced() || !level.getFluidState(placementPos).isEmpty()) {
+                continue;
+            }
+
+            var headPos = placementPos.above();
+            if (!level.getBlockState(headPos).canBeReplaced() || !level.getFluidState(headPos).isEmpty()) {
+                continue;
+            }
+
+            var supportPos = placementPos.below();
+            if (!level.getFluidState(supportPos).isEmpty()) {
+                continue;
+            }
+
+            var supportShape = level.getBlockState(supportPos).getCollisionShape(level, supportPos);
+            if (supportShape.isEmpty()) {
+                continue;
+            }
+
+            var spawnY = supportPos.getY() + supportShape.max(Direction.Axis.Y);
+            var candidate = new Vec3(placementPos.getX() + 0.5, spawnY, placementPos.getZ() + 0.5);
+            var bounds = trunk.getDimensions(trunk.getPose()).makeBoundingBox(candidate.x, candidate.y, candidate.z);
+            if (level.noCollision(trunk, bounds)) {
+                // 召喚直後の違和感を減らすため、初期位置は視線方向を優先しつつ足場と衝突を満たす地点に固定する。
+                return candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private static Vec3 getHorizontalLook(ServerPlayer player) {
+        var look = player.getLookAngle();
+        var horizontal = new Vec3(look.x, 0.0, look.z);
+        if (horizontal.lengthSqr() > 1.0E-6) {
+            return horizontal.normalize();
+        }
+
+        var facing = player.getDirection();
+        var fallback = new Vec3(facing.getStepX(), 0.0, facing.getStepZ());
+        return fallback.lengthSqr() > 1.0E-6 ? fallback.normalize() : new Vec3(0.0, 0.0, 1.0);
     }
 
     private static boolean isValidForOwner(@Nullable CompanionTrunkEntity trunk, ServerPlayer player) {
@@ -287,5 +382,8 @@ public final class CompanionTrunkManager {
 
     private static boolean managedUuidEquals(@Nullable UUID left, @Nullable UUID right) {
         return left == null ? right == null : left.equals(right);
+    }
+
+    private record SummonOffset(int x, int z, double priority) {
     }
 }

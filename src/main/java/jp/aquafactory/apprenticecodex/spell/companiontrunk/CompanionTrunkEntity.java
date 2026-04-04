@@ -1,13 +1,16 @@
 package jp.aquafactory.apprenticecodex.spell.companiontrunk;
 
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -129,10 +132,21 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
 
     @Override
     public void tick() {
+        var level = level();
         super.tick();
-        if (!level().isClientSide && level() instanceof ServerLevel serverLevel) {
+        if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
             tickOnServer(serverLevel);
         }
+    }
+
+    @Override
+    public void onClientRemoval() {
+        var level = level();
+        for (var i = 0; i < 16; i++) {
+            EffectTools.createParticle(level, ParticleTypes.END_ROD, position(), 0.8, 0.02);
+        }
+
+        super.onClientRemoval();
     }
 
     private void tickOnServer(ServerLevel level) {
@@ -222,6 +236,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         );
         hasImpulse = true;
         jumpCooldownTick = JUMP_COOLDOWN_TICK;
+        level().playSound(null, blockPosition(), SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 0.75f, 1.0f);
 
         // ラッチは open と排他なので、誰かが開いている間は open 姿勢を優先する.
         if (openers.isEmpty()) {
@@ -482,9 +497,18 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     }
 
     @Override
+    protected @NotNull SoundEvent getHurtSound(@NotNull DamageSource damageSource) {
+        return SoundEvents.WOOD_HIT;
+    }
+
+    @Override
     public void die(@NotNull DamageSource damageSource) {
         handleRemoval(true, true);
         super.die(damageSource);
+    }
+
+    public void playManualDismissSound() {
+        level().playSound(null, blockPosition(), SoundEvents.SHULKER_TELEPORT, SoundSource.PLAYERS, 1.0f, 1.0f);
     }
 
     @Override
