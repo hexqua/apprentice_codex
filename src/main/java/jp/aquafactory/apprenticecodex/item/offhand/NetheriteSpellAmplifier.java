@@ -2,20 +2,20 @@ package jp.aquafactory.apprenticecodex.item.offhand;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 
-public class GoldSpellAmplifier extends AbstractSpellAmplifierItem {
-    public GoldSpellAmplifier() {
+public class NetheriteSpellAmplifier extends AbstractSpellAmplifierItem {
+    public NetheriteSpellAmplifier() {
         super(
                 Rarity.UNCOMMON,
-                "gold_spell_amplifier",
-                bonus(AttributeRegistry.MANA_REGEN, 0.20, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
+                "netherite_spell_amplifier",
+                bonus(AttributeRegistry.MANA_REGEN, 0.20, AttributeModifier.Operation.MULTIPLY_BASE)
         );
     }
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return 22;
+        return 15;
     }
 }

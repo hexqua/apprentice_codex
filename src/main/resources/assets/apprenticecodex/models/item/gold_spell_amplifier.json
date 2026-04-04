@@ -1,18 +1,3 @@
 {
-  "parent": "minecraft:item/handheld",
-  "loader": "neoforge:separate_transforms",
-  "base": {
-    "parent": "apprenticecodex:item/gold_spell_amplifier_3d"
-  },
-  "perspectives": {
-    "gui": {
-      "parent": "apprenticecodex:item/gold_spell_amplifier_gui"
-    },
-    "ground": {
-      "parent": "apprenticecodex:item/gold_spell_amplifier_gui"
-    },
-    "fixed": {
-      "parent": "apprenticecodex:item/gold_spell_amplifier_gui"
-    }
-  }
+  "parent": "apprenticecodex:item/spell_amplifier"
 }
