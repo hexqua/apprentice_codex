@@ -1,33 +1,22 @@
 package jp.aquafactory.apprenticecodex.effect;
 
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
-public class LongStrideMobility extends MobEffect {
-    public static final double CASTING_MOVE_SPEED_BONUS = 0.85;
+public class LongStrideMobility extends DynamicCastingMobilityEffect {
+    public static final double CASTING_MOVE_SPEED_BONUS = CastingMoveSpeedAdjustment.MAX_CASTING_MOVE_SPEED_BONUS;
     public static final double STEP_HEIGHT_ADDITION = 0.6;
     private static final double MOVE_SPEED_BONUS_PER_LEVEL = 0.15;
     private static final int MAX_AMPLIFIER = 2;
-    private static final ResourceLocation CASTING_MOVE_SPEED_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "long_stride_casting_move_speed");
+    private static final String CASTING_MOVE_SPEED_MODIFIER_ID = "af643a1d-1f2d-4677-bb7e-57dd7af7624d";
     private static final ResourceLocation MOVE_SPEED_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "long_stride_move_speed");
     private static final ResourceLocation STEP_HEIGHT_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "long_stride_step_height");
 
     public LongStrideMobility() {
-        super(MobEffectCategory.BENEFICIAL, 0xAEEB9A);
-
-        addAttributeModifier(
-                AttributeRegistry.CASTING_MOVESPEED,
-                CASTING_MOVE_SPEED_MODIFIER_ID,
-                CASTING_MOVE_SPEED_BONUS,
-                AttributeModifier.Operation.ADD_VALUE
-        );
+        super(0xAEEB9A, CASTING_MOVE_SPEED_MODIFIER_ID);
         addAttributeModifier(
                 Attributes.MOVEMENT_SPEED,
                 MOVE_SPEED_MODIFIER_ID,

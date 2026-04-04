@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.offhand;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -8,9 +9,11 @@ import net.minecraft.world.item.Rarity;
 public class NetheriteSpellAmplifier extends AbstractSpellAmplifierItem {
     public NetheriteSpellAmplifier() {
         super(
-                Rarity.UNCOMMON,
+                Rarity.RARE,
                 "netherite_spell_amplifier",
-                bonus(AttributeRegistry.MANA_REGEN, 0.20, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.CASTING_MOVESPEED, 0.50, AttributeModifier.Operation.ADDITION),
+                bonus(Attributes.ARMOR, 4.0D, AttributeModifier.Operation.ADDITION),
+                bonus(Attributes.ARMOR_TOUGHNESS, 2.0D, AttributeModifier.Operation.ADDITION)
         );
     }
 
