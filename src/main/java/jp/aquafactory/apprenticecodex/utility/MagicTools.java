@@ -81,6 +81,19 @@ public final class MagicTools {
         return ForgeRegistries.ATTRIBUTES.getValue(guessedAttributeId);
     }
 
+    public static int resolveSchoolTintColor(@Nullable SchoolType schoolType) {
+        if (schoolType == null) {
+            return jp.aquafactory.apprenticecodex.item.PastelStaff.DEFAULT_STONE_TINT_COLOR;
+        }
+
+        var color = schoolType.getDisplayName().getStyle().getColor();
+        if (color == null) {
+            return jp.aquafactory.apprenticecodex.item.PastelStaff.DEFAULT_STONE_TINT_COLOR;
+        }
+
+        return color.getValue();
+    }
+
     public static void cancelCasting(@Nullable LivingEntity entity, boolean triggerCooldown) {
         if (!(entity instanceof ServerPlayer serverPlayer)) {
             return;

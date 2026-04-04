@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.renderer.armor;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
-import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.model.EnchantressRobeModel;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -110,12 +109,7 @@ public class EnchantressRobeRenderer extends GeoArmorRenderer<EnchantressRobeIte
     }
 
     static int resolveSchoolTintColor(SchoolType schoolType) {
-        var color = schoolType.getDisplayName().getStyle().getColor();
-        if (color == null) {
-            return PastelStaff.DEFAULT_STONE_TINT_COLOR;
-        }
-
-        return color.getValue();
+        return MagicTools.resolveSchoolTintColor(schoolType);
     }
 
     private static boolean isRuneBoneName(String boneName) {
