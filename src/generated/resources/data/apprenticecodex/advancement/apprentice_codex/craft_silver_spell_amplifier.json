@@ -1,0 +1,45 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_iron_spell_amplifier",
+  "criteria": {
+    "crafted_silver_spell_amplifier": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:silver_spell_amplifier"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_silver_spell_amplifier.description"
+    },
+<<<<<<<< HEAD:src/generated/resources/data/apprenticecodex/advancement/apprentice_codex/craft_copper_spell_amplifier.json
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:copper_spell_amplifier"
+========
+    "frame": "challenge",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:silver_spell_amplifier",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:1b}}"
+>>>>>>>> 1f218e51 (レシピと実績を調整):src/generated/resources/data/apprenticecodex/advancement/apprentice_codex/craft_silver_spell_amplifier.json
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_silver_spell_amplifier.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_silver_spell_amplifier"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
