@@ -1,16 +1,13 @@
 package jp.aquafactory.apprenticecodex.effect;
 
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.common.ForgeMod;
 
 import java.util.UUID;
 
-public class LongStrideMobility extends MobEffect {
-    public static final double CASTING_MOVE_SPEED_BONUS = 0.85;
+public class LongStrideMobility extends DynamicCastingMobilityEffect {
+    public static final double CASTING_MOVE_SPEED_BONUS = CastingMoveSpeedAdjustment.MAX_CASTING_MOVE_SPEED_BONUS;
     public static final double STEP_HEIGHT_ADDITION = 0.6;
     private static final double MOVE_SPEED_BONUS_PER_LEVEL = 0.15;
     private static final int MAX_AMPLIFIER = 2;
@@ -20,14 +17,7 @@ public class LongStrideMobility extends MobEffect {
     private static final UUID MOVE_SPEED_MODIFIER_UUID = UUID.fromString(MOVE_SPEED_MODIFIER_ID);
 
     public LongStrideMobility() {
-        super(MobEffectCategory.BENEFICIAL, 0xAEEB9A);
-
-        addAttributeModifier(
-                AttributeRegistry.CASTING_MOVESPEED.get(),
-                CASTING_MOVE_SPEED_MODIFIER_ID,
-                CASTING_MOVE_SPEED_BONUS,
-                AttributeModifier.Operation.ADDITION
-        );
+        super(0xAEEB9A, CASTING_MOVE_SPEED_MODIFIER_ID);
         addAttributeModifier(
                 Attributes.MOVEMENT_SPEED,
                 MOVE_SPEED_MODIFIER_ID,
@@ -40,11 +30,6 @@ public class LongStrideMobility extends MobEffect {
                 STEP_HEIGHT_ADDITION,
                 AttributeModifier.Operation.ADDITION
         );
-    }
-
-    @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        return false;
     }
 
     @Override

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -206,12 +207,66 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(resolvedSpellPower != null,
                     "Copper Spell Amplifier could not resolve spell power attribute for additive stacking: " + imbuedSchool.getId());
 
-            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.10D,
+            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.10D, AttributeModifier.Operation.MULTIPLY_BASE,
                     "Copper Spell Amplifier additive spell power bonus regression");
 
             stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.14D,
+            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.14D, AttributeModifier.Operation.MULTIPLY_BASE,
                     "Copper Spell Amplifier + Attunement stacking regression");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var diamondItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get();
+            var diamondStack = new ItemStack(diamondItem);
+            assertModifierAmount(
+                    helper,
+                    diamondItem,
+                    diamondStack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
+                    0.25D,
+                    AttributeModifier.Operation.ADDITION,
+                    "Diamond Spell Amplifier casting move speed bonus regression"
+            );
+
+            var netheriteItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get();
+            var netheriteStack = new ItemStack(netheriteItem);
+            assertModifierAmount(
+                    helper,
+                    netheriteItem,
+                    netheriteStack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
+                    0.50D,
+                    AttributeModifier.Operation.ADDITION,
+                    "Netherite Spell Amplifier casting move speed bonus regression"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertCastingMoveSpeedAdjustment(helper, 0.0D, 0.8D, "No external bonus should keep full cancellation");
+            assertCastingMoveSpeedAdjustment(helper, 0.25D, 0.55D, "Diamond-equivalent bonus should reduce shared cancellation");
+            assertCastingMoveSpeedAdjustment(helper, 0.50D, 0.30D, "Netherite-equivalent bonus should reduce shared cancellation");
+            assertCastingMoveSpeedAdjustment(helper, 0.75D, 0.05D, "Small remaining headroom should stay positive");
+            assertCastingMoveSpeedAdjustment(helper, 0.80D, 0.0D, "Exact cap should stop adding more casting move speed");
+            assertCastingMoveSpeedAdjustment(helper, 1.10D, 0.0D, "External overshoot should not become a negative correction");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
+            var movementSpeedModifier = effect.getAttributeModifiers().get(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);
+            helper.assertTrue(movementSpeedModifier != null, "LongStride is missing the movement speed attribute modifier");
+
+            var actualAmount = effect.getAttributeModifierValue(0, movementSpeedModifier);
+            helper.assertTrue(Math.abs(actualAmount - 0.15D) < 1.0e-9D,
+                    "LongStride movement speed bonus regression: expected 0.15 but got " + actualAmount);
         });
     }
 
@@ -226,15 +281,27 @@ public final class ApprenticeCodexGameTests {
             ItemStack stack,
             Attribute attribute,
             double expectedAmount,
+            AttributeModifier.Operation operation,
             String message
     ) {
         var actualAmount = sumModifierAmount(
                 item.getAttributeModifiers(EquipmentSlot.OFFHAND, stack).get(attribute),
-                AttributeModifier.Operation.MULTIPLY_BASE
+                operation
         );
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected stacked amount " + expectedAmount + " but got " + actualAmount
                         + " modifiers=" + describeModifiers(item.getAttributeModifiers(EquipmentSlot.OFFHAND, stack)));
+    }
+
+    private static void assertCastingMoveSpeedAdjustment(
+            GameTestHelper helper,
+            double externalBonus,
+            double expectedAmount,
+            String message
+    ) {
+        var actualAmount = CastingMoveSpeedAdjustment.computeAvailableBonus(externalBonus);
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected " + expectedAmount + " but got " + actualAmount + " for external bonus " + externalBonus);
     }
 
     private static double sumModifierAmount(
