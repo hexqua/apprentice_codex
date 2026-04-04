@@ -10,7 +10,8 @@ public class GoldSpellAmplifier extends AbstractSpellAmplifierItem {
         super(
                 Rarity.UNCOMMON,
                 "gold_spell_amplifier",
-                bonus(AttributeRegistry.MANA_REGEN, 0.20, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.COOLDOWN_REDUCTION, 0.1, AttributeModifier.Operation.MULTIPLY_BASE),
+                bonus(AttributeRegistry.CAST_TIME_REDUCTION, 0.1, AttributeModifier.Operation.MULTIPLY_BASE)
         );
     }
 

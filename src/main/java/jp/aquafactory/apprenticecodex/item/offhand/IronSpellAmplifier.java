@@ -10,7 +10,7 @@ public class IronSpellAmplifier extends AbstractSpellAmplifierItem {
         super(
                 Rarity.COMMON,
                 "iron_spell_amplifier",
-                bonus(AttributeRegistry.MAX_MANA, 50.0, AttributeModifier.Operation.ADDITION)
+                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE)
         );
     }
 
