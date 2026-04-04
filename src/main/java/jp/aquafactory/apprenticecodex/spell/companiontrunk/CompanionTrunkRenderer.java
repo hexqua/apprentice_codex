@@ -7,5 +7,6 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 public class CompanionTrunkRenderer extends GeoEntityRenderer<CompanionTrunkEntity> {
     public CompanionTrunkRenderer(EntityRendererProvider.Context context) {
         super(context, new CompanionTrunkModel());
+        shadowRadius = 0.5f;
     }
 }
