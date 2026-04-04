@@ -1,6 +1,7 @@
 {
   "values": [
     "apprenticecodex:ender_grimoire",
+    "apprenticecodex:crystal_bladed_staff",
     "apprenticecodex:iron_spellcaster_gun",
     "apprenticecodex:copper_spellcaster_gun",
     "apprenticecodex:gold_spellcaster_gun",
@@ -13,7 +14,6 @@
     "apprenticecodex:netherite_spell_amplifier",
     "apprenticecodex:photon_siphon",
     "apprenticecodex:explorers_cane",
-    "apprenticecodex:crystal_bladed_staff",
     "apprenticecodex:illuminate_stellar_staff"
   ]
 }

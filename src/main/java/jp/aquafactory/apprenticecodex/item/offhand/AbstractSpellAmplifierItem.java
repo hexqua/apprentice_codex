@@ -2,21 +2,17 @@ package jp.aquafactory.apprenticecodex.item.offhand;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Rarity;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellAmplifierItem extends AbstractOffhandMagicItem implements GeoItem {
@@ -52,22 +48,6 @@ public abstract class AbstractSpellAmplifierItem extends AbstractOffhandMagicIte
 
     public ResourceLocation getTextureLocation() {
         return textureLocation;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private SpellAmplifierRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new SpellAmplifierRenderer();
-                }
-
-                return renderer;
-            }
-        });
     }
 
     @Override

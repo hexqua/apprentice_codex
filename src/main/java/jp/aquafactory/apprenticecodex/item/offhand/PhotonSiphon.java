@@ -15,7 +15,7 @@ public class PhotonSiphon extends AbstractOffhandMagicItem implements UniqueItem
                 1,
                 Rarity.RARE,
                 "photon_siphon",
-                bonus(AttributeRegistry.MANA_REGEN, 1.0, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.MANA_REGEN, 1.0, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
         );
     }
 

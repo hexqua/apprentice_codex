@@ -22,11 +22,27 @@ public final class OffhandUpgradeAttributeEvent {
             return;
         }
 
+        applyStoredUpgradeData(
+                event,
+                EquipmentSlot.MAINHAND.getName(),
+                EquipmentSlot.OFFHAND.getName(),
+                EquipmentSlotGroup.OFFHAND
+        );
+    }
+
+    public static void applyStoredUpgradeData(
+            ItemAttributeModifierEvent event,
+            String expectedStoredSlot,
+            String appliedSlotId,
+            EquipmentSlotGroup targetSlotGroup
+    ) {
+        var stack = event.getItemStack();
+
         var upgradeData = UpgradeData.getUpgradeData(stack);
         if (upgradeData == UpgradeData.NONE) {
             return;
         }
-        if (!EquipmentSlot.MAINHAND.getName().equals(upgradeData.getUpgradedSlot())) {
+        if (!expectedStoredSlot.equals(upgradeData.getUpgradedSlot())) {
             return;
         }
 
@@ -35,9 +51,9 @@ public final class OffhandUpgradeAttributeEvent {
         UpgradeUtils.handleAttributeEvent(
                 event.getModifiers(),
                 upgradeData,
-                (attribute, modifier) -> event.addModifier(attribute, modifier, EquipmentSlotGroup.OFFHAND),
+                (attribute, modifier) -> event.addModifier(attribute, modifier, targetSlotGroup),
                 (attribute, modifier) -> event.removeModifier(attribute, modifier.id()),
-                EquipmentSlot.OFFHAND.getName()
+                appliedSlotId
         );
     }
 }

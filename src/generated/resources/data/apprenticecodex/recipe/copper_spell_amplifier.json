@@ -14,13 +14,20 @@
   },
   "pattern": [
     "LAL",
-    " C ",
+    "C C",
     " C "
   ],
   "result": {
     "components": {
       "irons_spellbooks:spell_container": {
-        "data": [],
+        "data": [
+          {
+            "id": "irons_spellbooks:ball_lightning",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
         "maxSpells": 1,
         "mustEquip": false,
         "spellWheel": true

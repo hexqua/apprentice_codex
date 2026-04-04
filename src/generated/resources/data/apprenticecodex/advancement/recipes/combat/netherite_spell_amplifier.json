@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:diamond_spell_amplifier"
-            ]
+            "items": "apprenticecodex:diamond_spell_amplifier"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_diamond_spell_amplifier",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_diamond_spell_amplifier"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:netherite_spell_amplifier"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

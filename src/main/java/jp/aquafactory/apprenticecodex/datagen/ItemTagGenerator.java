@@ -68,8 +68,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get()
         );
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
-        ironsUpgradeWhitelist.add(ItemRegistry.ENDER_GRIMOIRE.get());
+        ironsUpgradeWhitelist.add(
+                ItemRegistry.ENDER_GRIMOIRE.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
         // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。
+        // Crystal Bladed Staff は 1.21.1 で継承階層が StaffItem 直下へ変わったため、明示列挙で維持する。
         for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
             if (item instanceof AbstractOffhandMagicItem

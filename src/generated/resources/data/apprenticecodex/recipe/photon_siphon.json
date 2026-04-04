@@ -2,19 +2,19 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "E": {
+    "A": {
       "item": "irons_spellbooks:arcane_ingot"
     },
-    "M": {
-      "item": "irons_spellbooks:mithril_ingot"
+    "E": {
+      "item": "irons_spellbooks:arcane_essence"
     },
     "S": {
       "item": "irons_spellbooks:mithril_scrap"
     }
   },
   "pattern": [
-    "EME",
-    "S S",
+    "EAE",
+    " S ",
     " S "
   ],
   "result": {

@@ -326,6 +326,22 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void mainhandUpgradeBridgeAppliesStoredUpgradeDataToSpellGunsAndWeapons(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertMainhandUpgradeBridge(
+                    helper,
+                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    "Spell gun upgrade bridge regression"
+            );
+            assertMainhandUpgradeBridge(
+                    helper,
+                    new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
+                    "Right-click weapon upgrade bridge regression"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertCastingMoveSpeedAdjustment(helper, 0.0D, 0.8D, "No external bonus should keep full cancellation");
@@ -341,10 +357,19 @@ public final class ApprenticeCodexGameTests {
     public static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
-            var movementSpeedModifier = effect.getAttributeModifiers().get(Attributes.MOVEMENT_SPEED);
-            helper.assertTrue(movementSpeedModifier != null, "LongStride is missing the movement speed attribute modifier");
+            var movementSpeedModifiers = new java.util.ArrayList<AttributeModifier>();
+            effect.createModifiers(0, (attribute, modifier) -> {
+                if (attribute.equals(Attributes.MOVEMENT_SPEED)) {
+                    movementSpeedModifiers.add(modifier);
+                }
+            });
 
-            var actualAmount = effect.getAttributeModifierValue(0, movementSpeedModifier);
+            helper.assertTrue(!movementSpeedModifiers.isEmpty(), "LongStride is missing the movement speed attribute modifier");
+
+            var actualAmount = movementSpeedModifiers.stream()
+                    .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
+                    .mapToDouble(AttributeModifier::amount)
+                    .sum();
             helper.assertTrue(Math.abs(actualAmount - 0.15D) < 1.0e-9D,
                     "LongStride movement speed bonus regression: expected 0.15 but got " + actualAmount);
         });
@@ -383,9 +408,21 @@ public final class ApprenticeCodexGameTests {
             AttributeModifier.Operation operation,
             String message
     ) {
+        assertModifierAmount(helper, modifiers, attribute, EquipmentSlotGroup.OFFHAND, expectedAmount, operation, message);
+    }
+
+    private static void assertModifierAmount(
+            GameTestHelper helper,
+            ItemAttributeModifiers modifiers,
+            Attribute attribute,
+            EquipmentSlotGroup slotGroup,
+            double expectedAmount,
+            AttributeModifier.Operation operation,
+            String message
+    ) {
         var actualAmount = modifiers.modifiers().stream()
-                .filter(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND))
-                .filter(entry -> entry.attribute().is(attribute))
+                .filter(entry -> entry.slot().equals(slotGroup))
+                .filter(entry -> entry.attribute().value() == attribute)
                 .filter(entry -> entry.modifier().operation() == operation)
                 .mapToDouble(entry -> entry.modifier().amount())
                 .sum();
@@ -402,6 +439,32 @@ public final class ApprenticeCodexGameTests {
         var actualAmount = CastingMoveSpeedAdjustment.computeAvailableBonus(externalBonus);
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected " + expectedAmount + " but got " + actualAmount + " for external bonus " + externalBonus);
+    }
+
+    private static void assertMainhandUpgradeBridge(
+            GameTestHelper helper,
+            ItemStack stack,
+            String message
+    ) {
+        var upgradeData = createUpgradeData(
+                helper.getLevel().registryAccess(),
+                stack,
+                io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                EquipmentSlot.MAINHAND.getName()
+        );
+
+        var event = new ItemAttributeModifierEvent(stack, stack.getItem().getDefaultAttributeModifiers(stack));
+        NeoForge.EVENT_BUS.post(event);
+
+        assertModifierAmount(
+                helper,
+                event.build(),
+                io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.value(),
+                EquipmentSlotGroup.MAINHAND,
+                50.0D,
+                AttributeModifier.Operation.ADD_VALUE,
+                message + ": expected +50 max mana from " + upgradeData
+        );
     }
 
     private static void assertUpgradeable(GameTestHelper helper, ItemStack stack, String message) {

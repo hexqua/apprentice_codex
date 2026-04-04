@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.effect;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -13,41 +15,53 @@ import org.jetbrains.annotations.Nullable;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.UUID;
 
 public abstract class DynamicCastingMobilityEffect extends MobEffect {
-    private static final Set<UUID> MANAGED_MODIFIER_UUIDS = new LinkedHashSet<>();
+    private static final Set<ResourceLocation> MANAGED_MODIFIER_IDS = new LinkedHashSet<>();
 
-    private final String castingMoveSpeedModifierId;
-    private final UUID castingMoveSpeedModifierUuid;
+    private final ResourceLocation castingMoveSpeedModifierId;
 
     protected DynamicCastingMobilityEffect(int color, String castingMoveSpeedModifierId) {
         super(MobEffectCategory.BENEFICIAL, color);
-        this.castingMoveSpeedModifierId = castingMoveSpeedModifierId;
-        this.castingMoveSpeedModifierUuid = UUID.fromString(castingMoveSpeedModifierId);
-        MANAGED_MODIFIER_UUIDS.add(this.castingMoveSpeedModifierUuid);
+        this.castingMoveSpeedModifierId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, castingMoveSpeedModifierId);
+        MANAGED_MODIFIER_IDS.add(this.castingMoveSpeedModifierId);
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true;
     }
 
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         syncCastingMoveSpeedModifiers(entity, entity.getAttributes(), null, null);
+        return true;
     }
 
     @Override
-    public void addAttributeModifiers(LivingEntity livingEntity, AttributeMap attributeMap, int amplifier) {
-        super.addAttributeModifiers(livingEntity, attributeMap, amplifier);
-        syncCastingMoveSpeedModifiers(livingEntity, attributeMap, new ActiveEffect(this, amplifier), null);
+    public void onEffectStarted(LivingEntity livingEntity, int amplifier) {
+        syncCastingMoveSpeedModifiers(livingEntity, livingEntity.getAttributes(), new ActiveEffect(this, amplifier), null);
     }
 
     @Override
-    public void removeAttributeModifiers(LivingEntity livingEntity, AttributeMap attributeMap, int amplifier) {
-        super.removeAttributeModifiers(livingEntity, attributeMap, amplifier);
-        syncCastingMoveSpeedModifiers(livingEntity, attributeMap, null, castingMoveSpeedModifierUuid);
+    public void onEffectAdded(LivingEntity livingEntity, int amplifier) {
+        super.onEffectAdded(livingEntity, amplifier);
+        syncCastingMoveSpeedModifiers(livingEntity, livingEntity.getAttributes(), new ActiveEffect(this, amplifier), null);
+    }
+
+    @Override
+    public void addAttributeModifiers(AttributeMap attributeMap, int amplifier) {
+        super.addAttributeModifiers(attributeMap, amplifier);
+    }
+
+    @Override
+    public void removeAttributeModifiers(AttributeMap attributeMap) {
+        super.removeAttributeModifiers(attributeMap);
+
+        var attributeInstance = attributeMap.getInstance(AttributeRegistry.CASTING_MOVESPEED);
+        if (attributeInstance != null) {
+            removeManagedModifiers(attributeInstance);
+        }
     }
 
     protected boolean isCastingMoveSpeedContributionEnabled(int amplifier) {
@@ -58,16 +72,15 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
         return CastingMoveSpeedAdjustment.MAX_CASTING_MOVE_SPEED_BONUS;
     }
 
-    protected final UUID getCastingMoveSpeedModifierUuid() {
-        return castingMoveSpeedModifierUuid;
+    protected final ResourceLocation getCastingMoveSpeedModifierId() {
+        return castingMoveSpeedModifierId;
     }
 
     private AttributeModifier createCastingMoveSpeedModifier(double amount) {
         return new AttributeModifier(
-                castingMoveSpeedModifierUuid,
                 castingMoveSpeedModifierId,
                 amount,
-                AttributeModifier.Operation.ADDITION
+                AttributeModifier.Operation.ADD_VALUE
         );
     }
 
@@ -75,16 +88,16 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
             LivingEntity livingEntity,
             AttributeMap attributeMap,
             @Nullable ActiveEffect forcedEffect,
-            @Nullable UUID excludedModifierUuid
+            @Nullable ResourceLocation excludedModifierId
     ) {
-        var attributeInstance = attributeMap.getInstance(AttributeRegistry.CASTING_MOVESPEED.get());
+        var attributeInstance = attributeMap.getInstance(AttributeRegistry.CASTING_MOVESPEED);
         if (attributeInstance == null) {
             return;
         }
 
         removeManagedModifiers(attributeInstance);
 
-        var activeEffects = collectActiveEffects(livingEntity, forcedEffect, excludedModifierUuid);
+        var activeEffects = collectActiveEffects(livingEntity, forcedEffect, excludedModifierId);
         if (activeEffects.isEmpty()) {
             return;
         }
@@ -92,7 +105,7 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
         // Iron's Spellbooks 本体の最終式は維持し、この mod 側は外部加算で残る headroom だけを使う。
         var externalBonus = Math.max(
                 0.0D,
-                attributeInstance.getValue() - attributeInstance.getAttribute().getDefaultValue()
+                attributeInstance.getValue() - attributeInstance.getAttribute().value().getDefaultValue()
         );
         var totalTargetBonus = activeEffects.values().stream()
                 .mapToDouble(ActiveEffect::targetBonus)
@@ -113,20 +126,20 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
     }
 
     private static void removeManagedModifiers(AttributeInstance attributeInstance) {
-        for (var modifierUuid : MANAGED_MODIFIER_UUIDS) {
-            attributeInstance.removeModifier(modifierUuid);
+        for (var modifierId : MANAGED_MODIFIER_IDS) {
+            attributeInstance.removeModifier(modifierId);
         }
     }
 
-    private static LinkedHashMap<UUID, ActiveEffect> collectActiveEffects(
+    private static LinkedHashMap<ResourceLocation, ActiveEffect> collectActiveEffects(
             LivingEntity livingEntity,
             @Nullable ActiveEffect forcedEffect,
-            @Nullable UUID excludedModifierUuid
+            @Nullable ResourceLocation excludedModifierId
     ) {
-        var activeEffects = new LinkedHashMap<UUID, ActiveEffect>();
+        var activeEffects = new LinkedHashMap<ResourceLocation, ActiveEffect>();
 
         for (MobEffectInstance activeInstance : livingEntity.getActiveEffects()) {
-            if (!(activeInstance.getEffect() instanceof DynamicCastingMobilityEffect dynamicEffect)) {
+            if (!(activeInstance.getEffect().value() instanceof DynamicCastingMobilityEffect dynamicEffect)) {
                 continue;
             }
 
@@ -134,18 +147,18 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
                 continue;
             }
 
-            var modifierUuid = dynamicEffect.getCastingMoveSpeedModifierUuid();
-            if (modifierUuid.equals(excludedModifierUuid)) {
+            var modifierId = dynamicEffect.getCastingMoveSpeedModifierId();
+            if (modifierId.equals(excludedModifierId)) {
                 continue;
             }
 
-            activeEffects.put(modifierUuid, new ActiveEffect(dynamicEffect, activeInstance.getAmplifier()));
+            activeEffects.put(modifierId, new ActiveEffect(dynamicEffect, activeInstance.getAmplifier()));
         }
 
         if (forcedEffect != null && forcedEffect.effect().isCastingMoveSpeedContributionEnabled(forcedEffect.amplifier())) {
-            var modifierUuid = forcedEffect.effect().getCastingMoveSpeedModifierUuid();
-            if (!modifierUuid.equals(excludedModifierUuid)) {
-                activeEffects.put(modifierUuid, forcedEffect);
+            var modifierId = forcedEffect.effect().getCastingMoveSpeedModifierId();
+            if (!modifierId.equals(excludedModifierId)) {
+                activeEffects.put(modifierId, forcedEffect);
             }
         }
 

@@ -18,7 +18,15 @@
     " D "
   ],
   "result": {
-    "item": "apprenticecodex:diamond_spell_amplifier"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:diamond_spell_amplifier"
+  }
 }

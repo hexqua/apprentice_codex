@@ -10,7 +10,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
@@ -26,7 +28,7 @@ public class SpellAmplifierRenderer extends GeoItemRenderer<AbstractSpellAmplifi
     @Override
     public void renderRecursively(PoseStack poseStack, AbstractSpellAmplifierItem animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         if (isBoneOrChildOf(bone, CIRCUIT_EMISSIVE_BONE)) {
             var currentStack = this.currentItemStack != null ? this.currentItemStack : ItemStack.EMPTY;
             var schoolType = MagicTools.getImbuedSpellSchool(currentStack);
@@ -46,7 +48,7 @@ public class SpellAmplifierRenderer extends GeoItemRenderer<AbstractSpellAmplifi
             super.renderRecursively(
                     poseStack, animatable, bone, additiveRenderType, bufferSource, bufferSource.getBuffer(additiveRenderType),
                     isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
-                    circuitRed, circuitGreen, circuitBlue, alpha
+                    packColour(circuitRed, circuitGreen, circuitBlue, 1.0f)
             );
             return;
         }
@@ -56,16 +58,16 @@ public class SpellAmplifierRenderer extends GeoItemRenderer<AbstractSpellAmplifi
             var emissiveRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
             float brightness = resolveCoreBrightness(partialTick);
             super.renderRecursively(
-                    poseStack, animatable, bone, emissiveRenderType, bufferSource, bufferSource.getBuffer(emissiveRenderType),
+                    poseStack, animatable, bone, emissiveRenderType, bufferSource, getFoilAwareBuffer(bufferSource, emissiveRenderType),
                     isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
-                    red * brightness, green * brightness, blue * brightness, alpha
+                    scaleColour(colour, brightness)
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -88,5 +90,34 @@ public class SpellAmplifierRenderer extends GeoItemRenderer<AbstractSpellAmplifi
         }
 
         return false;
+    }
+
+    private VertexConsumer getFoilAwareBuffer(MultiBufferSource bufferSource, RenderType renderType) {
+        return ItemRenderer.getFoilBufferDirect(
+                bufferSource,
+                renderType,
+                this.renderPerspective == ItemDisplayContext.GUI,
+                this.currentItemStack != null && this.currentItemStack.hasFoil()
+        );
+    }
+
+    private static int scaleColour(int colour, float brightness) {
+        var safeBrightness = Math.max(0.0f, brightness);
+        var alpha = (colour >>> 24) & 0xFF;
+        var red = Math.round(((colour >>> 16) & 0xFF) * safeBrightness);
+        var green = Math.round(((colour >>> 8) & 0xFF) * safeBrightness);
+        var blue = Math.round((colour & 0xFF) * safeBrightness);
+        return (alpha << 24)
+                | (Mth.clamp(red, 0, 255) << 16)
+                | (Mth.clamp(green, 0, 255) << 8)
+                | Mth.clamp(blue, 0, 255);
+    }
+
+    private static int packColour(float red, float green, float blue, float alpha) {
+        var a = Mth.clamp(Math.round(alpha * 255.0f), 0, 255);
+        var r = Mth.clamp(Math.round(red * 255.0f), 0, 255);
+        var g = Mth.clamp(Math.round(green * 255.0f), 0, 255);
+        var b = Mth.clamp(Math.round(blue * 255.0f), 0, 255);
+        return a << 24 | r << 16 | g << 8 | b;
     }
 }

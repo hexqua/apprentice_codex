@@ -7,7 +7,16 @@
     "item": "apprenticecodex:diamond_spell_amplifier"
   },
   "result": {
-    "item": "apprenticecodex:netherite_spell_amplifier"
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:netherite_spell_amplifier"
   },
   "template": {
     "item": "minecraft:netherite_upgrade_smithing_template"

@@ -10,7 +10,7 @@ public class SilverSpellAmplifier extends AbstractSpellAmplifierItem {
         super(
                 Rarity.UNCOMMON,
                 "silver_spell_amplifier",
-                bonus(AttributeRegistry.MAX_MANA, 150, AttributeModifier.Operation.ADDITION)
+                bonus(AttributeRegistry.MAX_MANA, 150, AttributeModifier.Operation.ADD_VALUE)
         );
     }
 
