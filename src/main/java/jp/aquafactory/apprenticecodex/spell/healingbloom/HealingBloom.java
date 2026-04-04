@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.spell.IClientPlacementPreviewSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -213,7 +214,7 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             if (position != null) {
                 tag.putInt("PositionX", position.getX());
@@ -224,7 +225,7 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             if (nbt.contains("PositionX")) {
                 position = new BlockPos(nbt.getInt("PositionX"), nbt.getInt("PositionY"), nbt.getInt("PositionZ"));
             } else {

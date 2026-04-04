@@ -94,9 +94,9 @@ public class DemicreatorWingsCoreRenderer extends EntityRenderer<DemicreatorWing
                                 float x2, float y2, float z2,
                                 float x3, float y3, float z3,
                                 float red, float green, float blue, float alpha) {
-        consumer.vertex(poseMatrix, x0, y0, z0).color(red, green, blue, alpha).endVertex();
-        consumer.vertex(poseMatrix, x1, y1, z1).color(red, green, blue, alpha).endVertex();
-        consumer.vertex(poseMatrix, x2, y2, z2).color(red, green, blue, 0.0f).endVertex();
-        consumer.vertex(poseMatrix, x3, y3, z3).color(red, green, blue, 0.0f).endVertex();
+        consumer.addVertex(poseMatrix, x0, y0, z0).setColor(red, green, blue, alpha);
+        consumer.addVertex(poseMatrix, x1, y1, z1).setColor(red, green, blue, alpha);
+        consumer.addVertex(poseMatrix, x2, y2, z2).setColor(red, green, blue, 0.0f);
+        consumer.addVertex(poseMatrix, x3, y3, z3).setColor(red, green, blue, 0.0f);
     }
 }

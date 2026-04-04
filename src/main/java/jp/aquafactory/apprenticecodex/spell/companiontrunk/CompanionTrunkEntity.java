@@ -36,15 +36,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashSet;
@@ -122,12 +122,12 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        entityData.define(LID_ANIMATION_STATE, LidAnimationState.IDLE.id);
-        entityData.define(LID_ANIMATION_SERIAL, 0);
-        entityData.define(BODY_ANIMATION_STATE, BodyAnimationState.IDLE.id);
-        entityData.define(BODY_ANIMATION_SERIAL, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(LID_ANIMATION_STATE, LidAnimationState.IDLE.id);
+        builder.define(LID_ANIMATION_SERIAL, 0);
+        builder.define(BODY_ANIMATION_STATE, BodyAnimationState.IDLE.id);
+        builder.define(BODY_ANIMATION_SERIAL, 0);
     }
 
     @Override

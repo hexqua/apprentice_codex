@@ -49,10 +49,10 @@ public class DemicreatorWingsCoreEntity extends Entity implements TraceableEntit
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(ALLOWED_RADIUS, 1);
-        entityData.define(DURATION_TICKS, 20);
-        entityData.define(OWNER_ENTITY_ID, NO_OWNER_ENTITY_ID);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(ALLOWED_RADIUS, 1);
+        builder.define(DURATION_TICKS, 20);
+        builder.define(OWNER_ENTITY_ID, NO_OWNER_ENTITY_ID);
     }
 
     @Override

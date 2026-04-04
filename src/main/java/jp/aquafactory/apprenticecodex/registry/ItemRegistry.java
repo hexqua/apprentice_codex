@@ -81,7 +81,7 @@ public final class ItemRegistry {
                     BlockRegistry.COMFORT_BERRY_BUSH.get(),
                     new Item.Properties().food(new net.minecraft.world.food.FoodProperties.Builder()
                             .nutrition(5)
-                            .saturationMod(0.84f)
+                            .saturationModifier(0.84f)
                             .build())
             ));
     public static final DeferredHolder<Item, Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");

@@ -45,11 +45,11 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
@@ -124,13 +124,13 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        entityData.define(ANIMATION_STATE, BloomAnimationState.GROW.id);
-        entityData.define(ANIMATION_SERIAL, 1);
-        entityData.define(LIGHT_COLOR_RED, LIGHT_COLOR_YELLOW_RED);
-        entityData.define(LIGHT_COLOR_GREEN, LIGHT_COLOR_YELLOW_GREEN);
-        entityData.define(LIGHT_COLOR_BLUE, LIGHT_COLOR_YELLOW_BLUE);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ANIMATION_STATE, BloomAnimationState.GROW.id);
+        builder.define(ANIMATION_SERIAL, 1);
+        builder.define(LIGHT_COLOR_RED, LIGHT_COLOR_YELLOW_RED);
+        builder.define(LIGHT_COLOR_GREEN, LIGHT_COLOR_YELLOW_GREEN);
+        builder.define(LIGHT_COLOR_BLUE, LIGHT_COLOR_YELLOW_BLUE);
     }
 
     @Override

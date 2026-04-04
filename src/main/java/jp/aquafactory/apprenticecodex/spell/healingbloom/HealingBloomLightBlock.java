@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.healingbloom;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -18,9 +19,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HealingBloomLightBlock extends BaseEntityBlock implements EntityBlock {
+    public static final MapCodec<HealingBloomLightBlock> CODEC = simpleCodec(HealingBloomLightBlock::new);
+
+    public HealingBloomLightBlock(Properties properties) {
+        super(properties);
+    }
+
     public HealingBloomLightBlock() {
-        // 1.20.1 Forge 向けの接着コード。1.21.1 側では light block の実装都合が変わる可能性がある。
-        super(Properties.of()
+        this(Properties.of()
                 .strength(0.0F)
                 .noCollission()
                 .noOcclusion()
@@ -54,5 +60,10 @@ public class HealingBloomLightBlock extends BaseEntityBlock implements EntityBlo
                 jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry.HEALING_BLOOM_LIGHT.get(),
                 HealingBloomLightBlockEntity::serverTick
         );
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 }

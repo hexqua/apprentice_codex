@@ -25,7 +25,7 @@ public final class BlockRegistry {
             BLOCKS.register("mage_light_torch", MageLightTorchBlock::new);
 
     public static final DeferredHolder<Block, Block> HEALING_BLOOM_LIGHT =
-            BLOCKS.register("healing_bloom_light", HealingBloomLightBlock::new);
+            BLOCKS.register("healing_bloom_light", () -> new HealingBloomLightBlock());
 
     public static final DeferredHolder<Block, Block> PERSONAL_SHELF_CHEST =
             BLOCKS.register("personal_shelf_chest", () -> new PersonalShelfChestBlock());
@@ -49,7 +49,7 @@ public final class BlockRegistry {
             BLOCKS.register("atelier_station", () -> new AtelierStation());
 
     public static final DeferredHolder<Block, Block> COMFORT_BERRY_BUSH =
-            BLOCKS.register("comfort_berry_bush", ComfortBerryBushBlock::new);
+            BLOCKS.register("comfort_berry_bush", () -> new ComfortBerryBushBlock());
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

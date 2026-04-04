@@ -1,24 +1,23 @@
 package jp.aquafactory.apprenticecodex.block.comfortberrybush;
 
+import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.BushBlock;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -32,18 +31,27 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("deprecation")
 public class ComfortBerryBushBlock extends BushBlock implements BonemealableBlock {
+    public static final MapCodec<ComfortBerryBushBlock> CODEC = simpleCodec(ComfortBerryBushBlock::new);
     public static final int MAX_AGE = 2;
     public static final IntegerProperty AGE = BlockStateProperties.AGE_2;
     private static final VoxelShape SAPLING_SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
     private static final VoxelShape MID_GROWTH_SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
 
-    public ComfortBerryBushBlock() {
-        super(BlockBehaviour.Properties.copy(Blocks.SWEET_BERRY_BUSH));
+    public ComfortBerryBushBlock(BlockBehaviour.Properties properties) {
+        super(properties);
         registerDefaultState(stateDefinition.any().setValue(AGE, 0));
     }
 
+    public ComfortBerryBushBlock() {
+        this(BlockBehaviour.Properties.of()
+                .noCollission()
+                .randomTicks()
+                .instabreak()
+                .sound(SoundType.SWEET_BERRY_BUSH));
+    }
+
     @Override
-    public @NotNull ItemStack getCloneItemStack(@NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull BlockState state) {
+    public @NotNull ItemStack getCloneItemStack(@NotNull LevelReader level, @NotNull BlockPos pos, @NotNull BlockState state) {
         return new ItemStack(ItemRegistry.COMFORT_BERRIES.get());
     }
 
@@ -68,11 +76,10 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
         int age = state.getValue(AGE);
         if (age < MAX_AGE
                 && level.getRawBrightness(pos.above(), 0) >= 9
-                && net.minecraftforge.common.ForgeHooks.onCropsGrowPre(level, pos, state, random.nextInt(6) == 0)) {
+                && random.nextInt(6) == 0) {
             var grown = state.setValue(AGE, age + 1);
             level.setBlock(pos, grown, 2);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(grown));
-            net.minecraftforge.common.ForgeHooks.onCropsGrowPost(level, pos, state);
         }
     }
 
@@ -82,13 +89,9 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                          @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hit) {
+    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
+                                                        @NotNull Player player, @NotNull BlockHitResult hit) {
         int age = state.getValue(AGE);
-        if (age < MAX_AGE && player.getItemInHand(hand).is(Items.BONE_MEAL)) {
-            return InteractionResult.PASS;
-        }
-
         if (age == MAX_AGE) {
             popResource(level, pos, new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), 2 + level.random.nextInt(2)));
             level.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS,
@@ -99,7 +102,7 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        return super.use(state, level, pos, player, hand, hit);
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -108,7 +111,7 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
     }
 
     @Override
-    public boolean isValidBonemealTarget(@NotNull LevelReader level, @NotNull BlockPos pos, @NotNull BlockState state, boolean isClient) {
+    public boolean isValidBonemealTarget(@NotNull LevelReader level, @NotNull BlockPos pos, @NotNull BlockState state) {
         return state.getValue(AGE) < MAX_AGE;
     }
 
@@ -120,5 +123,10 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
     @Override
     public void performBonemeal(@NotNull ServerLevel level, @NotNull RandomSource random, @NotNull BlockPos pos, @NotNull BlockState state) {
         level.setBlock(pos, state.setValue(AGE, Math.min(MAX_AGE, state.getValue(AGE) + 1)), 2);
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BushBlock> codec() {
+        return CODEC;
     }
 }

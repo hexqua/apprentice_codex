@@ -129,7 +129,7 @@ public class TreasureDivination extends AbstractSpell {
 
         // TreasureDivination は情報取得そのものが主目的なので、継続詠唱減速だけを共通効果で打ち消す。
         entity.addEffect(new MobEffectInstance(
-                EffectRegistry.CASTING_MOBILITY.get(),
+                EffectRegistry.CASTING_MOBILITY,
                 CASTING_MOBILITY_EFFECT_REFRESH_TICKS,
                 0,
                 false,

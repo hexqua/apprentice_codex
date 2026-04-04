@@ -8,6 +8,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
@@ -41,17 +42,16 @@ public final class BlockTagGenerator extends BlockTagsProvider {
         tag(TagRegistry.Blocks.TREASURE_DIVINATION_TARGETS)
                 .add(
                         Blocks.ANCIENT_DEBRIS,
-                        Blocks.SPAWNER
+                        Blocks.SPAWNER,
+                        Blocks.TRIAL_SPAWNER
                 )
+                .addTag(Tags.Blocks.CHESTS)
+                .addTag(Tags.Blocks.BARRELS)
                 .addTag(BlockTags.SHULKER_BOXES)
-                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("forge", "ores/mithril"))
-                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("forge", "chests"))
-                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("forge", "barrels"))
-                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("forge", "shulker_boxes"))
-                .addOptional(ResourceLocation.fromNamespaceAndPath("lootr", "lootr_chest"))
-                .addOptional(ResourceLocation.fromNamespaceAndPath("lootr", "lootr_trapped_chest"))
-                .addOptional(ResourceLocation.fromNamespaceAndPath("lootr", "lootr_barrel"))
-                .addOptional(ResourceLocation.fromNamespaceAndPath("lootr", "lootr_shulker"));
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("c", "ores/mithril"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "mithril_ore"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "deepslate_mithril_ore"))
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("lootr", "pots"));
 
         // TinyLumberjack の強制原木判定.
         tag(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LOGS);

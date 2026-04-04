@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.datagen;
 import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -24,8 +25,11 @@ import java.util.List;
 import java.util.Set;
 
 public final class BlockLootTableGenerator extends BlockLootSubProvider {
+    private final HolderLookup.Provider registries;
+
     public BlockLootTableGenerator(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
+        this.registries = registries;
     }
 
     @Override
@@ -51,6 +55,7 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
     }
 
     private LootTable.Builder createComfortBerryBushDrops(Block block) {
+        var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
         var immatureCondition = AnyOfCondition.anyOf(
                 LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
                         .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(ComfortBerryBushBlock.AGE, 0)),
@@ -71,6 +76,6 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
                         .when(matureCondition)
                         .add(LootItem.lootTableItem(ItemRegistry.COMFORT_BERRIES.get())
                                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(2.0f, 3.0f)))
-                                .apply(ApplyBonusCount.addUniformBonusCount(Enchantments.BLOCK_FORTUNE)))));
+                                .apply(ApplyBonusCount.addUniformBonusCount(fortune)))));
     }
 }

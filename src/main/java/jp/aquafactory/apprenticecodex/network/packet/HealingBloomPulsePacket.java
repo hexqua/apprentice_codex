@@ -1,16 +1,24 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomPulseRenderEvent;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class HealingBloomPulsePacket implements CustomPacketPayload {
+    public static final Type<HealingBloomPulsePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "healing_bloom_pulse"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, HealingBloomPulsePacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), HealingBloomPulsePacket::decode);
 
-public class HealingBloomPulsePacket {
     private final double x;
     private final double y;
     private final double z;
@@ -27,14 +35,19 @@ public class HealingBloomPulsePacket {
         this.maxRadius = maxRadius;
     }
 
-    public static void encode(HealingBloomPulsePacket packet, FriendlyByteBuf buffer) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    private static void encode(HealingBloomPulsePacket packet, FriendlyByteBuf buffer) {
         buffer.writeDouble(packet.x);
         buffer.writeDouble(packet.y);
         buffer.writeDouble(packet.z);
         buffer.writeFloat(packet.maxRadius);
     }
 
-    public static HealingBloomPulsePacket decode(FriendlyByteBuf buffer) {
+    private static HealingBloomPulsePacket decode(FriendlyByteBuf buffer) {
         return new HealingBloomPulsePacket(
                 buffer.readDouble(),
                 buffer.readDouble(),
@@ -43,12 +56,12 @@ public class HealingBloomPulsePacket {
         );
     }
 
-    public static void handle(HealingBloomPulsePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(HealingBloomPulsePacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     @OnlyIn(Dist.CLIENT)
