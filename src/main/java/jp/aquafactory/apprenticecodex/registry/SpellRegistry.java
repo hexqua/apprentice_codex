@@ -11,14 +11,17 @@ import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurret;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
+import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunk;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensor;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunner;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
@@ -41,6 +44,7 @@ import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
+import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -77,6 +81,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_SLASH = reg("mana_slash", ManaSlash::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> LONG_STRIDE = reg("long_stride", LongStride::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> RIFT_HOLE = reg("rift_hole", RiftHole::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> DEMICREATOR_WINGS = reg("demicreator_wings", DemicreatorWings::new);
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
@@ -85,6 +90,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> PRECISION_JACK = reg("precision_jack", PrecisionJack::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> AUTO_TURRET = reg("auto_turret", AutoTurret::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> COMPANION_TRUNK = reg("companion_trunk", CompanionTrunk::new);
 
     // 炎.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
@@ -114,6 +120,8 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> WORLD_FLATTER = reg("world_flatter", WorldFlatter::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> EARTH_FORGE = reg("earth_forge", EarthForge::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> GRIND_RUNNER = reg("grind_runner", GrindRunner::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> TREASURE_DIVINATION = reg("treasure_divination", TreasureDivination::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> HEALING_BLOOM = reg("healing_bloom", HealingBloom::new);
 
     // エルドリッチ.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);

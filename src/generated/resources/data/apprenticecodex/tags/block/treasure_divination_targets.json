@@ -1,0 +1,26 @@
+{
+  "values": [
+    "minecraft:ancient_debris",
+    "minecraft:spawner",
+    "minecraft:trial_spawner",
+    "#c:chests",
+    "#c:barrels",
+    "#minecraft:shulker_boxes",
+    {
+      "id": "#c:ores/mithril",
+      "required": false
+    },
+    {
+      "id": "irons_spellbooks:mithril_ore",
+      "required": false
+    },
+    {
+      "id": "irons_spellbooks:deepslate_mithril_ore",
+      "required": false
+    },
+    {
+      "id": "#lootr:pots",
+      "required": false
+    }
+  ]
+}

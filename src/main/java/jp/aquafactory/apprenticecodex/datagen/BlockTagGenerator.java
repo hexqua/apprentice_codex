@@ -6,7 +6,9 @@ import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +37,21 @@ public final class BlockTagGenerator extends BlockTagsProvider {
 
         // RiftHole でトンネル化させたくないブロックをデータパックから追加する。
         tag(TagRegistry.Blocks.RIFT_HOLE_TUNNEL_DENYLIST);
+
+        // 宝占いで探知対象にする候補。単一タグ化して全て「特殊な気配」として扱う。
+        tag(TagRegistry.Blocks.TREASURE_DIVINATION_TARGETS)
+                .add(
+                        Blocks.ANCIENT_DEBRIS,
+                        Blocks.SPAWNER,
+                        Blocks.TRIAL_SPAWNER
+                )
+                .addTag(Tags.Blocks.CHESTS)
+                .addTag(Tags.Blocks.BARRELS)
+                .addTag(BlockTags.SHULKER_BOXES)
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("c", "ores/mithril"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "mithril_ore"))
+                .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "deepslate_mithril_ore"))
+                .addOptionalTag(ResourceLocation.fromNamespaceAndPath("lootr", "pots"));
 
         // TinyLumberjack の強制原木判定.
         tag(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LOGS);

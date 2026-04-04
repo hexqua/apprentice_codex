@@ -9,13 +9,17 @@ import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
+import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
+import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
@@ -139,11 +143,24 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<AssistWingsWingEntity>> ASSIST_WINGS_WING =
             regWeapon("assist_wings_wing", AssistWingsWingEntity::new, 1);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<DemicreatorWingsCoreEntity>> DEMICREATOR_WINGS_CORE =
+            reg("demicreator_wings_core", DemicreatorWingsCoreEntity::new, MobCategory.MISC,
+                    0.2f, 0.2f, 64, 1, false);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<DemicreatorWingsWingEntity>> DEMICREATOR_WINGS_WING =
+            regWeapon("demicreator_wings_wing", DemicreatorWingsWingEntity::new, 1);
+
     public static final DeferredHolder<EntityType<?>, EntityType<AutoMagnetFamiliarEntity>> AUTO_MAGNET_FAMILIAR =
             regWeapon("auto_magnet_familiar", AutoMagnetFamiliarEntity::new, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<AutoTurretEntity>> AUTO_TURRET =
             regLiving("auto_turret", AutoTurretEntity::new, AutoTurretEntity.WIDTH, AutoTurretEntity.HEIGHT, 32);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<CompanionTrunkEntity>> COMPANION_TRUNK =
+            regLiving("companion_trunk", CompanionTrunkEntity::new, CompanionTrunkEntity.WIDTH, CompanionTrunkEntity.HEIGHT, 32);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<HealingBloomEntity>> HEALING_BLOOM =
+            regLiving("healing_bloom", HealingBloomEntity::new, HealingBloomEntity.WIDTH, HealingBloomEntity.HEIGHT, 32);
 
     public static final DeferredHolder<EntityType<?>, EntityType<IlluminateStellarStarEntity>> ILLUMINATE_STELLAR_STAR =
             regProjectile("illuminate_stellar_star", IlluminateStellarStarEntity::new, 96, 1);

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.capability;
 
+import jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventory;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookData;
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventory;
@@ -29,6 +30,13 @@ public final class Capabilities {
         return Optional.of(player.getData(AttachmentRegistry.SPELL_DATA));
     }
 
+    public static Optional<CompanionTrunkInventory> getCompanionTrunkInventory(Entity entity) {
+        if (!(entity instanceof Player player)) {
+            return Optional.empty();
+        }
+        return Optional.of(player.getData(AttachmentRegistry.COMPANION_TRUNK_INVENTORY));
+    }
+
     public static Optional<EnderGrimoireSpellbookData> getEnderGrimoireSpellbook(Entity entity) {
         if (!(entity instanceof Player player)) {
             return Optional.empty();
@@ -48,6 +56,9 @@ public final class Capabilities {
         return getSpellData(entity).orElse(null);
     }
 
+    public static @Nullable CompanionTrunkInventory getCompanionTrunkInventoryOrNull(Entity entity) {
+        return getCompanionTrunkInventory(entity).orElse(null);
+    }
     public static @Nullable EnderGrimoireSpellbookData getEnderGrimoireSpellbookOrNull(Entity entity) {
         return getEnderGrimoireSpellbook(entity).orElse(null);
     }

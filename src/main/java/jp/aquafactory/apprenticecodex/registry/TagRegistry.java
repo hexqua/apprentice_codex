@@ -32,6 +32,8 @@ public final class TagRegistry {
                 createBlockTag("can_receive_graced_rain");
         public static final TagKey<Block> RIFT_HOLE_TUNNEL_DENYLIST =
                 createBlockTag("rift_hole_tunnel_denylist");
+        public static final TagKey<Block> TREASURE_DIVINATION_TARGETS =
+                createBlockTag("treasure_divination_targets");
         public static final TagKey<Block> TINY_LUMBERJACK_FORCED_LOGS =
                 createBlockTag("tiny_lumberjack_forced_logs");
         public static final TagKey<Block> TINY_LUMBERJACK_FORCED_LEAVES =

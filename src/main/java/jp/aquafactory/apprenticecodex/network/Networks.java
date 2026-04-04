@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
@@ -60,6 +61,11 @@ public final class Networks {
                 ForceFieldDefenseEffectPacket.TYPE,
                 ForceFieldDefenseEffectPacket.STREAM_CODEC,
                 ForceFieldDefenseEffectPacket::handle
+        );
+        registrar.playToClient(
+                HealingBloomPulsePacket.TYPE,
+                HealingBloomPulsePacket.STREAM_CODEC,
+                HealingBloomPulsePacket::handle
         );
         registrar.playToClient(
                 ManaSiphonOrbEffectPacket.TYPE,
