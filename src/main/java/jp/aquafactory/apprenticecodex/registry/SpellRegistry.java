@@ -45,6 +45,7 @@ import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
+import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLuna;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -102,7 +103,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> FORCE_FIELD = reg("force_field", ForceField::new);
     public static final RegistryObject<AbstractSpell> SENSE_EVIL = reg("sense_evil", SenseEvil::new);
     public static final RegistryObject<AbstractSpell> ILLUMINATE_STELLAR = reg("illuminate_stellar", IlluminateStellar::new);
-
+    public static final RegistryObject<AbstractSpell> UNITE_LUNA = reg("unite_luna", UniteLuna::new);
 
     // 氷.
     // まだなし...

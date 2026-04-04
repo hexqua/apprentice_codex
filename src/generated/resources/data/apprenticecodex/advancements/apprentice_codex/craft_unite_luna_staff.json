@@ -1,0 +1,33 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "criteria": {
+    "crafted_unite_luna_staff": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:unite_luna_staff"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_unite_luna_staff.description"
+    },
+    "frame": "challenge",
+    "hidden": true,
+    "icon": {
+      "item": "apprenticecodex:unite_luna_staff",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[{id:\"irons_spellbooks:magic_missile\",index:0,level:1,locked:1b}],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_unite_luna_staff.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_unite_luna_staff"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

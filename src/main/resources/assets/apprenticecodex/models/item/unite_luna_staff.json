@@ -90,8 +90,5 @@
         0.75
       ]
     }
-  },
-  "textures": {
-    "particle": "apprenticecodex:item/unite_luna_staff"
   }
 }

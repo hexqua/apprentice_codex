@@ -265,12 +265,47 @@ public final class ApprenticeCodexGameTests {
                     "AbstractRightClickMagicWeaponItem descendants should be upgradeable");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
                     "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.UNITE_LUNA_STAFF.get()),
+                    "New swing magic weapon descendants should be upgradeable");
 
             var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
                     "Reflectcast Shield should not be in the upgrade whitelist");
             helper.assertFalse(Utils.canBeUpgraded(shieldStack),
                     "Reflectcast Shield should remain excluded from the upgrade system");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void uniteLunaStaffStartsWithMagicMissileAndExpectedMainhandBonuses(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.UniteLunaStaff) ItemRegistry.UNITE_LUNA_STAFF.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Unite Luna Staff did not initialize a spell container");
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Unite Luna Staff spell container is null");
+
+            var spellData = spellContainer.getSpellAtIndex(0);
+            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                    "Unite Luna Staff has no preset spell");
+            helper.assertTrue(spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(),
+                    "Unite Luna Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
+            helper.assertTrue(spellData.getLevel() == 1,
+                    "Unite Luna Staff preset spell level mismatch: " + spellData.getLevel());
+
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE), AttributeModifier.Operation.ADDITION) - 7.0D) < 1.0e-9D,
+                    "Unite Luna Staff attack damage regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED), AttributeModifier.Operation.ADDITION) - (-2.6D)) < 1.0e-9D,
+                    "Unite Luna Staff attack speed regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraftforge.common.ForgeMod.ENTITY_REACH.get()), AttributeModifier.Operation.ADDITION) - 1.0D) < 1.0e-9D,
+                    "Unite Luna Staff entity reach regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.05D) < 1.0e-9D,
+                    "Unite Luna Staff spell power regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.10D) < 1.0e-9D,
+                    "Unite Luna Staff holy spell power regression: " + describeModifiers(modifiers));
         });
     }
 
