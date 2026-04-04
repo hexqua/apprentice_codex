@@ -203,8 +203,16 @@ public abstract class AbstractOffhandMagicItem extends Item
         if (stack == null || stack.isEmpty()) {
             return baseModifiers;
         }
+
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        builder.putAll(baseModifiers);
+        var prefix = "apprenticecodex." + itemKey;
+        var hasStackDependentModifiers = addStackDependentModifiers(builder, stack, prefix + ".stack");
+
         if (!stack.isEnchanted()) {
-            return baseModifiers;
+            return hasStackDependentModifiers
+                    ? mergeTooltipEquivalentModifiers(builder.build(), prefix + ".merged")
+                    : baseModifiers;
         }
         if (!EnchantmentRegistry.ALACRITY.isPresent()
                 || !EnchantmentRegistry.REFLUX.isPresent()
@@ -212,7 +220,9 @@ public abstract class AbstractOffhandMagicItem extends Item
                 || !EnchantmentRegistry.SURGE.isPresent()
                 || !EnchantmentRegistry.ATTUNEMENT.isPresent()
                 || !EnchantmentRegistry.TENSE.isPresent()) {
-            return baseModifiers;
+            return hasStackDependentModifiers
+                    ? mergeTooltipEquivalentModifiers(builder.build(), prefix + ".merged")
+                    : baseModifiers;
         }
 
         var alacrityLevel = stack.getEnchantmentLevel(EnchantmentRegistry.ALACRITY.get());
@@ -228,64 +238,73 @@ public abstract class AbstractOffhandMagicItem extends Item
                 && surgeLevel <= 0
                 && attunementLevel <= 0
                 && tenseLevel <= 0) {
-            return baseModifiers;
+            return hasStackDependentModifiers
+                    ? mergeTooltipEquivalentModifiers(builder.build(), prefix + ".merged")
+                    : baseModifiers;
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(baseModifiers);
-        var prefix = "apprenticecodex." + itemKey + ".enchant";
+        var enchantPrefix = prefix + ".enchant";
 
-        addEnchantmentModifier(
+        addEquippedModifier(
                 builder,
                 AttributeRegistry.COOLDOWN_REDUCTION.get(),
                 alacrityLevel * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
                 AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".alacrity.cooldown_reduction"
+                enchantPrefix + ".alacrity.cooldown_reduction"
         );
-        addEnchantmentModifier(
+        addEquippedModifier(
                 builder,
                 AttributeRegistry.MANA_REGEN.get(),
                 refluxLevel * REFLUX_MANA_REGEN_PER_LEVEL,
                 AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".reflux.mana_regen"
+                enchantPrefix + ".reflux.mana_regen"
         );
-        addEnchantmentModifier(
+        addEquippedModifier(
                 builder,
                 AttributeRegistry.MAX_MANA.get(),
                 reservoirLevel * RESERVOIR_MAX_MANA_PER_LEVEL,
                 AttributeModifier.Operation.ADDITION,
-                prefix + ".reservoir.max_mana"
+                enchantPrefix + ".reservoir.max_mana"
         );
-        addEnchantmentModifier(
+        addEquippedModifier(
                 builder,
                 AttributeRegistry.SPELL_POWER.get(),
                 surgeLevel * SURGE_SPELL_POWER_PER_LEVEL,
                 AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".surge.spell_power"
+                enchantPrefix + ".surge.spell_power"
         );
         if (attunementLevel > 0) {
             var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
             var attunementSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-            addEnchantmentModifier(
+            addEquippedModifier(
                     builder,
                     attunementSpellPowerAttribute,
                     attunementLevel * ATTUNEMENT_SPELL_POWER_PER_LEVEL,
                     AttributeModifier.Operation.MULTIPLY_BASE,
-                    prefix + ".attunement.spell_power"
+                    enchantPrefix + ".attunement.spell_power"
             );
         }
-        addEnchantmentModifier(
+        addEquippedModifier(
                 builder,
                 AttributeRegistry.CAST_TIME_REDUCTION.get(),
                 tenseLevel * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
                 AttributeModifier.Operation.MULTIPLY_BASE,
-                prefix + ".tense.cast_time_reduction"
+                enchantPrefix + ".tense.cast_time_reduction"
         );
 
         return mergeTooltipEquivalentModifiers(builder.build(), prefix + ".merged");
     }
 
-    private static void addEnchantmentModifier(
+    // Imbue 内容に応じた補正など、stack の状態を見て増減させたい派生アイテム向け.
+    protected boolean addStackDependentModifiers(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemStack stack,
+            String modifierSeedPrefix
+    ) {
+        return false;
+    }
+
+    protected static void addEquippedModifier(
             ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
             Attribute attribute,
             double amount,

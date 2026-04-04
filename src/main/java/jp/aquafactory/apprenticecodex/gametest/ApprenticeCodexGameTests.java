@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
@@ -20,14 +21,20 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -170,9 +177,81 @@ public final class ApprenticeCodexGameTests {
         });
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Copper Spell Amplifier did not initialize a spell container");
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Copper Spell Amplifier spell container is null");
+
+            var spellData = spellContainer.getSpellAtIndex(0);
+            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                    "Copper Spell Amplifier has no preset spell");
+            helper.assertTrue(spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(),
+                    "Copper Spell Amplifier preset spell mismatch: " + spellData.getSpell().getSpellResource());
+            helper.assertTrue(spellData.getLevel() == 1,
+                    "Copper Spell Amplifier preset spell level mismatch: " + spellData.getLevel());
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null, "Copper Spell Amplifier imbued school could not be resolved");
+
+            // ここでは school ID の厳密一致ではなく、
+            // 実装が解決した spell power 属性へ bonus / Attunement が正しく合算されることを回帰検知する.
+            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(resolvedSpellPower != null,
+                    "Copper Spell Amplifier could not resolve spell power attribute for additive stacking: " + imbuedSchool.getId());
+
+            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.10D,
+                    "Copper Spell Amplifier additive spell power bonus regression");
+
+            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+            assertModifierAmount(helper, item, stack, resolvedSpellPower, 0.14D,
+                    "Copper Spell Amplifier + Attunement stacking regression");
+        });
+    }
+
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
+    }
+
+    private static void assertModifierAmount(
+            GameTestHelper helper,
+            jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem item,
+            ItemStack stack,
+            Attribute attribute,
+            double expectedAmount,
+            String message
+    ) {
+        var actualAmount = sumModifierAmount(
+                item.getAttributeModifiers(EquipmentSlot.OFFHAND, stack).get(attribute),
+                AttributeModifier.Operation.MULTIPLY_BASE
+        );
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected stacked amount " + expectedAmount + " but got " + actualAmount
+                        + " modifiers=" + describeModifiers(item.getAttributeModifiers(EquipmentSlot.OFFHAND, stack)));
+    }
+
+    private static double sumModifierAmount(
+            Collection<AttributeModifier> modifiers,
+            AttributeModifier.Operation operation
+    ) {
+        return modifiers.stream()
+                .filter(modifier -> modifier.getOperation() == operation)
+                .mapToDouble(AttributeModifier::getAmount)
+                .sum();
+    }
+
+    private static String describeModifiers(com.google.common.collect.Multimap<Attribute, AttributeModifier> modifiers) {
+        return modifiers.entries().stream()
+                .map(entry -> ForgeRegistries.ATTRIBUTES.getKey(entry.getKey()) + "="
+                        + entry.getValue().getAmount() + "@" + entry.getValue().getOperation())
+                .collect(Collectors.joining(", "));
     }
 
     private static void placeAndAssertBlockEntity(
