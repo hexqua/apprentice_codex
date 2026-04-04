@@ -1,7 +1,11 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
@@ -17,18 +21,25 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -195,6 +206,175 @@ public final class ApprenticeCodexGameTests {
         });
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Copper Spell Amplifier did not initialize a spell container");
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Copper Spell Amplifier spell container is null");
+
+            var spellData = spellContainer.getSpellAtIndex(0);
+            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                    "Copper Spell Amplifier has no preset spell");
+            helper.assertTrue(spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(),
+                    "Copper Spell Amplifier preset spell mismatch: " + spellData.getSpell().getSpellResource());
+            helper.assertTrue(spellData.getLevel() == 1,
+                    "Copper Spell Amplifier preset spell level mismatch: " + spellData.getLevel());
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null, "Copper Spell Amplifier imbued school could not be resolved");
+
+            // school ID の厳密一致ではなく、解決された spell power 属性に補正が積まれることを確認する.
+            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(resolvedSpellPower != null,
+                    "Copper Spell Amplifier could not resolve spell power attribute for stacking: " + imbuedSchool.getId());
+
+            assertModifierAmount(helper, item.getDefaultAttributeModifiers(stack), resolvedSpellPower, 0.10D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Copper Spell Amplifier spell power bonus regression");
+
+            var enchantmentRegistry = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            stack.enchant(enchantmentRegistry.getOrThrow(Enchantments.ATTUNEMENT), 1);
+            assertModifierAmount(helper, item.getDefaultAttributeModifiers(stack), resolvedSpellPower, 0.14D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Copper Spell Amplifier + Attunement stacking regression");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var diamondItem = ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get();
+            var diamondStack = new ItemStack(diamondItem);
+            assertModifierAmount(
+                    helper,
+                    diamondItem.getDefaultAttributeModifiers(diamondStack),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.value(),
+                    0.25D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Diamond Spell Amplifier casting move speed bonus regression"
+            );
+
+            var netheriteItem = ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get();
+            var netheriteStack = new ItemStack(netheriteItem);
+            assertModifierAmount(
+                    helper,
+                    netheriteItem.getDefaultAttributeModifiers(netheriteStack),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.value(),
+                    0.50D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Netherite Spell Amplifier casting move speed bonus regression"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()),
+                    "Ender Grimoire should remain upgradeable via explicit whitelist entry");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get()),
+                    "AbstractOffhandMagicItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.PHOTON_SIPHON.get()),
+                    "Direct AbstractOffhandMagicItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    "AbstractSpellGunItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
+                    "AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
+                    "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+
+            var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
+                    "Reflectcast Shield should not be in the upgrade whitelist");
+            helper.assertFalse(Utils.canBeUpgraded(shieldStack),
+                    "Reflectcast Shield should remain excluded from the upgrade system");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var stack = new ItemStack(item);
+            var upgradeData = createUpgradeData(
+                    helper.getLevel().registryAccess(),
+                    stack,
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    EquipmentSlot.MAINHAND.getName()
+            );
+
+            var event = new ItemAttributeModifierEvent(stack, item.getDefaultAttributeModifiers(stack));
+            NeoForge.EVENT_BUS.post(event);
+            var upgradedModifiers = event.build();
+
+            assertModifierAmount(
+                    helper,
+                    upgradedModifiers,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.value(),
+                    50.0D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Offhand upgrade bridge regression: expected +50 max mana from mainhand-stored upgrade but got "
+                            + upgradeData
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void mainhandUpgradeBridgeAppliesStoredUpgradeDataToSpellGunsAndWeapons(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertMainhandUpgradeBridge(
+                    helper,
+                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    "Spell gun upgrade bridge regression"
+            );
+            assertMainhandUpgradeBridge(
+                    helper,
+                    new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
+                    "Right-click weapon upgrade bridge regression"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertCastingMoveSpeedAdjustment(helper, 0.0D, 0.8D, "No external bonus should keep full cancellation");
+            assertCastingMoveSpeedAdjustment(helper, 0.25D, 0.55D, "Diamond-equivalent bonus should reduce shared cancellation");
+            assertCastingMoveSpeedAdjustment(helper, 0.50D, 0.30D, "Netherite-equivalent bonus should reduce shared cancellation");
+            assertCastingMoveSpeedAdjustment(helper, 0.75D, 0.05D, "Small remaining headroom should stay positive");
+            assertCastingMoveSpeedAdjustment(helper, 0.80D, 0.0D, "Exact cap should stop adding more casting move speed");
+            assertCastingMoveSpeedAdjustment(helper, 1.10D, 0.0D, "External overshoot should not become a negative correction");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
+            var movementSpeedModifiers = new java.util.ArrayList<AttributeModifier>();
+            effect.createModifiers(0, (attribute, modifier) -> {
+                if (attribute.equals(Attributes.MOVEMENT_SPEED)) {
+                    movementSpeedModifiers.add(modifier);
+                }
+            });
+
+            helper.assertTrue(!movementSpeedModifiers.isEmpty(), "LongStride is missing the movement speed attribute modifier");
+
+            var actualAmount = movementSpeedModifiers.stream()
+                    .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
+                    .mapToDouble(AttributeModifier::amount)
+                    .sum();
+            helper.assertTrue(Math.abs(actualAmount - 0.15D) < 1.0e-9D,
+                    "LongStride movement speed bonus regression: expected 0.15 but got " + actualAmount);
+        });
+    }
+
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
@@ -218,6 +398,95 @@ public final class ApprenticeCodexGameTests {
                 "Unexpected modifier id for " + itemId + " / "
                         + attribute.unwrapKey().map(key -> key.location()).orElse(ResourceLocation.withDefaultNamespace("unknown"))
                         + ": " + modifiers.getFirst().modifier().id());
+    }
+
+    private static void assertModifierAmount(
+            GameTestHelper helper,
+            ItemAttributeModifiers modifiers,
+            Attribute attribute,
+            double expectedAmount,
+            AttributeModifier.Operation operation,
+            String message
+    ) {
+        assertModifierAmount(helper, modifiers, attribute, EquipmentSlotGroup.OFFHAND, expectedAmount, operation, message);
+    }
+
+    private static void assertModifierAmount(
+            GameTestHelper helper,
+            ItemAttributeModifiers modifiers,
+            Attribute attribute,
+            EquipmentSlotGroup slotGroup,
+            double expectedAmount,
+            AttributeModifier.Operation operation,
+            String message
+    ) {
+        var actualAmount = modifiers.modifiers().stream()
+                .filter(entry -> entry.slot().equals(slotGroup))
+                .filter(entry -> entry.attribute().value() == attribute)
+                .filter(entry -> entry.modifier().operation() == operation)
+                .mapToDouble(entry -> entry.modifier().amount())
+                .sum();
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected " + expectedAmount + " but got " + actualAmount);
+    }
+
+    private static void assertCastingMoveSpeedAdjustment(
+            GameTestHelper helper,
+            double externalBonus,
+            double expectedAmount,
+            String message
+    ) {
+        var actualAmount = CastingMoveSpeedAdjustment.computeAvailableBonus(externalBonus);
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected " + expectedAmount + " but got " + actualAmount + " for external bonus " + externalBonus);
+    }
+
+    private static void assertMainhandUpgradeBridge(
+            GameTestHelper helper,
+            ItemStack stack,
+            String message
+    ) {
+        var upgradeData = createUpgradeData(
+                helper.getLevel().registryAccess(),
+                stack,
+                io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                EquipmentSlot.MAINHAND.getName()
+        );
+
+        var event = new ItemAttributeModifierEvent(stack, stack.getItem().getDefaultAttributeModifiers(stack));
+        NeoForge.EVENT_BUS.post(event);
+
+        assertModifierAmount(
+                helper,
+                event.build(),
+                io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.value(),
+                EquipmentSlotGroup.MAINHAND,
+                50.0D,
+                AttributeModifier.Operation.ADD_VALUE,
+                message + ": expected +50 max mana from " + upgradeData
+        );
+    }
+
+    private static void assertUpgradeable(GameTestHelper helper, ItemStack stack, String message) {
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        helper.assertTrue(stack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
+                message + " (missing upgrade whitelist tag on " + itemId + ")");
+        helper.assertTrue(Utils.canBeUpgraded(stack),
+                message + " (Utils.canBeUpgraded returned false for " + itemId + ")");
+    }
+
+    private static UpgradeData createUpgradeData(
+            RegistryAccess registryAccess,
+            ItemStack stack,
+            ResourceKey<io.redspace.ironsspellbooks.item.armor.UpgradeOrbType> upgradeKey,
+            String slotName
+    ) {
+        var upgradeRegistry = registryAccess.registryOrThrow(io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.UPGRADE_ORB_REGISTRY_KEY);
+        var upgradeHolder = upgradeRegistry.getHolder(upgradeKey)
+                .orElseThrow(() -> new IllegalStateException("Missing upgrade orb type: " + upgradeKey.location()));
+        var upgradeData = new UpgradeData(java.util.Map.of(upgradeHolder, 1), slotName);
+        UpgradeData.set(stack, upgradeData);
+        return upgradeData;
     }
 
     private static void placeAndAssertBlockEntity(

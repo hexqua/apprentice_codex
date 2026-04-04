@@ -251,32 +251,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
 
         Advancement.Builder.advancement()
                 .parent(ironAmp)
-                .display(ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
-                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.title"),
-                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.description"),
+                .display(ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_silver_spell_amplifier.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_silver_spell_amplifier.description"),
                         null,
-                        AdvancementType.TASK,
+                        AdvancementType.CHALLENGE,
                         true,
                         true,
                         false)
-                .addCriterion("crafted_copper_spell_amplifier", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.COPPER_SPELL_AMPLIFIER.getId()))
-                .save(saver, advancementId("craft_copper_spell_amplifier"), existingFileHelper);
-
-        var goldAmp = Advancement.Builder.advancement()
-                .parent(ironAmp)
-                .display(ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
-                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.title"),
-                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_gold_spell_amplifier.description"),
-                        null,
-                        AdvancementType.TASK,
-                        true,
-                        true,
-                        false)
-                .addCriterion("crafted_gold_spell_amplifier", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.GOLD_SPELL_AMPLIFIER.getId()))
-                .save(saver, advancementId("craft_gold_spell_amplifier"), existingFileHelper);
+                .addCriterion("crafted_silver_spell_amplifier", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SILVER_SPELL_AMPLIFIER.getId()))
+                .save(saver, advancementId("craft_silver_spell_amplifier"), existingFileHelper);
 
         Advancement.Builder.advancement()
-                .parent(goldAmp)
+                .parent(ironAmp)
                 .display(ItemRegistry.PHOTON_SIPHON.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_photon_siphon.description"),

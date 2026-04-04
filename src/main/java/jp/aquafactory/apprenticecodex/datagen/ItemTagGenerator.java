@@ -2,6 +2,9 @@ package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
@@ -64,7 +67,21 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get()
         );
-        tag(IRONS_UPGRADE_WHITELIST).add(ItemRegistry.ENDER_GRIMOIRE.get());
+        var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
+        ironsUpgradeWhitelist.add(
+                ItemRegistry.ENDER_GRIMOIRE.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
+        // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。
+        // Crystal Bladed Staff は 1.21.1 で継承階層が StaffItem 直下へ変わったため、明示列挙で維持する。
+        for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
+            var item = itemEntry.get();
+            if (item instanceof AbstractOffhandMagicItem
+                    || item instanceof AbstractSpellGunItem
+                    || item instanceof AbstractRightClickMagicWeaponItem) {
+                ironsUpgradeWhitelist.add(item);
+            }
+        }
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.EXPLORERS_CODEX.get(),

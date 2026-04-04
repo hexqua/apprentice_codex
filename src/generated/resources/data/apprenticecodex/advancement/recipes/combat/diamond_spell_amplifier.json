@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:photon_siphon"
+        "recipe": "apprenticecodex:diamond_spell_amplifier"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:photon_siphon"
+      "apprenticecodex:diamond_spell_amplifier"
     ]
   }
 }

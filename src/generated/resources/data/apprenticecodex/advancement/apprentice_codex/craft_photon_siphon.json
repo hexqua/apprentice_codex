@@ -1,5 +1,5 @@
 {
-  "parent": "apprenticecodex:apprentice_codex/craft_gold_spell_amplifier",
+  "parent": "apprenticecodex:apprentice_codex/craft_iron_spell_amplifier",
   "criteria": {
     "crafted_photon_siphon": {
       "conditions": {

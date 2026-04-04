@@ -31,8 +31,10 @@ import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRendere
 import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
@@ -189,6 +191,17 @@ public final class ClientModBusEvents {
             }
         }, ItemRegistry.CRYSTAL_BLADED_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
+            private IlluminateStellarStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new IlluminateStellarStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
             private IronSpellcasterGunRenderer renderer;
 
             @Override
@@ -232,6 +245,23 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+        event.registerItem(new IClientItemExtensions() {
+            private SpellAmplifierRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new SpellAmplifierRenderer();
+                }
+                return renderer;
+            }
+        },
+                ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
+                ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
+                ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
+                ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get(),
+                ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
+                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get());
         event.registerItem(new IClientItemExtensions() {
             private ExplorersCaneRenderer renderer;
 

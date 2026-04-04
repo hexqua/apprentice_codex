@@ -1,17 +1,18 @@
 {
   "parent": "apprenticecodex:apprentice_codex/craft_iron_spell_amplifier",
   "criteria": {
-    "crafted_copper_spell_amplifier": {
+    "crafted_silver_spell_amplifier": {
       "conditions": {
-        "recipe_id": "apprenticecodex:copper_spell_amplifier"
+        "recipe_id": "apprenticecodex:silver_spell_amplifier"
       },
       "trigger": "minecraft:recipe_crafted"
     }
   },
   "display": {
     "description": {
-      "translate": "advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.description"
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_silver_spell_amplifier.description"
     },
+    "frame": "challenge",
     "icon": {
       "components": {
         "irons_spellbooks:spell_container": {
@@ -22,15 +23,15 @@
         }
       },
       "count": 1,
-      "id": "apprenticecodex:copper_spell_amplifier"
+      "id": "apprenticecodex:silver_spell_amplifier"
     },
     "title": {
-      "translate": "advancements.apprenticecodex.apprentice_codex.craft_copper_spell_amplifier.title"
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_silver_spell_amplifier.title"
     }
   },
   "requirements": [
     [
-      "crafted_copper_spell_amplifier"
+      "crafted_silver_spell_amplifier"
     ]
   ],
   "sends_telemetry_event": true
