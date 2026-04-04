@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "apprenticecodex:item/iron_spell_amplifier_gui"
-  }
-}

@@ -1,17 +1,17 @@
 package jp.aquafactory.apprenticecodex.item.offhand;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ItemStack;
 
-public class GoldSpellAmplifier extends AbstractOffhandMagicItem {
+public class GoldSpellAmplifier extends AbstractSpellAmplifierItem {
     public GoldSpellAmplifier() {
         super(
                 Rarity.UNCOMMON,
                 "gold_spell_amplifier",
-                bonus(AttributeRegistry.MANA_REGEN, 0.20, AttributeModifier.Operation.MULTIPLY_BASE)
+                bonus(AttributeRegistry.COOLDOWN_REDUCTION, 0.1, AttributeModifier.Operation.MULTIPLY_BASE),
+                bonus(AttributeRegistry.CAST_TIME_REDUCTION, 0.1, AttributeModifier.Operation.MULTIPLY_BASE)
         );
     }
 

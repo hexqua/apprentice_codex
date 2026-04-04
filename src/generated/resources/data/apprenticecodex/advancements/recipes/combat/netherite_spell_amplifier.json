@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_arcane_ingot": {
+    "has_diamond_spell_amplifier": {
       "conditions": {
         "items": [
           {
             "items": [
-              "irons_spellbooks:arcane_ingot"
+              "apprenticecodex:diamond_spell_amplifier"
             ]
           }
         ]
@@ -15,20 +15,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:photon_siphon"
+        "recipe": "apprenticecodex:netherite_spell_amplifier"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_arcane_ingot",
+      "has_diamond_spell_amplifier",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:photon_siphon"
+      "apprenticecodex:netherite_spell_amplifier"
     ]
   },
   "sends_telemetry_event": false

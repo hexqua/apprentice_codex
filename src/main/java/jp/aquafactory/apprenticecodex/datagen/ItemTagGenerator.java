@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
@@ -12,6 +15,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -46,7 +50,20 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get()
         );
-        tag(IRONS_UPGRADE_WHITELIST).add(ItemRegistry.ENDER_GRIMOIRE.get());
+        var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
+        ironsUpgradeWhitelist.add(
+                ItemRegistry.ENDER_GRIMOIRE.get()
+        );
+        // Iron's 側で upgrade 判定を見るタグは実アイテム列挙しかできないため、
+        // ここで抽象クラス継承アイテムを自動収集して追加漏れを防ぐ。
+        for (RegistryObject<Item> itemEntry : ItemRegistry.ITEMS.getEntries()) {
+            var item = itemEntry.get();
+            if (item instanceof AbstractOffhandMagicItem
+                    || item instanceof AbstractSpellGunItem
+                    || item instanceof AbstractRightClickMagicWeaponItem) {
+                ironsUpgradeWhitelist.add(item);
+            }
+        }
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.EXPLORERS_CODEX.get(),

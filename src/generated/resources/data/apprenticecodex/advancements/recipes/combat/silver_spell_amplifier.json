@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_arcane_ingot": {
+    "has_silver_ring": {
       "conditions": {
         "items": [
           {
             "items": [
-              "irons_spellbooks:arcane_ingot"
+              "irons_spellbooks:silver_ring"
             ]
           }
         ]
@@ -15,20 +15,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:photon_siphon"
+        "recipe": "apprenticecodex:silver_spell_amplifier"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_arcane_ingot",
+      "has_silver_ring",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:photon_siphon"
+      "apprenticecodex:silver_spell_amplifier"
     ]
   },
   "sends_telemetry_event": false

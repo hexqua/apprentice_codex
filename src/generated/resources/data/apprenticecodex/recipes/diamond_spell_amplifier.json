@@ -5,20 +5,20 @@
     "A": {
       "item": "irons_spellbooks:arcane_ingot"
     },
-    "C": {
-      "item": "minecraft:copper_ingot"
+    "D": {
+      "item": "minecraft:diamond"
     },
-    "L": {
-      "item": "irons_spellbooks:lightning_bottle"
+    "E": {
+      "item": "irons_spellbooks:arcane_essence"
     }
   },
   "pattern": [
-    "LAL",
-    " C ",
-    " C "
+    "EAE",
+    " D ",
+    " D "
   ],
   "result": {
-    "item": "apprenticecodex:copper_spell_amplifier"
+    "item": "apprenticecodex:diamond_spell_amplifier"
   },
   "show_notification": true
 }

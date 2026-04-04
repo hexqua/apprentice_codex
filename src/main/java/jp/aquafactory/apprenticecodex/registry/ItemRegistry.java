@@ -11,10 +11,13 @@ import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
+import jp.aquafactory.apprenticecodex.item.offhand.DiamondSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
 import jp.aquafactory.apprenticecodex.item.offhand.GoldSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
+import jp.aquafactory.apprenticecodex.item.offhand.NetheriteSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
+import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
@@ -164,6 +167,12 @@ public final class ItemRegistry {
             ITEMS.register("copper_spell_amplifier", CopperSpellAmplifier::new);
     public static final RegistryObject<Item> GOLD_SPELL_AMPLIFIER =
             ITEMS.register("gold_spell_amplifier", GoldSpellAmplifier::new);
+    public static final RegistryObject<Item> DIAMOND_SPELL_AMPLIFIER =
+            ITEMS.register("diamond_spell_amplifier", DiamondSpellAmplifier::new);
+    public static final RegistryObject<Item> SILVER_SPELL_AMPLIFIER =
+            ITEMS.register("silver_spell_amplifier", SilverSpellAmplifier::new);
+    public static final RegistryObject<Item> NETHERITE_SPELL_AMPLIFIER =
+            ITEMS.register("netherite_spell_amplifier", NetheriteSpellAmplifier::new);
     public static final RegistryObject<Item> PHOTON_SIPHON =
             ITEMS.register("photon_siphon", PhotonSiphon::new);
     public static final RegistryObject<Item> EXPLORERS_CANE =
