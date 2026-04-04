@@ -200,6 +200,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.NETHER_STAR), has(Items.NETHER_STAR))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.UNITE_LUNA_STAFF.get())
+                .pattern(" PS")
+                .pattern(" RP")
+                .pattern("D  ")
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+                .define('S', Items.NETHERITE_SWORD)
+                .define('P', Items.PURPLE_STAINED_GLASS)
+                .define('D', Items.DIAMOND)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())
                 .pattern("AGA")
                 .pattern("DSD")

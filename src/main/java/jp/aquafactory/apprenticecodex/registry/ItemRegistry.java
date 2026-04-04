@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
@@ -198,6 +199,8 @@ public final class ItemRegistry {
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
     public static final DeferredHolder<Item, Item> ILLUMINATE_STELLAR_STAFF =
             ITEMS.register("illuminate_stellar_staff", IlluminateStellarStaff::new);
+    public static final DeferredHolder<Item, Item> UNITE_LUNA_STAFF =
+            ITEMS.register("unite_luna_staff", UniteLunaStaff::new);
     public static final DeferredHolder<Item, Item> REFLECTCAST_SHIELD =
             ITEMS.register("reflectcast_shield", ReflectcastShield::new);
 }

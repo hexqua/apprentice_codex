@@ -407,6 +407,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .save(saver, advancementId("craft_illuminate_stellar_staff"), existingFileHelper);
 
         Advancement.Builder.advancement()
+                .parent(bladed)
+                .display(ItemRegistry.UNITE_LUNA_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_unite_luna_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_unite_luna_staff.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        true)
+                .addCriterion("crafted_unite_luna_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.UNITE_LUNA_STAFF.getId()))
+                .save(saver, advancementId("craft_unite_luna_staff"), existingFileHelper);
+
+        Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title"),

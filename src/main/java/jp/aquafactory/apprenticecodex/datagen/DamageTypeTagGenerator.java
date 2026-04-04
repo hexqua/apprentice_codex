@@ -101,6 +101,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANA_SLASH,
                 AUTO_TURRET,
                 ILLUMINATE_STELLAR,
+                UNITE_LUNA,
                 HEALING_BLOOM
         );
 
@@ -112,6 +113,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 GRACED_RAIN,
                 HIGANBANA,
                 MOON_LIGHT,
+                UNITE_LUNA,
                 HEALING_BLOOM
         );
 
@@ -164,6 +166,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANA_SLASH,
                 AUTO_TURRET,
                 ILLUMINATE_STELLAR,
+                UNITE_LUNA,
                 HEALING_BLOOM
         );
 
