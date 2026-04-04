@@ -35,10 +35,11 @@ public final class MagicTools {
         }
 
         var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+        if (spellContainer == null) {
             return null;
         }
 
+        // activeSpellCount より slot 0 の実データを優先し、preset Imbue 直後でも学派解決を安定させる.
         var spellData = spellContainer.getSpellAtIndex(0);
         if (spellData == SpellData.EMPTY) {
             return null;

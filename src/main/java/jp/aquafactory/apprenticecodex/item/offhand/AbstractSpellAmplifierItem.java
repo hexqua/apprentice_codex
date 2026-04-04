@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.offhand;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Rarity;
@@ -16,6 +17,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public abstract class AbstractSpellAmplifierItem extends AbstractOffhandMagicItem implements GeoItem {
     private static final String MAIN_CONTROLLER = "main";
@@ -23,6 +25,21 @@ public abstract class AbstractSpellAmplifierItem extends AbstractOffhandMagicIte
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation;
+
+    protected AbstractSpellAmplifierItem(
+            Supplier<? extends AbstractSpell> configuredSpell,
+            int configuredSpellLevel,
+            Rarity rarity,
+            String itemKey,
+            AttributeBonus... attributeBonuses
+    ) {
+        super(configuredSpell, configuredSpellLevel, rarity, itemKey, attributeBonuses);
+        this.textureLocation = ResourceLocation.fromNamespaceAndPath(
+                ApprenticeCodex.MODID,
+                "textures/geo/" + itemKey + ".png"
+        );
+        GeoItem.registerSyncedAnimatable(this);
+    }
 
     protected AbstractSpellAmplifierItem(Rarity rarity, String itemKey, AttributeBonus... attributeBonuses) {
         super(rarity, itemKey, attributeBonuses);

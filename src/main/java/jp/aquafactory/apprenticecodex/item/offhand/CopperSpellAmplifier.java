@@ -1,18 +1,43 @@
 package jp.aquafactory.apprenticecodex.item.offhand;
 
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 public class CopperSpellAmplifier extends AbstractSpellAmplifierItem {
+    private static final double IMBUED_SPELL_POWER_BONUS = 0.10D;
+
     public CopperSpellAmplifier() {
         super(
+                io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL,
+                1,
                 Rarity.UNCOMMON,
-                "copper_spell_amplifier",
-                bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
-                bonus(AttributeRegistry.LIGHTNING_SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
+                "copper_spell_amplifier"
         );
+    }
+
+    @Override
+    protected boolean addStackDependentModifiers(
+            ItemAttributeModifiers.Builder builder,
+            ItemStack stack,
+            String modifierKeyPrefix
+    ) {
+        var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
+        var imbuedSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+        if (imbuedSpellPowerAttribute == null) {
+            return false;
+        }
+
+        addStackDependentModifier(
+                builder,
+                imbuedSpellPowerAttribute,
+                IMBUED_SPELL_POWER_BONUS,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                modifierKeyPrefix + "_imbued_spell_power"
+        );
+        return true;
     }
 
     @Override

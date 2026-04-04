@@ -202,8 +202,16 @@ public abstract class AbstractOffhandMagicItem extends Item
 
     private ItemAttributeModifiers buildOffhandModifiers(ItemStack stack, ItemAttributeModifiers defaultModifiers) {
         var baseModifiers = stripManagedEnchantmentModifiers(defaultModifiers);
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : baseModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+
+        var hasStackDependentModifiers = addStackDependentModifiers(builder, stack, itemKey + "_offhand_stack");
         if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
-            return baseModifiers;
+            return hasStackDependentModifiers
+                    ? mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_offhand_merged")
+                    : baseModifiers;
         }
 
         var alacrityLevel = Enchantments.getLevel(stack, Enchantments.ALACRITY);
@@ -219,12 +227,9 @@ public abstract class AbstractOffhandMagicItem extends Item
                 && surgeLevel <= 0
                 && attunementLevel <= 0
                 && tenseLevel <= 0) {
-            return baseModifiers;
-        }
-
-        var builder = ItemAttributeModifiers.builder();
-        for (var entry : baseModifiers.modifiers()) {
-            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+            return hasStackDependentModifiers
+                    ? mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_offhand_merged")
+                    : baseModifiers;
         }
 
         addEnchantmentModifier(
@@ -281,6 +286,15 @@ public abstract class AbstractOffhandMagicItem extends Item
         return mergeTooltipEquivalentModifiers(builder.build(), itemKey + "_offhand_merged");
     }
 
+    // Imbue 内容に応じた補正など、stack の状態を見て増減させたい派生アイテム向け.
+    protected boolean addStackDependentModifiers(
+            ItemAttributeModifiers.Builder builder,
+            ItemStack stack,
+            String modifierKeyPrefix
+    ) {
+        return false;
+    }
+
     private ItemAttributeModifiers stripManagedEnchantmentModifiers(ItemAttributeModifiers modifiers) {
         if (modifiers.modifiers().isEmpty()) {
             return modifiers;
@@ -322,6 +336,26 @@ public abstract class AbstractOffhandMagicItem extends Item
                 attribute,
                 new AttributeModifier(modifierId, amount, operation),
                 EquipmentSlotGroup.OFFHAND
+        );
+    }
+
+    protected void addStackDependentModifier(
+            ItemAttributeModifiers.Builder builder,
+            Attribute attribute,
+            double amount,
+            AttributeModifier.Operation operation,
+            String key
+    ) {
+        if (attribute == null) {
+            return;
+        }
+
+        addEnchantmentModifier(
+                builder,
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute),
+                amount,
+                operation,
+                key
         );
     }
 
