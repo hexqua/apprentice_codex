@@ -49,8 +49,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -229,6 +234,21 @@ public final class ApprenticeCodexGameTests {
             }
 
             helper.assertTrue(testedItems > 0, "No AbstractSwingMagicItem entries were registered");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void bonusChestLootIncludesIsekaiTravelGuidebook(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var lootTable = helper.getLevel().getServer().reloadableRegistries().getLootTable(BuiltInLootTables.SPAWN_BONUS_CHEST);
+            var generatedLoot = new java.util.ArrayList<ItemStack>();
+            var lootParams = new LootParams.Builder(helper.getLevel())
+                    .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(new BlockPos(0, 1, 0)))
+                    .create(LootContextParamSets.CHEST);
+            lootTable.getRandomItems(lootParams, generatedLoot::add);
+
+            helper.assertTrue(generatedLoot.stream().anyMatch(stack -> stack.is(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())),
+                    "Spawn bonus chest loot no longer contains Isekai Travel Guidebook: " + generatedLoot);
         });
     }
 

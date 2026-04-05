@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.GlobalLootModifierRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -58,6 +59,7 @@ public class ApprenticeCodex
         ParticleRegistry.PARTICLES.register(modEventBus);
         RecipeRegistry.register(modEventBus);
         RecipeConditionRegistry.register(modEventBus);
+        GlobalLootModifierRegistry.register(modEventBus);
         AttachmentRegistry.register(modEventBus);
         ModEntityAttributeEvent.register(modEventBus);
         CodexSpellStateTypeRegister.register();
