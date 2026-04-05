@@ -88,6 +88,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.EXPLORERS_CODEX.get(),
+                ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get(),
                 ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get()
         );
 

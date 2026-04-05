@@ -178,6 +178,13 @@ public final class RecipeGenerator extends RecipeProvider {
                 .generateAdvancement()
                 .build(recipeWriter, ItemRegistry.EXPLORERS_CODEX.getId());
 
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())
+                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get())
+                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get(), 2)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()),
+                        has(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()))
+                .save(recipeWriter, ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.getId());
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
                 .pattern(" W ")

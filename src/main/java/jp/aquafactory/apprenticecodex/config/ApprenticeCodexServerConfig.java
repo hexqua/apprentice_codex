@@ -93,6 +93,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
     }
 
+    public static boolean showIsekaiTravelGuidebookTooltip() {
+        return ITEMS_CONFIG.showIsekaiTravelGuidebookTooltip();
+    }
+
+    public static boolean enableIsekaiTravelGuidebookBonusChestLoot() {
+        return ITEMS_CONFIG.enableIsekaiTravelGuidebookBonusChestLoot();
+    }
+
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
     }

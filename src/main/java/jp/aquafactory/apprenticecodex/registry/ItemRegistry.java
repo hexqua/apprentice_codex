@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
+import jp.aquafactory.apprenticecodex.item.curios.isekaitravelguidebook.IsekaiTravelGuidebook;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
@@ -157,6 +158,8 @@ public final class ItemRegistry {
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final RegistryObject<Item> EXPLORERS_CODEX =
             ITEMS.register("explorers_codex", ExplorersCodex::new);
+    public static final RegistryObject<Item> ISEKAI_TRAVEL_GUIDEBOOK =
+            ITEMS.register("isekai_travel_guidebook", IsekaiTravelGuidebook::new);
     public static final RegistryObject<Item> SPELLSTAINED_RUNIC_TABLET =
             ITEMS.register("spellstained_runic_tablet", SpellStainedRunicTablet::new);
     public static final RegistryObject<Item> IRON_SPELLCASTER_GUN =

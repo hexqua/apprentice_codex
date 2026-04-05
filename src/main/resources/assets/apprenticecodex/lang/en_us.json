@@ -40,6 +40,7 @@
   "item.apprenticecodex.ender_grimoire": "Ender Grimoire",
   "item.apprenticecodex.explorers_codex": "Explorer's Codex",
   "item.apprenticecodex.spellstained_runic_tablet": "Spell-stained Runic Tablet",
+  "item.apprenticecodex.isekai_travel_guidebook": "Isekai Travel Guidebook",
   "item.apprenticecodex.grimoire_manifest": "Grimoire Manifest",
   "item.apprenticecodex.pastel_staff": "Pastel Staff",
   "item.apprenticecodex.photon_siphon": "Photon Siphon",
@@ -87,6 +88,7 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "This staff prioritizes shield usage.",
+  "item.apprenticecodex.isekai_travel_guidebook.desc": "\"Welcome to the Minecraft world!\"",
   "item.apprenticecodex.stealth_rune_armor.desc": "This armor dose not prevent invisibility effects.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
   "item.apprenticecodex.basic_spellcaster_round.desc": "Ammo for instant casting spells",
