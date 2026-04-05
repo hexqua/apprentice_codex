@@ -9,10 +9,16 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -33,6 +39,44 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
                 properties,
                 configuredSpell,
                 configuredSpellLevel,
+                false,
+                enchantmentValue,
+                itemKey,
+                attackDamage,
+                attackSpeed,
+                handBonuses
+        );
+    }
+
+    protected AbstractSwingMagicItem(
+            Properties properties,
+            int enchantmentValue,
+            String itemKey,
+            double attackDamage,
+            double attackSpeed,
+            List<AttributeBonus> handBonuses
+    ) {
+        super(
+                properties,
+                false,
+                enchantmentValue,
+                itemKey,
+                attackDamage,
+                attackSpeed,
+                handBonuses
+        );
+    }
+
+    protected AbstractSwingMagicItem(
+            Properties properties,
+            int enchantmentValue,
+            String itemKey,
+            double attackDamage,
+            double attackSpeed,
+            AttributeBonus... handBonuses
+    ) {
+        super(
+                properties,
                 false,
                 enchantmentValue,
                 itemKey,
@@ -101,6 +145,11 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
     }
 
     @Override
+    public boolean shouldSuppressCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return matchesImbuedSpell(stack, spell) && supportsCastAnimationOverride(spell);
+    }
+
+    @Override
     public boolean shouldOverrideCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
         return matchesImbuedSpell(stack, spell) && supportsCastAnimationOverride(spell);
     }
@@ -161,28 +210,72 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
         return spell != null && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG);
     }
 
-    private boolean tryCastSpell(Player player, ItemStack stack, AbstractSpell spell, int spellLevel, @Nullable MagicData magicData) {
-        var casted = spell.attemptInitiateCast(
-                stack,
-                spellLevel,
-                player.level(),
-                player,
-                io.redspace.ironsspellbooks.api.spells.CastSource.SWORD,
-                true,
-                SpellSelectionManager.MAINHAND
-        );
-        if (!casted) {
-            return false;
-        }
+    protected @Nullable Integer getSwingTriggeredLongCastDurationOverrideTicks(
+            Player player,
+            ItemStack stack,
+            AbstractSpell spell,
+            int spellLevel,
+            @Nullable MagicData magicData
+    ) {
+        return 0;
+    }
 
-        TriggeredSpellCastHelper.applyLongCastDurationOverride(
-                player,
-                spellLevel,
-                spell,
-                magicData,
-                SpellSelectionManager.MAINHAND,
-                0
-        );
-        return true;
+    protected AutoCloseable openSwingTriggeredSpellCastContext(
+            Player player,
+            ItemStack stack,
+            AbstractSpell spell,
+            int spellLevel,
+            @Nullable MagicData magicData
+    ) {
+        return NoopAutoCloseable.INSTANCE;
+    }
+
+    protected boolean tryCastSpell(Player player, ItemStack stack, AbstractSpell spell, int spellLevel, @Nullable MagicData magicData) {
+        AutoCloseable contextHandle = openSwingTriggeredSpellCastContext(player, stack, spell, spellLevel, magicData);
+        try {
+            var casted = spell.attemptInitiateCast(
+                    stack,
+                    spellLevel,
+                    player.level(),
+                    player,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD,
+                    true,
+                    SpellSelectionManager.MAINHAND
+            );
+            if (!casted) {
+                return false;
+            }
+
+            TriggeredSpellCastHelper.applyLongCastDurationOverride(
+                    player,
+                    spellLevel,
+                    spell,
+                    magicData,
+                    SpellSelectionManager.MAINHAND,
+                    getSwingTriggeredLongCastDurationOverrideTicks(player, stack, spell, spellLevel, magicData)
+            );
+            return true;
+        } finally {
+            try {
+                Objects.requireNonNull(contextHandle).close();
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to close swing-triggered cast context.", e);
+            }
+        }
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+                                @NotNull TooltipFlag flag) {
+        lines.add(Component.translatable("item.apprenticecodex.swingcast.common.desc").withStyle(ChatFormatting.GRAY));
+        super.appendHoverText(stack, level, lines, flag);
+    }
+
+    private enum NoopAutoCloseable implements AutoCloseable {
+        INSTANCE;
+
+        @Override
+        public void close() {
+        }
     }
 }
