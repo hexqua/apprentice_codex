@@ -341,14 +341,13 @@ public final class ApprenticeCodexGameTests {
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
 
             for (var stack : stacks) {
-                var expectedEnchantments = expectedOffhandEnchantmentsFor(stack);
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
-                        expectedEnchantments,
-                        expectedEnchantments,
+                        expectedOffhandEnchantments(),
+                        expectedOffhandEnchantments(),
                         expectedBookEnchantments,
-                        expectedEnchantments,
+                        expectedOffhandEnchantments(),
                         "Offhand Magic Item " + BuiltInRegistries.ITEM.getKey(stack.getItem())
                     );
             }
@@ -667,19 +666,6 @@ public final class ApprenticeCodexGameTests {
                 Enchantments.TENSE,
                 Enchantments.TRANSCENDENCE
         );
-    }
-
-    private static Set<ResourceLocation> expectedOffhandEnchantmentsFor(ItemStack stack) {
-        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (itemId == null) {
-            return Set.of();
-        }
-
-        return switch (itemId.getPath()) {
-            case "iron_spell_amplifier", "copper_spell_amplifier", "gold_spell_amplifier", "photon_siphon", "explorers_cane" ->
-                    expectedOffhandEnchantments();
-            default -> Set.of();
-        };
     }
 
     private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(RegistryAccess registryAccess) {
