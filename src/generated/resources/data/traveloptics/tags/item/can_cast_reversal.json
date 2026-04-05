@@ -1,6 +1,5 @@
 {
   "values": [
-    "apprenticecodex:pastel_staff",
     "apprenticecodex:iron_spellcaster_gun",
     "apprenticecodex:copper_spellcaster_gun",
     "apprenticecodex:gold_spellcaster_gun",
@@ -19,8 +18,9 @@
     "apprenticecodex:gold_swingcast_staff",
     "apprenticecodex:diamond_swingcast_staff",
     "apprenticecodex:netherite_swingcast_staff",
-    "apprenticecodex:crystal_bladed_staff",
     "apprenticecodex:illuminate_stellar_staff",
-    "apprenticecodex:unite_luna_staff"
+    "apprenticecodex:unite_luna_staff",
+    "apprenticecodex:pastel_staff",
+    "apprenticecodex:crystal_bladed_staff"
   ]
 }

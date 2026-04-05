@@ -456,17 +456,19 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(spellData.getLevel() == 1,
                     "Unite Luna Staff preset spell level mismatch: " + spellData.getLevel());
 
-            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE), AttributeModifier.Operation.ADDITION) - 12.0D) < 1.0e-9D,
-                    "Unite Luna Staff attack damage regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED), AttributeModifier.Operation.ADDITION) - (-3.2D)) < 1.0e-9D,
-                    "Unite Luna Staff attack speed regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraftforge.common.ForgeMod.ENTITY_REACH.get()), AttributeModifier.Operation.ADDITION) - 0.5D) < 1.0e-9D,
-                    "Unite Luna Staff entity reach regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.05D) < 1.0e-9D,
-                    "Unite Luna Staff spell power regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.10D) < 1.0e-9D,
-                    "Unite Luna Staff holy spell power regression: " + describeModifiers(modifiers));
+            var modifiers = item.getDefaultAttributeModifiers(stack);
+            assertModifierAmount(helper, modifiers, Attributes.ATTACK_DAMAGE.value(), EquipmentSlotGroup.MAINHAND, 12.0D,
+                    AttributeModifier.Operation.ADD_VALUE, "Unite Luna Staff attack damage regression");
+            assertModifierAmount(helper, modifiers, Attributes.ATTACK_SPEED.value(), EquipmentSlotGroup.MAINHAND, -3.2D,
+                    AttributeModifier.Operation.ADD_VALUE, "Unite Luna Staff attack speed regression");
+            assertModifierAmount(helper, modifiers, Attributes.ENTITY_INTERACTION_RANGE.value(), EquipmentSlotGroup.MAINHAND, 0.5D,
+                    AttributeModifier.Operation.ADD_VALUE, "Unite Luna Staff entity reach regression");
+            assertModifierAmount(helper, modifiers, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.value(),
+                    EquipmentSlotGroup.MAINHAND, 0.05D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Unite Luna Staff spell power regression");
+            assertModifierAmount(helper, modifiers, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.value(),
+                    EquipmentSlotGroup.MAINHAND, 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Unite Luna Staff holy spell power regression");
         });
     }
 

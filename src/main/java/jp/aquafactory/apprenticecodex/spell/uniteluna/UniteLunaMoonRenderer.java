@@ -141,12 +141,12 @@ public class UniteLunaMoonRenderer extends EntityRenderer<UniteLunaMoonEntity> {
                                   float x, float y, float z, float u, float v,
                                   float normalX, float normalY, float normalZ,
                                   float red, float green, float blue, float alpha) {
-        buffer.vertex(poseMatrix, x, y, z)
-                .color(red, green, blue, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, normalX, normalY, normalZ)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(new org.joml.Vector3f(normalX, normalY, normalZ));
+        buffer.addVertex(poseMatrix, x, y, z)
+                .setColor(red, green, blue, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 }

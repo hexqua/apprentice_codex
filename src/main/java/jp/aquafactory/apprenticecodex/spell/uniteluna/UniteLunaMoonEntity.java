@@ -13,6 +13,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -30,7 +31,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -121,11 +122,11 @@ public class UniteLunaMoonEntity extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_PHASE, PHASE_DECELERATE);
-        entityData.define(DATA_BURST_KIND, BURST_KIND_NONE);
-        entityData.define(DATA_SPIN_DIRECTION, 1);
-        entityData.define(DATA_BURST_CUBE_SIZE, MIN_BURST_CUBE_SIZE);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_PHASE, PHASE_DECELERATE);
+        builder.define(DATA_BURST_KIND, BURST_KIND_NONE);
+        builder.define(DATA_SPIN_DIRECTION, 1);
+        builder.define(DATA_BURST_CUBE_SIZE, MIN_BURST_CUBE_SIZE);
     }
 
     @Override
@@ -218,8 +219,8 @@ public class UniteLunaMoonEntity extends Projectile {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity entity) {
+        return super.getAddEntityPacket(entity);
     }
 
     @Override
@@ -378,7 +379,7 @@ public class UniteLunaMoonEntity extends Projectile {
     private boolean moveWithImpactCheck(double speed) {
         setDeltaMovement(movementDirection.scale(speed));
         var hitResult = findImpactResult(getDeltaMovement());
-        if (hitResult != null && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult != null && !EventHooks.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
         }
         if (isRemoved() || getPhase() == PHASE_BURST) {

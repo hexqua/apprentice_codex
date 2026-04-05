@@ -70,6 +70,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.UNITE_LUNA_STAFF.get()
         );
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
+        var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
+        var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get()

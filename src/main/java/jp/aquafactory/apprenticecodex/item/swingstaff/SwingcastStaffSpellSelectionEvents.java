@@ -2,10 +2,10 @@ package jp.aquafactory.apprenticecodex.item.swingstaff;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SwingcastStaffSpellSelectionEvents {
     private SwingcastStaffSpellSelectionEvents() {
     }

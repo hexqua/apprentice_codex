@@ -7,7 +7,16 @@
     "item": "apprenticecodex:diamond_swingcast_staff"
   },
   "result": {
-    "item": "apprenticecodex:netherite_swingcast_staff"
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:netherite_swingcast_staff"
   },
   "template": {
     "item": "minecraft:netherite_upgrade_smithing_template"

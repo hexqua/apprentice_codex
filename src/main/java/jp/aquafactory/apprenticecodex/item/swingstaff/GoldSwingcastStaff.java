@@ -1,11 +1,12 @@
 package jp.aquafactory.apprenticecodex.item.swingstaff;
 
-import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 public class GoldSwingcastStaff extends AbstractSwingcastStaffItem {
     private static final double IMBUED_SPELL_POWER_BONUS = 0.15D;
@@ -16,7 +17,7 @@ public class GoldSwingcastStaff extends AbstractSwingcastStaffItem {
             3.0D,
             allNonContinuousCastTypes(),
             SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
-            bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE)
+            bonus((Holder<Attribute>) AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
     );
 
     public GoldSwingcastStaff() {
@@ -25,7 +26,7 @@ public class GoldSwingcastStaff extends AbstractSwingcastStaffItem {
 
     @Override
     protected boolean addStackDependentModifiers(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemAttributeModifiers.Builder builder,
             ItemStack stack,
             String modifierSeedPrefix
     ) {

@@ -13,7 +13,6 @@
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_illuminate_stellar_staff.description"
     },
     "frame": "challenge",
-    "hidden": false,
     "icon": {
       "components": {
         "irons_spellbooks:spell_container": {

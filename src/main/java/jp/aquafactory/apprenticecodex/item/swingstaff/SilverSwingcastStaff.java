@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.swingstaff;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import net.minecraft.core.Holder;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Rarity;
 
@@ -11,8 +13,8 @@ public class SilverSwingcastStaff extends AbstractSwingcastStaffItem {
             3.0D,
             allNonContinuousCastTypes(),
             SwingcastCooldownMode.IMBUED_ONLY,
-            bonus(AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.MULTIPLY_BASE),
-            bonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION)
+            bonus((Holder<Attribute>) AttributeRegistry.SPELL_POWER, 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
+            bonus((Holder<Attribute>) AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADD_VALUE)
     );
 
     public SilverSwingcastStaff() {

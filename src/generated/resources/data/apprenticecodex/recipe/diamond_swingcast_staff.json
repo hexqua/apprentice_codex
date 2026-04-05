@@ -24,7 +24,15 @@
     "D  "
   ],
   "result": {
-    "item": "apprenticecodex:diamond_swingcast_staff"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:diamond_swingcast_staff"
+  }
 }

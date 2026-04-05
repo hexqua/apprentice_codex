@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:diamond_swingcast_staff"
-            ]
+            "items": "apprenticecodex:diamond_swingcast_staff"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_diamond_swingcast_staff",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_diamond_swingcast_staff"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:netherite_swingcast_staff"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

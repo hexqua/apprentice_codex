@@ -9,17 +9,21 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_iron_swingcast_staff.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:iron_swingcast_staff",
-      "nbt": "{\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": false
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:iron_swingcast_staff"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_iron_swingcast_staff.title"
     }

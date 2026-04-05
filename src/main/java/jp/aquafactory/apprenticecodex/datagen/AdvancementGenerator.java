@@ -399,7 +399,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_swingcast_staff.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_swingcast_staff.description"),
                         null,
-                        FrameType.TASK,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)
@@ -412,7 +412,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_silver_swingcast_staff.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_silver_swingcast_staff.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)
@@ -438,7 +438,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_unite_luna_staff.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_unite_luna_staff.description"),
                         null,
-                        FrameType.CHALLENGE,
+                        AdvancementType.CHALLENGE,
                         true,
                         true,
                         false)

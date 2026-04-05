@@ -209,7 +209,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('P', Items.PURPLE_STAINED_GLASS)
                 .define('D', Items.DIAMOND)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())
                 .pattern("AGA")
@@ -292,7 +292,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('L', Items.LEATHER)
                 .define('I', Items.IRON_INGOT)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.COPPER_SWINGCAST_STAFF.get())
                 .pattern(" AG")
@@ -304,7 +304,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('L', Items.LEATHER)
                 .define('C', Items.COPPER_INGOT)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SILVER_SWINGCAST_STAFF.get())
                 .pattern(" AG")
@@ -316,7 +316,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('L', Items.LEATHER)
                 .define('S', io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GOLD_SWINGCAST_STAFF.get())
                 .pattern(" AG")
@@ -328,7 +328,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('L', Items.LEATHER)
                 .define('I', Items.GOLD_INGOT)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.DIAMOND_SWINGCAST_STAFF.get())
                 .pattern(" AG")
@@ -340,7 +340,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('L', Items.LEATHER)
                 .define('D', Items.DIAMOND)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE),
@@ -350,7 +350,7 @@ public final class RecipeGenerator extends RecipeProvider {
                         ItemRegistry.NETHERITE_SWINGCAST_STAFF.get()
                 )
                 .unlocks(getHasName(ItemRegistry.DIAMOND_SWINGCAST_STAFF.get()), has(ItemRegistry.DIAMOND_SWINGCAST_STAFF.get()))
-                .save(recipeWriter, ItemRegistry.NETHERITE_SWINGCAST_STAFF.getId());
+                .save(recipeOutput, ItemRegistry.NETHERITE_SWINGCAST_STAFF.getId());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PHOTON_SIPHON.get())
                 .pattern("EAE")

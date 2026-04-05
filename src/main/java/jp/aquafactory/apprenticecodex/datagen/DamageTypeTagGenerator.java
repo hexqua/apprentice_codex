@@ -40,6 +40,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SKY_EDGE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SLASH_BLADE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.THERMAL_PROCESS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.TINY_LUMBERJACK;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.UNITE_LUNA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.WORLD_FLATTER;
 
 public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {

@@ -1,55 +1,50 @@
 package jp.aquafactory.apprenticecodex.item.swingstaff;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
-import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.nio.charset.StandardCharsets;
-import java.util.EnumSet;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Consumer;
 
 public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem {
     private static final String MAIN_CONTROLLER = "main";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private final String itemKey;
     private final ResourceLocation textureLocation;
     private final SwingcastStaffTier tier;
 
@@ -64,6 +59,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
                         .map(AbstractSwingcastStaffItem::toAttributeBonus)
                         .toList()
         );
+        this.itemKey = itemKey;
         this.textureLocation = ResourceLocation.fromNamespaceAndPath(
                 ApprenticeCodex.MODID,
                 "textures/geo/" + itemKey + ".png"
@@ -84,7 +80,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     @Override
-    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull net.minecraft.world.entity.player.Player player) {
+    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
         super.onCraftedBy(stack, level, player);
         initializeSpellContainer(stack);
     }
@@ -100,18 +96,18 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != EquipmentSlot.MAINHAND || stack == null || stack.isEmpty()) {
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        var baseModifiers = super.getDefaultAttributeModifiers(stack);
+        if (stack == null || stack.isEmpty()) {
             return baseModifiers;
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(baseModifiers);
-        var modifierSeedPrefix = "apprenticecodex."
-                + normalizeKeyToken(getDescriptionId())
-                + ".mainhand.stack";
-        return addStackDependentModifiers(builder, stack, modifierSeedPrefix)
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : baseModifiers.modifiers()) {
+            builder.add(entry.attribute(), entry.modifier(), entry.slot());
+        }
+
+        return addStackDependentModifiers(builder, stack, itemKey + "_mainhand_stack")
                 ? builder.build()
                 : baseModifiers;
     }
@@ -199,17 +195,17 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     protected boolean addStackDependentModifiers(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemAttributeModifiers.Builder builder,
             ItemStack stack,
-            String modifierSeedPrefix
+            String modifierKeyPrefix
     ) {
         return false;
     }
 
     protected final boolean addImbuedSchoolSpellPowerModifier(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemAttributeModifiers.Builder builder,
             ItemStack stack,
-            String modifierSeedPrefix,
+            String modifierKeyPrefix,
             double amount
     ) {
         var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
@@ -222,8 +218,8 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
                 builder,
                 imbuedSpellPowerAttribute,
                 amount,
-                AttributeModifier.Operation.MULTIPLY_BASE,
-                modifierSeedPrefix + ".imbued_spell_power"
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                modifierKeyPrefix + ".imbued_spell_power"
         );
         return true;
     }
@@ -232,10 +228,14 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
         return tier.allowImbuedSpellInSpellWheel() && getImbuedSpellData(stack) != null;
     }
 
+    public boolean hasCustomRendering() {
+        return true;
+    }
+
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         appendSwingcastStaffTooltip(lines);
     }
 
@@ -254,22 +254,6 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private SwingcastStaffRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new SwingcastStaffRenderer();
-                }
-
-                return renderer;
-            }
-        });
-    }
-
-    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
         controllerRegistrar.add(
                 new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
@@ -280,7 +264,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     @Override
-    public @NotNull AnimatableInstanceCache getAnimatableInstanceCache() {
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
     }
 
@@ -410,7 +394,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     private static void addMainhandModifier(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemAttributeModifiers.Builder builder,
             @Nullable Attribute attribute,
             double amount,
             AttributeModifier.Operation operation,
@@ -420,7 +404,14 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
             return;
         }
 
-        var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
-        builder.put(attribute, new AttributeModifier(modifierId, modifierIdSeed, amount, operation));
+        builder.add(
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute),
+                new AttributeModifier(
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, normalizeKeyToken(modifierIdSeed)),
+                        amount,
+                        operation
+                ),
+                EquipmentSlotGroup.MAINHAND
+        );
     }
 }
