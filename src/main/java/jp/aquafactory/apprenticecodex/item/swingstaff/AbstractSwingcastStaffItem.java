@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.swingstaff;
 
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
@@ -12,10 +13,13 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -33,16 +37,17 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem {
     private static final String MAIN_CONTROLLER = "main";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
-    private static final double COMMON_SPELL_POWER_BONUS = 0.10D;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ResourceLocation textureLocation;
@@ -92,6 +97,23 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
 
     public SwingcastStaffTier getSwingcastStaffTier() {
         return tier;
+    }
+
+    @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        var baseModifiers = super.getAttributeModifiers(slot, stack);
+        if (slot != EquipmentSlot.MAINHAND || stack == null || stack.isEmpty()) {
+            return baseModifiers;
+        }
+
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        builder.putAll(baseModifiers);
+        var modifierSeedPrefix = "apprenticecodex."
+                + normalizeKeyToken(getDescriptionId())
+                + ".mainhand.stack";
+        return addStackDependentModifiers(builder, stack, modifierSeedPrefix)
+                ? builder.build()
+                : baseModifiers;
     }
 
     @Nullable
@@ -176,6 +198,36 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
         return true;
     }
 
+    protected boolean addStackDependentModifiers(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemStack stack,
+            String modifierSeedPrefix
+    ) {
+        return false;
+    }
+
+    protected final boolean addImbuedSchoolSpellPowerModifier(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemStack stack,
+            String modifierSeedPrefix,
+            double amount
+    ) {
+        var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
+        var imbuedSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+        if (imbuedSpellPowerAttribute == null) {
+            return false;
+        }
+
+        addMainhandModifier(
+                builder,
+                imbuedSpellPowerAttribute,
+                amount,
+                AttributeModifier.Operation.MULTIPLY_BASE,
+                modifierSeedPrefix + ".imbued_spell_power"
+        );
+        return true;
+    }
+
     public boolean allowImbuedSpellInSpellWheel(ItemStack stack) {
         return tier.allowImbuedSpellInSpellWheel() && getImbuedSpellData(stack) != null;
     }
@@ -232,13 +284,30 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
         return cache;
     }
 
-    protected static List<SwingcastStaffTier.BonusSpec> createCommonSpellPowerBonuses() {
-        return List.of(
-                bonusSpec(AttributeRegistry.SPELL_POWER, COMMON_SPELL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
+    protected static SwingcastStaffTier createTier(
+            net.minecraft.world.item.Rarity rarity,
+            int enchantmentValue,
+            double displayedAttackDamage,
+            Set<SpellGunCastType> supportedCastTypes,
+            SwingcastCooldownMode swingcastCooldownMode,
+            AttributeBonus... handBonuses
+    ) {
+        // Swingcast Staff でも Offhand 系と同じ `bonus(...)` 記法を使えるよう、
+        // mainhand 用 AttributeBonus を tier 定義専用の BonusSpec へ変換して受け取る。
+        var tierHandBonuses = List.of(handBonuses).stream()
+                .map(AbstractSwingcastStaffItem::toBonusSpec)
+                .toList();
+        return createTierFromBonusSpecs(
+                rarity,
+                enchantmentValue,
+                displayedAttackDamage,
+                tierHandBonuses,
+                supportedCastTypes,
+                swingcastCooldownMode
         );
     }
 
-    protected static SwingcastStaffTier createTier(
+    private static SwingcastStaffTier createTierFromBonusSpecs(
             net.minecraft.world.item.Rarity rarity,
             int enchantmentValue,
             double displayedAttackDamage,
@@ -322,15 +391,6 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
         return translatedLines;
     }
 
-    private static SwingcastStaffTier.BonusSpec bonusSpec(
-            java.util.function.Supplier<? extends net.minecraft.world.entity.ai.attributes.Attribute> attributeSupplier,
-            double amount,
-            AttributeModifier.Operation operation,
-            @Nullable String key
-    ) {
-        return new SwingcastStaffTier.BonusSpec(attributeSupplier, amount, operation, key);
-    }
-
     private static AbstractRightClickMagicWeaponItem.AttributeBonus toAttributeBonus(SwingcastStaffTier.BonusSpec bonusSpec) {
         return bonus(
                 bonusSpec.attributeSupplier(),
@@ -338,5 +398,29 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
                 bonusSpec.operation(),
                 bonusSpec.key()
         );
+    }
+
+    private static SwingcastStaffTier.BonusSpec toBonusSpec(AttributeBonus bonus) {
+        return new SwingcastStaffTier.BonusSpec(
+                bonus.attributeSupplier(),
+                bonus.amount(),
+                bonus.operation(),
+                bonus.key()
+        );
+    }
+
+    private static void addMainhandModifier(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            @Nullable Attribute attribute,
+            double amount,
+            AttributeModifier.Operation operation,
+            String modifierIdSeed
+    ) {
+        if (attribute == null || amount == 0.0D) {
+            return;
+        }
+
+        var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
+        builder.put(attribute, new AttributeModifier(modifierId, modifierIdSeed, amount, operation));
     }
 }

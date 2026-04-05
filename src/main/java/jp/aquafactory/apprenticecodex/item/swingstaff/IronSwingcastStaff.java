@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.swingstaff;
 
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Rarity;
 
 public class IronSwingcastStaff extends AbstractSwingcastStaffItem {
@@ -7,9 +9,9 @@ public class IronSwingcastStaff extends AbstractSwingcastStaffItem {
             Rarity.COMMON,
             14,
             5.0D,
-            createCommonSpellPowerBonuses(),
             instantOnlyCastTypes(),
-            SwingcastCooldownMode.IMBUED_ONLY
+            SwingcastCooldownMode.IMBUED_ONLY,
+            bonus(AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.MULTIPLY_BASE)
     );
 
     public IronSwingcastStaff() {
