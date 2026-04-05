@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -22,7 +23,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "9";
+    private static final String PROTOCOL_VERSION = "10";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -56,6 +57,13 @@ public final class Networks {
                 SyncEnderGrimoireSpellbookPacket::encode,
                 SyncEnderGrimoireSpellbookPacket::decode,
                 SyncEnderGrimoireSpellbookPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncIsekaiTravelGuidebookConfigPacket.class,
+                SyncIsekaiTravelGuidebookConfigPacket::encode,
+                SyncIsekaiTravelGuidebookConfigPacket::decode,
+                SyncIsekaiTravelGuidebookConfigPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

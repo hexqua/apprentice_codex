@@ -59,6 +59,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -133,6 +134,9 @@ public final class ApprenticeCodexGameTests {
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_cane_lodestone_bind"),
                     RecipeRegistry.EXPLORERS_CANE_LODESTONE_BIND_SERIALIZER.get(), null);
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "isekai_travel_guidebook"),
+                    net.minecraft.world.item.crafting.RecipeSerializer.SHAPELESS_RECIPE, net.minecraft.world.item.crafting.RecipeType.CRAFTING);
 
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "essence_smoker/infuse_coal_to_arcane_cinder"),
@@ -143,6 +147,10 @@ public final class ApprenticeCodexGameTests {
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench/basic_spellcaster_round"),
                     RecipeRegistry.SPELLCASTER_WORKBENCH_SERIALIZER.get(), RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemist_cauldron/brew_isekai_travel_guidebook_to_common_ink"),
+                    io.redspace.ironsspellbooks.registries.RecipeRegistry.ALCHEMIST_CAULDRON_BREW_SERIALIZER.get(),
+                    io.redspace.ironsspellbooks.registries.RecipeRegistry.ALCHEMIST_CAULDRON_BREW_TYPE.get());
 
             helper.assertFalse(recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).isEmpty(),
                     "No Essence Smoker recipes were loaded");
@@ -201,6 +209,46 @@ public final class ApprenticeCodexGameTests {
                         "Creative tab spell order is mixed across schools at " + spellId + " (" + schoolType.getId() + ")");
                 previousSchoolIndex = schoolIndex;
             }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void isekaiTravelGuidebookStartsWithTwoFixedSpellsAndNoAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
+            var item = (io.redspace.ironsspellbooks.item.UniqueSpellBook) stack.getItem();
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(stack),
+                    "Isekai Travel Guidebook did not initialize a spell container");
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Isekai Travel Guidebook spell container is null");
+            helper.assertTrue(spellContainer.getMaxSpellCount() == 2,
+                    "Isekai Travel Guidebook spell slot count mismatch: " + spellContainer.getMaxSpellCount());
+
+            var firstSpell = spellContainer.getSpellAtIndex(0);
+            var secondSpell = spellContainer.getSpellAtIndex(1);
+            helper.assertTrue(firstSpell != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                    "Isekai Travel Guidebook first spell is empty");
+            helper.assertTrue(secondSpell != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                    "Isekai Travel Guidebook second spell is empty");
+            helper.assertTrue(firstSpell.getSpell() == SpellRegistry.HEALING_BLOOM.get(),
+                    "Isekai Travel Guidebook first spell mismatch: " + firstSpell.getSpell().getSpellResource());
+            helper.assertTrue(secondSpell.getSpell() == SpellRegistry.COMPANION_TRUNK.get(),
+                    "Isekai Travel Guidebook second spell mismatch: " + secondSpell.getSpell().getSpellResource());
+
+            var pig = helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0));
+            var slotContext = new top.theillusivec4.curios.api.SlotContext(
+                    io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                    pig,
+                    0,
+                    false,
+                    true
+            );
+            var modifiers = item.getAttributeModifiers(slotContext, UUID.randomUUID(), stack);
+            helper.assertTrue(modifiers.isEmpty(),
+                    "Isekai Travel Guidebook should not add spellbook attributes: " + describeModifiers(modifiers));
         });
     }
 

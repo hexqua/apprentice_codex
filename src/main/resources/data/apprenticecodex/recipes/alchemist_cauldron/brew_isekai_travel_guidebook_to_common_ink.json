@@ -1,0 +1,16 @@
+{
+  "type": "irons_spellbooks:alchemist_cauldron_brew",
+  "base_fluid": {
+    "Amount": 1000,
+    "FluidName": "minecraft:water"
+  },
+  "input": {
+    "item": "apprenticecodex:isekai_travel_guidebook"
+  },
+  "results": [
+    {
+      "Amount": 250,
+      "FluidName": "irons_spellbooks:common_ink"
+    }
+  ]
+}
