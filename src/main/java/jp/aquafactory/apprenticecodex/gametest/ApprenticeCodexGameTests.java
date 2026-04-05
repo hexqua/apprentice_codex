@@ -7,7 +7,13 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -18,6 +24,8 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
@@ -33,8 +41,10 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -45,8 +55,12 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -285,15 +299,136 @@ public final class ApprenticeCodexGameTests {
             assertUpgradeable(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
                     "AbstractSpellGunItem descendants should be upgradeable");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
-                    "AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+                    "Crystal Bladed Staff should remain upgradeable after the 1.21.1 StaffItem migration");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
-                    "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+                    "AbstractRightClickMagicWeaponItem descendants should be upgradeable");
 
             var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
                     "Reflectcast Shield should not be in the upgrade whitelist");
             helper.assertFalse(Utils.canBeUpgraded(shieldStack),
                     "Reflectcast Shield should remain excluded from the upgrade system");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var expectedEnchantments = expectedSpellGunEnchantments();
+            var expectedBookEnchantments = allRegisteredEnchantmentIds(helper.getLevel().registryAccess());
+            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractSpellGunItem);
+            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Spell Gun");
+
+            for (var stack : stacks) {
+                assertExactEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        expectedEnchantments,
+                        expectedEnchantments,
+                        expectedBookEnchantments,
+                        expectedEnchantments,
+                        "Spell Gun " + BuiltInRegistries.ITEM.getKey(stack.getItem())
+                );
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var expectedBookEnchantments = allRegisteredEnchantmentIds(helper.getLevel().registryAccess());
+            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
+            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
+
+            for (var stack : stacks) {
+                var expectedEnchantments = expectedOffhandEnchantmentsFor(stack);
+                assertExactEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        expectedEnchantments,
+                        expectedEnchantments,
+                        expectedBookEnchantments,
+                        expectedEnchantments,
+                        "Offhand Magic Item " + BuiltInRegistries.ITEM.getKey(stack.getItem())
+                    );
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Right Click Magic Weapon",
+                // 1.21.1 では Crystal Bladed Staff が StaffItem 化され、このカテゴリから外れている。
+                item -> item instanceof AbstractRightClickMagicWeaponItem,
+                stack -> expectedRightClickMagicWeaponEnchantments(helper.getLevel().registryAccess())
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spellcasters Flask",
+                item -> item instanceof SpellcastersFlask,
+                expectedFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertCategoryEnchantments(
+                    helper,
+                    "Enchantress Robe",
+                    item -> item instanceof EnchantressRobeItem,
+                    stack -> expectedEnchantressRobeEnchantments(helper.getLevel().registryAccess(), stack)
+            );
+            assertCategoryEnchantments(
+                    helper,
+                    "Stealth Rune Armor",
+                    item -> item instanceof StealthRuneArmorItem,
+                    stack -> expectedStealthRuneArmorEnchantments(helper.getLevel().registryAccess(), stack)
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void pastelStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+
+            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
+                    true, true, true, null, "Pastel Staff fortune rule");
+            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
+                    true, true, true, null, "Pastel Staff silk touch rule");
+            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE),
+                    false, false, false, null, "Pastel Staff should keep rejecting transcendence");
+            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
+                    false, false, false, null, "Pastel Staff should keep rejecting wisdom");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void crystalBladedStaffKeepsItsDedicatedEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var stack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+            var item = (CrystalBladedStaff) stack.getItem();
+
+            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
+                    false, false, false, false, "Crystal Bladed Staff should keep rejecting fortune");
+            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
+                    false, false, false, false, "Crystal Bladed Staff should keep rejecting silk touch");
+            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE),
+                    true, true, true, true, "Crystal Bladed Staff transcendence rule");
+            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
+                    true, true, true, true, "Crystal Bladed Staff wisdom rule");
+
+            helper.assertTrue(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
+                    "Crystal Bladed Staff should keep accepting diamonds as its repair material");
         });
     }
 
@@ -378,6 +513,282 @@ public final class ApprenticeCodexGameTests {
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
+    }
+
+    private static void assertCategoryEnchantments(
+            GameTestHelper helper,
+            String categoryName,
+            Predicate<Item> itemPredicate,
+            Set<ResourceLocation> expectedEnchantments
+    ) {
+        assertCategoryEnchantments(helper, categoryName, itemPredicate, stack -> expectedEnchantments);
+    }
+
+    private static void assertCategoryEnchantments(
+            GameTestHelper helper,
+            String categoryName,
+            Predicate<Item> itemPredicate,
+            java.util.function.Function<ItemStack, Set<ResourceLocation>> expectedEnchantmentsResolver
+    ) {
+        var stacks = getRegisteredItemStacks(itemPredicate);
+        helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: " + categoryName);
+
+        for (var stack : stacks) {
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantmentsResolver.apply(stack),
+                    categoryName + " " + BuiltInRegistries.ITEM.getKey(stack.getItem())
+            );
+        }
+    }
+
+    private static void assertExactEnchantmentSurfaces(
+            GameTestHelper helper,
+            ItemStack stack,
+            Set<ResourceLocation> expectedEnchantments,
+            String itemName
+    ) {
+        assertExactEnchantmentSurfaces(
+                helper,
+                stack,
+                expectedEnchantments,
+                expectedEnchantments,
+                expectedEnchantments,
+                expectedEnchantments,
+                itemName
+        );
+    }
+
+    private static void assertExactEnchantmentSurfaces(
+            GameTestHelper helper,
+            ItemStack stack,
+            Set<ResourceLocation> expectedPrimaryEnchantments,
+            Set<ResourceLocation> expectedSupportedEnchantments,
+            Set<ResourceLocation> expectedBookEnchantments,
+            Set<ResourceLocation> expectedAnvilEnchantments,
+            String itemName
+    ) {
+        var item = stack.getItem();
+        var registryAccess = helper.getLevel().registryAccess();
+
+        var actualPrimaryEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> item.isPrimaryItemFor(stack, enchantment)
+        );
+        helper.assertTrue(actualPrimaryEnchantments.equals(expectedPrimaryEnchantments),
+                itemName + " primary enchantments changed: "
+                        + describeEnchantmentDifference(expectedPrimaryEnchantments, actualPrimaryEnchantments));
+
+        var actualSupportedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> item.supportsEnchantment(stack, enchantment)
+        );
+        helper.assertTrue(actualSupportedEnchantments.equals(expectedSupportedEnchantments),
+                itemName + " supported enchantments changed: "
+                        + describeEnchantmentDifference(expectedSupportedEnchantments, actualSupportedEnchantments));
+
+        var actualBookEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> item.isBookEnchantable(stack, createEnchantedBook(enchantment))
+        );
+        helper.assertTrue(actualBookEnchantments.equals(expectedBookEnchantments),
+                itemName + " book enchantments changed: "
+                        + describeEnchantmentDifference(expectedBookEnchantments, actualBookEnchantments));
+
+        if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
+            var actualAnvilEnchantments = collectAllowedEnchantments(
+                    registryAccess,
+                    enchantment -> mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment)
+            );
+            helper.assertTrue(actualAnvilEnchantments.equals(expectedAnvilEnchantments),
+                    itemName + " anvil enchantments changed: "
+                            + describeEnchantmentDifference(expectedAnvilEnchantments, actualAnvilEnchantments));
+        }
+    }
+
+    private static void assertSingleEnchantmentSurfaces(
+            GameTestHelper helper,
+            ItemStack stack,
+            net.minecraft.core.Holder<Enchantment> enchantment,
+            boolean expectedPrimary,
+            boolean expectedSupported,
+            boolean expectedBook,
+            Boolean expectedAnvil,
+            String message
+    ) {
+        var item = stack.getItem();
+        var enchantmentId = enchantment.unwrapKey().orElseThrow().location();
+
+        helper.assertTrue(item.isPrimaryItemFor(stack, enchantment) == expectedPrimary,
+                message + " primary rule changed for " + enchantmentId + ": expected " + expectedPrimary);
+        helper.assertTrue(item.supportsEnchantment(stack, enchantment) == expectedSupported,
+                message + " supported rule changed for " + enchantmentId + ": expected " + expectedSupported);
+        helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedBook,
+                message + " book rule changed for " + enchantmentId + ": expected " + expectedBook);
+
+        if (expectedAnvil != null) {
+            helper.assertTrue(item instanceof NonDamageableAnvilMergeItem,
+                    message + " anvil expectation requires NonDamageableAnvilMergeItem");
+            var actualAnvil = ((NonDamageableAnvilMergeItem) item).isAnvilMergeEnchantmentAllowed(stack, enchantment);
+            helper.assertTrue(actualAnvil == expectedAnvil,
+                    message + " anvil rule changed for " + enchantmentId + ": expected " + expectedAnvil);
+        }
+    }
+
+    private static List<ItemStack> getRegisteredItemStacks(Predicate<Item> itemPredicate) {
+        return ItemRegistry.ITEMS.getEntries().stream()
+                .map(DeferredHolder::get)
+                .filter(itemPredicate)
+                .sorted(Comparator.comparing(item -> String.valueOf(BuiltInRegistries.ITEM.getKey(item))))
+                .map(ItemStack::new)
+                .toList();
+    }
+
+    private static Set<ResourceLocation> expectedSpellGunEnchantments() {
+        return registryIdSet(
+                Enchantments.REFLUX,
+                Enchantments.RESERVOIR,
+                Enchantments.SURGE,
+                Enchantments.ATTUNEMENT,
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER
+        );
+    }
+
+    private static Set<ResourceLocation> expectedOffhandEnchantments() {
+        return registryIdSet(
+                Enchantments.ALACRITY,
+                Enchantments.REFLUX,
+                Enchantments.RESERVOIR,
+                Enchantments.SURGE,
+                Enchantments.ATTUNEMENT,
+                Enchantments.TENSE,
+                Enchantments.TRANSCENDENCE
+        );
+    }
+
+    private static Set<ResourceLocation> expectedOffhandEnchantmentsFor(ItemStack stack) {
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (itemId == null) {
+            return Set.of();
+        }
+
+        return switch (itemId.getPath()) {
+            case "iron_spell_amplifier", "copper_spell_amplifier", "gold_spell_amplifier", "photon_siphon", "explorers_cane" ->
+                    expectedOffhandEnchantments();
+            default -> Set.of();
+        };
+    }
+
+    private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(RegistryAccess registryAccess) {
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
+                        && !isDurabilityTargetEnchantment(enchantment)
+        );
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM
+        ));
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedFlaskEnchantments() {
+        return registryIdSet(
+                Enchantments.GUZZLE,
+                Enchantments.LARGE_MUG,
+                Enchantments.RED_ENERGY,
+                Enchantments.GLOW_ENERGY
+        );
+    }
+
+    private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        var probeStack = createArmorProbeStack(stack);
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(probeStack)
+        );
+        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        var probeStack = createArmorProbeStack(stack);
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(probeStack)
+        );
+        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
+        return expectedEnchantments;
+    }
+
+    private static ItemStack createArmorProbeStack(ItemStack stack) {
+        if (!(stack.getItem() instanceof ArmorItem armorItem)) {
+            throw new IllegalArgumentException("Expected armor item for enchantment probe: " + stack);
+        }
+
+        return switch (armorItem.getType()) {
+            case HELMET -> new ItemStack(Items.LEATHER_HELMET);
+            case CHESTPLATE -> new ItemStack(Items.LEATHER_CHESTPLATE);
+            case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
+            case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
+            default -> throw new IllegalArgumentException("Unsupported armor type for enchantment probe: " + armorItem.getType());
+        };
+    }
+
+    @SafeVarargs
+    private static Set<ResourceLocation> registryIdSet(ResourceKey<Enchantment>... enchantments) {
+        var ids = new LinkedHashSet<ResourceLocation>();
+        for (var enchantment : enchantments) {
+            ids.add(enchantment.location());
+        }
+        return ids;
+    }
+
+    private static Set<ResourceLocation> collectAllowedEnchantments(
+            RegistryAccess registryAccess,
+            Predicate<net.minecraft.core.Holder<Enchantment>> predicate
+    ) {
+        var allowedEnchantments = new LinkedHashSet<ResourceLocation>();
+        var enchantments = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).listElements()
+                .sorted(Comparator.comparing(holder -> holder.key().location().toString()))
+                .toList();
+
+        for (var enchantment : enchantments) {
+            if (predicate.test(enchantment)) {
+                allowedEnchantments.add(enchantment.key().location());
+            }
+        }
+        return allowedEnchantments;
+    }
+
+    private static Set<ResourceLocation> allRegisteredEnchantmentIds(RegistryAccess registryAccess) {
+        return collectAllowedEnchantments(registryAccess, enchantment -> true);
+    }
+
+    private static ItemStack createEnchantedBook(net.minecraft.core.Holder<Enchantment> enchantment) {
+        var book = new ItemStack(Items.ENCHANTED_BOOK);
+        book.enchant(enchantment, 1);
+        return book;
+    }
+
+    private static boolean isDurabilityTargetEnchantment(net.minecraft.core.Holder<Enchantment> enchantment) {
+        return enchantment.value().canEnchant(new ItemStack(Items.ELYTRA));
+    }
+
+    private static String describeEnchantmentDifference(
+            Set<ResourceLocation> expectedEnchantments,
+            Set<ResourceLocation> actualEnchantments
+    ) {
+        var missingEnchantments = new LinkedHashSet<>(expectedEnchantments);
+        missingEnchantments.removeAll(actualEnchantments);
+
+        var unexpectedEnchantments = new LinkedHashSet<>(actualEnchantments);
+        unexpectedEnchantments.removeAll(expectedEnchantments);
+
+        return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
     }
 
     private static void assertBaseAttackModifier(
