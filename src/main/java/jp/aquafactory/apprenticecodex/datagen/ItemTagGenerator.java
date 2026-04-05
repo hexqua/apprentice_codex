@@ -170,6 +170,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
+                ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get(),
+                ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
+                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get(),
                 ItemRegistry.EXPLORERS_CANE.get()
         );
@@ -197,6 +200,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
                 ItemRegistry.COPPER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
+                ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get(),
+                ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
+                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get(),
                 ItemRegistry.EXPLORERS_CANE.get()
         );
