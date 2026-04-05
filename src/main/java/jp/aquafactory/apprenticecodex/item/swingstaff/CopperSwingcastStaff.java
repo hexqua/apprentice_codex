@@ -8,7 +8,8 @@ public class CopperSwingcastStaff extends AbstractSwingcastStaffItem {
             14,
             3.0D,
             createCommonSpellPowerBonuses(),
-            allNonContinuousCastTypes()
+            instantOnlyCastTypes(),
+            SwingcastCooldownMode.IMBUED_ONLY
     );
 
     public CopperSwingcastStaff() {

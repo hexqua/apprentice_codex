@@ -8,7 +8,8 @@ public class IronSwingcastStaff extends AbstractSwingcastStaffItem {
             14,
             5.0D,
             createCommonSpellPowerBonuses(),
-            allNonContinuousCastTypes()
+            instantOnlyCastTypes(),
+            SwingcastCooldownMode.IMBUED_ONLY
     );
 
     public IronSwingcastStaff() {

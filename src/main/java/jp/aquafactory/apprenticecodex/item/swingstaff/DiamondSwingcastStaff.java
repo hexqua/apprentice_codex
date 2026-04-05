@@ -8,7 +8,8 @@ public class DiamondSwingcastStaff extends AbstractSwingcastStaffItem {
             10,
             6.0D,
             createCommonSpellPowerBonuses(),
-            allNonContinuousCastTypes()
+            allNonContinuousCastTypes(),
+            SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME
     );
 
     public DiamondSwingcastStaff() {
