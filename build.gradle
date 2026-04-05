@@ -221,6 +221,32 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+def validateItemModelLoaders = tasks.register('validateItemModelLoaders') {
+    group = 'verification'
+    description = '1.21.1 向け item model に旧 forge loader 名が残っていないか検証する。'
+    def modelFiles = layout.projectDirectory.dir('src/main/resources/assets/apprenticecodex/models/item').asFileTree.matching {
+        include '**/*.json'
+    }
+    inputs.files(modelFiles)
+
+    doLast {
+        def invalidModels = inputs.files.files.findAll { file ->
+            file.getText('UTF-8').contains('"loader": "forge:')
+        }
+
+        if (!invalidModels.isEmpty()) {
+            throw new GradleException(
+                    "旧 forge loader が残っている item model があります:\n" +
+                            invalidModels.collect { "- ${project.relativePath(it)}" }.join('\n')
+            )
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn validateItemModelLoaders
+}
+
 idea {
     module {
         downloadSources = true
