@@ -1,0 +1,67 @@
+{
+	"format_version": "1.21.20",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.unknown",
+				"texture_width": 32,
+				"texture_height": 32,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 2.5,
+				"visible_bounds_offset": [0, 0.75, 0]
+			},
+			"bones": [
+				{
+					"name": "all",
+					"pivot": [0, 1, 0]
+				},
+				{
+					"name": "main",
+					"parent": "all",
+					"pivot": [0, 1, 0],
+					"cubes": [
+						{"origin": [-1, -0.6, -1], "size": [2, 2, 2], "inflate": -0.6, "uv": [0, 14]},
+						{"origin": [-1, 10.75, -1], "size": [2, 1, 2], "inflate": -0.25, "uv": [16, 16]},
+						{"origin": [-1.25, -0.25, -1.25], "size": [2.5, 5.25, 2.5], "inflate": -1, "uv": [0, 0]},
+						{"origin": [-1.25, 5, -1.25], "size": [2.5, 7, 2.5], "inflate": -1, "uv": [0, 0]},
+						{"origin": [-1.25, 3, -1.25], "size": [2.5, 4, 2.5], "inflate": -0.9, "uv": [10, 12]}
+					]
+				},
+				{
+					"name": "staff_core",
+					"parent": "all",
+					"pivot": [0, 11.6, 0],
+					"cubes": [
+						{"origin": [-1, 10.6, -1], "size": [2, 2, 2], "inflate": -0.75, "uv": [16, 12]}
+					]
+				},
+				{
+					"name": "orb",
+					"parent": "all",
+					"pivot": [0, 13, 0]
+				},
+				{
+					"name": "self_spin",
+					"parent": "orb",
+					"pivot": [0, 13, 0]
+				},
+				{
+					"name": "orb_none",
+					"parent": "self_spin",
+					"pivot": [0, 13, 0],
+					"cubes": [
+						{"origin": [-1.5, 11.5, -1.5], "size": [3, 3, 3], "inflate": -0.5, "uv": [8, 0]}
+					]
+				},
+				{
+					"name": "orb_contain",
+					"parent": "self_spin",
+					"pivot": [0, 13, 0],
+					"cubes": [
+						{"origin": [-1.5, 11.5, -1.5], "size": [3, 3, 3], "inflate": -0.5, "uv": [8, 6]}
+					]
+				}
+			]
+		}
+	]
+}
