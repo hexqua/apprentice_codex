@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
@@ -13,19 +14,22 @@ final class ItemsServerConfig {
     private final ScarletThirstServerConfig scarletThirstConfig;
     private final CraftsmansDelightServerConfig craftsmansDelightConfig;
     private final PastelStaffServerConfig pastelStaffConfig;
+    private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
             AbsorptionAmplifyAmuletServerConfig absorptionAmplifyAmuletConfig,
             ScarletThirstServerConfig scarletThirstConfig,
             CraftsmansDelightServerConfig craftsmansDelightConfig,
-            PastelStaffServerConfig pastelStaffConfig
+            PastelStaffServerConfig pastelStaffConfig,
+            IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
         this.scarletThirstConfig = scarletThirstConfig;
         this.craftsmansDelightConfig = craftsmansDelightConfig;
         this.pastelStaffConfig = pastelStaffConfig;
+        this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
     }
 
     static ItemsServerConfig define(ModConfigSpec.Builder builder) {
@@ -35,6 +39,7 @@ final class ItemsServerConfig {
         var scarletThirstConfig = ScarletThirstServerConfig.define(builder);
         var craftsmansDelightConfig = CraftsmansDelightServerConfig.define(builder);
         var pastelStaffConfig = PastelStaffServerConfig.define(builder);
+        var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -42,7 +47,8 @@ final class ItemsServerConfig {
                 absorptionAmplifyAmuletConfig,
                 scarletThirstConfig,
                 craftsmansDelightConfig,
-                pastelStaffConfig
+                pastelStaffConfig,
+                isekaiTravelGuidebookConfig
         );
     }
 
@@ -92,6 +98,14 @@ final class ItemsServerConfig {
 
     double pastelStaffAmplifyTintedMagicMultiplier() {
         return pastelStaffConfig.amplifyTintedMagicMultiplier();
+    }
+
+    boolean showIsekaiTravelGuidebookTooltip() {
+        return isekaiTravelGuidebookConfig.showTooltip();
+    }
+
+    boolean enableIsekaiTravelGuidebookBonusChestLoot() {
+        return isekaiTravelGuidebookConfig.enableBonusChestLoot();
     }
 }
 

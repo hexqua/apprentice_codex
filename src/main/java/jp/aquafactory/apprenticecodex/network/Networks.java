@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
@@ -21,7 +22,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "8";
+    private static final String PROTOCOL_VERSION = "9";
 
     private Networks() {
     }
@@ -46,6 +47,11 @@ public final class Networks {
                 SyncEnderGrimoireSpellbookPacket.TYPE,
                 SyncEnderGrimoireSpellbookPacket.STREAM_CODEC,
                 SyncEnderGrimoireSpellbookPacket::handle
+        );
+        registrar.playToClient(
+                SyncIsekaiTravelGuidebookConfigPacket.TYPE,
+                SyncIsekaiTravelGuidebookConfigPacket.STREAM_CODEC,
+                SyncIsekaiTravelGuidebookConfigPacket::handle
         );
         registrar.playToClient(
                 SyncScarletThirstHealthPacket.TYPE,

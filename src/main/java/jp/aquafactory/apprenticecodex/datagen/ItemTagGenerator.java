@@ -119,6 +119,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.EXPLORERS_CODEX.get(),
+                ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get(),
                 ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get()
         );
         // 1.21.1 のバニラ防具 enchant は item tag 基準になったため、通常防具相当の分類へ入れる.
