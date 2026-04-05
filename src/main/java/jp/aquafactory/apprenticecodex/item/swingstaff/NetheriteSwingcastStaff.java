@@ -8,7 +8,8 @@ public class NetheriteSwingcastStaff extends AbstractSwingcastStaffItem {
             15,
             7.0D,
             createCommonSpellPowerBonuses(),
-            allNonContinuousCastTypes()
+            allNonContinuousCastTypes(),
+            SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME
     );
 
     public NetheriteSwingcastStaff() {

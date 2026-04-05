@@ -7,17 +7,20 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +34,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -176,6 +180,13 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
         return tier.allowImbuedSpellInSpellWheel() && getImbuedSpellData(stack) != null;
     }
 
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+                                @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, level, lines, flag);
+        appendSwingcastStaffTooltip(lines);
+    }
+
     protected int resolveEffectiveSpellLevel(Player player, ItemStack stack, AbstractSpell spell) {
         var spellData = getImbuedSpellData(stack);
         if (spellData != null && spell.equals(spellData.getSpell())) {
@@ -232,7 +243,8 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
             int enchantmentValue,
             double displayedAttackDamage,
             List<SwingcastStaffTier.BonusSpec> handBonuses,
-            Set<SpellGunCastType> supportedCastTypes
+            Set<SpellGunCastType> supportedCastTypes,
+            SwingcastCooldownMode swingcastCooldownMode
     ) {
         return SwingcastStaffTier.fromDisplayedWeaponStats(
                 rarity,
@@ -243,14 +255,71 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
                 supportedCastTypes,
                 null,
                 false,
-                SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                swingcastCooldownMode,
                 null,
                 true
         );
     }
 
+    protected static Set<SpellGunCastType> instantOnlyCastTypes() {
+        return EnumSet.of(SpellGunCastType.INSTANT);
+    }
+
     protected static Set<SpellGunCastType> allNonContinuousCastTypes() {
         return EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG);
+    }
+
+    private void appendSwingcastStaffTooltip(List<Component> lines) {
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
+            return;
+        }
+
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                collectSwingcastAbilityTooltipSection(),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_swingcast_title",
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none"
+        );
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                collectSwingcastRestrictTooltipSection(),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_none"
+        );
+    }
+
+    private List<Component> collectSwingcastAbilityTooltipSection() {
+        var translatedLines = new ArrayList<Component>();
+        if (tier.supportedCastTypes().contains(SpellGunCastType.LONG)) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
+            ));
+        }
+
+        switch (tier.swingcastCooldownMode()) {
+            case FIXED -> {
+                if (tier.fixedSwingcastCooldownTicks() != null) {
+                    translatedLines.add(ImbueTooltipHelper.translatableGray(
+                            "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_recast",
+                            ImbueTooltipHelper.formatTooltipSeconds(tier.fixedSwingcastCooldownTicks())
+                    ));
+                }
+            }
+            case IMBUED_PLUS_LONG_CAST_TIME -> translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"
+            ));
+            case IMBUED_ONLY -> {
+            }
+        }
+        return translatedLines;
+    }
+
+    private List<Component> collectSwingcastRestrictTooltipSection() {
+        var translatedLines = new ArrayList<>(ImbueTooltipHelper.collectCastTypeRestrictionLines(tier.supportedCastTypes()));
+        ImbueTooltipHelper.appendMaxCooldownRestrictionLine(translatedLines, tier.maxImbueSpellCooldownTicks());
+        ImbueTooltipHelper.appendNoRecastRestrictionLine(translatedLines, tier.requireZeroRecast());
+        return translatedLines;
     }
 
     private static SwingcastStaffTier.BonusSpec bonusSpec(

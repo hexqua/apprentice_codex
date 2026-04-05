@@ -8,7 +8,8 @@ public class SilverSwingcastStaff extends AbstractSwingcastStaffItem {
             18,
             3.0D,
             createCommonSpellPowerBonuses(),
-            allNonContinuousCastTypes()
+            allNonContinuousCastTypes(),
+            SwingcastCooldownMode.IMBUED_ONLY
     );
 
     public SilverSwingcastStaff() {

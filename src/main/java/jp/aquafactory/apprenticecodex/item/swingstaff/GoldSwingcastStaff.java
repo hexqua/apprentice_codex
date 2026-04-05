@@ -8,7 +8,8 @@ public class GoldSwingcastStaff extends AbstractSwingcastStaffItem {
             22,
             3.0D,
             createCommonSpellPowerBonuses(),
-            allNonContinuousCastTypes()
+            allNonContinuousCastTypes(),
+            SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME
     );
 
     public GoldSwingcastStaff() {

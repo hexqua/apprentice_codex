@@ -6,6 +6,9 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -40,6 +43,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -363,9 +367,104 @@ public final class ApprenticeCodexGameTests {
         });
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var instantSpell = SpellRegistry.AUTO_MAGNET.get();
+            var longSpell = SpellRegistry.ARCANE_BLAST.get();
+            var continuousSpell = SpellRegistry.BULLET_STREAM.get();
+
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.IRON_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Iron Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Copper Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.SILVER_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Silver Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.GOLD_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Gold Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Diamond Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.NETHERITE_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Netherite Swingcast Staff"
+            );
+        });
+    }
+
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
+    }
+
+    private static void assertSwingcastStaffTier(
+            GameTestHelper helper,
+            AbstractSwingcastStaffItem item,
+            Set<SpellGunCastType> expectedCastTypes,
+            SwingcastCooldownMode expectedCooldownMode,
+            AbstractSpell instantSpell,
+            AbstractSpell longSpell,
+            AbstractSpell continuousSpell,
+            String itemName
+    ) {
+        var tier = item.getSwingcastStaffTier();
+        helper.assertTrue(tier.supportedCastTypes().equals(expectedCastTypes),
+                itemName + " cast type regression: expected " + expectedCastTypes + " but got " + tier.supportedCastTypes());
+        helper.assertTrue(tier.swingcastCooldownMode() == expectedCooldownMode,
+                itemName + " cooldown mode regression: expected " + expectedCooldownMode + " but got " + tier.swingcastCooldownMode());
+
+        var allowsLong = expectedCastTypes.contains(SpellGunCastType.LONG);
+        helper.assertTrue(item.canImbueSpell(instantSpell, 1),
+                itemName + " should allow instant spell imbuing");
+        helper.assertTrue(item.canImbueSpell(longSpell, 1) == allowsLong,
+                itemName + " long spell imbue regression: expected " + allowsLong);
+        helper.assertFalse(item.canImbueSpell(continuousSpell, 1),
+                itemName + " should continue rejecting continuous spells");
     }
 
     private static void assertModifierAmount(
