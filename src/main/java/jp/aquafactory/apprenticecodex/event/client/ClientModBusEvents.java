@@ -75,6 +75,7 @@ import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingLayer;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerRenderer;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRenderer;
+import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -338,6 +339,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.COMPANION_TRUNK.get(), CompanionTrunkRenderer::new);
         event.registerEntityRenderer(EntityRegistry.HEALING_BLOOM.get(), HealingBloomRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ILLUMINATE_STELLAR_STAR.get(), IlluminateStellarStarRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.UNITE_LUNA_MOON.get(), UniteLunaMoonRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_PROJECTILE.get(), FeatherRushProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_WING.get(), FeatherRushWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);
