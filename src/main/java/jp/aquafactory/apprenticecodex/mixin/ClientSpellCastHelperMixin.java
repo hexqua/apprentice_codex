@@ -8,12 +8,16 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.player.ClientSpellCastHelper;
 import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
+import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldClientEffectState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -48,6 +52,7 @@ public abstract class ClientSpellCastHelperMixin {
         // 配置 preview は開始時 target を固定したいので、clientbound の cast start に合わせて初期化する。
         ClientPlacementPreviewManager.beginPreview(spell, player, spellLevel);
         var castingStack = apprentice_codex$resolveCastingStack(player, castingSlot);
+        ClientSwingcastStaffCastContext.tryActivate(castingEntityId, castingStack, spell);
         if (player == minecraft.player && castingStack.getItem() instanceof ReflectcastShield) {
             ReflectcastShieldClientEffectState.beginLocalSuccessFlash(
                     apprentice_codex$resolveCastingHand(castingSlot),
@@ -56,6 +61,12 @@ public abstract class ClientSpellCastHelperMixin {
         }
 
         if (!(castingStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
+            return;
+        }
+
+        if (apprentice_codex$shouldSuppressCastStartAnimation(player, castingStack, spell)) {
+            spell.onClientPreCast(player.level(), spellLevel, player, apprentice_codex$resolveCastingHand(castingSlot), null);
+            ci.cancel();
             return;
         }
 
@@ -94,7 +105,7 @@ public abstract class ClientSpellCastHelperMixin {
             return spell.getCastFinishAnimation();
         }
 
-        return animationOverrideItem.shouldSuppressCastFinishAnimation(castingStack, spell)
+        return apprentice_codex$shouldSuppressCastFinishAnimation(player, castingStack, spell)
                 ? AnimationHolder.pass()
                 : spell.getCastFinishAnimation();
     }
@@ -106,6 +117,14 @@ public abstract class ClientSpellCastHelperMixin {
     private static void handleClientBoundOnCastFinished(UUID castingEntityId, String spellId, boolean cancelled, CallbackInfo ci) {
         // 完了/キャンセルの区別なく preview をここで落とし、残留を防ぐ。
         ClientPlacementPreviewManager.finishPreview(net.minecraft.resources.ResourceLocation.tryParse(spellId));
+    }
+
+    @Inject(
+            method = "handleClientBoundOnCastFinished",
+            at = @At("RETURN")
+    )
+    private static void handleClientBoundOnCastFinishedReturn(UUID castingEntityId, String spellId, boolean cancelled, CallbackInfo ci) {
+        ClientSwingcastStaffCastContext.clearFinished(castingEntityId, spellId);
     }
 
     @Unique
@@ -127,19 +146,52 @@ public abstract class ClientSpellCastHelperMixin {
     @Unique
     private static ItemStack apprentice_codex$resolveSpellAnimationStack(net.minecraft.world.entity.player.Player player, AbstractSpell spell) {
         var mainHand = player.getMainHandItem();
-        if (mainHand.getItem() instanceof CastAnimationOverrideItem animationOverrideItem
-                && (animationOverrideItem.shouldOverrideCastStartAnimation(mainHand, spell)
-                || animationOverrideItem.shouldSuppressCastFinishAnimation(mainHand, spell))) {
+        if (apprentice_codex$hasCastAnimationOverride(player, mainHand, spell)) {
             return mainHand;
         }
 
         var offHand = player.getOffhandItem();
-        if (offHand.getItem() instanceof CastAnimationOverrideItem animationOverrideItem
-                && (animationOverrideItem.shouldOverrideCastStartAnimation(offHand, spell)
-                || animationOverrideItem.shouldSuppressCastFinishAnimation(offHand, spell))) {
+        if (apprentice_codex$hasCastAnimationOverride(player, offHand, spell)) {
             return offHand;
         }
 
         return ItemStack.EMPTY;
+    }
+
+    @Unique
+    private static boolean apprentice_codex$hasCastAnimationOverride(Player player, ItemStack stack, @Nullable AbstractSpell spell) {
+        if (!(stack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
+            return false;
+        }
+
+        return apprentice_codex$shouldSuppressCastStartAnimation(player, stack, spell)
+                || animationOverrideItem.shouldOverrideCastStartAnimation(stack, spell)
+                || apprentice_codex$shouldSuppressCastFinishAnimation(player, stack, spell);
+    }
+
+    @Unique
+    private static boolean apprentice_codex$shouldSuppressCastStartAnimation(Player player, ItemStack stack, @Nullable AbstractSpell spell) {
+        if (!(stack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
+            return false;
+        }
+
+        if (stack.getItem() instanceof AbstractSwingcastStaffItem) {
+            return ClientSwingcastStaffCastContext.matches(player.getUUID(), stack, spell);
+        }
+
+        return animationOverrideItem.shouldSuppressCastStartAnimation(stack, spell);
+    }
+
+    @Unique
+    private static boolean apprentice_codex$shouldSuppressCastFinishAnimation(Player player, ItemStack stack, @Nullable AbstractSpell spell) {
+        if (!(stack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
+            return false;
+        }
+
+        if (stack.getItem() instanceof AbstractSwingcastStaffItem) {
+            return ClientSwingcastStaffCastContext.matches(player.getUUID(), stack, spell);
+        }
+
+        return animationOverrideItem.shouldSuppressCastFinishAnimation(stack, spell);
     }
 }

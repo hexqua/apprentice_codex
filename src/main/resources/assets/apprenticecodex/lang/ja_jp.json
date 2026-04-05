@@ -87,7 +87,6 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "この杖は盾を優先的に使用できる。",
-  "item.apprenticecodex.illuminate_stellar_staff.desc": "この杖は攻撃時に注入した魔法を放つ。",
   "item.apprenticecodex.stealth_rune_armor.desc": "この防具は透明化の効果を阻害しない。",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
   "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",
@@ -115,6 +114,7 @@
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_3": "装備をしていなくても弾薬を収納/自動使用することは可能。",
   "item.apprenticecodex.spellcaster_ammo_pouch.stored_amount": "収納数: %s / %s",
 
+  "item.apprenticecodex.swingcast.common.desc": "この杖は攻撃時に注入した魔法を放つ。",
   "item.apprenticecodex.flask_system.kind": "中身: %s",
   "item.apprenticecodex.flask_system.amount": "残量: %1$d/%2$d",
   "item.apprenticecodex.flask_system.filled_name": "%1$s(%2$s)",

@@ -98,6 +98,11 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     }
 
     @Override
+    public boolean shouldSuppressCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return matchesImbuedSpell(stack, spell) && supportsManaBypass(spell);
+    }
+
+    @Override
     public boolean shouldOverrideCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
         return matchesImbuedSpell(stack, spell) && supportsManaBypass(spell);
     }

@@ -29,6 +29,7 @@ public final class ClientSwingMagicAttackTrigger {
         }
 
         lastSentTick = player.level().getGameTime();
+        ClientSwingcastStaffCastContext.beginPending(player.getUUID(), player.getMainHandItem());
         Networks.sendToServer(new ClientSwingMagicAttackPacket(bypassChargeCheck));
     }
 

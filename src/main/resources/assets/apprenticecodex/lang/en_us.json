@@ -87,7 +87,6 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
 
   "item.apprenticecodex.crystal_bladed_staff.desc": "This staff prioritizes shield usage.",
-  "item.apprenticecodex.illuminate_stellar_staff.desc": "This staff casts its imbued spell with each full swing.",
   "item.apprenticecodex.stealth_rune_armor.desc": "This armor dose not prevent invisibility effects.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
   "item.apprenticecodex.basic_spellcaster_round.desc": "Ammo for instant casting spells",
@@ -115,6 +114,7 @@
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_3": "Can store and automatically use cartridges even without equipping.",
   "item.apprenticecodex.spellcaster_ammo_pouch.stored_amount": "Stored: %s / %s",
 
+  "item.apprenticecodex.swingcast.common.desc": "This staff casts its imbued spell with each full swing.",
   "item.apprenticecodex.flask_system.kind": "Kind: %s",
   "item.apprenticecodex.flask_system.amount": "Amount: %1$d/%2$d",
   "item.apprenticecodex.flask_system.filled_name": "%1$s (%2$s)",
