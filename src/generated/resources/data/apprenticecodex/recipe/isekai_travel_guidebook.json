@@ -13,6 +13,28 @@
     }
   ],
   "result": {
-    "item": "apprenticecodex:isekai_travel_guidebook"
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:healing_bloom",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          },
+          {
+            "id": "apprenticecodex:companion_trunk",
+            "index": 1,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 2,
+        "mustEquip": true,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:isekai_travel_guidebook"
   }
 }

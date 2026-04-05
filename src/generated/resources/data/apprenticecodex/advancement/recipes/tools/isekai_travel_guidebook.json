@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:ruined_book"
-            ]
+            "items": "irons_spellbooks:ruined_book"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_ruined_book",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_ruined_book"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:isekai_travel_guidebook"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

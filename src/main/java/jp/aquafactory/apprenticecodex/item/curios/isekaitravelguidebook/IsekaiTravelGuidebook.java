@@ -5,11 +5,10 @@ import io.redspace.ironsspellbooks.item.UniqueSpellBook;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -22,8 +21,8 @@ public final class IsekaiTravelGuidebook extends UniqueSpellBook {
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
         if (!IsekaiTravelGuidebookTooltipState.shouldShowTooltip()) {
             return;
         }
