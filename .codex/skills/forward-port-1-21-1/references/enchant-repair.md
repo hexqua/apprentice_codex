@@ -21,6 +21,7 @@
 ## 武器・ツール・特殊アイテム
 
 - 対象 enchantment JSON が参照する `minecraft:enchantable/*` を洗い出す。
+- `supported_items` / `primary_items` が独自 tag ではなく vanilla tag を向いている場合がある。特に近接武器は `minecraft:enchantable/sword` / `weapon` / `sharp_weapon` / `fire_aspect` を優先確認する。
 - 独自 tag がある場合は datagen 側と `src/generated/resources` 側の両方を確認する。
 - Java 実装を port しただけで付与可否が戻ると思い込まない。
 
@@ -29,5 +30,7 @@
 - エンチャントテーブル
 - 金床でのエンチャント本適用
 - 素材修理
+- `Enchantment#canEnchant(ItemStack)` の結果
+- `Item#isPrimaryItemFor` / `supportsEnchantment` / `isBookEnchantable` との不整合の有無
 
 この 3 経路を対象アイテムごとに確認する。

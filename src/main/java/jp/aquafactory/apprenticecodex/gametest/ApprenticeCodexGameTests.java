@@ -331,6 +331,7 @@ public final class ApprenticeCodexGameTests {
                         stack,
                         expectedEnchantments,
                         expectedEnchantments,
+                        expectedEnchantments,
                         expectedBookEnchantments,
                         expectedEnchantments,
                         "Spell Gun " + BuiltInRegistries.ITEM.getKey(stack.getItem())
@@ -350,6 +351,7 @@ public final class ApprenticeCodexGameTests {
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
+                        expectedOffhandEnchantments(),
                         expectedOffhandEnchantments(),
                         expectedOffhandEnchantments(),
                         expectedBookEnchantments,
@@ -406,13 +408,13 @@ public final class ApprenticeCodexGameTests {
             var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
 
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
-                    true, true, true, null, "Pastel Staff fortune rule");
+                    true, true, true, true, null, "Pastel Staff fortune rule");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
-                    true, true, true, null, "Pastel Staff silk touch rule");
+                    true, true, true, true, null, "Pastel Staff silk touch rule");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE),
-                    false, false, false, null, "Pastel Staff should keep rejecting transcendence");
+                    false, false, false, false, null, "Pastel Staff should keep rejecting transcendence");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
-                    false, false, false, null, "Pastel Staff should keep rejecting wisdom");
+                    false, false, false, false, null, "Pastel Staff should keep rejecting wisdom");
         });
     }
 
@@ -424,13 +426,13 @@ public final class ApprenticeCodexGameTests {
             var item = (CrystalBladedStaff) stack.getItem();
 
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
-                    false, false, false, false, "Crystal Bladed Staff should keep rejecting fortune");
+                    false, false, false, false, false, "Crystal Bladed Staff should keep rejecting fortune");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
-                    false, false, false, false, "Crystal Bladed Staff should keep rejecting silk touch");
+                    false, false, false, false, false, "Crystal Bladed Staff should keep rejecting silk touch");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE),
-                    true, true, true, true, "Crystal Bladed Staff transcendence rule");
+                    true, true, true, true, true, "Crystal Bladed Staff transcendence rule");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
-                    true, true, true, true, "Crystal Bladed Staff wisdom rule");
+                    true, true, true, true, true, "Crystal Bladed Staff wisdom rule");
 
             helper.assertTrue(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Crystal Bladed Staff should keep accepting diamonds as its repair material");
@@ -663,10 +665,11 @@ public final class ApprenticeCodexGameTests {
                 helper,
                 stack,
                 expectedEnchantments,
-                expectedEnchantments,
-                expectedEnchantments,
-                expectedEnchantments,
-                itemName
+                    expectedEnchantments,
+                    expectedEnchantments,
+                    expectedEnchantments,
+                    expectedEnchantments,
+                    itemName
         );
     }
 
@@ -675,6 +678,7 @@ public final class ApprenticeCodexGameTests {
             ItemStack stack,
             Set<ResourceLocation> expectedPrimaryEnchantments,
             Set<ResourceLocation> expectedSupportedEnchantments,
+            Set<ResourceLocation> expectedDefinitionEnchantments,
             Set<ResourceLocation> expectedBookEnchantments,
             Set<ResourceLocation> expectedAnvilEnchantments,
             String itemName
@@ -697,6 +701,14 @@ public final class ApprenticeCodexGameTests {
         helper.assertTrue(actualSupportedEnchantments.equals(expectedSupportedEnchantments),
                 itemName + " supported enchantments changed: "
                         + describeEnchantmentDifference(expectedSupportedEnchantments, actualSupportedEnchantments));
+
+        var actualDefinitionEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(stack)
+        );
+        helper.assertTrue(actualDefinitionEnchantments.equals(expectedDefinitionEnchantments),
+                itemName + " enchantment definition support changed: "
+                        + describeEnchantmentDifference(expectedDefinitionEnchantments, actualDefinitionEnchantments));
 
         var actualBookEnchantments = collectAllowedEnchantments(
                 registryAccess,
@@ -723,6 +735,7 @@ public final class ApprenticeCodexGameTests {
             net.minecraft.core.Holder<Enchantment> enchantment,
             boolean expectedPrimary,
             boolean expectedSupported,
+            boolean expectedDefinitionSupport,
             boolean expectedBook,
             Boolean expectedAnvil,
             String message
@@ -734,6 +747,8 @@ public final class ApprenticeCodexGameTests {
                 message + " primary rule changed for " + enchantmentId + ": expected " + expectedPrimary);
         helper.assertTrue(item.supportsEnchantment(stack, enchantment) == expectedSupported,
                 message + " supported rule changed for " + enchantmentId + ": expected " + expectedSupported);
+        helper.assertTrue(enchantment.value().canEnchant(stack) == expectedDefinitionSupport,
+                message + " definition support changed for " + enchantmentId + ": expected " + expectedDefinitionSupport);
         helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedBook,
                 message + " book rule changed for " + enchantmentId + ": expected " + expectedBook);
 

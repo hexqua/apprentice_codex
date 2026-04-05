@@ -36,6 +36,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_CHEST_ARMOR = createTag("minecraft", "chest_armor");
     private static final TagKey<Item> MINECRAFT_LEG_ARMOR = createTag("minecraft", "leg_armor");
     private static final TagKey<Item> MINECRAFT_FOOT_ARMOR = createTag("minecraft", "foot_armor");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_SWORD = createTag("minecraft", "enchantable/sword");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_FIRE_ASPECT = createTag("minecraft", "enchantable/fire_aspect");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_SHARP_WEAPON = createTag("minecraft", "enchantable/sharp_weapon");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_WEAPON = createTag("minecraft", "enchantable/weapon");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_DURABILITY = createTag("minecraft", "enchantable/durability");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_EQUIPPABLE = createTag("minecraft", "enchantable/equippable");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
@@ -72,6 +76,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
+        var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
+        var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
+        var vanillaSwordEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SWORD);
+        var vanillaFireAspectEnchantableTag = tag(MINECRAFT_ENCHANTABLE_FIRE_ASPECT);
+        var vanillaSharpWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SHARP_WEAPON);
+        var vanillaWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_WEAPON);
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get()
@@ -93,6 +103,17 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 // (重複するとタグが2回出てしまうので1.20.1では個別登録していない)
                 malumSoulHunterWeaponTag.add(item);
                 tomagicReversalWeaponTag.add(item);
+
+                // 1.21.1 では Wisdom / Transcendence の適用可否が enchantment JSON 側の item tag で決まる。
+                // 右クリック魔法武器は Java 側で両エンチャを許可しているため、tag 側も同じ面に揃える。
+                if (item instanceof AbstractRightClickMagicWeaponItem) {
+                    transcendenceEnchantableTag.add(item);
+                    wisdomEnchantableTag.add(item);
+                    vanillaSwordEnchantableTag.add(item);
+                    vanillaFireAspectEnchantableTag.add(item);
+                    vanillaSharpWeaponEnchantableTag.add(item);
+                    vanillaWeaponEnchantableTag.add(item);
+                }
             }
         }
         tag(CURIOS_SPELLBOOK).add(
@@ -198,7 +219,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         tag(FLASK_ENCHANTABLE).add(ItemRegistry.SPELLCASTERS_FLASK.get());
         // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
-        tag(WISDOM_ENCHANTABLE).addTag(SPELL_GUN_ENCHANTABLE).add(
+        wisdomEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
@@ -225,7 +246,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
                 .addTag(OFFHAND_MAGIC_ENCHANTABLE)
                 .addTag(SPELL_GUN_ENCHANTABLE);
-        tag(TRANSCENDENCE_ENCHANTABLE)
+        transcendenceEnchantableTag
                 .addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
                 .add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
 
