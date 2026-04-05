@@ -6,7 +6,14 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
+import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
@@ -31,7 +38,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
@@ -42,14 +54,19 @@ import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    private static final String VANILLA_NAMESPACE = "minecraft";
 
     private ApprenticeCodexGameTests() {
     }
@@ -437,9 +454,369 @@ public final class ApprenticeCodexGameTests {
         });
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spell Gun",
+                item -> item instanceof AbstractSpellGunItem,
+                expectedSpellGunEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var expectedEnchantments = expectedOffhandEnchantments();
+            var expectedBookEnchantments = allRegisteredEnchantmentIds();
+            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
+            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
+
+            for (var stack : stacks) {
+                // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
+                // 本判定だけは広く通る。実際に固定したい付与面はエンチャント台と独自金床側。
+                assertExactEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        expectedEnchantments,
+                        expectedBookEnchantments,
+                        expectedEnchantments,
+                        "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
+                );
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Right Click Magic Weapon",
+                // 1.21.1申し送り事項:
+                // 1.20.1 では StaffItem にしていない武器でも、1.21.1 側では StaffItem 化する場合がある。
+                // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
+                // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
+                item -> item instanceof AbstractRightClickMagicWeaponItem,
+                expectedRightClickMagicWeaponEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spellcasters Flask",
+                item -> item instanceof SpellcastersFlask,
+                expectedFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertCategoryEnchantments(
+                    helper,
+                    "Enchantress Robe",
+                    item -> item instanceof EnchantressRobeItem,
+                    ApprenticeCodexGameTests::expectedEnchantressRobeEnchantments
+            );
+            assertCategoryEnchantments(
+                    helper,
+                    "Stealth Rune Armor",
+                    item -> item instanceof StealthRuneArmorItem,
+                    ApprenticeCodexGameTests::expectedStealthRuneArmorEnchantments
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            var item = stack.getItem();
+            var expectedVanillaEnchantments = Set.of(
+                    ResourceLocation.withDefaultNamespace("fortune"),
+                    ResourceLocation.withDefaultNamespace("knockback"),
+                    ResourceLocation.withDefaultNamespace("looting"),
+                    ResourceLocation.withDefaultNamespace("silk_touch")
+            );
+
+            var actualAllowedVanillaEnchantments = collectAllowedEnchantments(
+                    stack,
+                    enchantment -> {
+                        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                        return enchantmentId != null
+                                && VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                                && item.canApplyAtEnchantingTable(stack, enchantment);
+                    }
+            );
+            helper.assertTrue(actualAllowedVanillaEnchantments.equals(expectedVanillaEnchantments),
+                    "Pastel Staff allowed vanilla enchantments changed: "
+                            + describeEnchantmentDifference(expectedVanillaEnchantments, actualAllowedVanillaEnchantments));
+
+            // Iron's StaffItem 側の広い互換性は 1.21.1 で揺れやすいため固定せず、
+            // この mod が明示したバニラ武器許可と耐久系拒否だけを回帰監視する。
+            for (var enchantment : getRegisteredEnchantments()) {
+                var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                if (enchantmentId == null) {
+                    continue;
+                }
+
+                var expectedVanillaAllowed = VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                        && expectedVanillaEnchantments.contains(enchantmentId);
+                if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
+                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment) == expectedVanillaAllowed,
+                            "Pastel Staff vanilla enchanting-table rule changed for " + enchantmentId
+                                    + ": expected " + expectedVanillaAllowed);
+                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedVanillaAllowed,
+                            "Pastel Staff vanilla book rule changed for " + enchantmentId
+                                    + ": expected " + expectedVanillaAllowed);
+                }
+
+                if (isDurabilityTargetEnchantment(enchantment)) {
+                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should keep rejecting durability-target enchantments at the enchanting table: "
+                                    + enchantmentId);
+                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should keep rejecting durability-target enchantments from books: "
+                                    + enchantmentId);
+                }
+            }
+        });
+    }
+
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
+    }
+
+    private static void assertCategoryEnchantments(
+            GameTestHelper helper,
+            String categoryName,
+            Predicate<net.minecraft.world.item.Item> itemPredicate,
+            Set<ResourceLocation> expectedEnchantments
+    ) {
+        assertCategoryEnchantments(helper, categoryName, itemPredicate, stack -> expectedEnchantments);
+    }
+
+    private static void assertCategoryEnchantments(
+            GameTestHelper helper,
+            String categoryName,
+            Predicate<net.minecraft.world.item.Item> itemPredicate,
+            java.util.function.Function<ItemStack, Set<ResourceLocation>> expectedEnchantmentsResolver
+    ) {
+        var stacks = getRegisteredItemStacks(itemPredicate);
+        helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: " + categoryName);
+
+        for (var stack : stacks) {
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantmentsResolver.apply(stack),
+                    categoryName + " " + ForgeRegistries.ITEMS.getKey(stack.getItem())
+            );
+        }
+    }
+
+    private static void assertExactEnchantmentSurfaces(
+            GameTestHelper helper,
+            ItemStack stack,
+            Set<ResourceLocation> expectedEnchantments,
+            String itemName
+    ) {
+        assertExactEnchantmentSurfaces(
+                helper,
+                stack,
+                expectedEnchantments,
+                expectedEnchantments,
+                expectedEnchantments,
+                itemName
+        );
+    }
+
+    private static void assertExactEnchantmentSurfaces(
+            GameTestHelper helper,
+            ItemStack stack,
+            Set<ResourceLocation> expectedEnchantingTableEnchantments,
+            Set<ResourceLocation> expectedBookEnchantments,
+            Set<ResourceLocation> expectedAnvilEnchantments,
+            String itemName
+    ) {
+        var item = stack.getItem();
+        var actualEnchantingTableEnchantments = collectAllowedEnchantments(
+                stack,
+                enchantment -> item.canApplyAtEnchantingTable(stack, enchantment)
+        );
+        helper.assertTrue(actualEnchantingTableEnchantments.equals(expectedEnchantingTableEnchantments),
+                itemName + " enchanting-table enchantments changed: "
+                        + describeEnchantmentDifference(expectedEnchantingTableEnchantments, actualEnchantingTableEnchantments));
+
+        var actualBookEnchantments = collectAllowedEnchantments(
+                stack,
+                enchantment -> item.isBookEnchantable(stack, createEnchantedBook(enchantment))
+        );
+        helper.assertTrue(actualBookEnchantments.equals(expectedBookEnchantments),
+                itemName + " book enchantments changed: "
+                        + describeEnchantmentDifference(expectedBookEnchantments, actualBookEnchantments));
+
+        if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
+            var actualAnvilEnchantments = collectAllowedEnchantments(
+                    stack,
+                    enchantment -> mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment)
+            );
+            helper.assertTrue(actualAnvilEnchantments.equals(expectedAnvilEnchantments),
+                    itemName + " anvil enchantments changed: "
+                            + describeEnchantmentDifference(expectedAnvilEnchantments, actualAnvilEnchantments));
+        }
+    }
+
+    private static List<ItemStack> getRegisteredItemStacks(Predicate<net.minecraft.world.item.Item> itemPredicate) {
+        return ItemRegistry.ITEMS.getEntries().stream()
+                .map(RegistryObject::get)
+                .filter(itemPredicate)
+                .sorted(Comparator.comparing(item -> String.valueOf(ForgeRegistries.ITEMS.getKey(item))))
+                .map(ItemStack::new)
+                .toList();
+    }
+
+    private static Set<ResourceLocation> expectedSpellGunEnchantments() {
+        return registryIdSet(
+                EnchantmentRegistry.ALACRITY,
+                EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.RESERVOIR,
+                EnchantmentRegistry.SURGE,
+                EnchantmentRegistry.ATTUNEMENT,
+                EnchantmentRegistry.TENSE,
+                EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.PLUNDER
+        );
+    }
+
+    private static Set<ResourceLocation> expectedOffhandEnchantments() {
+        return registryIdSet(
+                EnchantmentRegistry.ALACRITY,
+                EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.RESERVOIR,
+                EnchantmentRegistry.SURGE,
+                EnchantmentRegistry.ATTUNEMENT,
+                EnchantmentRegistry.TENSE,
+                EnchantmentRegistry.TRANSCENDENCE
+        );
+    }
+
+    private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments() {
+        var expectedEnchantments = collectAllowedEnchantments(
+                new ItemStack(Items.DIAMOND_SWORD),
+                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
+                        && !isDurabilityTargetEnchantment(enchantment)
+        );
+        expectedEnchantments.addAll(registryIdSet(
+                EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.WISDOM
+        ));
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedFlaskEnchantments() {
+        return registryIdSet(
+                EnchantmentRegistry.GUZZLE,
+                EnchantmentRegistry.LARGE_MUG,
+                EnchantmentRegistry.RED_ENERGY,
+                EnchantmentRegistry.GLOW_ENERGY
+        );
+    }
+
+    private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(ItemStack stack) {
+        var probeStack = createArmorProbeStack(stack);
+        var expectedEnchantments = collectAllowedEnchantments(
+                probeStack,
+                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
+        );
+        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(ItemStack stack) {
+        var probeStack = createArmorProbeStack(stack);
+        var expectedEnchantments = collectAllowedEnchantments(
+                probeStack,
+                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
+        );
+        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        return expectedEnchantments;
+    }
+
+    private static ItemStack createArmorProbeStack(ItemStack stack) {
+        if (!(stack.getItem() instanceof ArmorItem armorItem)) {
+            throw new IllegalArgumentException("Expected armor item for enchantment probe: " + stack);
+        }
+
+        return switch (armorItem.getType()) {
+            case HELMET -> new ItemStack(Items.LEATHER_HELMET);
+            case CHESTPLATE -> new ItemStack(Items.LEATHER_CHESTPLATE);
+            case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
+            case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
+        };
+    }
+
+    private static Set<ResourceLocation> registryIdSet(RegistryObject<Enchantment>... enchantments) {
+        var ids = new LinkedHashSet<ResourceLocation>();
+        for (var enchantment : enchantments) {
+            var id = enchantment.getId();
+            if (id != null) {
+                ids.add(id);
+            }
+        }
+        return ids;
+    }
+
+    private static List<Enchantment> getRegisteredEnchantments() {
+        return ForgeRegistries.ENCHANTMENTS.getValues().stream()
+                .sorted(Comparator.comparing(enchantment -> String.valueOf(ForgeRegistries.ENCHANTMENTS.getKey(enchantment))))
+                .toList();
+    }
+
+    private static Set<ResourceLocation> allRegisteredEnchantmentIds() {
+        return collectAllowedEnchantments(ItemStack.EMPTY, enchantment -> true);
+    }
+
+    private static Set<ResourceLocation> collectAllowedEnchantments(
+            ItemStack stack,
+            Predicate<Enchantment> predicate
+    ) {
+        var allowedEnchantments = new LinkedHashSet<ResourceLocation>();
+        for (var enchantment : getRegisteredEnchantments()) {
+            var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+            if (enchantmentId == null || !predicate.test(enchantment)) {
+                continue;
+            }
+            allowedEnchantments.add(enchantmentId);
+        }
+        return allowedEnchantments;
+    }
+
+    private static ItemStack createEnchantedBook(Enchantment enchantment) {
+        var book = new ItemStack(Items.ENCHANTED_BOOK);
+        EnchantedBookItem.addEnchantment(book, new EnchantmentInstance(enchantment, 1));
+        return book;
+    }
+
+    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
+        return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.ELYTRA));
+    }
+
+    private static String describeEnchantmentDifference(
+            Set<ResourceLocation> expectedEnchantments,
+            Set<ResourceLocation> actualEnchantments
+    ) {
+        var missingEnchantments = new LinkedHashSet<>(expectedEnchantments);
+        missingEnchantments.removeAll(actualEnchantments);
+
+        var unexpectedEnchantments = new LinkedHashSet<>(actualEnchantments);
+        unexpectedEnchantments.removeAll(expectedEnchantments);
+
+        return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
     }
 
     private static void assertSwingcastStaffTier(
