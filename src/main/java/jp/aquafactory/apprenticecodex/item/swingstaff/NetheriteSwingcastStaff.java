@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.swingstaff;
 
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Rarity;
 
 public class NetheriteSwingcastStaff extends AbstractSwingcastStaffItem {
@@ -7,9 +9,9 @@ public class NetheriteSwingcastStaff extends AbstractSwingcastStaffItem {
             Rarity.RARE,
             15,
             7.0D,
-            createCommonSpellPowerBonuses(),
             allNonContinuousCastTypes(),
-            SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME
+            SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+            bonus(AttributeRegistry.SPELL_POWER, 0.1, AttributeModifier.Operation.MULTIPLY_BASE)
     );
 
     public NetheriteSwingcastStaff() {
