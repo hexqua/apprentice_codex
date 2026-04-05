@@ -1,0 +1,26 @@
+{
+  "parent": "minecraft:item/handheld",
+  "loader": "neoforge:separate_transforms",
+  "base": {
+    "textures": {
+      "book": "apprenticecodex:item/spellbook/isekai_travel_guidebook",
+      "particle": "apprenticecodex:item/spellbook/isekai_travel_guidebook"
+    },
+    "parent": "irons_spellbooks:item/template_spell_book_model"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/isekai_travel_guidebook"
+      }
+    },
+    "head": {
+      "textures": {
+        "book": "apprenticecodex:item/spellbook/isekai_travel_guidebook",
+        "particle": "apprenticecodex:item/spellbook/isekai_travel_guidebook"
+      },
+      "parent": "irons_spellbooks:item/template_spell_book_model_open"
+    }
+  }
+}

@@ -14,6 +14,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -167,6 +168,13 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(explorersCodexOutput, ItemRegistry.EXPLORERS_CODEX.getId());
 
         saveSpellbookCarryoverSmithingRecipe(recipeOutput);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())
+                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get())
+                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get(), 2)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()),
+                        has(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()))
+                .save(recipeOutput, ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.getId());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
