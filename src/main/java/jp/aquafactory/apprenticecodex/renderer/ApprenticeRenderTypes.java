@@ -50,6 +50,25 @@ public class ApprenticeRenderTypes extends RenderStateShard {
         );
     }
 
+    public static RenderType entityTranslucentNoCull(String renderTypeName, ResourceLocation tex) {
+        return RenderType.create(
+                renderTypeName,
+                DefaultVertexFormat.NEW_ENTITY,
+                VertexFormat.Mode.QUADS,
+                256,
+                true,
+                true,
+                RenderType.CompositeState.builder()
+                        .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+                        .setTextureState(new RenderStateShard.TextureStateShard(tex, false, false))
+                        .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                        .setCullState(RenderStateShard.NO_CULL)
+                        .setLightmapState(RenderStateShard.LIGHTMAP)
+                        .setOverlayState(RenderStateShard.OVERLAY)
+                        .createCompositeState(true)
+        );
+    }
+
     // 奥行き無視の加算 glow 用 RenderType。発光自体は呼び出し側で FULL_BRIGHT を渡して成立させる。
     public static RenderType entityAdditiveGlowNoCullNoDepth(String renderTypeName, ResourceLocation tex) {
         return RenderType.create(

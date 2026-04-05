@@ -13,7 +13,6 @@ import software.bernie.geckolib.model.GeoModel;
 
 public class UniteLunaStaffModel extends GeoModel<UniteLunaStaff> {
     private static final String MOON_BONE = "moon";
-    private static final String ORBIT_BONE = "orbit";
 
     private static final float MOON_ROT_X_SPEED = 0.55f * Mth.DEG_TO_RAD;
     private static final float MOON_ROT_Y_SPEED = 0.85f * Mth.DEG_TO_RAD;
@@ -46,31 +45,20 @@ public class UniteLunaStaffModel extends GeoModel<UniteLunaStaff> {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
         var moon = getBone(MOON_BONE).orElse(null);
-        var orbit = getBone(ORBIT_BONE).orElse(null);
-        if (moon == null && orbit == null) {
+        if (moon == null) {
             return;
         }
 
         var perspective = animationState.getData(DataTickets.ITEM_RENDER_PERSPECTIVE);
         var level = Minecraft.getInstance().level;
         if (isStaticPerspective(perspective) || level == null) {
-            if (moon != null) {
-                resetToInitialTransform(moon);
-            }
-            if (orbit != null) {
-                resetToInitialTransform(orbit);
-            }
+            resetToInitialTransform(moon);
             return;
         }
 
         var tickData = animationState.getData(DataTickets.TICK);
         float tick = tickData == null ? animationState.getPartialTick() : tickData.floatValue() + animationState.getPartialTick();
-        if (moon != null) {
-            applyMoonRotation(moon, tick);
-        }
-        if (orbit != null) {
-            applyOrbitScale(orbit, level.getDayTime(), animationState.getPartialTick());
-        }
+        applyMoonRotation(moon, tick);
     }
 
     private static boolean isStaticPerspective(ItemDisplayContext perspective) {
@@ -88,24 +76,6 @@ public class UniteLunaStaffModel extends GeoModel<UniteLunaStaff> {
         moon.setRotX(baseRotX + tick * MOON_ROT_X_SPEED);
         moon.setRotY(baseRotY + tick * MOON_ROT_Y_SPEED);
         moon.setRotZ(baseRotZ + tick * MOON_ROT_Z_SPEED);
-    }
-
-    private static void applyOrbitScale(GeoBone orbit, long dayTime, float partialTick) {
-        // 天候ではなく時刻だけを見て、日照センサー風に昼で最大・夜で 0 へ寄せる。
-        float scale = resolveDaytimeScale(dayTime, partialTick);
-        orbit.setScaleX(scale);
-        orbit.setScaleY(scale);
-        orbit.setScaleZ(scale);
-
-        boolean hideOrbit = scale <= 0.01f;
-        orbit.setHidden(hideOrbit);
-        orbit.setChildrenHidden(hideOrbit);
-    }
-
-    private static float resolveDaytimeScale(long dayTime, float partialTick) {
-        float cycle = ((dayTime % 24000L) + partialTick) / 24000.0f;
-        float daylight = Mth.cos((cycle - 0.25f) * Mth.TWO_PI);
-        return Mth.clamp(daylight, 0.0f, 1.0f);
     }
 
     private static void resetToInitialTransform(GeoBone bone) {

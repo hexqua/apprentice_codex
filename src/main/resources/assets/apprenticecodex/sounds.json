@@ -214,5 +214,11 @@
     "sounds": [
       "apprenticecodex:stellar_impact"
     ]
+  },
+  "stellar_explode": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:stellar_explode"
+    ]
   }
 }

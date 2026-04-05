@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.UniteLunaStaffRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -22,9 +23,9 @@ import java.util.function.Consumer;
 public class UniteLunaStaff extends AbstractSwingMagicItem implements GeoItem, UniqueItem {
     private static final String MAIN_CONTROLLER = "main";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
-    private static final double ATTACK_DAMAGE = 7.0D;
-    private static final double ATTACK_SPEED = -2.6D;
-    private static final double ENTITY_REACH_BONUS = 1.0D;
+    private static final double ATTACK_DAMAGE = 12.0D;
+    private static final double ATTACK_SPEED = -3.2D;
+    private static final double ENTITY_REACH_BONUS = 0.5D;
     private static final double SPELL_POWER_BONUS = 0.05D;
     private static final double HOLY_SPELL_POWER_BONUS = 0.10D;
     private static final int ENCHANTMENT_VALUE = 14;
@@ -34,7 +35,7 @@ public class UniteLunaStaff extends AbstractSwingMagicItem implements GeoItem, U
     public UniteLunaStaff() {
         super(
                 new Item.Properties().stacksTo(1).rarity(Rarity.RARE),
-                io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL,
+                SpellRegistry.UNITE_LUNA,
                 1,
                 ENCHANTMENT_VALUE,
                 "UniteLunaStaff",
