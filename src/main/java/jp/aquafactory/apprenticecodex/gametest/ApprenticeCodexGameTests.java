@@ -6,6 +6,9 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -40,6 +43,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -265,12 +269,47 @@ public final class ApprenticeCodexGameTests {
                     "AbstractRightClickMagicWeaponItem descendants should be upgradeable");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
                     "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.UNITE_LUNA_STAFF.get()),
+                    "New swing magic weapon descendants should be upgradeable");
 
             var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
                     "Reflectcast Shield should not be in the upgrade whitelist");
             helper.assertFalse(Utils.canBeUpgraded(shieldStack),
                     "Reflectcast Shield should remain excluded from the upgrade system");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.UniteLunaStaff) ItemRegistry.UNITE_LUNA_STAFF.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Unite Luna Staff did not initialize a spell container");
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Unite Luna Staff spell container is null");
+
+            var spellData = spellContainer.getSpellAtIndex(0);
+            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                    "Unite Luna Staff has no preset spell");
+            helper.assertTrue(spellData.getSpell() == jp.aquafactory.apprenticecodex.registry.SpellRegistry.UNITE_LUNA.get(),
+                    "Unite Luna Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
+            helper.assertTrue(spellData.getLevel() == 1,
+                    "Unite Luna Staff preset spell level mismatch: " + spellData.getLevel());
+
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE), AttributeModifier.Operation.ADDITION) - 12.0D) < 1.0e-9D,
+                    "Unite Luna Staff attack damage regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED), AttributeModifier.Operation.ADDITION) - (-3.2D)) < 1.0e-9D,
+                    "Unite Luna Staff attack speed regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraftforge.common.ForgeMod.ENTITY_REACH.get()), AttributeModifier.Operation.ADDITION) - 0.5D) < 1.0e-9D,
+                    "Unite Luna Staff entity reach regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.05D) < 1.0e-9D,
+                    "Unite Luna Staff spell power regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.10D) < 1.0e-9D,
+                    "Unite Luna Staff holy spell power regression: " + describeModifiers(modifiers));
         });
     }
 
@@ -328,9 +367,104 @@ public final class ApprenticeCodexGameTests {
         });
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var instantSpell = SpellRegistry.AUTO_MAGNET.get();
+            var longSpell = SpellRegistry.ARCANE_BLAST.get();
+            var continuousSpell = SpellRegistry.BULLET_STREAM.get();
+
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.IRON_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Iron Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Copper Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.SILVER_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Silver Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.GOLD_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Gold Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Diamond Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.NETHERITE_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Netherite Swingcast Staff"
+            );
+        });
+    }
+
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
+    }
+
+    private static void assertSwingcastStaffTier(
+            GameTestHelper helper,
+            AbstractSwingcastStaffItem item,
+            Set<SpellGunCastType> expectedCastTypes,
+            SwingcastCooldownMode expectedCooldownMode,
+            AbstractSpell instantSpell,
+            AbstractSpell longSpell,
+            AbstractSpell continuousSpell,
+            String itemName
+    ) {
+        var tier = item.getSwingcastStaffTier();
+        helper.assertTrue(tier.supportedCastTypes().equals(expectedCastTypes),
+                itemName + " cast type regression: expected " + expectedCastTypes + " but got " + tier.supportedCastTypes());
+        helper.assertTrue(tier.swingcastCooldownMode() == expectedCooldownMode,
+                itemName + " cooldown mode regression: expected " + expectedCooldownMode + " but got " + tier.swingcastCooldownMode());
+
+        var allowsLong = expectedCastTypes.contains(SpellGunCastType.LONG);
+        helper.assertTrue(item.canImbueSpell(instantSpell, 1),
+                itemName + " should allow instant spell imbuing");
+        helper.assertTrue(item.canImbueSpell(longSpell, 1) == allowsLong,
+                itemName + " long spell imbue regression: expected " + allowsLong);
+        helper.assertFalse(item.canImbueSpell(continuousSpell, 1),
+                itemName + " should continue rejecting continuous spells");
     }
 
     private static void assertModifierAmount(

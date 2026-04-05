@@ -1,6 +1,26 @@
 {
   "values": [
     "apprenticecodex:pastel_staff",
-    "apprenticecodex:crystal_bladed_staff"
+    "apprenticecodex:iron_spellcaster_gun",
+    "apprenticecodex:copper_spellcaster_gun",
+    "apprenticecodex:gold_spellcaster_gun",
+    "apprenticecodex:diamond_spellcaster_gun",
+    "apprenticecodex:iron_spell_amplifier",
+    "apprenticecodex:copper_spell_amplifier",
+    "apprenticecodex:gold_spell_amplifier",
+    "apprenticecodex:diamond_spell_amplifier",
+    "apprenticecodex:silver_spell_amplifier",
+    "apprenticecodex:netherite_spell_amplifier",
+    "apprenticecodex:photon_siphon",
+    "apprenticecodex:explorers_cane",
+    "apprenticecodex:copper_swingcast_staff",
+    "apprenticecodex:iron_swingcast_staff",
+    "apprenticecodex:silver_swingcast_staff",
+    "apprenticecodex:gold_swingcast_staff",
+    "apprenticecodex:diamond_swingcast_staff",
+    "apprenticecodex:netherite_swingcast_staff",
+    "apprenticecodex:crystal_bladed_staff",
+    "apprenticecodex:illuminate_stellar_staff",
+    "apprenticecodex:unite_luna_staff"
   ]
 }

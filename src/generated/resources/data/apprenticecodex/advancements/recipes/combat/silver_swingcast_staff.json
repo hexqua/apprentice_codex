@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_silver_ring": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "irons_spellbooks:silver_ring"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:silver_swingcast_staff"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_silver_ring",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:silver_swingcast_staff"
+    ]
+  },
+  "sends_telemetry_event": false
+}

@@ -34,6 +34,7 @@ import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
+import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -164,6 +165,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<IlluminateStellarStarEntity>> ILLUMINATE_STELLAR_STAR =
             regProjectile("illuminate_stellar_star", IlluminateStellarStarEntity::new, 96, 1);
+
+    public static final RegistryObject<EntityType<UniteLunaMoonEntity>> UNITE_LUNA_MOON =
+            regProjectile("unite_luna_moon", UniteLunaMoonEntity::new, 96, 1);
 
     public static final RegistryObject<EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
             regProjectile("feather_rush_projectile", FeatherRushProjectileEntity::new, 96, 1);

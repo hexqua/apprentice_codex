@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "S": {
+      "item": "irons_spellbooks:silver_ring"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    " AG",
+    "LWS",
+    "A  "
+  ],
+  "result": {
+    "item": "apprenticecodex:silver_swingcast_staff"
+  },
+  "show_notification": true
+}

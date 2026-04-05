@@ -13,7 +13,6 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.InteractionHand;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -95,6 +95,11 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         return spell != null
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
                 && spell.getRecastCount(1, null) <= 0;
+    }
+
+    @Override
+    public boolean shouldSuppressCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return matchesImbuedSpell(stack, spell) && supportsManaBypass(spell);
     }
 
     @Override
@@ -305,42 +310,30 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     }
 
     private static void appendImbueTargetSpellTooltip(List<Component> lines) {
-        if (!lines.isEmpty()) {
-            lines.add(Component.empty());
-        }
-
-        if (!Screen.hasShiftDown()) {
-            lines.add(Component.translatable("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.hint")
-                    .withStyle(ChatFormatting.GRAY));
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
         }
 
-        appendTooltipSection(
+        ImbueTooltipHelper.appendTooltipSection(
                 lines,
-                List.of(Component.translatable("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant")
-                        .withStyle(ChatFormatting.GRAY)),
-                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title"
+                List.of(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant")),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title",
+                null
         );
-        appendTooltipSection(
+        ImbueTooltipHelper.appendTooltipSection(
                 lines,
                 collectRestrictTooltipSection(),
-                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title"
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
+                null
         );
-    }
-
-    private static void appendTooltipSection(List<Component> lines, List<Component> sectionLines, String titleTranslationKey) {
-        lines.add(Component.translatable(titleTranslationKey).withStyle(ChatFormatting.GOLD));
-        lines.addAll(sectionLines);
     }
 
     private static List<Component> collectRestrictTooltipSection() {
-        var translatedLines = new ArrayList<Component>();
-        translatedLines.add(Component.translatable(
-                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_not_continuous"
-        ).withStyle(ChatFormatting.GRAY));
-        translatedLines.add(Component.translatable(
-                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_no_recast"
-        ).withStyle(ChatFormatting.GRAY));
+        var translatedLines = new ArrayList<>(ImbueTooltipHelper.collectCastTypeRestrictionLines(
+                EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG)
+        ));
+        ImbueTooltipHelper.appendNoRecastRestrictionLine(translatedLines, true);
         return translatedLines;
     }
 }

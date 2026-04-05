@@ -48,34 +48,47 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         tag(IRONS_STAFF).add(
                 ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
+                ItemRegistry.UNITE_LUNA_STAFF.get()
         );
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get()
         );
-        // Iron's 側で upgrade 判定を見るタグは実アイテム列挙しかできないため、
-        // ここで抽象クラス継承アイテムを自動収集して追加漏れを防ぐ。
+
+        var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
+        malumSoulHunterWeaponTag.add(
+                ItemRegistry.PASTEL_STAFF.get()
+        );
+
+        var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
+        tomagicReversalWeaponTag.add(
+                ItemRegistry.PASTEL_STAFF.get()
+        );
+
+        // 所謂魔法武器全般を自動で登録するようにする.
         for (RegistryObject<Item> itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
             if (item instanceof AbstractOffhandMagicItem
                     || item instanceof AbstractSpellGunItem
                     || item instanceof AbstractRightClickMagicWeaponItem) {
+
+                // Iron's 側で upgrade 判定を見るタグは実アイテム列挙しかできないため、
+                // ここで抽象クラス継承アイテムを自動収集して追加漏れを防ぐ。
                 ironsUpgradeWhitelist.add(item);
+
+                // 他の武器互換系も登録する.
+                // 1.21.1申し送り事項:CrystalBladedStaffは1.21.1だとStaffItemで登録が漏れるため、別途登録.
+                // (重複するとタグが2回出てしまうので1.20.1では個別登録していない)
+                malumSoulHunterWeaponTag.add(item);
+                tomagicReversalWeaponTag.add(item);
             }
         }
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.EXPLORERS_CODEX.get(),
                 ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get()
-        );
-        tag(MALUM_SOUL_HUNTER_WEAPON).add(
-                ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
-        );
-        tag(TOMAGIC_REVERSAL_WEAPON).add(
-                ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
         );
 
         // 指輪.

@@ -133,8 +133,9 @@ dependencies {
 
     // Better Combat.
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
-    // 必要に応じてランタイムも入れる.
+    // ランタイム検証時は Better Combat の前提である Cloth Config も合わせて入れる.
     compileOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
+    // runtimeOnly fg.deobf("maven.modrinth:cloth-config:t8TXrZvZ")
     // runtimeOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
 
     // JEI.

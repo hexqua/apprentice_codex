@@ -26,6 +26,7 @@ public enum DamageMultiplierKey {
     MANA_SLASH("manaSlash"),
     AUTO_TURRET("autoTurret"),
     ILLUMINATE_STELLAR("illuminateStellar"),
+    UNITE_LUNA("uniteLuna"),
     ;
 
     private final String configKey;
