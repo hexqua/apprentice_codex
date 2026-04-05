@@ -16,7 +16,6 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -37,7 +36,6 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -608,23 +606,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     private void appendSpellGunHelpTooltip(ItemStack stack, List<Component> lines) {
-        if (!lines.isEmpty()) {
-            lines.add(Component.empty());
-        }
-
-        if (!Screen.hasShiftDown()) {
-            lines.add(Component.translatable("item." + ApprenticeCodex.MODID + ".spellgun.tooltip.hint")
-                    .withStyle(ChatFormatting.GRAY));
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
         }
 
-        appendSpellGunTooltipSection(
+        ImbueTooltipHelper.appendTooltipSection(
                 lines,
                 collectSpellGunAbilityTooltipSection(),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_title",
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none"
         );
-        appendSpellGunTooltipSection(
+        ImbueTooltipHelper.appendTooltipSection(
                 lines,
                 collectSpellGunRestrictTooltipSection(),
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
@@ -638,28 +631,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         );
     }
 
-    private void appendSpellGunTooltipSection(
-            List<Component> lines,
-            List<Component> sectionLines,
-            String titleTranslationKey,
-            String emptyTranslationKey
-    ) {
-        lines.add(Component.translatable(titleTranslationKey).withStyle(ChatFormatting.GOLD));
-        if (sectionLines.isEmpty()) {
-            lines.add(Component.translatable(emptyTranslationKey).withStyle(ChatFormatting.GRAY));
-            return;
-        }
-        lines.addAll(sectionLines);
-    }
-
     private List<Component> collectSpellGunAbilityTooltipSection() {
         var translatedLines = new ArrayList<Component>();
         var overriddenCooldownTicks = getOverriddenCooldownTicks();
         if (overriddenCooldownTicks != null) {
-            translatedLines.add(Component.translatable(
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_recast",
-                    formatTooltipSeconds(overriddenCooldownTicks)
-            ).withStyle(ChatFormatting.GRAY));
+                    ImbueTooltipHelper.formatTooltipSeconds(overriddenCooldownTicks)
+            ));
         }
 
         var overriddenLongCastTicks = getOverriddenLongCastTicks();
@@ -669,46 +648,16 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                     : "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_cast";
             var tooltip = overriddenLongCastTicks <= 0
                     ? Component.translatable(translationKey)
-                    : Component.translatable(translationKey, formatTooltipSeconds(overriddenLongCastTicks));
+                    : Component.translatable(translationKey, ImbueTooltipHelper.formatTooltipSeconds(overriddenLongCastTicks));
             translatedLines.add(tooltip.withStyle(ChatFormatting.GRAY));
         }
         return translatedLines;
     }
 
     private List<Component> collectSpellGunRestrictTooltipSection() {
-        var translatedLines = new ArrayList<Component>();
-        if (spellGunConfig.supportedCastTypes().size() == 2
-                && spellGunConfig.supports(SpellGunCastType.INSTANT)
-                && spellGunConfig.supports(SpellGunCastType.LONG)) {
-            translatedLines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_not_continuous"
-            ).withStyle(ChatFormatting.GRAY));
-        } else if (spellGunConfig.supportedCastTypes().size() == 1) {
-            if (spellGunConfig.supports(SpellGunCastType.INSTANT)) {
-                translatedLines.add(Component.translatable(
-                        "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_instant_only"
-                ).withStyle(ChatFormatting.GRAY));
-            }
-            if (spellGunConfig.supports(SpellGunCastType.LONG)) {
-                translatedLines.add(Component.translatable(
-                        "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_long_only"
-                ).withStyle(ChatFormatting.GRAY));
-            }
-        }
-
-        var maxCooldownTicks = spellGunConfig.maxInstantImbueCooldownTicks();
-        if (maxCooldownTicks != null) {
-            translatedLines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_cooldown",
-                    formatTooltipSeconds(maxCooldownTicks)
-            ).withStyle(ChatFormatting.GRAY));
-        }
-
-        if (spellGunConfig.requireZeroInstantRecast()) {
-            translatedLines.add(Component.translatable(
-                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_no_recast"
-            ).withStyle(ChatFormatting.GRAY));
-        }
+        var translatedLines = new ArrayList<>(ImbueTooltipHelper.collectCastTypeRestrictionLines(spellGunConfig.supportedCastTypes()));
+        ImbueTooltipHelper.appendMaxCooldownRestrictionLine(translatedLines, spellGunConfig.maxInstantImbueCooldownTicks());
+        ImbueTooltipHelper.appendNoRecastRestrictionLine(translatedLines, spellGunConfig.requireZeroInstantRecast());
         return translatedLines;
     }
 
@@ -718,14 +667,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             String titleTranslationKey,
             String emptyTranslationKey
     ) {
-        lines.add(Component.translatable(titleTranslationKey).withStyle(ChatFormatting.GOLD));
-
         var sectionLines = collectSpellGunAmmoTooltipSection(stack);
-        if (sectionLines.isEmpty()) {
-            lines.add(Component.translatable(emptyTranslationKey).withStyle(ChatFormatting.GRAY));
-            return;
-        }
-        lines.addAll(sectionLines);
+        ImbueTooltipHelper.appendTooltipSection(lines, sectionLines, titleTranslationKey, emptyTranslationKey);
     }
 
     private List<Component> collectSpellGunAmmoTooltipSection(ItemStack stack) {
@@ -766,13 +709,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 .replaceAll("[^a-z0-9_-]", "_");
     }
 
-    private static String formatTooltipSeconds(int ticks) {
-        return BigDecimal.valueOf(ticks)
-                .divide(BigDecimal.valueOf(20L))
-                .stripTrailingZeros()
-                .toPlainString();
-    }
+    // `bonus` ヘルパーは属性参照の受け取り方ごとにオーバーロードしている.
+    // 将来の spell gun 実装で属性の持ち方が異なっても同じ書き味で定義できるようにしている.
 
+    // Forge の RegistryObject や Deferred 登録由来の Supplier をそのまま渡す用途.
     protected static AttributeBonus bonus(
             Holder<Attribute> attribute,
             double amount,

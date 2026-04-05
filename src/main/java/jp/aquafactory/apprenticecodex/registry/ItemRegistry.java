@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
@@ -36,6 +37,12 @@ import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
 import net.minecraft.core.registries.Registries;
+import jp.aquafactory.apprenticecodex.item.swingstaff.CopperSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.DiamondSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.GoldSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.NetheriteSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SilverSwingcastStaff;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -194,10 +201,24 @@ public final class ItemRegistry {
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =
             ITEMS.register("pastel_staff", PastelStaff::new);
+    public static final DeferredHolder<Item, Item> COPPER_SWINGCAST_STAFF =
+            ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> IRON_SWINGCAST_STAFF =
+            ITEMS.register("iron_swingcast_staff", IronSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> SILVER_SWINGCAST_STAFF =
+            ITEMS.register("silver_swingcast_staff", SilverSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> GOLD_SWINGCAST_STAFF =
+            ITEMS.register("gold_swingcast_staff", GoldSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> DIAMOND_SWINGCAST_STAFF =
+            ITEMS.register("diamond_swingcast_staff", DiamondSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> NETHERITE_SWINGCAST_STAFF =
+            ITEMS.register("netherite_swingcast_staff", NetheriteSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> CRYSTAL_BLADED_STAFF =
             ITEMS.register("crystal_bladed_staff", CrystalBladedStaff::new);
     public static final DeferredHolder<Item, Item> ILLUMINATE_STELLAR_STAFF =
             ITEMS.register("illuminate_stellar_staff", IlluminateStellarStaff::new);
+    public static final DeferredHolder<Item, Item> UNITE_LUNA_STAFF =
+            ITEMS.register("unite_luna_staff", UniteLunaStaff::new);
     public static final DeferredHolder<Item, Item> REFLECTCAST_SHIELD =
             ITEMS.register("reflectcast_shield", ReflectcastShield::new);
 }

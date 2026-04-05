@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_silver_ring": {
+      "conditions": {
+        "items": [
+          {
+            "items": "irons_spellbooks:silver_ring"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:unite_luna_staff"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_silver_ring"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:unite_luna_staff"
+    ]
+  }
+}

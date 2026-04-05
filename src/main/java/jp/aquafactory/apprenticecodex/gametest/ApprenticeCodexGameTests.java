@@ -13,7 +13,10 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -61,6 +64,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -301,7 +305,9 @@ public final class ApprenticeCodexGameTests {
             assertUpgradeable(helper, new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
                     "Crystal Bladed Staff should remain upgradeable after the 1.21.1 StaffItem migration");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
-                    "AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+                    "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.UNITE_LUNA_STAFF.get()),
+                    "New swing magic weapon descendants should be upgradeable");
 
             var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
@@ -325,6 +331,7 @@ public final class ApprenticeCodexGameTests {
                         stack,
                         expectedEnchantments,
                         expectedEnchantments,
+                        expectedEnchantments,
                         expectedBookEnchantments,
                         expectedEnchantments,
                         "Spell Gun " + BuiltInRegistries.ITEM.getKey(stack.getItem())
@@ -344,6 +351,7 @@ public final class ApprenticeCodexGameTests {
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
+                        expectedOffhandEnchantments(),
                         expectedOffhandEnchantments(),
                         expectedOffhandEnchantments(),
                         expectedBookEnchantments,
@@ -400,13 +408,13 @@ public final class ApprenticeCodexGameTests {
             var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
 
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
-                    true, true, true, null, "Pastel Staff fortune rule");
+                    true, true, true, true, null, "Pastel Staff fortune rule");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
-                    true, true, true, null, "Pastel Staff silk touch rule");
+                    true, true, true, true, null, "Pastel Staff silk touch rule");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE),
-                    false, false, false, null, "Pastel Staff should keep rejecting transcendence");
+                    false, false, false, false, null, "Pastel Staff should keep rejecting transcendence");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
-                    false, false, false, null, "Pastel Staff should keep rejecting wisdom");
+                    false, false, false, false, null, "Pastel Staff should keep rejecting wisdom");
         });
     }
 
@@ -418,16 +426,51 @@ public final class ApprenticeCodexGameTests {
             var item = (CrystalBladedStaff) stack.getItem();
 
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
-                    false, false, false, false, "Crystal Bladed Staff should keep rejecting fortune");
+                    false, false, false, false, false, "Crystal Bladed Staff should keep rejecting fortune");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
-                    false, false, false, false, "Crystal Bladed Staff should keep rejecting silk touch");
+                    false, false, false, false, false, "Crystal Bladed Staff should keep rejecting silk touch");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE),
-                    true, true, true, true, "Crystal Bladed Staff transcendence rule");
+                    true, true, true, true, true, "Crystal Bladed Staff transcendence rule");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
-                    true, true, true, true, "Crystal Bladed Staff wisdom rule");
+                    true, true, true, true, true, "Crystal Bladed Staff wisdom rule");
 
             helper.assertTrue(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Crystal Bladed Staff should keep accepting diamonds as its repair material");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.UniteLunaStaff) ItemRegistry.UNITE_LUNA_STAFF.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Unite Luna Staff did not initialize a spell container");
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Unite Luna Staff spell container is null");
+
+            var spellData = spellContainer.getSpellAtIndex(0);
+            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                    "Unite Luna Staff has no preset spell");
+            helper.assertTrue(spellData.getSpell() == jp.aquafactory.apprenticecodex.registry.SpellRegistry.UNITE_LUNA.get(),
+                    "Unite Luna Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
+            helper.assertTrue(spellData.getLevel() == 1,
+                    "Unite Luna Staff preset spell level mismatch: " + spellData.getLevel());
+
+            var modifiers = item.getDefaultAttributeModifiers(stack);
+            assertModifierAmount(helper, modifiers, Attributes.ATTACK_DAMAGE.value(), EquipmentSlotGroup.MAINHAND, 12.0D,
+                    AttributeModifier.Operation.ADD_VALUE, "Unite Luna Staff attack damage regression");
+            assertModifierAmount(helper, modifiers, Attributes.ATTACK_SPEED.value(), EquipmentSlotGroup.MAINHAND, -3.2D,
+                    AttributeModifier.Operation.ADD_VALUE, "Unite Luna Staff attack speed regression");
+            assertModifierAmount(helper, modifiers, Attributes.ENTITY_INTERACTION_RANGE.value(), EquipmentSlotGroup.MAINHAND, 0.5D,
+                    AttributeModifier.Operation.ADD_VALUE, "Unite Luna Staff entity reach regression");
+            assertModifierAmount(helper, modifiers, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.value(),
+                    EquipmentSlotGroup.MAINHAND, 0.05D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Unite Luna Staff spell power regression");
+            assertModifierAmount(helper, modifiers, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.value(),
+                    EquipmentSlotGroup.MAINHAND, 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Unite Luna Staff holy spell power regression");
         });
     }
 
@@ -509,6 +552,76 @@ public final class ApprenticeCodexGameTests {
         });
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var instantSpell = SpellRegistry.AUTO_MAGNET.get();
+            var longSpell = SpellRegistry.ARCANE_BLAST.get();
+            var continuousSpell = SpellRegistry.BULLET_STREAM.get();
+
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.IRON_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Iron Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Copper Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.SILVER_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_ONLY,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Silver Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.GOLD_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Gold Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Diamond Swingcast Staff"
+            );
+            assertSwingcastStaffTier(
+                    helper,
+                    (AbstractSwingcastStaffItem) ItemRegistry.NETHERITE_SWINGCAST_STAFF.get(),
+                    Set.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
+                    SwingcastCooldownMode.IMBUED_PLUS_LONG_CAST_TIME,
+                    instantSpell,
+                    longSpell,
+                    continuousSpell,
+                    "Netherite Swingcast Staff"
+            );
+        });
+    }
+
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
@@ -552,10 +665,11 @@ public final class ApprenticeCodexGameTests {
                 helper,
                 stack,
                 expectedEnchantments,
-                expectedEnchantments,
-                expectedEnchantments,
-                expectedEnchantments,
-                itemName
+                    expectedEnchantments,
+                    expectedEnchantments,
+                    expectedEnchantments,
+                    expectedEnchantments,
+                    itemName
         );
     }
 
@@ -564,6 +678,7 @@ public final class ApprenticeCodexGameTests {
             ItemStack stack,
             Set<ResourceLocation> expectedPrimaryEnchantments,
             Set<ResourceLocation> expectedSupportedEnchantments,
+            Set<ResourceLocation> expectedDefinitionEnchantments,
             Set<ResourceLocation> expectedBookEnchantments,
             Set<ResourceLocation> expectedAnvilEnchantments,
             String itemName
@@ -586,6 +701,14 @@ public final class ApprenticeCodexGameTests {
         helper.assertTrue(actualSupportedEnchantments.equals(expectedSupportedEnchantments),
                 itemName + " supported enchantments changed: "
                         + describeEnchantmentDifference(expectedSupportedEnchantments, actualSupportedEnchantments));
+
+        var actualDefinitionEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(stack)
+        );
+        helper.assertTrue(actualDefinitionEnchantments.equals(expectedDefinitionEnchantments),
+                itemName + " enchantment definition support changed: "
+                        + describeEnchantmentDifference(expectedDefinitionEnchantments, actualDefinitionEnchantments));
 
         var actualBookEnchantments = collectAllowedEnchantments(
                 registryAccess,
@@ -612,6 +735,7 @@ public final class ApprenticeCodexGameTests {
             net.minecraft.core.Holder<Enchantment> enchantment,
             boolean expectedPrimary,
             boolean expectedSupported,
+            boolean expectedDefinitionSupport,
             boolean expectedBook,
             Boolean expectedAnvil,
             String message
@@ -623,6 +747,8 @@ public final class ApprenticeCodexGameTests {
                 message + " primary rule changed for " + enchantmentId + ": expected " + expectedPrimary);
         helper.assertTrue(item.supportsEnchantment(stack, enchantment) == expectedSupported,
                 message + " supported rule changed for " + enchantmentId + ": expected " + expectedSupported);
+        helper.assertTrue(enchantment.value().canEnchant(stack) == expectedDefinitionSupport,
+                message + " definition support changed for " + enchantmentId + ": expected " + expectedDefinitionSupport);
         helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedBook,
                 message + " book rule changed for " + enchantmentId + ": expected " + expectedBook);
 
@@ -795,6 +921,31 @@ public final class ApprenticeCodexGameTests {
                 "Unexpected modifier id for " + itemId + " / "
                         + attribute.unwrapKey().map(key -> key.location()).orElse(ResourceLocation.withDefaultNamespace("unknown"))
                         + ": " + modifiers.getFirst().modifier().id());
+    }
+
+    private static void assertSwingcastStaffTier(
+            GameTestHelper helper,
+            AbstractSwingcastStaffItem item,
+            Set<SpellGunCastType> expectedCastTypes,
+            SwingcastCooldownMode expectedCooldownMode,
+            AbstractSpell instantSpell,
+            AbstractSpell longSpell,
+            AbstractSpell continuousSpell,
+            String itemName
+    ) {
+        var tier = item.getSwingcastStaffTier();
+        helper.assertTrue(tier.supportedCastTypes().equals(expectedCastTypes),
+                itemName + " cast type regression: expected " + expectedCastTypes + " but got " + tier.supportedCastTypes());
+        helper.assertTrue(tier.swingcastCooldownMode() == expectedCooldownMode,
+                itemName + " cooldown mode regression: expected " + expectedCooldownMode + " but got " + tier.swingcastCooldownMode());
+
+        var allowsLong = expectedCastTypes.contains(SpellGunCastType.LONG);
+        helper.assertTrue(item.canImbueSpell(instantSpell, 1),
+                itemName + " should allow instant spell imbuing");
+        helper.assertTrue(item.canImbueSpell(longSpell, 1) == allowsLong,
+                itemName + " long spell imbue regression: expected " + allowsLong);
+        helper.assertFalse(item.canImbueSpell(continuousSpell, 1),
+                itemName + " should continue rejecting continuous spells");
     }
 
     private static void assertModifierAmount(

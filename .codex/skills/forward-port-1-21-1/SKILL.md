@@ -35,6 +35,7 @@ description: Forward-port tasks from the `main` branch (Minecraft 1.20.1) to `1.
 
 - enchant 適用可否は Java 側の override だけで完了と判断しない。
 - `data/*/enchantment/*.json` の `supported_items` / `primary_items` と、参照される item tag を確認する。
+- 武器系は独自 tag だけでなく、`minecraft:enchantable/sword` / `weapon` / `sharp_weapon` / `fire_aspect` など vanilla 側の item tag も確認する。
 - 修理可否は 1.20.1 の `isValidRepairItem` 実装が不要になったと決めつけず、個別 override と素材定義を確認する。
 - 詳細な確認観点は `references/enchant-repair.md` を使う。
 
@@ -43,6 +44,7 @@ description: Forward-port tasks from the `main` branch (Minecraft 1.20.1) to `1.
 - `./gradlew.bat runData` 後に `git diff --name-status -- src/generated/resources` を確認し、不要 JSON の削除漏れを見逃さない。
 - custom recipe など手置き JSON を動かした場合は、`src/main/resources/data` と `build/resources/main/data` の両方に旧配置が残っていないことを確認する。
 - 必要に応じて `rg -n "forge:conditions|canApplyAtEnchantingTable|isBookEnchantable|supportsEnchantment|isValidRepairItem" src/generated/resources` を実行し、1.20.1 前提が残っていないか確認する。
+- enchant 可否の GameTest を直す場合は、`Item#supportsEnchantment` などの Java 側だけでなく `Enchantment#canEnchant(ItemStack)` も検証対象に含める。
 - forward-port では変更内容に関係なく `./gradlew.bat runGameTestServer` を実行し、GameTest が通ることを確認する。
 - 最後に `./gradlew.bat build` を成功させる。
 

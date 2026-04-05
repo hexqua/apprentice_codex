@@ -1,5 +1,5 @@
 {
-  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "parent": "apprenticecodex:apprentice_codex/craft_silver_swingcast_staff",
   "criteria": {
     "crafted_illuminate_stellar_staff": {
       "conditions": {
@@ -13,7 +13,6 @@
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_illuminate_stellar_staff.description"
     },
     "frame": "challenge",
-    "hidden": true,
     "icon": {
       "components": {
         "irons_spellbooks:spell_container": {

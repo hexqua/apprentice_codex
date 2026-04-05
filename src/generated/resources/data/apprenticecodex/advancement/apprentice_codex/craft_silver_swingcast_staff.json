@@ -1,0 +1,38 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_iron_swingcast_staff",
+  "criteria": {
+    "crafted_silver_swingcast_staff": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:silver_swingcast_staff"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_silver_swingcast_staff.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": false
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:silver_swingcast_staff"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_silver_swingcast_staff.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_silver_swingcast_staff"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

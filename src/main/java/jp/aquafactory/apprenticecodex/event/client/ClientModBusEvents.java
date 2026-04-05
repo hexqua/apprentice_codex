@@ -35,6 +35,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRender
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.UniteLunaStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowRenderer;
@@ -75,6 +77,7 @@ import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingLayer;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerRenderer;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRenderer;
+import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -201,6 +204,34 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
+            private UniteLunaStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new UniteLunaStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.UNITE_LUNA_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
+            private SwingcastStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new SwingcastStaffRenderer();
+                }
+                return renderer;
+            }
+        },
+                ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
+                ItemRegistry.IRON_SWINGCAST_STAFF.get(),
+                ItemRegistry.SILVER_SWINGCAST_STAFF.get(),
+                ItemRegistry.GOLD_SWINGCAST_STAFF.get(),
+                ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(),
+                ItemRegistry.NETHERITE_SWINGCAST_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
             private IronSpellcasterGunRenderer renderer;
 
@@ -338,6 +369,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.COMPANION_TRUNK.get(), CompanionTrunkRenderer::new);
         event.registerEntityRenderer(EntityRegistry.HEALING_BLOOM.get(), HealingBloomRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ILLUMINATE_STELLAR_STAR.get(), IlluminateStellarStarRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.UNITE_LUNA_MOON.get(), UniteLunaMoonRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_PROJECTILE.get(), FeatherRushProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FEATHER_RUSH_WING.get(), FeatherRushWingRenderer::new);
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);

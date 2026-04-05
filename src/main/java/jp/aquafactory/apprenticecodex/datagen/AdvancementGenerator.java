@@ -393,8 +393,34 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("craft_reflectcast_shield", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.REFLECTCAST_SHIELD.getId()))
                 .save(saver, advancementId("craft_reflectcast_shield"), existingFileHelper);
 
+        var ironSwing = Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.IRON_SWINGCAST_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_swingcast_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_iron_swingcast_staff.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_iron_swingcast_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.IRON_SWINGCAST_STAFF.getId()))
+                .save(saver, advancementId("craft_iron_swingcast_staff"), existingFileHelper);
+
+        var silverSwing = Advancement.Builder.advancement()
+                .parent(ironSwing)
+                .display(ItemRegistry.SILVER_SWINGCAST_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_silver_swingcast_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_silver_swingcast_staff.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_silver_swingcast_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SILVER_SWINGCAST_STAFF.getId()))
+                .save(saver, advancementId("craft_silver_swingcast_staff"), existingFileHelper);
+
         Advancement.Builder.advancement()
-                .parent(bladed)
+                .parent(silverSwing)
                 .display(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_illuminate_stellar_staff.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_illuminate_stellar_staff.description"),
@@ -402,9 +428,22 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         AdvancementType.CHALLENGE,
                         true,
                         true,
-                        true)
+                        false)
                 .addCriterion("crafted_illuminate_stellar_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ILLUMINATE_STELLAR_STAFF.getId()))
                 .save(saver, advancementId("craft_illuminate_stellar_staff"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(silverSwing)
+                .display(ItemRegistry.UNITE_LUNA_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_unite_luna_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_unite_luna_staff.description"),
+                        null,
+                        AdvancementType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_unite_luna_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.UNITE_LUNA_STAFF.getId()))
+                .save(saver, advancementId("craft_unite_luna_staff"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)
