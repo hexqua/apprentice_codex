@@ -1,0 +1,26 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "type": "malum:spirit_repair",
+  "durabilityPercentage": 0.5,
+  "repairMaterial": {
+    "count": 1,
+    "item": "irons_spellbooks:arcane_essence"
+  },
+  "spirits": [
+    {
+      "type": "malum:arcane",
+      "count": 8
+    }
+  ],
+  "validItems": [
+    "apprenticecodex:apprentice_mage_scarf",
+    "apprenticecodex:apprentice_mage_torso",
+    "apprenticecodex:apprentice_mage_leggings",
+    "apprenticecodex:apprentice_mage_boots"
+  ]
+}
