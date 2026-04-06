@@ -18,6 +18,9 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
     private static final String MALUM_MOD_ID = "malum";
     private static final String RECIPE_TYPE = MALUM_MOD_ID + ":spirit_repair";
     private static final String RECIPE_DIRECTORY = "recipe/malum/spirit_crucible/repair";
+    private static final String ARCANE_SPIRIT = MALUM_MOD_ID + ":arcane";
+    private static final String INFERNAL_SPIRIT = MALUM_MOD_ID + ":infernal";
+    private static final String SACRED_SPIRIT = MALUM_MOD_ID + ":sacred";
 
     private final PackOutput.PathProvider pathProvider;
 
@@ -40,7 +43,7 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         ),
                         io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
                         1,
-                        List.of(spirit("arcane", 8))
+                        List.of(spirit(ARCANE_SPIRIT, 8))
                 ),
                 recipe(
                         "enchantress_robe",
@@ -54,8 +57,8 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         io.redspace.ironsspellbooks.registries.ItemRegistry.HOGSKIN.get(),
                         1,
                         List.of(
-                                spirit("infernal", 8),
-                                spirit("sacred", 4)
+                                spirit(INFERNAL_SPIRIT, 8),
+                                spirit(SACRED_SPIRIT, 4)
                         )
                 ),
                 recipe(
@@ -64,7 +67,7 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         List.of(jp.aquafactory.apprenticecodex.registry.ItemRegistry.REFLECTCAST_SHIELD.get()),
                         io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
                         1,
-                        List.of(spirit("arcane", 8))
+                        List.of(spirit(ARCANE_SPIRIT, 8))
                 )
         );
 
@@ -86,9 +89,7 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
         root.add("neoforge:conditions", modLoadedConditions());
         root.addProperty("type", RECIPE_TYPE);
         root.addProperty("durabilityPercentage", recipe.durabilityPercentage());
-        root.add("inputs", serializeInputs(recipe.inputs()));
-        root.addProperty("itemIdRegex", "");
-        root.addProperty("modIdRegex", "");
+        root.add("validItems", serializeItems(recipe.validItems()));
         root.add("repairMaterial", serializeRepairMaterial(recipe.repairMaterial(), recipe.repairMaterialCount()));
         root.add("spirits", serializeSpirits(recipe.spirits()));
         return root;
@@ -103,16 +104,16 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
         return conditions;
     }
 
-    private static JsonArray serializeInputs(List<Item> inputs) {
-        if (inputs.isEmpty()) {
+    private static JsonArray serializeItems(List<Item> validItems) {
+        if (validItems.isEmpty()) {
             throw new IllegalArgumentException("Malum spirit repair recipe requires at least one input.");
         }
 
-        var inputArray = new JsonArray();
-        for (var input : inputs) {
-            inputArray.add(itemId(input));
+        var itemArray = new JsonArray();
+        for (var item : validItems) {
+            itemArray.add(itemId(item));
         }
-        return inputArray;
+        return itemArray;
     }
 
     private static JsonObject serializeRepairMaterial(Item repairMaterial, int count) {
@@ -144,12 +145,12 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
     private static RecipeDefinition recipe(
             String path,
             float durabilityPercentage,
-            List<Item> inputs,
+            List<Item> validItems,
             Item repairMaterial,
             int repairMaterialCount,
             List<SpiritCost> spirits
     ) {
-        return new RecipeDefinition(path, durabilityPercentage, inputs, repairMaterial, repairMaterialCount, spirits);
+        return new RecipeDefinition(path, durabilityPercentage, validItems, repairMaterial, repairMaterialCount, spirits);
     }
 
     private static SpiritCost spirit(String type, int count) {
@@ -175,7 +176,7 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
     private record RecipeDefinition(
             String path,
             float durabilityPercentage,
-            List<Item> inputs,
+            List<Item> validItems,
             Item repairMaterial,
             int repairMaterialCount,
             List<SpiritCost> spirits

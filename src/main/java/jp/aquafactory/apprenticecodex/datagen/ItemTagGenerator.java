@@ -45,6 +45,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
+    private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
     private static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = Enchantments.MAGIC_ITEM_ENCHANTABLE;
@@ -75,6 +76,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
+        var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
         var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
@@ -107,6 +109,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 // 1.21.1申し送り事項:CrystalBladedStaffは1.21.1だとStaffItemで登録が漏れるため、別途登録.
                 // (重複するとタグが2回出てしまうので1.20.1では個別登録していない)
                 malumSoulHunterWeaponTag.add(item);
+                malumSoulShatterCapableWeaponTag.add(item);
 
                 // 1.21.1 では Wisdom / Transcendence の適用可否が enchantment JSON 側の item tag で決まる。
                 // 右クリック魔法武器は Java 側で両エンチャを許可しているため、tag 側も同じ面に揃える。
@@ -196,6 +199,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // Malum の soul_hunter_weapon は main hand 前提なので、
         // offhand 専用品を巻き込まず個別互換が必要な staff / shield だけ明示登録する。
         tag(MALUM_SOUL_HUNTER_WEAPON).add(
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                ItemRegistry.REFLECTCAST_SHIELD.get()
+        );
+        // 1.21.1 の Spirit Plunder は soul_hunter_weapon ではなく soul_shatter_capable_weapon 経由で supported_items を見ている。
+        // Java 側の許可だけでは definition 判定を通らないため、Malum 側 tag も同じ面へ揃える。
+        tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON).add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
