@@ -98,11 +98,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 // ここで抽象クラス継承アイテムを自動収集して追加漏れを防ぐ。
                 ironsUpgradeWhitelist.add(item);
 
+                tomagicReversalWeaponTag.add(item);
+            }
+
+            if (item instanceof AbstractSpellGunItem
+                    || item instanceof AbstractRightClickMagicWeaponItem) {
                 // 他の武器互換系も登録する.
                 // 1.21.1申し送り事項:CrystalBladedStaffは1.21.1だとStaffItemで登録が漏れるため、別途登録.
                 // (重複するとタグが2回出てしまうので1.20.1では個別登録していない)
                 malumSoulHunterWeaponTag.add(item);
-                tomagicReversalWeaponTag.add(item);
 
                 // 1.21.1 では Wisdom / Transcendence の適用可否が enchantment JSON 側の item tag で決まる。
                 // 右クリック魔法武器は Java 側で両エンチャを許可しているため、tag 側も同じ面に揃える。
@@ -189,9 +193,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
+        // Malum の soul_hunter_weapon は main hand 前提なので、
+        // offhand 専用品を巻き込まず個別互換が必要な staff / shield だけ明示登録する。
         tag(MALUM_SOUL_HUNTER_WEAPON).add(
                 ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                ItemRegistry.REFLECTCAST_SHIELD.get()
         );
         tag(TOMAGIC_REVERSAL_WEAPON).add(
                 ItemRegistry.PASTEL_STAFF.get(),

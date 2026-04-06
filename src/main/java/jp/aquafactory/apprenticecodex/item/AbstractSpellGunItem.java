@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +33,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import net.minecraft.tags.TagKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +50,13 @@ import java.util.function.Supplier;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, NonDamageableAnvilMergeItem {
+    private static final String MALUM_NAMESPACE = "malum";
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
+    );
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
     private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
     private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
@@ -163,6 +173,21 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
         return getEnchantmentValue(stack) > 0;
+    }
+
+    @Override
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
+        }
+
+        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        return enchantmentId != null && isMalumSpiritPlunder(stack, enchantmentId);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -698,6 +723,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return bonus.attribute().unwrapKey()
                 .map(resourceKey -> normalizeKeyToken(resourceKey.location().toString()))
                 .orElse("unknown_" + index);
+    }
+
+    private static boolean isMalumSpiritPlunder(ItemStack stack, ResourceLocation enchantmentId) {
+        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON);
     }
 
     private static String normalizeKeyToken(String token) {

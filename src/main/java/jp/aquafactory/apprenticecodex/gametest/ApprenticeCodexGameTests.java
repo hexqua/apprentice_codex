@@ -62,6 +62,7 @@ import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.fml.ModList;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -77,6 +78,13 @@ import java.util.stream.Collectors;
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    private static final String MALUM_MOD_ID = "malum";
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
+    );
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
 
     private ApprenticeCodexGameTests() {
     }
@@ -389,12 +397,12 @@ public final class ApprenticeCodexGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var expectedEnchantments = expectedSpellGunEnchantments();
             var expectedBookEnchantments = allRegisteredEnchantmentIds(helper.getLevel().registryAccess());
             var stacks = getRegisteredItemStacks(item -> item instanceof AbstractSpellGunItem);
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Spell Gun");
 
             for (var stack : stacks) {
+                var expectedEnchantments = expectedSpellGunEnchantments(stack);
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
@@ -417,6 +425,8 @@ public final class ApprenticeCodexGameTests {
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
 
             for (var stack : stacks) {
+                // Malum の soul_hunter_weapon は main hand 前提なので、
+                // offhand 系は 1.21.1 でも従来の enchant 面を維持する前提で固定する。
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
@@ -438,8 +448,23 @@ public final class ApprenticeCodexGameTests {
                 "Right Click Magic Weapon",
                 // 1.21.1 では Crystal Bladed Staff が StaffItem 化され、このカテゴリから外れている。
                 item -> item instanceof AbstractRightClickMagicWeaponItem,
-                stack -> expectedRightClickMagicWeaponEnchantments(helper.getLevel().registryAccess())
+                stack -> expectedRightClickMagicWeaponEnchantments(helper.getLevel().registryAccess(), stack)
         ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedReflectcastShieldEnchantments(helper.getLevel().registryAccess(), stack),
+                    "Reflectcast Shield"
+            );
+        });
     }
 
     @GameTest(template = TEMPLATE)
@@ -690,7 +715,6 @@ public final class ApprenticeCodexGameTests {
             );
         });
     }
-
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
@@ -839,8 +863,8 @@ public final class ApprenticeCodexGameTests {
                 .toList();
     }
 
-    private static Set<ResourceLocation> expectedSpellGunEnchantments() {
-        return registryIdSet(
+    private static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
+        var expectedEnchantments = registryIdSet(
                 Enchantments.REFLUX,
                 Enchantments.RESERVOIR,
                 Enchantments.SURGE,
@@ -849,6 +873,8 @@ public final class ApprenticeCodexGameTests {
                 Enchantments.WISDOM,
                 Enchantments.PLUNDER
         );
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedOffhandEnchantments() {
@@ -863,7 +889,7 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
-    private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(RegistryAccess registryAccess) {
+    private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
@@ -873,6 +899,16 @@ public final class ApprenticeCodexGameTests {
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM
         ));
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedReflectcastShieldEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(new ItemStack(Items.SHIELD))
+        );
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 
@@ -957,6 +993,12 @@ public final class ApprenticeCodexGameTests {
 
     private static boolean isDurabilityTargetEnchantment(net.minecraft.core.Holder<Enchantment> enchantment) {
         return enchantment.value().canEnchant(new ItemStack(Items.ELYTRA));
+    }
+
+    private static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
+            expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
+        }
     }
 
     private static String describeEnchantmentDifference(
