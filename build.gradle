@@ -137,6 +137,13 @@ dependencies {
     // runtimeOnly "maven.modrinth:cloth-config:DqgODWcH"
     // runtimeOnly "maven.modrinth:better-combat:2NyTus6V"
 
+    // Lodestone / Malum.
+    // 当面は 1.21.1 側の互換要素を作り込みやすくするため dev runtime でも有効化しておく。
+    compileOnly "curse.maven:lodestone-616457:7264731"
+    compileOnly "curse.maven:malum-484064:7307339"
+    runtimeOnly "curse.maven:lodestone-616457:7264731"
+    runtimeOnly "curse.maven:malum-484064:7307339"
+
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
@@ -176,6 +183,8 @@ tasks.named('processResources', ProcessResources).configure {
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
+            lodestone_version      : lodestone_version,
+            malum_version          : malum_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,
