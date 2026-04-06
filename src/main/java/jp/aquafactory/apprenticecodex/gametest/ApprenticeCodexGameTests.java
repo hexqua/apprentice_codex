@@ -32,14 +32,17 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.EnchantedBookItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -47,6 +50,7 @@ import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -68,6 +72,12 @@ import java.util.stream.Collectors;
 public final class ApprenticeCodexGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final String MALUM_MOD_ID = "malum";
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
+    );
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
 
     private ApprenticeCodexGameTests() {
     }
@@ -515,7 +525,6 @@ public final class ApprenticeCodexGameTests {
     @GameTest(template = TEMPLATE)
     public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var expectedEnchantments = expectedOffhandEnchantments();
             var expectedBookEnchantments = allRegisteredEnchantmentIds();
             var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
@@ -526,9 +535,9 @@ public final class ApprenticeCodexGameTests {
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
-                        expectedEnchantments,
+                        expectedOffhandEnchantments(stack),
                         expectedBookEnchantments,
-                        expectedEnchantments,
+                        expectedOffhandEnchantments(stack),
                         "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
                 );
             }
@@ -741,8 +750,8 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
-    private static Set<ResourceLocation> expectedOffhandEnchantments() {
-        return registryIdSet(
+    private static Set<ResourceLocation> expectedOffhandEnchantments(ItemStack stack) {
+        var expectedEnchantments = registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
                 EnchantmentRegistry.RESERVOIR,
@@ -751,6 +760,12 @@ public final class ApprenticeCodexGameTests {
                 EnchantmentRegistry.TENSE,
                 EnchantmentRegistry.TRANSCENDENCE
         );
+        // Malum は soul_hunter_weapon タグ経由で追加 enchant を許可する。
+        // optional dependency 未導入時は従来面を維持し、導入時だけ実際の互換面を固定する。
+        if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
+            expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
+        }
+        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments() {

@@ -53,3 +53,17 @@ description='''${mod_description}'''
     versionRange="[0,)"
     ordering="NONE"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="lodestone"
+    mandatory=false
+    versionRange="[${lodestone_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="malum"
+    mandatory=false
+    versionRange="[${malum_version},)"
+    ordering="NONE"
+    side="BOTH"
