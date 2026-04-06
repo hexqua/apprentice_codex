@@ -9,8 +9,10 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -43,9 +45,16 @@ import java.util.function.Supplier;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item implements IPresetSpellContainer, NonDamageableAnvilMergeItem {
     private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation FORGE_SHIELDS_TAG_ID = ResourceLocation.fromNamespaceAndPath("forge", "shields");
     private static final ResourceLocation FORGE_TOOLS_SHIELDS_TAG_ID =
             ResourceLocation.fromNamespaceAndPath("forge", "tools/shields");
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
+    );
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
@@ -218,6 +227,10 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             return false;
         }
 
+        if (isMalumSpiritPlunder(stack, enchantmentId)) {
+            return true;
+        }
+
         if (ALLOWED_MAGIC_ITEM_ENCHANTMENTS.contains(enchantmentId)) {
             return true;
         }
@@ -362,6 +375,10 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
         return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
+    }
+
+    private static boolean isMalumSpiritPlunder(ItemStack stack, ResourceLocation enchantmentId) {
+        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON);
     }
 
     private static String resolveAttributeKey(AttributeBonus bonus, Attribute attribute, int index) {
