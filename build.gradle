@@ -138,6 +138,13 @@ dependencies {
     // runtimeOnly fg.deobf("maven.modrinth:cloth-config:t8TXrZvZ")
     // runtimeOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
 
+    // Lodestone / Malum.
+    // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
+    compileOnly fg.deobf("curse.maven:lodestone-616457:6213794")
+    compileOnly fg.deobf("curse.maven:malum-484064:6646111")
+    runtimeOnly fg.deobf("curse.maven:lodestone-616457:6213794")
+    runtimeOnly fg.deobf("curse.maven:malum-484064:6646111")
+
     // JEI.
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
@@ -151,6 +158,7 @@ tasks.named('processResources', ProcessResources).configure {
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
             forge_version: forge_version, forge_version_range: forge_version_range,
             loader_version_range: loader_version_range,
+            lodestone_version: lodestone_version, malum_version: malum_version,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
             mod_display_url: mod_display_url, mod_issue_tracker_url: mod_issue_tracker_url, mod_logo_file: mod_logo_file,

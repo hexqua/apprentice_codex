@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -38,6 +39,21 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return ENCHANTMENT_VALUE;
+    }
+
+    @Override
+    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+        if (!super.isBookEnchantable(stack, book)) {
+            return false;
+        }
+
+        var enchantments = EnchantmentHelper.getEnchantments(book);
+        if (enchantments.isEmpty()) {
+            return true;
+        }
+
+        return enchantments.keySet().stream()
+                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
     }
 
     @Override

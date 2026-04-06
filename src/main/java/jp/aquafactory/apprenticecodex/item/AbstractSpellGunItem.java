@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -35,6 +36,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.tags.TagKey;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +54,13 @@ import java.util.function.Supplier;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, NonDamageableAnvilMergeItem {
+    private static final String MALUM_NAMESPACE = "malum";
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
+    );
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
     private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
     private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
@@ -184,6 +193,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
         if (enchantmentId == null) {
             return false;
+        }
+
+        if (isMalumSpiritPlunder(stack, enchantmentId)) {
+            return true;
         }
 
         if (!ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
@@ -338,6 +351,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 || (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
                 || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
                 || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get());
+    }
+
+    private static boolean isMalumSpiritPlunder(ItemStack stack, ResourceLocation enchantmentId) {
+        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON);
     }
 
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {

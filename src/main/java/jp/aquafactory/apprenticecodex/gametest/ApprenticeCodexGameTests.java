@@ -32,14 +32,17 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.EnchantedBookItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -47,6 +50,7 @@ import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -68,6 +72,12 @@ import java.util.stream.Collectors;
 public final class ApprenticeCodexGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final String MALUM_MOD_ID = "malum";
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
+    );
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
 
     private ApprenticeCodexGameTests() {
     }
@@ -508,27 +518,27 @@ public final class ApprenticeCodexGameTests {
                 helper,
                 "Spell Gun",
                 item -> item instanceof AbstractSpellGunItem,
-                expectedSpellGunEnchantments()
+                ApprenticeCodexGameTests::expectedSpellGunEnchantments
         ));
     }
 
     @GameTest(template = TEMPLATE)
     public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var expectedEnchantments = expectedOffhandEnchantments();
             var expectedBookEnchantments = allRegisteredEnchantmentIds();
             var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
 
             for (var stack : stacks) {
                 // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
-                // 本判定だけは広く通る。実際に固定したい付与面はエンチャント台と独自金床側。
+                // 本判定だけは広く通る。Malum 側は main hand 前提で soul_hunter_weapon を使うため、
+                // 実際に固定したい付与面はエンチャント台と独自金床側の offhand 非対応面。
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
-                        expectedEnchantments,
+                        expectedOffhandEnchantments(stack),
                         expectedBookEnchantments,
-                        expectedEnchantments,
+                        expectedOffhandEnchantments(stack),
                         "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
                 );
             }
@@ -545,8 +555,23 @@ public final class ApprenticeCodexGameTests {
                 // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
                 // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
                 item -> item instanceof AbstractRightClickMagicWeaponItem,
-                expectedRightClickMagicWeaponEnchantments()
+                ApprenticeCodexGameTests::expectedRightClickMagicWeaponEnchantments
         ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedReflectcastShieldEnchantments(stack),
+                    "Reflectcast Shield"
+            );
+        });
     }
 
     @GameTest(template = TEMPLATE)
@@ -727,8 +752,8 @@ public final class ApprenticeCodexGameTests {
                 .toList();
     }
 
-    private static Set<ResourceLocation> expectedSpellGunEnchantments() {
-        return registryIdSet(
+    private static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
+        var expectedEnchantments = registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
                 EnchantmentRegistry.RESERVOIR,
@@ -739,9 +764,11 @@ public final class ApprenticeCodexGameTests {
                 EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER
         );
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedOffhandEnchantments() {
+    private static Set<ResourceLocation> expectedOffhandEnchantments(ItemStack stack) {
         return registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
@@ -753,7 +780,7 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
-    private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments() {
+    private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
                 enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
@@ -763,6 +790,16 @@ public final class ApprenticeCodexGameTests {
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM
         ));
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedReflectcastShieldEnchantments(ItemStack stack) {
+        var expectedEnchantments = collectAllowedEnchantments(
+                new ItemStack(Items.SHIELD),
+                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.SHIELD))
+        );
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 
@@ -852,6 +889,12 @@ public final class ApprenticeCodexGameTests {
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
         return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.ELYTRA));
+    }
+
+    private static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
+            expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
+        }
     }
 
     private static String describeEnchantmentDifference(

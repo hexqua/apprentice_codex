@@ -59,7 +59,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
         malumSoulHunterWeaponTag.add(
-                ItemRegistry.PASTEL_STAFF.get()
+                ItemRegistry.PASTEL_STAFF.get(),
+                // Malum の soul_hunter_weapon 実発動判定は main hand を見るため、
+                // offhand 専用品はタグ対象から外し、main hand で攻撃成立する盾だけ明示的に残す。
+                ItemRegistry.REFLECTCAST_SHIELD.get()
         );
 
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
@@ -78,11 +81,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 // ここで抽象クラス継承アイテムを自動収集して追加漏れを防ぐ。
                 ironsUpgradeWhitelist.add(item);
 
+                tomagicReversalWeaponTag.add(item);
+            }
+
+            if (item instanceof AbstractSpellGunItem
+                    || item instanceof AbstractRightClickMagicWeaponItem) {
                 // 他の武器互換系も登録する.
                 // 1.21.1申し送り事項:CrystalBladedStaffは1.21.1だとStaffItemで登録が漏れるため、別途登録.
                 // (重複するとタグが2回出てしまうので1.20.1では個別登録していない)
                 malumSoulHunterWeaponTag.add(item);
-                tomagicReversalWeaponTag.add(item);
             }
         }
         tag(CURIOS_SPELLBOOK).add(
