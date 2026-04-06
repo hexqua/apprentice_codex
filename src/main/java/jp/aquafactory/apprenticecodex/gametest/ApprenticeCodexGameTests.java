@@ -168,6 +168,15 @@ public final class ApprenticeCodexGameTests {
                     io.redspace.ironsspellbooks.registries.RecipeRegistry.ALCHEMIST_CAULDRON_BREW_SERIALIZER.get(),
                     io.redspace.ironsspellbooks.registries.RecipeRegistry.ALCHEMIST_CAULDRON_BREW_TYPE.get());
 
+            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+                assertRecipePresent(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/apprentice_mage_robe"));
+                assertRecipePresent(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/enchantress_robe"));
+                assertRecipePresent(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_crucible/repair/reflectcast_shield"));
+            }
+
             helper.assertFalse(recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).isEmpty(),
                     "No Essence Smoker recipes were loaded");
             helper.assertFalse(recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).isEmpty(),
@@ -1180,6 +1189,14 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(recipe.getType() == expectedType,
                     "Recipe type mismatch for " + recipeId + ": " + BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType()));
         }
+    }
+
+    private static void assertRecipePresent(
+            GameTestHelper helper,
+            RecipeManager recipeManager,
+            ResourceLocation recipeId
+    ) {
+        helper.assertTrue(recipeManager.byKey(recipeId).isPresent(), "Missing recipe: " + recipeId);
     }
 
     private static void assertEnchantmentsRegistered(GameTestHelper helper) {
