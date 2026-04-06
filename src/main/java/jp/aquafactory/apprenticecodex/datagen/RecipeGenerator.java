@@ -23,7 +23,9 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.crafting.ConditionalRecipe;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public final class RecipeGenerator extends RecipeProvider {
@@ -588,8 +590,78 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
                 .save(recipeWriter, ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.getId());
 
+        saveMalumSpiritRepairRecipes(recipeWriter);
         saveSpellbookCarryoverSmithingRecipe(recipeWriter);
 
+    }
+
+    private void saveMalumSpiritRepairRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        // Malum は通常の修理判定から自動連携しないため、対象と spirit コストを明示する.
+        saveMalumSpiritRepairRecipe(
+                recipeWriter,
+                "apprentice_mage_robe",
+                List.of(
+                        ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
+                        ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
+                        ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
+                        ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+                ),
+                io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
+                1,
+                0.5f,
+                List.of(new MalumSpiritCost("arcane", 8))
+        );
+
+        saveMalumSpiritRepairRecipe(
+                recipeWriter,
+                "enchantress_robe",
+                List.of(
+                        ItemRegistry.ENCHANTRESS_HAT.get(),
+                        ItemRegistry.ENCHANTRESS_ROBE.get(),
+                        ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                        ItemRegistry.ENCHANTRESS_BOOTS.get()
+                ),
+                io.redspace.ironsspellbooks.registries.ItemRegistry.HOGSKIN.get(),
+                1,
+                0.5f,
+                List.of(
+                        new MalumSpiritCost("infernal", 8),
+                        new MalumSpiritCost("sacred", 4)
+                )
+        );
+
+        saveMalumSpiritRepairRecipe(
+                recipeWriter,
+                "reflectcast_shield",
+                List.of(ItemRegistry.REFLECTCAST_SHIELD.get()),
+                io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
+                1,
+                0.5f,
+                List.of(new MalumSpiritCost("arcane", 8))
+        );
+    }
+
+    private void saveMalumSpiritRepairRecipe(
+            @NotNull Consumer<FinishedRecipe> recipeWriter,
+            @NotNull String name,
+            @NotNull List<Item> inputs,
+            @NotNull Item repairMaterial,
+            int repairMaterialCount,
+            float durabilityPercentage,
+            @NotNull List<MalumSpiritCost> spirits
+    ) {
+        var recipeId = ResourceLocation.fromNamespaceAndPath(
+                ItemRegistry.APPRENTICE_MAGE_SCARF.getId().getNamespace(),
+                "malum/spirit_crucible/repair/" + name
+        );
+        recipeWriter.accept(new MalumSpiritRepairFinishedRecipe(
+                recipeId,
+                inputs,
+                repairMaterial,
+                repairMaterialCount,
+                durabilityPercentage,
+                spirits
+        ));
     }
 
     private void saveSpellbookCarryoverSmithingRecipe(@NotNull Consumer<FinishedRecipe> recipeWriter) {
@@ -651,6 +723,76 @@ public final class RecipeGenerator extends RecipeProvider {
         @Override
         public ResourceLocation getAdvancementId() {
             return advancementId;
+        }
+    }
+
+    private record MalumSpiritRepairFinishedRecipe(
+            ResourceLocation id,
+            List<Item> inputs,
+            Item repairMaterial,
+            int repairMaterialCount,
+            float durabilityPercentage,
+            List<MalumSpiritCost> spirits
+    ) implements FinishedRecipe {
+        @Override
+        public @NotNull ResourceLocation getId() {
+            return id;
+        }
+
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            var conditions = new com.google.gson.JsonArray();
+            var modLoadedCondition = new JsonObject();
+            modLoadedCondition.addProperty("type", "forge:mod_loaded");
+            modLoadedCondition.addProperty("modid", "malum");
+            conditions.add(modLoadedCondition);
+            json.add("conditions", conditions);
+
+            json.addProperty("type", "malum:spirit_repair");
+            json.addProperty("durabilityPercentage", durabilityPercentage);
+            json.addProperty("itemIdRegex", "");
+            json.addProperty("modIdRegex", "");
+
+            var inputArray = new com.google.gson.JsonArray();
+            for (var input : inputs) {
+                inputArray.add(ForgeRegistries.ITEMS.getKey(input).toString());
+            }
+            json.add("inputs", inputArray);
+
+            var repairMaterialJson = new JsonObject();
+            repairMaterialJson.addProperty("item", ForgeRegistries.ITEMS.getKey(repairMaterial).toString());
+            repairMaterialJson.addProperty("count", repairMaterialCount);
+            json.add("repairMaterial", repairMaterialJson);
+
+            var spiritArray = new com.google.gson.JsonArray();
+            for (var spirit : spirits) {
+                spiritArray.add(spirit.toJson());
+            }
+            json.add("spirits", spiritArray);
+        }
+
+        @Override
+        public @NotNull RecipeSerializer<?> getType() {
+            return RecipeSerializer.SHAPELESS_RECIPE;
+        }
+
+        @Override
+        public @Nullable JsonObject serializeAdvancement() {
+            return null;
+        }
+
+        @Override
+        public @Nullable ResourceLocation getAdvancementId() {
+            return null;
+        }
+    }
+
+    private record MalumSpiritCost(String type, int count) {
+        private JsonObject toJson() {
+            var json = new JsonObject();
+            json.addProperty("type", type);
+            json.addProperty("count", count);
+            return json;
         }
     }
 }

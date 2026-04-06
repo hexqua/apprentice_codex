@@ -1,0 +1,32 @@
+{
+  "type": "malum:spirit_repair",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "durabilityPercentage": 0.5,
+  "inputs": [
+    "apprenticecodex:enchantress_hat",
+    "apprenticecodex:enchantress_robe",
+    "apprenticecodex:enchantress_leggings",
+    "apprenticecodex:enchantress_boots"
+  ],
+  "itemIdRegex": "",
+  "modIdRegex": "",
+  "repairMaterial": {
+    "count": 1,
+    "item": "irons_spellbooks:hogskin"
+  },
+  "spirits": [
+    {
+      "type": "infernal",
+      "count": 8
+    },
+    {
+      "type": "sacred",
+      "count": 4
+    }
+  ]
+}
