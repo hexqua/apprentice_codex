@@ -59,6 +59,10 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public static final TagKey<DamageType> RANGED_ATTACK = create("ranged_attack");
     public static final TagKey<DamageType> CODEX_MAGIC = create("codex_magic");
     public static final TagKey<DamageType> EXPLOSIONS = create("explosions");
+    private static final TagKey<DamageType> COMMON_IS_MAGIC = TagKey.create(
+            Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath("c", "is_magic")
+    );
 
     private static final TagKey<DamageType> MALUM_CAN_SOUL_SHATTER = TagKey.create(
             Registries.DAMAGE_TYPE,
@@ -179,6 +183,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(HAUNTED_BONUS);
+
+        // Lodestone連携: magic_proficiency / magic_resistance が参照する c:is_magic へ接続する.
+        addTagLinks(COMMON_IS_MAGIC, MAGIC_DAMAGE);
 
         // バニラダメージタイプタグ.
         addTagLinks(DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS, EXPLOSIONS);
