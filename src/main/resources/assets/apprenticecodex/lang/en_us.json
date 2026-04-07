@@ -441,6 +441,7 @@
   "death.attack.apprenticecodex.illuminate_stellar": "%1$s was purified by %2$s's dazzling magic.",
   "death.attack.apprenticecodex.unite_luna": "%1$s was purified by %2$s's dim magic.",
   "death.attack.apprenticecodex.healing_bloom": "The power of healing was too harmful to %1$s.",
+  "death.attack.apprenticecodex.haunted_bonus": "%1$s was consumed by %2$s's haunted magic.",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",

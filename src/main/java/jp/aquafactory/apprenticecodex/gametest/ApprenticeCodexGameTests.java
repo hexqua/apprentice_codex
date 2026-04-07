@@ -5,6 +5,9 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -77,6 +80,8 @@ public final class ApprenticeCodexGameTests {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
     );
+    private static final ResourceLocation MALUM_HAUNTED = MalumHauntedCompat.hauntedEnchantmentId();
+    private static final ResourceLocation MALUM_ANIMATED = MalumHauntedCompat.animatedEnchantmentId();
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
 
     private ApprenticeCodexGameTests() {
@@ -654,7 +659,66 @@ public final class ApprenticeCodexGameTests {
                             "Pastel Staff should keep rejecting durability-target enchantments from books: "
                                     + enchantmentId);
                 }
+
+                if (MALUM_HAUNTED.equals(enchantmentId)) {
+                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should allow malum:haunted at the enchanting table");
+                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should allow malum:haunted from books");
+                }
+
+                if (MALUM_ANIMATED.equals(enchantmentId)) {
+                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should keep rejecting malum:animated at the enchanting table");
+                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should keep rejecting malum:animated from books");
+                }
             }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var haunted = MalumHauntedCompat.getHauntedEnchantment();
+            helper.assertTrue(haunted != null, "malum:haunted is not registered");
+
+            var pastelStaff = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            pastelStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(pastelStaff),
+                    "Pastel Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(pastelStaff) > 0.0D,
+                    "Pastel Staff should resolve a positive Haunted magic damage bonus");
+
+            var crystalBladedStaff = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+            crystalBladedStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(crystalBladedStaff),
+                    "Crystal Bladed Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(crystalBladedStaff) > 0.0D,
+                    "Crystal Bladed Staff should resolve a positive Haunted magic damage bonus");
+
+            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())),
+                    "Spellgun should stay outside Haunted support");
+            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())),
+                    "Reflectcast Shield should stay outside Haunted support");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malumHauntedBonusUsesDedicatedDamageType(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var source = MalumHauntedCompat.createHauntedBonusDamageSource(attacker);
+            helper.assertTrue(source.is(DamageTypes.HAUNTED_BONUS),
+                    "Haunted bonus should use apprenticecodex:haunted_bonus");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.MAGIC_DAMAGE),
+                    "Haunted bonus should stay on the magic damage tag path");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
+                    "Haunted bonus should bypass cooldown-based I-Frame checks");
         });
     }
 
@@ -790,6 +854,7 @@ public final class ApprenticeCodexGameTests {
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM
         ));
+        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
@@ -894,6 +959,12 @@ public final class ApprenticeCodexGameTests {
     private static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
             expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
+        }
+    }
+
+    private static void addExpectedMalumHauntedIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID) && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
+            expectedEnchantments.add(MALUM_HAUNTED);
         }
     }
 

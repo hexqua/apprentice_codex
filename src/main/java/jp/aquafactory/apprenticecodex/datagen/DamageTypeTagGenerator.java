@@ -88,7 +88,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HIGANBANA,
                 MOON_LIGHT,
                 UNITE_LUNA,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                HAUNTED_BONUS
         );
 
         // FIRE_DAMAGE: 火炎耐性有効.
@@ -111,7 +112,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MOON_LIGHT,
                 GRIND_RUNNER,
                 ILLUMINATE_STELLAR,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                HAUNTED_BONUS
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -152,7 +154,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
-        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC);
+        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(HAUNTED_BONUS);
 
         // バニラダメージタイプタグ.
         addTagLinks(DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS, EXPLOSIONS);
