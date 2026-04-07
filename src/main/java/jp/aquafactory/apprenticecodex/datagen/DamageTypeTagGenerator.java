@@ -27,6 +27,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FEATHER_RUSH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FLY_SWATTER;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRIND_RUNNER;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HAUNTED_BONUS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEALING_BLOOM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
@@ -58,6 +59,10 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public static final TagKey<DamageType> RANGED_ATTACK = create("ranged_attack");
     public static final TagKey<DamageType> CODEX_MAGIC = create("codex_magic");
     public static final TagKey<DamageType> EXPLOSIONS = create("explosions");
+    private static final TagKey<DamageType> COMMON_IS_MAGIC = TagKey.create(
+            Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath("c", "is_magic")
+    );
 
     private static final TagKey<DamageType> MALUM_CAN_SOUL_SHATTER = TagKey.create(
             Registries.DAMAGE_TYPE,
@@ -115,7 +120,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HIGANBANA,
                 MOON_LIGHT,
                 UNITE_LUNA,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                HAUNTED_BONUS
         );
 
         // FIRE_DAMAGE: 火炎耐性有効.
@@ -136,7 +142,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MOON_LIGHT,
                 GRIND_RUNNER,
                 ILLUMINATE_STELLAR,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                HAUNTED_BONUS
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -175,7 +182,10 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         tag(EXPLOSIONS).add(FLY_SWATTER);
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
-        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC);
+        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(HAUNTED_BONUS);
+
+        // Lodestone連携: magic_proficiency / magic_resistance が参照する c:is_magic へ接続する.
+        addTagLinks(COMMON_IS_MAGIC, MAGIC_DAMAGE);
 
         // バニラダメージタイプタグ.
         addTagLinks(DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS, EXPLOSIONS);

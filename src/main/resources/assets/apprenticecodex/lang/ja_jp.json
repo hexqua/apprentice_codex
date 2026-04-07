@@ -441,6 +441,7 @@
   "death.attack.apprenticecodex.illuminate_stellar": "%1$sは%2$sの眩い魔力によって浄化された",
   "death.attack.apprenticecodex.unite_luna": "%1$sは%2$sの陰りの魔力によって浄化された",
   "death.attack.apprenticecodex.healing_bloom": "%1$sに癒しの力は有害すぎた",
+  "death.attack.apprenticecodex.haunted_bonus": "%1$sは%2$sの取り憑いた魔力に蝕まれた",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

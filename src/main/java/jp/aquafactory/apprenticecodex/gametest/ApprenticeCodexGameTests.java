@@ -5,6 +5,8 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
@@ -29,6 +31,7 @@ import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
@@ -40,6 +43,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -78,13 +82,28 @@ import java.util.stream.Collectors;
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    private static final String LODESTONE_MOD_ID = "lodestone";
     private static final String MALUM_MOD_ID = "malum";
+    private static final ResourceLocation LODESTONE_MAGIC_PROFICIENCY =
+            ResourceLocation.fromNamespaceAndPath(LODESTONE_MOD_ID, "magic_proficiency");
+    private static final TagKey<DamageType> COMMON_IS_MAGIC = TagKey.create(
+            Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath("c", "is_magic")
+    );
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
     );
+    private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "magic_capable_weapon")
+    );
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
+    private static final ResourceLocation MALUM_HAUNTED =
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "haunted");
+    private static final ResourceLocation MALUM_ANIMATED =
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "animated");
 
     private ApprenticeCodexGameTests() {
     }
@@ -518,6 +537,33 @@ public final class ApprenticeCodexGameTests {
                     false, false, false, false, null, "Pastel Staff should keep rejecting transcendence");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
                     false, false, false, false, null, "Pastel Staff should keep rejecting wisdom");
+
+            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+                helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
+                        "Pastel Staff is missing malum:magic_capable_weapon");
+                assertSingleEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)),
+                        true,
+                        true,
+                        true,
+                        true,
+                        null,
+                        "Pastel Staff haunted rule"
+                );
+                assertSingleEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)),
+                        true,
+                        true,
+                        true,
+                        true,
+                        null,
+                        "Pastel Staff animated rule"
+                );
+            }
         });
     }
 
@@ -539,6 +585,91 @@ public final class ApprenticeCodexGameTests {
 
             helper.assertTrue(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Crystal Bladed Staff should keep accepting diamonds as its repair material");
+
+            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+                helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
+                        "Crystal Bladed Staff is missing malum:magic_capable_weapon");
+                assertSingleEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)),
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        "Crystal Bladed Staff haunted rule"
+                );
+                assertSingleEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)),
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        "Crystal Bladed Staff animated rule"
+                );
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hauntedBonusDamageTypeStaysOnMagicDamageTagPath(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var source = CombatTools.getDamageSource(attacker.level(), attacker, attacker, DamageTypes.HAUNTED_BONUS);
+
+            helper.assertTrue(source.is(DamageTypes.HAUNTED_BONUS),
+                    "Haunted bonus should use apprenticecodex:haunted_bonus");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.MAGIC_DAMAGE),
+                    "Haunted bonus should stay on the magic damage tag path");
+            helper.assertTrue(source.is(COMMON_IS_MAGIC),
+                    "Haunted bonus should stay on the c:is_magic path for Lodestone magic_proficiency");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
+                    "Haunted bonus should bypass cooldown-based I-Frame checks");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hauntedBonusDamageActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(LODESTONE_MOD_ID)) {
+                return;
+            }
+
+            var magicProficiency = BuiltInRegistries.ATTRIBUTE.getOptional(LODESTONE_MAGIC_PROFICIENCY).orElse(null);
+            helper.assertTrue(magicProficiency != null, "lodestone:magic_proficiency is not registered");
+
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var proficiencyInstance = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(magicProficiency));
+            helper.assertTrue(proficiencyInstance != null, "Attacker is missing lodestone:magic_proficiency");
+
+            var baselineTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(1, 2, 0));
+            var amplifiedTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(2, 2, 0));
+            var baseDamage = 4.0F;
+
+            var baselineHealth = baselineTarget.getHealth();
+            helper.assertTrue(baselineTarget.hurt(
+                            CombatTools.getDamageSource(attacker.level(), attacker, attacker, DamageTypes.HAUNTED_BONUS),
+                            baseDamage),
+                    "Baseline haunted bonus damage should apply");
+            var baselineTaken = baselineHealth - baselineTarget.getHealth();
+            helper.assertTrue(Math.abs(baselineTaken - baseDamage) < 1.0e-4F,
+                    "Baseline haunted bonus damage should stay unscaled at proficiency 1.0, actual=" + baselineTaken);
+
+            proficiencyInstance.setBaseValue(1.5D);
+            var amplifiedHealth = amplifiedTarget.getHealth();
+            helper.assertTrue(amplifiedTarget.hurt(
+                            CombatTools.getDamageSource(attacker.level(), attacker, attacker, DamageTypes.HAUNTED_BONUS),
+                            baseDamage),
+                    "Amplified haunted bonus damage should apply");
+            var amplifiedTaken = amplifiedHealth - amplifiedTarget.getHealth();
+            helper.assertTrue(Math.abs(amplifiedTaken - 6.0F) < 1.0e-4F,
+                    "Amplified haunted bonus damage should scale to 6.0 at proficiency 1.5, actual=" + amplifiedTaken);
+            helper.assertTrue(amplifiedTaken > baselineTaken,
+                    "Amplified haunted bonus damage should exceed baseline damage");
         });
     }
 
@@ -909,6 +1040,7 @@ public final class ApprenticeCodexGameTests {
                 Enchantments.WISDOM
         ));
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 
@@ -1007,6 +1139,13 @@ public final class ApprenticeCodexGameTests {
     private static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
             expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
+        }
+    }
+
+    private static void addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_MAGIC_CAPABLE_WEAPON)) {
+            expectedEnchantments.add(MALUM_HAUNTED);
+            expectedEnchantments.add(MALUM_ANIMATED);
         }
     }
 
