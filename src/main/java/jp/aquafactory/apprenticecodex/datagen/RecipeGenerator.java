@@ -159,11 +159,11 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("GDG")
                 .pattern("NBN")
                 .pattern("GNG")
-                .define('B', Items.WRITABLE_BOOK)
+                .define('B', io.redspace.ironsspellbooks.registries.ItemRegistry.COPPER_SPELL_BOOK.get())
                 .define('D', Items.DIAMOND)
                 .define('G', Items.GOLD_INGOT)
                 .define('N', Items.GOLD_NUGGET)
-                .unlockedBy(getHasName(Items.WRITABLE_BOOK), has(Items.WRITABLE_BOOK))
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.COPPER_SPELL_BOOK.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.COPPER_SPELL_BOOK.get()))
                 .save(explorersCodexOutput, ItemRegistry.EXPLORERS_CODEX.getId());
 
         saveSpellbookCarryoverSmithingRecipe(recipeOutput);
@@ -231,7 +231,7 @@ public final class RecipeGenerator extends RecipeProvider {
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.IRON_SPELL_AMPLIFIER.get())
                 .pattern("EAE")
-                .pattern("I I")
+                .pattern(" I ")
                 .pattern(" I ")
                 .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
@@ -241,7 +241,7 @@ public final class RecipeGenerator extends RecipeProvider {
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.COPPER_SPELL_AMPLIFIER.get())
                 .pattern("LAL")
-                .pattern("C C")
+                .pattern(" C ")
                 .pattern(" C ")
                 .define('L', io.redspace.ironsspellbooks.registries.ItemRegistry.LIGHTNING_BOTTLE.get())
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
@@ -261,7 +261,7 @@ public final class RecipeGenerator extends RecipeProvider {
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GOLD_SPELL_AMPLIFIER.get())
                 .pattern("EAE")
-                .pattern("G G")
+                .pattern(" G ")
                 .pattern(" G ")
                 .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
