@@ -8,7 +8,7 @@
   "category": "equipment",
   "key": {
     "B": {
-      "item": "minecraft:writable_book"
+      "item": "irons_spellbooks:copper_spell_book"
     },
     "D": {
       "item": "minecraft:diamond"
