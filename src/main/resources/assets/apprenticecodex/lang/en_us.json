@@ -376,6 +376,7 @@
   "ui.apprenticecodex.companion_trunk.cannot_despawn": "%s cannot be dismissed while it still contains items!",
   "ui.apprenticecodex.treasure_divination.not_found": "You sense no unusual presence within %d blocks.",
   "ui.apprenticecodex.treasure_divination.found": "An unusual presence lies %d blocks away!",
+  "ui.apprenticecodex.treasure_divination.too_noisy": "The auras are too chaotic, and your concentration slips away!",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

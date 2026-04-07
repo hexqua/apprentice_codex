@@ -376,6 +376,7 @@
   "ui.apprenticecodex.companion_trunk.cannot_despawn": "%sの中にアイテムが残っているため送還できない！",
   "ui.apprenticecodex.treasure_divination.not_found": "%dブロック以内に特殊な気配は感じない",
   "ui.apprenticecodex.treasure_divination.found": "特殊な気配が%dブロックのところにある！",
+  "ui.apprenticecodex.treasure_divination.too_noisy": "気配が騒がしすぎて魔力の集中が途切れてしまった！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
