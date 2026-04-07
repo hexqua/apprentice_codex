@@ -75,7 +75,10 @@ import java.util.stream.Collectors;
 public final class ApprenticeCodexGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final String LODESTONE_MOD_ID = "lodestone";
     private static final String MALUM_MOD_ID = "malum";
+    private static final ResourceLocation LODESTONE_MAGIC_PROFICIENCY =
+            ResourceLocation.fromNamespaceAndPath(LODESTONE_MOD_ID, "magic_proficiency");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
@@ -717,8 +720,47 @@ public final class ApprenticeCodexGameTests {
                     "Haunted bonus should use apprenticecodex:haunted_bonus");
             helper.assertTrue(source.is(DamageTypeTagGenerator.MAGIC_DAMAGE),
                     "Haunted bonus should stay on the magic damage tag path");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.FORGE_IS_MAGIC),
+                    "Haunted bonus should stay on the forge:is_magic path for Lodestone magic_proficiency");
             helper.assertTrue(source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
                     "Haunted bonus should bypass cooldown-based I-Frame checks");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicDamageTagActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(LODESTONE_MOD_ID)) {
+                return;
+            }
+
+            var magicProficiency = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
+            helper.assertTrue(magicProficiency != null, "lodestone:magic_proficiency is not registered");
+
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var proficiencyInstance = attacker.getAttribute(magicProficiency);
+            helper.assertTrue(proficiencyInstance != null, "Attacker is missing lodestone:magic_proficiency");
+
+            var baselineTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(1, 2, 0));
+            var amplifiedTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(2, 2, 0));
+            var baseDamage = 4.0F;
+
+            var baselineHealth = baselineTarget.getHealth();
+            helper.assertTrue(baselineTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
+                    "Baseline haunted bonus damage should apply");
+            var baselineTaken = baselineHealth - baselineTarget.getHealth();
+            helper.assertTrue(Math.abs(baselineTaken - baseDamage) < 1.0e-4F,
+                    "Baseline haunted bonus damage should stay unscaled at proficiency 1.0, actual=" + baselineTaken);
+
+            proficiencyInstance.setBaseValue(1.5D);
+            var amplifiedHealth = amplifiedTarget.getHealth();
+            helper.assertTrue(amplifiedTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
+                    "Amplified haunted bonus damage should apply");
+            var amplifiedTaken = amplifiedHealth - amplifiedTarget.getHealth();
+            helper.assertTrue(Math.abs(amplifiedTaken - 6.0F) < 1.0e-4F,
+                    "Amplified haunted bonus damage should scale to 6.0 at proficiency 1.5, actual=" + amplifiedTaken);
+            helper.assertTrue(amplifiedTaken > baselineTaken,
+                    "Amplified haunted bonus damage should exceed baseline damage");
         });
     }
 
