@@ -138,6 +138,10 @@ dependencies {
     // runtimeOnly fg.deobf("maven.modrinth:cloth-config:t8TXrZvZ")
     // runtimeOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
 
+    // Lootr.
+    // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
+    compileOnly fg.deobf("noobanidus.mods.lootr:lootr-${minecraft_version}:${lootr_version}")
+
     // Lodestone / Malum.
     // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
     compileOnly fg.deobf("curse.maven:lodestone-616457:6213794")
