@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
@@ -161,6 +162,15 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
 
         if (isDurabilityTargetEnchantment(enchantment)) {
             return false;
+        }
+
+        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)) {
+            return false;
+        }
+
+        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
+                && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
+            return true;
         }
 
         if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {

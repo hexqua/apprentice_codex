@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -225,6 +226,15 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
 
         if (isDurabilityTargetEnchantment(enchantment)) {
             return false;
+        }
+
+        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)) {
+            return false;
+        }
+
+        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
+                && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
+            return true;
         }
 
         if (isMalumSpiritPlunder(stack, enchantmentId)) {

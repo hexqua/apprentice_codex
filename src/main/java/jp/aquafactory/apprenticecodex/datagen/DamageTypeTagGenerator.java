@@ -17,13 +17,22 @@ import java.util.concurrent.CompletableFuture;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.*;
 
 public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
+    private static final String FORGE_NAMESPACE = "forge";
+
     public DamageTypeTagGenerator(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, ExistingFileHelper existingFileHelper) {
         super(output, Registries.DAMAGE_TYPE, lookupProvider, ApprenticeCodex.MODID, existingFileHelper);
     }
 
     private static TagKey<DamageType> create(String name) {
-        return TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
+        return create(ApprenticeCodex.MODID, name);
     }
+
+    private static TagKey<DamageType> create(String namespace, String name) {
+        return TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(namespace, name));
+    }
+
+    public static final TagKey<DamageType> FORGE_IS_MAGIC = create(FORGE_NAMESPACE, "is_magic");
+    private static final TagKey<DamageType> MALUM_CAN_SOUL_SHATTER = create("malum", "can_soul_shatter");
 
     public static final TagKey<DamageType> MAGIC_DAMAGE = create("magic_damage");
     public static final TagKey<DamageType> FIRE_DAMAGE = create("fire_damage");
@@ -31,11 +40,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public static final TagKey<DamageType> RANGED_ATTACK = create("ranged_attack");
     public static final TagKey<DamageType> CODEX_MAGIC = create("codex_magic");
     public static final TagKey<DamageType> EXPLOSIONS = create("explosions");
-
-    private static final TagKey<DamageType> MALUM_CAN_SOUL_SHATTER = TagKey.create(
-            Registries.DAMAGE_TYPE,
-            ResourceLocation.fromNamespaceAndPath("malum", "can_soul_shatter")
-    );
 
     @SafeVarargs
     private void addTagLinks(TagKey<DamageType> target, TagKey<DamageType>... sources) {
@@ -88,7 +92,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HIGANBANA,
                 MOON_LIGHT,
                 UNITE_LUNA,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                HAUNTED_BONUS
         );
 
         // FIRE_DAMAGE: 火炎耐性有効.
@@ -111,7 +116,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MOON_LIGHT,
                 GRIND_RUNNER,
                 ILLUMINATE_STELLAR,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                HAUNTED_BONUS
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -152,7 +158,11 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
-        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC);
+        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(HAUNTED_BONUS);
+
+        // Lodestone連携: magic_proficiency は forge:is_magic を見て倍率補正する。
+        // このタグへ乗せないと armor bypass 系でも魔法ダメージとして扱われない。
+        tag(FORGE_IS_MAGIC).addTag(MAGIC_DAMAGE);
 
         // バニラダメージタイプタグ.
         addTagLinks(DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS, EXPLOSIONS);
