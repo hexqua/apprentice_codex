@@ -44,6 +44,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_EQUIPPABLE = createTag("minecraft", "enchantable/equippable");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
+    private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = createTag("malum", "magic_capable_weapon");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
@@ -75,6 +76,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.UNITE_LUNA_STAFF.get()
         );
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
+        var malumMagicCapableWeaponTag = tag(MALUM_MAGIC_CAPABLE_WEAPON);
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
         var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
@@ -114,6 +116,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 // 1.21.1 では Wisdom / Transcendence の適用可否が enchantment JSON 側の item tag で決まる。
                 // 右クリック魔法武器は Java 側で両エンチャを許可しているため、tag 側も同じ面に揃える。
                 if (item instanceof AbstractRightClickMagicWeaponItem) {
+                    // 1.21.1 の Haunted / Animated は magic_capable_weapon タグ基準なので、
+                    // 主手用魔法武器は tag と Java 側判定を同じ面に揃える。
+                    malumMagicCapableWeaponTag.add(item);
                     transcendenceEnchantableTag.add(item);
                     wisdomEnchantableTag.add(item);
                     vanillaSwordEnchantableTag.add(item);
@@ -196,6 +201,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
+        malumMagicCapableWeaponTag.add(
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+        );
         // Malum の soul_hunter_weapon は main hand 前提なので、
         // offhand 専用品を巻き込まず個別互換が必要な staff / shield だけ明示登録する。
         tag(MALUM_SOUL_HUNTER_WEAPON).add(

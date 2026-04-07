@@ -83,8 +83,16 @@ public final class ApprenticeCodexGameTests {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
     );
+    private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "magic_capable_weapon")
+    );
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
+    private static final ResourceLocation MALUM_HAUNTED =
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "haunted");
+    private static final ResourceLocation MALUM_ANIMATED =
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "animated");
 
     private ApprenticeCodexGameTests() {
     }
@@ -518,6 +526,33 @@ public final class ApprenticeCodexGameTests {
                     false, false, false, false, null, "Pastel Staff should keep rejecting transcendence");
             assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
                     false, false, false, false, null, "Pastel Staff should keep rejecting wisdom");
+
+            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+                helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
+                        "Pastel Staff is missing malum:magic_capable_weapon");
+                assertSingleEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)),
+                        true,
+                        true,
+                        true,
+                        true,
+                        null,
+                        "Pastel Staff haunted rule"
+                );
+                assertSingleEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)),
+                        true,
+                        true,
+                        true,
+                        true,
+                        null,
+                        "Pastel Staff animated rule"
+                );
+            }
         });
     }
 
@@ -539,6 +574,33 @@ public final class ApprenticeCodexGameTests {
 
             helper.assertTrue(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Crystal Bladed Staff should keep accepting diamonds as its repair material");
+
+            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+                helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
+                        "Crystal Bladed Staff is missing malum:magic_capable_weapon");
+                assertSingleEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)),
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        "Crystal Bladed Staff haunted rule"
+                );
+                assertSingleEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)),
+                        true,
+                        true,
+                        true,
+                        true,
+                        true,
+                        "Crystal Bladed Staff animated rule"
+                );
+            }
         });
     }
 
@@ -909,6 +971,7 @@ public final class ApprenticeCodexGameTests {
                 Enchantments.WISDOM
         ));
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 
@@ -1007,6 +1070,13 @@ public final class ApprenticeCodexGameTests {
     private static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
             expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
+        }
+    }
+
+    private static void addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_MAGIC_CAPABLE_WEAPON)) {
+            expectedEnchantments.add(MALUM_HAUNTED);
+            expectedEnchantments.add(MALUM_ANIMATED);
         }
     }
 

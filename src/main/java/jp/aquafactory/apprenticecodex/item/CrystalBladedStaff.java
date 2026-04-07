@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingLaunchSound;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingManaRecovery;
@@ -187,6 +188,10 @@ public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpe
         }
 
         if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
+        }
+
+        if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)) {
             return true;
         }
 

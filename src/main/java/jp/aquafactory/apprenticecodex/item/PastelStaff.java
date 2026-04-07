@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -110,6 +111,10 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
         }
 
         var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)) {
+            return true;
+        }
+
         return enchantmentId != null && EXTRA_SUPPORTED_ENCHANTMENTS.contains(enchantmentId);
     }
 
