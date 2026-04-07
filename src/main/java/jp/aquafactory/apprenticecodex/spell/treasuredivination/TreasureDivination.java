@@ -6,8 +6,10 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.lootr.LootrTreasureDivinationCompatBridge;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -34,6 +36,7 @@ public class TreasureDivination extends AbstractSpell {
     private static final int SEARCH_INTERVAL_TICKS = 40;
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
     private static final int MAX_SEARCH_RANGE = 32;
+    private static final int MAX_DETECTABLE_TARGET_COUNT = 64;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "treasure_divination");
 
@@ -113,7 +116,13 @@ public class TreasureDivination extends AbstractSpell {
         }
 
         var range = getRange(spellLevel, entity);
-        sendScanMessage(serverPlayer, range, scanNearestTreasure(serverLevel, entity.blockPosition(), range));
+        var result = scanNearestTreasure(serverLevel, serverPlayer, entity.blockPosition(), range);
+        sendScanMessage(serverPlayer, range, result);
+        if (result.tooNoisy()) {
+            MagicTools.cancelCasting(serverPlayer, true);
+            return;
+        }
+
         super.onServerCastTick(level, spellLevel, entity, playerMagicData);
     }
 
@@ -147,7 +156,7 @@ public class TreasureDivination extends AbstractSpell {
         return elapsedTicks > 0 && elapsedTicks % SEARCH_INTERVAL_TICKS == 0;
     }
 
-    private ScanResult scanNearestTreasure(ServerLevel level, BlockPos origin, int range) {
+    private ScanResult scanNearestTreasure(ServerLevel level, ServerPlayer player, BlockPos origin, int range) {
         var minChunkX = SectionPos.blockToSectionCoord(origin.getX() - range);
         var maxChunkX = SectionPos.blockToSectionCoord(origin.getX() + range);
         var minChunkZ = SectionPos.blockToSectionCoord(origin.getZ() - range);
@@ -155,6 +164,7 @@ public class TreasureDivination extends AbstractSpell {
         var minY = Math.max(level.getMinBuildHeight(), origin.getY() - range);
         var maxY = Math.min(level.getMaxBuildHeight() - 1, origin.getY() + range);
         ScanResult best = ScanResult.notFound();
+        int detectedTargetCount = 0;
         var mutablePos = new BlockPos.MutableBlockPos();
 
         // 未読込チャンクは起こさず、現在読み込まれている範囲だけを 2 秒ごとに走査する。
@@ -189,8 +199,14 @@ public class TreasureDivination extends AbstractSpell {
                             for (int z = chunkMinZ; z <= chunkMaxZ; z++) {
                                 mutablePos.set(x, y, z);
                                 var state = chunk.getBlockState(mutablePos);
-                                if (!isTarget(state)) {
+                                if (!isTarget(level, player, mutablePos, state)) {
                                     continue;
+                                }
+
+                                detectedTargetCount++;
+                                if (detectedTargetCount > MAX_DETECTABLE_TARGET_COUNT) {
+                                    // 高密度地点は最後まで走査するより即中断した方が負荷と連打抑止の両面で安全。
+                                    return ScanResult.overloaded();
                                 }
 
                                 best = best.pickBetter(new ScanResult(manhattanDistance(origin, mutablePos)));
@@ -204,8 +220,12 @@ public class TreasureDivination extends AbstractSpell {
         return best;
     }
 
-    private boolean isTarget(BlockState state) {
-        return state.is(TagRegistry.Blocks.TREASURE_DIVINATION_TARGETS);
+    private boolean isTarget(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
+        if (!state.is(TagRegistry.Blocks.TREASURE_DIVINATION_TARGETS)) {
+            return false;
+        }
+
+        return !LootrTreasureDivinationCompatBridge.shouldIgnoreOpenedTarget(level, player, pos, state);
     }
 
     private int manhattanDistance(BlockPos origin, BlockPos target) {
@@ -215,30 +235,47 @@ public class TreasureDivination extends AbstractSpell {
     }
 
     private void sendScanMessage(ServerPlayer player, int range, ScanResult result) {
-        var message = result.found()
-                ? Component.translatable(
+        Component message;
+        if (result.tooNoisy()) {
+            message = Component.translatable("ui.apprenticecodex.treasure_divination.too_noisy")
+                    .withStyle(ChatFormatting.RED);
+        } else if (result.found()) {
+            message = Component.translatable(
                     "ui.apprenticecodex.treasure_divination.found",
                     result.distance()
-                ).withStyle(ChatFormatting.YELLOW)
-                : Component.translatable(
+            ).withStyle(ChatFormatting.YELLOW);
+        } else {
+            message = Component.translatable(
                     "ui.apprenticecodex.treasure_divination.not_found",
                     range
-                ).withStyle(ChatFormatting.RED);
+            ).withStyle(ChatFormatting.RED);
+        }
         player.connection.send(new ClientboundSetActionBarTextPacket(message));
     }
 
-    private record ScanResult(int distance) {
+    private record ScanResult(int distance, boolean tooNoisy) {
         private static final int NOT_FOUND_DISTANCE = Integer.MAX_VALUE;
 
         private static ScanResult notFound() {
-            return new ScanResult(NOT_FOUND_DISTANCE);
+            return new ScanResult(NOT_FOUND_DISTANCE, false);
+        }
+
+        private static ScanResult overloaded() {
+            return new ScanResult(NOT_FOUND_DISTANCE, true);
+        }
+
+        private ScanResult(int distance) {
+            this(distance, false);
         }
 
         private boolean found() {
-            return distance != NOT_FOUND_DISTANCE;
+            return !tooNoisy && distance != NOT_FOUND_DISTANCE;
         }
 
         private ScanResult pickBetter(ScanResult candidate) {
+            if (candidate.tooNoisy()) {
+                return candidate;
+            }
             if (!candidate.found()) {
                 return this;
             }

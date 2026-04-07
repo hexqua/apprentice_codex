@@ -137,6 +137,10 @@ dependencies {
     // runtimeOnly "maven.modrinth:cloth-config:DqgODWcH"
     // runtimeOnly "maven.modrinth:better-combat:2NyTus6V"
 
+    // Lootr.
+    // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
+    compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
+
     // Lodestone / Malum.
     // 当面は 1.21.1 側の互換要素を作り込みやすくするため dev runtime でも有効化しておく。
     compileOnly "curse.maven:lodestone-616457:7264731"
