@@ -146,8 +146,8 @@ dependencies {
     // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
     compileOnly fg.deobf("curse.maven:lodestone-616457:6213794")
     compileOnly fg.deobf("curse.maven:malum-484064:6646111")
-    runtimeOnly fg.deobf("curse.maven:lodestone-616457:6213794")
-    runtimeOnly fg.deobf("curse.maven:malum-484064:6646111")
+    // runtimeOnly fg.deobf("curse.maven:lodestone-616457:6213794")
+    // runtimeOnly fg.deobf("curse.maven:malum-484064:6646111")
 
     // JEI.
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")

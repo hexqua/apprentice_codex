@@ -32,6 +32,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -74,13 +75,22 @@ public class TamersPocket extends AbstractSpell {
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
+        var distanceInfo = Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1));
+
+        // Inscribe 系 GUI では caster が null のプレビュー呼び出しがあるため、件数表示だけ隠す。
+        if (caster == null) {
+            return List.of(distanceInfo);
+        }
         return List.of(
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
+                distanceInfo,
                 Component.translatable("ui.apprenticecodex.tamers_pocket.current_count", getCurrentPetCount(caster))
         );
     }
 
-    private int getCurrentPetCount(LivingEntity entity) {
+    private int getCurrentPetCount(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return 0;
+        }
         var spellData = Capabilities.getSpellDataOrNull(entity);
         if (spellData == null) {
             return 0;
@@ -114,7 +124,7 @@ public class TamersPocket extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.empty();
+        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
     }
 
     @Override
