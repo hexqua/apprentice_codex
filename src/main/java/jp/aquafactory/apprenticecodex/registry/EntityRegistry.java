@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
@@ -202,6 +203,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<PhalanxChargeBeamEntity>> PHALANX_CHARGE_BEAM =
             regProjectile("phalanx_charge_beam", PhalanxChargeBeamEntity::new, 64, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<SearchBeaconEntity>> SEARCH_BEACON =
+            regLiving("search_beacon", SearchBeaconEntity::new, SearchBeaconEntity.WIDTH, SearchBeaconEntity.HEIGHT, 32);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

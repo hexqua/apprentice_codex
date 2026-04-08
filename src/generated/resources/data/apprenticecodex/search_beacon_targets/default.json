@@ -1,0 +1,40 @@
+{
+  "values": [
+    {
+      "item": "minecraft:blaze_rod",
+      "targets": [
+        "irons_spellbooks:pyromancer_tower"
+      ]
+    },
+    {
+      "item": "minecraft:emerald",
+      "targets": [
+        "irons_spellbooks:evoker_fort"
+      ]
+    },
+    {
+      "item": "irons_spellbooks:divine_pearl",
+      "targets": [
+        "#minecraft:village"
+      ]
+    },
+    {
+      "item": "minecraft:poisonous_potato",
+      "targets": [
+        "irons_spellbooks:mangrove_hut"
+      ]
+    },
+    {
+      "item": "irons_spellbooks:frozen_bone",
+      "targets": [
+        "irons_spellbooks:mountain_tower"
+      ]
+    },
+    {
+      "item": "minecraft:sculk_sensor",
+      "targets": [
+        "minecraft:ancient_city"
+      ]
+    }
+  ]
+}
