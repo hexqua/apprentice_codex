@@ -142,11 +142,11 @@ dependencies {
     compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
 
     // Lodestone / Malum.
-    // 当面は 1.21.1 側の互換要素を作り込みやすくするため dev runtime でも有効化しておく。
+    // 必要に応じてランタイムはONにする.
     compileOnly "curse.maven:lodestone-616457:7264731"
     compileOnly "curse.maven:malum-484064:7307339"
-    runtimeOnly "curse.maven:lodestone-616457:7264731"
-    runtimeOnly "curse.maven:malum-484064:7307339"
+    //runtimeOnly "curse.maven:lodestone-616457:7264731"
+    //runtimeOnly "curse.maven:malum-484064:7307339"
 
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
