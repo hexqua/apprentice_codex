@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHole;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
+import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
@@ -94,6 +95,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> AUTO_TURRET = reg("auto_turret", AutoTurret::new);
     public static final RegistryObject<AbstractSpell> COMPANION_TRUNK = reg("companion_trunk", CompanionTrunk::new);
     public static final RegistryObject<AbstractSpell> SEARCH_BEACON = reg("search_beacon", SearchBeacon::new);
+    public static final RegistryObject<AbstractSpell> TAMERS_POCKET = reg("tamers_pocket", TamersPocket::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
