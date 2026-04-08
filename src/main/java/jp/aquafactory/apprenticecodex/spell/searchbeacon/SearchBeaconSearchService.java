@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureCheckResult;
 import net.minecraft.world.level.levelgen.structure.placement.ConcentricRingsStructurePlacement;
@@ -103,6 +103,7 @@ public final class SearchBeaconSearchService {
             ServerLevel level,
             BlockPos origin,
             Structure structure,
+            StructurePlacement placement,
             ResourceLocation structureId,
             SearchBeaconState.StructureKnowledge knowledge,
             ChunkPos candidateChunk,
@@ -112,7 +113,7 @@ public final class SearchBeaconSearchService {
         var structureManager = level.structureManager();
         // /locate は最寄り 1 件前提なので使わず、生成候補を少しずつ進めながら start の有無だけを確認する。
         // 1.21.1 では周辺 API が変わる可能性が高いため、「一括走査せず段階処理する」意図をここに残す。
-        var presence = structureManager.checkStructurePresence(candidateChunk, structure, false);
+        var presence = structureManager.checkStructurePresence(candidateChunk, structure, placement, false);
         if (presence == StructureCheckResult.START_NOT_PRESENT) {
             return null;
         }
@@ -369,7 +370,7 @@ public final class SearchBeaconSearchService {
                     continue;
                 }
 
-                result = tryResolveLocatedStructure(level, origin, structure, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
+                result = tryResolveLocatedStructure(level, origin, structure, placement, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
                 if (result != null) {
                     complete = true;
                 }
@@ -400,6 +401,7 @@ public final class SearchBeaconSearchService {
     }
 
     private static final class ConcentricSearchTask extends AbstractPlacementSearchTask {
+        private final ConcentricRingsStructurePlacement placement;
         private final List<ChunkPos> sortedCandidates;
         private int currentIndex;
 
@@ -413,6 +415,7 @@ public final class SearchBeaconSearchService {
                 ConcentricRingsStructurePlacement placement
         ) {
             super(origin, rangeBlocks, structure, structureId, knowledge);
+            this.placement = placement;
             var generatorState = level.getChunkSource().getGeneratorState();
             var ringPositions = generatorState.getRingPositionsFor(placement);
             if (ringPositions == null || ringPositions.isEmpty()) {
@@ -445,7 +448,7 @@ public final class SearchBeaconSearchService {
 
                 remainingSteps--;
                 var candidate = sortedCandidates.get(currentIndex++);
-                result = tryResolveLocatedStructure(level, origin, structure, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
+                result = tryResolveLocatedStructure(level, origin, structure, placement, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
                 if (result != null) {
                     complete = true;
                 }
@@ -506,7 +509,7 @@ public final class SearchBeaconSearchService {
                     continue;
                 }
 
-                result = tryResolveLocatedStructure(level, origin, structure, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
+                result = tryResolveLocatedStructure(level, origin, structure, placement, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
                 if (result != null) {
                     complete = true;
                 }
