@@ -18,10 +18,10 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.TamersPocketState;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -448,7 +448,7 @@ public class TamersPocket extends AbstractSpell {
     private static boolean ensureOwnedByCaster(LivingEntity pet, ServerPlayer owner) {
         if (pet instanceof TamableAnimal tamable) {
             tamable.setOwnerUUID(owner.getUUID());
-            tamable.setTame(true);
+            tamable.setTame(true, true);
             return tamable.isOwnedBy(owner);
         }
 
@@ -525,17 +525,29 @@ public class TamersPocket extends AbstractSpell {
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
             friendlyByteBuf.writeEnum(mode);
-            friendlyByteBuf.writeCollection(lockedPetUuids, FriendlyByteBuf::writeUUID);
-            friendlyByteBuf.writeCollection(lockedDeployPositions, FriendlyByteBuf::writeBlockPos);
+            friendlyByteBuf.writeVarInt(lockedPetUuids.size());
+            for (var uuid : lockedPetUuids) {
+                friendlyByteBuf.writeUUID(uuid);
+            }
+            friendlyByteBuf.writeVarInt(lockedDeployPositions.size());
+            for (var pos : lockedDeployPositions) {
+                friendlyByteBuf.writeBlockPos(pos);
+            }
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
             mode = friendlyByteBuf.readEnum(TamersPocketCastMode.class);
             lockedPetUuids.clear();
-            lockedPetUuids.addAll(friendlyByteBuf.readList(FriendlyByteBuf::readUUID));
+            var lockedPetUuidCount = friendlyByteBuf.readVarInt();
+            for (int i = 0; i < lockedPetUuidCount; ++i) {
+                lockedPetUuids.add(friendlyByteBuf.readUUID());
+            }
             lockedDeployPositions.clear();
-            lockedDeployPositions.addAll(friendlyByteBuf.readList(FriendlyByteBuf::readBlockPos));
+            var lockedDeployPositionCount = friendlyByteBuf.readVarInt();
+            for (int i = 0; i < lockedDeployPositionCount; ++i) {
+                lockedDeployPositions.add(friendlyByteBuf.readBlockPos());
+            }
         }
 
         @Override
@@ -546,7 +558,7 @@ public class TamersPocket extends AbstractSpell {
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             tag.putString("Mode", mode.name());
 
@@ -560,14 +572,18 @@ public class TamersPocket extends AbstractSpell {
 
             var posList = new ListTag();
             for (var pos : lockedDeployPositions) {
-                posList.add(NbtUtils.writeBlockPos(pos));
+                var posTag = new CompoundTag();
+                posTag.putInt("X", pos.getX());
+                posTag.putInt("Y", pos.getY());
+                posTag.putInt("Z", pos.getZ());
+                posList.add(posTag);
             }
             tag.put("LockedDeployPositions", posList);
             return tag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             mode = nbt.contains("Mode") ? TamersPocketCastMode.valueOf(nbt.getString("Mode")) : TamersPocketCastMode.NONE;
             lockedPetUuids.clear();
             var petList = nbt.getList("LockedPetUuids", Tag.TAG_COMPOUND);
@@ -581,7 +597,10 @@ public class TamersPocket extends AbstractSpell {
             lockedDeployPositions.clear();
             var posList = nbt.getList("LockedDeployPositions", Tag.TAG_COMPOUND);
             for (int i = 0; i < posList.size(); ++i) {
-                lockedDeployPositions.add(NbtUtils.readBlockPos(posList.getCompound(i)));
+                var posTag = posList.getCompound(i);
+                if (posTag.contains("X", Tag.TAG_INT) && posTag.contains("Y", Tag.TAG_INT) && posTag.contains("Z", Tag.TAG_INT)) {
+                    lockedDeployPositions.add(new BlockPos(posTag.getInt("X"), posTag.getInt("Y"), posTag.getInt("Z")));
+                }
             }
         }
     }
