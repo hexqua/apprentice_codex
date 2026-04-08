@@ -1,6 +1,5 @@
 {
   "type": "apprenticecodex:grind_runner",
-  "allow_unstackable_and_tagged_input": true,
   "ingredient": {
     "item": "irons_spellbooks:poisonward_ring"
   },

@@ -1,12 +1,16 @@
 {
   "type": "apprenticecodex:grind_runner",
   "ingredient": {
-    "item": "irons_spellbooks:silver_ring"
+    "item": "apprenticecodex:protection_spell_supporter"
   },
   "results": [
     {
       "count": 1,
       "id": "irons_spellbooks:mithril_scrap"
+    },
+    {
+      "count": 1,
+      "id": "irons_spellbooks:protection_rune"
     }
   ]
 }

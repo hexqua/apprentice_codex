@@ -138,7 +138,6 @@
   "jei.apprenticecodex.craftsmans_delight.desc_6": "In addition, the following spells gain extra effects:",
   "jei.apprenticecodex.craftsmans_delight.desc_7": "- World Flatter: Block-breaking power increases from iron-tier to netherite-tier.",
   "jei.apprenticecodex.craftsmans_delight.desc_8": "- Grind Runner: When the laws of gears are present (Create installed), additional items become grindable.",
-  "jei.apprenticecodex.grind_runner.allow_unstackable_and_tagged_input": "This recipe also accepts unstackable items and inputs with NBT.",
   "jei.apprenticecodex.protection_spell_supporter.desc_1": "Modifies the spells below and reduces their mana cost while they are active.",
   "jei.apprenticecodex.protection_spell_supporter.desc_2": "- Force Field: Can block attacks that a shield cannot.",
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "- Phalanx Charge: Increases movement speed while guarding with the shield.",
