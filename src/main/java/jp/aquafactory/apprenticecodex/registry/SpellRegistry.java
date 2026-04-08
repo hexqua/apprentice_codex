@@ -35,6 +35,7 @@ import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
 import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeacon;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
@@ -92,6 +93,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> PRECISION_JACK = reg("precision_jack", PrecisionJack::new);
     public static final RegistryObject<AbstractSpell> AUTO_TURRET = reg("auto_turret", AutoTurret::new);
     public static final RegistryObject<AbstractSpell> COMPANION_TRUNK = reg("companion_trunk", CompanionTrunk::new);
+    public static final RegistryObject<AbstractSpell> SEARCH_BEACON = reg("search_beacon", SearchBeacon::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);

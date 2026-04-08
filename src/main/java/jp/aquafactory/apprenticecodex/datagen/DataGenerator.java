@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.datagen.recipe.GrindRunnerRecipeDataGenera
 import jp.aquafactory.apprenticecodex.datagen.recipe.SpellcasterWorkbenchRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinityCatalystOverrideDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinitySelectionPolicyDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.SearchBeaconTargetDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SenseEvilHighlightDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellGunSpellListDataGenerator;
 import net.minecraftforge.common.data.ForgeAdvancementProvider;
@@ -31,6 +32,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new EntityTypeTagGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, existing));
+        generator.addProvider(event.includeServer(), new SearchBeaconTargetDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SchoolAffinitySelectionPolicyDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SchoolAffinityCatalystOverrideDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new RecipeGenerator(output));

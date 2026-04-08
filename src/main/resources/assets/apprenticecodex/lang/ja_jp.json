@@ -217,6 +217,7 @@
   "entity.apprenticecodex.demicreator_wings_wing": "半創造の翼",
   "entity.apprenticecodex.companion_trunk": "トランクくん",
   "entity.apprenticecodex.healing_bloom": "癒しの花",
+  "entity.apprenticecodex.search_beacon": "探知の火鉢",
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
   "container.apprenticecodex.apprentice_desk": "見習い用の机",
@@ -278,6 +279,7 @@
   "spell.apprenticecodex.companion_trunk": "コンパニオントランク",
   "spell.apprenticecodex.treasure_divination": "宝占い",
   "spell.apprenticecodex.healing_bloom": "癒しの花",
+  "spell.apprenticecodex.search_beacon": "サーチビーコン",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -324,6 +326,7 @@
   "spell.apprenticecodex.companion_trunk.guide": "魔導仕掛けのチェストを召喚し追従させる。通常のチェストと同程度のアイテムを保持できるが、体力がなくなったり等で消滅すると中身を全て落とす。",
   "spell.apprenticecodex.treasure_divination.guide": "マナを集中させることで最寄りの価値の高そうなものまでの距離を知る。必ずしも価値が高いとは限らず、探知できるものも限定される。",
   "spell.apprenticecodex.healing_bloom.guide": "周囲を優しく照らす魔法の花を召喚する。近くにいることで癒しの効果を得る事ができ、寿命で枯れた時に空腹を満たすための果実を落とす。",
+  "spell.apprenticecodex.search_beacon.guide": "アイテムを捧げることで、種類に応じた建築物を探す魔法の火鉢を召喚する。見つかった場合は黄色い目印で示し、見つからなかった場合はいくつか捧げたアイテムが戻ってくることがある。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -346,6 +349,8 @@
   "ui.apprenticecodex.move_speed_bonus": "%d%% 移動速度上昇",
   "ui.apprenticecodex.max_search_distance": "最大探知可能距離: %dブロック",
   "ui.apprenticecodex.bloom_wither_time": "枯れるまでの時間: %s",
+  "ui.apprenticecodex.search_beacon.initial_distance": "検索する距離: %dブロック",
+  "ui.apprenticecodex.search_beacon.addition_distance": "アイテム追加時の追加検索距離: %dブロック/アイテム",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -377,6 +382,12 @@
   "ui.apprenticecodex.treasure_divination.not_found": "%dブロック以内に特殊な気配は感じない",
   "ui.apprenticecodex.treasure_divination.found": "特殊な気配が%dブロックのところにある！",
   "ui.apprenticecodex.treasure_divination.too_noisy": "気配が騒がしすぎて魔力の集中が途切れてしまった！",
+  "ui.apprenticecodex.search_beacon.entity.not_target_item": "%1$sでは何も探してくれないようだ...",
+  "ui.apprenticecodex.search_beacon.entity.target_by_item": "%1$sを捧げると%2$sを探してくれるようだ...",
+  "ui.apprenticecodex.search_beacon.entity.search_start": "%2$dブロック以内の%1$sを探し始めたようだ...",
+  "ui.apprenticecodex.search_beacon.entity.not_found": "%2$dブロック以内に%1$sは見つからない...",
+  "ui.apprenticecodex.search_beacon.entity.only_found": "%2$dブロック以内の%1$sは既に知っているものしか見つからない...",
+  "ui.apprenticecodex.search_beacon.entity.found": "%2$dブロック以内に未知の%1$sを発見した！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

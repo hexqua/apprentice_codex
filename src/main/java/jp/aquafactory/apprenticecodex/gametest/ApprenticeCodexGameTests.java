@@ -15,6 +15,8 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
@@ -121,6 +123,22 @@ public final class ApprenticeCodexGameTests {
                     .toList();
             helper.assertFalse(assignedDefinitions.isEmpty(), "No School Affinity assignments were resolved");
             helper.assertFalse(SchoolAffinityRegistry.getBrewingDefinitionsByCatalyst().isEmpty(), "No School Affinity catalysts were resolved");
+            assertSearchBeaconTarget(helper, Items.BLAZE_ROD, "irons_spellbooks:pyromancer_tower");
+            assertSearchBeaconTarget(helper, Items.EMERALD, "irons_spellbooks:evoker_fort");
+            assertSearchBeaconTarget(helper, Items.POISONOUS_POTATO, "irons_spellbooks:mangrove_hut");
+            assertSearchBeaconTarget(helper, Items.SCULK_SENSOR, "minecraft:ancient_city");
+
+            var divinePearl = ForgeRegistries.ITEMS.getValue(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "divine_pearl"));
+            helper.assertTrue(divinePearl != null, "irons_spellbooks:divine_pearl is not registered");
+            var villageDefinition = divinePearl != null
+                    ? SearchBeaconTargetManager.getDefinition(new ItemStack(divinePearl))
+                    : null;
+            helper.assertTrue(villageDefinition != null, "SearchBeacon target missing for irons_spellbooks:divine_pearl");
+            helper.assertTrue(
+                    villageDefinition != null
+                            && villageDefinition.targets().contains(new SearchBeaconTargetList.TargetReference(true, ResourceLocation.withDefaultNamespace("village"))),
+                    "SearchBeacon divine pearl target should point to #minecraft:village"
+            );
 
             for (var definition : assignedDefinitions) {
                 helper.assertTrue(BuiltInRegistries.MOB_EFFECT.get(definition.effectId()) == definition.effect(),
@@ -1146,6 +1164,16 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(recipe.getType() == expectedType,
                     "Recipe type mismatch for " + recipeId + ": " + BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType()));
         }
+    }
+
+    private static void assertSearchBeaconTarget(GameTestHelper helper, Item item, String expectedTarget) {
+        var definition = SearchBeaconTargetManager.getDefinition(new ItemStack(item));
+        helper.assertTrue(definition != null, "SearchBeacon target missing for " + BuiltInRegistries.ITEM.getKey(item));
+        helper.assertTrue(
+                definition != null
+                        && definition.targets().contains(new SearchBeaconTargetList.TargetReference(false, ResourceLocation.parse(expectedTarget))),
+                "SearchBeacon target mismatch for " + BuiltInRegistries.ITEM.getKey(item)
+        );
     }
 
     private static <T> void assertForgeRegistryEntries(
