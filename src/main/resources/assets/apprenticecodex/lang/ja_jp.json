@@ -394,6 +394,8 @@
   "ui.apprenticecodex.tamers_pocket.withdraw_target": "%sをしまいこむ対象に設定",
   "ui.apprenticecodex.tamers_pocket.withdraw_area": "しまい込む対象のペットの数: %d",
   "ui.apprenticecodex.tamers_pocket.deploy": "召喚予定ペット数: %d",
+  "ui.apprenticecodex.tamers_pocket.no_pets": "しまい込める自分のペットが見つからない",
+  "ui.apprenticecodex.tamers_pocket.no_safe_place": "ペットを出せる安全な場所が見つからない",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

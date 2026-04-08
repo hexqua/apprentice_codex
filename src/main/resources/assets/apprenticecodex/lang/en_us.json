@@ -399,6 +399,8 @@
   "ui.apprenticecodex.tamers_pocket.withdraw_target": "(todo:翻訳)%sをしまいこむ対象に設定",
   "ui.apprenticecodex.tamers_pocket.withdraw_area": "(todo:翻訳)しまい込む対象のペットの数: %d",
   "ui.apprenticecodex.tamers_pocket.deploy": "Summon pet count: %d",
+  "ui.apprenticecodex.tamers_pocket.no_pets": "No owned pets found to store.",
+  "ui.apprenticecodex.tamers_pocket.no_safe_place": "No safe place found to deploy pets.",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

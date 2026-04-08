@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -22,7 +23,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "9";
+    private static final String PROTOCOL_VERSION = "10";
 
     private Networks() {
     }
@@ -82,6 +83,11 @@ public final class Networks {
                 SyncRemoteEyeStatePacket.TYPE,
                 SyncRemoteEyeStatePacket.STREAM_CODEC,
                 SyncRemoteEyeStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncTamersPocketCountPacket.TYPE,
+                SyncTamersPocketCountPacket.STREAM_CODEC,
+                SyncTamersPocketCountPacket::handle
         );
         registrar.playToClient(
                 SenseEvilHighlightsPacket.TYPE,
