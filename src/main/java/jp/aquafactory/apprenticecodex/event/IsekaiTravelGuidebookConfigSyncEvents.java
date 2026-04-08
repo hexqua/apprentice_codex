@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.config.ModConfig;
@@ -18,6 +19,11 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class IsekaiTravelGuidebookConfigSyncEvents {
     private IsekaiTravelGuidebookConfigSyncEvents() {
+    }
+
+    public static void register(IEventBus modEventBus) {
+        modEventBus.addListener(IsekaiTravelGuidebookConfigSyncEvents::onConfigLoading);
+        modEventBus.addListener(IsekaiTravelGuidebookConfigSyncEvents::onConfigReloading);
     }
 
     @SubscribeEvent
@@ -61,31 +67,23 @@ public final class IsekaiTravelGuidebookConfigSyncEvents {
         }
     }
 
-    @EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = EventBusSubscriber.Bus.MOD)
-    public static final class ModBusEvents {
-        private ModBusEvents() {
+    private static void onConfigLoading(ModConfigEvent.Loading event) {
+        syncIfServerConfig(event);
+    }
+
+    private static void onConfigReloading(ModConfigEvent.Reloading event) {
+        syncIfServerConfig(event);
+    }
+
+    private static void syncIfServerConfig(ModConfigEvent event) {
+        if (event.getConfig().getType() != ModConfig.Type.SERVER) {
+            return;
+        }
+        if (!ApprenticeCodex.MODID.equals(event.getConfig().getModId())) {
+            return;
         }
 
-        @SubscribeEvent
-        public static void onConfigLoading(ModConfigEvent.Loading event) {
-            syncIfServerConfig(event);
-        }
-
-        @SubscribeEvent
-        public static void onConfigReloading(ModConfigEvent.Reloading event) {
-            syncIfServerConfig(event);
-        }
-
-        private static void syncIfServerConfig(ModConfigEvent event) {
-            if (event.getConfig().getType() != ModConfig.Type.SERVER) {
-                return;
-            }
-            if (!ApprenticeCodex.MODID.equals(event.getConfig().getModId())) {
-                return;
-            }
-
-            syncToAllPlayers();
-        }
+        syncToAllPlayers();
     }
 
     @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
