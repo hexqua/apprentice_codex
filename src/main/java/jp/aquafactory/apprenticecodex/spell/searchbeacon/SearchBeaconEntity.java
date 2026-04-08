@@ -241,7 +241,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             return;
         }
 
-        if (!offeredItem.isEmpty() && !ItemStack.isSameItemSameTags(offeredStack, offeredItem)) {
+        if (!offeredItem.isEmpty() && !ItemStack.isSameItemSameComponents(offeredStack, offeredItem)) {
             return;
         }
 
