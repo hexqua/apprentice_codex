@@ -252,6 +252,7 @@
   "spell.apprenticecodex.treasure_divination": "Treasure Divination",
   "spell.apprenticecodex.healing_bloom": "Healing Bloom",
   "spell.apprenticecodex.search_beacon": "Search Beacon",
+  "spell.apprenticecodex.tamers_pocket": "Tamer's Pocket",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -332,6 +333,7 @@
   "spell.apprenticecodex.treasure_divination.guide": "Focus your mana to learn how far away the nearest valuable-looking thing is. It may not actually be valuable, and what it can detect is limited.",
   "spell.apprenticecodex.healing_bloom.guide": "Summon a magical flower that gently lights the area around it. Staying near it grants healing, and when it withers away at the end of its lifespan, it drops fruit that can satisfy your hunger.",
   "spell.apprenticecodex.search_beacon.guide": "Summon a magical brazier that searches for different structures depending on the item you offer it. If it finds anything, it points the way with glowing markers. If it finds nothing, some of the offered items may be returned.",
+  "spell.apprenticecodex.tamers_pocket.guide": "(todo:翻訳)視線の先か周囲の飼いならした生き物を自分専用の魔法の領域へしまい込む。視線先に飼いならした生き物がおらず既にしまっている生き物がいる場合は自分の近くに出現させる。しまっている間、中にいる生き物はごくゆっくりだが自然回復する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -356,6 +358,7 @@
   "ui.apprenticecodex.bloom_wither_time": "Bloom wither time: %s",
   "ui.apprenticecodex.search_beacon.initial_distance": "Search distance: %d blocks",
   "ui.apprenticecodex.search_beacon.addition_distance": "Additional search distance: %d blocks/item",
+  "ui.apprenticecodex.tamers_pocket.current_count": "Current contained pet count: %d",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -393,6 +396,11 @@
   "ui.apprenticecodex.search_beacon.entity.only_found": "Within %2$d blocks, it can only find %1$s you already know about...",
   "ui.apprenticecodex.search_beacon.entity.found": "It has discovered an unknown %1$s within %2$d blocks!",
   "ui.apprenticecodex.treasure_divination.too_noisy": "The auras are too chaotic, and your concentration slips away!",
+  "ui.apprenticecodex.tamers_pocket.withdraw_target": "(todo:翻訳)%sをしまいこむ対象に設定",
+  "ui.apprenticecodex.tamers_pocket.withdraw_area": "(todo:翻訳)しまい込む対象のペットの数: %d",
+  "ui.apprenticecodex.tamers_pocket.deploy": "Summon pet count: %d",
+  "ui.apprenticecodex.tamers_pocket.no_pets": "No owned pets found to store.",
+  "ui.apprenticecodex.tamers_pocket.no_safe_place": "No safe place found to deploy pets.",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

@@ -280,6 +280,7 @@
   "spell.apprenticecodex.treasure_divination": "宝占い",
   "spell.apprenticecodex.healing_bloom": "癒しの花",
   "spell.apprenticecodex.search_beacon": "サーチビーコン",
+  "spell.apprenticecodex.tamers_pocket": "テイマーズポケット",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -327,6 +328,7 @@
   "spell.apprenticecodex.treasure_divination.guide": "マナを集中させることで最寄りの価値の高そうなものまでの距離を知る。必ずしも価値が高いとは限らず、探知できるものも限定される。",
   "spell.apprenticecodex.healing_bloom.guide": "周囲を優しく照らす魔法の花を召喚する。近くにいることで癒しの効果を得る事ができ、寿命で枯れた時に空腹を満たすための果実を落とす。",
   "spell.apprenticecodex.search_beacon.guide": "アイテムを捧げることで、種類に応じた建築物を探す魔法の火鉢を召喚する。見つかった場合は黄色い目印で示し、見つからなかった場合はいくつか捧げたアイテムが戻ってくることがある。",
+  "spell.apprenticecodex.tamers_pocket.guide": "視線の先か周囲の飼いならした生き物を自分専用の魔法の領域へしまい込む。視線先に飼いならした生き物がおらず既にしまっている生き物がいる場合は自分の近くに出現させる。しまっている間、中にいる生き物はごくゆっくりだが自然回復する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -351,6 +353,7 @@
   "ui.apprenticecodex.bloom_wither_time": "枯れるまでの時間: %s",
   "ui.apprenticecodex.search_beacon.initial_distance": "検索する距離: %dブロック",
   "ui.apprenticecodex.search_beacon.addition_distance": "アイテム追加時の追加検索距離: %dブロック/アイテム",
+  "ui.apprenticecodex.tamers_pocket.current_count": "格納しているペットの数: %d",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -388,6 +391,11 @@
   "ui.apprenticecodex.search_beacon.entity.not_found": "%2$dブロック以内に%1$sは見つからない...",
   "ui.apprenticecodex.search_beacon.entity.only_found": "%2$dブロック以内の%1$sは既に知っているものしか見つからない...",
   "ui.apprenticecodex.search_beacon.entity.found": "%2$dブロック以内に未知の%1$sを発見した！",
+  "ui.apprenticecodex.tamers_pocket.withdraw_target": "%sをしまいこむ対象に設定",
+  "ui.apprenticecodex.tamers_pocket.withdraw_area": "しまい込む対象のペットの数: %d",
+  "ui.apprenticecodex.tamers_pocket.deploy": "召喚予定ペット数: %d",
+  "ui.apprenticecodex.tamers_pocket.no_pets": "しまい込める自分のペットが見つからない",
+  "ui.apprenticecodex.tamers_pocket.no_safe_place": "ペットを出せる安全な場所が見つからない",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
