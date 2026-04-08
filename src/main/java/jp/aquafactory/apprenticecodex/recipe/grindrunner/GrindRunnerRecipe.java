@@ -18,16 +18,13 @@ import java.util.List;
 public final class GrindRunnerRecipe implements Recipe<SingleRecipeInput> {
     private final Ingredient ingredient;
     private final List<ItemStack> results;
-    private final boolean allowUnstackableAndTaggedInput;
 
     public GrindRunnerRecipe(
             Ingredient ingredient,
-            List<ItemStack> results,
-            boolean allowUnstackableAndTaggedInput
+            List<ItemStack> results
     ) {
         this.ingredient = ingredient;
         this.results = sanitizeResults(results);
-        this.allowUnstackableAndTaggedInput = allowUnstackableAndTaggedInput;
     }
 
     @Override
@@ -93,10 +90,6 @@ public final class GrindRunnerRecipe implements Recipe<SingleRecipeInput> {
 
     public @NotNull Ingredient getIngredient() {
         return ingredient;
-    }
-
-    public boolean allowsUnstackableAndTaggedInput() {
-        return allowUnstackableAndTaggedInput;
     }
 
     private static List<ItemStack> sanitizeResults(List<ItemStack> results) {

@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 
 public final class GrindRunnerRecipeDataGenerator implements DataProvider {
     private static final String RECIPE_TYPE = "apprenticecodex:grind_runner";
-    private static final String ALLOW_UNSTACKABLE_AND_TAGGED_INPUT = "allow_unstackable_and_tagged_input";
 
     private final PackOutput.PathProvider pathProvider;
 
@@ -44,17 +43,17 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
                 recipe(Items.GRAVEL, result(Items.SAND, 1)),
                 recipe(Items.BOOK, result(Items.LEATHER, 1), result(Items.PAPER, 3)),
 
-                recipe(ItemRegistry.AFFINITY_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
-                recipe(ItemRegistry.CAST_TIME_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
-                recipe(ItemRegistry.COOLDOWN_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
-                recipe(ItemRegistry.EMERALD_STONEPLATE_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
-                recipe(ItemRegistry.VISIBILITY_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
-                recipe(ItemRegistry.CONCENTRATION_AMULET.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
-                recipe(ItemRegistry.SILVER_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.AFFINITY_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.CAST_TIME_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.COOLDOWN_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.EMERALD_STONEPLATE_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.VISIBILITY_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.CONCENTRATION_AMULET.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.SILVER_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
 
-                recipe(ItemRegistry.FIREWARD_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.CINDER_ESSENCE.get(), 1)),
-                recipe(ItemRegistry.FROSTWARD_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.ICE_CRYSTAL.get(), 1)),
-                recipe(ItemRegistry.POISONWARD_RING.get(), true, result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(Items.POISONOUS_POTATO, 1))
+                recipe(ItemRegistry.FIREWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.CINDER_ESSENCE.get(), 1)),
+                recipe(ItemRegistry.FROSTWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.ICE_CRYSTAL.get(), 1)),
+                recipe(ItemRegistry.POISONWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(Items.POISONOUS_POTATO, 1))
         );
 
         return CompletableFuture.allOf(recipes.stream()
@@ -77,7 +76,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
         );
         return DataProvider.saveStable(
                 cachedOutput,
-                createRecipeJson(recipe.ingredient(), recipe.allowUnstackableAndTaggedInput(), results),
+                createRecipeJson(recipe.ingredient(), results),
                 pathProvider.json(id)
         );
     }
@@ -100,7 +99,6 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
 
     private static JsonObject createRecipeJson(
             IngredientDefinition ingredient,
-            boolean allowUnstackableAndTaggedInput,
             List<RecipeResult> results
     ) {
         if (results.isEmpty()) {
@@ -110,10 +108,6 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
         var json = new JsonObject();
         json.addProperty("type", RECIPE_TYPE);
         json.add("ingredient", ingredient.toJson());
-
-        if (allowUnstackableAndTaggedInput) {
-            json.addProperty(ALLOW_UNSTACKABLE_AND_TAGGED_INPUT, true);
-        }
 
         var resultsArray = new JsonArray();
         for (var resultEntry : results) {
@@ -130,30 +124,14 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
             ItemLike ingredientItem,
             RecipeResult... results
     ) {
-        return new RecipeDefinition(ingredient(ingredientItem), false, List.of(results));
-    }
-
-    private static RecipeDefinition recipe(
-            ItemLike ingredientItem,
-            boolean allowUnstackableAndTaggedInput,
-            RecipeResult... results
-    ) {
-        return new RecipeDefinition(ingredient(ingredientItem), allowUnstackableAndTaggedInput, List.of(results));
+        return new RecipeDefinition(ingredient(ingredientItem), List.of(results));
     }
 
     private static RecipeDefinition recipe(
             TagKey<Item> ingredientTag,
             RecipeResult... results
     ) {
-        return new RecipeDefinition(ingredient(ingredientTag), false, List.of(results));
-    }
-
-    private static RecipeDefinition recipe(
-            TagKey<Item> ingredientTag,
-            boolean allowUnstackableAndTaggedInput,
-            RecipeResult... results
-    ) {
-        return new RecipeDefinition(ingredient(ingredientTag), allowUnstackableAndTaggedInput, List.of(results));
+        return new RecipeDefinition(ingredient(ingredientTag), List.of(results));
     }
 
     private static RecipeResult result(ItemLike item, int count) {
@@ -198,7 +176,6 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
 
     private record RecipeDefinition(
             IngredientDefinition ingredient,
-            boolean allowUnstackableAndTaggedInput,
             List<RecipeResult> results
     ) {
     }

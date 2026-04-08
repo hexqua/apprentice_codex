@@ -621,7 +621,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
 
         var createRecipe = findCreateCrushingRecipe(level, inputStack);
         if (createRecipe.isPresent() && CraftsmansDelight.isEquippedBy(getOwner() instanceof LivingEntity owner ? owner : null)) {
-            // Create 側は加工可能判定をレシピ準拠にし、NBT/非スタック保護を無効化して扱う.
+            // Create 側もレシピ一致だけで加工可否を決め、出力抽選だけ借りる.
             var createOutputs = rollCreateCrushingOutputs(level, createRecipe.get().value(), processCount);
             if (createOutputs.isPresent()) {
                 applyProcessingResult(level, itemEntity, createOutputs.get(), processCount);
@@ -646,25 +646,11 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         return processCount;
     }
 
-    private static boolean canProcessInputItem(GrindRunnerRecipe recipe, ItemStack stack) {
-        if (stack.isEmpty() || stack.getCount() <= 0) {
-            return false;
-        }
-
-        if (recipe.allowsUnstackableAndTaggedInput()) {
-            return true;
-        }
-
-        // 個体差のある非スタック/NBT付きアイテムは既定で加工対象外にして、意図しない変換や競合を避ける.
-        return stack.isStackable() && stack.isComponentsPatchEmpty();
-    }
-
     private Optional<GrindRunnerRecipe> findProcessingRecipe(ServerLevel level, ItemStack inputStack) {
-        var rawRecipe = findProcessingRecipeIgnoringInputGuard(level, inputStack);
-        return rawRecipe.filter(recipe -> canProcessInputItem(recipe, inputStack));
-    }
+        if (inputStack.isEmpty() || inputStack.getCount() <= 0) {
+            return Optional.empty();
+        }
 
-    private Optional<GrindRunnerRecipe> findProcessingRecipeIgnoringInputGuard(ServerLevel level, ItemStack inputStack) {
         var recipeManager = level.getRecipeManager();
         var input = new SingleRecipeInput(inputStack.copyWithCount(1));
         var directMatch = recipeManager.getRecipeFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get(), input, level);
