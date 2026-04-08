@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
+import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.treasuredivination.TreasureDivination;
@@ -94,6 +95,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> AUTO_TURRET = reg("auto_turret", AutoTurret::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMPANION_TRUNK = reg("companion_trunk", CompanionTrunk::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SEARCH_BEACON = reg("search_beacon", SearchBeacon::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> TAMERS_POCKET = reg("tamers_pocket", TamersPocket::new);
 
     // 炎.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
