@@ -27,8 +27,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class SearchBeacon extends AbstractSpell {
+    private static final AABB ACTIVE_BEACON_CHECK_BOX = new AABB(-3.0E7, -2048.0, -3.0E7, 3.0E7, 2048.0, 3.0E7);
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "search_beacon");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -93,15 +95,35 @@ public class SearchBeacon extends AbstractSpell {
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        if (!(level instanceof ServerLevel serverLevel) || !(entity instanceof ServerPlayer serverPlayer)) {
+            return true;
+        }
+
+        if (hasActiveBeacon(serverLevel, serverPlayer.getUUID())) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.search_beacon.entity.already_active")
+                            .withStyle(ChatFormatting.RED)
+            ));
+            return false;
+        }
+
+        if (resolveSummonPosition(serverLevel, entity) == null) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.cant_place", getDisplayName(serverPlayer))
+                            .withStyle(ChatFormatting.RED)
+            ));
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (level instanceof ServerLevel serverLevel && entity instanceof ServerPlayer serverPlayer) {
             var summonPosition = resolveSummonPosition(serverLevel, entity);
-            if (summonPosition == null) {
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                        Component.translatable("ui.apprenticecodex.cant_place", getDisplayName(serverPlayer))
-                                .withStyle(ChatFormatting.RED)
-                ));
-            } else {
+            if (summonPosition != null) {
                 var beacon = new SearchBeaconEntity(EntityRegistry.SEARCH_BEACON.get(), serverLevel);
                 beacon.setOwner(serverPlayer);
                 beacon.setAnchor(summonPosition);
@@ -115,6 +137,14 @@ public class SearchBeacon extends AbstractSpell {
         }
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private static boolean hasActiveBeacon(ServerLevel level, UUID ownerId) {
+        return !level.getEntitiesOfClass(
+                SearchBeaconEntity.class,
+                ACTIVE_BEACON_CHECK_BOX,
+                beacon -> beacon.isAlive() && beacon.isOwnedBy(ownerId)
+        ).isEmpty();
     }
 
     private @Nullable Vec3 resolveSummonPosition(ServerLevel level, LivingEntity caster) {
