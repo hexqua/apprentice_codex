@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "apprenticecodex:scarlet_thirst"
+  },
+  "results": [
+    {
+      "count": 1,
+      "id": "irons_spellbooks:mithril_scrap"
+    }
+  ]
+}
