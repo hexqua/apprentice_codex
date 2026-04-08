@@ -1,0 +1,21 @@
+{
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:scarlet_thirst"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:craftsmans_delight"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:protection_spell_supporter"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}

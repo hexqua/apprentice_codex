@@ -1,0 +1,20 @@
+{
+  "entries": [
+    "apprenticecodex:add_isekai_travel_guidebook_to_bonus_chest",
+    "apprenticecodex:add_apprentice_curios_to_generic_loot",
+    "apprenticecodex:add_apprentice_curios_to_good_loot",
+    "apprenticecodex:add_apprentice_curios_to_treasure_loot",
+    "apprenticecodex:add_apprentice_curios_to_library_endgame_loot",
+    "apprenticecodex:add_apprentice_curios_to_nether_and_trial_loot",
+    "apprenticecodex:add_apprentice_curios_to_regular_trial_vault",
+    "apprenticecodex:add_apprentice_curios_to_irons_tier_two_loot",
+    "apprenticecodex:add_apprentice_curios_to_ice_region_loot",
+    "apprenticecodex:add_apprentice_curios_to_mountain_tower",
+    "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
+    "apprenticecodex:add_apprentice_curios_to_catacombs_crypt",
+    "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
+    "apprenticecodex:add_apprentice_curios_to_ominous_vault",
+    "apprenticecodex:add_scarlet_thirst_to_catacombs"
+  ],
+  "replace": false
+}
