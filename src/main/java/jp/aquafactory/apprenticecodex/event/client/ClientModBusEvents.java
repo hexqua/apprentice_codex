@@ -56,6 +56,7 @@ import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamRende
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryRenderer;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeRenderer;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunRenderer;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconRenderer;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
@@ -214,6 +215,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.PRECISION_JACK_KNIFE.get(), PrecisionJackKnifeRenderer::new);
         event.registerEntityRenderer(EntityRegistry.PHALANX_WEAPONRY.get(), PhalanxWeaponryRenderer::new);
         event.registerEntityRenderer(EntityRegistry.PHALANX_CHARGE_BEAM.get(), PhalanxChargeBeamRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SEARCH_BEACON.get(), SearchBeaconRenderer::new);
     }
 }
 
