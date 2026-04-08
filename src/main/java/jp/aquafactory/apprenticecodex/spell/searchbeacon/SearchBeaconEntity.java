@@ -1,11 +1,14 @@
 package jp.aquafactory.apprenticecodex.spell.searchbeacon;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -41,6 +44,7 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.UUID;
 
 public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
@@ -50,12 +54,20 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     private static final int OFFER_CHECK_INTERVAL_TICKS = 4;
     private static final int DIRECTION_PARTICLE_INTERVAL_TICKS = 8;
     private static final int REOFFER_COOLDOWN_TICKS = 20 * 5;
+    private static final int SUMMON_PARTICLE_TICKS = 3;
     private static final double OFFER_PICKUP_RANGE = 0.85;
     private static final double MIN_HORIZONTAL_DISTANCE = 0.1;
-    private static final double RESULT_DISCARD_DISTANCE_SQR = 32.0 * 32.0;
+    private static final double ALL_PHASE_DISCARD_DISTANCE_SQR = 32.0 * 32.0;
+    private static final double RETURN_THROW_SPEED = 0.42;
+    private static final double RETURN_THROW_UPWARD = 0.14;
+    private static final double RETURN_TARGET_HEIGHT = 0.7;
+    private static final double PARTICLE_BASE_Y = 9.0 / 16.0;
+    private static final float SUMMON_END_ROD_SPEED = 0.025f;
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
-    private static final float RHOMBUS_SIZE = 0.22f;
-    private static final float SPARK_SIZE = 0.12f;
+    private static final float DIRECTION_RHOMBUS_SIZE = 0.28f;
+    private static final float DIRECTION_SPARK_SIZE = 0.11f;
+    private static final float FLAME_CIRCLE_SIZE = 0.24f;
+    private static final float FLAME_SPARK_SIZE = 0.12f;
     private static final float UNKNOWN_RED = 0.95f;
     private static final float UNKNOWN_GREEN = 0.80f;
     private static final float UNKNOWN_BLUE = 0.22f;
@@ -65,6 +77,9 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     private static final float TRAVERSED_RED = 1.0f;
     private static final float TRAVERSED_GREEN = 0.28f;
     private static final float TRAVERSED_BLUE = 0.22f;
+    private static final float FLAME_RED = 0.26f;
+    private static final float FLAME_GREEN = 0.92f;
+    private static final float FLAME_BLUE = 0.38f;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private @Nullable UUID ownerUuid;
@@ -83,6 +98,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     private int ignoredOfferUntilTick;
     private @Nullable SearchBeaconSearchService.SearchSession searchSession;
     private @Nullable SearchBeaconSearchService.SearchResult searchResult;
+    private boolean refundIssued;
 
     public SearchBeaconEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -126,6 +142,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     public void tick() {
         super.tick();
         if (level().isClientSide) {
+            tickClientEffects();
             return;
         }
 
@@ -141,9 +158,18 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
         keepAnchored();
 
+        if (owner.distanceToSqr(this) > ALL_PHASE_DISCARD_DISTANCE_SQR) {
+            if (phase == Phase.RESULT) {
+                finishAndDiscard();
+            } else {
+                discard();
+            }
+            return;
+        }
+
         switch (phase) {
             case IDLE -> tickIdle(serverLevel);
-            case ARMED -> tickArmed();
+            case ARMED -> tickArmed(serverLevel);
             case SEARCHING -> tickSearching(serverLevel);
             case RESULT -> tickResult(serverLevel);
         }
@@ -161,6 +187,14 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     }
 
     private void tickIdle(ServerLevel level) {
+        absorbNearbyOfferedItem(level);
+    }
+
+    private void tickArmed(ServerLevel level) {
+        absorbNearbyOfferedItem(level);
+    }
+
+    private void absorbNearbyOfferedItem(ServerLevel level) {
         if (tickCount % OFFER_CHECK_INTERVAL_TICKS != 0) {
             return;
         }
@@ -174,9 +208,6 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         }
 
         absorbOfferedItem(nearbyItem);
-    }
-
-    private void tickArmed() {
     }
 
     private void tickSearching(ServerLevel level) {
@@ -196,11 +227,6 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         if (searchResult != null && !searchResult.isEmpty() && phaseTicks % DIRECTION_PARTICLE_INTERVAL_TICKS == 0) {
             emitDirectionParticles(level, searchResult);
         }
-
-        var owner = getOwner();
-        if (owner != null && owner.distanceToSqr(this) > RESULT_DISCARD_DISTANCE_SQR) {
-            finishAndDiscard();
-        }
     }
 
     private void absorbOfferedItem(ItemEntity itemEntity) {
@@ -215,18 +241,21 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             return;
         }
 
-        var acceptedCount = getAcceptedItemCount(offeredStack.getCount());
+        if (!offeredItem.isEmpty() && !ItemStack.isSameItemSameComponents(offeredStack, offeredItem)) {
+            return;
+        }
+
+        var acceptedCount = getAcceptedItemCount(offeredStack);
         if (acceptedCount <= 0) {
             return;
         }
 
-        offeredItem = offeredStack.copyWithCount(acceptedCount);
+        if (offeredItem.isEmpty()) {
+            offeredItem = offeredStack.copyWithCount(acceptedCount);
+        } else {
+            offeredItem.grow(acceptedCount);
+        }
         targetLabel = SearchBeaconTargetManager.createDisplayLabel(definition);
-        sendOwnerActionBar(Component.translatable(
-                "ui.apprenticecodex.search_beacon.entity.target_by_item",
-                offeredItem.getDisplayName(),
-                Component.literal(targetLabel)
-        ).withStyle(ChatFormatting.YELLOW));
 
         var remainingCount = offeredStack.getCount() - acceptedCount;
         if (remainingCount > 0) {
@@ -235,9 +264,15 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             itemEntity.discard();
         }
 
-        searchRange = getSearchRangeForCount(acceptedCount);
+        searchRange = getSearchRangeForCount(offeredItem.getCount());
         searchSession = null;
         searchResult = null;
+        sendOwnerActionBar(Component.translatable(
+                "ui.apprenticecodex.search_beacon.entity.current_range",
+                offeredItem.getDisplayName(),
+                searchRange
+        ).withStyle(ChatFormatting.YELLOW));
+        playOfferEffects();
         transitionTo(Phase.ARMED);
     }
 
@@ -253,6 +288,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             targetLabel = "";
             searchRange = 0;
             searchSession = null;
+            refundIssued = false;
             return;
         }
 
@@ -320,11 +356,12 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             });
         }
 
+        issueRefundIfNeeded();
         transitionTo(Phase.RESULT);
     }
 
     private void emitDirectionParticles(ServerLevel level, SearchBeaconSearchService.SearchResult result) {
-        var base = position().add(0.0, 1.05, 0.0);
+        var base = getParticleBasePosition();
         for (var located : result.locatedStructures()) {
             var dx = located.center().getX() + 0.5 - base.x;
             var dz = located.center().getZ() + 0.5 - base.z;
@@ -336,48 +373,66 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             var dirX = dx / horizontalLength;
             var dirZ = dz / horizontalLength;
             var colors = getParticleColors(located.knowledge());
-            for (int i = 0; i < 3; i++) {
-                var distance = 0.9 + i * 0.75;
-                var x = base.x + dirX * distance;
-                var y = base.y + 0.05 + i * 0.08;
-                var z = base.z + dirZ * distance;
-                level.sendParticles(
-                        new AdditiveGlowParticleOptions(
-                                ParticleRegistry.ADDITIVE_RHOMBUS.get(),
-                                RHOMBUS_SIZE,
-                                colors.red(),
-                                colors.green(),
-                                colors.blue(),
-                                3
-                        ),
-                        x, y, z,
-                        1,
-                        dirX * 0.01,
-                        0.02,
-                        dirZ * 0.01,
-                        0.0
-                );
-            }
+            var tipDistance = 2.6;
+            var tipX = base.x + dirX * tipDistance;
+            var tipY = base.y + 0.16;
+            var tipZ = base.z + dirZ * tipDistance;
+            level.sendParticles(
+                    new AdditiveGlowParticleOptions(
+                            ParticleRegistry.ADDITIVE_RHOMBUS.get(),
+                            DIRECTION_RHOMBUS_SIZE,
+                            colors.red(),
+                            colors.green(),
+                            colors.blue(),
+                            4,
+                            12,
+                            3,
+                            0.95f,
+                            1.10f,
+                            0.80f,
+                            1.0f,
+                            0.08f,
+                            0.72f,
+                            0.76f,
+                            false
+                    ),
+                    tipX, tipY, tipZ,
+                    1,
+                    dirX * 0.01,
+                    0.02,
+                    dirZ * 0.01,
+                    0.0
+            );
 
-            for (int i = 0; i < 5; i++) {
-                var distance = 0.65 + i * 0.45;
-                var x = base.x + dirX * distance;
-                var y = base.y + 0.12;
-                var z = base.z + dirZ * distance;
+            for (int i = 0; i < 7; i++) {
+                var t = (i + 1) / 8.0;
+                var x = Mth.lerp(t, base.x, tipX);
+                var y = Mth.lerp(t, base.y + 0.06, tipY);
+                var z = Mth.lerp(t, base.z, tipZ);
                 level.sendParticles(
                         new AdditiveGlowParticleOptions(
                                 ParticleRegistry.ADDITIVE_SPARK.get(),
-                                SPARK_SIZE,
+                                DIRECTION_SPARK_SIZE,
                                 colors.red(),
                                 colors.green(),
                                 colors.blue(),
-                                1
+                                1,
+                                10,
+                                2,
+                                0.95f,
+                                1.18f,
+                                0.85f,
+                                1.0f,
+                                0.04f,
+                                0.72f,
+                                0.78f,
+                                false
                         ),
                         x, y, z,
                         1,
-                        dirX * 0.02,
-                        0.01,
-                        dirZ * 0.02,
+                        dirX * 0.015,
+                        0.008,
+                        dirZ * 0.015,
                         0.0
                 );
             }
@@ -386,11 +441,8 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
     private void finishAndDiscard() {
         var shouldRefund = searchResult == null || searchResult.isEmpty() || !searchResult.hasUnknownStructures();
-        if (shouldRefund && !offeredItem.isEmpty()) {
-            var refundCount = Mth.floor(offeredItem.getCount() / 2.0f);
-            if (refundCount > 0) {
-                spawnAtLocation(offeredItem.copyWithCount(refundCount));
-            }
+        if (shouldRefund && !refundIssued) {
+            issueRefundIfNeeded();
         }
         clearOfferState();
         searchSession = null;
@@ -402,22 +454,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             return;
         }
 
-        var returningStack = offeredItem.copy();
-        owner.addItem(returningStack);
-        if (!returningStack.isEmpty()) {
-            // 回収直後の足元ドロップを即再吸収すると、取り出し操作の意味がなくなる。
-            // Forge/Minecraft の item pickup 周りは loader 更新で変わりやすいため、ここでは item id 単位で短時間だけ受け取りを止める。
-            var dropped = spawnAtLocation(returningStack);
-            if (dropped != null) {
-                dropped.setPickUpDelay(0);
-                ignoredOfferItemId = BuiltInRegistries.ITEM.getKey(returningStack.getItem());
-                ignoredOfferUntilTick = tickCount + REOFFER_COOLDOWN_TICKS;
-            }
-        } else {
-            ignoredOfferItemId = null;
-            ignoredOfferUntilTick = 0;
-        }
-
+        throwItemTowardOwner(owner, offeredItem.copy());
         clearOfferState();
         transitionTo(Phase.IDLE);
     }
@@ -428,25 +465,35 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         searchRange = 0;
         searchResult = null;
         searchSession = null;
+        refundIssued = false;
     }
 
-    private int getAcceptedItemCount(int offeredCount) {
+    private int getAcceptedItemCount(ItemStack incomingStack) {
+        var offeredCount = incomingStack.getCount();
         if (offeredCount <= 0) {
             return 0;
         }
-        var maxSearchRange = SearchBeaconSearchService.getMaxSearchRange();
-        if (maxSearchRange <= 0) {
+
+        var remainingCount = getMaxAcceptedItemCount() - offeredItem.getCount();
+        if (remainingCount <= 0) {
             return 0;
         }
-        // 1 個目は初期距離だけを使い、追加距離は 2 個目以降でだけ伸ばす。
+
+        return Math.min(offeredCount, remainingCount);
+    }
+
+    private int getMaxAcceptedItemCount() {
+        var maxSearchRange = SearchBeaconSearchService.getMaxSearchRange();
+        if (maxSearchRange <= 0 || initialRange <= 0) {
+            return 0;
+        }
         if (additionalRangePerItem <= 0 || initialRange >= maxSearchRange) {
             return 1;
         }
 
-        // 上限までの残り距離が追加距離 1 回分に満たなくても、1 個で上限へ届くなら受け付ける。
         var remainingRange = Math.max(0, maxSearchRange - initialRange);
         var maxExtraItems = Mth.positiveCeilDiv(remainingRange, additionalRangePerItem);
-        return Math.min(offeredCount, 1 + maxExtraItems);
+        return 1 + maxExtraItems;
     }
 
     private int getSearchRangeForCount(int itemCount) {
@@ -472,6 +519,10 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         phaseTicks = 0;
     }
 
+    boolean isOwnedBy(UUID ownerId) {
+        return Objects.equals(ownerUuid, ownerId);
+    }
+
     private @Nullable ServerPlayer getOwner() {
         if (cachedOwner != null && cachedOwner.isAlive() && !cachedOwner.isRemoved()) {
             return cachedOwner;
@@ -486,8 +537,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public @NotNull InteractionResult mobInteract(@NotNull Player player, @NotNull InteractionHand hand) {
-        var owner = getOwner();
-        if (hand != InteractionHand.MAIN_HAND || player != owner) {
+        if (hand != InteractionHand.MAIN_HAND) {
             return InteractionResult.PASS;
         }
 
@@ -495,7 +545,18 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             return InteractionResult.SUCCESS;
         }
 
+        var owner = getOwner();
+        if (player != owner) {
+            return InteractionResult.PASS;
+        }
+
         if (phase == Phase.IDLE) {
+            if (player.isShiftKeyDown() && offeredItem.isEmpty()) {
+                resetOwnerCooldown(owner);
+                discard();
+                return InteractionResult.CONSUME;
+            }
+
             var heldStack = player.getItemInHand(hand);
             if (heldStack.isEmpty()) {
                 return InteractionResult.PASS;
@@ -585,6 +646,12 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     }
 
     @Override
+    public void onClientRemoval() {
+        emitSummonParticlesBurst();
+        super.onClientRemoval();
+    }
+
+    @Override
     public void readAdditionalSaveData(@NotNull net.minecraft.nbt.CompoundTag compoundTag) {
     }
 
@@ -608,6 +675,162 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    private void tickClientEffects() {
+        emitSummonParticles();
+        emitFlameParticles();
+    }
+
+    private void emitSummonParticles() {
+        if (tickCount < 1 || tickCount > SUMMON_PARTICLE_TICKS) {
+            return;
+        }
+
+        emitSummonParticlesBurst();
+    }
+
+    private void emitSummonParticlesBurst() {
+        for (int i = 0; i < 10; i++) {
+            level().addParticle(
+                    ParticleTypes.END_ROD,
+                    getX() + (random.nextDouble() - 0.5) * WIDTH,
+                    getY() + random.nextDouble() * HEIGHT,
+                    getZ() + (random.nextDouble() - 0.5) * WIDTH,
+                    (random.nextDouble() - 0.5) * SUMMON_END_ROD_SPEED,
+                    (random.nextDouble() - 0.5) * SUMMON_END_ROD_SPEED + 0.01,
+                    (random.nextDouble() - 0.5) * SUMMON_END_ROD_SPEED
+            );
+        }
+    }
+
+    private void emitFlameParticles() {
+        var base = getParticleBasePosition();
+        if ((tickCount + getId()) % 3 == 0) {
+            level().addParticle(
+                    new AdditiveGlowParticleOptions(
+                            ParticleRegistry.ADDITIVE_CIRCLE.get(),
+                            FLAME_CIRCLE_SIZE,
+                            FLAME_RED,
+                            FLAME_GREEN,
+                            FLAME_BLUE,
+                            6,
+                            16,
+                            4,
+                            0.85f,
+                            1.12f,
+                            0.45f,
+                            0.82f,
+                            0.08f,
+                            0.72f,
+                            0.78f,
+                            false
+                    ),
+                    base.x,
+                    base.y + 0.02,
+                    base.z,
+                    0.0,
+                    0.004,
+                    0.0
+            );
+        }
+
+        var sparkCount = phase == Phase.RESULT ? 2 : 1;
+        for (int i = 0; i < sparkCount; i++) {
+            var angle = random.nextDouble() * Math.PI * 2.0;
+            var radius = 0.04 + random.nextDouble() * 0.08;
+            level().addParticle(
+                    new AdditiveGlowParticleOptions(
+                            ParticleRegistry.ADDITIVE_SPARK.get(),
+                            FLAME_SPARK_SIZE,
+                            FLAME_RED,
+                            FLAME_GREEN,
+                            FLAME_BLUE,
+                            4,
+                            12,
+                            3,
+                            0.90f,
+                            1.15f,
+                            0.85f,
+                            1.0f,
+                            0.04f,
+                            0.70f,
+                            0.74f,
+                            false
+                    ),
+                    base.x + Math.cos(angle) * radius,
+                    base.y + random.nextDouble() * 0.10,
+                    base.z + Math.sin(angle) * radius,
+                    (random.nextDouble() - 0.5) * 0.01,
+                    0.02 + random.nextDouble() * 0.01,
+                    (random.nextDouble() - 0.5) * 0.01
+            );
+        }
+    }
+
+    private Vec3 getParticleBasePosition() {
+        return position().add(0.0, PARTICLE_BASE_Y, 0.0);
+    }
+
+    private void playOfferEffects() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        var base = getParticleBasePosition();
+        serverLevel.sendParticles(ParticleTypes.END_ROD, base.x, base.y + 0.08, base.z, 18, 0.18, 0.14, 0.18, 0.04);
+        serverLevel.sendParticles(ParticleTypes.FIREWORK, base.x, base.y + 0.12, base.z, 12, 0.10, 0.10, 0.10, 0.08);
+        serverLevel.playSound(null, blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.BLOCKS, 0.7f, 1.15f);
+    }
+
+    private void issueRefundIfNeeded() {
+        var owner = getOwner();
+        if (owner == null || offeredItem.isEmpty() || refundIssued) {
+            return;
+        }
+
+        var refundCount = Mth.floor(offeredItem.getCount() / 2.0f);
+        if (refundCount <= 0) {
+            return;
+        }
+
+        throwItemTowardOwner(owner, offeredItem.copyWithCount(refundCount));
+        if (level() instanceof ServerLevel serverLevel) {
+            var base = getParticleBasePosition();
+            serverLevel.sendParticles(ParticleTypes.END_ROD, base.x, base.y + 0.10, base.z, 10, 0.12, 0.10, 0.12, 0.03);
+        }
+        refundIssued = true;
+    }
+
+    private void throwItemTowardOwner(ServerPlayer owner, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        // 返却が見えづらいので、足元に落とすのではなく owner 側へ投げ返して気づきやすくする。
+        var dropped = spawnAtLocation(stack);
+        if (dropped == null) {
+            return;
+        }
+
+        var direction = owner.position().add(0.0, RETURN_TARGET_HEIGHT, 0.0).subtract(position());
+        if (direction.lengthSqr() > 1.0E-6) {
+            direction = direction.normalize().scale(RETURN_THROW_SPEED);
+        } else {
+            direction = Vec3.ZERO;
+        }
+        dropped.setDeltaMovement(direction.x, direction.y + RETURN_THROW_UPWARD, direction.z);
+        dropped.setPickUpDelay(0);
+        ignoredOfferItemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        ignoredOfferUntilTick = tickCount + REOFFER_COOLDOWN_TICKS;
+        hasImpulse = true;
+    }
+
+    private void resetOwnerCooldown(ServerPlayer owner) {
+        var magicData = MagicData.getPlayerMagicData(owner);
+        if (magicData.getPlayerCooldowns().removeCooldown(SpellRegistry.SEARCH_BEACON.get().getSpellId())) {
+            magicData.getPlayerCooldowns().syncToPlayer(owner);
+        }
     }
 
     private enum Phase {
