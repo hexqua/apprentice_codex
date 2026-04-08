@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipeSerializer;
+import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCaneLodestoneBindRecipe;
 import jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe;
 import jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskTransferRecipe;
@@ -48,6 +49,11 @@ public final class RecipeRegistry {
             RECIPE_SERIALIZERS.register(
                     "explorers_cane_lodestone_bind",
                     () -> new SimpleCraftingRecipeSerializer<>(ExplorersCaneLodestoneBindRecipe::new)
+            );
+    public static final RegistryObject<RecipeSerializer<ExplorersCodexGuidebookTransferRecipe>> EXPLORERS_CODEX_GUIDEBOOK_TRANSFER_SERIALIZER =
+            RECIPE_SERIALIZERS.register(
+                    "explorers_codex_guidebook_transfer",
+                    () -> new SimpleCraftingRecipeSerializer<>(ExplorersCodexGuidebookTransferRecipe::new)
             );
     public static final RegistryObject<RecipeSerializer<SpellcastersFlaskTransferRecipe>> SPELLCASTERS_FLASK_TRANSFER_SERIALIZER =
             RECIPE_SERIALIZERS.register(
