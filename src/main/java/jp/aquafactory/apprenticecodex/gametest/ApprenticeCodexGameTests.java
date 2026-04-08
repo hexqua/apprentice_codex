@@ -85,7 +85,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -354,7 +353,11 @@ public final class ApprenticeCodexGameTests {
                     false,
                     true
             );
-            var modifiers = item.getAttributeModifiers(slotContext, UUID.randomUUID(), stack);
+            var modifiers = item.getAttributeModifiers(
+                    slotContext,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/isekai_travel_guidebook"),
+                    stack
+            );
             helper.assertTrue(modifiers.isEmpty(),
                     "Isekai Travel Guidebook should not add spellbook attributes: " + modifiers);
         });
