@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
+import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
@@ -17,6 +18,7 @@ import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
@@ -36,12 +38,15 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -56,12 +61,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
@@ -75,6 +83,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -188,6 +197,9 @@ public final class ApprenticeCodexGameTests {
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_cane_lodestone_bind"),
                     RecipeRegistry.EXPLORERS_CANE_LODESTONE_BIND_SERIALIZER.get(), null);
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_codex_guidebook_transfer"),
+                    RecipeRegistry.EXPLORERS_CODEX_GUIDEBOOK_TRANSFER_SERIALIZER.get(), null);
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "isekai_travel_guidebook"),
                     net.minecraft.world.item.crafting.RecipeSerializer.SHAPELESS_RECIPE, net.minecraft.world.item.crafting.RecipeType.CRAFTING);
@@ -345,6 +357,105 @@ public final class ApprenticeCodexGameTests {
             var modifiers = item.getAttributeModifiers(slotContext, UUID.randomUUID(), stack);
             helper.assertTrue(modifiers.isEmpty(),
                     "Isekai Travel Guidebook should not add spellbook attributes: " + modifiers);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
+            var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
+            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("写本継承確認"));
+            explorersCodexStack.set(DataComponents.REPAIR_COST, 7);
+            var unbreaking = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
+            var expectedUpgradeData = createUpgradeData(
+                    helper.getLevel().registryAccess(),
+                    explorersCodexStack,
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    EquipmentSlot.OFFHAND.getName()
+            );
+            var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+            enchantments.set(unbreaking, 1);
+            EnchantmentHelper.setEnchantments(explorersCodexStack, enchantments.toImmutable());
+
+            var guidebookStack = createInitializedPresetStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
+            var craftingInput = createCraftingInput(explorersCodexStack, guidebookStack);
+
+            helper.assertTrue(recipe.matches(craftingInput, helper.getLevel()),
+                    "Explorer's Codex + Isekai Travel Guidebook should match the transfer recipe");
+
+            var result = recipe.assemble(craftingInput, helper.getLevel().registryAccess());
+            helper.assertTrue(result.is(ItemRegistry.EXPLORERS_CODEX.get()),
+                    "Transfer recipe should return Explorer's Codex but got " + BuiltInRegistries.ITEM.getKey(result.getItem()));
+            helper.assertTrue("写本継承確認".equals(result.getHoverName().getString()),
+                    "Explorer's Codex custom name was not preserved: " + result.getHoverName().getString());
+            helper.assertTrue(result.getOrDefault(DataComponents.REPAIR_COST, 0) == 7,
+                    "Explorer's Codex repair cost was not preserved: " + result.getOrDefault(DataComponents.REPAIR_COST, 0));
+            helper.assertTrue(UpgradeData.getUpgradeData(result).equals(expectedUpgradeData),
+                    "Explorer's Codex upgrade data was not preserved: " + UpgradeData.getUpgradeData(result));
+            helper.assertTrue(EnchantmentHelper.getItemEnchantmentLevel(unbreaking, result) == 1,
+                    "Explorer's Codex enchantments were not preserved");
+
+            var resultSpellContainer = ISpellContainer.get(result);
+            helper.assertTrue(resultSpellContainer != null, "Transferred Explorer's Codex lost its spell container");
+            helper.assertTrue(resultSpellContainer != null && resultSpellContainer.getMaxSpellCount() == 6,
+                    "Transferred Explorer's Codex slot count mismatch: " + (resultSpellContainer == null ? -1 : resultSpellContainer.getMaxSpellCount()));
+            assertSpellData(helper, resultSpellContainer, 0, SpellRegistry.ASSIST_WINGS.get(), 1, true, "Transferred Explorer's Codex first spell mismatch");
+            assertSpellData(helper, resultSpellContainer, 1, SpellRegistry.MAGE_LIGHT.get(), 1, true, "Transferred Explorer's Codex second spell mismatch");
+            assertSpellData(helper, resultSpellContainer, 2, SpellRegistry.SENSE_EVIL.get(), 1, true, "Transferred Explorer's Codex third spell mismatch");
+            assertSpellData(helper, resultSpellContainer, 3, SpellRegistry.REMOTE_EYE.get(), 1, true, "Transferred Explorer's Codex fourth spell mismatch");
+            assertSpellData(helper, resultSpellContainer, 4, SpellRegistry.HEALING_BLOOM.get(), 1, true, "Transferred Explorer's Codex transferred Healing Bloom mismatch");
+            assertSpellData(helper, resultSpellContainer, 5, SpellRegistry.COMPANION_TRUNK.get(), 1, true, "Transferred Explorer's Codex transferred Companion Trunk mismatch");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void explorersCodexGuidebookTransferRecipeIgnoresDuplicateGuidebookSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
+            var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
+            var mutable = ISpellContainer.get(explorersCodexStack).mutableCopy();
+            mutable.setMaxSpellCount(5);
+            helper.assertTrue(mutable.addSpell(SpellRegistry.HEALING_BLOOM.get(), 1, true),
+                    "Failed to prepare duplicate Healing Bloom on Explorer's Codex");
+            ISpellContainer.set(explorersCodexStack, mutable.toImmutable());
+
+            var guidebookStack = createInitializedPresetStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
+            var craftingInput = createCraftingInput(explorersCodexStack, guidebookStack);
+
+            helper.assertTrue(recipe.matches(craftingInput, helper.getLevel()),
+                    "Recipe should still match when one guidebook spell is already present");
+
+            var result = recipe.assemble(craftingInput, helper.getLevel().registryAccess());
+            var resultSpellContainer = ISpellContainer.get(result);
+            helper.assertTrue(resultSpellContainer != null, "Transferred Explorer's Codex lost its spell container");
+            helper.assertTrue(resultSpellContainer != null && resultSpellContainer.getMaxSpellCount() == 6,
+                    "Duplicate-ignore result slot count mismatch: " + (resultSpellContainer == null ? -1 : resultSpellContainer.getMaxSpellCount()));
+            helper.assertTrue(resultSpellContainer != null && resultSpellContainer.getIndexForSpell(SpellRegistry.HEALING_BLOOM.get()) == 4,
+                    "Healing Bloom should remain single and keep its prepared slot");
+            assertSpellData(helper, resultSpellContainer, 5, SpellRegistry.COMPANION_TRUNK.get(), 1, true,
+                    "Companion Trunk should still be transferred when Healing Bloom is already present");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void explorersCodexGuidebookTransferRecipeRejectsSpellSlotOverflow(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
+            var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
+            var mutable = ISpellContainer.get(explorersCodexStack).mutableCopy();
+            mutable.setMaxSpellCount(14);
+            fillSpellContainerToActiveCount(helper, mutable, 14);
+            ISpellContainer.set(explorersCodexStack, mutable.toImmutable());
+
+            var guidebookStack = createInitializedPresetStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
+            var craftingInput = createCraftingInput(explorersCodexStack, guidebookStack);
+
+            helper.assertFalse(recipe.matches(craftingInput, helper.getLevel()),
+                    "Recipe should reject Explorer's Codex when transferred spells would exceed 15 slots");
+            helper.assertTrue(recipe.assemble(craftingInput, helper.getLevel().registryAccess()).isEmpty(),
+                    "Overflow recipe assembly should return empty result");
         });
     }
 
@@ -1357,6 +1468,74 @@ public final class ApprenticeCodexGameTests {
                         && definition.targets().contains(new SearchBeaconTargetList.TargetReference(false, ResourceLocation.parse(expectedTarget))),
                 "SearchBeacon target mismatch for " + BuiltInRegistries.ITEM.getKey(item)
         );
+    }
+
+    private static ExplorersCodexGuidebookTransferRecipe getExplorersCodexGuidebookTransferRecipe(GameTestHelper helper) {
+        var recipeHolder = helper.getLevel().getRecipeManager()
+                .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_codex_guidebook_transfer"))
+                .orElse(null);
+        var recipe = recipeHolder == null ? null : recipeHolder.value();
+        helper.assertTrue(recipe instanceof ExplorersCodexGuidebookTransferRecipe,
+                "Missing Explorer's Codex guidebook transfer recipe: " + recipe);
+        return (ExplorersCodexGuidebookTransferRecipe) recipe;
+    }
+
+    private static ItemStack createInitializedPresetStack(Item item) {
+        var stack = new ItemStack(item);
+        if (item instanceof IPresetSpellContainer presetSpellContainer) {
+            presetSpellContainer.initializeSpellContainer(stack);
+        }
+        return stack;
+    }
+
+    private static CraftingInput createCraftingInput(ItemStack... stacks) {
+        var items = NonNullList.withSize(9, ItemStack.EMPTY);
+        for (int i = 0; i < stacks.length; ++i) {
+            items.set(i, stacks[i]);
+        }
+        return CraftingInput.of(3, 3, items);
+    }
+
+    private static void fillSpellContainerToActiveCount(
+            GameTestHelper helper,
+            io.redspace.ironsspellbooks.api.spells.ISpellContainerMutable mutable,
+            int targetActiveCount
+    ) {
+        for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
+            if (mutable.getActiveSpellCount() >= targetActiveCount) {
+                break;
+            }
+            if (mutable.getIndexForSpell(spell) >= 0) {
+                continue;
+            }
+
+            helper.assertTrue(mutable.addSpell(spell, 1, false),
+                    "Failed to prepare overflow test spell: " + spell.getSpellResource());
+        }
+
+        helper.assertTrue(mutable.getActiveSpellCount() == targetActiveCount,
+                "Failed to prepare overflow Explorer's Codex: expected " + targetActiveCount + " active spells but got "
+                        + mutable.getActiveSpellCount());
+    }
+
+    private static void assertSpellData(
+            GameTestHelper helper,
+            ISpellContainer spellContainer,
+            int index,
+            AbstractSpell expectedSpell,
+            int expectedLevel,
+            boolean expectedLocked,
+            String message
+    ) {
+        var spellData = spellContainer.getSpellAtIndex(index);
+        helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                message + " (spell slot is empty at index " + index + ")");
+        helper.assertTrue(spellData.getSpell() == expectedSpell,
+                message + " (spell mismatch: " + spellData.getSpell().getSpellResource() + ")");
+        helper.assertTrue(spellData.getLevel() == expectedLevel,
+                message + " (level mismatch: " + spellData.getLevel() + ")");
+        helper.assertTrue(spellData.isLocked() == expectedLocked,
+                message + " (locked mismatch: " + spellData.isLocked() + ")");
     }
 
     private static void assertRecipePresent(
