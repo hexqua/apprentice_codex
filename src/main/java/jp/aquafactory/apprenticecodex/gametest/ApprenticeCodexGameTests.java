@@ -38,6 +38,7 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
