@@ -189,6 +189,7 @@
   "entity.apprenticecodex.demicreator_wings_wing": "Demi-creator Wing",
   "entity.apprenticecodex.companion_trunk": "Trunk-Kun",
   "entity.apprenticecodex.healing_bloom": "Healing Bloom",
+  "entity.apprenticecodex.search_beacon": "Brazier of Search",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
@@ -250,6 +251,7 @@
   "spell.apprenticecodex.companion_trunk": "Companion Trunk",
   "spell.apprenticecodex.treasure_divination": "Treasure Divination",
   "spell.apprenticecodex.healing_bloom": "Healing Bloom",
+  "spell.apprenticecodex.search_beacon": "Search Beacon",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -329,6 +331,7 @@
   "spell.apprenticecodex.companion_trunk.guide": "Summon an arcane chest to follow you. It can hold about as many items as a normal chest, but if it vanishes, such as by running out of health, it drops everything inside.",
   "spell.apprenticecodex.treasure_divination.guide": "Focus your mana to learn how far away the nearest valuable-looking thing is. It may not actually be valuable, and what it can detect is limited.",
   "spell.apprenticecodex.healing_bloom.guide": "Summon a magical flower that gently lights the area around it. Staying near it grants healing, and when it withers away at the end of its lifespan, it drops fruit that can satisfy your hunger.",
+  "spell.apprenticecodex.search_beacon.guide": "Summon a magical brazier that searches for different structures depending on the item you offer it. If it finds anything, it points the way with glowing markers. If it finds nothing, some of the offered items may be returned.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -351,6 +354,8 @@
   "ui.apprenticecodex.move_speed_bonus": "%d%% Movement Speed Bonus",
   "ui.apprenticecodex.max_search_distance": "Maximum search distance: %d blocks",
   "ui.apprenticecodex.bloom_wither_time": "Bloom wither time: %s",
+  "ui.apprenticecodex.search_beacon.initial_distance": "Search distance: %d blocks",
+  "ui.apprenticecodex.search_beacon.addition_distance": "Additional search distance: %d blocks/item",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -381,6 +386,12 @@
   "ui.apprenticecodex.companion_trunk.cannot_despawn": "%s cannot be dismissed while it still contains items!",
   "ui.apprenticecodex.treasure_divination.not_found": "You sense no unusual presence within %d blocks.",
   "ui.apprenticecodex.treasure_divination.found": "An unusual presence lies %d blocks away!",
+  "ui.apprenticecodex.search_beacon.entity.not_target_item": "%1$s does not seem to lead it to anything...",
+  "ui.apprenticecodex.search_beacon.entity.target_by_item": "Offering %1$s seems to let it search for %2$s...",
+  "ui.apprenticecodex.search_beacon.entity.search_start": "It begins searching for %1$s within %2$d blocks...",
+  "ui.apprenticecodex.search_beacon.entity.not_found": "No %1$s can be found within %2$d blocks...",
+  "ui.apprenticecodex.search_beacon.entity.only_found": "Within %2$d blocks, it can only find %1$s you already know about...",
+  "ui.apprenticecodex.search_beacon.entity.found": "It has discovered an unknown %1$s within %2$d blocks!",
   "ui.apprenticecodex.treasure_divination.too_noisy": "The auras are too chaotic, and your concentration slips away!",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
