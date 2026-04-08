@@ -171,11 +171,11 @@ public final class RecipeGenerator extends RecipeProvider {
                         .pattern("GDG")
                         .pattern("NBN")
                         .pattern("GNG")
-                        .define('B', Items.WRITABLE_BOOK)
+                        .define('B', io.redspace.ironsspellbooks.registries.ItemRegistry.COPPER_SPELL_BOOK.get())
                         .define('D', Items.DIAMOND)
                         .define('G', Items.GOLD_INGOT)
                         .define('N', Items.GOLD_NUGGET)
-                        .unlockedBy(getHasName(Items.WRITABLE_BOOK), has(Items.WRITABLE_BOOK))
+                        .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.COPPER_SPELL_BOOK.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.COPPER_SPELL_BOOK.get()))
                         .save(consumer, ItemRegistry.EXPLORERS_CODEX.getId()))
                 .generateAdvancement()
                 .build(recipeWriter, ItemRegistry.EXPLORERS_CODEX.getId());
