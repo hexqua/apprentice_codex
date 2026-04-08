@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Mant
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.TamersPocketState;
 
 public final class CodexSpellStateTypeRegister {
     private CodexSpellStateTypeRegister(){}
@@ -26,6 +27,7 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<RemoteEyeState> REMOTE_EYE_STATE;
     public static CodexSpellStateType<SearchBeaconState> SEARCH_BEACON_STATE;
     public static CodexSpellStateType<SpectralWingState> SPECTRAL_WING_STATE;
+    public static CodexSpellStateType<TamersPocketState> TAMERS_POCKET_STATE;
 
     public static void register() {
         ABSORPTION_AMPLIFY_AMULET_STATE = CodexSpellStates.register("absorption_amplify_amulet", AbsorptionAmplifyAmuletState::new);
@@ -39,5 +41,6 @@ public final class CodexSpellStateTypeRegister {
         REMOTE_EYE_STATE = CodexSpellStates.register("remote_eye", RemoteEyeState::new);
         SEARCH_BEACON_STATE = CodexSpellStates.register("search_beacon", SearchBeaconState::new);
         SPECTRAL_WING_STATE = CodexSpellStates.register("spectral_wing", SpectralWingState::new);
+        TAMERS_POCKET_STATE = CodexSpellStates.register("tamers_pocket", TamersPocketState::new);
     }
 }
