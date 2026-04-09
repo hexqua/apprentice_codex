@@ -258,6 +258,7 @@
   "spell.apprenticecodex.healing_bloom": "Healing Bloom",
   "spell.apprenticecodex.search_beacon": "Search Beacon",
   "spell.apprenticecodex.tamers_pocket": "Tamer's Pocket",
+  "spell.apprenticecodex.harvest_moon": "Harvest Moon",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -334,6 +335,7 @@
   "spell.apprenticecodex.healing_bloom.guide": "Summons a magical flower that softly lights the area around it. Staying near it grants healing, and when it withers with age, it leaves behind a fruit-bearing shrub that can satisfy your hunger.",
   "spell.apprenticecodex.search_beacon.guide": "Summon a magical brazier that searches for different structures depending on the item you offer it. If it finds anything, it points the way with glowing markers. If it finds nothing, some of the offered items may be returned.",
   "spell.apprenticecodex.tamers_pocket.guide": "Stores one of your tamed pets from your line of sight or the surrounding area inside a personal magical domain. If no tamed pet is in sight but you already have one stored, it is brought out near you instead. While stored, pets inside recover naturally, though only very slowly.",
+  "spell.apprenticecodex.harvest_moon.guide": "Harvest crops around you without destroying them and bringing them to you.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
