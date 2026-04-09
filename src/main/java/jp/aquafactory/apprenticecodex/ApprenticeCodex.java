@@ -34,6 +34,8 @@ public class ApprenticeCodex
         EntityRegistry.register(bus);
         BlockRegistry.register(bus);
         BlockEntityRegistry.register(bus);
+        PoiTypeRegistry.register(bus);
+        VillagerProfessionRegistry.register(bus);
         ItemRegistry.ITEMS.register(bus);
         ApprenticeAttributeRegistry.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
