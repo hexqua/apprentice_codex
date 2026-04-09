@@ -41,8 +41,8 @@ public class SearchBeacon extends AbstractSpell {
             .build();
 
     public SearchBeacon() {
-        baseSpellPower = 500;
-        spellPowerPerLevel = 500;
+        baseSpellPower = 80;
+        spellPowerPerLevel = 80;
         baseManaCost = 100;
         manaCostPerLevel = 40;
         castTime = 0;
@@ -58,7 +58,7 @@ public class SearchBeacon extends AbstractSpell {
     }
 
     public int getInitialRange(int spellLevel, LivingEntity entity) {
-        return getBaseRange(spellLevel, entity) * 2;
+        return getBaseRange(spellLevel, entity) * 8;
     }
 
     public int getAdditionalRangePerItem(int spellLevel, LivingEntity entity) {

@@ -225,14 +225,14 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
     private void tickResult(ServerLevel level) {
         if (searchResult != null && !searchResult.isEmpty() && phaseTicks % DIRECTION_PARTICLE_INTERVAL_TICKS == 0) {
-            emitDirectionParticles(level, searchResult);
+            emitDirectionParticles(level, searchResult, resolveSpellState());
         }
     }
 
     private void absorbOfferedItem(ItemEntity itemEntity) {
         var offeredStack = itemEntity.getItem();
         var itemId = BuiltInRegistries.ITEM.getKey(offeredStack.getItem());
-        if (itemId != null && itemId.equals(ignoredOfferItemId) && tickCount < ignoredOfferUntilTick) {
+        if (itemId.equals(ignoredOfferItemId) && tickCount < ignoredOfferUntilTick) {
             return;
         }
 
@@ -350,17 +350,19 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         if (owner != null && !result.isEmpty()) {
             Capabilities.withSpellData(owner, data -> {
                 var state = data.get(CodexSpellStateTypeRegister.SEARCH_BEACON_STATE);
-                if (state.markSearched(result.foundStructureIds())) {
+                if (state.markSearched(result.foundStructureMarkers())) {
                     data.markDirty(CodexSpellStateTypeRegister.SEARCH_BEACON_STATE.id());
                 }
             });
         }
 
-        issueRefundIfNeeded();
+        if (SearchBeaconSearchService.shouldRefundOfferedItems(result)) {
+            issueRefundIfNeeded();
+        }
         transitionTo(Phase.RESULT);
     }
 
-    private void emitDirectionParticles(ServerLevel level, SearchBeaconSearchService.SearchResult result) {
+    private void emitDirectionParticles(ServerLevel level, SearchBeaconSearchService.SearchResult result, SearchBeaconState state) {
         var base = getParticleBasePosition();
         for (var located : result.locatedStructures()) {
             var dx = located.center().getX() + 0.5 - base.x;
@@ -372,7 +374,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
             var dirX = dx / horizontalLength;
             var dirZ = dz / horizontalLength;
-            var colors = getParticleColors(located.knowledge());
+            var colors = getParticleColors(resolveDisplayKnowledge(located, state));
             var tipDistance = 2.6;
             var tipX = base.x + dirX * tipDistance;
             var tipY = base.y + 0.16;
@@ -439,8 +441,19 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         }
     }
 
+    private static SearchBeaconState.StructureKnowledge resolveDisplayKnowledge(
+            SearchBeaconSearchService.LocatedStructure located,
+            SearchBeaconState state
+    ) {
+        var currentKnowledge = state.getKnowledge(located.marker());
+        if (currentKnowledge == SearchBeaconState.StructureKnowledge.TRAVERSED) {
+            return SearchBeaconState.StructureKnowledge.TRAVERSED;
+        }
+        return located.knowledge();
+    }
+
     private void finishAndDiscard() {
-        var shouldRefund = searchResult == null || searchResult.isEmpty() || !searchResult.hasUnknownStructures();
+        var shouldRefund = SearchBeaconSearchService.shouldRefundOfferedItems(searchResult);
         if (shouldRefund && !refundIssued) {
             issueRefundIfNeeded();
         }
