@@ -19,6 +19,8 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
+import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
@@ -54,6 +56,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntityType;
@@ -81,6 +84,9 @@ import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -220,6 +226,54 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(jobSite != null, "Villager did not store a job site");
             helper.assertTrue(jobSite != null && absoluteDeskPos.equals(jobSite.pos()),
                     "Villager claimed unexpected job site: " + jobSite);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void errandMageVillageHouseIsAddedToVanillaVillagePools(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var templatePoolRegistry = helper.getLevel().registryAccess().registryOrThrow(Registries.TEMPLATE_POOL);
+
+            assertVillageHousePoolContains(
+                    helper,
+                    templatePoolRegistry,
+                    ResourceLocation.withDefaultNamespace("village/plains/houses"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("mossify_10_percent"),
+                    1
+            );
+            assertVillageHousePoolContains(
+                    helper,
+                    templatePoolRegistry,
+                    ResourceLocation.withDefaultNamespace("village/desert/houses"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/desert/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("empty"),
+                    1
+            );
+            assertVillageHousePoolContains(
+                    helper,
+                    templatePoolRegistry,
+                    ResourceLocation.withDefaultNamespace("village/savanna/houses"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/savanna/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("empty"),
+                    1
+            );
+            assertVillageHousePoolContains(
+                    helper,
+                    templatePoolRegistry,
+                    ResourceLocation.withDefaultNamespace("village/snowy/houses"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("empty"),
+                    1
+            );
+            assertVillageHousePoolContains(
+                    helper,
+                    templatePoolRegistry,
+                    ResourceLocation.withDefaultNamespace("village/taiga/houses"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("mossify_10_percent"),
+                    1
+            );
         });
     }
 
@@ -1627,6 +1681,53 @@ public final class ApprenticeCodexGameTests {
                         && definition.targets().contains(new SearchBeaconTargetList.TargetReference(false, ResourceLocation.parse(expectedTarget))),
                 "SearchBeacon target mismatch for " + BuiltInRegistries.ITEM.getKey(item)
         );
+    }
+
+    private static void assertVillageHousePoolContains(
+            GameTestHelper helper,
+            Registry<StructureTemplatePool> templatePoolRegistry,
+            ResourceLocation poolId,
+            ResourceLocation expectedStructureId,
+            ResourceLocation expectedProcessorId,
+            int expectedWeight
+    ) {
+        var pool = templatePoolRegistry.get(poolId);
+        helper.assertTrue(pool != null, "Missing village house pool: " + poolId);
+
+        var rawTemplates = ((StructureTemplatePoolAccessor) pool).apprenticecodex$getRawTemplates();
+        var matchingRawEntries = rawTemplates.stream()
+                .filter(pair -> isMatchingSinglePoolElement(pair.getFirst(), expectedStructureId, expectedProcessorId))
+                .toList();
+
+        helper.assertTrue(matchingRawEntries.size() == 1,
+                "Expected exactly one Errand Mage entry in " + poolId + " but found " + matchingRawEntries.size());
+        helper.assertTrue(
+                !matchingRawEntries.isEmpty() && matchingRawEntries.get(0).getSecond() == expectedWeight,
+                "Unexpected Errand Mage weight in " + poolId + ": " + (matchingRawEntries.isEmpty() ? "missing" : matchingRawEntries.get(0).getSecond())
+        );
+
+        long expandedMatchCount = pool.getShuffledTemplates(RandomSource.create(0L)).stream()
+                .filter(element -> isMatchingSinglePoolElement(element, expectedStructureId, expectedProcessorId))
+                .count();
+        helper.assertTrue(expandedMatchCount == expectedWeight,
+                "Expanded template count mismatch in " + poolId + ": " + expandedMatchCount);
+    }
+
+    private static boolean isMatchingSinglePoolElement(
+            StructurePoolElement element,
+            ResourceLocation expectedStructureId,
+            ResourceLocation expectedProcessorId
+    ) {
+        if (!(element instanceof SinglePoolElement singlePoolElement)) {
+            return false;
+        }
+
+        var accessor = (SinglePoolElementAccessor) singlePoolElement;
+        var structureId = accessor.apprenticecodex$getTemplate().left().orElse(null);
+        var processorId = accessor.apprenticecodex$getProcessors().unwrapKey()
+                .map(key -> key.location())
+                .orElse(null);
+        return expectedStructureId.equals(structureId) && expectedProcessorId.equals(processorId);
     }
 
     private static LootParams createChestLootParams(GameTestHelper helper) {
