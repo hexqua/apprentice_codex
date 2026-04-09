@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.utility;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.ItemCost;
 
 public final class ErrandMageTradeHelper {
     private ErrandMageTradeHelper() {
@@ -16,26 +17,22 @@ public final class ErrandMageTradeHelper {
                 || item == io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get();
     }
 
-    public static ItemStack createPaymentStack(Item item, int count) {
+    public static ItemCost createPaymentStack(Item item, int count) {
         if (shouldIgnorePaymentTags(item)) {
-            return new ItemStack(item, count);
+            return new ItemCost(item, count);
         }
-        return new ItemStack(item, count);
+        return new ItemCost(item, count);
     }
 
-    public static ItemStack createPaymentStack(ItemStack stack) {
+    public static ItemCost createPaymentStack(ItemStack stack) {
         if (!shouldIgnorePaymentTags(stack)) {
-            return stack.copy();
+            return new ItemCost(stack.getItem(), stack.getCount());
         }
 
-        return new ItemStack(stack.getItem(), stack.getCount());
+        return new ItemCost(stack.getItem(), stack.getCount());
     }
 
-    public static boolean matchesPaymentItem(ItemStack offer, ItemStack cost) {
-        if (cost.isEmpty() && offer.isEmpty()) {
-            return true;
-        }
-
-        return !cost.isEmpty() && !offer.isEmpty() && ItemStack.isSameItem(offer, cost);
+    public static boolean matchesPaymentItem(ItemStack offer, ItemCost cost) {
+        return !offer.isEmpty() && offer.is(cost.item());
     }
 }

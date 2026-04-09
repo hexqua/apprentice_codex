@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.utility.ErrandMageTradeHelper;
 import net.minecraft.world.inventory.MerchantContainer;
 import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.trading.ItemCost;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,27 +19,30 @@ public abstract class MerchantMenuMixin {
     private MerchantContainer tradeContainer;
 
     @Inject(method = "moveFromInventoryToPaymentSlot", at = @At("HEAD"), cancellable = true)
-    private void apprenticecodex$allowErrandMageNbtAgnosticAutofill(int paymentSlotIndex, ItemStack paymentStack, CallbackInfo ci) {
-        if (paymentStack.isEmpty() || !ErrandMageTradeHelper.shouldIgnorePaymentTags(paymentStack)) {
+    private void apprenticecodex$allowErrandMageNbtAgnosticAutofill(int paymentSlotIndex, ItemCost paymentCost, CallbackInfo ci) {
+        if (!ErrandMageTradeHelper.shouldIgnorePaymentTags(paymentCost.item().value())) {
             return;
         }
 
         for (int i = 3; i < 39; ++i) {
             var slot = ((MerchantMenu) (Object) this).slots.get(i);
             var inventoryStack = slot.getItem();
-            if (!ErrandMageTradeHelper.matchesPaymentItem(inventoryStack, paymentStack)) {
+            if (!ErrandMageTradeHelper.matchesPaymentItem(inventoryStack, paymentCost)) {
                 continue;
             }
 
             var paymentSlotStack = tradeContainer.getItem(paymentSlotIndex);
-            var currentCount = paymentSlotStack.isEmpty() ? 0 : paymentSlotStack.getCount();
-            var moveCount = Math.min(paymentStack.getMaxStackSize() - currentCount, inventoryStack.getCount());
-            var movedStack = inventoryStack.copy();
-            var newCount = currentCount + moveCount;
+            if (!paymentSlotStack.isEmpty() && !ErrandMageTradeHelper.matchesPaymentItem(paymentSlotStack, paymentCost)) {
+                continue;
+            }
+
+            var maxStackSize = inventoryStack.getMaxStackSize();
+            var currentCount = paymentSlotStack.getCount();
+            var moveCount = Math.min(maxStackSize - currentCount, inventoryStack.getCount());
+            var movedStack = inventoryStack.copyWithCount(currentCount + moveCount);
             inventoryStack.shrink(moveCount);
-            movedStack.setCount(newCount);
             tradeContainer.setItem(paymentSlotIndex, movedStack);
-            if (newCount >= paymentStack.getMaxStackSize()) {
+            if (movedStack.getCount() >= maxStackSize) {
                 break;
             }
         }

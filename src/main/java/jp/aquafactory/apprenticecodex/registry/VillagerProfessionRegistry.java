@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import com.google.common.collect.ImmutableSet;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -9,8 +10,6 @@ import net.minecraft.world.entity.npc.VillagerProfession;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
-import java.util.Set;
 
 public final class VillagerProfessionRegistry {
     public static final ResourceKey<VillagerProfession> ERRAND_MAGE_KEY = ResourceKey.create(
@@ -27,8 +26,8 @@ public final class VillagerProfessionRegistry {
                     // Holder の key 判定にしておくと、将来の loader 差分があっても就職条件の意味が崩れにくい。
                     poiType -> poiType.is(PoiTypeRegistry.APPRENTICE_DESK_KEY),
                     poiType -> poiType.is(PoiTypeRegistry.APPRENTICE_DESK_KEY),
-                    Set.of(),
-                    Set.of(),
+                    ImmutableSet.of(),
+                    ImmutableSet.of(),
                     SoundEvents.ENCHANTMENT_TABLE_USE
             ));
 

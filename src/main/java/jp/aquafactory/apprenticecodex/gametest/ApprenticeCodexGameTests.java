@@ -45,6 +45,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -81,6 +82,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -237,8 +239,13 @@ public final class ApprenticeCodexGameTests {
             damagedCrown.setDamageValue(2);
             var taggedCrownCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
             CustomData.update(DataComponents.CUSTOM_DATA, taggedCrownCost, tag -> tag.putString("apprenticecodex_test", "cost"));
+            var taggedCrownItemCost = new ItemCost(
+                    taggedCrownCost.getItemHolder(),
+                    taggedCrownCost.getCount(),
+                    DataComponentPredicate.allOf(taggedCrownCost.getComponents())
+            );
             var crownOffer = new net.minecraft.world.item.trading.MerchantOffer(
-                    taggedCrownCost,
+                    taggedCrownItemCost,
                     new ItemStack(Items.EMERALD),
                     16,
                     2,
@@ -251,9 +258,14 @@ public final class ApprenticeCodexGameTests {
             CustomData.update(DataComponents.CUSTOM_DATA, taggedScroll, tag -> tag.putString("apprenticecodex_test", "tagged"));
             var taggedScrollCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
             CustomData.update(DataComponents.CUSTOM_DATA, taggedScrollCost, tag -> tag.putString("apprenticecodex_test", "cost"));
+            var taggedScrollItemCost = new ItemCost(
+                    taggedScrollCost.getItemHolder(),
+                    taggedScrollCost.getCount(),
+                    DataComponentPredicate.allOf(taggedScrollCost.getComponents())
+            );
             var scrollOffer = new net.minecraft.world.item.trading.MerchantOffer(
-                    taggedScrollCost,
-                    new ItemStack(Items.EMERALD, 16),
+                    taggedScrollItemCost,
+                    java.util.Optional.of(new ItemCost(Items.EMERALD, 16)),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_COMMON.get()),
                     3,
                     5,

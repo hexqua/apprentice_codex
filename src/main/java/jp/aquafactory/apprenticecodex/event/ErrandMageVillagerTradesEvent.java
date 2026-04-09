@@ -6,11 +6,12 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.ErrandMageTradeHelper;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -67,7 +68,7 @@ public final class ErrandMageVillagerTradesEvent {
     private static void addSellTrade(Int2ObjectMap<List<VillagerTrades.ItemListing>> trades, int level, int emeraldCount,
                                      ItemStack result, int maxUses) {
         addTrade(trades, level, (trader, random) -> new MerchantOffer(
-                new ItemStack(Items.EMERALD, emeraldCount),
+                new ItemCost(Items.EMERALD, emeraldCount),
                 result.copy(),
                 maxUses,
                 SELL_XP,
@@ -79,7 +80,7 @@ public final class ErrandMageVillagerTradesEvent {
                                              ItemStack costA, ItemStack costB, ItemStack result, int maxUses) {
         addTrade(trades, level, (trader, random) -> new MerchantOffer(
                 sanitizePaymentStack(costA),
-                costB.copy(),
+                java.util.Optional.of(new ItemCost(costB.getItem(), costB.getCount())),
                 result.copy(),
                 maxUses,
                 SELL_XP,
@@ -92,10 +93,10 @@ public final class ErrandMageVillagerTradesEvent {
     }
 
     private static ItemStack createManaPotion() {
-        return PotionUtils.setPotion(new ItemStack(Items.POTION), PotionRegistry.INSTANT_MANA_ONE.get());
+        return PotionContentsHelper.createPotionStack(Items.POTION, PotionRegistry.INSTANT_MANA_ONE.get());
     }
 
-    private static ItemStack sanitizePaymentStack(ItemStack stack) {
+    private static ItemCost sanitizePaymentStack(ItemStack stack) {
         return ErrandMageTradeHelper.createPaymentStack(stack);
     }
 }
