@@ -44,6 +44,10 @@ public final class SearchBeaconSearchService {
         return SEARCH_STEPS_PER_TICK;
     }
 
+    public static boolean shouldRefundOfferedItems(@Nullable SearchResult result) {
+        return result == null || result.isEmpty() || !result.hasUnknownStructures();
+    }
+
     public static SearchSession createSession(
             ServerLevel level,
             BlockPos origin,

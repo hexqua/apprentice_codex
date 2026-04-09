@@ -356,7 +356,9 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             });
         }
 
-        issueRefundIfNeeded();
+        if (SearchBeaconSearchService.shouldRefundOfferedItems(result)) {
+            issueRefundIfNeeded();
+        }
         transitionTo(Phase.RESULT);
     }
 
@@ -451,7 +453,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     }
 
     private void finishAndDiscard() {
-        var shouldRefund = searchResult == null || searchResult.isEmpty() || !searchResult.hasUnknownStructures();
+        var shouldRefund = SearchBeaconSearchService.shouldRefundOfferedItems(searchResult);
         if (shouldRefund && !refundIssued) {
             issueRefundIfNeeded();
         }
