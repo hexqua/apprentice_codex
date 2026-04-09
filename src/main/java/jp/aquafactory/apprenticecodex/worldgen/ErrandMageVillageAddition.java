@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.worldgen;
 
 import com.mojang.datafixers.util.Pair;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -12,15 +13,15 @@ import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 
 import java.util.ArrayList;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ErrandMageVillageAddition {
-    public static final int HOUSE_WEIGHT = 1;
+    public static final int HOUSE_WEIGHT = 3;
 
     private static final ResourceKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = ResourceKey.create(
             Registries.PROCESSOR_LIST,
@@ -66,12 +67,14 @@ public final class ErrandMageVillageAddition {
     @SubscribeEvent
     public static void addErrandMageVillageHouse(final ServerAboutToStartEvent event) {
         if (HOUSE_WEIGHT <= 0) {
+            ApprenticeCodex.LOGGER.info("Errand Mage village house injection is disabled because HOUSE_WEIGHT <= 0");
             return;
         }
 
         var registryAccess = event.getServer().registryAccess();
         var templatePoolRegistry = registryAccess.registryOrThrow(Registries.TEMPLATE_POOL);
         var processorListRegistry = registryAccess.registryOrThrow(Registries.PROCESSOR_LIST);
+        ApprenticeCodex.LOGGER.info("Injecting Errand Mage village houses with weight {} into {} village pools", HOUSE_WEIGHT, HOUSE_ADDITIONS.length);
 
         for (var addition : HOUSE_ADDITIONS) {
             addBuildingToPool(templatePoolRegistry, processorListRegistry, addition, HOUSE_WEIGHT);
@@ -97,13 +100,74 @@ public final class ErrandMageVillageAddition {
                 .apply(StructureTemplatePool.Projection.RIGID);
 
         var accessor = (StructureTemplatePoolAccessor) pool;
+        var beforeRawTemplates = accessor.apprenticecodex$getRawTemplates();
+        int beforeExpandedTemplateCount = accessor.apprenticecodex$getTemplates().size();
+        int beforeTotalWeight = getTotalWeight(beforeRawTemplates);
+        int beforeMatchingEntryCount = countMatchingEntries(beforeRawTemplates, addition.structureId(), addition.processorListKey().location());
+
         for (int i = 0; i < weight; i++) {
             accessor.apprenticecodex$getTemplates().add(piece);
         }
 
-        var rawTemplates = new ArrayList<>(accessor.apprenticecodex$getRawTemplates());
+        var rawTemplates = new ArrayList<>(beforeRawTemplates);
         rawTemplates.add(Pair.of((StructurePoolElement) piece, weight));
         accessor.apprenticecodex$setRawTemplates(rawTemplates);
+
+        int afterTotalWeight = getTotalWeight(rawTemplates);
+        int afterMatchingEntryCount = countMatchingEntries(rawTemplates, addition.structureId(), addition.processorListKey().location());
+        ApprenticeCodex.LOGGER.info(
+                "Errand Mage village house injected into pool {}: structure={} processor={} rawEntries {}->{} totalWeight {}->{} matchingEntries {}->{} expandedTemplates {}->{}",
+                addition.poolId(),
+                addition.structureId(),
+                addition.processorListKey().location(),
+                beforeRawTemplates.size(),
+                rawTemplates.size(),
+                beforeTotalWeight,
+                afterTotalWeight,
+                beforeMatchingEntryCount,
+                afterMatchingEntryCount,
+                beforeExpandedTemplateCount,
+                accessor.apprenticecodex$getTemplates().size()
+        );
+    }
+
+    private static int getTotalWeight(Iterable<Pair<StructurePoolElement, Integer>> rawTemplates) {
+        int totalWeight = 0;
+        for (var rawTemplate : rawTemplates) {
+            totalWeight += rawTemplate.getSecond();
+        }
+        return totalWeight;
+    }
+
+    private static int countMatchingEntries(
+            Iterable<Pair<StructurePoolElement, Integer>> rawTemplates,
+            ResourceLocation expectedStructureId,
+            ResourceLocation expectedProcessorId
+    ) {
+        int matchingEntryCount = 0;
+        for (var rawTemplate : rawTemplates) {
+            if (isMatchingSinglePoolElement(rawTemplate.getFirst(), expectedStructureId, expectedProcessorId)) {
+                matchingEntryCount++;
+            }
+        }
+        return matchingEntryCount;
+    }
+
+    private static boolean isMatchingSinglePoolElement(
+            StructurePoolElement element,
+            ResourceLocation expectedStructureId,
+            ResourceLocation expectedProcessorId
+    ) {
+        if (!(element instanceof SinglePoolElement singlePoolElement)) {
+            return false;
+        }
+
+        var accessor = (SinglePoolElementAccessor) singlePoolElement;
+        var structureId = accessor.apprenticecodex$getTemplate().left().orElse(null);
+        var processorId = accessor.apprenticecodex$getProcessors().unwrapKey()
+                .map(key -> key.location())
+                .orElse(null);
+        return expectedStructureId.equals(structureId) && expectedProcessorId.equals(processorId);
     }
 
     private record VillageHouseAddition(

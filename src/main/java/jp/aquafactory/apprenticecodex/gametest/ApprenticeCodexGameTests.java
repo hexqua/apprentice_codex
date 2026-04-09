@@ -47,6 +47,7 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -311,7 +312,7 @@ public final class ApprenticeCodexGameTests {
                     ResourceLocation.withDefaultNamespace("village/plains/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
-                    1
+                    ErrandMageVillageAddition.HOUSE_WEIGHT
             );
             assertVillageHousePoolContains(
                     helper,
@@ -319,7 +320,7 @@ public final class ApprenticeCodexGameTests {
                     ResourceLocation.withDefaultNamespace("village/desert/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/desert/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    1
+                    ErrandMageVillageAddition.HOUSE_WEIGHT
             );
             assertVillageHousePoolContains(
                     helper,
@@ -327,7 +328,7 @@ public final class ApprenticeCodexGameTests {
                     ResourceLocation.withDefaultNamespace("village/savanna/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/savanna/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    1
+                    ErrandMageVillageAddition.HOUSE_WEIGHT
             );
             assertVillageHousePoolContains(
                     helper,
@@ -335,7 +336,7 @@ public final class ApprenticeCodexGameTests {
                     ResourceLocation.withDefaultNamespace("village/snowy/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
-                    1
+                    ErrandMageVillageAddition.HOUSE_WEIGHT
             );
             assertVillageHousePoolContains(
                     helper,
@@ -343,7 +344,7 @@ public final class ApprenticeCodexGameTests {
                     ResourceLocation.withDefaultNamespace("village/taiga/houses"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
-                    1
+                    ErrandMageVillageAddition.HOUSE_WEIGHT
             );
         });
     }
