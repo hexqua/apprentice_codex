@@ -9,6 +9,9 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
@@ -67,9 +70,11 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
@@ -481,6 +486,37 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorAcceptsSingleHealScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+            ISpellContainer.createScrollContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1, scrollStack);
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a simple Heal scroll");
+            helper.assertTrue(validation.spellData().getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(),
+                    "Spell Dispenser validator resolved the wrong spell: " + validation.spellData().getSpell().getSpellResource());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperCleansUpProxy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+            ISpellContainer.createScrollContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1, scrollStack);
+
+            var castSucceeded = SpellDispenserCastHelper.tryCast((ServerLevel) level, castPos, Direction.NORTH, scrollStack);
+            helper.assertTrue(castSucceeded, "Spell Dispenser cast helper failed to cast a Heal scroll");
+
+            var proxyBox = new AABB(castPos).inflate(3.0D);
+            var remainingProxies = level.getEntitiesOfClass(ArmorStand.class, proxyBox, stand ->
+                    stand.isInvisible() && stand.getMainHandItem().is(scrollStack.getItem()));
+            helper.assertTrue(remainingProxies.isEmpty(), "Spell Dispenser proxy caster was left behind: " + remainingProxies.size());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void serverBlocksAndEntitiesCanBeInstantiated(GameTestHelper helper) {
         helper.succeedIf(() -> {
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 0), BlockRegistry.MAGE_LIGHT_TORCH.get(), BlockEntityRegistry.MAGE_LIGHT_TORCH.get());
@@ -488,6 +524,7 @@ public final class ApprenticeCodexGameTests {
             placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 0), BlockRegistry.ARCANUM_IN_A_JAR.get(), BlockEntityRegistry.ARCANUM_IN_A_JAR.get());
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 1), BlockRegistry.ESSENCE_SMOKER.get(), BlockEntityRegistry.ESSENCE_SMOKER.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 1), BlockRegistry.ATELIER_STATION.get(), BlockEntityRegistry.ATELIER_STATION.get());
+            placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 1), BlockRegistry.SPELL_DISPENSER.get(), BlockEntityRegistry.SPELL_DISPENSER.get());
 
             var level = helper.getLevel();
             for (var entityEntry : EntityRegistry.ENTITIES.getEntries()) {

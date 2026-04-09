@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
@@ -61,6 +62,10 @@ public final class BlockEntityRegistry {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AtelierStationBlockEntity>> ATELIER_STATION = reg(
             "atelier_station", AtelierStationBlockEntity::new, BlockRegistry.ATELIER_STATION
+    );
+
+    public static final RegistryObject<BlockEntityType<SpellDispenserBlockEntity>> SPELL_DISPENSER = reg(
+            "spell_dispenser", SpellDispenserBlockEntity::new, BlockRegistry.SPELL_DISPENSER
     );
 
     public static void register(IEventBus eventBus) {
