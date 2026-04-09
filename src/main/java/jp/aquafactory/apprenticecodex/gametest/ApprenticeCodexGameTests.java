@@ -32,12 +32,15 @@ import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -45,11 +48,17 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+import net.minecraft.world.entity.npc.VillagerData;
+import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
@@ -120,10 +129,21 @@ public final class ApprenticeCodexGameTests {
             assertForgeRegistryEntries(helper, "enchantment", net.minecraftforge.registries.ForgeRegistries.ENCHANTMENTS, EnchantmentRegistry.ENCHANTMENTS.getEntries());
             assertForgeRegistryEntries(helper, "attribute", net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES, ApprenticeAttributeRegistry.ATTRIBUTES.getEntries());
             assertForgeRegistryEntries(helper, "recipe serializer", net.minecraftforge.registries.ForgeRegistries.RECIPE_SERIALIZERS, RecipeRegistry.RECIPE_SERIALIZERS.getEntries());
+            assertForgeRegistryEntries(helper, "point of interest type", net.minecraftforge.registries.ForgeRegistries.POI_TYPES, PoiTypeRegistry.POI_TYPES.getEntries());
+            assertForgeRegistryEntries(helper, "villager profession", net.minecraftforge.registries.ForgeRegistries.VILLAGER_PROFESSIONS, VillagerProfessionRegistry.VILLAGER_PROFESSIONS.getEntries());
 
             assertBuiltinRegistryEntries(helper, "potion", BuiltInRegistries.POTION, PotionRegistry.POTIONS.getEntries());
             assertBuiltinRegistryEntries(helper, "recipe type", BuiltInRegistries.RECIPE_TYPE, RecipeRegistry.RECIPE_TYPES.getEntries());
             assertBuiltinRegistryEntries(helper, "creative tab", BuiltInRegistries.CREATIVE_MODE_TAB, CreativeTabRegistry.TABS.getEntries());
+
+            var apprenticeDeskPoi = PoiTypes.forState(BlockRegistry.APPRENTICE_DESK.get().defaultBlockState()).orElse(null);
+            helper.assertTrue(apprenticeDeskPoi != null, "Apprentice Desk POI state mapping is missing");
+            helper.assertTrue(apprenticeDeskPoi != null && apprenticeDeskPoi.is(PoiTypeRegistry.APPRENTICE_DESK_KEY),
+                    "Apprentice Desk resolved to unexpected POI: " + apprenticeDeskPoi);
+            helper.assertTrue(apprenticeDeskPoi != null && apprenticeDeskPoi.is(PoiTypeTags.ACQUIRABLE_JOB_SITE),
+                    "Apprentice Desk POI is missing minecraft:acquirable_job_site");
+            helper.assertTrue(BuiltInRegistries.VILLAGER_PROFESSION.get(VillagerProfessionRegistry.ERRAND_MAGE_KEY.location()) == VillagerProfessionRegistry.ERRAND_MAGE.get(),
+                    "Errand Mage profession is missing from BuiltInRegistries");
 
             for (var spellEntry : SpellRegistry.SPELLS.getEntries()) {
                 var spell = spellEntry.get();
@@ -167,6 +187,63 @@ public final class ApprenticeCodexGameTests {
                 helper.assertTrue(BuiltInRegistries.POTION.get(definition.strongPotionId()) == definition.strongPotion(),
                         "Missing School Affinity potion: " + definition.strongPotionId());
             }
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 400)
+    public static void villagerCanClaimApprenticeDeskAsErrandMageJobSite(GameTestHelper helper) {
+        var deskPos = new BlockPos(1, 1, 0);
+        var absoluteDeskPos = helper.absolutePos(deskPos);
+        helper.setBlock(deskPos, BlockRegistry.APPRENTICE_DESK.get());
+        helper.getLevel().setDayTime(2000L);
+
+        var villager = helper.spawn(EntityType.VILLAGER, new BlockPos(1, 2, 1));
+        villager.setVillagerData(new VillagerData(villager.getVillagerData().getType(), VillagerProfession.NONE, 1));
+        villager.refreshBrain(helper.getLevel());
+        villager.getBrain().setMemory(MemoryModuleType.POTENTIAL_JOB_SITE, GlobalPos.of(helper.getLevel().dimension(), absoluteDeskPos));
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(villager.isAlive(), "Villager died before claiming the Apprentice Desk");
+            helper.assertTrue(villager.getVillagerData().getProfession() == VillagerProfessionRegistry.ERRAND_MAGE.get(),
+                    "Villager did not become Errand Mage: " + villager.getVillagerData().getProfession());
+            var jobSite = villager.getBrain().getMemory(MemoryModuleType.JOB_SITE).orElse(null);
+            helper.assertTrue(jobSite != null, "Villager did not store a job site");
+            helper.assertTrue(jobSite != null && absoluteDeskPos.equals(jobSite.pos()),
+                    "Villager claimed unexpected job site: " + jobSite);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var damagedCrown = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
+            damagedCrown.setDamageValue(2);
+            var taggedCrownCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
+            taggedCrownCost.getOrCreateTag().putString("apprenticecodex_test", "cost");
+            var crownOffer = new net.minecraft.world.item.trading.MerchantOffer(
+                    taggedCrownCost,
+                    new ItemStack(Items.EMERALD),
+                    16,
+                    2,
+                    0.05F
+            );
+            helper.assertTrue(crownOffer.satisfiedBy(damagedCrown, ItemStack.EMPTY),
+                    "Damaged crown should satisfy the errand mage buy offer even when the saved cost stack has tags");
+
+            var taggedScroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+            taggedScroll.getOrCreateTag().putString("apprenticecodex_test", "tagged");
+            var taggedScrollCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+            taggedScrollCost.getOrCreateTag().putString("apprenticecodex_test", "cost");
+            var scrollOffer = new net.minecraft.world.item.trading.MerchantOffer(
+                    taggedScrollCost,
+                    new ItemStack(Items.EMERALD, 16),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_COMMON.get()),
+                    3,
+                    5,
+                    0.05F
+            );
+            helper.assertTrue(scrollOffer.satisfiedBy(taggedScroll, new ItemStack(Items.EMERALD, 16)),
+                    "Tagged scroll should satisfy the errand mage ink trade even when the saved cost stack has tags");
         });
     }
 

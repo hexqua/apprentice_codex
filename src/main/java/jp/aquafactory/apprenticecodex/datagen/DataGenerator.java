@@ -31,6 +31,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), blockTagGenerator);
         generator.addProvider(event.includeServer(), new EntityTypeTagGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));
+        generator.addProvider(event.includeServer(), new PoiTypeTagGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SearchBeaconTargetDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SchoolAffinitySelectionPolicyDataGenerator(output, existing));

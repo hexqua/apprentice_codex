@@ -189,6 +189,12 @@
   "entity.apprenticecodex.companion_trunk": "Trunk-Kun",
   "entity.apprenticecodex.healing_bloom": "Healing Bloom",
   "entity.apprenticecodex.search_beacon": "Brazier of Search",
+  "entity.minecraft.villager.apprenticecodex.errand_mage": "Errand Mage",
+  "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "Errand Mage",
+  "entity.minecraft.villager.errand_mage": "Errand Mage",
+  "entity.minecraft.zombie_villager.errand_mage": "Errand Mage",
+  "entity.apprenticecodex.villager.errand_mage": "Errand Mage",
+  "entity.apprenticecodex.zombie_villager.errand_mage": "Errand Mage",
 
   "container.apprenticecodex.personal_shelf": "Personal Shelf",
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
