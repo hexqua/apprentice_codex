@@ -97,6 +97,11 @@ final class HealingBloomPlacementHelper {
             return Optional.empty();
         }
 
+        var bushState = jp.aquafactory.apprenticecodex.registry.BlockRegistry.COMFORT_BERRY_BUSH.get().defaultBlockState();
+        if (!bushState.canSurvive(level, placementPos)) {
+            return Optional.empty();
+        }
+
         var lightPos = placementPos.above();
         if (!level.getBlockState(lightPos).canBeReplaced()) {
             return Optional.empty();

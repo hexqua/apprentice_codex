@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -95,6 +96,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     private int witherTime = 20 * 60;
     private boolean naturalWithering;
     private boolean lightInitialized;
+    private boolean preserveLightOnRemove;
     private int witherAnimationTick;
     private int clientAnimationSerial;
 
@@ -158,17 +160,15 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     }
 
     private void tickOnServer(ServerLevel level) {
-        var owner = getOwner();
-        if (owner == null || !owner.isAlive()) {
-            discard();
-            return;
-        }
-
         setNoGravity(true);
         setDeltaMovement(Vec3.ZERO);
         var anchorCenter = getAnchorCenter();
         if (position().distanceToSqr(anchorCenter) > 0.0001) {
             setPos(anchorCenter.x, anchorCenter.y, anchorCenter.z);
+        }
+        if (!canStayAtAnchor()) {
+            discardForced(level);
+            return;
         }
         syncLightColor();
         tryPlayGrowthSound(level);
@@ -260,9 +260,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
             return;
         }
 
-        removeLightBlock(level);
-        spawnAtLocation(new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), 3 + random.nextInt(2)));
-        discard();
+        finishNaturalWither(level);
     }
 
     private void startNaturalWither(ServerLevel level) {
@@ -270,7 +268,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         witherAnimationTick = WITHER_ANIMATION_TICK;
         setAnimationState(BloomAnimationState.WITHER, true);
         playWitherLeafBreak(level);
-        removeLightBlock(level);
+        markLightPersistent(level, true);
     }
 
     private boolean hasLightBlock() {
@@ -291,6 +289,10 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         if (level.getBlockState(lightPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
             level.removeBlock(lightPos, false);
         }
+    }
+
+    private boolean canStayAtAnchor() {
+        return BlockRegistry.COMFORT_BERRY_BUSH.get().defaultBlockState().canSurvive(level(), anchorPos);
     }
 
     private AABB createEffectArea() {
@@ -388,11 +390,53 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     }
 
     private void syncLightColor() {
+        // 自然枯死後の残留光源は、寿命切れ前の赤ではなく初期色の黄で残す。
+        if (naturalWithering) {
+            entityData.set(LIGHT_COLOR_RED, LIGHT_COLOR_YELLOW_RED);
+            entityData.set(LIGHT_COLOR_GREEN, LIGHT_COLOR_YELLOW_GREEN);
+            entityData.set(LIGHT_COLOR_BLUE, LIGHT_COLOR_YELLOW_BLUE);
+            return;
+        }
+
         // 寿命はサーバー側だけが正値を持つため、光源色も花から同期して client renderer に渡す。
         var progress = getLifetimeProgress();
         entityData.set(LIGHT_COLOR_RED, net.minecraft.util.Mth.lerp(progress, LIGHT_COLOR_YELLOW_RED, LIGHT_COLOR_RED_RED));
         entityData.set(LIGHT_COLOR_GREEN, net.minecraft.util.Mth.lerp(progress, LIGHT_COLOR_YELLOW_GREEN, LIGHT_COLOR_RED_GREEN));
         entityData.set(LIGHT_COLOR_BLUE, net.minecraft.util.Mth.lerp(progress, LIGHT_COLOR_YELLOW_BLUE, LIGHT_COLOR_RED_BLUE));
+    }
+
+    private void finishNaturalWither(ServerLevel level) {
+        if (!placeComfortBerryBush(level)) {
+            spawnAtLocation(new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), 3 + random.nextInt(2)));
+        }
+
+        preserveLightOnRemove = true;
+        discard();
+    }
+
+    private boolean placeComfortBerryBush(ServerLevel level) {
+        var bushState = BlockRegistry.COMFORT_BERRY_BUSH.get()
+                .defaultBlockState()
+                .setValue(ComfortBerryBushBlock.AGE, ComfortBerryBushBlock.MAX_AGE);
+        if (!bushState.canSurvive(level, anchorPos) || !level.getBlockState(anchorPos).canBeReplaced()) {
+            return false;
+        }
+
+        return level.setBlock(anchorPos, bushState, 3);
+    }
+
+    private void discardForced(ServerLevel level) {
+        markLightPersistent(level, false);
+        removeLightBlock(level);
+        discard();
+    }
+
+    private void markLightPersistent(Level level, boolean persistent) {
+        var blockEntity = level.getBlockEntity(getLightPos());
+        if (blockEntity instanceof HealingBloomLightBlockEntity lightBlockEntity) {
+            // 花本体は保存しないので、自然枯死後にだけ光源側へ永続化責務を移す。
+            lightBlockEntity.setPersistentAfterBloomGone(persistent);
+        }
     }
 
     private void tryPlayGrowthSound(ServerLevel level) {
@@ -419,7 +463,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public void remove(@NotNull RemovalReason reason) {
-        if (!level().isClientSide) {
+        if (!level().isClientSide && !preserveLightOnRemove) {
             removeLightBlock(level());
         }
         super.remove(reason);
