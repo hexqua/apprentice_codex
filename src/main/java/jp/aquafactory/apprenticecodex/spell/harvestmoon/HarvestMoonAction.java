@@ -374,7 +374,7 @@ public interface HarvestMoonAction {
 
             for (var iterator = drops.iterator(); iterator.hasNext(); ) {
                 var drop = iterator.next();
-                if (!ItemStack.isSameItemSameTags(drop, seedStack)) {
+                if (!ItemStack.isSameItemSameComponents(drop, seedStack)) {
                     continue;
                 }
                 drop.shrink(1);
