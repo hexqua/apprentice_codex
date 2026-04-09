@@ -1,0 +1,14 @@
+{
+  "type": "irons_spellbooks:append_loot",
+  "conditions": [
+    {
+      "condition": "forge:loot_table_id",
+      "loot_table_id": "irons_spellbooks:chests/catacombs/crypt_loot"
+    },
+    {
+      "chance": 0.23076923076923078,
+      "condition": "minecraft:random_chance"
+    }
+  ],
+  "key": "apprenticecodex:chests/catacombs_crypt_curio_bonus"
+}

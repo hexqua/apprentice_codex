@@ -37,6 +37,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new SchoolAffinityCatalystOverrideDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new RecipeGenerator(output));
         generator.addProvider(event.includeServer(), new GrindRunnerRecipeDataGenerator(output));
+        generator.addProvider(event.includeServer(), new CurioLootDataGenerator(output));
         generator.addProvider(event.includeServer(), new EssenceSmokerRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new SpellcasterWorkbenchRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new LootTableGenerator(output));
