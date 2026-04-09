@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SoundType;
@@ -13,13 +14,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HealingBloomLightBlock extends BaseEntityBlock implements EntityBlock {
     public static final MapCodec<HealingBloomLightBlock> CODEC = simpleCodec(HealingBloomLightBlock::new);
+    private static final VoxelShape OUTLINE_SHAPE = Block.box(6.0D, 0.0D, 6.0D, 10.0D, 4.0D, 10.0D);
 
     public HealingBloomLightBlock(Properties properties) {
         super(properties);
@@ -44,7 +45,8 @@ public class HealingBloomLightBlock extends BaseEntityBlock implements EntityBlo
     @SuppressWarnings("deprecation")
     public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level,
                                         @NotNull BlockPos pos, @NotNull CollisionContext context) {
-        return Shapes.empty();
+        // 不可視のままでも手で撤去できるよう、中央に小さい選択判定だけを残す。
+        return OUTLINE_SHAPE;
     }
 
     @Override
