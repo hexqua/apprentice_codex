@@ -1,8 +1,11 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -41,6 +44,7 @@ import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Registry;
@@ -56,6 +60,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -84,19 +89,24 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.fml.ModList;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -104,6 +114,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -1209,6 +1220,147 @@ public final class ApprenticeCodexGameTests {
             helper.assertBlockPresent(BlockRegistry.HEALING_BLOOM_LIGHT.get(), persistentPos);
         });
     }
+    @GameTest(template = TEMPLATE)
+    public static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 3, 0);
+        var matureCropPos = new BlockPos(3, 2, 0);
+        var immatureCropPos = new BlockPos(4, 2, 0);
+        // age リセット収穫の検証が目的。
+        // 小麦系は GameTest/FakePlayer 環境だと明るさ・耕地維持・更新順のノイズを受けやすいため、
+        // ここでは Soul Sand だけで生存条件を満たせるネザーウォートで収穫ロジック自体を検証する。
+        helper.setBlock(matureCropPos.below(), Blocks.SOUL_SAND);
+        helper.setBlock(immatureCropPos.below(), Blocks.SOUL_SAND);
+        helper.setBlock(matureCropPos, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, NetherWartBlock.MAX_AGE));
+        helper.setBlock(immatureCropPos, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, 2));
+
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+        helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
+        helper.runAtTickTime(3, () -> {
+            helper.assertBlockProperty(matureCropPos, NetherWartBlock.AGE, 0);
+            helper.assertBlockProperty(immatureCropPos, NetherWartBlock.AGE, 2);
+            helper.assertItemEntityPresent(Items.NETHER_WART, casterPos, 1.5);
+            helper.assertItemEntityNotPresent(Items.NETHER_WART, matureCropPos, 1.5);
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void harvestMoonHarvestsStemFruitWithoutBreakingStem(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 3, 0);
+        var stemPos = new BlockPos(2, 2, 1);
+        var fruitPos = new BlockPos(3, 2, 1);
+        helper.setBlock(stemPos.below(), Blocks.FARMLAND);
+        helper.setBlock(stemPos, Blocks.ATTACHED_MELON_STEM.defaultBlockState().setValue(AttachedStemBlock.FACING, Direction.EAST));
+        helper.setBlock(fruitPos, Blocks.MELON);
+
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+        helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
+
+        helper.succeedWhen(() -> {
+            helper.assertBlockNotPresent(Blocks.MELON, fruitPos);
+            helper.assertBlockPresent(Blocks.MELON_STEM, stemPos);
+            helper.assertItemEntityPresent(Items.MELON_SLICE, casterPos, 1.5);
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 120)
+    public static void harvestMoonProcessesTargetsAcrossMultipleTicksAndKeepsBambooRoot(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 4, 0);
+        var bambooBase = new BlockPos(4, 2, 1);
+        helper.setBlock(bambooBase.below(), Blocks.DIRT);
+        helper.setBlock(bambooBase, Blocks.BAMBOO);
+        for (var offset = 1; offset <= 6; ++offset) {
+            helper.setBlock(bambooBase.above(offset), Blocks.BAMBOO);
+        }
+
+        var cropPositions = new ArrayList<BlockPos>();
+        for (var x = 2; x <= 9; ++x) {
+            for (var z = -4; z <= 4; ++z) {
+                var pos = new BlockPos(x, 3, z);
+                if (pos.getX() == bambooBase.getX() && pos.getZ() == bambooBase.getZ()) {
+                    continue;
+                }
+                cropPositions.add(pos);
+                helper.setBlock(pos.below(), Blocks.SOUL_SAND);
+                helper.setBlock(pos, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, NetherWartBlock.MAX_AGE));
+            }
+        }
+        helper.assertTrue(cropPositions.size() > 64, "HarvestMoon tick budget test requires more than 64 crops");
+
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+        helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
+        helper.runAtTickTime(2, () -> helper.assertTrue(countMatureHarvestMoonPlants(helper, cropPositions) > 0,
+                "HarvestMoon should leave some crops for later ticks"));
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(countMatureHarvestMoonPlants(helper, cropPositions) == 0,
+                    "HarvestMoon should eventually harvest every queued mature crop");
+            helper.assertBlockPresent(Blocks.BAMBOO, bambooBase);
+            for (var offset = 1; offset <= 6; ++offset) {
+                helper.assertBlockNotPresent(Blocks.BAMBOO, bambooBase.above(offset));
+            }
+            helper.assertItemEntityPresent(Items.BAMBOO, casterPos, 1.5);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void harvestMoonHarvestsKelpColumnBeyondInitialYSlice(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 4, 0);
+        var kelpBase = new BlockPos(3, 2, 0);
+        helper.setBlock(kelpBase.below(), Blocks.DIRT);
+        helper.setBlock(kelpBase, Blocks.KELP_PLANT);
+        for (var offset = 1; offset <= 5; ++offset) {
+            helper.setBlock(kelpBase.above(offset), Blocks.KELP_PLANT);
+        }
+        helper.setBlock(kelpBase.above(6), Blocks.KELP);
+
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+        helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
+
+        helper.succeedWhen(() -> {
+            var baseState = helper.getBlockState(kelpBase);
+            helper.assertTrue(baseState.is(Blocks.KELP) || baseState.is(Blocks.KELP_PLANT),
+                    "HarvestMoon should keep the bottom kelp block");
+            for (var offset = 1; offset <= 6; ++offset) {
+                var state = helper.getBlockState(kelpBase.above(offset));
+                helper.assertTrue(!state.is(Blocks.KELP) && !state.is(Blocks.KELP_PLANT),
+                        "HarvestMoon should remove upper kelp blocks even outside the initial Y slice");
+            }
+            helper.assertItemEntityPresent(Items.KELP, casterPos, 1.5);
+        });
+    }
+
+    private static FakePlayer createHarvestMoonPlayer(GameTestHelper helper, BlockPos pos, ItemStack mainHandStack) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "harvest_moon_test"));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
+        return player;
+    }
+
+    private static void castHarvestMoon(GameTestHelper helper, FakePlayer player, int spellLevel) {
+        var spell = SpellRegistry.HARVEST_MOON.get();
+        spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static int countMatureHarvestMoonPlants(GameTestHelper helper, List<BlockPos> cropPositions) {
+        var count = 0;
+        for (var pos : cropPositions) {
+            var state = helper.getBlockState(pos);
+            if (state.getBlock() instanceof CropBlock cropBlock && cropBlock.isMaxAge(state)) {
+                ++count;
+                continue;
+            }
+            if (state.is(Blocks.NETHER_WART)
+                    && state.hasProperty(NetherWartBlock.AGE)
+                    && state.getValue(NetherWartBlock.AGE) >= NetherWartBlock.MAX_AGE) {
+                ++count;
+            }
+        }
+        return count;
+    }
+
     private static boolean isApprenticeSpell(AbstractSpell spell) {
         var spellId = spell.getSpellResource();
         return spellId != null && ApprenticeCodex.MODID.equals(spellId.getNamespace());
