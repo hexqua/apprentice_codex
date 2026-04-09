@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -62,9 +63,11 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
@@ -947,6 +950,60 @@ public final class ApprenticeCodexGameTests {
                     "Amplified haunted bonus damage should scale to 6.0 at proficiency 1.5, actual=" + amplifiedTaken);
             helper.assertTrue(amplifiedTaken > baselineTaken,
                     "Amplified haunted bonus damage should exceed baseline damage");
+        });
+    }
+
+    public static void healingBloomLightOutlineIsInteractable(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var shape = BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState()
+                    .getShape(level, new BlockPos(0, 2, 0), CollisionContext.empty());
+            helper.assertTrue(!shape.isEmpty(),
+                    "Healing Bloom light should expose a non-empty outline so it can be broken by hand");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomPersistentLightSkipsSelfClean(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var normalPos = new BlockPos(0, 2, 0);
+            var persistentPos = new BlockPos(2, 2, 0);
+
+            helper.setBlock(normalPos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
+            helper.setBlock(persistentPos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
+
+            var normalBlockEntity = helper.getBlockEntity(normalPos);
+            var persistentBlockEntity = helper.getBlockEntity(persistentPos);
+            helper.assertTrue(normalBlockEntity instanceof HealingBloomLightBlockEntity,
+                    "Normal Healing Bloom light is missing its block entity");
+            helper.assertTrue(persistentBlockEntity instanceof HealingBloomLightBlockEntity,
+                    "Persistent Healing Bloom light is missing its block entity");
+
+            ((HealingBloomLightBlockEntity) persistentBlockEntity).setPersistentAfterBloomGone(true);
+
+            for (int i = 0; i < 25; ++i) {
+                if (level.getBlockState(normalPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
+                    HealingBloomLightBlockEntity.serverTick(
+                            level,
+                            normalPos,
+                            level.getBlockState(normalPos),
+                            (HealingBloomLightBlockEntity) normalBlockEntity
+                    );
+                }
+                if (level.getBlockState(persistentPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
+                    HealingBloomLightBlockEntity.serverTick(
+                            level,
+                            persistentPos,
+                            level.getBlockState(persistentPos),
+                            (HealingBloomLightBlockEntity) persistentBlockEntity
+                    );
+                }
+            }
+
+            helper.assertTrue(!level.getBlockState(normalPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get()),
+                    "Non-persistent Healing Bloom light should still self-clean without a bloom");
+            helper.assertBlockPresent(BlockRegistry.HEALING_BLOOM_LIGHT.get(), persistentPos);
         });
     }
 
