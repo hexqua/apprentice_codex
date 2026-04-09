@@ -62,6 +62,10 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.fml.ModList;
@@ -259,6 +263,62 @@ public final class ApprenticeCodexGameTests {
                 previousSchoolIndex = schoolIndex;
             }
         });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void apprenticeCurioBonusLootTableContainsAllThreeItems(GameTestHelper helper) {
+        helper.succeedIf(() -> assertLootTableGeneratesAllItems(
+                helper,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/basic_curios_bonus"),
+                createEmptyLootParams(helper),
+                256,
+                List.of(
+                        ItemRegistry.SCARLET_THIRST.get(),
+                        ItemRegistry.CRAFTSMANS_DELIGHT.get(),
+                        ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()
+                )
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void genericLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
+        helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
+                helper,
+                ResourceLocation.withDefaultNamespace("chests/simple_dungeon"),
+                createChestLootParams(helper),
+                2048,
+                List.of(
+                        ItemRegistry.SCARLET_THIRST.get(),
+                        ItemRegistry.CRAFTSMANS_DELIGHT.get(),
+                        ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()
+                )
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void ironsStructureLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
+        helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
+                helper,
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/generic_magic_treasure"),
+                createChestLootParams(helper),
+                512,
+                List.of(
+                        ItemRegistry.SCARLET_THIRST.get(),
+                        ItemRegistry.CRAFTSMANS_DELIGHT.get(),
+                        ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()
+                )
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void catacombsLootIncludesScarletThirstBonusDrop(GameTestHelper helper) {
+        helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
+                helper,
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/coffin_loot"),
+                createChestLootParams(helper),
+                256,
+                List.of(ItemRegistry.SCARLET_THIRST.get())
+        ));
     }
 
     @GameTest(template = TEMPLATE)
@@ -1282,6 +1342,65 @@ public final class ApprenticeCodexGameTests {
                         && definition.targets().contains(new SearchBeaconTargetList.TargetReference(false, ResourceLocation.parse(expectedTarget))),
                 "SearchBeacon target mismatch for " + BuiltInRegistries.ITEM.getKey(item)
         );
+    }
+
+    private static LootParams createChestLootParams(GameTestHelper helper) {
+        return new LootParams.Builder(helper.getLevel())
+                .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(new BlockPos(0, 1, 0)))
+                .create(LootContextParamSets.CHEST);
+    }
+
+    private static LootParams createEmptyLootParams(GameTestHelper helper) {
+        return new LootParams.Builder(helper.getLevel()).create(LootContextParamSets.EMPTY);
+    }
+
+    private static void assertLootTableGeneratesAllItems(
+            GameTestHelper helper,
+            ResourceLocation lootTableId,
+            LootParams lootParams,
+            int attempts,
+            List<Item> expectedItems
+    ) {
+        var remainingItems = expectedItems.stream()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        sampleLootTable(helper, lootTableId, lootParams, attempts, stack -> remainingItems.remove(stack.getItem()));
+
+        helper.assertTrue(remainingItems.isEmpty(),
+                "Loot table " + lootTableId + " did not generate expected items within " + attempts + " attempts: "
+                        + remainingItems.stream().map(BuiltInRegistries.ITEM::getKey).toList());
+    }
+
+    private static void assertLootTableGeneratesAnyItem(
+            GameTestHelper helper,
+            ResourceLocation lootTableId,
+            LootParams lootParams,
+            int attempts,
+            List<Item> expectedItems
+    ) {
+        var seenItems = new LinkedHashSet<Item>();
+        sampleLootTable(helper, lootTableId, lootParams, attempts, stack -> {
+            if (expectedItems.contains(stack.getItem())) {
+                seenItems.add(stack.getItem());
+            }
+        });
+
+        helper.assertTrue(!seenItems.isEmpty(),
+                "Loot table " + lootTableId + " did not generate any of the expected items within " + attempts + " attempts: "
+                        + expectedItems.stream().map(BuiltInRegistries.ITEM::getKey).toList());
+    }
+
+    private static void sampleLootTable(
+            GameTestHelper helper,
+            ResourceLocation lootTableId,
+            LootParams lootParams,
+            int attempts,
+            java.util.function.Consumer<ItemStack> stackConsumer
+    ) {
+        var lootTable = helper.getLevel().getServer().getLootData().getLootTable(lootTableId);
+        for (var i = 0; i < attempts; i++) {
+            lootTable.getRandomItems(lootParams, stackConsumer);
+        }
     }
 
     private static ExplorersCodexGuidebookTransferRecipe getExplorersCodexGuidebookTransferRecipe(GameTestHelper helper) {

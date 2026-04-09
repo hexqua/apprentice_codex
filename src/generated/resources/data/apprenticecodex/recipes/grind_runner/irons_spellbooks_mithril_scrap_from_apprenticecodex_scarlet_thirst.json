@@ -1,7 +1,7 @@
 {
   "type": "apprenticecodex:grind_runner",
   "ingredient": {
-    "item": "irons_spellbooks:cast_time_ring"
+    "item": "apprenticecodex:scarlet_thirst"
   },
   "results": [
     {

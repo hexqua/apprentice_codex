@@ -19,8 +19,6 @@ public final class GrindRunnerRecipeCategory extends AbstractApprenticeCodexReci
     private static final int OUTPUT_Y = 12;
     private static final int OUTPUT_COLUMNS = 2;
     private static final int SLOT_SPACING = 18;
-    private static final Component ALLOW_UNSTACKABLE_TOOLTIP =
-            Component.translatable("jei.apprenticecodex.grind_runner.allow_unstackable_and_tagged_input");
 
     public GrindRunnerRecipeCategory(IGuiHelper guiHelper, ItemStack iconStack) {
         super(
@@ -41,10 +39,6 @@ public final class GrindRunnerRecipeCategory extends AbstractApprenticeCodexReci
             inputSlot.addIngredients(recipe.getIngredient());
         } else {
             inputSlot.addItemStacks(inputStacks);
-        }
-
-        if (recipe.allowsUnstackableAndTaggedInput()) {
-            inputSlot.addRichTooltipCallback((view, tooltip) -> tooltip.add(ALLOW_UNSTACKABLE_TOOLTIP));
         }
 
         var outputs = recipe.getResultTemplates();

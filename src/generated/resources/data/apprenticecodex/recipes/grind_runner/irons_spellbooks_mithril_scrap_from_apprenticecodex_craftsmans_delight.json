@@ -1,12 +1,16 @@
 {
   "type": "apprenticecodex:grind_runner",
   "ingredient": {
-    "item": "irons_spellbooks:cast_time_ring"
+    "item": "apprenticecodex:craftsmans_delight"
   },
   "results": [
     {
       "count": 1,
       "item": "irons_spellbooks:mithril_scrap"
+    },
+    {
+      "count": 1,
+      "item": "irons_spellbooks:nature_rune"
     }
   ]
 }
