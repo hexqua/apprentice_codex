@@ -217,6 +217,12 @@
   "entity.apprenticecodex.companion_trunk": "トランクくん",
   "entity.apprenticecodex.healing_bloom": "癒しの花",
   "entity.apprenticecodex.search_beacon": "探知の火鉢",
+  "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
+  "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
+  "entity.minecraft.villager.errand_mage": "使い走り魔術師",
+  "entity.minecraft.zombie_villager.errand_mage": "使い走り魔術師",
+  "entity.apprenticecodex.villager.errand_mage": "使い走り魔術師",
+  "entity.apprenticecodex.zombie_villager.errand_mage": "使い走り魔術師",
 
   "container.apprenticecodex.personal_shelf": "パーソナルシェルフ",
   "container.apprenticecodex.apprentice_desk": "見習い用の机",

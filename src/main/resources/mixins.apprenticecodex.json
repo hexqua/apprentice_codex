@@ -19,6 +19,8 @@
     "LivingEntityPhalanxGuardMixin",
     "PotionContentsMixin",
     "LivingEntitySpectralWingMixin",
+    "ItemCostMixin",
+    "MerchantMenuMixin",
     "PotionFluidTypeMixin",
     "SchoolTypeAccessor"
   ],
