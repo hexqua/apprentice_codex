@@ -22,6 +22,8 @@
     "ItemCostMixin",
     "MerchantMenuMixin",
     "PotionFluidTypeMixin",
+    "SinglePoolElementAccessor",
+    "StructureTemplatePoolAccessor",
     "SchoolTypeAccessor"
   ],
   "client": [
