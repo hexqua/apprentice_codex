@@ -11,14 +11,19 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Optional;
 
 public class HarvestMoon extends AbstractSpell {
+    private static final int BLOCK_BUDGET_PER_TICK = 32;
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "harvest_moon");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -83,6 +88,27 @@ public class HarvestMoon extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (level instanceof ServerLevel serverLevel && entity instanceof ServerPlayer serverPlayer) {
+            var range = Math.max(1, Mth.floor(getRange(spellLevel, entity)));
+            var actions = HarvestMoonTargetCollector.collect(serverLevel, serverPlayer, range);
+            if (!actions.isEmpty()) {
+                // 1.20.1 Forge では ServerPlayerGameMode を経由した右クリック/破壊を使うため、
+                // 詠唱時点のメインハンドをコピーして以後の tick 処理に渡す。
+                var job = new HarvestMoonJob(
+                        serverPlayer,
+                        getWorkingMainHandStack(serverPlayer),
+                        actions,
+                        new net.minecraft.world.phys.Vec3(serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ()),
+                        BLOCK_BUDGET_PER_TICK
+                );
+                HarvestMoonJobManager.submit(serverLevel, job);
+            }
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private static ItemStack getWorkingMainHandStack(ServerPlayer player) {
+        var mainHand = player.getMainHandItem();
+        return mainHand.isEmpty() ? ItemStack.EMPTY : mainHand.copy();
     }
 }
