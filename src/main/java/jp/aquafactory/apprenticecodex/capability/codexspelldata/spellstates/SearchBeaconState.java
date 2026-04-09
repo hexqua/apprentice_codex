@@ -14,26 +14,27 @@ import java.util.Set;
 public class SearchBeaconState implements ICodexSpellState {
     private static final String SEARCHED_KEY = "searched_structures";
     private static final String TRAVERSED_KEY = "traversed_structures";
+    private static final String MARKER_SEPARATOR = "|";
 
-    private final Set<ResourceLocation> searchedStructures = new LinkedHashSet<>();
-    private final Set<ResourceLocation> traversedStructures = new LinkedHashSet<>();
+    private final Set<StructureMarker> searchedStructures = new LinkedHashSet<>();
+    private final Set<StructureMarker> traversedStructures = new LinkedHashSet<>();
 
-    public StructureKnowledge getKnowledge(ResourceLocation structureId) {
-        if (traversedStructures.contains(structureId)) {
+    public StructureKnowledge getKnowledge(StructureMarker marker) {
+        if (traversedStructures.contains(marker)) {
             return StructureKnowledge.TRAVERSED;
         }
-        if (searchedStructures.contains(structureId)) {
+        if (searchedStructures.contains(marker)) {
             return StructureKnowledge.SEARCHED;
         }
         return StructureKnowledge.UNKNOWN;
     }
 
-    public boolean markSearched(Collection<ResourceLocation> structureIds) {
-        return searchedStructures.addAll(structureIds);
+    public boolean markSearched(Collection<StructureMarker> markers) {
+        return searchedStructures.addAll(markers);
     }
 
-    public boolean markTraversed(Collection<ResourceLocation> structureIds) {
-        return traversedStructures.addAll(structureIds);
+    public boolean markTraversed(Collection<StructureMarker> markers) {
+        return traversedStructures.addAll(markers);
     }
 
     @Override
@@ -52,19 +53,50 @@ public class SearchBeaconState implements ICodexSpellState {
         loadIds(tag.getList(TRAVERSED_KEY, Tag.TAG_STRING), traversedStructures);
     }
 
-    private static ListTag saveIds(Collection<ResourceLocation> ids) {
+    private static ListTag saveIds(Collection<StructureMarker> ids) {
         var list = new ListTag();
         for (var id : ids) {
-            list.add(StringTag.valueOf(id.toString()));
+            list.add(StringTag.valueOf(id.asString()));
         }
         return list;
     }
 
-    private static void loadIds(ListTag list, Set<ResourceLocation> out) {
+    private static void loadIds(ListTag list, Set<StructureMarker> out) {
         for (int i = 0; i < list.size(); i++) {
-            var id = ResourceLocation.tryParse(list.getString(i));
+            var id = StructureMarker.parse(list.getString(i));
             if (id != null) {
                 out.add(id);
+            }
+        }
+    }
+
+    public record StructureMarker(ResourceLocation dimensionId, ResourceLocation structureId, long startChunkPos) {
+        public String asString() {
+            return dimensionId + MARKER_SEPARATOR + structureId + MARKER_SEPARATOR + Long.toUnsignedString(startChunkPos);
+        }
+
+        public static StructureMarker parse(String raw) {
+            var firstSeparator = raw.indexOf(MARKER_SEPARATOR);
+            if (firstSeparator < 0) {
+                return null;
+            }
+
+            var secondSeparator = raw.indexOf(MARKER_SEPARATOR, firstSeparator + MARKER_SEPARATOR.length());
+            if (secondSeparator < 0) {
+                return null;
+            }
+
+            var dimensionId = ResourceLocation.tryParse(raw.substring(0, firstSeparator));
+            var structureId = ResourceLocation.tryParse(raw.substring(firstSeparator + MARKER_SEPARATOR.length(), secondSeparator));
+            if (dimensionId == null || structureId == null) {
+                return null;
+            }
+
+            try {
+                var startChunkPos = Long.parseUnsignedLong(raw.substring(secondSeparator + MARKER_SEPARATOR.length()));
+                return new StructureMarker(dimensionId, structureId, startChunkPos);
+            } catch (NumberFormatException ignored) {
+                return null;
             }
         }
     }

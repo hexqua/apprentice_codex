@@ -68,8 +68,10 @@ public final class SearchBeaconSearchService {
             }
 
             var placementTasks = new ArrayList<PlacementSearchTask>();
+            // 同じ structure に対する複数 placement から同一 start を拾う場合があるため、重複検知は structure 単位で共有する。
+            var processedStarts = new LinkedHashSet<Long>();
             for (var placement : generatorState.getPlacementsForStructure(holder)) {
-                var task = createPlacementTask(level, origin, cappedRange, holder, structureId, state.getKnowledge(structureId), placement);
+                var task = createPlacementTask(level, origin, cappedRange, holder, structureId, state, processedStarts, placement);
                 placementTasks.add(task);
             }
 
@@ -87,16 +89,17 @@ public final class SearchBeaconSearchService {
             int rangeBlocks,
             Holder<Structure> structureHolder,
             ResourceLocation structureId,
-            SearchBeaconState.StructureKnowledge knowledge,
+            SearchBeaconState state,
+            Set<Long> processedStarts,
             StructurePlacement placement
     ) {
         if (placement instanceof RandomSpreadStructurePlacement randomSpreadPlacement) {
-            return new RandomSpreadSearchTask(level, origin, rangeBlocks, structureHolder.value(), structureId, knowledge, randomSpreadPlacement);
+            return new RandomSpreadSearchTask(level, origin, rangeBlocks, structureHolder.value(), structureId, state, processedStarts, randomSpreadPlacement);
         }
         if (placement instanceof ConcentricRingsStructurePlacement concentricPlacement) {
-            return new ConcentricSearchTask(level, origin, rangeBlocks, structureHolder.value(), structureId, knowledge, concentricPlacement);
+            return new ConcentricSearchTask(level, origin, rangeBlocks, structureHolder.value(), structureId, state, processedStarts, concentricPlacement);
         }
-        return new FallbackSearchTask(level, origin, rangeBlocks, structureHolder.value(), structureId, knowledge, placement);
+        return new FallbackSearchTask(level, origin, rangeBlocks, structureHolder.value(), structureId, state, processedStarts, placement);
     }
 
     private static @Nullable LocatedStructure tryResolveLocatedStructure(
@@ -105,7 +108,7 @@ public final class SearchBeaconSearchService {
             Structure structure,
             StructurePlacement placement,
             ResourceLocation structureId,
-            SearchBeaconState.StructureKnowledge knowledge,
+            SearchBeaconState state,
             ChunkPos candidateChunk,
             double maxDistanceSq,
             Set<Long> processedStarts
@@ -123,7 +126,8 @@ public final class SearchBeaconSearchService {
         if (start == null || !start.isValid()) {
             return null;
         }
-        if (!processedStarts.add(start.getChunkPos().toLong())) {
+        var marker = new SearchBeaconState.StructureMarker(level.dimension().location(), structureId, start.getChunkPos().toLong());
+        if (!processedStarts.add(marker.startChunkPos())) {
             return null;
         }
 
@@ -133,7 +137,7 @@ public final class SearchBeaconSearchService {
             return null;
         }
 
-        return new LocatedStructure(structureId, center.immutable(), knowledge, distanceSq);
+        return new LocatedStructure(marker, center.immutable(), state.getKnowledge(marker), distanceSq);
     }
 
     private static double horizontalDistanceSq(BlockPos origin, BlockPos target) {
@@ -199,10 +203,8 @@ public final class SearchBeaconSearchService {
 
                 var task = structureTasks.get(nextTaskIndex);
                 remainingSteps = task.advance(level, remainingSteps);
+                locatedStructures.addAll(task.drainResults());
                 if (task.isComplete()) {
-                    if (task.result() != null) {
-                        locatedStructures.add(task.result());
-                    }
                     structureTasks.remove(nextTaskIndex);
                 } else {
                     nextTaskIndex++;
@@ -223,9 +225,9 @@ public final class SearchBeaconSearchService {
 
     private static final class StructureSearchTask {
         private final List<PlacementSearchTask> placementTasks;
+        private final List<LocatedStructure> pendingResults = new ArrayList<>();
         private int nextPlacementIndex;
         private boolean complete;
-        private @Nullable LocatedStructure result;
 
         private StructureSearchTask(List<PlacementSearchTask> placementTasks) {
             this.placementTasks = placementTasks;
@@ -237,14 +239,9 @@ public final class SearchBeaconSearchService {
             while (remainingSteps > 0 && !complete) {
                 var currentTask = placementTasks.get(nextPlacementIndex);
                 remainingSteps = currentTask.advance(level, remainingSteps);
+                pendingResults.addAll(currentTask.drainResults());
 
                 if (currentTask.isComplete()) {
-                    if (currentTask.result() != null) {
-                        result = currentTask.result();
-                        complete = true;
-                        break;
-                    }
-
                     nextPlacementIndex++;
                     if (nextPlacementIndex >= placementTasks.size()) {
                         complete = true;
@@ -258,8 +255,14 @@ public final class SearchBeaconSearchService {
             return complete;
         }
 
-        public @Nullable LocatedStructure result() {
-            return result;
+        public List<LocatedStructure> drainResults() {
+            if (pendingResults.isEmpty()) {
+                return List.of();
+            }
+
+            var drained = List.copyOf(pendingResults);
+            pendingResults.clear();
+            return drained;
         }
     }
 
@@ -268,30 +271,32 @@ public final class SearchBeaconSearchService {
 
         boolean isComplete();
 
-        @Nullable LocatedStructure result();
+        List<LocatedStructure> drainResults();
     }
 
     private abstract static class AbstractPlacementSearchTask implements PlacementSearchTask {
         protected final BlockPos origin;
         protected final Structure structure;
         protected final ResourceLocation structureId;
-        protected final SearchBeaconState.StructureKnowledge knowledge;
+        protected final SearchBeaconState state;
         protected final double maxDistanceSq;
-        protected final Set<Long> processedStarts = new LinkedHashSet<>();
+        protected final Set<Long> processedStarts;
+        protected final List<LocatedStructure> pendingResults = new ArrayList<>();
         protected boolean complete;
-        protected @Nullable LocatedStructure result;
 
         protected AbstractPlacementSearchTask(
                 BlockPos origin,
                 int rangeBlocks,
                 Structure structure,
                 ResourceLocation structureId,
-                SearchBeaconState.StructureKnowledge knowledge
+                SearchBeaconState state,
+                Set<Long> processedStarts
         ) {
             this.origin = origin.immutable();
             this.structure = structure;
             this.structureId = structureId;
-            this.knowledge = knowledge;
+            this.state = state;
+            this.processedStarts = processedStarts;
             maxDistanceSq = (double) rangeBlocks * (double) rangeBlocks;
         }
 
@@ -301,8 +306,14 @@ public final class SearchBeaconSearchService {
         }
 
         @Override
-        public @Nullable LocatedStructure result() {
-            return result;
+        public List<LocatedStructure> drainResults() {
+            if (pendingResults.isEmpty()) {
+                return List.of();
+            }
+
+            var drained = List.copyOf(pendingResults);
+            pendingResults.clear();
+            return drained;
         }
     }
 
@@ -327,10 +338,11 @@ public final class SearchBeaconSearchService {
                 int rangeBlocks,
                 Structure structure,
                 ResourceLocation structureId,
-                SearchBeaconState.StructureKnowledge knowledge,
+                SearchBeaconState state,
+                Set<Long> processedStarts,
                 RandomSpreadStructurePlacement placement
         ) {
-            super(origin, rangeBlocks, structure, structureId, knowledge);
+            super(origin, rangeBlocks, structure, structureId, state, processedStarts);
             this.placement = placement;
             generatorState = level.getChunkSource().getGeneratorState();
             levelSeed = generatorState.getLevelSeed();
@@ -370,9 +382,9 @@ public final class SearchBeaconSearchService {
                     continue;
                 }
 
-                result = tryResolveLocatedStructure(level, origin, structure, placement, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
-                if (result != null) {
-                    complete = true;
+                var located = tryResolveLocatedStructure(level, origin, structure, placement, structureId, state, candidate, maxDistanceSq, processedStarts);
+                if (located != null) {
+                    pendingResults.add(located);
                 }
             }
             return remainingSteps;
@@ -411,10 +423,11 @@ public final class SearchBeaconSearchService {
                 int rangeBlocks,
                 Structure structure,
                 ResourceLocation structureId,
-                SearchBeaconState.StructureKnowledge knowledge,
+                SearchBeaconState state,
+                Set<Long> processedStarts,
                 ConcentricRingsStructurePlacement placement
         ) {
-            super(origin, rangeBlocks, structure, structureId, knowledge);
+            super(origin, rangeBlocks, structure, structureId, state, processedStarts);
             this.placement = placement;
             var generatorState = level.getChunkSource().getGeneratorState();
             var ringPositions = generatorState.getRingPositionsFor(placement);
@@ -448,9 +461,9 @@ public final class SearchBeaconSearchService {
 
                 remainingSteps--;
                 var candidate = sortedCandidates.get(currentIndex++);
-                result = tryResolveLocatedStructure(level, origin, structure, placement, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
-                if (result != null) {
-                    complete = true;
+                var located = tryResolveLocatedStructure(level, origin, structure, placement, structureId, state, candidate, maxDistanceSq, processedStarts);
+                if (located != null) {
+                    pendingResults.add(located);
                 }
             }
             return remainingSteps;
@@ -476,10 +489,11 @@ public final class SearchBeaconSearchService {
                 int rangeBlocks,
                 Structure structure,
                 ResourceLocation structureId,
-                SearchBeaconState.StructureKnowledge knowledge,
+                SearchBeaconState state,
+                Set<Long> processedStarts,
                 StructurePlacement placement
         ) {
-            super(origin, rangeBlocks, structure, structureId, knowledge);
+            super(origin, rangeBlocks, structure, structureId, state, processedStarts);
             this.placement = placement;
             generatorState = level.getChunkSource().getGeneratorState();
             originChunkX = sectionCoord(origin.getX());
@@ -509,9 +523,9 @@ public final class SearchBeaconSearchService {
                     continue;
                 }
 
-                result = tryResolveLocatedStructure(level, origin, structure, placement, structureId, knowledge, candidate, maxDistanceSq, processedStarts);
-                if (result != null) {
-                    complete = true;
+                var located = tryResolveLocatedStructure(level, origin, structure, placement, structureId, state, candidate, maxDistanceSq, processedStarts);
+                if (located != null) {
+                    pendingResults.add(located);
                 }
             }
             return remainingSteps;
@@ -559,15 +573,16 @@ public final class SearchBeaconSearchService {
             return locatedStructures.stream().anyMatch(located -> located.knowledge() == SearchBeaconState.StructureKnowledge.UNKNOWN);
         }
 
-        public List<ResourceLocation> foundStructureIds() {
+        public List<SearchBeaconState.StructureMarker> foundStructureMarkers() {
             return locatedStructures.stream()
-                    .map(LocatedStructure::structureId)
+                    .map(LocatedStructure::marker)
+                    .distinct()
                     .toList();
         }
     }
 
     public record LocatedStructure(
-            ResourceLocation structureId,
+            SearchBeaconState.StructureMarker marker,
             BlockPos center,
             SearchBeaconState.StructureKnowledge knowledge,
             double distanceSq

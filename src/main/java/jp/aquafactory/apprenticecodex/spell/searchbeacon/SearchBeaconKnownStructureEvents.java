@@ -3,9 +3,9 @@ package jp.aquafactory.apprenticecodex.spell.searchbeacon;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -31,18 +31,19 @@ public final class SearchBeaconKnownStructureEvents {
         var structureManager = player.serverLevel().structureManager();
         var pos = player.blockPosition();
         var structureRegistry = player.serverLevel().registryAccess().registryOrThrow(Registries.STRUCTURE);
-        var traversed = new LinkedHashSet<net.minecraft.resources.ResourceLocation>();
+        var traversed = new LinkedHashSet<SearchBeaconState.StructureMarker>();
 
-        // 現在地を含む start だけを踏破済み対象にする。
-        // SearchBeacon 側も構造物種別単位で判定しているため、ここでも start 個別の履歴は持たない。
-        for (var start : structureManager.startsForStructure(new ChunkPos(pos), structure -> true)) {
-            if (!structureManager.structureHasPieceAt(pos, start)) {
-                continue;
-            }
-
+        // 村のような広い structure は現在 chunk の参照だけだと取りこぼすことがあるため、
+        // 「現在地を含む piece があるか」を直接見る API で判定する。
+        var start = structureManager.getStructureWithPieceAt(pos, structure -> true);
+        if (start.isValid()) {
             var structureId = structureRegistry.getKey(start.getStructure());
             if (structureId != null) {
-                traversed.add(structureId);
+                traversed.add(new SearchBeaconState.StructureMarker(
+                        player.serverLevel().dimension().location(),
+                        structureId,
+                        start.getChunkPos().toLong()
+                ));
             }
         }
 
