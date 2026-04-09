@@ -26,7 +26,7 @@ import java.util.Set;
 
 public final class SearchBeaconSearchService {
     private static final int CHUNK_PADDING = 2;
-    private static final int MAX_SEARCH_RANGE = 10000;
+    private static final int MAX_SEARCH_RANGE = 5000;
     private static final int SEARCH_STEPS_PER_TICK = 48;
 
     private SearchBeaconSearchService() {
