@@ -23,6 +23,8 @@ import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -204,6 +206,55 @@ public final class ApprenticeCodexGameTests {
                 helper.assertTrue(BuiltInRegistries.POTION.get(definition.strongPotionId()) == definition.strongPotion(),
                         "Missing School Affinity potion: " + definition.strongPotionId());
             }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var unknownMarker = new SearchBeaconState.StructureMarker(
+                    helper.getLevel().dimension().location(),
+                    ResourceLocation.fromNamespaceAndPath("minecraft", "ancient_city"),
+                    1L
+            );
+            var searchedMarker = new SearchBeaconState.StructureMarker(
+                    helper.getLevel().dimension().location(),
+                    ResourceLocation.fromNamespaceAndPath("minecraft", "village_plains"),
+                    2L
+            );
+            var unknownResult = new SearchBeaconSearchService.SearchResult(List.of(
+                    new SearchBeaconSearchService.LocatedStructure(
+                            unknownMarker,
+                            BlockPos.ZERO,
+                            SearchBeaconState.StructureKnowledge.UNKNOWN,
+                            4.0
+                    )
+            ));
+            var knownOnlyResult = new SearchBeaconSearchService.SearchResult(List.of(
+                    new SearchBeaconSearchService.LocatedStructure(
+                            searchedMarker,
+                            new BlockPos(8, 0, 0),
+                            SearchBeaconState.StructureKnowledge.SEARCHED,
+                            64.0
+                    )
+            ));
+
+            helper.assertFalse(
+                    SearchBeaconSearchService.shouldRefundOfferedItems(unknownResult),
+                    "SearchBeacon should not refund items when it found an unknown structure"
+            );
+            helper.assertTrue(
+                    SearchBeaconSearchService.shouldRefundOfferedItems(knownOnlyResult),
+                    "SearchBeacon should refund items when it only found known structures"
+            );
+            helper.assertTrue(
+                    SearchBeaconSearchService.shouldRefundOfferedItems(new SearchBeaconSearchService.SearchResult(List.of())),
+                    "SearchBeacon should refund items when it found nothing"
+            );
+            helper.assertTrue(
+                    SearchBeaconSearchService.shouldRefundOfferedItems(null),
+                    "SearchBeacon should refund items before any result is available"
+            );
         });
     }
 
