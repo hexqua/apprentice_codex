@@ -29,6 +29,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     private static final String INVENTORY_TAG = "Inventory";
     private static final String OWNER_UUID_TAG = "OwnerUuid";
     private static final String OWNER_NAME_TAG = "OwnerName";
+    private static final String CONTINUOUS_RESET_REQUIRED_TAG = "ContinuousResetRequired";
     private final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -49,6 +50,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     private GameProfile ownerProfile;
     @Nullable
     private SpellDispenserCastHelper.ContinuousCastSession activeContinuousCast;
+    private boolean continuousResetRequired;
 
     public SpellDispenserBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELL_DISPENSER.get(), pos, state);
@@ -87,6 +89,10 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
 
     public boolean hasActiveContinuousCast() {
         return activeContinuousCast != null && !activeContinuousCast.isFinished();
+    }
+
+    public boolean requiresContinuousReset() {
+        return continuousResetRequired;
     }
 
     public SpellDispenserCastHelper.CastResult tryActivate() {
@@ -164,6 +170,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
 
         if (activeContinuousCast.isFinished()) {
             activeContinuousCast = null;
+            continuousResetRequired = state.getValue(SpellDispenser.TRIGGERED);
             setChanged();
             return;
         }
@@ -193,26 +200,39 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
 
         if (!SpellDispenserCastHelper.tickContinuousCast(level, activeContinuousCast)) {
             activeContinuousCast = null;
+            continuousResetRequired = state.getValue(SpellDispenser.TRIGGERED);
             setChanged();
         }
     }
 
     public void startContinuousCast(@Nullable SpellDispenserCastHelper.ContinuousCastSession session) {
         activeContinuousCast = session;
+        continuousResetRequired = false;
         setChanged();
     }
 
     public void stopContinuousCast(boolean cancelled) {
         if (!(level instanceof ServerLevel serverLevel)) {
             activeContinuousCast = null;
+            continuousResetRequired = false;
             return;
         }
 
         if (activeContinuousCast != null) {
             SpellDispenserCastHelper.finishContinuousCast(serverLevel, activeContinuousCast, cancelled);
             activeContinuousCast = null;
-            setChanged();
         }
+        continuousResetRequired = false;
+        setChanged();
+    }
+
+    public void clearContinuousResetRequired() {
+        if (!continuousResetRequired) {
+            return;
+        }
+
+        continuousResetRequired = false;
+        setChanged();
     }
 
     public void dropStoredItem() {
@@ -252,6 +272,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         super.saveAdditional(tag, registries);
         tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
         saveOwnerProfile(tag, ownerProfile);
+        tag.putBoolean(CONTINUOUS_RESET_REQUIRED_TAG, continuousResetRequired);
     }
 
     @Override
@@ -259,6 +280,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         super.loadAdditional(tag, registries);
         inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG));
         ownerProfile = readOwnerProfile(tag);
+        continuousResetRequired = tag.getBoolean(CONTINUOUS_RESET_REQUIRED_TAG);
     }
 
     private void markUpdated() {
