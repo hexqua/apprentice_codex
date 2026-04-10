@@ -3,42 +3,24 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Set;
-
 public final class SpellDispenserSpellValidator {
-    private static final String IRONS_NAMESPACE = "irons_spellbooks";
-    private static final Set<ResourceLocation> DENYLIST = Set.of(
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "counterspell"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "pocket_dimension"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "portal"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "raise_dead"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "recall"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "spectral_hammer"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "summon_ender_chest"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "summon_horse"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "summon_polar_bear"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "summon_swords"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "summon_vex"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "telekinesis"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "thunder_step"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "touch_dig"),
-            ResourceLocation.fromNamespaceAndPath(IRONS_NAMESPACE, "volt_strike")
-    );
-
     private SpellDispenserSpellValidator() {
     }
 
     public static ValidationResult validate(ItemStack stack) {
         if (stack.isEmpty()) {
             return new ValidationResult(ItemStack.EMPTY, SpellData.EMPTY, FailureReason.EMPTY);
+        }
+
+        if (!(stack.getItem() instanceof Scroll)) {
+            return new ValidationResult(stack, SpellData.EMPTY, FailureReason.NOT_SCROLL);
         }
 
         if (!ISpellContainer.isSpellContainer(stack)) {
@@ -63,18 +45,16 @@ public final class SpellDispenserSpellValidator {
 
         var spellData = activeSpells.get(0);
         var spell = spellData.getSpell();
-        var spellId = spell.getSpellResource();
-        if (spellId == null) {
+        if (spell == null || spell.getSpellResource() == null) {
             return new ValidationResult(stack, SpellData.EMPTY, FailureReason.NO_ACTIVE_SPELL);
         }
-        if (!IRONS_NAMESPACE.equals(spellId.getNamespace())) {
-            return new ValidationResult(stack, spellData, FailureReason.NOT_IRONS_SPELL);
+
+        var castType = spell.getCastType();
+        if (castType != CastType.INSTANT && castType != CastType.LONG) {
+            return new ValidationResult(stack, spellData, FailureReason.UNSUPPORTED_CAST_TYPE);
         }
-        if (spell.getCastType() != CastType.INSTANT) {
-            return new ValidationResult(stack, spellData, FailureReason.NOT_INSTANT_CAST);
-        }
-        if (DENYLIST.contains(spellId)) {
-            return new ValidationResult(stack, spellData, FailureReason.DENYLISTED);
+        if (spell.getRecastCount(spellData.getLevel(), null) > 0) {
+            return new ValidationResult(stack, spellData, FailureReason.HAS_RECAST);
         }
 
         return new ValidationResult(stack, spellData, FailureReason.NONE);
@@ -115,28 +95,28 @@ public final class SpellDispenserSpellValidator {
     public enum FailureReason {
         NONE,
         EMPTY,
+        NOT_SCROLL,
         NOT_SPELL_CONTAINER,
         NO_ACTIVE_SPELL,
         MULTIPLE_ACTIVE_SPELLS,
-        NOT_IRONS_SPELL,
-        NOT_INSTANT_CAST,
-        DENYLISTED;
+        UNSUPPORTED_CAST_TYPE,
+        HAS_RECAST;
 
         public Component createMessage(SpellData spellData, @Nullable Player player) {
             var keyBase = "container." + ApprenticeCodex.MODID + ".spell_dispenser.status.";
             return switch (this) {
                 case NONE -> Component.empty();
                 case EMPTY -> Component.translatable(keyBase + "empty");
+                case NOT_SCROLL -> Component.translatable(keyBase + "not_scroll");
                 case NOT_SPELL_CONTAINER -> Component.translatable(keyBase + "invalid_item");
                 case NO_ACTIVE_SPELL -> Component.translatable(keyBase + "no_active_spell");
                 case MULTIPLE_ACTIVE_SPELLS -> Component.translatable(keyBase + "multiple_spells");
-                case NOT_IRONS_SPELL -> Component.translatable(keyBase + "not_irons");
-                case NOT_INSTANT_CAST -> Component.translatable(
-                        keyBase + "not_instant",
+                case UNSUPPORTED_CAST_TYPE -> Component.translatable(
+                        keyBase + "unsupported_cast",
                         spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
                 );
-                case DENYLISTED -> Component.translatable(
-                        keyBase + "denylisted",
+                case HAS_RECAST -> Component.translatable(
+                        keyBase + "has_recast",
                         spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
                 );
             };

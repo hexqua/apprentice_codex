@@ -40,7 +40,7 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
 
         var validation = menu.getValidation(minecraft.player);
         var currentSpell = validation.getCurrentSpellLabel(minecraft.player);
-        var status = validation.getStatus(minecraft.player);
+        var status = menu.getStatus(minecraft.player);
         if (currentSpell != null) {
             gui.drawString(font, font.plainSubstrByWidth(currentSpell.getString(), 160), 8, 18, 0x404040, false);
         } else {
@@ -57,7 +57,7 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
                 font.plainSubstrByWidth(status.getString(), 160),
                 8,
                 30,
-                validation.isSupported() ? 0x208040 : 0xAA3030,
+                menu.isReadyToCast(minecraft.player) ? 0x208040 : 0xAA3030,
                 false
         );
     }

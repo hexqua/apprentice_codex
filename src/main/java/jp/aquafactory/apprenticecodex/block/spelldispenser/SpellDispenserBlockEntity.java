@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
+import com.mojang.authlib.GameProfile;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -16,9 +17,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class SpellDispenserBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity implements MenuProvider {
     private static final String INVENTORY_TAG = "Inventory";
+    private static final String OWNER_UUID_TAG = "OwnerUuid";
+    private static final String OWNER_NAME_TAG = "OwnerName";
     private final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -35,6 +39,8 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
             return 1;
         }
     };
+    @Nullable
+    private GameProfile ownerProfile;
 
     public SpellDispenserBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELL_DISPENSER.get(), pos, state);
@@ -58,22 +64,60 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         return inventory.getStackInSlot(0);
     }
 
-    public boolean tryActivate() {
+    public void setOwnerProfile(@Nullable GameProfile ownerProfile) {
+        this.ownerProfile = normalizeOwnerProfile(ownerProfile);
+        markUpdated();
+    }
+
+    public @Nullable GameProfile getOwnerProfile() {
+        return ownerProfile;
+    }
+
+    public boolean hasOwnerProfile() {
+        return normalizeOwnerProfile(ownerProfile) != null;
+    }
+
+    public SpellDispenserCastHelper.CastResult tryActivate() {
         if (!(level instanceof ServerLevel serverLevel)) {
-            return false;
+            return new SpellDispenserCastHelper.CastResult(
+                    false,
+                    SpellDispenserSpellValidator.validate(ItemStack.EMPTY),
+                    null,
+                    null,
+                    null,
+                    false
+            );
         }
 
         var state = getBlockState();
         if (!(state.getBlock() instanceof SpellDispenser spellDispenser)) {
-            return false;
+            return new SpellDispenserCastHelper.CastResult(
+                    false,
+                    SpellDispenserSpellValidator.validate(ItemStack.EMPTY),
+                    null,
+                    null,
+                    null,
+                    false
+            );
         }
 
         var source = getSpellSource();
         if (source.isEmpty()) {
-            return false;
+            return new SpellDispenserCastHelper.CastResult(
+                    false,
+                    SpellDispenserSpellValidator.validate(source),
+                    null,
+                    null,
+                    null,
+                    false
+            );
         }
 
-        return SpellDispenserCastHelper.tryCast(serverLevel, worldPosition, spellDispenser.getFacing(state), source.copy());
+        if (!hasOwnerProfile()) {
+            return SpellDispenserCastHelper.CastResult.missingOwnerProfile(SpellDispenserSpellValidator.validate(source));
+        }
+
+        return SpellDispenserCastHelper.tryCast(serverLevel, worldPosition, spellDispenser.getFacing(state), source.copy(), ownerProfile);
     }
 
     public void dropStoredItem() {
@@ -106,12 +150,21 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     protected void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
         tag.put(INVENTORY_TAG, inventory.serializeNBT());
+        if (ownerProfile != null && ownerProfile.getId() != null && ownerProfile.getName() != null && !ownerProfile.getName().isBlank()) {
+            tag.putUUID(OWNER_UUID_TAG, ownerProfile.getId());
+            tag.putString(OWNER_NAME_TAG, ownerProfile.getName());
+        }
     }
 
     @Override
     public void load(@NotNull CompoundTag tag) {
         super.load(tag);
         inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG));
+        if (tag.hasUUID(OWNER_UUID_TAG) && tag.contains(OWNER_NAME_TAG, net.minecraft.nbt.Tag.TAG_STRING)) {
+            ownerProfile = normalizeOwnerProfile(new GameProfile(tag.getUUID(OWNER_UUID_TAG), tag.getString(OWNER_NAME_TAG)));
+        } else {
+            ownerProfile = null;
+        }
     }
 
     private void markUpdated() {
@@ -119,5 +172,12 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    private static @Nullable GameProfile normalizeOwnerProfile(@Nullable GameProfile ownerProfile) {
+        if (ownerProfile == null || ownerProfile.getId() == null || ownerProfile.getName() == null || ownerProfile.getName().isBlank()) {
+            return null;
+        }
+        return new GameProfile(ownerProfile.getId(), ownerProfile.getName());
     }
 }

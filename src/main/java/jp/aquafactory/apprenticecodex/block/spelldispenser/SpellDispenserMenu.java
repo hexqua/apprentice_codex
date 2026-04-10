@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -99,6 +100,21 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
     public SpellDispenserSpellValidator.ValidationResult getValidation(Player player) {
         return SpellDispenserSpellValidator.validate(getSpellSource());
+    }
+
+    public @NotNull Component getStatus(Player player) {
+        var blockEntity = getBlockEntity();
+        if (blockEntity != null && !blockEntity.hasOwnerProfile()) {
+            return Component.translatable("container.apprenticecodex.spell_dispenser.status.owner_missing");
+        }
+        return getValidation(player).getStatus(player);
+    }
+
+    public boolean isReadyToCast(Player player) {
+        var blockEntity = getBlockEntity();
+        return blockEntity != null
+                && blockEntity.hasOwnerProfile()
+                && getValidation(player).isSupported();
     }
 
     public @NotNull ItemStack getSpellSource() {
