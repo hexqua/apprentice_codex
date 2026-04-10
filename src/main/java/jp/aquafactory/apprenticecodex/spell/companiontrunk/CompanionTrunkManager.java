@@ -22,6 +22,7 @@ import java.util.UUID;
 
 public final class CompanionTrunkManager {
     private static final double DEFAULT_MAX_HEALTH = 20.0;
+    private static final double MANUAL_RECALL_MIN_DISTANCE_SQR = 4.0;
     private static final int SUMMON_SEARCH_RADIUS = 3;
     private static final int[] SUMMON_Y_OFFSETS = {0, 1, -1, 2, -2};
 
@@ -66,14 +67,33 @@ public final class CompanionTrunkManager {
             return false;
         }
 
+        var state = spellData.get(CodexSpellStateTypeRegister.COMPANION_TRUNK_STATE);
         var storage = Capabilities.getCompanionTrunkInventoryOrNull(player);
         if (storage != null && !storage.isEmpty()) {
-            player.connection.send(new ClientboundSetActionBarTextPacket(
+            var fixedMaxHealth = state.maxHealth > 0.0 ? state.maxHealth : DEFAULT_MAX_HEALTH;
+            var trunk = normalizeOwnedTrunks(player, state.getTrunkUuid(), fixedMaxHealth, false);
+            if (isValidForOwner(trunk, player) && trunk.distanceToSqr(player) >= MANUAL_RECALL_MIN_DISTANCE_SQR) {
+                if (trunk.recallNearOwner(player)) {
+                    return false;
+                }
+
+                sendActionBar(
+                        player,
+                        Component.translatable(
+                                "ui.apprenticecodex.companion_trunk.cannot_recall",
+                                getDisplayName(player)
+                        ).withStyle(ChatFormatting.RED)
+                );
+                return false;
+            }
+
+            sendActionBar(
+                    player,
                     Component.translatable(
                             "ui.apprenticecodex.companion_trunk.cannot_despawn",
                             getDisplayName(player)
                     ).withStyle(ChatFormatting.RED)
-            ));
+            );
             return false;
         }
 
@@ -382,6 +402,14 @@ public final class CompanionTrunkManager {
 
     private static boolean managedUuidEquals(@Nullable UUID left, @Nullable UUID right) {
         return left == null ? right == null : left.equals(right);
+    }
+
+    private static void sendActionBar(ServerPlayer player, Component message) {
+        if (player.connection != null) {
+            player.connection.send(new ClientboundSetActionBarTextPacket(message));
+            return;
+        }
+        player.displayClientMessage(message, true);
     }
 
     private record SummonOffset(int x, int z, double priority) {

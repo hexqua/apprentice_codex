@@ -33,6 +33,8 @@ import jp.aquafactory.apprenticecodex.item.swingstaff.GoldSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.NetheriteSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SilverSwingcastStaff;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -78,9 +80,11 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
                     BlockRegistry.COMFORT_BERRY_BUSH.get(),
-                    new Item.Properties().food(new net.minecraft.world.food.FoodProperties.Builder()
-                            .nutrition(5)
-                            .saturationMod(0.84f)
+                    new Item.Properties().food(new FoodProperties.Builder()
+                            .nutrition(4)
+                            .saturationMod(1.2f)
+                            .alwaysEat()
+                            .effect(() -> new MobEffectInstance(EffectRegistry.MANA_REGENERATION.get(), 20 * 30), 1.0f)
                             .build())
             ));
     public static final RegistryObject<Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");

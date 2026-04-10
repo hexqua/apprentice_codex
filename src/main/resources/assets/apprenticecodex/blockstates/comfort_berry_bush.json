@@ -8,6 +8,12 @@
     },
     "age=2": {
       "model": "apprenticecodex:block/comfort_berry_bush_stage2"
+    },
+    "age=3": {
+      "model": "apprenticecodex:block/comfort_berry_bush_stage3"
+    },
+    "age=4": {
+      "model": "apprenticecodex:block/comfort_berry_bush_stage4"
     }
   }
 }
