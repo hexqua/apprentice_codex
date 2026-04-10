@@ -1,6 +1,9 @@
 {
   "values": [
     {
+      "spell": "irons_spellbooks:magic_missile"
+    },
+    {
       "spell": "irons_spellbooks:heal"
     },
     {

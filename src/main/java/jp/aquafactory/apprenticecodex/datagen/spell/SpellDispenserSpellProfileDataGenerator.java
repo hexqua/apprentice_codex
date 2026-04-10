@@ -29,6 +29,10 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "profiles"),
                         new SpellDispenserSpellProfileList(List.of(
                                 new SpellDispenserSpellProfileDefinition(
+                                        ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
+                                        SpellDispenserSpellProfile.DEFAULT
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
                                         ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "heal"),
                                         SpellDispenserSpellProfile.DEFAULT
                                 ),
