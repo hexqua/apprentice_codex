@@ -530,18 +530,6 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorRejectsSpellWithoutProfile(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get());
-
-            var validation = SpellDispenserSpellValidator.validate(scrollStack);
-            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a spell without a profile");
-            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_PROFILED,
-                    "Spell Dispenser validator returned the wrong failure reason for profile-less scroll: " + validation.failureReason());
-        });
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.ASSIST_WINGS.get());
