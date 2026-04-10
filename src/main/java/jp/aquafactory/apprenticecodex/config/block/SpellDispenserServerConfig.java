@@ -10,7 +10,7 @@ public final class SpellDispenserServerConfig {
     }
 
     public static SpellDispenserServerConfig define(ForgeConfigSpec.Builder builder) {
-        builder.comment("true にすると Spell Dispenser の allowlist / denylist を無視し、基本条件だけで検証できるようにする")
+        builder.comment("true にすると Spell Dispenser の spell profile / denylist を無視し、基本条件だけで検証できるようにする")
                 .push("SpellDispenser");
 
         var relaxedSpellFilter = builder.define("relaxedSpellFilter", false);

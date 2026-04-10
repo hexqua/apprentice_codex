@@ -24,13 +24,6 @@ public final class SpellDispenserSpellListDataGenerator extends JsonCodecProvide
                 SpellDispenserSpellListManager.DIRECTORY,
                 SpellDispenserSpellList.CODEC,
                 Map.of(
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "allowlist"),
-                        new SpellDispenserSpellList(List.of(
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "heal"),
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spectral_hammer"),
-                                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mage_light"),
-                                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "compound_phial")
-                        )),
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "denylist"),
                         new SpellDispenserSpellList(List.of(
                                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "assist_wings"),

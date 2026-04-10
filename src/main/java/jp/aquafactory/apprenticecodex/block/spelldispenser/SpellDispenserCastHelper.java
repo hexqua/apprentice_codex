@@ -3,19 +3,27 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.ICastData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
+import io.redspace.ironsspellbooks.entity.spells.AbstractConeProjectile;
+import io.redspace.ironsspellbooks.spells.EntityCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
@@ -25,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 public final class SpellDispenserCastHelper {
     private static final double FAILURE_NOTICE_RADIUS = 16.0D;
     private static final int CONTINUOUS_CAST_TICK_INTERVAL = 10;
+    private static final double DEFAULT_FORWARD_OFFSET = 0.7D;
 
     private SpellDispenserCastHelper() {
     }
@@ -47,10 +56,13 @@ public final class SpellDispenserCastHelper {
         var spellData = validation.spellData();
         var spell = spellData.getSpell();
         var spellId = spell.getSpellResource();
-        var proxy = createProxy(level, pos, facing, ownerProfile);
+        var profile = SpellDispenserSpellProfileManager.getResolvedProfile(spell);
+        var proxy = createProxy(level, pos, facing, ownerProfile, profile);
+        var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
+        var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
 
         var magicData = MagicData.getPlayerMagicData(proxy);
-        CastResult result = CastResult.validationFailure(validation);
+        CastResult result;
         try {
             try {
                 // Iron's の initiateCast は getSyncedData を経由せず syncedSpellData を直接参照する。
@@ -68,7 +80,7 @@ public final class SpellDispenserCastHelper {
 
             final boolean canCast;
             try {
-                canCast = spell.checkPreCastConditions(level, spellData.getLevel(), proxy, magicData);
+                canCast = spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.CHECK_PRE_CAST, exception);
                 notifyFailureToNearbyPlayers(level, pos, result);
@@ -79,7 +91,7 @@ public final class SpellDispenserCastHelper {
             }
 
             try {
-                spell.onServerPreCast(level, spellData.getLevel(), proxy, magicData);
+                spell.onServerPreCast(level, spellData.getLevel(), spellCaster, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_PRE_CAST, exception);
                 notifyFailureToNearbyPlayers(level, pos, result);
@@ -87,7 +99,7 @@ public final class SpellDispenserCastHelper {
             }
 
             try {
-                spell.onCast(level, spellData.getLevel(), proxy, CastSource.COMMAND, magicData);
+                spell.onCast(level, spellData.getLevel(), spellCaster, CastSource.COMMAND, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.CAST, exception);
                 notifyFailureToNearbyPlayers(level, pos, result);
@@ -95,7 +107,7 @@ public final class SpellDispenserCastHelper {
             }
 
             try {
-                spell.onServerCastComplete(level, spellData.getLevel(), proxy, magicData, false);
+                spell.onServerCastComplete(level, spellData.getLevel(), spellCaster, magicData, false);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_CAST_COMPLETE, exception);
                 notifyFailureToNearbyPlayers(level, pos, result);
@@ -105,7 +117,7 @@ public final class SpellDispenserCastHelper {
             result = CastResult.success(validation, spellId);
             return result;
         } finally {
-            cleanupProxy(spellId, magicData, proxy);
+            cleanupProxy(spellId, magicData, proxy, trackedAnchor);
         }
     }
 
@@ -131,7 +143,10 @@ public final class SpellDispenserCastHelper {
         }
 
         var spellId = spell.getSpellResource();
-        var proxy = createProxy(level, pos, facing, ownerProfile);
+        var profile = SpellDispenserSpellProfileManager.getResolvedProfile(spell);
+        var proxy = createProxy(level, pos, facing, ownerProfile, profile);
+        var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
+        var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
         var magicData = MagicData.getPlayerMagicData(proxy);
         try {
             magicData.setSyncedData(new SyncedSpellData(proxy));
@@ -141,36 +156,36 @@ public final class SpellDispenserCastHelper {
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.INITIATE_CAST, exception);
             notifyFailureToNearbyPlayers(level, pos, result);
-            cleanupProxy(spellId, magicData, proxy);
+            cleanupProxy(spellId, magicData, proxy, trackedAnchor);
             return new ContinuousCastStartResult(result, null);
         }
 
         final boolean canCast;
         try {
-            canCast = spell.checkPreCastConditions(level, spellData.getLevel(), proxy, magicData);
+            canCast = spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.CHECK_PRE_CAST, exception);
             notifyFailureToNearbyPlayers(level, pos, result);
-            cleanupProxy(spellId, magicData, proxy);
+            cleanupProxy(spellId, magicData, proxy, trackedAnchor);
             return new ContinuousCastStartResult(result, null);
         }
         if (!canCast) {
-            cleanupProxy(spellId, magicData, proxy);
+            cleanupProxy(spellId, magicData, proxy, trackedAnchor);
             return new ContinuousCastStartResult(CastResult.preCastRejected(validation, spellId), null);
         }
 
         try {
-            spell.onServerPreCast(level, spellData.getLevel(), proxy, magicData);
+            spell.onServerPreCast(level, spellData.getLevel(), spellCaster, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_PRE_CAST, exception);
             notifyFailureToNearbyPlayers(level, pos, result);
-            cleanupProxy(spellId, magicData, proxy);
+            cleanupProxy(spellId, magicData, proxy, trackedAnchor);
             return new ContinuousCastStartResult(result, null);
         }
 
         return new ContinuousCastStartResult(
                 CastResult.success(validation, spellId),
-                new ContinuousCastSession(pos, validation, spellSource.copy(), proxy, magicData)
+                new ContinuousCastSession(pos, validation, spellSource.copy(), profile, proxy, magicData, trackedAnchor)
         );
     }
 
@@ -182,9 +197,11 @@ public final class SpellDispenserCastHelper {
         var spellData = session.validation().spellData();
         var spell = spellData.getSpell();
         var proxy = session.proxy();
+        var spellCaster = session.spellCaster();
         var magicData = session.magicData();
 
         proxy.tickCount++;
+        syncTrackedAnchor(session);
         magicData.handleCastDuration();
 
         if (magicData.getCastDurationRemaining() <= 0) {
@@ -196,7 +213,7 @@ public final class SpellDispenserCastHelper {
 
         if ((magicData.getCastDurationRemaining() + 1) % CONTINUOUS_CAST_TICK_INTERVAL == 0) {
             try {
-                spell.onCast(level, spellData.getLevel(), proxy, CastSource.COMMAND, magicData);
+                spell.onCast(level, spellData.getLevel(), spellCaster, CastSource.COMMAND, magicData);
             } catch (RuntimeException exception) {
                 var result = CastResult.exceptionFailure(session.validation(), session.spellId(), CastStage.CAST, exception);
                 notifyFailureToNearbyPlayers(level, session.origin(), result);
@@ -204,6 +221,7 @@ public final class SpellDispenserCastHelper {
                 return false;
             }
 
+            bindTrackedAnchorIfNeeded(level, session);
             if (magicData.getCastDurationRemaining() < CONTINUOUS_CAST_TICK_INTERVAL) {
                 finishContinuousCast(level, session, false);
                 return false;
@@ -211,7 +229,7 @@ public final class SpellDispenserCastHelper {
         }
 
         try {
-            spell.onServerCastTick(level, spellData.getLevel(), proxy, magicData);
+            spell.onServerCastTick(level, spellData.getLevel(), spellCaster, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(session.validation(), session.spellId(), CastStage.SERVER_CAST_TICK, exception);
             notifyFailureToNearbyPlayers(level, session.origin(), result);
@@ -230,16 +248,21 @@ public final class SpellDispenserCastHelper {
         session.markFinished();
         var spellData = session.validation().spellData();
         try {
-            spellData.getSpell().onServerCastComplete(level, spellData.getLevel(), session.proxy(), session.magicData(), cancelled);
+            spellData.getSpell().onServerCastComplete(level, spellData.getLevel(), session.spellCaster(), session.magicData(), cancelled);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(session.validation(), session.spellId(), CastStage.SERVER_CAST_COMPLETE, exception);
             notifyFailureToNearbyPlayers(level, session.origin(), result);
         } finally {
-            cleanupProxy(session.spellId(), session.magicData(), session.proxy());
+            cleanupProxy(session.spellId(), session.magicData(), session.proxy(), session.trackedAnchor());
         }
     }
 
-    private static void cleanupProxy(@Nullable ResourceLocation spellId, @Nullable MagicData magicData, FakePlayer proxy) {
+    private static void cleanupProxy(
+            @Nullable ResourceLocation spellId,
+            @Nullable MagicData magicData,
+            FakePlayer proxy,
+            @Nullable SpellDispenserAnchorEntity trackedAnchor
+    ) {
         try {
             if (magicData != null) {
                 // FakePlayer 自体は world に参加させないが、MagicData は capability 側に残るため毎回明示的に初期化する。
@@ -247,6 +270,10 @@ public final class SpellDispenserCastHelper {
             }
         } catch (RuntimeException exception) {
             ApprenticeCodex.LOGGER.warn("Spell Dispenser cleanup failed during reset: {}", spellId, exception);
+        }
+
+        if (trackedAnchor != null && !trackedAnchor.isRemoved()) {
+            trackedAnchor.discard();
         }
     }
 
@@ -263,10 +290,16 @@ public final class SpellDispenserCastHelper {
         }
     }
 
-    private static FakePlayer createProxy(ServerLevel level, BlockPos pos, Direction facing, GameProfile ownerProfile) {
-        var muzzlePos = Vec3.atCenterOf(pos).add(Vec3.atLowerCornerOf(facing.getNormal()).scale(0.7D));
-        var yaw = resolveYaw(facing);
-        var pitch = resolvePitch(facing);
+    private static FakePlayer createProxy(
+            ServerLevel level,
+            BlockPos pos,
+            Direction facing,
+            GameProfile ownerProfile,
+            SpellDispenserSpellProfile profile
+    ) {
+        var muzzlePos = resolveCastOrigin(pos, facing, profile);
+        var yaw = resolveYaw(facing) + profile.yawOffset();
+        var pitch = Mth.clamp(resolvePitch(facing) + profile.pitchOffset(), -90.0F, 90.0F);
         // Spectral Hammer のように後続 tick で Player を要求する spell があるため、
         // Spell Dispenser は設置者 profile を持つ FakePlayer を caster として扱う。
         var proxy = new FakePlayer(level, new GameProfile(ownerProfile.getId(), ownerProfile.getName()));
@@ -282,6 +315,79 @@ public final class SpellDispenserCastHelper {
         proxy.setXRot(pitch);
         proxy.xRotO = pitch;
         return proxy;
+    }
+
+    private static Vec3 resolveCastOrigin(BlockPos pos, Direction facing, SpellDispenserSpellProfile profile) {
+        var base = Vec3.atCenterOf(pos);
+        var forward = Vec3.atLowerCornerOf(facing.getNormal());
+        var side = resolveSideVector(forward);
+        return base
+                .add(forward.scale(DEFAULT_FORWARD_OFFSET + profile.forwardOffset()))
+                .add(side.scale(profile.sideOffset()))
+                .add(0.0D, profile.upOffset(), 0.0D);
+    }
+
+    private static Vec3 resolveSideVector(Vec3 forward) {
+        var referenceUp = Math.abs(forward.y) > 0.9D ? new Vec3(0.0D, 0.0D, 1.0D) : new Vec3(0.0D, 1.0D, 0.0D);
+        return forward.cross(referenceUp).normalize();
+    }
+
+    private static void syncTrackedAnchor(ContinuousCastSession session) {
+        if (session.trackedAnchor() != null) {
+            session.trackedAnchor().syncFromCaster(session.proxy());
+        }
+    }
+
+    private static void bindTrackedAnchorIfNeeded(ServerLevel level, ContinuousCastSession session) {
+        var castData = session.magicData().getAdditionalCastData();
+        if (!shouldUseTrackedAnchor(session.profile(), castData)) {
+            return;
+        }
+
+        var trackedAnchor = session.trackedAnchor();
+        if (trackedAnchor == null) {
+            trackedAnchor = createTrackedAnchor(level, session.proxy());
+            session.setTrackedAnchor(trackedAnchor);
+        }
+        trackedAnchor.syncFromCaster(session.proxy());
+
+        if (castData instanceof EntityCastData entityCastData && entityCastData.getCastingEntity() instanceof Projectile projectile) {
+            // 円錐ブレス系は owner を client でも追跡できないと見た目と当たり判定更新が崩れる。
+            // proxy FakePlayer は world 未参加なので、該当 spell だけ tracked anchor へ owner を差し替える。
+            projectile.setOwner(trackedAnchor);
+        }
+    }
+
+    private static boolean shouldUseTrackedAnchor(SpellDispenserSpellProfile profile, @Nullable ICastData castData) {
+        return switch (profile.castAnchor()) {
+            case FAKE_PLAYER -> false;
+            case TRACKED_ANCHOR -> false;
+            case AUTO -> castData instanceof EntityCastData entityCastData
+                    && entityCastData.getCastingEntity() instanceof AbstractConeProjectile;
+        };
+    }
+
+    private static @Nullable SpellDispenserAnchorEntity createTrackedAnchorForExplicitProfile(
+            ServerLevel level,
+            FakePlayer proxy,
+            SpellDispenserSpellProfile profile,
+            CastType castType
+    ) {
+        if (profile.castAnchor() != SpellDispenserCastAnchorMode.TRACKED_ANCHOR || castType != CastType.CONTINUOUS) {
+            return null;
+        }
+        return createTrackedAnchor(level, proxy);
+    }
+
+    private static SpellDispenserAnchorEntity createTrackedAnchor(ServerLevel level, FakePlayer proxy) {
+        var trackedAnchor = new SpellDispenserAnchorEntity(EntityRegistry.SPELL_DISPENSER_ANCHOR.get(), level);
+        trackedAnchor.syncFromCaster(proxy);
+        level.addFreshEntity(trackedAnchor);
+        return trackedAnchor;
+    }
+
+    private static LivingEntity resolveSpellCaster(FakePlayer proxy, @Nullable SpellDispenserAnchorEntity trackedAnchor) {
+        return trackedAnchor != null ? trackedAnchor : proxy;
     }
 
     private static boolean isValidOwnerProfile(@Nullable GameProfile ownerProfile) {
@@ -398,23 +504,30 @@ public final class SpellDispenserCastHelper {
         private final BlockPos origin;
         private final SpellDispenserSpellValidator.ValidationResult validation;
         private final ItemStack spellSource;
+        private final SpellDispenserSpellProfile profile;
         private final FakePlayer proxy;
         private final MagicData magicData;
+        @Nullable
+        private SpellDispenserAnchorEntity trackedAnchor;
         private boolean finished;
 
         private ContinuousCastSession(
                 BlockPos origin,
                 SpellDispenserSpellValidator.ValidationResult validation,
                 ItemStack spellSource,
+                SpellDispenserSpellProfile profile,
                 FakePlayer proxy,
-                MagicData magicData
+                MagicData magicData,
+                @Nullable SpellDispenserAnchorEntity trackedAnchor
         ) {
             this.spellId = validation.spellData().getSpell().getSpellResource();
             this.origin = origin.immutable();
             this.validation = validation;
             this.spellSource = spellSource;
+            this.profile = profile;
             this.proxy = proxy;
             this.magicData = magicData;
+            this.trackedAnchor = trackedAnchor;
             this.finished = false;
         }
 
@@ -434,6 +547,10 @@ public final class SpellDispenserCastHelper {
             return spellSource;
         }
 
+        public SpellDispenserSpellProfile profile() {
+            return profile;
+        }
+
         public FakePlayer proxy() {
             return proxy;
         }
@@ -442,8 +559,20 @@ public final class SpellDispenserCastHelper {
             return magicData;
         }
 
+        public @Nullable SpellDispenserAnchorEntity trackedAnchor() {
+            return trackedAnchor;
+        }
+
+        public LivingEntity spellCaster() {
+            return resolveSpellCaster(proxy, trackedAnchor);
+        }
+
         public boolean isFinished() {
             return finished;
+        }
+
+        private void setTrackedAnchor(@Nullable SpellDispenserAnchorEntity trackedAnchor) {
+            this.trackedAnchor = trackedAnchor;
         }
 
         private void markFinished() {
