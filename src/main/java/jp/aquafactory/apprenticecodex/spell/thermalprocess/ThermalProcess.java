@@ -35,7 +35,7 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.FIRE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(12)
+            .setCooldownSeconds(30)
             .build();
 
     public ThermalProcess() {
