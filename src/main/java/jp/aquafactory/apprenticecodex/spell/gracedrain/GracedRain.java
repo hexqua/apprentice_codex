@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity> implements IClientBlockTargetingSpell {
+public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity> implements IClientBlockTargetingSpell, ICraftsmansDelightAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "graced_rain");
 
     private final DefaultConfig config = new DefaultConfig()
