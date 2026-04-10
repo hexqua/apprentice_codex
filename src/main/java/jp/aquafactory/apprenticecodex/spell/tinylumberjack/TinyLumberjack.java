@@ -42,7 +42,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(4)
+            .setCooldownSeconds(20)
             .build();
 
     public TinyLumberjack() {

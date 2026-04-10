@@ -13,6 +13,10 @@ public interface ICraftsmansDelightAffectedSpell {
         return true;
     }
 
+    default boolean isCraftsmansDelightCooldownReductionEnabled() {
+        return true;
+    }
+
     default boolean isCraftsmansDelightCastingMobilityEnabled() {
         return false;
     }
