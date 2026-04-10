@@ -10,6 +10,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.MenuProvider;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.NotNull;
 
 public final class SpellDispenserInteractionBehaviour extends MovingInteractionBehaviour {
     @Override
@@ -33,12 +34,12 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(blockInfo.nbt());
         NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
             @Override
-            public Component getDisplayName() {
+            public @NotNull Component getDisplayName() {
                 return Component.translatable("container.apprenticecodex.spell_dispenser");
             }
 
             @Override
-            public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int containerId, net.minecraft.world.entity.player.Inventory inventory, Player menuPlayer) {
+            public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int containerId, net.minecraft.world.entity.player.@NotNull Inventory inventory, @NotNull Player menuPlayer) {
                 return SpellDispenserMenu.createMounted(containerId, inventory, localPos, mountedInventory, ownerProfile != null);
             }
         }, buffer -> {
