@@ -212,6 +212,8 @@
   "container.apprenticecodex.spell_dispenser.status.owner_missing": "Cannot cast because the placer profile is missing",
   "container.apprenticecodex.spell_dispenser.status.unsupported_cast": "%s does not use an INSTANT or LONG cast type",
   "container.apprenticecodex.spell_dispenser.status.has_recast": "%s is excluded because it has recast",
+  "container.apprenticecodex.spell_dispenser.status.not_allowlisted": "%s is not in the Spell Dispenser allowlist",
+  "container.apprenticecodex.spell_dispenser.status.denylisted": "%s is blocked by the Spell Dispenser denylist",
   "chat.apprenticecodex.spell_dispenser.cast_failed": "Spell Dispenser failed: %s / %s / %s / %s",
   "chat.apprenticecodex.spell_dispenser.no_exception_detail": "no details",
   "chat.apprenticecodex.spell_dispenser.stage.initiate_cast": "initiate_cast",
