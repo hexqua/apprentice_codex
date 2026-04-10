@@ -22,8 +22,9 @@ import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
-import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
@@ -1146,57 +1147,81 @@ public final class ApprenticeCodexGameTests {
         });
     }
 
-    public static void healingBloomLightOutlineIsInteractable(GameTestHelper helper) {
+    public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var shape = BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState()
-                    .getShape(level, new BlockPos(0, 2, 0), CollisionContext.empty());
-            helper.assertTrue(!shape.isEmpty(),
-                    "Healing Bloom light should expose a non-empty outline so it can be broken by hand");
+            var state = BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState();
+            var pos = new BlockPos(0, 2, 0);
+            var shape = state.getShape(level, pos, CollisionContext.empty());
+            helper.assertTrue(shape.isEmpty(),
+                    "Healing Bloom light outline should be empty so it cannot be removed by hand");
+            helper.assertTrue(state.getLightEmission(level, pos) == 11,
+                    "Healing Bloom light should now emit light level 11");
         });
     }
 
     @GameTest(template = TEMPLATE)
-    public static void healingBloomPersistentLightSkipsSelfClean(GameTestHelper helper) {
+    public static void healingBloomLightSelfCleansWithoutBloom(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var normalPos = new BlockPos(0, 2, 0);
-            var persistentPos = new BlockPos(2, 2, 0);
-
-            helper.setBlock(normalPos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
-            helper.setBlock(persistentPos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
-
-            var normalBlockEntity = helper.getBlockEntity(normalPos);
-            var persistentBlockEntity = helper.getBlockEntity(persistentPos);
-            helper.assertTrue(normalBlockEntity instanceof HealingBloomLightBlockEntity,
-                    "Normal Healing Bloom light is missing its block entity");
-            helper.assertTrue(persistentBlockEntity instanceof HealingBloomLightBlockEntity,
-                    "Persistent Healing Bloom light is missing its block entity");
-
-            ((HealingBloomLightBlockEntity) persistentBlockEntity).setPersistentAfterBloomGone(true);
+            var pos = new BlockPos(0, 2, 0);
+            helper.setBlock(pos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
 
             for (int i = 0; i < 25; ++i) {
-                if (level.getBlockState(normalPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
+                if (level.getBlockState(pos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
+                    var blockEntity = helper.getBlockEntity(pos);
+                    helper.assertTrue(blockEntity instanceof HealingBloomLightBlockEntity,
+                            "Healing Bloom light is missing its block entity");
                     HealingBloomLightBlockEntity.serverTick(
                             level,
-                            normalPos,
-                            level.getBlockState(normalPos),
-                            (HealingBloomLightBlockEntity) normalBlockEntity
-                    );
-                }
-                if (level.getBlockState(persistentPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
-                    HealingBloomLightBlockEntity.serverTick(
-                            level,
-                            persistentPos,
-                            level.getBlockState(persistentPos),
-                            (HealingBloomLightBlockEntity) persistentBlockEntity
+                            pos,
+                            level.getBlockState(pos),
+                            (HealingBloomLightBlockEntity) blockEntity
                     );
                 }
             }
 
-            helper.assertTrue(!level.getBlockState(normalPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get()),
-                    "Non-persistent Healing Bloom light should still self-clean without a bloom");
-            helper.assertBlockPresent(BlockRegistry.HEALING_BLOOM_LIGHT.get(), persistentPos);
+            helper.assertTrue(!level.getBlockState(pos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get()),
+                    "Healing Bloom light should self-clean without a bloom");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomIgnoresOwnerDamageAndStaysSavable(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_owner_test"));
+            var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+            bloom.setOwner(owner);
+            bloom.setAnchorPos(new BlockPos(0, 2, 0));
+            helper.assertTrue(bloom.shouldBeSaved(), "Healing Bloom should now be saved with the world");
+            helper.assertFalse(bloom.hurt(level.damageSources().playerAttack(owner), 2.0f),
+                    "Healing Bloom should ignore damage from its owner");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomRootLossUsesDeathState(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.DIRT);
+
+        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_root_loss_test"));
+        var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+        bloom.setOwner(owner);
+        bloom.setAnchorPos(anchorPos);
+        bloom.setBloomMaxHealth(10.0f);
+        bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
+        helper.getLevel().addFreshEntity(bloom);
+
+        helper.runAtTickTime(1, () -> helper.setBlock(anchorPos.below(), Blocks.AIR));
+        helper.runAtTickTime(3, () -> {
+            var blooms = level.getEntitiesOfClass(HealingBloomEntity.class, new net.minecraft.world.phys.AABB(anchorPos).inflate(1.5));
+            helper.assertTrue(!blooms.isEmpty(),
+                    "Healing Bloom should remain as a dead entity for a short time instead of silently disappearing when its root is lost");
+            helper.assertTrue(blooms.stream().allMatch(entity -> !entity.isAlive() || entity.isDeadOrDying()),
+                    "Healing Bloom should enter its death state when its root is lost");
+            helper.succeed();
         });
     }
 

@@ -43,11 +43,11 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
     }
 
     private static int getLightLevel(BlockState state) {
-        var age = state.getValue(AGE);
+        int age = state.getValue(AGE);
         if (age >= MAX_AGE) {
             return 10;
         }
-        if (age >= MAX_AGE - 1) {
+        if (age == MAX_AGE - 1) {
             return 7;
         }
         return 2;
