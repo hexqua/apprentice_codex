@@ -14,7 +14,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public final class SpellDispenserMovementBehaviour implements MovementBehaviour {
     @Override
@@ -55,7 +55,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     }
 
     @Override
-    public @Nullable ItemStack canBeDisabledVia(MovementContext context) {
+    public @NotNull ItemStack canBeDisabledVia(MovementContext context) {
         // ContraptionControls のフィルタは「何のアクターか」で安定させる。
         // 中身の scroll を返すと Create 側 UI から SpellDispenser を選べなくなる。
         return new ItemStack(ItemRegistry.SPELL_DISPENSER.get());
