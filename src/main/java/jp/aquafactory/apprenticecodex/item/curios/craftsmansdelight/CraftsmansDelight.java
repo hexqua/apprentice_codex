@@ -3,7 +3,10 @@ package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.compat.Curios;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
@@ -42,6 +45,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final float BREAK_SPEED_BONUS_MULTIPLIER = 2.0f;
     private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
+    private static final int COOLDOWN_DIVISOR = 3;
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
@@ -49,7 +53,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             SpellRegistry.TINY_LUMBERJACK,
             SpellRegistry.WORLD_FLATTER,
             SpellRegistry.THERMAL_PROCESS,
-            SpellRegistry.GRIND_RUNNER
+            SpellRegistry.GRIND_RUNNER,
+            SpellRegistry.GRACED_RAIN
     );
     private final String slotIdentifier;
 
@@ -187,6 +192,22 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         return Math.max(1, Math.round(manaCost * MANA_COST_DISCOUNT_MULTIPLIER));
     }
 
+    public static int applyCooldownDiscount(int baseCooldown, @Nullable LivingEntity entity) {
+        if (baseCooldown <= 0 || !isEquippedBy(entity)) {
+            return baseCooldown;
+        }
+
+        return Math.max(1, baseCooldown / COOLDOWN_DIVISOR);
+    }
+
+    public static int getReducedEffectiveCooldown(AbstractSpell spell, @Nullable LivingEntity entity, CastSource castSource) {
+        if (!(entity instanceof Player player)) {
+            return spell.getSpellCooldown();
+        }
+
+        return applyCooldownModifiers(applyCooldownDiscount(spell.getSpellCooldown(), player), player, castSource);
+    }
+
     public static void applyCastingMobility(@Nullable LivingEntity entity) {
         if (entity == null || entity.level().isClientSide || !isEquippedBy(entity)) {
             return;
@@ -228,6 +249,14 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
                         .map(slotResult -> slotResult.stack().copy())
                         .orElse(ItemStack.EMPTY))
                 .orElse(ItemStack.EMPTY);
+    }
+
+    private static int applyCooldownModifiers(int baseCooldown, Player player, CastSource castSource) {
+        var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION.get());
+        var itemCooldownModifier = castSource == CastSource.SWORD
+                ? ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue()
+                : 1.0f;
+        return (int) (baseCooldown * (2 - Utils.softCapFormula(playerCooldownModifier)) * itemCooldownModifier);
     }
 
     private static boolean consumeManaForSneakUse(Player player, ItemStack stack) {

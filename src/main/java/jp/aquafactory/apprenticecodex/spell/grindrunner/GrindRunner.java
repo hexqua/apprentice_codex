@@ -48,7 +48,7 @@ public class GrindRunner extends AbstractSummonWeaponSpell<GrindRunnerWheelEntit
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(12)
+            .setCooldownSeconds(30)
             .build();
 
     public GrindRunner() {
