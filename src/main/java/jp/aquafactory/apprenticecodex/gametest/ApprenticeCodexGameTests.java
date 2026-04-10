@@ -24,8 +24,10 @@ import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
-import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
@@ -99,6 +101,7 @@ import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -107,6 +110,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
@@ -1232,6 +1236,63 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void comfortBerriesProvideManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var foodProperties = new ItemStack(ItemRegistry.COMFORT_BERRIES.get()).getFoodProperties(null);
+            helper.assertTrue(foodProperties != null, "Comfort Berries should remain edible");
+            helper.assertTrue(foodProperties != null && foodProperties.nutrition() == 4,
+                    "Comfort Berries nutrition regression: " + (foodProperties == null ? "null" : foodProperties.nutrition()));
+            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.saturation() - 9.6f) < 1.0e-6F,
+                    "Comfort Berries saturation regression: "
+                            + (foodProperties == null ? "null" : foodProperties.saturation()));
+            helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
+                    "Comfort Berries should remain edible even when full");
+
+            var matchingEffects = foodProperties == null ? List.<net.minecraft.world.food.FoodProperties.PossibleEffect>of()
+                    : foodProperties.effects().stream()
+                    .filter(effectPair -> effectPair.effect().getEffect() == EffectRegistry.MANA_REGENERATION)
+                    .toList();
+            helper.assertTrue(matchingEffects.size() == 1,
+                    "Comfort Berries should grant exactly one mana regeneration effect but got " + matchingEffects.size());
+
+            var effectPair = matchingEffects.isEmpty() ? null : matchingEffects.get(0);
+            helper.assertTrue(effectPair != null && effectPair.effect().getDuration() == 20 * 30,
+                    "Comfort Berries mana regeneration duration regression: "
+                            + (effectPair == null ? "missing" : effectPair.effect().getDuration()));
+            helper.assertTrue(effectPair != null && effectPair.effect().getAmplifier() == 0,
+                    "Comfort Berries mana regeneration level regression: "
+                            + (effectPair == null ? "missing" : effectPair.effect().getAmplifier()));
+            helper.assertTrue(effectPair != null && Math.abs(effectPair.probability() - 1.0f) < 1.0e-6F,
+                    "Comfort Berries mana regeneration chance regression: "
+                            + (effectPair == null ? "missing" : effectPair.probability()));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "mana_regeneration_test"));
+            var manaRegenAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN);
+            helper.assertTrue(manaRegenAttribute != null, "Player is missing the mana regen attribute");
+
+            var baseValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
+            helper.assertTrue(!Double.isNaN(baseValue) && baseValue > 0.0D,
+                    "Mana regen base value must be positive for regression testing: " + baseValue);
+
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30, 0));
+            var levelOneValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
+            helper.assertTrue(Math.abs(levelOneValue - (baseValue * 1.25D)) < 1.0e-9D,
+                    "Mana Regeneration Lv1 regression: expected " + (baseValue * 1.25D) + " but got " + levelOneValue);
+
+            player.removeEffect(EffectRegistry.MANA_REGENERATION);
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30, 1));
+            var levelTwoValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
+            helper.assertTrue(Math.abs(levelTwoValue - (baseValue * 1.50D)) < 1.0e-9D,
+                    "Mana Regeneration Lv2 regression: expected " + (baseValue * 1.50D) + " but got " + levelTwoValue);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var instantSpell = SpellRegistry.AUTO_MAGNET.get();
@@ -1300,59 +1361,192 @@ public final class ApprenticeCodexGameTests {
             );
         });
     }
-    public static void healingBloomLightOutlineIsInteractable(GameTestHelper helper) {
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var shape = BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState()
-                    .getShape(level, new BlockPos(0, 2, 0), CollisionContext.empty());
-            helper.assertTrue(!shape.isEmpty(),
-                    "Healing Bloom light should expose a non-empty outline so it can be broken by hand");
+            var state = BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState();
+            var pos = new BlockPos(0, 2, 0);
+            var shape = state.getShape(level, pos, CollisionContext.empty());
+            helper.assertTrue(shape.isEmpty(),
+                    "Healing Bloom light outline should be empty so it cannot be removed by hand");
+            helper.assertTrue(state.getLightEmission(level, pos) == 11,
+                    "Healing Bloom light should now emit light level 11");
         });
     }
 
     @GameTest(template = TEMPLATE)
-    public static void healingBloomPersistentLightSkipsSelfClean(GameTestHelper helper) {
+    public static void healingBloomLightSelfCleansWithoutBloom(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var normalPos = new BlockPos(0, 2, 0);
-            var persistentPos = new BlockPos(2, 2, 0);
-
-            helper.setBlock(normalPos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
-            helper.setBlock(persistentPos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
-
-            var normalBlockEntity = helper.getBlockEntity(normalPos);
-            var persistentBlockEntity = helper.getBlockEntity(persistentPos);
-            helper.assertTrue(normalBlockEntity instanceof HealingBloomLightBlockEntity,
-                    "Normal Healing Bloom light is missing its block entity");
-            helper.assertTrue(persistentBlockEntity instanceof HealingBloomLightBlockEntity,
-                    "Persistent Healing Bloom light is missing its block entity");
-
-            ((HealingBloomLightBlockEntity) persistentBlockEntity).setPersistentAfterBloomGone(true);
+            var pos = new BlockPos(0, 2, 0);
+            helper.setBlock(pos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
 
             for (int i = 0; i < 25; ++i) {
-                if (level.getBlockState(normalPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
+                if (level.getBlockState(pos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
+                    var blockEntity = helper.getBlockEntity(pos);
+                    helper.assertTrue(blockEntity instanceof HealingBloomLightBlockEntity,
+                            "Healing Bloom light is missing its block entity");
                     HealingBloomLightBlockEntity.serverTick(
                             level,
-                            normalPos,
-                            level.getBlockState(normalPos),
-                            (HealingBloomLightBlockEntity) normalBlockEntity
-                    );
-                }
-                if (level.getBlockState(persistentPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
-                    HealingBloomLightBlockEntity.serverTick(
-                            level,
-                            persistentPos,
-                            level.getBlockState(persistentPos),
-                            (HealingBloomLightBlockEntity) persistentBlockEntity
+                            pos,
+                            level.getBlockState(pos),
+                            (HealingBloomLightBlockEntity) blockEntity
                     );
                 }
             }
 
-            helper.assertTrue(!level.getBlockState(normalPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get()),
-                    "Non-persistent Healing Bloom light should still self-clean without a bloom");
-            helper.assertBlockPresent(BlockRegistry.HEALING_BLOOM_LIGHT.get(), persistentPos);
+            helper.assertTrue(!level.getBlockState(pos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get()),
+                    "Healing Bloom light should self-clean without a bloom");
         });
     }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomIgnoresOwnerDamageAndStaysSavable(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_owner_test"));
+            var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+            bloom.setOwner(owner);
+            bloom.setAnchorPos(new BlockPos(0, 2, 0));
+            helper.assertTrue(bloom.shouldBeSaved(), "Healing Bloom should now be saved with the world");
+            helper.assertFalse(bloom.hurt(level.damageSources().playerAttack(owner), 2.0f),
+                    "Healing Bloom should ignore damage from its owner");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomRootLossUsesDeathState(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.DIRT);
+
+        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_root_loss_test"));
+        var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+        bloom.setOwner(owner);
+        bloom.setAnchorPos(anchorPos);
+        bloom.setBloomMaxHealth(10.0f);
+        bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
+        helper.getLevel().addFreshEntity(bloom);
+
+        helper.runAtTickTime(1, () -> helper.setBlock(anchorPos.below(), Blocks.AIR));
+        helper.runAtTickTime(3, () -> {
+            var blooms = level.getEntitiesOfClass(HealingBloomEntity.class, new net.minecraft.world.phys.AABB(anchorPos).inflate(1.5));
+            helper.assertTrue(!blooms.isEmpty(),
+                    "Healing Bloom should remain as a dead entity for a short time instead of silently disappearing when its root is lost");
+            helper.assertTrue(blooms.stream().allMatch(entity -> !entity.isAlive() || entity.isDeadOrDying()),
+                    "Healing Bloom should enter its death state when its root is lost");
+            helper.succeed();
+        });
+    }
+    @GameTest(template = TEMPLATE)
+    public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+            castCompanionTrunk(helper, player, 1);
+
+            var trunk = getSingleCompanionTrunk(helper, player);
+            trunk.setItem(0, new ItemStack(Items.DIAMOND));
+            trunk.moveTo(player.getX() + 5.0, player.getY(), player.getZ(), 0.0f, 0.0f);
+
+            castCompanionTrunk(helper, player, 1);
+
+            helper.assertTrue(trunk.isAlive(), "Companion Trunk should stay active when recalled with items inside");
+            helper.assertTrue(Math.abs(trunk.blockPosition().getX() - player.blockPosition().getX()) <= 1
+                            && Math.abs(trunk.blockPosition().getZ() - player.blockPosition().getZ()) <= 1,
+                    "Companion Trunk should be recalled within one block of the caster");
+            helper.assertFalse(trunk.isEmpty(), "Companion Trunk should keep its items after recall");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void companionTrunkRecastKeepsLoadedTrunkInPlaceWhenNear(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+            castCompanionTrunk(helper, player, 1);
+
+            var trunk = getSingleCompanionTrunk(helper, player);
+            trunk.setItem(0, new ItemStack(Items.EMERALD));
+            trunk.moveTo(player.getX() + 1.0, player.getY(), player.getZ(), 0.0f, 0.0f);
+            var before = trunk.position();
+
+            castCompanionTrunk(helper, player, 1);
+
+            helper.assertTrue(trunk.position().distanceTo(before) < 0.01,
+                    "Companion Trunk should not move when recast while already within two blocks");
+            helper.assertFalse(trunk.isEmpty(), "Companion Trunk should stay loaded after the failed dismiss");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void companionTrunkDeathStoresItemsInChestWhenSpaceExists(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+            var trunkPos = new BlockPos(0, 2, 0);
+            var trunk = createCompanionTrunk(helper, owner, trunkPos);
+            trunk.setItem(0, new ItemStack(Items.DIAMOND, 3));
+
+            trunk.dropAllContentsAndDiscard();
+
+            var chestPos = findCompanionTrunkChest(helper, trunkPos);
+            helper.assertTrue(chestPos != null, "Companion Trunk should create a vanilla chest when there is space nearby");
+            helper.assertBlockPresent(Blocks.CHEST, chestPos);
+
+            var blockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(chestPos));
+            helper.assertTrue(blockEntity instanceof ChestBlockEntity, "Death chest should use the vanilla chest block entity");
+            helper.assertTrue(blockEntity instanceof ChestBlockEntity chest && containsItem(chest, Items.DIAMOND, 3),
+                    "Death chest should receive the Companion Trunk inventory");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void companionTrunkDeathDropsItemsWhenNoChestSpaceExists(GameTestHelper helper) {
+        var trunkPos = new BlockPos(0, 2, 0);
+        for (var y = -1; y <= 1; ++y) {
+            for (var x = -1; x <= 1; ++x) {
+                for (var z = -1; z <= 1; ++z) {
+                    helper.setBlock(trunkPos.offset(x, y, z), Blocks.STONE);
+                }
+            }
+        }
+
+        helper.succeedIf(() -> {
+            var owner = createCompanionTrunkPlayer(helper, new BlockPos(0, 4, 0));
+            var trunk = createCompanionTrunk(helper, owner, trunkPos);
+            trunk.setItem(0, new ItemStack(Items.EMERALD, 2));
+
+            trunk.dropAllContentsAndDiscard();
+
+            helper.assertTrue(findCompanionTrunkChest(helper, trunkPos) == null,
+                    "Companion Trunk should not create a chest when every candidate position is blocked");
+            helper.assertItemEntityPresent(Items.EMERALD, trunkPos, 2.5);
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void companionTrunkIgnoresFireAndRescuesFromVoid(GameTestHelper helper) {
+        var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+        var trunk = createCompanionTrunk(helper, player, new BlockPos(0, 2, 0));
+        trunk.setCompanionMaxHealth(10.0f);
+
+        helper.assertFalse(trunk.hurt(helper.getLevel().damageSources().lava(), 4.0f),
+                "Companion Trunk should ignore lava damage");
+        trunk.igniteForSeconds(5.0f);
+
+        helper.runAtTickTime(1, () -> {
+            var belowWorld = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, -2, 0)));
+            trunk.moveTo(belowWorld.x, belowWorld.y, belowWorld.z, 0.0f, 0.0f);
+        });
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(trunk.isAlive(), "Companion Trunk should survive lava and void rescue");
+            helper.assertTrue(trunk.getRemainingFireTicks() <= 0, "Companion Trunk should not stay ignited");
+            helper.assertTrue(Math.abs(trunk.blockPosition().getX() - player.blockPosition().getX()) <= 2
+                            && Math.abs(trunk.blockPosition().getZ() - player.blockPosition().getZ()) <= 2,
+                    "Companion Trunk should return near its owner after falling below the world");
+        });
+    }
+
     @GameTest(template = TEMPLATE)
     public static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
@@ -1475,6 +1669,61 @@ public final class ApprenticeCodexGameTests {
     private static void castHarvestMoon(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.HARVEST_MOON.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "companion_trunk_test"));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static void castCompanionTrunk(GameTestHelper helper, FakePlayer player, int spellLevel) {
+        var spell = SpellRegistry.COMPANION_TRUNK.get();
+        spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static CompanionTrunkEntity createCompanionTrunk(GameTestHelper helper, FakePlayer owner, BlockPos pos) {
+        var trunk = new CompanionTrunkEntity(EntityRegistry.COMPANION_TRUNK.get(), helper.getLevel(), owner);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        trunk.moveTo(absolutePos.x, absolutePos.y, absolutePos.z, 0.0f, 0.0f);
+        helper.getLevel().addFreshEntity(trunk);
+        return trunk;
+    }
+
+    private static CompanionTrunkEntity getSingleCompanionTrunk(GameTestHelper helper, FakePlayer owner) {
+        var trunks = helper.getLevel().getEntitiesOfClass(
+                CompanionTrunkEntity.class,
+                new AABB(owner.position(), owner.position()).inflate(16.0),
+                trunk -> owner.getUUID().equals(trunk.getOwnerUuid())
+        );
+        helper.assertTrue(trunks.size() == 1, "Expected exactly one Companion Trunk but found " + trunks.size());
+        return trunks.get(0);
+    }
+
+    private static BlockPos findCompanionTrunkChest(GameTestHelper helper, BlockPos center) {
+        for (var y = -1; y <= 1; ++y) {
+            for (var x = -1; x <= 1; ++x) {
+                for (var z = -1; z <= 1; ++z) {
+                    var candidate = center.offset(x, y, z);
+                    if (helper.getBlockState(candidate).is(Blocks.CHEST)) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean containsItem(ChestBlockEntity chest, Item item, int count) {
+        for (var slot = 0; slot < chest.getContainerSize(); ++slot) {
+            var stack = chest.getItem(slot);
+            if (stack.is(item) && stack.getCount() == count) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static int countMatureHarvestMoonPlants(GameTestHelper helper, List<BlockPos> cropPositions) {

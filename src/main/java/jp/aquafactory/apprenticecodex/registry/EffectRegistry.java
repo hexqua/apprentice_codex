@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.effect.CastingMobility;
 import jp.aquafactory.apprenticecodex.effect.CraftsmansDelightMobility;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
+import jp.aquafactory.apprenticecodex.effect.ManaRegeneration;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.effect.SenseSensor;
@@ -33,6 +34,8 @@ public final class EffectRegistry {
             EFFECTS.register("intelligence", Intelligence::new);
     public static final DeferredHolder<MobEffect, MobEffect> LONG_STRIDE_MOBILITY =
             EFFECTS.register("long_stride_mobility", LongStrideMobility::new);
+    public static final DeferredHolder<MobEffect, MobEffect> MANA_REGENERATION =
+            EFFECTS.register("mana_regeneration", ManaRegeneration::new);
     public static final DeferredHolder<MobEffect, MobEffect> PALETTE_RECEPTION =
             EFFECTS.register("palette_reception", PaletteReception::new);
     public static final DeferredHolder<MobEffect, MobEffect> PHALANX_STANCE =

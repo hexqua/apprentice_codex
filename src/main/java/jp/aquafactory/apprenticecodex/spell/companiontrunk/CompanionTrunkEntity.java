@@ -13,6 +13,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -27,12 +29,16 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
@@ -67,6 +73,11 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     private static final int OPEN_DURATION_TICK = 10;
     private static final int CLOSE_DURATION_TICK = 5;
     private static final int LAND_DURATION_TICK = 10;
+    private static final int VOID_RESCUE_COOLDOWN_TICK = 20;
+    private static final int OWNER_RECALL_HORIZONTAL_RANGE = 1;
+    private static final int OWNER_TELEPORT_HORIZONTAL_RANGE = 2;
+    private static final int[] OWNER_TELEPORT_Y_OFFSETS = {0, 1, -1, 2};
+    private static final int[] DEATH_CHEST_Y_OFFSETS = {0, 1, -1};
 
     private static final EntityDataAccessor<Integer> LID_ANIMATION_STATE =
             SynchedEntityData.defineId(CompanionTrunkEntity.class, EntityDataSerializers.INT);
@@ -91,6 +102,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     private @Nullable Player cachedOwner;
     private boolean wasOnGround;
     private int jumpCooldownTick;
+    private int voidRescueCooldownTick;
     private int lidAnimationTick;
     private int bodyAnimationTick;
     private boolean removalHandled;
@@ -163,6 +175,21 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
 
         if (owner.level() != level) {
             discardWithoutInventory();
+            return;
+        }
+
+        if (getRemainingFireTicks() > 0) {
+            clearFire();
+        }
+
+        if (voidRescueCooldownTick > 0) {
+            --voidRescueCooldownTick;
+        }
+
+        // エンド奈落などでは死亡処理まで待つと座標外ロストになりやすいため、ワールド下限を割った時点で先に復帰させる。
+        if (getY() < level.getMinBuildHeight() && voidRescueCooldownTick <= 0) {
+            voidRescueCooldownTick = VOID_RESCUE_COOLDOWN_TICK;
+            teleportNearOwner(owner);
             return;
         }
 
@@ -278,35 +305,76 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         fallDistance = 0.0f;
     }
 
-    private void teleportNearOwner(Player owner) {
-        var destination = findTeleportDestination(owner);
+    private boolean teleportNearOwner(Player owner) {
+        return moveNearOwner(owner, OWNER_TELEPORT_HORIZONTAL_RANGE, false);
+    }
+
+    public boolean recallNearOwner(Player owner) {
+        return moveNearOwner(owner, OWNER_RECALL_HORIZONTAL_RANGE, true);
+    }
+
+    private boolean moveNearOwner(Player owner, int horizontalRange, boolean requireSafePosition) {
+        var destination = findTeleportDestination(owner, horizontalRange);
+        if (destination == null) {
+            if (requireSafePosition) {
+                return false;
+            }
+            if (owner.getY() < level().getMinBuildHeight()) {
+                return false;
+            }
+            destination = owner.position();
+        }
+
         moveTo(destination.x, destination.y, destination.z, owner.getYRot(), 0.0f);
         getNavigation().stop();
         setDeltaMovement(Vec3.ZERO);
         fallDistance = 0.0f;
+        clearFire();
         level().playSound(null, blockPosition(), SoundEvents.SHULKER_TELEPORT, SoundSource.PLAYERS, 1.0f, 1.0f);
+        return true;
     }
 
-    private Vec3 findTeleportDestination(Player owner) {
+    private @Nullable Vec3 findTeleportDestination(Player owner, int horizontalRange) {
         var basePos = owner.blockPosition();
-        int[][] offsets = new int[][]{
-                {0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1},
-                {2, 0}, {-2, 0}, {0, 2}, {0, -2}
-        };
 
-        for (var yOffset = 0; yOffset <= 2; ++yOffset) {
-            for (var offset : offsets) {
-                var candidate = basePos.offset(offset[0], yOffset, offset[1]);
-                if (canTeleportTo(candidate)) {
-                    return Vec3.atBottomCenterOf(candidate);
+        for (var yOffset : OWNER_TELEPORT_Y_OFFSETS) {
+            for (var radius = 0; radius <= horizontalRange; ++radius) {
+                for (var x = -radius; x <= radius; ++x) {
+                    for (var z = -radius; z <= radius; ++z) {
+                        if (Math.max(Math.abs(x), Math.abs(z)) != radius) {
+                            continue;
+                        }
+
+                        var candidate = basePos.offset(x, yOffset, z);
+                        if (canTeleportTo(candidate)) {
+                            return Vec3.atBottomCenterOf(candidate);
+                        }
+                    }
                 }
             }
         }
 
-        return owner.position();
+        return null;
     }
 
     private boolean canTeleportTo(BlockPos pos) {
+        if (pos.getY() < level().getMinBuildHeight()) {
+            return false;
+        }
+        if (isLavaAt(pos) || isLavaAt(pos.above()) || isLavaAt(pos.below())) {
+            return false;
+        }
+
+        var fluid = level().getFluidState(pos);
+        if (!fluid.isEmpty() && !fluid.is(FluidTags.WATER)) {
+            return false;
+        }
+
+        var aboveFluid = level().getFluidState(pos.above());
+        if (!aboveFluid.isEmpty() && !aboveFluid.is(FluidTags.WATER)) {
+            return false;
+        }
+
         var belowState = level().getBlockState(pos.below());
         if (belowState.isAir() && level().getFluidState(pos.below()).getType() == Fluids.EMPTY) {
             return false;
@@ -314,6 +382,10 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
 
         var bounds = getDimensions(getPose()).makeBoundingBox(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         return level().noCollision(this, bounds);
+    }
+
+    private boolean isLavaAt(BlockPos pos) {
+        return level().getFluidState(pos).is(FluidTags.LAVA);
     }
 
     public void setOwner(Player owner) {
@@ -375,7 +447,9 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         removalHandled = true;
         closeTrackedMenus();
         if (dropInventory) {
-            dropStoredInventory();
+            if (!storeInventoryInDeathChest()) {
+                dropStoredInventory();
+            }
         }
         if (notifyDestroyed) {
             notifyOwnerDestroyed();
@@ -420,6 +494,128 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
                 Containers.dropItemStack(level(), getX(), getY(), getZ(), stack);
             }
         }
+    }
+
+    private boolean storeInventoryInDeathChest() {
+        var storage = getStorage();
+        if (storage == null || storage.isEmpty()) {
+            return true;
+        }
+
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return false;
+        }
+
+        var chestPos = findDeathChestPlacement(serverLevel);
+        if (chestPos == null) {
+            return false;
+        }
+
+        var chestState = buildDeathChestState(serverLevel, chestPos);
+        if (!serverLevel.setBlock(chestPos, chestState, Block.UPDATE_ALL)) {
+            return false;
+        }
+
+        var blockEntity = serverLevel.getBlockEntity(chestPos);
+        if (!(blockEntity instanceof Container container)) {
+            serverLevel.removeBlock(chestPos, false);
+            return false;
+        }
+
+        transferStoredInventory(container);
+        return true;
+    }
+
+    private @Nullable BlockPos findDeathChestPlacement(ServerLevel level) {
+        var origin = blockPosition();
+        for (var yOffset : DEATH_CHEST_Y_OFFSETS) {
+            for (var radius = 0; radius <= 1; ++radius) {
+                for (var x = -radius; x <= radius; ++x) {
+                    for (var z = -radius; z <= radius; ++z) {
+                        if (Math.max(Math.abs(x), Math.abs(z)) != radius) {
+                            continue;
+                        }
+
+                        var candidate = origin.offset(x, yOffset, z);
+                        if (canPlaceDeathChestAt(level, candidate)) {
+                            return candidate;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean canPlaceDeathChestAt(ServerLevel level, BlockPos pos) {
+        var state = level.getBlockState(pos);
+        var fluid = level.getFluidState(pos);
+        if (!state.canBeReplaced()) {
+            return false;
+        }
+        if (!fluid.isEmpty() && !fluid.is(FluidTags.WATER)) {
+            return false;
+        }
+        if (level.getFluidState(pos).is(FluidTags.LAVA) || level.getFluidState(pos.below()).is(FluidTags.LAVA)) {
+            return false;
+        }
+
+        var chestState = buildDeathChestState(level, pos);
+        return chestState.canSurvive(level, pos);
+    }
+
+    private net.minecraft.world.level.block.state.BlockState buildDeathChestState(ServerLevel level, BlockPos pos) {
+        var state = Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, getDirection().getOpposite());
+        if (state.hasProperty(BlockStateProperties.WATERLOGGED)) {
+            state = state.setValue(BlockStateProperties.WATERLOGGED, level.getFluidState(pos).is(FluidTags.WATER));
+        }
+        return state;
+    }
+
+    private void transferStoredInventory(Container container) {
+        var handler = getHandler();
+        if (handler == null) {
+            return;
+        }
+
+        for (var slot = 0; slot < handler.getSlots(); ++slot) {
+            var stack = handler.extractItem(slot, handler.getStackInSlot(slot).getCount(), false);
+            if (stack.isEmpty()) {
+                continue;
+            }
+
+            var remaining = putItemIntoContainer(container, stack);
+            if (!remaining.isEmpty()) {
+                Containers.dropItemStack(level(), getX(), getY(), getZ(), remaining);
+            }
+        }
+        container.setChanged();
+    }
+
+    private ItemStack putItemIntoContainer(Container container, ItemStack stack) {
+        var remaining = stack.copy();
+        for (var slot = 0; slot < container.getContainerSize() && !remaining.isEmpty(); ++slot) {
+            var existing = container.getItem(slot);
+            if (existing.isEmpty()) {
+                container.setItem(slot, remaining);
+                return ItemStack.EMPTY;
+            }
+
+            if (!ItemStack.isSameItemSameComponents(existing, remaining)) {
+                continue;
+            }
+
+            var maxStackSize = Math.min(existing.getMaxStackSize(), container.getMaxStackSize());
+            var movable = Math.min(remaining.getCount(), maxStackSize - existing.getCount());
+            if (movable <= 0) {
+                continue;
+            }
+
+            existing.grow(movable);
+            remaining.shrink(movable);
+            container.setItem(slot, existing);
+        }
+        return remaining;
     }
 
     private @Nullable ItemStackHandler getHandler() {
@@ -474,12 +670,23 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
         if (isOwnerDamageSource(source)
+                || source.is(DamageTypeTags.IS_FIRE)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.DROWN)
-                || source.is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
+                || source.is(net.minecraft.world.damagesource.DamageTypes.FALL)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)) {
             return false;
         }
         return super.hurt(source, amount);
+    }
+
+    @Override
+    public boolean fireImmune() {
+        return true;
+    }
+
+    @Override
+    public void lavaHurt() {
     }
 
     private boolean isOwnerDamageSource(DamageSource source) {
@@ -654,6 +861,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         ownerUuid = compoundTag.hasUUID("OwnerUUID") ? compoundTag.getUUID("OwnerUUID") : null;
         wasOnGround = compoundTag.getBoolean("WasOnGround");
         jumpCooldownTick = compoundTag.getInt("JumpCooldownTick");
+        voidRescueCooldownTick = compoundTag.getInt("VoidRescueCooldownTick");
         lidAnimationTick = compoundTag.getInt("LidAnimationTick");
         bodyAnimationTick = compoundTag.getInt("BodyAnimationTick");
         setLidAnimationState(LidAnimationState.of(compoundTag.getInt("LidAnimationState")), false);
@@ -668,6 +876,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         }
         compoundTag.putBoolean("WasOnGround", wasOnGround);
         compoundTag.putInt("JumpCooldownTick", jumpCooldownTick);
+        compoundTag.putInt("VoidRescueCooldownTick", voidRescueCooldownTick);
         compoundTag.putInt("LidAnimationTick", lidAnimationTick);
         compoundTag.putInt("BodyAnimationTick", bodyAnimationTick);
         compoundTag.putInt("LidAnimationState", entityData.get(LID_ANIMATION_STATE));

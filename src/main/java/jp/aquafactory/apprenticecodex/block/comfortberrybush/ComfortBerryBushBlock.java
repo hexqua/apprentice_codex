@@ -32,8 +32,8 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("deprecation")
 public class ComfortBerryBushBlock extends BushBlock implements BonemealableBlock {
     public static final MapCodec<ComfortBerryBushBlock> CODEC = simpleCodec(ComfortBerryBushBlock::new);
-    public static final int MAX_AGE = 2;
-    public static final IntegerProperty AGE = BlockStateProperties.AGE_2;
+    public static final int MAX_AGE = 4;
+    public static final IntegerProperty AGE = BlockStateProperties.AGE_4;
     private static final VoxelShape SAPLING_SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
     private static final VoxelShape MID_GROWTH_SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
 
@@ -47,7 +47,19 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
                 .noCollission()
                 .randomTicks()
                 .instabreak()
-                .sound(SoundType.SWEET_BERRY_BUSH));
+                .sound(SoundType.SWEET_BERRY_BUSH)
+                .lightLevel(ComfortBerryBushBlock::getLightLevel));
+    }
+
+    private static int getLightLevel(BlockState state) {
+        int age = state.getValue(AGE);
+        if (age >= MAX_AGE) {
+            return 10;
+        }
+        if (age == MAX_AGE - 1) {
+            return 7;
+        }
+        return 2;
     }
 
     @Override
@@ -96,7 +108,8 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
             popResource(level, pos, new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), 2 + level.random.nextInt(2)));
             level.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS,
                     1.0f, 0.8f + level.random.nextFloat() * 0.4f);
-            var harvested = state.setValue(AGE, 1);
+            // 最終段階の収穫後は発光と再成長を最初からやり直したいので stage0 に戻す。
+            var harvested = state.setValue(AGE, 0);
             level.setBlock(pos, harvested, 2);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, harvested));
             return InteractionResult.sidedSuccess(level.isClientSide);
