@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -16,6 +17,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
@@ -461,14 +463,14 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorRejectsSpellOutsideAllowlist(GameTestHelper helper) {
+    public static void spellDispenserValidatorRejectsSpellWithoutProfile(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
 
             var validation = SpellDispenserSpellValidator.validate(scrollStack);
-            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a spell outside the allowlist");
-            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_ALLOWLISTED,
-                    "Spell Dispenser validator returned the wrong failure reason for non-allowlisted scroll: " + validation.failureReason());
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a spell without a profile");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_PROFILED,
+                    "Spell Dispenser validator returned the wrong failure reason for profile-less scroll: " + validation.failureReason());
         });
     }
 
@@ -491,8 +493,20 @@ public final class ApprenticeCodexGameTests {
 
             var validation = SpellDispenserSpellValidator.validate(scrollStack);
             helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a CONTINUOUS scroll");
-            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_ALLOWLISTED,
-                    "Spell Dispenser validator returned the wrong failure reason for CONTINUOUS scroll: " + validation.failureReason());
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_PROFILED,
+                    "Spell Dispenser validator returned the wrong failure reason for profile-less CONTINUOUS scroll: " + validation.failureReason());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorAcceptsProfiledContinuousScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a profiled CONTINUOUS scroll");
+            helper.assertTrue(validation.spellData().getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(),
+                    "Spell Dispenser validator resolved the wrong profiled CONTINUOUS spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
 
@@ -596,6 +610,44 @@ public final class ApprenticeCodexGameTests {
             var fireballs = level.getEntitiesOfClass(SmallMagicFireball.class, fireballBox);
             helper.assertTrue(!fireballs.isEmpty(), "Spell Dispenser CONTINUOUS cast completed without spawning Blaze Storm fireballs");
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after CONTINUOUS cast");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserContinuousBreathBindsProjectileToTrackedAnchor(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected Fire Breath profile");
+
+            var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                    level,
+                    castPos,
+                    Direction.NORTH,
+                    validation,
+                    scrollStack,
+                    createSpellDispenserOwnerProfile("spell_dispenser_fire_breath_test")
+            );
+            helper.assertTrue(startResult.result().succeeded(), "Spell Dispenser cast helper failed to start Fire Breath");
+            helper.assertTrue(startResult.session() != null, "Spell Dispenser cast helper did not return a Fire Breath session");
+            helper.assertTrue(startResult.session().spellCaster() instanceof SpellDispenserAnchorEntity,
+                    "Spell Dispenser Fire Breath did not select a tracked living caster from its explicit profile: " + startResult.session().spellCaster());
+
+            var session = startResult.session();
+            for (var tick = 0; tick < 20; tick++) {
+                SpellDispenserCastHelper.tickContinuousCast(level, session);
+            }
+
+            var coneProjectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(castPos).inflate(16.0D));
+            helper.assertTrue(!coneProjectiles.isEmpty(), "Spell Dispenser Fire Breath never spawned its cone projectile");
+            helper.assertTrue(coneProjectiles.get(0).getOwner() instanceof SpellDispenserAnchorEntity,
+                    "Spell Dispenser Fire Breath did not rebind its cone owner to a tracked anchor: " + coneProjectiles.get(0).getOwner());
+
+            SpellDispenserCastHelper.finishContinuousCast(level, session, true);
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser tracked anchor was left behind after Fire Breath cleanup");
         });
     }
 
@@ -2452,6 +2504,9 @@ public final class ApprenticeCodexGameTests {
         var remainingProxies = helper.getLevel().getEntitiesOfClass(ArmorStand.class, proxyBox, stand ->
                 stand.isInvisible() && stand.getMainHandItem().is(spellSource.getItem()));
         helper.assertTrue(remainingProxies.isEmpty(), message + ": " + remainingProxies.size());
+
+        var remainingAnchors = helper.getLevel().getEntitiesOfClass(SpellDispenserAnchorEntity.class, proxyBox);
+        helper.assertTrue(remainingAnchors.isEmpty(), message + " (tracked anchors): " + remainingAnchors.size());
     }
 
     private static ItemStack createInitializedPresetStack(Item item) {

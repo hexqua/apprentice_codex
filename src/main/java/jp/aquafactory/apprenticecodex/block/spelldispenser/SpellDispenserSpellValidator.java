@@ -64,8 +64,8 @@ public final class SpellDispenserSpellValidator {
         if (SpellDispenserSpellListManager.isDenylisted(spell)) {
             return new ValidationResult(stack, spellData, FailureReason.DENYLISTED);
         }
-        if (!SpellDispenserSpellListManager.isAllowlisted(spell)) {
-            return new ValidationResult(stack, spellData, FailureReason.NOT_ALLOWLISTED);
+        if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()) {
+            return new ValidationResult(stack, spellData, FailureReason.NOT_PROFILED);
         }
 
         return new ValidationResult(stack, spellData, FailureReason.NONE);
@@ -112,7 +112,7 @@ public final class SpellDispenserSpellValidator {
         MULTIPLE_ACTIVE_SPELLS,
         UNSUPPORTED_CAST_TYPE,
         HAS_RECAST,
-        NOT_ALLOWLISTED,
+        NOT_PROFILED,
         DENYLISTED;
 
         public Component createMessage(SpellData spellData, @Nullable Player player) {
@@ -132,8 +132,8 @@ public final class SpellDispenserSpellValidator {
                         keyBase + "has_recast",
                         spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
                 );
-                case NOT_ALLOWLISTED -> Component.translatable(
-                        keyBase + "not_allowlisted",
+                case NOT_PROFILED -> Component.translatable(
+                        keyBase + "not_profiled",
                         spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
                 );
                 case DENYLISTED -> Component.translatable(

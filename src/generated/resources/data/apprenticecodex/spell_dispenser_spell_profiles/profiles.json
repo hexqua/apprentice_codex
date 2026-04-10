@@ -1,0 +1,49 @@
+{
+  "values": [
+    {
+      "spell": "irons_spellbooks:heal"
+    },
+    {
+      "spell": "irons_spellbooks:spectral_hammer"
+    },
+    {
+      "spell": "apprenticecodex:mage_light"
+    },
+    {
+      "spell": "apprenticecodex:compound_phial"
+    },
+    {
+      "spell": "irons_spellbooks:blaze_storm"
+    },
+    {
+      "profile": {
+        "cast_anchor": "tracked_anchor"
+      },
+      "spell": "irons_spellbooks:fire_breath"
+    },
+    {
+      "profile": {
+        "cast_anchor": "tracked_anchor"
+      },
+      "spell": "irons_spellbooks:dragon_breath"
+    },
+    {
+      "profile": {
+        "cast_anchor": "tracked_anchor"
+      },
+      "spell": "irons_spellbooks:cone_of_cold"
+    },
+    {
+      "profile": {
+        "cast_anchor": "tracked_anchor"
+      },
+      "spell": "irons_spellbooks:poison_breath"
+    },
+    {
+      "profile": {
+        "cast_anchor": "tracked_anchor"
+      },
+      "spell": "irons_spellbooks:electrocute"
+    }
+  ]
+}

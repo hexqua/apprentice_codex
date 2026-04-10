@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinitySelectionPolic
 import jp.aquafactory.apprenticecodex.datagen.spell.SearchBeaconTargetDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SenseEvilHighlightDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellListDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellGunSpellListDataGenerator;
 import net.minecraftforge.common.data.ForgeAdvancementProvider;
 import net.minecraftforge.data.event.GatherDataEvent;
@@ -34,6 +35,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));
         generator.addProvider(event.includeServer(), new PoiTypeTagGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SpellDispenserSpellListDataGenerator(output, existing));
+        generator.addProvider(event.includeServer(), new SpellDispenserSpellProfileDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SearchBeaconTargetDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SchoolAffinitySelectionPolicyDataGenerator(output, existing));

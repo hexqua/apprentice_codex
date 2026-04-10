@@ -26,7 +26,6 @@ public final class SpellDispenserSpellListManager extends SimpleJsonResourceRelo
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final SpellDispenserSpellListManager INSTANCE = new SpellDispenserSpellListManager();
-    private static volatile Set<ResourceLocation> allowlist = Set.of();
     private static volatile Set<ResourceLocation> denylist = Set.of();
 
     private SpellDispenserSpellListManager() {
@@ -38,34 +37,32 @@ public final class SpellDispenserSpellListManager extends SimpleJsonResourceRelo
         event.addListener(INSTANCE);
     }
 
-    public static boolean isAllowlisted(AbstractSpell spell) {
-        return spell != null && allowlist.contains(spell.getSpellResource());
-    }
-
     public static boolean isDenylisted(AbstractSpell spell) {
         return spell != null && denylist.contains(spell.getSpellResource());
     }
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> resourceMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profiler) {
-        var resolvedAllowlist = new LinkedHashSet<ResourceLocation>();
         var resolvedDenylist = new LinkedHashSet<ResourceLocation>();
 
         resourceMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey(Comparator.comparing(ResourceLocation::toString)))
-                .forEach(entry -> mergeList(entry.getKey(), entry.getValue(), resolvedAllowlist, resolvedDenylist));
+                .forEach(entry -> mergeList(entry.getKey(), entry.getValue(), resolvedDenylist));
 
-        allowlist = Set.copyOf(resolvedAllowlist);
         denylist = Set.copyOf(resolvedDenylist);
     }
 
     private static void mergeList(
             ResourceLocation resourceId,
             JsonElement element,
-            Set<ResourceLocation> resolvedAllowlist,
             Set<ResourceLocation> resolvedDenylist
     ) {
-        var target = resolveTargetSet(resourceId, resolvedAllowlist, resolvedDenylist);
+        if (isObsoleteAllowlist(resourceId)) {
+            ApprenticeCodex.LOGGER.warn("Ignoring obsolete Spell Dispenser allowlist: {}", resourceId);
+            return;
+        }
+
+        var target = resolveTargetSet(resourceId, resolvedDenylist);
         if (target == null) {
             ApprenticeCodex.LOGGER.error("Unknown Spell Dispenser spell list file: {}", resourceId);
             return;
@@ -79,15 +76,19 @@ public final class SpellDispenserSpellListManager extends SimpleJsonResourceRelo
 
     private static Set<ResourceLocation> resolveTargetSet(
             ResourceLocation resourceId,
-            Set<ResourceLocation> resolvedAllowlist,
             Set<ResourceLocation> resolvedDenylist
     ) {
         var path = resourceId.getPath();
         var fileName = path.substring(path.lastIndexOf('/') + 1);
-        return switch (fileName) {
-            case "allowlist" -> resolvedAllowlist;
-            case "denylist" -> resolvedDenylist;
-            default -> null;
-        };
+        if (fileName.equals("denylist")) {
+            return resolvedDenylist;
+        }
+        return null;
+    }
+
+    private static boolean isObsoleteAllowlist(ResourceLocation resourceId) {
+        var path = resourceId.getPath();
+        var fileName = path.substring(path.lastIndexOf('/') + 1);
+        return fileName.equals("allowlist");
     }
 }
