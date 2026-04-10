@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
@@ -88,12 +89,14 @@ import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
@@ -1280,6 +1283,114 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+            castCompanionTrunk(helper, player, 1);
+
+            var trunk = getSingleCompanionTrunk(helper, player);
+            trunk.setItem(0, new ItemStack(Items.DIAMOND));
+            trunk.moveTo(player.getX() + 5.0, player.getY(), player.getZ(), 0.0f, 0.0f);
+
+            castCompanionTrunk(helper, player, 1);
+
+            helper.assertTrue(trunk.isAlive(), "Companion Trunk should stay active when recalled with items inside");
+            helper.assertTrue(Math.abs(trunk.blockPosition().getX() - player.blockPosition().getX()) <= 1
+                            && Math.abs(trunk.blockPosition().getZ() - player.blockPosition().getZ()) <= 1,
+                    "Companion Trunk should be recalled within one block of the caster");
+            helper.assertFalse(trunk.isEmpty(), "Companion Trunk should keep its items after recall");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void companionTrunkRecastKeepsLoadedTrunkInPlaceWhenNear(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+            castCompanionTrunk(helper, player, 1);
+
+            var trunk = getSingleCompanionTrunk(helper, player);
+            trunk.setItem(0, new ItemStack(Items.EMERALD));
+            trunk.moveTo(player.getX() + 1.0, player.getY(), player.getZ(), 0.0f, 0.0f);
+            var before = trunk.position();
+
+            castCompanionTrunk(helper, player, 1);
+
+            helper.assertTrue(trunk.position().distanceTo(before) < 0.01,
+                    "Companion Trunk should not move when recast while already within two blocks");
+            helper.assertFalse(trunk.isEmpty(), "Companion Trunk should stay loaded after the failed dismiss");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void companionTrunkDeathStoresItemsInChestWhenSpaceExists(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+            var trunkPos = new BlockPos(0, 2, 0);
+            var trunk = createCompanionTrunk(helper, owner, trunkPos);
+            trunk.setItem(0, new ItemStack(Items.DIAMOND, 3));
+
+            trunk.dropAllContentsAndDiscard();
+
+            var chestPos = findCompanionTrunkChest(helper, trunkPos);
+            helper.assertTrue(chestPos != null, "Companion Trunk should create a vanilla chest when there is space nearby");
+            helper.assertBlockPresent(Blocks.CHEST, chestPos);
+
+            var blockEntity = helper.getLevel().getBlockEntity(helper.absolutePos(chestPos));
+            helper.assertTrue(blockEntity instanceof ChestBlockEntity, "Death chest should use the vanilla chest block entity");
+            helper.assertTrue(blockEntity instanceof ChestBlockEntity chest && containsItem(chest, Items.DIAMOND, 3),
+                    "Death chest should receive the Companion Trunk inventory");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void companionTrunkDeathDropsItemsWhenNoChestSpaceExists(GameTestHelper helper) {
+        var trunkPos = new BlockPos(0, 2, 0);
+        for (var y = -1; y <= 1; ++y) {
+            for (var x = -1; x <= 1; ++x) {
+                for (var z = -1; z <= 1; ++z) {
+                    helper.setBlock(trunkPos.offset(x, y, z), Blocks.STONE);
+                }
+            }
+        }
+
+        helper.succeedIf(() -> {
+            var owner = createCompanionTrunkPlayer(helper, new BlockPos(0, 4, 0));
+            var trunk = createCompanionTrunk(helper, owner, trunkPos);
+            trunk.setItem(0, new ItemStack(Items.EMERALD, 2));
+
+            trunk.dropAllContentsAndDiscard();
+
+            helper.assertTrue(findCompanionTrunkChest(helper, trunkPos) == null,
+                    "Companion Trunk should not create a chest when every candidate position is blocked");
+            helper.assertItemEntityPresent(Items.EMERALD, trunkPos, 2.5);
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void companionTrunkIgnoresFireAndRescuesFromVoid(GameTestHelper helper) {
+        var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+        var trunk = createCompanionTrunk(helper, player, new BlockPos(0, 2, 0));
+        trunk.setCompanionMaxHealth(10.0f);
+
+        helper.assertFalse(trunk.hurt(helper.getLevel().damageSources().lava(), 4.0f),
+                "Companion Trunk should ignore lava damage");
+        trunk.setSecondsOnFire(5);
+
+        helper.runAtTickTime(1, () -> {
+            var belowWorld = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, -2, 0)));
+            trunk.moveTo(belowWorld.x, belowWorld.y, belowWorld.z, 0.0f, 0.0f);
+        });
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(trunk.isAlive(), "Companion Trunk should survive lava and void rescue");
+            helper.assertTrue(trunk.getRemainingFireTicks() <= 0, "Companion Trunk should not stay ignited");
+            helper.assertTrue(Math.abs(trunk.blockPosition().getX() - player.blockPosition().getX()) <= 2
+                            && Math.abs(trunk.blockPosition().getZ() - player.blockPosition().getZ()) <= 2,
+                    "Companion Trunk should return near its owner after falling below the world");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var matureCropPos = new BlockPos(3, 2, 0);
@@ -1401,6 +1512,61 @@ public final class ApprenticeCodexGameTests {
     private static void castHarvestMoon(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.HARVEST_MOON.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "companion_trunk_test"));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static void castCompanionTrunk(GameTestHelper helper, FakePlayer player, int spellLevel) {
+        var spell = SpellRegistry.COMPANION_TRUNK.get();
+        spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static CompanionTrunkEntity createCompanionTrunk(GameTestHelper helper, FakePlayer owner, BlockPos pos) {
+        var trunk = new CompanionTrunkEntity(EntityRegistry.COMPANION_TRUNK.get(), helper.getLevel(), owner);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        trunk.moveTo(absolutePos.x, absolutePos.y, absolutePos.z, 0.0f, 0.0f);
+        helper.getLevel().addFreshEntity(trunk);
+        return trunk;
+    }
+
+    private static CompanionTrunkEntity getSingleCompanionTrunk(GameTestHelper helper, FakePlayer owner) {
+        var trunks = helper.getLevel().getEntitiesOfClass(
+                CompanionTrunkEntity.class,
+                new AABB(owner.position(), owner.position()).inflate(16.0),
+                trunk -> owner.getUUID().equals(trunk.getOwnerUuid())
+        );
+        helper.assertTrue(trunks.size() == 1, "Expected exactly one Companion Trunk but found " + trunks.size());
+        return trunks.get(0);
+    }
+
+    private static BlockPos findCompanionTrunkChest(GameTestHelper helper, BlockPos center) {
+        for (var y = -1; y <= 1; ++y) {
+            for (var x = -1; x <= 1; ++x) {
+                for (var z = -1; z <= 1; ++z) {
+                    var candidate = center.offset(x, y, z);
+                    if (helper.getBlockState(candidate).is(Blocks.CHEST)) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean containsItem(ChestBlockEntity chest, Item item, int count) {
+        for (var slot = 0; slot < chest.getContainerSize(); ++slot) {
+            var stack = chest.getItem(slot);
+            if (stack.is(item) && stack.getCount() == count) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static int countMatureHarvestMoonPlants(GameTestHelper helper, List<BlockPos> cropPositions) {
