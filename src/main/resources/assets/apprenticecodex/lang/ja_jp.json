@@ -241,6 +241,8 @@
   "container.apprenticecodex.spell_dispenser.status.owner_missing": "設置者情報がないため発動できません",
   "container.apprenticecodex.spell_dispenser.status.unsupported_cast": "%s は INSTANT / LONG 以外の cast type です",
   "container.apprenticecodex.spell_dispenser.status.has_recast": "%s は recast があるため非対応です",
+  "container.apprenticecodex.spell_dispenser.status.not_allowlisted": "%s は許可リストに入っていないため非対応です",
+  "container.apprenticecodex.spell_dispenser.status.denylisted": "%s は拒否リストに入っているため非対応です",
   "chat.apprenticecodex.spell_dispenser.cast_failed": "魔法ディスペンサー失敗: %s / %s / %s / %s",
   "chat.apprenticecodex.spell_dispenser.no_exception_detail": "詳細なし",
   "chat.apprenticecodex.spell_dispenser.stage.initiate_cast": "initiate_cast",

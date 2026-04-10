@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinityCatalystOverri
 import jp.aquafactory.apprenticecodex.datagen.spell.SchoolAffinitySelectionPolicyDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SearchBeaconTargetDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SenseEvilHighlightDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.spell.SpellDispenserSpellListDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.SpellGunSpellListDataGenerator;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -37,6 +38,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));
         generator.addProvider(event.includeServer(), new PoiTypeTagGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new EnchantmentTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
+        generator.addProvider(event.includeServer(), new SpellDispenserSpellListDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new SpellGunSpellListDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SearchBeaconTargetDataGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new SchoolAffinitySelectionPolicyDataGenerator(output, lookupProvider, existing));

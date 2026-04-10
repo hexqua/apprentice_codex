@@ -525,6 +525,30 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsSpellOutsideAllowlist(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a spell outside the allowlist");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_ALLOWLISTED,
+                    "Spell Dispenser validator returned the wrong failure reason for non-allowlisted scroll: " + validation.failureReason());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(SpellRegistry.ASSIST_WINGS.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a denylisted scroll");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
+                    "Spell Dispenser validator returned the wrong failure reason for denylisted scroll: " + validation.failureReason());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.LONG_STRIDE.get());

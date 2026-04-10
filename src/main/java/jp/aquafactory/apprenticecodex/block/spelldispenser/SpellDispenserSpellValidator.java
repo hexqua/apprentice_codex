@@ -3,8 +3,10 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.spells.SpellSlot;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +35,7 @@ public final class SpellDispenserSpellValidator {
         }
 
         var activeSpells = spellContainer.getActiveSpells().stream()
-                .map(slot -> slot.spellData())
+                .map(SpellSlot::spellData)
                 .filter(spellData -> spellData != SpellData.EMPTY)
                 .toList();
         if (activeSpells.isEmpty()) {
@@ -55,6 +57,15 @@ public final class SpellDispenserSpellValidator {
         }
         if (spell.getRecastCount(spellData.getLevel(), null) > 0) {
             return new ValidationResult(stack, spellData, FailureReason.HAS_RECAST);
+        }
+        if (ApprenticeCodexServerConfig.spellDispenserRelaxedSpellFilter()) {
+            return new ValidationResult(stack, spellData, FailureReason.NONE);
+        }
+        if (SpellDispenserSpellListManager.isDenylisted(spell)) {
+            return new ValidationResult(stack, spellData, FailureReason.DENYLISTED);
+        }
+        if (!SpellDispenserSpellListManager.isAllowlisted(spell)) {
+            return new ValidationResult(stack, spellData, FailureReason.NOT_ALLOWLISTED);
         }
 
         return new ValidationResult(stack, spellData, FailureReason.NONE);
@@ -100,7 +111,9 @@ public final class SpellDispenserSpellValidator {
         NO_ACTIVE_SPELL,
         MULTIPLE_ACTIVE_SPELLS,
         UNSUPPORTED_CAST_TYPE,
-        HAS_RECAST;
+        HAS_RECAST,
+        NOT_ALLOWLISTED,
+        DENYLISTED;
 
         public Component createMessage(SpellData spellData, @Nullable Player player) {
             var keyBase = "container." + ApprenticeCodex.MODID + ".spell_dispenser.status.";
@@ -117,6 +130,14 @@ public final class SpellDispenserSpellValidator {
                 );
                 case HAS_RECAST -> Component.translatable(
                         keyBase + "has_recast",
+                        spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
+                );
+                case NOT_ALLOWLISTED -> Component.translatable(
+                        keyBase + "not_allowlisted",
+                        spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
+                );
+                case DENYLISTED -> Component.translatable(
+                        keyBase + "denylisted",
                         spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
                 );
             };
