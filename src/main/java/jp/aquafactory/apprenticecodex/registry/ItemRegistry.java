@@ -94,9 +94,9 @@ public final class ItemRegistry {
                     BlockRegistry.COMFORT_BERRY_BUSH.get(),
                     new Item.Properties().food(new FoodProperties.Builder()
                             .nutrition(4)
-                            .saturationMod(1.2f)
-                            .alwaysEat()
-                            .effect(() -> new MobEffectInstance(EffectRegistry.MANA_REGENERATION.get(), 20 * 30), 1.0f)
+                            .saturationModifier(1.2f)
+                            .alwaysEdible()
+                            .effect(() -> new MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30), 1.0f)
                             .build())
             ));
     public static final DeferredHolder<Item, Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");

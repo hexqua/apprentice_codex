@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.model;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
 public class HealingBloomModel extends GeoModel<HealingBloomEntity> {

@@ -383,8 +383,9 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     private void dropComfortBerries(int count) {
         var remaining = count;
+        var maxStackSize = new ItemStack(ItemRegistry.COMFORT_BERRIES.get()).getMaxStackSize();
         while (remaining > 0) {
-            var dropCount = Math.min(remaining, ItemRegistry.COMFORT_BERRIES.get().getMaxStackSize());
+            var dropCount = Math.min(remaining, maxStackSize);
             spawnAtLocation(new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), dropCount));
             remaining -= dropCount;
         }
@@ -392,8 +393,9 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     private void giveComfortBerriesTo(Player player, int count) {
         var remaining = count;
+        var maxStackSize = new ItemStack(ItemRegistry.COMFORT_BERRIES.get()).getMaxStackSize();
         while (remaining > 0) {
-            var giveCount = Math.min(remaining, ItemRegistry.COMFORT_BERRIES.get().getMaxStackSize());
+            var giveCount = Math.min(remaining, maxStackSize);
             var stack = new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), giveCount);
             if (!player.addItem(stack)) {
                 spawnAtLocation(stack);

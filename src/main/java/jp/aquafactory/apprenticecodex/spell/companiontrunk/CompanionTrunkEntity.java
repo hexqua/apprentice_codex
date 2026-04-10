@@ -522,13 +522,6 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
             return false;
         }
 
-        if (blockEntity instanceof ChestBlockEntity chestBlockEntity) {
-            var customName = storage.getCustomName();
-            if (customName != null) {
-                chestBlockEntity.setCustomName(customName.copy());
-            }
-        }
-
         transferStoredInventory(container);
         return true;
     }
@@ -608,7 +601,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
                 return ItemStack.EMPTY;
             }
 
-            if (!ItemStack.isSameItemSameTags(existing, remaining)) {
+            if (!ItemStack.isSameItemSameComponents(existing, remaining)) {
                 continue;
             }
 

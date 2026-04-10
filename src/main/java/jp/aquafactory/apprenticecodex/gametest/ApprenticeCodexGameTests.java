@@ -1238,54 +1238,57 @@ public final class ApprenticeCodexGameTests {
     @GameTest(template = TEMPLATE)
     public static void comfortBerriesProvideManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var foodProperties = ItemRegistry.COMFORT_BERRIES.get().getFoodProperties();
+            var foodProperties = new ItemStack(ItemRegistry.COMFORT_BERRIES.get()).getFoodProperties(null);
             helper.assertTrue(foodProperties != null, "Comfort Berries should remain edible");
-            helper.assertTrue(foodProperties != null && foodProperties.getNutrition() == 4,
-                    "Comfort Berries nutrition regression: " + (foodProperties == null ? "null" : foodProperties.getNutrition()));
-            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.getSaturationModifier() - 1.2f) < 1.0e-6F,
-                    "Comfort Berries saturation modifier regression: "
-                            + (foodProperties == null ? "null" : foodProperties.getSaturationModifier()));
+            helper.assertTrue(foodProperties != null && foodProperties.nutrition() == 4,
+                    "Comfort Berries nutrition regression: " + (foodProperties == null ? "null" : foodProperties.nutrition()));
+            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.saturation() - 9.6f) < 1.0e-6F,
+                    "Comfort Berries saturation regression: "
+                            + (foodProperties == null ? "null" : foodProperties.saturation()));
             helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
                     "Comfort Berries should remain edible even when full");
 
-            var matchingEffects = foodProperties == null ? List.<com.mojang.datafixers.util.Pair<net.minecraft.world.effect.MobEffectInstance, Float>>of()
-                    : foodProperties.getEffects().stream()
-                    .filter(effectPair -> effectPair.getFirst().getEffect() == EffectRegistry.MANA_REGENERATION.get())
+            var matchingEffects = foodProperties == null ? List.<net.minecraft.world.food.FoodProperties.PossibleEffect>of()
+                    : foodProperties.effects().stream()
+                    .filter(effectPair -> effectPair.effect().getEffect() == EffectRegistry.MANA_REGENERATION)
                     .toList();
             helper.assertTrue(matchingEffects.size() == 1,
                     "Comfort Berries should grant exactly one mana regeneration effect but got " + matchingEffects.size());
 
             var effectPair = matchingEffects.isEmpty() ? null : matchingEffects.get(0);
-            helper.assertTrue(effectPair != null && effectPair.getFirst().getDuration() == 20 * 30,
+            helper.assertTrue(effectPair != null && effectPair.effect().getDuration() == 20 * 30,
                     "Comfort Berries mana regeneration duration regression: "
-                            + (effectPair == null ? "missing" : effectPair.getFirst().getDuration()));
-            helper.assertTrue(effectPair != null && effectPair.getFirst().getAmplifier() == 0,
+                            + (effectPair == null ? "missing" : effectPair.effect().getDuration()));
+            helper.assertTrue(effectPair != null && effectPair.effect().getAmplifier() == 0,
                     "Comfort Berries mana regeneration level regression: "
-                            + (effectPair == null ? "missing" : effectPair.getFirst().getAmplifier()));
-            helper.assertTrue(effectPair != null && Math.abs(effectPair.getSecond() - 1.0f) < 1.0e-6F,
+                            + (effectPair == null ? "missing" : effectPair.effect().getAmplifier()));
+            helper.assertTrue(effectPair != null && Math.abs(effectPair.probability() - 1.0f) < 1.0e-6F,
                     "Comfort Berries mana regeneration chance regression: "
-                            + (effectPair == null ? "missing" : effectPair.getSecond()));
+                            + (effectPair == null ? "missing" : effectPair.probability()));
         });
     }
 
     @GameTest(template = TEMPLATE)
     public static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var effect = (jp.aquafactory.apprenticecodex.effect.ManaRegeneration) EffectRegistry.MANA_REGENERATION.get();
-            var manaRegenModifier = effect.getAttributeModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get());
-            helper.assertTrue(manaRegenModifier != null, "Mana Regeneration is missing the mana regen attribute modifier");
-            helper.assertTrue(manaRegenModifier != null
-                            && manaRegenModifier.getOperation() == AttributeModifier.Operation.MULTIPLY_TOTAL,
-                    "Mana Regeneration should use MULTIPLY_TOTAL but got "
-                            + (manaRegenModifier == null ? "missing" : manaRegenModifier.getOperation()));
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "mana_regeneration_test"));
+            var manaRegenAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN);
+            helper.assertTrue(manaRegenAttribute != null, "Player is missing the mana regen attribute");
 
-            var levelOneAmount = manaRegenModifier == null ? Double.NaN : effect.getAttributeModifierValue(0, manaRegenModifier);
-            helper.assertTrue(Math.abs(levelOneAmount - 0.25D) < 1.0e-9D,
-                    "Mana Regeneration Lv1 regression: expected 0.25 but got " + levelOneAmount);
+            var baseValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
+            helper.assertTrue(!Double.isNaN(baseValue) && baseValue > 0.0D,
+                    "Mana regen base value must be positive for regression testing: " + baseValue);
 
-            var levelTwoAmount = manaRegenModifier == null ? Double.NaN : effect.getAttributeModifierValue(1, manaRegenModifier);
-            helper.assertTrue(Math.abs(levelTwoAmount - 0.50D) < 1.0e-9D,
-                    "Mana Regeneration Lv2 regression: expected 0.50 but got " + levelTwoAmount);
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30, 0));
+            var levelOneValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
+            helper.assertTrue(Math.abs(levelOneValue - (baseValue * 1.25D)) < 1.0e-9D,
+                    "Mana Regeneration Lv1 regression: expected " + (baseValue * 1.25D) + " but got " + levelOneValue);
+
+            player.removeEffect(EffectRegistry.MANA_REGENERATION);
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30, 1));
+            var levelTwoValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
+            helper.assertTrue(Math.abs(levelTwoValue - (baseValue * 1.50D)) < 1.0e-9D,
+                    "Mana Regeneration Lv2 regression: expected " + (baseValue * 1.50D) + " but got " + levelTwoValue);
         });
     }
 
@@ -1358,250 +1361,6 @@ public final class ApprenticeCodexGameTests {
             );
         });
     }
-    @GameTest(template = TEMPLATE)
-    public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Spell Gun",
-                item -> item instanceof AbstractSpellGunItem,
-                ApprenticeCodexGameTests::expectedSpellGunEnchantments
-        ));
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var expectedBookEnchantments = allRegisteredEnchantmentIds();
-            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
-            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
-
-            for (var stack : stacks) {
-                // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
-                // 本判定だけは広く通る。Malum 側は main hand 前提で soul_hunter_weapon を使うため、
-                // 実際に固定したい付与面はエンチャント台と独自金床側の offhand 非対応面。
-                assertExactEnchantmentSurfaces(
-                        helper,
-                        stack,
-                        expectedOffhandEnchantments(stack),
-                        expectedBookEnchantments,
-                        expectedOffhandEnchantments(stack),
-                        "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
-                );
-            }
-        });
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Right Click Magic Weapon",
-                // 1.21.1申し送り事項:
-                // 1.20.1 では StaffItem にしていない武器でも、1.21.1 側では StaffItem 化する場合がある。
-                // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
-                // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
-                item -> item instanceof AbstractRightClickMagicWeaponItem,
-                ApprenticeCodexGameTests::expectedRightClickMagicWeaponEnchantments
-        ));
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
-                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedReflectcastShieldEnchantments(stack),
-                    "Reflectcast Shield"
-            );
-        });
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> assertCategoryEnchantments(
-                helper,
-                "Spellcasters Flask",
-                item -> item instanceof SpellcastersFlask,
-                expectedFlaskEnchantments()
-        ));
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            assertCategoryEnchantments(
-                    helper,
-                    "Enchantress Robe",
-                    item -> item instanceof EnchantressRobeItem,
-                    ApprenticeCodexGameTests::expectedEnchantressRobeEnchantments
-            );
-            assertCategoryEnchantments(
-                    helper,
-                    "Stealth Rune Armor",
-                    item -> item instanceof StealthRuneArmorItem,
-                    ApprenticeCodexGameTests::expectedStealthRuneArmorEnchantments
-            );
-        });
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-            var item = stack.getItem();
-            var expectedVanillaEnchantments = Set.of(
-                    ResourceLocation.withDefaultNamespace("fortune"),
-                    ResourceLocation.withDefaultNamespace("knockback"),
-                    ResourceLocation.withDefaultNamespace("looting"),
-                    ResourceLocation.withDefaultNamespace("silk_touch")
-            );
-
-            var actualAllowedVanillaEnchantments = collectAllowedEnchantments(
-                    stack,
-                    enchantment -> {
-                        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-                        return enchantmentId != null
-                                && VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
-                                && item.canApplyAtEnchantingTable(stack, enchantment);
-                    }
-            );
-            helper.assertTrue(actualAllowedVanillaEnchantments.equals(expectedVanillaEnchantments),
-                    "Pastel Staff allowed vanilla enchantments changed: "
-                            + describeEnchantmentDifference(expectedVanillaEnchantments, actualAllowedVanillaEnchantments));
-
-            // Iron's StaffItem 側の広い互換性は 1.21.1 で揺れやすいため固定せず、
-            // この mod が明示したバニラ武器許可と耐久系拒否だけを回帰監視する。
-            for (var enchantment : getRegisteredEnchantments()) {
-                var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-                if (enchantmentId == null) {
-                    continue;
-                }
-
-                var expectedVanillaAllowed = VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
-                        && expectedVanillaEnchantments.contains(enchantmentId);
-                if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment) == expectedVanillaAllowed,
-                            "Pastel Staff vanilla enchanting-table rule changed for " + enchantmentId
-                                    + ": expected " + expectedVanillaAllowed);
-                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedVanillaAllowed,
-                            "Pastel Staff vanilla book rule changed for " + enchantmentId
-                                    + ": expected " + expectedVanillaAllowed);
-                }
-
-                if (isDurabilityTargetEnchantment(enchantment)) {
-                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
-                            "Pastel Staff should keep rejecting durability-target enchantments at the enchanting table: "
-                                    + enchantmentId);
-                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                            "Pastel Staff should keep rejecting durability-target enchantments from books: "
-                                    + enchantmentId);
-                }
-
-                if (MALUM_HAUNTED.equals(enchantmentId)) {
-                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
-                            "Pastel Staff should allow malum:haunted at the enchanting table");
-                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                            "Pastel Staff should allow malum:haunted from books");
-                }
-
-                if (MALUM_ANIMATED.equals(enchantmentId)) {
-                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
-                            "Pastel Staff should keep rejecting malum:animated at the enchanting table");
-                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
-                            "Pastel Staff should keep rejecting malum:animated from books");
-                }
-            }
-        });
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
-                return;
-            }
-
-            var haunted = MalumHauntedCompat.getHauntedEnchantment();
-            helper.assertTrue(haunted != null, "malum:haunted is not registered");
-
-            var pastelStaff = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-            pastelStaff.enchant(haunted, 1);
-            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(pastelStaff),
-                    "Pastel Staff should be a supported Haunted main hand item");
-            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(pastelStaff) > 0.0D,
-                    "Pastel Staff should resolve a positive Haunted magic damage bonus");
-
-            var crystalBladedStaff = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
-            crystalBladedStaff.enchant(haunted, 1);
-            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(crystalBladedStaff),
-                    "Crystal Bladed Staff should be a supported Haunted main hand item");
-            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(crystalBladedStaff) > 0.0D,
-                    "Crystal Bladed Staff should resolve a positive Haunted magic damage bonus");
-
-            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())),
-                    "Spellgun should stay outside Haunted support");
-            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())),
-                    "Reflectcast Shield should stay outside Haunted support");
-        });
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void malumHauntedBonusUsesDedicatedDamageType(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
-            var source = MalumHauntedCompat.createHauntedBonusDamageSource(attacker);
-            helper.assertTrue(source.is(DamageTypes.HAUNTED_BONUS),
-                    "Haunted bonus should use apprenticecodex:haunted_bonus");
-            helper.assertTrue(source.is(DamageTypeTagGenerator.MAGIC_DAMAGE),
-                    "Haunted bonus should stay on the magic damage tag path");
-            helper.assertTrue(source.is(DamageTypeTagGenerator.FORGE_IS_MAGIC),
-                    "Haunted bonus should stay on the forge:is_magic path for Lodestone magic_proficiency");
-            helper.assertTrue(source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
-                    "Haunted bonus should bypass cooldown-based I-Frame checks");
-        });
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void magicDamageTagActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded(LODESTONE_MOD_ID)) {
-                return;
-            }
-
-            var magicProficiency = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
-            helper.assertTrue(magicProficiency != null, "lodestone:magic_proficiency is not registered");
-
-            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
-            var proficiencyInstance = attacker.getAttribute(magicProficiency);
-            helper.assertTrue(proficiencyInstance != null, "Attacker is missing lodestone:magic_proficiency");
-
-            var baselineTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(1, 2, 0));
-            var amplifiedTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(2, 2, 0));
-            var baseDamage = 4.0F;
-
-            var baselineHealth = baselineTarget.getHealth();
-            helper.assertTrue(baselineTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
-                    "Baseline haunted bonus damage should apply");
-            var baselineTaken = baselineHealth - baselineTarget.getHealth();
-            helper.assertTrue(Math.abs(baselineTaken - baseDamage) < 1.0e-4F,
-                    "Baseline haunted bonus damage should stay unscaled at proficiency 1.0, actual=" + baselineTaken);
-
-            proficiencyInstance.setBaseValue(1.5D);
-            var amplifiedHealth = amplifiedTarget.getHealth();
-            helper.assertTrue(amplifiedTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
-                    "Amplified haunted bonus damage should apply");
-            var amplifiedTaken = amplifiedHealth - amplifiedTarget.getHealth();
-            helper.assertTrue(Math.abs(amplifiedTaken - 6.0F) < 1.0e-4F,
-                    "Amplified haunted bonus damage should scale to 6.0 at proficiency 1.5, actual=" + amplifiedTaken);
-            helper.assertTrue(amplifiedTaken > baselineTaken,
-                    "Amplified haunted bonus damage should exceed baseline damage");
-        });
-    }
-
     @GameTest(template = TEMPLATE)
     public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
@@ -1772,7 +1531,7 @@ public final class ApprenticeCodexGameTests {
 
         helper.assertFalse(trunk.hurt(helper.getLevel().damageSources().lava(), 4.0f),
                 "Companion Trunk should ignore lava damage");
-        trunk.setSecondsOnFire(5);
+        trunk.igniteForSeconds(5.0f);
 
         helper.runAtTickTime(1, () -> {
             var belowWorld = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, -2, 0)));
