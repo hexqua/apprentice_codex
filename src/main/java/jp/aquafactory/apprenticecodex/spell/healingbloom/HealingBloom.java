@@ -31,9 +31,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.world.phys.AABB;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,16 +47,16 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
-            .setMaxLevel(1)
-            .setCooldownSeconds(180)
+            .setMaxLevel(3)
+            .setCooldownSeconds(60)
             .build();
 
     public HealingBloom() {
         baseSpellPower = 100;
         spellPowerPerLevel = 100;
         baseManaCost = 100;
-        manaCostPerLevel = 100;
-        castTime = 60;
+        manaCostPerLevel = 20;
+        castTime = 50;
     }
 
     @Override
@@ -61,7 +64,7 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
         return List.of(
                 Component.translatable("ui.irons_spellbooks.hp", getBloomHealth(spellLevel, caster)),
                 Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1)),
-                Component.translatable("ui.apprenticecodex.bloom_wither_time", Utils.timeFromTicks(getDuration(), 1))
+                Component.translatable("ui.apprenticecodex.healing_bloom.fruit_interval", Utils.timeFromTicks(getMatureIntervalTick(spellLevel, caster), 1))
         );
     }
 
@@ -70,11 +73,12 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
     }
 
     private int getRange(int spellLevel, LivingEntity caster) {
-        return Math.round(4 * getSpellPower(spellLevel, caster) / 100.0f);
+        return Math.min(16, Math.round(4 * getSpellPower(spellLevel, caster) / 100.0f));
     }
 
-    private int getDuration() {
-        return 20 * 60 * 3;
+    private int getMatureIntervalTick(int spellLevel, LivingEntity caster) {
+        var bloomIntervalMinutesBySpellPower = 4 - getSpellPower(spellLevel, caster) / 100.0f;
+        return Math.max(20 * 30, Math.round(20 * 60 * bloomIntervalMinutesBySpellPower));
     }
 
     private double getTargetingRange() {
@@ -141,6 +145,11 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
 
     @Override
     public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        if (level instanceof ServerLevel serverLevel && hasExistingBloom(serverLevel)) {
+            sendAlreadyPlacedMessage(entity);
+            return false;
+        }
+
         var placement = HealingBloomPlacementHelper.resolveServer(level, entity, getSpellResource(), getTargetingRange());
         if (placement.isEmpty()) {
             sendCantPlaceMessage(entity);
@@ -156,6 +165,12 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (level instanceof ServerLevel serverLevel) {
+            if (hasExistingBloom(serverLevel)) {
+                sendAlreadyPlacedMessage(entity);
+                super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+                return;
+            }
+
             var placement = restorePlacement(level, playerMagicData)
                     .or(() -> HealingBloomPlacementHelper.resolveServer(level, entity, getSpellResource(), getTargetingRange()));
             if (placement.isEmpty()) {
@@ -166,7 +181,7 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
                 bloom.setAnchorPos(placement.get().blockPos());
                 bloom.setEffectRange(getRange(spellLevel, entity));
                 bloom.setBloomMaxHealth(getBloomHealth(spellLevel, entity));
-                bloom.setWitherTime(getDuration());
+                bloom.setFruitGrowthInterval(getMatureIntervalTick(spellLevel, entity));
                 bloom.moveTo(placement.get().center().x, placement.get().center().y, placement.get().center().z, entity.getYRot(), 0.0f);
                 serverLevel.addFreshEntity(bloom);
             }
@@ -190,6 +205,32 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
                             .withStyle(ChatFormatting.RED)
             ));
         }
+    }
+
+    private void sendAlreadyPlacedMessage(LivingEntity entity) {
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.healing_bloom.already_exists")
+                            .withStyle(ChatFormatting.RED)
+            ));
+        }
+    }
+
+    private boolean hasExistingBloom(ServerLevel level) {
+        return !level.getEntities((Entity) null, createLevelSearchBox(level), candidate ->
+                candidate instanceof HealingBloomEntity bloom && bloom.isAlive()).isEmpty();
+    }
+
+    private static AABB createLevelSearchBox(ServerLevel level) {
+        WorldBorder border = level.getWorldBorder();
+        return new AABB(
+                border.getMinX(),
+                level.getMinBuildHeight(),
+                border.getMinZ(),
+                border.getMaxX(),
+                level.getMaxBuildHeight(),
+                border.getMaxZ()
+        );
     }
 
     public static class HealingBloomCastData implements ICastDataSerializable {

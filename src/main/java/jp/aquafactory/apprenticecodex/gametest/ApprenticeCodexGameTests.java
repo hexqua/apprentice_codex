@@ -24,8 +24,9 @@ import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
-import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
@@ -1300,57 +1301,326 @@ public final class ApprenticeCodexGameTests {
             );
         });
     }
-    public static void healingBloomLightOutlineIsInteractable(GameTestHelper helper) {
+    @GameTest(template = TEMPLATE)
+    public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spell Gun",
+                item -> item instanceof AbstractSpellGunItem,
+                ApprenticeCodexGameTests::expectedSpellGunEnchantments
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var level = helper.getLevel();
-            var shape = BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState()
-                    .getShape(level, new BlockPos(0, 2, 0), CollisionContext.empty());
-            helper.assertTrue(!shape.isEmpty(),
-                    "Healing Bloom light should expose a non-empty outline so it can be broken by hand");
+            var expectedBookEnchantments = allRegisteredEnchantmentIds();
+            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
+            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
+
+            for (var stack : stacks) {
+                // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
+                // 本判定だけは広く通る。Malum 側は main hand 前提で soul_hunter_weapon を使うため、
+                // 実際に固定したい付与面はエンチャント台と独自金床側の offhand 非対応面。
+                assertExactEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        expectedOffhandEnchantments(stack),
+                        expectedBookEnchantments,
+                        expectedOffhandEnchantments(stack),
+                        "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
+                );
+            }
         });
     }
 
     @GameTest(template = TEMPLATE)
-    public static void healingBloomPersistentLightSkipsSelfClean(GameTestHelper helper) {
+    public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Right Click Magic Weapon",
+                // 1.21.1申し送り事項:
+                // 1.20.1 では StaffItem にしていない武器でも、1.21.1 側では StaffItem 化する場合がある。
+                // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
+                // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
+                item -> item instanceof AbstractRightClickMagicWeaponItem,
+                ApprenticeCodexGameTests::expectedRightClickMagicWeaponEnchantments
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedReflectcastShieldEnchantments(stack),
+                    "Reflectcast Shield"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spellcasters Flask",
+                item -> item instanceof SpellcastersFlask,
+                expectedFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertCategoryEnchantments(
+                    helper,
+                    "Enchantress Robe",
+                    item -> item instanceof EnchantressRobeItem,
+                    ApprenticeCodexGameTests::expectedEnchantressRobeEnchantments
+            );
+            assertCategoryEnchantments(
+                    helper,
+                    "Stealth Rune Armor",
+                    item -> item instanceof StealthRuneArmorItem,
+                    ApprenticeCodexGameTests::expectedStealthRuneArmorEnchantments
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            var item = stack.getItem();
+            var expectedVanillaEnchantments = Set.of(
+                    ResourceLocation.withDefaultNamespace("fortune"),
+                    ResourceLocation.withDefaultNamespace("knockback"),
+                    ResourceLocation.withDefaultNamespace("looting"),
+                    ResourceLocation.withDefaultNamespace("silk_touch")
+            );
+
+            var actualAllowedVanillaEnchantments = collectAllowedEnchantments(
+                    stack,
+                    enchantment -> {
+                        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                        return enchantmentId != null
+                                && VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                                && item.canApplyAtEnchantingTable(stack, enchantment);
+                    }
+            );
+            helper.assertTrue(actualAllowedVanillaEnchantments.equals(expectedVanillaEnchantments),
+                    "Pastel Staff allowed vanilla enchantments changed: "
+                            + describeEnchantmentDifference(expectedVanillaEnchantments, actualAllowedVanillaEnchantments));
+
+            // Iron's StaffItem 側の広い互換性は 1.21.1 で揺れやすいため固定せず、
+            // この mod が明示したバニラ武器許可と耐久系拒否だけを回帰監視する。
+            for (var enchantment : getRegisteredEnchantments()) {
+                var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                if (enchantmentId == null) {
+                    continue;
+                }
+
+                var expectedVanillaAllowed = VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                        && expectedVanillaEnchantments.contains(enchantmentId);
+                if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
+                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment) == expectedVanillaAllowed,
+                            "Pastel Staff vanilla enchanting-table rule changed for " + enchantmentId
+                                    + ": expected " + expectedVanillaAllowed);
+                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedVanillaAllowed,
+                            "Pastel Staff vanilla book rule changed for " + enchantmentId
+                                    + ": expected " + expectedVanillaAllowed);
+                }
+
+                if (isDurabilityTargetEnchantment(enchantment)) {
+                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should keep rejecting durability-target enchantments at the enchanting table: "
+                                    + enchantmentId);
+                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should keep rejecting durability-target enchantments from books: "
+                                    + enchantmentId);
+                }
+
+                if (MALUM_HAUNTED.equals(enchantmentId)) {
+                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should allow malum:haunted at the enchanting table");
+                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should allow malum:haunted from books");
+                }
+
+                if (MALUM_ANIMATED.equals(enchantmentId)) {
+                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should keep rejecting malum:animated at the enchanting table");
+                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should keep rejecting malum:animated from books");
+                }
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var haunted = MalumHauntedCompat.getHauntedEnchantment();
+            helper.assertTrue(haunted != null, "malum:haunted is not registered");
+
+            var pastelStaff = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            pastelStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(pastelStaff),
+                    "Pastel Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(pastelStaff) > 0.0D,
+                    "Pastel Staff should resolve a positive Haunted magic damage bonus");
+
+            var crystalBladedStaff = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+            crystalBladedStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(crystalBladedStaff),
+                    "Crystal Bladed Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(crystalBladedStaff) > 0.0D,
+                    "Crystal Bladed Staff should resolve a positive Haunted magic damage bonus");
+
+            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())),
+                    "Spellgun should stay outside Haunted support");
+            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())),
+                    "Reflectcast Shield should stay outside Haunted support");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malumHauntedBonusUsesDedicatedDamageType(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var source = MalumHauntedCompat.createHauntedBonusDamageSource(attacker);
+            helper.assertTrue(source.is(DamageTypes.HAUNTED_BONUS),
+                    "Haunted bonus should use apprenticecodex:haunted_bonus");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.MAGIC_DAMAGE),
+                    "Haunted bonus should stay on the magic damage tag path");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.FORGE_IS_MAGIC),
+                    "Haunted bonus should stay on the forge:is_magic path for Lodestone magic_proficiency");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
+                    "Haunted bonus should bypass cooldown-based I-Frame checks");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicDamageTagActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(LODESTONE_MOD_ID)) {
+                return;
+            }
+
+            var magicProficiency = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
+            helper.assertTrue(magicProficiency != null, "lodestone:magic_proficiency is not registered");
+
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var proficiencyInstance = attacker.getAttribute(magicProficiency);
+            helper.assertTrue(proficiencyInstance != null, "Attacker is missing lodestone:magic_proficiency");
+
+            var baselineTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(1, 2, 0));
+            var amplifiedTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(2, 2, 0));
+            var baseDamage = 4.0F;
+
+            var baselineHealth = baselineTarget.getHealth();
+            helper.assertTrue(baselineTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
+                    "Baseline haunted bonus damage should apply");
+            var baselineTaken = baselineHealth - baselineTarget.getHealth();
+            helper.assertTrue(Math.abs(baselineTaken - baseDamage) < 1.0e-4F,
+                    "Baseline haunted bonus damage should stay unscaled at proficiency 1.0, actual=" + baselineTaken);
+
+            proficiencyInstance.setBaseValue(1.5D);
+            var amplifiedHealth = amplifiedTarget.getHealth();
+            helper.assertTrue(amplifiedTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
+                    "Amplified haunted bonus damage should apply");
+            var amplifiedTaken = amplifiedHealth - amplifiedTarget.getHealth();
+            helper.assertTrue(Math.abs(amplifiedTaken - 6.0F) < 1.0e-4F,
+                    "Amplified haunted bonus damage should scale to 6.0 at proficiency 1.5, actual=" + amplifiedTaken);
+            helper.assertTrue(amplifiedTaken > baselineTaken,
+                    "Amplified haunted bonus damage should exceed baseline damage");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var normalPos = new BlockPos(0, 2, 0);
-            var persistentPos = new BlockPos(2, 2, 0);
+            var state = BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState();
+            var pos = new BlockPos(0, 2, 0);
+            var shape = state.getShape(level, pos, CollisionContext.empty());
+            helper.assertTrue(shape.isEmpty(),
+                    "Healing Bloom light outline should be empty so it cannot be removed by hand");
+            helper.assertTrue(state.getLightEmission(level, pos) == 11,
+                    "Healing Bloom light should now emit light level 11");
+        });
+    }
 
-            helper.setBlock(normalPos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
-            helper.setBlock(persistentPos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
-
-            var normalBlockEntity = helper.getBlockEntity(normalPos);
-            var persistentBlockEntity = helper.getBlockEntity(persistentPos);
-            helper.assertTrue(normalBlockEntity instanceof HealingBloomLightBlockEntity,
-                    "Normal Healing Bloom light is missing its block entity");
-            helper.assertTrue(persistentBlockEntity instanceof HealingBloomLightBlockEntity,
-                    "Persistent Healing Bloom light is missing its block entity");
-
-            ((HealingBloomLightBlockEntity) persistentBlockEntity).setPersistentAfterBloomGone(true);
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomLightSelfCleansWithoutBloom(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var pos = new BlockPos(0, 2, 0);
+            helper.setBlock(pos, BlockRegistry.HEALING_BLOOM_LIGHT.get());
 
             for (int i = 0; i < 25; ++i) {
-                if (level.getBlockState(normalPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
+                if (level.getBlockState(pos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
+                    var blockEntity = helper.getBlockEntity(pos);
+                    helper.assertTrue(blockEntity instanceof HealingBloomLightBlockEntity,
+                            "Healing Bloom light is missing its block entity");
                     HealingBloomLightBlockEntity.serverTick(
                             level,
-                            normalPos,
-                            level.getBlockState(normalPos),
-                            (HealingBloomLightBlockEntity) normalBlockEntity
-                    );
-                }
-                if (level.getBlockState(persistentPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get())) {
-                    HealingBloomLightBlockEntity.serverTick(
-                            level,
-                            persistentPos,
-                            level.getBlockState(persistentPos),
-                            (HealingBloomLightBlockEntity) persistentBlockEntity
+                            pos,
+                            level.getBlockState(pos),
+                            (HealingBloomLightBlockEntity) blockEntity
                     );
                 }
             }
 
-            helper.assertTrue(!level.getBlockState(normalPos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get()),
-                    "Non-persistent Healing Bloom light should still self-clean without a bloom");
-            helper.assertBlockPresent(BlockRegistry.HEALING_BLOOM_LIGHT.get(), persistentPos);
+            helper.assertTrue(!level.getBlockState(pos).is(BlockRegistry.HEALING_BLOOM_LIGHT.get()),
+                    "Healing Bloom light should self-clean without a bloom");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomIgnoresOwnerDamageAndStaysSavable(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_owner_test"));
+            var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+            bloom.setOwner(owner);
+            bloom.setAnchorPos(new BlockPos(0, 2, 0));
+            helper.assertTrue(bloom.shouldBeSaved(), "Healing Bloom should now be saved with the world");
+            helper.assertFalse(bloom.hurt(level.damageSources().playerAttack(owner), 2.0f),
+                    "Healing Bloom should ignore damage from its owner");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomRootLossUsesDeathState(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var anchorPos = new BlockPos(0, 2, 0);
+        helper.setBlock(anchorPos.below(), Blocks.DIRT);
+
+        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_root_loss_test"));
+        var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+        bloom.setOwner(owner);
+        bloom.setAnchorPos(anchorPos);
+        bloom.setBloomMaxHealth(10.0f);
+        bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
+        helper.getLevel().addFreshEntity(bloom);
+
+        helper.runAtTickTime(1, () -> helper.setBlock(anchorPos.below(), Blocks.AIR));
+        helper.runAtTickTime(3, () -> {
+            var blooms = level.getEntitiesOfClass(HealingBloomEntity.class, new net.minecraft.world.phys.AABB(anchorPos).inflate(1.5));
+            helper.assertTrue(!blooms.isEmpty(),
+                    "Healing Bloom should remain as a dead entity for a short time instead of silently disappearing when its root is lost");
+            helper.assertTrue(blooms.stream().allMatch(entity -> !entity.isAlive() || entity.isDeadOrDying()),
+                    "Healing Bloom should enter its death state when its root is lost");
+            helper.succeed();
         });
     }
     @GameTest(template = TEMPLATE)

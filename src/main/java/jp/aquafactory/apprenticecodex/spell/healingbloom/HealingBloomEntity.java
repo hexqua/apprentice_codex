@@ -1,11 +1,11 @@
 package jp.aquafactory.apprenticecodex.spell.healingbloom;
 
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
+import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
-import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -37,9 +37,11 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -60,45 +62,34 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     public static final float HEIGHT = 1.8f;
     private static final int ACTIVATION_DELAY_TICK = 40;
     private static final int GROW_ANIMATION_TICK = 36;
-    private static final int WITHER_ANIMATION_TICK = 30;
     private static final int REGEN_APPLY_INTERVAL_TICK = 200;
     private static final int REGEN_DURATION_TICK = 300;
     private static final int UNDEAD_DAMAGE_INTERVAL_TICK = 50;
     private static final int LIGHT_RETRY_INTERVAL_TICK = 20;
     private static final int PULSE_INTERVAL_TICK = 100;
     private static final float PULSE_RADIUS_MARGIN = 0.25f;
-    private static final float LIGHT_COLOR_YELLOW_RED = 1.0f;
-    private static final float LIGHT_COLOR_YELLOW_GREEN = 0.82f;
-    private static final float LIGHT_COLOR_YELLOW_BLUE = 0.24f;
-    private static final float LIGHT_COLOR_RED_RED = 1.0f;
-    private static final float LIGHT_COLOR_RED_GREEN = 0.22f;
-    private static final float LIGHT_COLOR_RED_BLUE = 0.12f;
+    private static final int DEFAULT_FRUIT_GROWTH_INTERVAL_TICK = 20 * 60 * 3;
     private static final RawAnimation ANIM_GROW = RawAnimation.begin().thenPlay("grow");
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
-    private static final RawAnimation ANIM_WITHER = RawAnimation.begin().thenPlay("wither");
 
     private static final EntityDataAccessor<Integer> ANIMATION_STATE =
             SynchedEntityData.defineId(HealingBloomEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ANIMATION_SERIAL =
             SynchedEntityData.defineId(HealingBloomEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> LIGHT_COLOR_RED =
-            SynchedEntityData.defineId(HealingBloomEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> LIGHT_COLOR_GREEN =
-            SynchedEntityData.defineId(HealingBloomEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> LIGHT_COLOR_BLUE =
-            SynchedEntityData.defineId(HealingBloomEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Integer> FRUIT_COUNT =
+            SynchedEntityData.defineId(HealingBloomEntity.class, EntityDataSerializers.INT);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private @Nullable UUID ownerUuid;
     private @Nullable LivingEntity cachedOwner;
     private BlockPos anchorPos = BlockPos.ZERO;
     private int effectRange = 1;
-    private int witherTime = 20 * 60;
-    private boolean naturalWithering;
-    private boolean lightInitialized;
-    private boolean preserveLightOnRemove;
-    private int witherAnimationTick;
+    private int fruitGrowthIntervalTick = DEFAULT_FRUIT_GROWTH_INTERVAL_TICK;
+    private int bloomAgeTick;
+    private int activeTickCounter;
+    private int fruitGrowthProgressTick;
     private int clientAnimationSerial;
+    private boolean deathHandled;
 
     public HealingBloomEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
@@ -130,16 +121,14 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         super.defineSynchedData(builder);
         builder.define(ANIMATION_STATE, BloomAnimationState.GROW.id);
         builder.define(ANIMATION_SERIAL, 1);
-        builder.define(LIGHT_COLOR_RED, LIGHT_COLOR_YELLOW_RED);
-        builder.define(LIGHT_COLOR_GREEN, LIGHT_COLOR_YELLOW_GREEN);
-        builder.define(LIGHT_COLOR_BLUE, LIGHT_COLOR_YELLOW_BLUE);
+        builder.define(FRUIT_COUNT, 0);
     }
 
     @Override
     public void tick() {
         super.tick();
         if (level().isClientSide) {
-            if (tickCount == 2) {
+            if (tickCount == 2 && bloomAgeTick < ACTIVATION_DELAY_TICK) {
                 EffectTools.createRingParticle(
                         position().add(0.0, 0.1, 0.0),
                         new Vec3(0.0, 1.0, 0.0),
@@ -167,51 +156,44 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
             setPos(anchorCenter.x, anchorCenter.y, anchorCenter.z);
         }
         if (!canStayAtAnchor()) {
-            discardForced(level);
+            dieFromAnchorLoss(level);
             return;
         }
-        syncLightColor();
-        tryPlayGrowthSound(level);
 
-        if (tickCount >= GROW_ANIMATION_TICK && getAnimationState() == BloomAnimationState.GROW && !naturalWithering) {
+        tryPlayGrowthSound(level);
+        if (bloomAgeTick >= GROW_ANIMATION_TICK && getAnimationState() == BloomAnimationState.GROW) {
             setAnimationState(BloomAnimationState.IDLE, false);
         }
 
-        if (naturalWithering) {
-            tickWitherAnimation(level);
+        ++bloomAgeTick;
+        tickFruitGrowth();
+        if (bloomAgeTick < ACTIVATION_DELAY_TICK) {
             return;
         }
 
-        if (tickCount >= witherTime) {
-            startNaturalWither(level);
-            tickWitherAnimation(level);
-            return;
-        }
-
-        if (tickCount < ACTIVATION_DELAY_TICK) {
-            return;
-        }
-
-        if (!lightInitialized) {
+        ++activeTickCounter;
+        if (activeTickCounter == 1 || activeTickCounter % LIGHT_RETRY_INTERVAL_TICK == 0) {
             tryPlaceLight();
-            lightInitialized = true;
         }
-
-        if (tickCount % REGEN_APPLY_INTERVAL_TICK == 0) {
+        if (activeTickCounter == 1 || (activeTickCounter - 1) % REGEN_APPLY_INTERVAL_TICK == 0) {
             applyRegenerationAura(level);
         }
-        if (tickCount % UNDEAD_DAMAGE_INTERVAL_TICK == 0) {
+        if (activeTickCounter % UNDEAD_DAMAGE_INTERVAL_TICK == 0) {
             damageUndead(level);
         }
-        if (tickCount % PULSE_INTERVAL_TICK == 0) {
+        if (activeTickCounter == 1 || activeTickCounter % PULSE_INTERVAL_TICK == 0) {
             emitPulse();
         }
-        if (tickCount % LIGHT_RETRY_INTERVAL_TICK == 0 && !hasLightBlock()) {
-            super.hurt(level.damageSources().magic(), 10.0f);
-            if (isAlive()) {
-                tryPlaceLight();
-            }
+    }
+
+    private void tickFruitGrowth() {
+        ++fruitGrowthProgressTick;
+        if (fruitGrowthProgressTick < fruitGrowthIntervalTick) {
+            return;
         }
+
+        fruitGrowthProgressTick -= fruitGrowthIntervalTick;
+        setFruitCount(getFruitCount() + 1);
     }
 
     private void applyRegenerationAura(ServerLevel level) {
@@ -249,33 +231,15 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         );
     }
 
-    private void tickWitherAnimation(ServerLevel level) {
-        if (witherAnimationTick == 20 || witherAnimationTick == 10) {
-            playWitherLeafBreak(level);
-        }
-        if (witherAnimationTick > 0) {
-            --witherAnimationTick;
-        }
-        if (witherAnimationTick > 0) {
-            return;
-        }
-
-        finishNaturalWither(level);
-    }
-
-    private void startNaturalWither(ServerLevel level) {
-        naturalWithering = true;
-        witherAnimationTick = WITHER_ANIMATION_TICK;
-        setAnimationState(BloomAnimationState.WITHER, true);
-        playWitherLeafBreak(level);
-        markLightPersistent(level, true);
-    }
-
     private boolean hasLightBlock() {
         return level().getBlockState(getLightPos()).is(BlockRegistry.HEALING_BLOOM_LIGHT.get());
     }
 
     private void tryPlaceLight() {
+        if (hasLightBlock()) {
+            return;
+        }
+
         var lightPos = getLightPos();
         if (!level().getBlockState(lightPos).canBeReplaced()) {
             return;
@@ -339,35 +303,20 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         setHealth(maxHealth);
     }
 
-    public void setWitherTime(int witherTime) {
-        this.witherTime = Math.max(ACTIVATION_DELAY_TICK + 1, witherTime);
+    public void setFruitGrowthInterval(int fruitGrowthIntervalTick) {
+        this.fruitGrowthIntervalTick = Math.max(1, fruitGrowthIntervalTick);
     }
 
-    public float getLifetimeProgress() {
-        if (witherTime <= 0) {
-            return 1.0f;
-        }
-        return Math.min(1.0f, tickCount / (float) witherTime);
-    }
-
-    public int getRemainingWitherTicks() {
-        return Math.max(0, witherTime - tickCount);
-    }
-
-    public float getLightColorRed() {
-        return entityData.get(LIGHT_COLOR_RED);
-    }
-
-    public float getLightColorGreen() {
-        return entityData.get(LIGHT_COLOR_GREEN);
-    }
-
-    public float getLightColorBlue() {
-        return entityData.get(LIGHT_COLOR_BLUE);
+    public int getFruitCount() {
+        return entityData.get(FRUIT_COUNT);
     }
 
     boolean managesLightAt(BlockPos pos) {
         return getLightPos().equals(pos);
+    }
+
+    private void setFruitCount(int fruitCount) {
+        entityData.set(FRUIT_COUNT, Math.max(0, fruitCount));
     }
 
     private Vec3 getAnchorCenter() {
@@ -389,29 +338,36 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         }
     }
 
-    private void syncLightColor() {
-        // 自然枯死後の残留光源は、寿命切れ前の赤ではなく初期色の黄で残す。
-        if (naturalWithering) {
-            entityData.set(LIGHT_COLOR_RED, LIGHT_COLOR_YELLOW_RED);
-            entityData.set(LIGHT_COLOR_GREEN, LIGHT_COLOR_YELLOW_GREEN);
-            entityData.set(LIGHT_COLOR_BLUE, LIGHT_COLOR_YELLOW_BLUE);
+    private void dieFromAnchorLoss(ServerLevel level) {
+        if (isDeadOrDying()) {
             return;
         }
 
-        // 寿命はサーバー側だけが正値を持つため、光源色も花から同期して client renderer に渡す。
-        var progress = getLifetimeProgress();
-        entityData.set(LIGHT_COLOR_RED, net.minecraft.util.Mth.lerp(progress, LIGHT_COLOR_YELLOW_RED, LIGHT_COLOR_RED_RED));
-        entityData.set(LIGHT_COLOR_GREEN, net.minecraft.util.Mth.lerp(progress, LIGHT_COLOR_YELLOW_GREEN, LIGHT_COLOR_RED_GREEN));
-        entityData.set(LIGHT_COLOR_BLUE, net.minecraft.util.Mth.lerp(progress, LIGHT_COLOR_YELLOW_BLUE, LIGHT_COLOR_RED_BLUE));
+        // 根本が失われた場合も消滅ではなく死亡処理へ寄せ、果実化やドロップの共通処理を通す。
+        setHealth(0.0f);
+        die(level.damageSources().genericKill());
     }
 
-    private void finishNaturalWither(ServerLevel level) {
-        if (!placeComfortBerryBush(level)) {
-            spawnAtLocation(new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), 3 + random.nextInt(2)));
+    @Override
+    public void die(@NotNull DamageSource damageSource) {
+        if (!level().isClientSide && level() instanceof ServerLevel serverLevel) {
+            handleDeathDrops(serverLevel);
+        }
+        super.die(damageSource);
+    }
+
+    private void handleDeathDrops(ServerLevel level) {
+        if (deathHandled) {
+            return;
         }
 
-        preserveLightOnRemove = true;
-        discard();
+        deathHandled = true;
+        var droppedFruit = getFruitCount();
+        if (!placeComfortBerryBush(level)) {
+            ++droppedFruit;
+        }
+        dropComfortBerries(droppedFruit);
+        setFruitCount(0);
     }
 
     private boolean placeComfortBerryBush(ServerLevel level) {
@@ -425,35 +381,39 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         return level.setBlock(anchorPos, bushState, 3);
     }
 
-    private void discardForced(ServerLevel level) {
-        markLightPersistent(level, false);
-        removeLightBlock(level);
-        discard();
+    private void dropComfortBerries(int count) {
+        var remaining = count;
+        while (remaining > 0) {
+            var dropCount = Math.min(remaining, ItemRegistry.COMFORT_BERRIES.get().getMaxStackSize());
+            spawnAtLocation(new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), dropCount));
+            remaining -= dropCount;
+        }
     }
 
-    private void markLightPersistent(Level level, boolean persistent) {
-        var blockEntity = level.getBlockEntity(getLightPos());
-        if (blockEntity instanceof HealingBloomLightBlockEntity lightBlockEntity) {
-            // 花本体は保存しないので、自然枯死後にだけ光源側へ永続化責務を移す。
-            lightBlockEntity.setPersistentAfterBloomGone(persistent);
+    private void giveComfortBerriesTo(Player player, int count) {
+        var remaining = count;
+        while (remaining > 0) {
+            var giveCount = Math.min(remaining, ItemRegistry.COMFORT_BERRIES.get().getMaxStackSize());
+            var stack = new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), giveCount);
+            if (!player.addItem(stack)) {
+                spawnAtLocation(stack);
+            }
+            remaining -= giveCount;
         }
     }
 
     private void tryPlayGrowthSound(ServerLevel level) {
-        if (tickCount != 4 && tickCount != 14 && tickCount != 24 && tickCount != 34) {
+        if (bloomAgeTick != 4 && bloomAgeTick != 14 && bloomAgeTick != 24 && bloomAgeTick != 34) {
             return;
         }
 
         AudioTools.playSoundFromPosition(level, position(), SoundEvents.BONE_MEAL_USE, SoundSource.BLOCKS, 0.75f, 0.95f, 0.08f);
     }
 
-    private void playWitherLeafBreak(ServerLevel level) {
-        AudioTools.playSoundFromPosition(level, position(), SoundEvents.AZALEA_LEAVES_BREAK, SoundSource.BLOCKS, 0.55f, 0.85f, 0.10f);
-    }
-
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
-        if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
+        if (isOwnerDamageSource(source)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.DROWN)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
             return false;
@@ -461,9 +421,23 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         return super.hurt(source, amount);
     }
 
+    private boolean isOwnerDamageSource(DamageSource source) {
+        var owner = getOwner();
+        if (owner == null) {
+            return false;
+        }
+
+        if (source.getEntity() == owner || source.getDirectEntity() == owner) {
+            return true;
+        }
+
+        var direct = source.getDirectEntity();
+        return direct instanceof Projectile projectile && projectile.getOwner() == owner;
+    }
+
     @Override
     public void remove(@NotNull RemovalReason reason) {
-        if (!level().isClientSide && !preserveLightOnRemove) {
+        if (!level().isClientSide) {
             removeLightBlock(level());
         }
         super.remove(reason);
@@ -471,7 +445,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public boolean shouldBeSaved() {
-        return false;
+        return true;
     }
 
     @Override
@@ -518,23 +492,56 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
             return InteractionResult.SUCCESS;
         }
 
-        if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                    Component.translatable(
-                            "ui.apprenticecodex.bloom_wither_time",
-                            io.redspace.ironsspellbooks.api.util.Utils.timeFromTicks(getRemainingWitherTicks(), 1)
-                    ).withStyle(ChatFormatting.YELLOW)
-            ));
+        if (getFruitCount() <= 0) {
+            if (player instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                        Component.translatable("ui.apprenticecodex.healing_bloom.no_fruit").withStyle(ChatFormatting.RED)
+                ));
+            }
+            return InteractionResult.CONSUME;
         }
+
+        var harvestedFruit = getFruitCount();
+        setFruitCount(0);
+        giveComfortBerriesTo(player, harvestedFruit);
+        level().playSound(null, blockPosition(), SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS,
+                1.0f, 0.8f + level().random.nextFloat() * 0.4f);
+        level().gameEvent(GameEvent.ENTITY_INTERACT, position(), GameEvent.Context.of(player));
         return InteractionResult.CONSUME;
     }
 
     @Override
     public void readAdditionalSaveData(@NotNull CompoundTag compoundTag) {
+        super.readAdditionalSaveData(compoundTag);
+        ownerUuid = compoundTag.hasUUID("OwnerUUID") ? compoundTag.getUUID("OwnerUUID") : null;
+        cachedOwner = null;
+        if (compoundTag.contains("AnchorX")) {
+            anchorPos = new BlockPos(compoundTag.getInt("AnchorX"), compoundTag.getInt("AnchorY"), compoundTag.getInt("AnchorZ"));
+        }
+        effectRange = Math.max(1, compoundTag.getInt("EffectRange"));
+        fruitGrowthIntervalTick = Math.max(1, compoundTag.getInt("FruitGrowthIntervalTick"));
+        bloomAgeTick = Math.max(0, compoundTag.getInt("BloomAgeTick"));
+        activeTickCounter = Math.max(0, compoundTag.getInt("ActiveTickCounter"));
+        fruitGrowthProgressTick = Math.max(0, compoundTag.getInt("FruitGrowthProgressTick"));
+        setFruitCount(compoundTag.getInt("FruitCount"));
+        setAnimationState(bloomAgeTick >= GROW_ANIMATION_TICK ? BloomAnimationState.IDLE : BloomAnimationState.GROW, false);
     }
 
     @Override
     public void addAdditionalSaveData(@NotNull CompoundTag compoundTag) {
+        super.addAdditionalSaveData(compoundTag);
+        if (ownerUuid != null) {
+            compoundTag.putUUID("OwnerUUID", ownerUuid);
+        }
+        compoundTag.putInt("AnchorX", anchorPos.getX());
+        compoundTag.putInt("AnchorY", anchorPos.getY());
+        compoundTag.putInt("AnchorZ", anchorPos.getZ());
+        compoundTag.putInt("EffectRange", effectRange);
+        compoundTag.putInt("FruitGrowthIntervalTick", fruitGrowthIntervalTick);
+        compoundTag.putInt("BloomAgeTick", bloomAgeTick);
+        compoundTag.putInt("ActiveTickCounter", activeTickCounter);
+        compoundTag.putInt("FruitGrowthProgressTick", fruitGrowthProgressTick);
+        compoundTag.putInt("FruitCount", getFruitCount());
     }
 
     @Override
@@ -553,7 +560,6 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
                     switch (getAnimationState()) {
                         case GROW -> state.getController().setAnimation(ANIM_GROW);
-                        case WITHER -> state.getController().setAnimation(ANIM_WITHER);
                         case IDLE -> state.getController().setAnimation(ANIM_IDLE);
                     }
                     return PlayState.CONTINUE;
@@ -568,8 +574,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     private enum BloomAnimationState {
         GROW(0),
-        IDLE(1),
-        WITHER(2);
+        IDLE(1);
 
         private final int id;
 
@@ -578,11 +583,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         }
 
         private static BloomAnimationState of(int rawId) {
-            return switch (rawId) {
-                case 1 -> IDLE;
-                case 2 -> WITHER;
-                default -> GROW;
-            };
+            return rawId == 1 ? IDLE : GROW;
         }
     }
 }
