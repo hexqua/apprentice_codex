@@ -30,6 +30,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     private static final String INVENTORY_TAG = "Inventory";
     private static final String OWNER_UUID_TAG = "OwnerUuid";
     private static final String OWNER_NAME_TAG = "OwnerName";
+    private static final String CONTINUOUS_RESET_REQUIRED_TAG = "ContinuousResetRequired";
     private final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -51,6 +52,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     private GameProfile ownerProfile;
     @Nullable
     private SpellDispenserCastHelper.ContinuousCastSession activeContinuousCast;
+    private boolean continuousResetRequired;
 
     public SpellDispenserBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELL_DISPENSER.get(), pos, state);
@@ -89,6 +91,10 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
 
     public boolean hasActiveContinuousCast() {
         return activeContinuousCast != null && !activeContinuousCast.isFinished();
+    }
+
+    public boolean requiresContinuousReset() {
+        return continuousResetRequired;
     }
 
     public SpellDispenserCastHelper.CastResult tryActivate() {
@@ -166,6 +172,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
 
         if (activeContinuousCast.isFinished()) {
             activeContinuousCast = null;
+            continuousResetRequired = state.getValue(SpellDispenser.TRIGGERED);
             setChanged();
             return;
         }
@@ -195,26 +202,39 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
 
         if (!SpellDispenserCastHelper.tickContinuousCast(level, activeContinuousCast)) {
             activeContinuousCast = null;
+            continuousResetRequired = state.getValue(SpellDispenser.TRIGGERED);
             setChanged();
         }
     }
 
     public void startContinuousCast(@Nullable SpellDispenserCastHelper.ContinuousCastSession session) {
         activeContinuousCast = session;
+        continuousResetRequired = false;
         setChanged();
     }
 
     public void stopContinuousCast(boolean cancelled) {
         if (!(level instanceof ServerLevel serverLevel)) {
             activeContinuousCast = null;
+            continuousResetRequired = false;
             return;
         }
 
         if (activeContinuousCast != null) {
             SpellDispenserCastHelper.finishContinuousCast(serverLevel, activeContinuousCast, cancelled);
             activeContinuousCast = null;
-            setChanged();
         }
+        continuousResetRequired = false;
+        setChanged();
+    }
+
+    public void clearContinuousResetRequired() {
+        if (!continuousResetRequired) {
+            return;
+        }
+
+        continuousResetRequired = false;
+        setChanged();
     }
 
     public void dropStoredItem() {
@@ -266,6 +286,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         super.saveAdditional(tag);
         tag.put(INVENTORY_TAG, inventory.serializeNBT());
         saveOwnerProfile(tag, ownerProfile);
+        tag.putBoolean(CONTINUOUS_RESET_REQUIRED_TAG, continuousResetRequired);
     }
 
     @Override
@@ -273,6 +294,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         super.load(tag);
         inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG));
         ownerProfile = readOwnerProfile(tag);
+        continuousResetRequired = tag.getBoolean(CONTINUOUS_RESET_REQUIRED_TAG);
     }
 
     @Override

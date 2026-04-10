@@ -1,6 +1,13 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.google.common.collect.ImmutableMap;
 import com.mojang.authlib.GameProfile;
+import com.simibubi.create.AllMountedStorageTypes;
+import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
+import com.simibubi.create.api.contraption.storage.item.WrapperMountedItemStorage;
+import com.simibubi.create.content.contraptions.Contraption;
+import com.simibubi.create.content.contraptions.MountedStorageManager;
+import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
@@ -18,6 +25,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEn
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.compat.create.SpellDispenserMovementBehaviour;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -69,6 +77,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
@@ -104,6 +113,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -121,6 +131,7 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -731,6 +742,130 @@ public final class ApprenticeCodexGameTests {
                     "Spell Dispenser CONTINUOUS cast restarted even though the redstone signal never toggled off");
             assertNoSpellDispenserProxy(helper, pos, scrollStack, "Spell Dispenser proxy caster was left behind after held-signal completion");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserBlockEntityMarksContinuousResetRequirementAfterHeldCompletion(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var pos = new BlockPos(0, 1, 0);
+        helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+        helper.setBlock(pos, helper.getBlockState(pos).setValue(SpellDispenser.TRIGGERED, true));
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+        var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blaze_storm")
+        );
+        var scrollStack = createSpellScroll(spell);
+        spellDispenser.getInventory().setStackInSlot(0, scrollStack);
+        spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_reset_required_test"));
+
+        helper.runAtTickTime(1, () -> {
+            var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                    level,
+                    pos,
+                    Direction.NORTH,
+                    createSpellDispenserValidation(scrollStack, spell),
+                    scrollStack,
+                    spellDispenser.getOwnerProfile()
+            );
+            helper.assertTrue(startResult.result().succeeded(), "Spell Dispenser block entity failed to prepare a reset-required CONTINUOUS session");
+            helper.assertTrue(startResult.session() != null, "Spell Dispenser block entity did not receive a reset-required CONTINUOUS session");
+            spellDispenser.startContinuousCast(startResult.session());
+
+            var maxTicks = startResult.session().magicData().getCastDuration();
+            for (var tick = 0; tick <= maxTicks + 20; tick++) {
+                SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            }
+
+            helper.assertFalse(spellDispenser.hasActiveContinuousCast(),
+                    "Spell Dispenser CONTINUOUS cast stayed active after its held-signal duration cap");
+            helper.assertTrue(spellDispenser.requiresContinuousReset(),
+                    "Spell Dispenser did not record that CONTINUOUS needs a signal reset after held completion");
+            assertNoSpellDispenserProxy(helper, pos, scrollStack, "Spell Dispenser proxy caster was left behind after held completion reset state");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCreateContinuousCastRequiresDisableBeforeRestart(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blaze_storm")
+            );
+            var scrollStack = createSpellScroll(spell);
+            var mountedInventory = new ItemStackHandler(1);
+            mountedInventory.setStackInSlot(0, scrollStack.copy());
+            var context = createSpellDispenserMovementContext(level, castPos, mountedInventory, createSpellDispenserOwnerProfile("spell_dispenser_create_reset_test"));
+            var behaviour = new SpellDispenserMovementBehaviour();
+
+            behaviour.startMoving(context);
+            behaviour.tick(context);
+            helper.assertTrue(SpellDispenserMovementBehaviour.hasRunningContinuousCast(context),
+                    "Create-mounted Spell Dispenser did not start CONTINUOUS casting when enabled");
+
+            var maxTicks = spell.getEffectiveCastTime(1, new FakePlayer(level, createSpellDispenserOwnerProfile("spell_dispenser_create_reset_probe")));
+            for (var tick = 0; tick <= maxTicks + 40 && SpellDispenserMovementBehaviour.hasRunningContinuousCast(context); tick++) {
+                behaviour.tick(context);
+            }
+
+            helper.assertFalse(SpellDispenserMovementBehaviour.hasRunningContinuousCast(context),
+                    "Create-mounted Spell Dispenser CONTINUOUS cast did not stop at its duration cap");
+            helper.assertTrue(SpellDispenserMovementBehaviour.requiresContinuousReset(context),
+                    "Create-mounted Spell Dispenser did not enter reset-required state after held completion");
+
+            behaviour.tick(context);
+            helper.assertFalse(SpellDispenserMovementBehaviour.hasRunningContinuousCast(context),
+                    "Create-mounted Spell Dispenser restarted CONTINUOUS casting without being disabled first");
+
+            context.disabled = true;
+            behaviour.tick(context);
+            helper.assertFalse(SpellDispenserMovementBehaviour.requiresContinuousReset(context),
+                    "Create-mounted Spell Dispenser did not clear reset-required state when disabled");
+
+            context.disabled = false;
+            behaviour.tick(context);
+            helper.assertTrue(SpellDispenserMovementBehaviour.hasRunningContinuousCast(context),
+                    "Create-mounted Spell Dispenser did not restart CONTINUOUS casting after disable/enable");
+
+            behaviour.stopMoving(context);
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Create-mounted Spell Dispenser left proxy state behind after stopMoving");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCreateContinuousCastStopsWhenDisabled(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+            var mountedInventory = new ItemStackHandler(1);
+            mountedInventory.setStackInSlot(0, scrollStack.copy());
+            var context = createSpellDispenserMovementContext(level, castPos, mountedInventory, createSpellDispenserOwnerProfile("spell_dispenser_create_disable_test"));
+            var behaviour = new SpellDispenserMovementBehaviour();
+
+            behaviour.startMoving(context);
+            behaviour.tick(context);
+            helper.assertTrue(SpellDispenserMovementBehaviour.hasRunningContinuousCast(context),
+                    "Create-mounted Spell Dispenser did not start Fire Breath CONTINUOUS casting");
+
+            for (var tick = 0; tick < 20; tick++) {
+                behaviour.tick(context);
+            }
+
+            context.disabled = true;
+            behaviour.tick(context);
+            helper.assertFalse(SpellDispenserMovementBehaviour.hasRunningContinuousCast(context),
+                    "Create-mounted Spell Dispenser kept a CONTINUOUS session active after disable");
+            helper.assertFalse(SpellDispenserMovementBehaviour.requiresContinuousReset(context),
+                    "Create-mounted Spell Dispenser incorrectly required reset after disable cancellation");
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Create-mounted Spell Dispenser left proxy state behind after disable");
         });
     }
 
@@ -2592,6 +2727,83 @@ public final class ApprenticeCodexGameTests {
 
         var remainingAnchors = helper.getLevel().getEntitiesOfClass(SpellDispenserAnchorEntity.class, proxyBox);
         helper.assertTrue(remainingAnchors.isEmpty(), message + " (tracked anchors): " + remainingAnchors.size());
+    }
+
+    private static MovementContext createSpellDispenserMovementContext(
+            ServerLevel level,
+            BlockPos worldPos,
+            ItemStackHandler mountedInventory,
+            GameProfile ownerProfile
+    ) {
+        var localPos = BlockPos.ZERO;
+        var blockEntityTag = new CompoundTag();
+        SpellDispenserBlockEntity.saveOwnerProfile(blockEntityTag, ownerProfile);
+        var blockInfo = new StructureTemplate.StructureBlockInfo(
+                localPos,
+                BlockRegistry.SPELL_DISPENSER.get().defaultBlockState(),
+                blockEntityTag
+        );
+        var contraption = new TestSpellDispenserContraption(localPos, mountedInventory);
+        var context = new MovementContext(level, blockInfo, contraption);
+        context.position = Vec3.atCenterOf(worldPos);
+        context.motion = Vec3.ZERO;
+        context.relativeMotion = Vec3.ZERO;
+        context.rotation = vec -> vec;
+        context.disabled = false;
+        return context;
+    }
+
+    private static final class TestSpellDispenserContraption extends Contraption {
+        private TestSpellDispenserContraption(BlockPos localPos, ItemStackHandler mountedInventory) {
+            this.storage = new TestMountedStorageManager(localPos, mountedInventory);
+            this.disabledActors = new ArrayList<>();
+        }
+
+        @Override
+        public boolean assemble(net.minecraft.world.level.Level level, BlockPos pos) {
+            return false;
+        }
+
+        @Override
+        public boolean canBeStabilized(Direction direction, BlockPos pos) {
+            return false;
+        }
+
+        @Override
+        public com.simibubi.create.api.contraption.ContraptionType getType() {
+            throw new UnsupportedOperationException("GameTest helper contraption does not provide a type");
+        }
+    }
+
+    private static final class TestMountedStorageManager extends MountedStorageManager {
+        private final ImmutableMap<BlockPos, MountedItemStorage> storages;
+        private final CombinedInvWrapper allItems;
+
+        private TestMountedStorageManager(BlockPos localPos, ItemStackHandler mountedInventory) {
+            var storage = new TestMountedItemStorage(mountedInventory);
+            this.storages = ImmutableMap.of(localPos, storage);
+            this.allItems = new CombinedInvWrapper(storage);
+        }
+
+        @Override
+        public ImmutableMap<BlockPos, MountedItemStorage> getAllItemStorages() {
+            return storages;
+        }
+
+        @Override
+        public CombinedInvWrapper getAllItems() {
+            return allItems;
+        }
+    }
+
+    private static final class TestMountedItemStorage extends WrapperMountedItemStorage<ItemStackHandler> {
+        private TestMountedItemStorage(ItemStackHandler wrapped) {
+            super(AllMountedStorageTypes.SIMPLE.get(), wrapped);
+        }
+
+        @Override
+        public void unmount(net.minecraft.world.level.Level level, net.minecraft.world.level.block.state.BlockState state, BlockPos pos, net.minecraft.world.level.block.entity.BlockEntity blockEntity) {
+        }
     }
 
     private static ItemStack createInitializedPresetStack(Item item) {

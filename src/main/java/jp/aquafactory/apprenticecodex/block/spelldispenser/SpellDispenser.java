@@ -143,6 +143,10 @@ public final class SpellDispenser extends BaseEntityBlock {
             );
             level.setBlock(pos, state.setValue(TRIGGERED, true), 4);
         } else if (!powered && triggered) {
+            var blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
+                spellDispenser.clearContinuousResetRequired();
+            }
             level.setBlock(pos, state.setValue(TRIGGERED, false), 4);
         }
     }

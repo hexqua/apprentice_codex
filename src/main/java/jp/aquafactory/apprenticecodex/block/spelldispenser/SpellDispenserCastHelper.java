@@ -45,7 +45,7 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
-        return tryCast(level, pos, Vec3.atLowerCornerOf(facing.getNormal()), spellSource, ownerProfile);
+        return tryCast(level, Vec3.atCenterOf(pos), Vec3.atLowerCornerOf(facing.getNormal()), spellSource, ownerProfile);
     }
 
     public static CastResult tryCast(
@@ -55,6 +55,17 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
+        return tryCast(level, Vec3.atCenterOf(pos), forward, spellSource, ownerProfile);
+    }
+
+    public static CastResult tryCast(
+            ServerLevel level,
+            Vec3 castBasePosition,
+            Vec3 forward,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile
+    ) {
+        var failurePos = BlockPos.containing(castBasePosition);
         var validation = SpellDispenserSpellValidator.validate(spellSource);
         if (!validation.isSupported()) {
             return CastResult.validationFailure(validation);
@@ -67,7 +78,7 @@ public final class SpellDispenserCastHelper {
         var spell = spellData.getSpell();
         var spellId = spell.getSpellResource();
         var profile = SpellDispenserSpellProfileManager.getResolvedProfile(spell);
-        var proxy = createProxy(level, pos, forward, ownerProfile, profile);
+        var proxy = createProxy(level, castBasePosition, forward, ownerProfile, profile);
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
 
@@ -84,7 +95,7 @@ public final class SpellDispenserCastHelper {
                 magicData.setPlayerCastingItem(spellSource.copy());
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.INITIATE_CAST, exception);
-                notifyFailureToNearbyPlayers(level, pos, result);
+                notifyFailureToNearbyPlayers(level, failurePos, result);
                 return result;
             }
 
@@ -93,7 +104,7 @@ public final class SpellDispenserCastHelper {
                 canCast = spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.CHECK_PRE_CAST, exception);
-                notifyFailureToNearbyPlayers(level, pos, result);
+                notifyFailureToNearbyPlayers(level, failurePos, result);
                 return result;
             }
             if (!canCast) {
@@ -104,7 +115,7 @@ public final class SpellDispenserCastHelper {
                 spell.onServerPreCast(level, spellData.getLevel(), spellCaster, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_PRE_CAST, exception);
-                notifyFailureToNearbyPlayers(level, pos, result);
+                notifyFailureToNearbyPlayers(level, failurePos, result);
                 return result;
             }
 
@@ -112,7 +123,7 @@ public final class SpellDispenserCastHelper {
                 spell.onCast(level, spellData.getLevel(), spellCaster, CastSource.COMMAND, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.CAST, exception);
-                notifyFailureToNearbyPlayers(level, pos, result);
+                notifyFailureToNearbyPlayers(level, failurePos, result);
                 return result;
             }
 
@@ -120,7 +131,7 @@ public final class SpellDispenserCastHelper {
                 spell.onServerCastComplete(level, spellData.getLevel(), spellCaster, magicData, false);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_CAST_COMPLETE, exception);
-                notifyFailureToNearbyPlayers(level, pos, result);
+                notifyFailureToNearbyPlayers(level, failurePos, result);
                 return result;
             }
 
@@ -139,7 +150,7 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
-        return tryStartContinuousCast(level, pos, Vec3.atLowerCornerOf(facing.getNormal()), validation, spellSource, ownerProfile);
+        return tryStartContinuousCast(level, Vec3.atCenterOf(pos), Vec3.atLowerCornerOf(facing.getNormal()), validation, spellSource, ownerProfile);
     }
 
     public static ContinuousCastStartResult tryStartContinuousCast(
@@ -150,6 +161,18 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
+        return tryStartContinuousCast(level, Vec3.atCenterOf(pos), forward, validation, spellSource, ownerProfile);
+    }
+
+    public static ContinuousCastStartResult tryStartContinuousCast(
+            ServerLevel level,
+            Vec3 castBasePosition,
+            Vec3 forward,
+            SpellDispenserSpellValidator.ValidationResult validation,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile
+    ) {
+        var failurePos = BlockPos.containing(castBasePosition);
         if (!validation.isSupported()) {
             return new ContinuousCastStartResult(CastResult.validationFailure(validation), null);
         }
@@ -165,7 +188,7 @@ public final class SpellDispenserCastHelper {
 
         var spellId = spell.getSpellResource();
         var profile = SpellDispenserSpellProfileManager.getResolvedProfile(spell);
-        var proxy = createProxy(level, pos, forward, ownerProfile, profile);
+        var proxy = createProxy(level, castBasePosition, forward, ownerProfile, profile);
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
         var magicData = MagicData.getPlayerMagicData(proxy);
@@ -176,7 +199,7 @@ public final class SpellDispenserCastHelper {
             magicData.setPlayerCastingItem(spellSource.copy());
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.INITIATE_CAST, exception);
-            notifyFailureToNearbyPlayers(level, pos, result);
+            notifyFailureToNearbyPlayers(level, failurePos, result);
             cleanupProxy(spellId, magicData, proxy, trackedAnchor);
             return new ContinuousCastStartResult(result, null);
         }
@@ -186,7 +209,7 @@ public final class SpellDispenserCastHelper {
             canCast = spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.CHECK_PRE_CAST, exception);
-            notifyFailureToNearbyPlayers(level, pos, result);
+            notifyFailureToNearbyPlayers(level, failurePos, result);
             cleanupProxy(spellId, magicData, proxy, trackedAnchor);
             return new ContinuousCastStartResult(result, null);
         }
@@ -199,15 +222,25 @@ public final class SpellDispenserCastHelper {
             spell.onServerPreCast(level, spellData.getLevel(), spellCaster, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_PRE_CAST, exception);
-            notifyFailureToNearbyPlayers(level, pos, result);
+            notifyFailureToNearbyPlayers(level, failurePos, result);
             cleanupProxy(spellId, magicData, proxy, trackedAnchor);
             return new ContinuousCastStartResult(result, null);
         }
 
         return new ContinuousCastStartResult(
                 CastResult.success(validation, spellId),
-                new ContinuousCastSession(pos, validation, spellSource.copy(), profile, proxy, magicData, trackedAnchor)
+                new ContinuousCastSession(BlockPos.containing(castBasePosition), validation, spellSource.copy(), profile, proxy, magicData, trackedAnchor)
         );
+    }
+
+    public static void syncContinuousCastTransform(ContinuousCastSession session, Vec3 castBasePosition, Vec3 forward) {
+        if (session.isFinished()) {
+            return;
+        }
+
+        var castTransform = resolveCastTransform(castBasePosition, forward, session.profile());
+        moveCaster(session.proxy(), castTransform);
+        syncTrackedAnchor(session);
     }
 
     public static boolean tickContinuousCast(ServerLevel level, ContinuousCastSession session) {
@@ -313,18 +346,23 @@ public final class SpellDispenserCastHelper {
 
     private static FakePlayer createProxy(
             ServerLevel level,
-            BlockPos pos,
+            Vec3 castBasePosition,
             Vec3 forward,
             GameProfile ownerProfile,
             SpellDispenserSpellProfile profile
     ) {
-        var castTransform = resolveCastTransform(pos, forward, profile);
+        var castTransform = resolveCastTransform(castBasePosition, forward, profile);
         // Spectral Hammer のように後続 tick で Player を要求する spell があるため、
         // Spell Dispenser は設置者 profile を持つ FakePlayer を caster として扱う。
         var proxy = new FakePlayer(level, new GameProfile(ownerProfile.getId(), ownerProfile.getName()));
         proxy.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         proxy.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         proxy.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+        moveCaster(proxy, castTransform);
+        return proxy;
+    }
+
+    private static void moveCaster(FakePlayer proxy, CastTransform castTransform) {
         var feetY = castTransform.origin().y - proxy.getEyeHeight(proxy.getPose());
         proxy.moveTo(castTransform.origin().x, feetY, castTransform.origin().z, castTransform.yaw(), castTransform.pitch());
         proxy.setYBodyRot(castTransform.yaw());
@@ -333,20 +371,18 @@ public final class SpellDispenserCastHelper {
         proxy.yHeadRotO = castTransform.yaw();
         proxy.setXRot(castTransform.pitch());
         proxy.xRotO = castTransform.pitch();
-        return proxy;
     }
 
-    private static CastTransform resolveCastTransform(BlockPos pos, Vec3 forward, SpellDispenserSpellProfile profile) {
+    private static CastTransform resolveCastTransform(Vec3 castBasePosition, Vec3 forward, SpellDispenserSpellProfile profile) {
         var normalizedForward = normalizeForward(forward);
         var yaw = resolveYaw(normalizedForward) + profile.yawOffset();
         var pitch = Mth.clamp(resolvePitch(normalizedForward) + profile.pitchOffset(), -90.0F, 90.0F);
-        return new CastTransform(resolveCastOrigin(pos, normalizedForward, profile), yaw, pitch);
+        return new CastTransform(resolveCastOrigin(castBasePosition, normalizedForward, profile), yaw, pitch);
     }
 
-    private static Vec3 resolveCastOrigin(BlockPos pos, Vec3 forward, SpellDispenserSpellProfile profile) {
-        var base = Vec3.atCenterOf(pos);
+    private static Vec3 resolveCastOrigin(Vec3 castBasePosition, Vec3 forward, SpellDispenserSpellProfile profile) {
         var side = resolveSideVector(forward);
-        return base
+        return castBasePosition
                 .add(forward.scale(DEFAULT_FORWARD_OFFSET + profile.forwardOffset()))
                 .add(side.scale(profile.sideOffset()))
                 .add(0.0D, profile.upOffset(), 0.0D);
