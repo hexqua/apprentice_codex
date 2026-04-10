@@ -125,6 +125,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
@@ -818,6 +819,41 @@ public final class ApprenticeCodexGameTests {
             var castResult = spellDispenser.tryActivate();
             helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated without an owner profile");
             helper.assertTrue(castResult.missingOwnerProfile(), "Spell Dispenser returned the wrong failure for missing owner profile");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserItemCapabilityExposesInventory(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+            var itemHandler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+
+            helper.assertTrue(itemHandler != null, "Spell Dispenser item capability was not exposed");
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            helper.assertTrue(itemHandler != null && itemHandler.isItemValid(0, scrollStack),
+                    "Spell Dispenser item capability rejected a supported scroll");
+
+            var remainder = itemHandler == null ? scrollStack.copy() : itemHandler.insertItem(0, scrollStack.copy(), false);
+            helper.assertTrue(remainder.isEmpty(), "Spell Dispenser item capability failed to insert a supported scroll");
+            helper.assertTrue(itemHandler != null && ItemStack.isSameItemSameComponents(itemHandler.getStackInSlot(0), scrollStack),
+                    "Spell Dispenser item capability did not expose the inserted scroll");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserOwnerProfileCanBeReadFromSavedTag(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var ownerProfile = createSpellDispenserOwnerProfile("spell_dispenser_owner_tag_test");
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            blockEntity.setOwnerProfile(ownerProfile);
+
+            var restoredOwner = SpellDispenserBlockEntity.readOwnerProfile(blockEntity.getUpdateTag(helper.getLevel().registryAccess()));
+            helper.assertTrue(restoredOwner != null, "Spell Dispenser owner profile helper returned null");
+            helper.assertTrue(restoredOwner != null && ownerProfile.getId().equals(restoredOwner.getId()),
+                    "Spell Dispenser owner UUID helper returned the wrong value");
+            helper.assertTrue(restoredOwner != null && ownerProfile.getName().equals(restoredOwner.getName()),
+                    "Spell Dispenser owner name helper returned the wrong value");
         });
     }
 

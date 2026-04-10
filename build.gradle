@@ -49,6 +49,11 @@ repositories {
     maven {
         url = uri("https://maven.theillusivec4.top/")
     }
+
+    // Create が同梱している Registrate API を compileOnly 参照するため.
+    maven {
+        url = uri("https://maven.tterrag.com/")
+    }
 }
 
 base {
@@ -125,6 +130,7 @@ dependencies {
     // Create 連携のコンパイル用.
     // ランタイム検証時のみ必要に応じてON.
     compileOnly fg.deobf("curse.maven:create-328085:7178775")
+    compileOnly fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}")
     runtimeOnly fg.deobf("curse.maven:create-328085:7178775")
 
     // EasyMagic.
