@@ -834,6 +834,60 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void comfortBerriesProvideManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var foodProperties = ItemRegistry.COMFORT_BERRIES.get().getFoodProperties();
+            helper.assertTrue(foodProperties != null, "Comfort Berries should remain edible");
+            helper.assertTrue(foodProperties != null && foodProperties.getNutrition() == 4,
+                    "Comfort Berries nutrition regression: " + (foodProperties == null ? "null" : foodProperties.getNutrition()));
+            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.getSaturationModifier() - 1.2f) < 1.0e-6F,
+                    "Comfort Berries saturation modifier regression: "
+                            + (foodProperties == null ? "null" : foodProperties.getSaturationModifier()));
+            helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
+                    "Comfort Berries should remain edible even when full");
+
+            var matchingEffects = foodProperties == null ? List.<com.mojang.datafixers.util.Pair<net.minecraft.world.effect.MobEffectInstance, Float>>of()
+                    : foodProperties.getEffects().stream()
+                    .filter(effectPair -> effectPair.getFirst().getEffect() == EffectRegistry.MANA_REGENERATION.get())
+                    .toList();
+            helper.assertTrue(matchingEffects.size() == 1,
+                    "Comfort Berries should grant exactly one mana regeneration effect but got " + matchingEffects.size());
+
+            var effectPair = matchingEffects.isEmpty() ? null : matchingEffects.get(0);
+            helper.assertTrue(effectPair != null && effectPair.getFirst().getDuration() == 20 * 30,
+                    "Comfort Berries mana regeneration duration regression: "
+                            + (effectPair == null ? "missing" : effectPair.getFirst().getDuration()));
+            helper.assertTrue(effectPair != null && effectPair.getFirst().getAmplifier() == 0,
+                    "Comfort Berries mana regeneration level regression: "
+                            + (effectPair == null ? "missing" : effectPair.getFirst().getAmplifier()));
+            helper.assertTrue(effectPair != null && Math.abs(effectPair.getSecond() - 1.0f) < 1.0e-6F,
+                    "Comfort Berries mana regeneration chance regression: "
+                            + (effectPair == null ? "missing" : effectPair.getSecond()));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var effect = (jp.aquafactory.apprenticecodex.effect.ManaRegeneration) EffectRegistry.MANA_REGENERATION.get();
+            var manaRegenModifier = effect.getAttributeModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get());
+            helper.assertTrue(manaRegenModifier != null, "Mana Regeneration is missing the mana regen attribute modifier");
+            helper.assertTrue(manaRegenModifier != null
+                            && manaRegenModifier.getOperation() == AttributeModifier.Operation.MULTIPLY_TOTAL,
+                    "Mana Regeneration should use MULTIPLY_TOTAL but got "
+                            + (manaRegenModifier == null ? "missing" : manaRegenModifier.getOperation()));
+
+            var levelOneAmount = manaRegenModifier == null ? Double.NaN : effect.getAttributeModifierValue(0, manaRegenModifier);
+            helper.assertTrue(Math.abs(levelOneAmount - 0.25D) < 1.0e-9D,
+                    "Mana Regeneration Lv1 regression: expected 0.25 but got " + levelOneAmount);
+
+            var levelTwoAmount = manaRegenModifier == null ? Double.NaN : effect.getAttributeModifierValue(1, manaRegenModifier);
+            helper.assertTrue(Math.abs(levelTwoAmount - 0.50D) < 1.0e-9D,
+                    "Mana Regeneration Lv2 regression: expected 0.50 but got " + levelTwoAmount);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var instantSpell = SpellRegistry.AUTO_MAGNET.get();
