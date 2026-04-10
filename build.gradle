@@ -123,8 +123,10 @@ dependencies {
     runtimeOnly fg.deobf("curse.maven:playeranimator-658587:4587214")
 
     // Create.
-    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
-    // runtimeOnly fg.deobf("curse.maven:create-328085:7178761")
+    // Create 連携のコンパイル用.
+    // ランタイム検証時のみ必要に応じてON.
+    compileOnly fg.deobf("curse.maven:create-328085:7178761")
+    runtimeOnly fg.deobf("curse.maven:create-328085:7178761")
 
     // EasyMagic.
     // 必要に応じてON、デフォルトは入れない(前提にはしないため)
@@ -161,7 +163,7 @@ tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
             forge_version: forge_version, forge_version_range: forge_version_range,
-            loader_version_range: loader_version_range,
+            loader_version_range: loader_version_range, create_version: create_version,
             lodestone_version: lodestone_version, malum_version: malum_version,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
