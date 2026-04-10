@@ -31,6 +31,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
     private static final TagKey<Item> CURIOS_NECKLACE = createTag("curios", "necklace");
     private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
+    private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = createTag("create", "contraption_controlled");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
@@ -109,6 +110,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get()
         );
         tag(CURIOS_NECKLACE).add(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
+        tag(CREATE_CONTRAPTION_CONTROLLED).add(ItemRegistry.SPELL_DISPENSER.get());
 
         tag(TagRegistry.Items.SPELLCASTER_AMMO_POUCH_STORABLE).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),

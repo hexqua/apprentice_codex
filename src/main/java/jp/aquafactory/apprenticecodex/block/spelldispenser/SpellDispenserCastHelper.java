@@ -45,6 +45,16 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
+        return tryCast(level, pos, Vec3.atLowerCornerOf(facing.getNormal()), spellSource, ownerProfile);
+    }
+
+    public static CastResult tryCast(
+            ServerLevel level,
+            BlockPos pos,
+            Vec3 forward,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile
+    ) {
         var validation = SpellDispenserSpellValidator.validate(spellSource);
         if (!validation.isSupported()) {
             return CastResult.validationFailure(validation);
@@ -57,7 +67,7 @@ public final class SpellDispenserCastHelper {
         var spell = spellData.getSpell();
         var spellId = spell.getSpellResource();
         var profile = SpellDispenserSpellProfileManager.getResolvedProfile(spell);
-        var proxy = createProxy(level, pos, facing, ownerProfile, profile);
+        var proxy = createProxy(level, pos, forward, ownerProfile, profile);
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
 
@@ -129,6 +139,17 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
+        return tryStartContinuousCast(level, pos, Vec3.atLowerCornerOf(facing.getNormal()), validation, spellSource, ownerProfile);
+    }
+
+    public static ContinuousCastStartResult tryStartContinuousCast(
+            ServerLevel level,
+            BlockPos pos,
+            Vec3 forward,
+            SpellDispenserSpellValidator.ValidationResult validation,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile
+    ) {
         if (!validation.isSupported()) {
             return new ContinuousCastStartResult(CastResult.validationFailure(validation), null);
         }
@@ -144,7 +165,7 @@ public final class SpellDispenserCastHelper {
 
         var spellId = spell.getSpellResource();
         var profile = SpellDispenserSpellProfileManager.getResolvedProfile(spell);
-        var proxy = createProxy(level, pos, facing, ownerProfile, profile);
+        var proxy = createProxy(level, pos, forward, ownerProfile, profile);
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
         var magicData = MagicData.getPlayerMagicData(proxy);
@@ -293,33 +314,37 @@ public final class SpellDispenserCastHelper {
     private static FakePlayer createProxy(
             ServerLevel level,
             BlockPos pos,
-            Direction facing,
+            Vec3 forward,
             GameProfile ownerProfile,
             SpellDispenserSpellProfile profile
     ) {
-        var muzzlePos = resolveCastOrigin(pos, facing, profile);
-        var yaw = resolveYaw(facing) + profile.yawOffset();
-        var pitch = Mth.clamp(resolvePitch(facing) + profile.pitchOffset(), -90.0F, 90.0F);
+        var castTransform = resolveCastTransform(pos, forward, profile);
         // Spectral Hammer のように後続 tick で Player を要求する spell があるため、
         // Spell Dispenser は設置者 profile を持つ FakePlayer を caster として扱う。
         var proxy = new FakePlayer(level, new GameProfile(ownerProfile.getId(), ownerProfile.getName()));
         proxy.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         proxy.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         proxy.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-        var feetY = muzzlePos.y - proxy.getEyeHeight(proxy.getPose());
-        proxy.moveTo(muzzlePos.x, feetY, muzzlePos.z, yaw, pitch);
-        proxy.setYBodyRot(yaw);
-        proxy.setYHeadRot(yaw);
-        proxy.yBodyRotO = yaw;
-        proxy.yHeadRotO = yaw;
-        proxy.setXRot(pitch);
-        proxy.xRotO = pitch;
+        var feetY = castTransform.origin().y - proxy.getEyeHeight(proxy.getPose());
+        proxy.moveTo(castTransform.origin().x, feetY, castTransform.origin().z, castTransform.yaw(), castTransform.pitch());
+        proxy.setYBodyRot(castTransform.yaw());
+        proxy.setYHeadRot(castTransform.yaw());
+        proxy.yBodyRotO = castTransform.yaw();
+        proxy.yHeadRotO = castTransform.yaw();
+        proxy.setXRot(castTransform.pitch());
+        proxy.xRotO = castTransform.pitch();
         return proxy;
     }
 
-    private static Vec3 resolveCastOrigin(BlockPos pos, Direction facing, SpellDispenserSpellProfile profile) {
+    private static CastTransform resolveCastTransform(BlockPos pos, Vec3 forward, SpellDispenserSpellProfile profile) {
+        var normalizedForward = normalizeForward(forward);
+        var yaw = resolveYaw(normalizedForward) + profile.yawOffset();
+        var pitch = Mth.clamp(resolvePitch(normalizedForward) + profile.pitchOffset(), -90.0F, 90.0F);
+        return new CastTransform(resolveCastOrigin(pos, normalizedForward, profile), yaw, pitch);
+    }
+
+    private static Vec3 resolveCastOrigin(BlockPos pos, Vec3 forward, SpellDispenserSpellProfile profile) {
         var base = Vec3.atCenterOf(pos);
-        var forward = Vec3.atLowerCornerOf(facing.getNormal());
         var side = resolveSideVector(forward);
         return base
                 .add(forward.scale(DEFAULT_FORWARD_OFFSET + profile.forwardOffset()))
@@ -329,7 +354,11 @@ public final class SpellDispenserCastHelper {
 
     private static Vec3 resolveSideVector(Vec3 forward) {
         var referenceUp = Math.abs(forward.y) > 0.9D ? new Vec3(0.0D, 0.0D, 1.0D) : new Vec3(0.0D, 1.0D, 0.0D);
-        return forward.cross(referenceUp).normalize();
+        var side = forward.cross(referenceUp);
+        if (side.lengthSqr() < 1.0E-6D) {
+            return new Vec3(1.0D, 0.0D, 0.0D);
+        }
+        return side.normalize();
     }
 
     private static void syncTrackedAnchor(ContinuousCastSession session) {
@@ -397,22 +426,22 @@ public final class SpellDispenserCastHelper {
                 && !ownerProfile.getName().isBlank();
     }
 
-    private static float resolveYaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> 180.0F;
-            case SOUTH -> 0.0F;
-            case WEST -> 90.0F;
-            case EAST -> -90.0F;
-            case UP, DOWN -> 0.0F;
-        };
+    private static Vec3 normalizeForward(Vec3 forward) {
+        if (forward.lengthSqr() < 1.0E-6D) {
+            return new Vec3(0.0D, 0.0D, 1.0D);
+        }
+        return forward.normalize();
     }
 
-    private static float resolvePitch(Direction facing) {
-        return switch (facing) {
-            case UP -> -90.0F;
-            case DOWN -> 90.0F;
-            default -> 0.0F;
-        };
+    private static float resolveYaw(Vec3 forward) {
+        return (float) Math.toDegrees(Math.atan2(-forward.x, forward.z));
+    }
+
+    private static float resolvePitch(Vec3 forward) {
+        return (float) -Math.toDegrees(Math.asin(Mth.clamp(forward.y, -1.0D, 1.0D)));
+    }
+
+    private record CastTransform(Vec3 origin, float yaw, float pitch) {
     }
 
     public enum CastStage {

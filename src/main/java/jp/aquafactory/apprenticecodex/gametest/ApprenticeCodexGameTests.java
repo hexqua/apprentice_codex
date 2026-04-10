@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
@@ -77,6 +78,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -118,6 +120,7 @@ import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -146,6 +149,10 @@ public final class ApprenticeCodexGameTests {
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
+    );
+    private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("create", "contraption_controlled")
     );
     private static final ResourceLocation MALUM_HAUNTED = MalumHauntedCompat.hauntedEnchantmentId();
     private static final ResourceLocation MALUM_ANIMATED = MalumHauntedCompat.animatedEnchantmentId();
@@ -763,6 +770,32 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserMountedMenuKeepsContraptionInventoryAccessible(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "spell_dispenser_mounted_menu_test"));
+            var mountedInventory = new ItemStackHandler(1);
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            mountedInventory.setStackInSlot(0, scrollStack.copy());
+
+            var menu = SpellDispenserMenu.createMounted(0, new Inventory(player), BlockPos.ZERO, mountedInventory, true);
+            helper.assertTrue(menu.stillValid(player), "Spell Dispenser mounted menu closed because it expected a world block entity");
+            helper.assertTrue(ItemStack.isSameItemSameTags(menu.getSpellSource(), scrollStack),
+                    "Spell Dispenser mounted menu did not expose the mounted inventory stack");
+            helper.assertTrue(menu.isReadyToCast(player),
+                    "Spell Dispenser mounted menu did not report a valid mounted scroll as ready");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserIsTaggedForContraptionControls(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spellDispenserStack = new ItemStack(ItemRegistry.SPELL_DISPENSER.get());
+            helper.assertTrue(spellDispenserStack.is(CREATE_CONTRAPTION_CONTROLLED),
+                    "Spell Dispenser is missing create:contraption_controlled and cannot be selected by Contraption Controls");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserOwnerProfileCanBeReadFromSavedTag(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var ownerProfile = createSpellDispenserOwnerProfile("spell_dispenser_owner_tag_test");
@@ -793,6 +826,35 @@ public final class ApprenticeCodexGameTests {
                     "Spell Dispenser owner UUID changed during NBT round-trip");
             helper.assertTrue(restored.getOwnerProfile() != null && ownerProfile.getName().equals(restored.getOwnerProfile().getName()),
                     "Spell Dispenser owner name changed during NBT round-trip");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperSupportsDiagonalVectorFacing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var scrollStack = createSpellScroll(SpellRegistry.COMPOUND_PHIAL.get());
+
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    (ServerLevel) level,
+                    castPos,
+                    new Vec3(1.0D, 0.0D, 1.0D),
+                    scrollStack,
+                    createSpellDispenserOwnerProfile("spell_dispenser_diagonal_vector_test")
+            );
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast from a diagonal forward vector");
+
+            var projectileBox = new AABB(castPos).inflate(5.0D);
+            var projectiles = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox);
+            helper.assertTrue(!projectiles.isEmpty(), "Spell Dispenser diagonal vector cast did not spawn a Compound Phial projectile");
+
+            var projectile = projectiles.get(0);
+            var motion = projectile.getDeltaMovement();
+            helper.assertTrue(Math.abs(motion.x) > 0.01D, "Spell Dispenser diagonal vector cast kept the projectile X motion at zero");
+            helper.assertTrue(Math.abs(motion.z) > 0.01D, "Spell Dispenser diagonal vector cast kept the projectile Z motion at zero");
+            helper.assertTrue(Math.signum(motion.x) == Math.signum(motion.z),
+                    "Spell Dispenser diagonal vector cast did not preserve the intended diagonal quadrant: " + motion);
         });
     }
 

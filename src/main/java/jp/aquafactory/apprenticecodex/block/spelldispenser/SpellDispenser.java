@@ -110,7 +110,10 @@ public final class SpellDispenser extends BaseEntityBlock {
 
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser && player instanceof ServerPlayer serverPlayer) {
-            NetworkHooks.openScreen(serverPlayer, spellDispenser, pos);
+            NetworkHooks.openScreen(serverPlayer, spellDispenser, buffer -> {
+                buffer.writeBoolean(false);
+                buffer.writeBlockPos(pos);
+            });
             return InteractionResult.CONSUME;
         }
 
