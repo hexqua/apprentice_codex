@@ -32,7 +32,7 @@ public final class MenuRegistry {
             MENUS.register("spellcaster_workbench", () -> IForgeMenuType.create((windowId, inv, data) -> new SpellcasterWorkbenchMenu(windowId, inv)));
 
     public static final RegistryObject<MenuType<SpellDispenserMenu>> SPELL_DISPENSER =
-            MENUS.register("spell_dispenser", () -> IForgeMenuType.create((windowId, inv, data) -> new SpellDispenserMenu(windowId, inv, data.readBlockPos())));
+            MENUS.register("spell_dispenser", () -> IForgeMenuType.create(SpellDispenserMenu::new));
 
     public static final RegistryObject<MenuType<AtelierStationMenu>> ATELIER_STATION =
             MENUS.register("atelier_station", () -> IForgeMenuType.create((windowId, inv, data) -> new AtelierStationMenu(windowId, inv, data.readBlockPos())));
