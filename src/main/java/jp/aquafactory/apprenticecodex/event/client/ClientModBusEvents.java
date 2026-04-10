@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
@@ -64,6 +65,7 @@ import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrower
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRenderer;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorRenderer;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -101,6 +103,7 @@ public final class ClientModBusEvents {
     private static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.APPRENTICE_DESK.get(), ApprenticeDeskScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELLCASTER_WORKBENCH.get(), SpellcasterWorkbenchScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELL_DISPENSER.get(), SpellDispenserScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ATELIER_STATION.get(), AtelierStationScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new));
@@ -214,6 +217,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.PHALANX_WEAPONRY.get(), PhalanxWeaponryRenderer::new);
         event.registerEntityRenderer(EntityRegistry.PHALANX_CHARGE_BEAM.get(), PhalanxChargeBeamRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SEARCH_BEACON.get(), SearchBeaconRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SPELL_DISPENSER_ANCHOR.get(), SpellDispenserAnchorRenderer::new);
     }
 }
 

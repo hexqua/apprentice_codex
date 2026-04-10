@@ -7,8 +7,17 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
+import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
+import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
@@ -24,6 +33,7 @@ import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
+import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
@@ -61,8 +71,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -415,6 +427,383 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorAcceptsSingleHealScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a simple Heal scroll");
+            helper.assertTrue(validation.spellData().getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(),
+                    "Spell Dispenser validator resolved the wrong spell: " + validation.spellData().getSpell().getSpellResource());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorAcceptsNonIronsNamespaceScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(SpellRegistry.MAGE_LIGHT.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected an apprenticecodex spell scroll");
+            helper.assertTrue(validation.spellData().getSpell() == SpellRegistry.MAGE_LIGHT.get(),
+                    "Spell Dispenser validator resolved the wrong non-Iron's spell: " + validation.spellData().getSpell().getSpellResource());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorAcceptsLongScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(SpellRegistry.COMPOUND_PHIAL.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a LONG scroll");
+            helper.assertTrue(validation.spellData().getSpell() == SpellRegistry.COMPOUND_PHIAL.get(),
+                    "Spell Dispenser validator resolved the wrong LONG spell: " + validation.spellData().getSpell().getSpellResource());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsSpellWithoutProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a spell without a profile");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_PROFILED,
+                    "Spell Dispenser validator returned the wrong failure reason for profile-less scroll: " + validation.failureReason());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(SpellRegistry.ASSIST_WINGS.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a denylisted scroll");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
+                    "Spell Dispenser validator returned the wrong failure reason for denylisted scroll: " + validation.failureReason());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(SpellRegistry.LONG_STRIDE.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a CONTINUOUS scroll");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_PROFILED,
+                    "Spell Dispenser validator returned the wrong failure reason for profile-less CONTINUOUS scroll: " + validation.failureReason());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorAcceptsProfiledContinuousScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a profiled CONTINUOUS scroll");
+            helper.assertTrue(validation.spellData().getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(),
+                    "Spell Dispenser validator resolved the wrong profiled CONTINUOUS spell: " + validation.spellData().getSpell().getSpellResource());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsRecastScroll(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(SpellRegistry.HIGANBANA.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a recast spell scroll");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.HAS_RECAST,
+                    "Spell Dispenser validator returned the wrong failure reason for recast scroll: " + validation.failureReason());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsNonScrollSpellContainer(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var nonScrollStack = createInitializedPresetStack(ItemRegistry.GRIMOIRE_MANIFEST.get());
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(nonScrollStack), "Prepared non-scroll test stack is not a spell container");
+            var validation = SpellDispenserSpellValidator.validate(nonScrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a non-scroll spell container");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_SCROLL,
+                    "Spell Dispenser validator returned the wrong failure reason for non-scroll spell container: " + validation.failureReason());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperCleansUpProxy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    (ServerLevel) level,
+                    castPos,
+                    Direction.NORTH,
+                    scrollStack,
+                    createSpellDispenserOwnerProfile("spell_dispenser_heal_test")
+            );
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a Heal scroll");
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after Heal cast");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var scrollStack = createSpellScroll(SpellRegistry.COMPOUND_PHIAL.get());
+
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    (ServerLevel) level,
+                    castPos,
+                    Direction.NORTH,
+                    scrollStack,
+                    createSpellDispenserOwnerProfile("spell_dispenser_long_test")
+            );
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a LONG Compound Phial scroll");
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after LONG cast");
+
+            var projectileBox = new AABB(castPos).inflate(5.0D);
+            var projectiles = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox);
+            helper.assertTrue(!projectiles.isEmpty(), "Spell Dispenser LONG cast completed without spawning a Compound Phial projectile");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperStopsContinuousCastAtDurationCap(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blaze_storm")
+            );
+            var scrollStack = createSpellScroll(spell);
+            var validation = createSpellDispenserValidation(scrollStack, spell);
+
+            var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                    level,
+                    castPos,
+                    Direction.NORTH,
+                    validation,
+                    scrollStack,
+                    createSpellDispenserOwnerProfile("spell_dispenser_continuous_test")
+            );
+            helper.assertTrue(startResult.result().succeeded(), "Spell Dispenser cast helper failed to start a CONTINUOUS Blaze Storm scroll");
+            helper.assertTrue(startResult.session() != null, "Spell Dispenser cast helper did not return a CONTINUOUS session");
+
+            var session = startResult.session();
+            var maxTicks = session.magicData().getCastDuration();
+            for (var tick = 0; tick <= maxTicks + 1 && !session.isFinished(); tick++) {
+                SpellDispenserCastHelper.tickContinuousCast(level, session);
+            }
+
+            helper.assertTrue(session.isFinished(), "Spell Dispenser CONTINUOUS cast did not stop by its cast duration cap");
+            var fireballBox = new AABB(castPos).inflate(16.0D);
+            var fireballs = level.getEntitiesOfClass(SmallMagicFireball.class, fireballBox);
+            helper.assertTrue(!fireballs.isEmpty(), "Spell Dispenser CONTINUOUS cast completed without spawning Blaze Storm fireballs");
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after CONTINUOUS cast");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserContinuousBreathBindsProjectileToTrackedAnchor(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected Fire Breath profile");
+
+            var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                    level,
+                    castPos,
+                    Direction.NORTH,
+                    validation,
+                    scrollStack,
+                    createSpellDispenserOwnerProfile("spell_dispenser_fire_breath_test")
+            );
+            helper.assertTrue(startResult.result().succeeded(), "Spell Dispenser cast helper failed to start Fire Breath");
+            helper.assertTrue(startResult.session() != null, "Spell Dispenser cast helper did not return a Fire Breath session");
+            helper.assertTrue(startResult.session().spellCaster() instanceof SpellDispenserAnchorEntity,
+                    "Spell Dispenser Fire Breath did not select a tracked living caster from its explicit profile: " + startResult.session().spellCaster());
+
+            var session = startResult.session();
+            for (var tick = 0; tick < 20; tick++) {
+                SpellDispenserCastHelper.tickContinuousCast(level, session);
+            }
+
+            var coneProjectiles = level.getEntitiesOfClass(FireBreathProjectile.class, new AABB(castPos).inflate(16.0D));
+            helper.assertTrue(!coneProjectiles.isEmpty(), "Spell Dispenser Fire Breath never spawned its cone projectile");
+            helper.assertTrue(coneProjectiles.get(0).getOwner() instanceof SpellDispenserAnchorEntity,
+                    "Spell Dispenser Fire Breath did not rebind its cone owner to a tracked anchor: " + coneProjectiles.get(0).getOwner());
+
+            SpellDispenserCastHelper.finishContinuousCast(level, session, true);
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser tracked anchor was left behind after Fire Breath cleanup");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserBlockEntityStopsContinuousCastWhenSignalTurnsOff(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var pos = new BlockPos(0, 1, 0);
+        helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+        helper.setBlock(pos, helper.getBlockState(pos).setValue(SpellDispenser.TRIGGERED, true));
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+        var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blaze_storm")
+        );
+        var scrollStack = createSpellScroll(spell);
+        spellDispenser.getInventory().setStackInSlot(0, scrollStack);
+        spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_signal_stop_test"));
+
+        helper.runAtTickTime(1, () -> {
+            var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                    level,
+                    pos,
+                    Direction.NORTH,
+                    createSpellDispenserValidation(scrollStack, spell),
+                    scrollStack,
+                    spellDispenser.getOwnerProfile()
+            );
+            helper.assertTrue(startResult.result().succeeded(), "Spell Dispenser block entity failed to prepare a CONTINUOUS session");
+            helper.assertTrue(startResult.session() != null, "Spell Dispenser block entity did not receive a powered CONTINUOUS session");
+            spellDispenser.startContinuousCast(startResult.session());
+        });
+        helper.runAtTickTime(2, () -> {
+            SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            helper.assertTrue(spellDispenser.hasActiveContinuousCast(), "Spell Dispenser CONTINUOUS cast stopped immediately while powered");
+            helper.setBlock(pos, helper.getBlockState(pos).setValue(SpellDispenser.TRIGGERED, false));
+        });
+        helper.runAtTickTime(3, () -> {
+            SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            helper.assertFalse(spellDispenser.hasActiveContinuousCast(), "Spell Dispenser CONTINUOUS cast did not stop after redstone signal loss");
+            assertNoSpellDispenserProxy(helper, pos, scrollStack, "Spell Dispenser proxy caster was left behind after signal loss");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserBlockEntityDoesNotRestartContinuousCastWhileSignalStaysOn(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var pos = new BlockPos(0, 1, 0);
+        helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+        helper.setBlock(pos, helper.getBlockState(pos).setValue(SpellDispenser.TRIGGERED, true));
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+        var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blaze_storm")
+        );
+        var scrollStack = createSpellScroll(spell);
+        spellDispenser.getInventory().setStackInSlot(0, scrollStack);
+        spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_signal_hold_test"));
+
+        helper.runAtTickTime(1, () -> {
+            var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                    level,
+                    pos,
+                    Direction.NORTH,
+                    createSpellDispenserValidation(scrollStack, spell),
+                    scrollStack,
+                    spellDispenser.getOwnerProfile()
+            );
+            helper.assertTrue(startResult.result().succeeded(), "Spell Dispenser block entity failed to prepare a held-signal CONTINUOUS session");
+            helper.assertTrue(startResult.session() != null, "Spell Dispenser block entity did not receive a held-signal CONTINUOUS session");
+            spellDispenser.startContinuousCast(startResult.session());
+
+            var maxTicks = startResult.session().magicData().getCastDuration();
+            for (var tick = 0; tick <= maxTicks + 20; tick++) {
+                SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            }
+
+            helper.assertFalse(spellDispenser.hasActiveContinuousCast(),
+                    "Spell Dispenser CONTINUOUS cast restarted even though the redstone signal never toggled off");
+            assertNoSpellDispenserProxy(helper, pos, scrollStack, "Spell Dispenser proxy caster was left behind after held-signal completion");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserBlockEntityRejectsActivationWithoutOwnerProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get()));
+
+            var castResult = spellDispenser.tryActivate();
+            helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated without an owner profile");
+            helper.assertTrue(castResult.missingOwnerProfile(), "Spell Dispenser returned the wrong failure for missing owner profile");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserOwnerProfilePersistsThroughNbt(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var ownerProfile = createSpellDispenserOwnerProfile("spell_dispenser_owner_save_test");
+            var original = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            original.setOwnerProfile(ownerProfile);
+
+            var restored = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            restored.load(original.getUpdateTag());
+
+            helper.assertTrue(restored.hasOwnerProfile(), "Spell Dispenser owner profile was not restored from NBT");
+            helper.assertTrue(restored.getOwnerProfile() != null && ownerProfile.getId().equals(restored.getOwnerProfile().getId()),
+                    "Spell Dispenser owner UUID changed during NBT round-trip");
+            helper.assertTrue(restored.getOwnerProfile() != null && ownerProfile.getName().equals(restored.getOwnerProfile().getName()),
+                    "Spell Dispenser owner name changed during NBT round-trip");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperSupportsSpectralHammer(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var targetPos = new BlockPos(0, 1, 3);
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    (ServerLevel) level,
+                    castPos,
+                    Direction.SOUTH,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPECTRAL_HAMMER_SPELL.get()),
+                    createSpellDispenserOwnerProfile("spell_dispenser_spectral_hammer_test")
+            );
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to start Spectral Hammer");
+
+            var hammerBox = new AABB(castPos).inflate(8.0D);
+            var hammers = level.getEntitiesOfClass(SpectralHammer.class, hammerBox);
+            helper.assertTrue(!hammers.isEmpty(), "Spell Dispenser cast did not spawn Spectral Hammer");
+
+            var hammer = hammers.get(0);
+            for (var tick = 0; tick < 20 && !hammer.isRemoved(); tick++) {
+                hammer.tick();
+            }
+
+            helper.assertTrue(true, "Spectral Hammer ticked without crashing");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void serverBlocksAndEntitiesCanBeInstantiated(GameTestHelper helper) {
         helper.succeedIf(() -> {
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 0), BlockRegistry.MAGE_LIGHT_TORCH.get(), BlockEntityRegistry.MAGE_LIGHT_TORCH.get());
@@ -423,6 +812,7 @@ public final class ApprenticeCodexGameTests {
             placeAndAssertBlockEntity(helper, new BlockPos(3, 1, 0), BlockRegistry.ARCANUM_IN_A_JAR.get(), BlockEntityRegistry.ARCANUM_IN_A_JAR.get());
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 1), BlockRegistry.ESSENCE_SMOKER.get(), BlockEntityRegistry.ESSENCE_SMOKER.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 1), BlockRegistry.ATELIER_STATION.get(), BlockEntityRegistry.ATELIER_STATION.get());
+            placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 1), BlockRegistry.SPELL_DISPENSER.get(), BlockEntityRegistry.SPELL_DISPENSER.get());
 
             var level = helper.getLevel();
             for (var entityEntry : EntityRegistry.ENTITIES.getEntries()) {
@@ -2093,6 +2483,30 @@ public final class ApprenticeCodexGameTests {
         helper.assertTrue(recipe instanceof ExplorersCodexGuidebookTransferRecipe,
                 "Missing Explorer's Codex guidebook transfer recipe: " + recipe);
         return (ExplorersCodexGuidebookTransferRecipe) recipe;
+    }
+
+    private static ItemStack createSpellScroll(AbstractSpell spell) {
+        var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(spell, 1, stack);
+        return stack;
+    }
+
+    private static SpellDispenserSpellValidator.ValidationResult createSpellDispenserValidation(ItemStack stack, AbstractSpell spell) {
+        return new SpellDispenserSpellValidator.ValidationResult(stack, new SpellData(spell, 1), SpellDispenserSpellValidator.FailureReason.NONE);
+    }
+
+    private static GameProfile createSpellDispenserOwnerProfile(String name) {
+        return new GameProfile(UUID.randomUUID(), name);
+    }
+
+    private static void assertNoSpellDispenserProxy(GameTestHelper helper, BlockPos castPos, ItemStack spellSource, String message) {
+        var proxyBox = new AABB(castPos).inflate(3.0D);
+        var remainingProxies = helper.getLevel().getEntitiesOfClass(ArmorStand.class, proxyBox, stand ->
+                stand.isInvisible() && stand.getMainHandItem().is(spellSource.getItem()));
+        helper.assertTrue(remainingProxies.isEmpty(), message + ": " + remainingProxies.size());
+
+        var remainingAnchors = helper.getLevel().getEntitiesOfClass(SpellDispenserAnchorEntity.class, proxyBox);
+        helper.assertTrue(remainingAnchors.isEmpty(), message + " (tracked anchors): " + remainingAnchors.size());
     }
 
     private static ItemStack createInitializedPresetStack(Item item) {

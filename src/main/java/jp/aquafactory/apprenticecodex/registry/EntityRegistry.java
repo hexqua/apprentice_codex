@@ -37,6 +37,7 @@ import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrower
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -208,6 +209,10 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<SearchBeaconEntity>> SEARCH_BEACON =
             regLiving("search_beacon", SearchBeaconEntity::new, SearchBeaconEntity.WIDTH, SearchBeaconEntity.HEIGHT, 32);
+
+    public static final RegistryObject<EntityType<SpellDispenserAnchorEntity>> SPELL_DISPENSER_ANCHOR =
+            reg("spell_dispenser_anchor", SpellDispenserAnchorEntity::new, MobCategory.MISC,
+                    0.6f, 1.8f, 32, 1, false);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

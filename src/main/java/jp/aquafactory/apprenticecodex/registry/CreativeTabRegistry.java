@@ -41,6 +41,7 @@ public final class CreativeTabRegistry {
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
         output.accept(ItemRegistry.APPRENTICE_DESK.get());
         output.accept(ItemRegistry.SPELLCASTER_WORKBENCH.get());
+        output.accept(ItemRegistry.SPELL_DISPENSER.get());
         output.accept(ItemRegistry.ARCANUM_IN_A_JAR.get());
         output.accept(ItemRegistry.ESSENCE_SMOKER.get());
         output.accept(ItemRegistry.ATELIER_STATION.get());
