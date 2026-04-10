@@ -9,11 +9,11 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public final class SpellDispenserMovementBehaviour implements MovementBehaviour {
@@ -49,8 +49,8 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
 
-        var facing = resolveFacing(context);
-        var castResult = SpellDispenserCastHelper.tryCast(serverLevel, pos, facing, spellSource.copy(), ownerProfile);
+        var forward = resolveForward(context);
+        var castResult = SpellDispenserCastHelper.tryCast(serverLevel, pos, forward, spellSource.copy(), ownerProfile);
         playActivationSound(serverLevel, pos, castResult.succeeded());
     }
 
@@ -70,9 +70,8 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         return itemStorage.getStackInSlot(0);
     }
 
-    private static Direction resolveFacing(MovementContext context) {
-        var normal = MountedDispenseBehavior.getDispenserNormal(context);
-        return MountedDispenseBehavior.getClosestFacingDirection(normal);
+    private static Vec3 resolveForward(MovementContext context) {
+        return MountedDispenseBehavior.getDispenserNormal(context);
     }
 
     private static void playActivationSound(ServerLevel level, BlockPos pos, boolean succeeded) {

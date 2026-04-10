@@ -32,7 +32,7 @@ public final class MenuRegistry {
             MENUS.register("spellcaster_workbench", () -> IMenuTypeExtension.create((windowId, inv, data) -> new SpellcasterWorkbenchMenu(windowId, inv)));
 
     public static final DeferredHolder<MenuType<?>, MenuType<SpellDispenserMenu>> SPELL_DISPENSER =
-            MENUS.register("spell_dispenser", () -> IMenuTypeExtension.create((windowId, inv, data) -> new SpellDispenserMenu(windowId, inv, data.readBlockPos())));
+            MENUS.register("spell_dispenser", () -> IMenuTypeExtension.create(SpellDispenserMenu::new));
 
     public static final DeferredHolder<MenuType<?>, MenuType<AtelierStationMenu>> ATELIER_STATION =
             MENUS.register("atelier_station", () -> IMenuTypeExtension.create((windowId, inv, data) -> new AtelierStationMenu(windowId, inv, data.readBlockPos())));
