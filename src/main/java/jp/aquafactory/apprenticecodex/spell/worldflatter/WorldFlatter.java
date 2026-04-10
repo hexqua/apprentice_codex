@@ -44,7 +44,7 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(4)
+            .setCooldownSeconds(20)
             .build();
 
     public WorldFlatter() {
