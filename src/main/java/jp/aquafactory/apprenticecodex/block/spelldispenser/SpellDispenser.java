@@ -90,6 +90,18 @@ public final class SpellDispenser extends BaseEntityBlock {
     }
 
     @Override
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level,
+                                                                            @NotNull BlockState state,
+                                                                            @NotNull BlockEntityType<T> type) {
+        return level.isClientSide ? null : createTickerHelper(
+                type,
+                BlockEntityRegistry.SPELL_DISPENSER.get(),
+                (tickLevel, tickPos, tickState, blockEntity) ->
+                        SpellDispenserBlockEntity.serverTick((net.minecraft.server.level.ServerLevel) tickLevel, tickPos, tickState, blockEntity)
+        );
+    }
+
+    @Override
     public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
                                           @NotNull Player player, @NotNull InteractionHand hand, @NotNull net.minecraft.world.phys.BlockHitResult hitResult) {
         if (level.isClientSide) {
@@ -138,6 +150,7 @@ public final class SpellDispenser extends BaseEntityBlock {
         if (!state.is(newState.getBlock())) {
             var blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
+                spellDispenser.stopContinuousCast(true);
                 spellDispenser.dropStoredItem();
             }
         }

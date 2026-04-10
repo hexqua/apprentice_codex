@@ -52,7 +52,7 @@ public final class SpellDispenserSpellValidator {
         }
 
         var castType = spell.getCastType();
-        if (castType != CastType.INSTANT && castType != CastType.LONG) {
+        if (castType != CastType.INSTANT && castType != CastType.LONG && castType != CastType.CONTINUOUS) {
             return new ValidationResult(stack, spellData, FailureReason.UNSUPPORTED_CAST_TYPE);
         }
         if (spell.getRecastCount(spellData.getLevel(), null) > 0) {

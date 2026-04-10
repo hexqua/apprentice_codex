@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -41,6 +43,8 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     };
     @Nullable
     private GameProfile ownerProfile;
+    @Nullable
+    private SpellDispenserCastHelper.ContinuousCastSession activeContinuousCast;
 
     public SpellDispenserBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELL_DISPENSER.get(), pos, state);
@@ -75,6 +79,10 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
 
     public boolean hasOwnerProfile() {
         return normalizeOwnerProfile(ownerProfile) != null;
+    }
+
+    public boolean hasActiveContinuousCast() {
+        return activeContinuousCast != null && !activeContinuousCast.isFinished();
     }
 
     public SpellDispenserCastHelper.CastResult tryActivate() {
@@ -117,7 +125,90 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
             return SpellDispenserCastHelper.CastResult.missingOwnerProfile(SpellDispenserSpellValidator.validate(source));
         }
 
+        if (hasActiveContinuousCast()) {
+            return SpellDispenserCastHelper.CastResult.validationFailure(SpellDispenserSpellValidator.validate(source));
+        }
+
+        var validation = SpellDispenserSpellValidator.validate(source);
+        var spellData = validation.spellData();
+        if (spellData != SpellData.EMPTY && spellData.getSpell().getCastType() == CastType.CONTINUOUS) {
+            var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                    serverLevel,
+                    worldPosition,
+                    spellDispenser.getFacing(state),
+                    validation,
+                    source.copy(),
+                    ownerProfile
+            );
+            if (startResult.result().succeeded()) {
+                startContinuousCast(startResult.session());
+            }
+            return startResult.result();
+        }
+
         return SpellDispenserCastHelper.tryCast(serverLevel, worldPosition, spellDispenser.getFacing(state), source.copy(), ownerProfile);
+    }
+
+    public static void serverTick(ServerLevel level, BlockPos pos, BlockState state, SpellDispenserBlockEntity blockEntity) {
+        blockEntity.serverTick(level, pos, state);
+    }
+
+    private void serverTick(ServerLevel level, BlockPos pos, BlockState state) {
+        if (activeContinuousCast == null) {
+            return;
+        }
+
+        if (activeContinuousCast.isFinished()) {
+            activeContinuousCast = null;
+            setChanged();
+            return;
+        }
+
+        if (!(state.getBlock() instanceof SpellDispenser)) {
+            stopContinuousCast(true);
+            return;
+        }
+
+        if (!state.getValue(SpellDispenser.TRIGGERED)) {
+            stopContinuousCast(true);
+            return;
+        }
+
+        if (!hasOwnerProfile()) {
+            stopContinuousCast(true);
+            return;
+        }
+
+        var source = getSpellSource();
+        if (source.isEmpty()
+                || source.getCount() != activeContinuousCast.spellSource().getCount()
+                || !ItemStack.isSameItemSameTags(source, activeContinuousCast.spellSource())) {
+            stopContinuousCast(true);
+            return;
+        }
+
+        if (!SpellDispenserCastHelper.tickContinuousCast(level, activeContinuousCast)) {
+            activeContinuousCast = null;
+            setChanged();
+        }
+    }
+
+    public void startContinuousCast(@Nullable SpellDispenserCastHelper.ContinuousCastSession session) {
+        activeContinuousCast = session;
+        setChanged();
+    }
+
+    public void stopContinuousCast(boolean cancelled) {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            activeContinuousCast = null;
+            return;
+        }
+
+        if (activeContinuousCast != null) {
+            SpellDispenserCastHelper.finishContinuousCast(serverLevel, activeContinuousCast, cancelled);
+            activeContinuousCast = null;
+            setChanged();
+        }
     }
 
     public void dropStoredItem() {
@@ -144,6 +235,12 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public void setRemoved() {
+        stopContinuousCast(true);
+        super.setRemoved();
     }
 
     @Override
