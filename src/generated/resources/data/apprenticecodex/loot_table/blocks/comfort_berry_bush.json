@@ -25,6 +25,13 @@
               "properties": {
                 "age": "1"
               }
+            },
+            {
+              "block": "apprenticecodex:comfort_berry_bush",
+              "condition": "minecraft:block_state_property",
+              "properties": {
+                "age": "2"
+              }
             }
           ]
         }
@@ -44,7 +51,33 @@
           "block": "apprenticecodex:comfort_berry_bush",
           "condition": "minecraft:block_state_property",
           "properties": {
-            "age": "2"
+            "age": "3"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": 2.0,
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "apprenticecodex:comfort_berries"
+        }
+      ],
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "block": "apprenticecodex:comfort_berry_bush",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "age": "4"
           }
         }
       ],

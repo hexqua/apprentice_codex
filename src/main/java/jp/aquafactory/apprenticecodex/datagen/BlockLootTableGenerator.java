@@ -60,17 +60,26 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
                 LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
                         .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(ComfortBerryBushBlock.AGE, 0)),
                 LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
-                        .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(ComfortBerryBushBlock.AGE, 1))
+                        .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(ComfortBerryBushBlock.AGE, 1)),
+                LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
+                        .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(ComfortBerryBushBlock.AGE, 2))
         );
+        var preHarvestCondition = LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
+                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(ComfortBerryBushBlock.AGE, 3));
         var matureCondition = LootItemBlockStatePropertyCondition.hasBlockStateProperties(block)
                 .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(ComfortBerryBushBlock.AGE, ComfortBerryBushBlock.MAX_AGE));
 
-        // 若木を壊しても必ず実が戻るようにし、幸運は成熟時だけ効くよう分離する。
+        // stage3 は見た目上の収穫直前段階だが未成熟扱いを維持し、破壊時だけ 2 個固定にする。
         return applyExplosionDecay(block, LootTable.lootTable()
                 .withPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1.0f))
                         .when(immatureCondition)
                         .add(LootItem.lootTableItem(ItemRegistry.COMFORT_BERRIES.get())))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0f))
+                        .when(preHarvestCondition)
+                        .add(LootItem.lootTableItem(ItemRegistry.COMFORT_BERRIES.get())
+                                .apply(SetItemCountFunction.setCount(ConstantValue.exactly(2.0f)))))
                 .withPool(LootPool.lootPool()
                         .setRolls(ConstantValue.exactly(1.0f))
                         .when(matureCondition)
