@@ -235,7 +235,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         return ownerProfile != null
                 && !source.isEmpty()
                 && source.getCount() == session.spellSource().getCount()
-                && ItemStack.isSameItemSameTags(source, session.spellSource());
+                && ItemStack.isSameItemSameComponents(source, session.spellSource());
     }
 
     private static void finishContinuousCast(

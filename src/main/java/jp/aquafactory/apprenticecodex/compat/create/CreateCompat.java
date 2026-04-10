@@ -1,9 +1,9 @@
 package jp.aquafactory.apprenticecodex.compat.create;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 public final class CreateCompat {
     public static final String MOD_ID = "create";

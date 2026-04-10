@@ -6,10 +6,10 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEn
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.MenuProvider;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellDispenserInteractionBehaviour extends MovingInteractionBehaviour {
@@ -23,7 +23,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
             return true;
         }
 
-        var serverPlayer = (net.minecraft.server.level.ServerPlayer) player;
+        var serverPlayer = (ServerPlayer) player;
         var contraption = contraptionEntity.getContraption();
         var mountedInventory = contraption.getStorage().getAllItemStorages().get(localPos);
         var blockInfo = contraption.getBlocks().get(localPos);
@@ -32,7 +32,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
         }
 
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(blockInfo.nbt());
-        NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
+        serverPlayer.openMenu(new MenuProvider() {
             @Override
             public @NotNull Component getDisplayName() {
                 return Component.translatable("container.apprenticecodex.spell_dispenser");
