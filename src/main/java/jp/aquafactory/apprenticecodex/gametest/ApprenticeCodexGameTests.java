@@ -999,9 +999,10 @@ public final class ApprenticeCodexGameTests {
     public static void spellDispenserCastHelperSupportsSpectralHammer(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var castPos = new BlockPos(0, 1, 0);
-            var targetPos = new BlockPos(0, 1, 3);
-            helper.setBlock(targetPos, Blocks.STONE);
+            var relativeCastPos = new BlockPos(0, 1, 0);
+            var relativeTargetPos = new BlockPos(0, 1, 3);
+            var castPos = helper.absolutePos(relativeCastPos);
+            helper.setBlock(relativeTargetPos, Blocks.STONE);
 
             var castResult = SpellDispenserCastHelper.tryCast(
                     (ServerLevel) level,
