@@ -5,11 +5,11 @@
     "A": {
       "item": "irons_spellbooks:arcane_ingot"
     },
+    "B": {
+      "item": "irons_spellbooks:lightning_bottle"
+    },
     "C": {
       "item": "minecraft:copper_ingot"
-    },
-    "G": {
-      "item": "minecraft:glass"
     },
     "L": {
       "item": "minecraft:leather"
@@ -19,14 +19,21 @@
     }
   },
   "pattern": [
-    " AG",
+    " AB",
     "LWC",
     "C  "
   ],
   "result": {
     "components": {
       "irons_spellbooks:spell_container": {
-        "data": [],
+        "data": [
+          {
+            "id": "irons_spellbooks:ball_lightning",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
         "maxSpells": 1,
         "mustEquip": false,
         "spellWheel": false

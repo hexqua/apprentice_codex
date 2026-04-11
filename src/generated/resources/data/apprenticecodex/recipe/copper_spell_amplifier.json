@@ -22,7 +22,7 @@
       "irons_spellbooks:spell_container": {
         "data": [
           {
-            "id": "irons_spellbooks:ball_lightning",
+            "id": "apprenticecodex:shock",
             "index": 0,
             "level": 1,
             "locked": true

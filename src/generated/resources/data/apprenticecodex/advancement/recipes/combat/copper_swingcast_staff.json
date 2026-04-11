@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_arcane_ingot": {
+    "has_lightning_bottle": {
       "conditions": {
         "items": [
           {
-            "items": "irons_spellbooks:arcane_ingot"
+            "items": "irons_spellbooks:lightning_bottle"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_arcane_ingot"
+      "has_lightning_bottle"
     ]
   ],
   "rewards": {

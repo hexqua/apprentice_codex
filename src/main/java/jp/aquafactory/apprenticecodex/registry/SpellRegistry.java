@@ -37,12 +37,13 @@ import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeacon;
+import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
+import jp.aquafactory.apprenticecodex.spell.shock.Shock;
+import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHole;
-import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
-import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
@@ -119,6 +120,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BREACHING_ENEMY = reg("breaching_enemy", BreachingEnemy::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BULLET_STREAM = reg("bullet_stream", BulletStream::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FLY_SWATTER = reg("fly_swatter", FlySwatter::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> SHOCK = reg("shock", Shock::new);
 
     // 自然.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);
