@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:lightning_bottle"
-            ]
+            "items": "irons_spellbooks:lightning_bottle"
           }
         ]
       },
@@ -22,8 +20,8 @@
   },
   "requirements": [
     [
-      "has_lightning_bottle",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_lightning_bottle"
     ]
   ],
   "rewards": {

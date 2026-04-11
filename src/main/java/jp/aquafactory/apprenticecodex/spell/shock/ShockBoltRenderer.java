@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -233,12 +234,12 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
 
     private static void addVertex(Matrix4f poseMatrix, Matrix3f normalMatrix, VertexConsumer consumer, Vec3 position,
                                   float u, float v, float red, float green, float blue, float alpha, Vec3 normal) {
-        consumer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(red, green, blue, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, (float) normal.x, (float) normal.y, (float) normal.z)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(new Vector3f((float) normal.x, (float) normal.y, (float) normal.z));
+        consumer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(red, green, blue, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 }

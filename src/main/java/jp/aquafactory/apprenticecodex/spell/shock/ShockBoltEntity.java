@@ -35,13 +35,13 @@ public class ShockBoltEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(END_X, 0.0f);
-        entityData.define(END_Y, 0.0f);
-        entityData.define(END_Z, 0.0f);
-        entityData.define(LIFE_TICKS, 6);
-        entityData.define(PATH_SEED, 0);
-        entityData.define(HAS_IMPACT, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(END_X, 0.0f);
+        builder.define(END_Y, 0.0f);
+        builder.define(END_Z, 0.0f);
+        builder.define(LIFE_TICKS, 6);
+        builder.define(PATH_SEED, 0);
+        builder.define(HAS_IMPACT, false);
     }
 
     @Override
