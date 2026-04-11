@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem {
     private static final String MAIN_CONTROLLER = "main";
@@ -47,6 +48,33 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     private final String itemKey;
     private final ResourceLocation textureLocation;
     private final SwingcastStaffTier tier;
+
+    protected AbstractSwingcastStaffItem(
+            String itemKey,
+            SwingcastStaffTier tier,
+            Supplier<? extends AbstractSpell> configuredSpell,
+            int configuredSpellLevel
+    ) {
+        super(
+                new Item.Properties().stacksTo(1).rarity(tier.rarity()),
+                configuredSpell,
+                configuredSpellLevel,
+                tier.enchantmentValue(),
+                itemKey,
+                tier.attackDamageModifier(),
+                tier.attackSpeedModifier(),
+                tier.handBonuses().stream()
+                        .map(AbstractSwingcastStaffItem::toAttributeBonus)
+                        .toList()
+        );
+        this.textureLocation = ResourceLocation.fromNamespaceAndPath(
+                ApprenticeCodex.MODID,
+                "textures/geo/" + itemKey + ".png"
+        );
+        this.itemKey = itemKey;
+        this.tier = tier;
+        GeoItem.registerSyncedAnimatable(this);
+    }
 
     protected AbstractSwingcastStaffItem(String itemKey, SwingcastStaffTier tier) {
         super(
