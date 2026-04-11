@@ -1,15 +1,15 @@
 package jp.aquafactory.apprenticecodex.config.block;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class SpellDispenserServerConfig {
-    private final ForgeConfigSpec.BooleanValue relaxedSpellFilter;
+    private final ModConfigSpec.BooleanValue relaxedSpellFilter;
 
-    private SpellDispenserServerConfig(ForgeConfigSpec.BooleanValue relaxedSpellFilter) {
+    private SpellDispenserServerConfig(ModConfigSpec.BooleanValue relaxedSpellFilter) {
         this.relaxedSpellFilter = relaxedSpellFilter;
     }
 
-    public static SpellDispenserServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static SpellDispenserServerConfig define(ModConfigSpec.Builder builder) {
         builder.comment("true にすると Spell Dispenser の spell profile / denylist を無視し、基本条件だけで検証できるようにする")
                 .push("SpellDispenser");
 

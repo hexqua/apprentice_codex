@@ -18,7 +18,6 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEn
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
@@ -532,7 +531,7 @@ public final class ApprenticeCodexGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsSpellWithoutProfile(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get());
 
             var validation = SpellDispenserSpellValidator.validate(scrollStack);
             helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a spell without a profile");
@@ -830,7 +829,7 @@ public final class ApprenticeCodexGameTests {
             original.setOwnerProfile(ownerProfile);
 
             var restored = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
-            restored.load(original.getUpdateTag());
+            restored.loadWithComponents(original.getUpdateTag(helper.getLevel().registryAccess()), helper.getLevel().registryAccess());
 
             helper.assertTrue(restored.hasOwnerProfile(), "Spell Dispenser owner profile was not restored from NBT");
             helper.assertTrue(restored.getOwnerProfile() != null && ownerProfile.getId().equals(restored.getOwnerProfile().getId()),

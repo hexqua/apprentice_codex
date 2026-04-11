@@ -64,7 +64,7 @@ public final class BlockEntityRegistry {
             "atelier_station", AtelierStationBlockEntity::new, BlockRegistry.ATELIER_STATION
     );
 
-    public static final RegistryObject<BlockEntityType<SpellDispenserBlockEntity>> SPELL_DISPENSER = reg(
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SpellDispenserBlockEntity>> SPELL_DISPENSER = reg(
             "spell_dispenser", SpellDispenserBlockEntity::new, BlockRegistry.SPELL_DISPENSER
     );
 

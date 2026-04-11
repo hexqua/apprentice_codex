@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
+import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -23,23 +23,28 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
 public final class SpellDispenser extends BaseEntityBlock {
+    public static final MapCodec<SpellDispenser> CODEC = simpleCodec(SpellDispenser::new);
     public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING = DispenserBlock.FACING;
     public static final net.minecraft.world.level.block.state.properties.BooleanProperty TRIGGERED = BlockStateProperties.TRIGGERED;
 
-    public SpellDispenser() {
-        super(Properties.copy(Blocks.DISPENSER));
+    public SpellDispenser(Properties properties) {
+        super(properties);
         registerDefaultState(stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(TRIGGERED, false));
+    }
+
+    public SpellDispenser() {
+        this(BlockBehaviour.Properties.ofFullCopy(Blocks.DISPENSER));
     }
 
     @Override
@@ -102,15 +107,15 @@ public final class SpellDispenser extends BaseEntityBlock {
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                          @NotNull Player player, @NotNull InteractionHand hand, @NotNull net.minecraft.world.phys.BlockHitResult hitResult) {
+    protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
+                                                        @NotNull Player player, @NotNull net.minecraft.world.phys.BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
 
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser && player instanceof ServerPlayer serverPlayer) {
-            NetworkHooks.openScreen(serverPlayer, spellDispenser, pos);
+            serverPlayer.openMenu(spellDispenser, buffer -> buffer.writeBlockPos(pos));
             return InteractionResult.CONSUME;
         }
 
@@ -160,5 +165,10 @@ public final class SpellDispenser extends BaseEntityBlock {
 
     public Direction getFacing(BlockState state) {
         return state.getValue(FACING);
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 }

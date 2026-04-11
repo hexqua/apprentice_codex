@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -16,12 +17,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class SpellDispenserBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity implements MenuProvider {
+public final class SpellDispenserBlockEntity extends BlockEntity implements MenuProvider {
     private static final String INVENTORY_TAG = "Inventory";
     private static final String OWNER_UUID_TAG = "OwnerUuid";
     private static final String OWNER_NAME_TAG = "OwnerName";
@@ -182,7 +184,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         var source = getSpellSource();
         if (source.isEmpty()
                 || source.getCount() != activeContinuousCast.spellSource().getCount()
-                || !ItemStack.isSameItemSameTags(source, activeContinuousCast.spellSource())) {
+                || !ItemStack.isSameItemSameComponents(source, activeContinuousCast.spellSource())) {
             stopContinuousCast(true);
             return;
         }
@@ -226,9 +228,9 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         var tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 
@@ -244,9 +246,9 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put(INVENTORY_TAG, inventory.serializeNBT());
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
         if (ownerProfile != null && ownerProfile.getId() != null && ownerProfile.getName() != null && !ownerProfile.getName().isBlank()) {
             tag.putUUID(OWNER_UUID_TAG, ownerProfile.getId());
             tag.putString(OWNER_NAME_TAG, ownerProfile.getName());
@@ -254,9 +256,9 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
-        inventory.deserializeNBT(tag.getCompound(INVENTORY_TAG));
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG));
         if (tag.hasUUID(OWNER_UUID_TAG) && tag.contains(OWNER_NAME_TAG, net.minecraft.nbt.Tag.TAG_STRING)) {
             ownerProfile = normalizeOwnerProfile(new GameProfile(tag.getUUID(OWNER_UUID_TAG), tag.getString(OWNER_NAME_TAG)));
         } else {
