@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEn
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
@@ -136,6 +137,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -1687,6 +1689,52 @@ public final class ApprenticeCodexGameTests {
             NeoForge.EVENT_BUS.post(withCirclet);
             helper.assertTrue(withCirclet.getDroppedExperience() == 21,
                     "Enchanted Circlet Wisdom should match armor rate (+5% at level 1) but got " + withCirclet.getDroppedExperience());
+
+            var roundedUp = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0)), player, 1);
+            NeoForge.EVENT_BUS.post(roundedUp);
+            helper.assertTrue(roundedUp.getDroppedExperience() == 2,
+                    "Wisdom should round enemy experience up from 1 to 2 at +5% but got " + roundedUp.getDroppedExperience());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void wisdomAppliesToBlockBreakExperienceAndRoundsUp(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var state = Blocks.DIAMOND_ORE.defaultBlockState();
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+
+            var baselinePlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_baseline_test"));
+            var baselineExperience = new BlockEvent.BreakEvent(level, new BlockPos(0, 2, 0), state, baselinePlayer);
+            baselineExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(baselineExperience);
+            helper.assertTrue(baselineExperience.getExpToDrop() == 3,
+                    "Block experience should stay unchanged without Wisdom but got " + baselineExperience.getExpToDrop());
+
+            var curioPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_curio_test"));
+            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            circletStack.enchant(enchantmentLookup.getOrThrow(Enchantments.WISDOM), 1);
+
+            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(curioPlayer)
+                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for block wisdom test"));
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
+
+            var roundedCurioExperience = new BlockEvent.BreakEvent(level, new BlockPos(1, 2, 0), state, curioPlayer);
+            roundedCurioExperience.setExpToDrop(1);
+            WisdomExperienceDropEvent.onBlockBreak(roundedCurioExperience);
+            helper.assertTrue(roundedCurioExperience.getExpToDrop() == 2,
+                    "Curio Wisdom should round block experience up from 1 to 2 at +5% but got " + roundedCurioExperience.getExpToDrop());
+
+            var heldPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_held_test"));
+            var spellGunStack = new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get());
+            spellGunStack.enchant(enchantmentLookup.getOrThrow(Enchantments.WISDOM), 1);
+            heldPlayer.setItemInHand(InteractionHand.MAIN_HAND, spellGunStack);
+
+            var heldExperience = new BlockEvent.BreakEvent(level, new BlockPos(2, 2, 0), state, heldPlayer);
+            heldExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(heldExperience);
+            helper.assertTrue(heldExperience.getExpToDrop() == 4,
+                    "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getExpToDrop());
         });
     }
 
@@ -2133,6 +2181,8 @@ public final class ApprenticeCodexGameTests {
             );
         });
     }
+
+    @GameTest(template = TEMPLATE)
     public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
