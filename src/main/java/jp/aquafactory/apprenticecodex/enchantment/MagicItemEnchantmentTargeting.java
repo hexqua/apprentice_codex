@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.enchantment;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import net.minecraft.world.item.Item;
@@ -18,7 +19,7 @@ final class MagicItemEnchantmentTargeting {
     }
 
     static boolean isSupportedOffhandMagicItem(Item item) {
-        return item instanceof AbstractOffhandMagicItem;
+        return item instanceof AbstractOffhandMagicItem || item instanceof OffhandMagicCompatibleItem;
     }
 
     static boolean isSupportedSpellGunItem(Item item) {
@@ -48,7 +49,8 @@ final class MagicItemEnchantmentTargeting {
         return item instanceof AbstractSpellGunItem
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof EnchantressRobeItem
-                || item instanceof StealthRuneArmorItem;
+                || item instanceof StealthRuneArmorItem
+                || item instanceof OffhandMagicCompatibleItem;
     }
 
     static boolean isSupportedHeldWisdomMagicItem(Item item) {

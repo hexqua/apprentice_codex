@@ -268,6 +268,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("crafted_absorption_amplify_amulet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.getId()))
                 .save(saver, advancementId("craft_absorption_amplify_amulet"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.ASHEN_CIRCLET.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_ashen_circlet.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_ashen_circlet.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_ashen_circlet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ASHEN_CIRCLET.getId()))
+                .save(saver, advancementId("craft_ashen_circlet"), existingFileHelper);
+
         var ironGun = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.IRON_SPELLCASTER_GUN.get(),

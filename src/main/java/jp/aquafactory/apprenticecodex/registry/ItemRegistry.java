@@ -5,6 +5,8 @@ import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
+import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
@@ -159,6 +161,10 @@ public final class ItemRegistry {
             ITEMS.register("spellcaster_ammo_pouch", SpellcasterAmmoPouch::new);
     public static final RegistryObject<Item> ABSORPTION_AMPLIFY_AMULET =
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
+    public static final RegistryObject<Item> ASHEN_CIRCLET =
+            ITEMS.register("ashen_circlet", AshenCirclet::new);
+    public static final RegistryObject<Item> ENCHANTED_CIRCLET =
+            ITEMS.register("enchanted_circlet", EnchantedCirclet::new);
     public static final RegistryObject<Item> ENDER_GRIMOIRE =
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final RegistryObject<Item> EXPLORERS_CODEX =

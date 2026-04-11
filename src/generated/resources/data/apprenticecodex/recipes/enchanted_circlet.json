@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_cluster"
+    },
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "T": {
+      "item": "irons_spellbooks:tarnished_helmet"
+    }
+  },
+  "pattern": [
+    " A ",
+    "ITI",
+    " M "
+  ],
+  "result": {
+    "item": "apprenticecodex:enchanted_circlet"
+  },
+  "show_notification": true
+}

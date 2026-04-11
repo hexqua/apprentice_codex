@@ -37,6 +37,8 @@
   "item.apprenticecodex.protection_spell_supporter": "保護術式補助具",
   "item.apprenticecodex.absorption_amplify_amulet": "衝撃吸収増強のネックレス",
   "item.apprenticecodex.spellcaster_ammo_pouch": "詠唱者の弾薬ポーチ",
+  "item.apprenticecodex.ashen_circlet": "灰のサークレット",
+  "item.apprenticecodex.enchanted_circlet": "呪紋のサークレット",
   "item.apprenticecodex.ender_grimoire": "エンダーグリモア",
   "item.apprenticecodex.explorers_codex": "探索者の写本",
   "item.apprenticecodex.spellstained_runic_tablet": "魔術染めのルーンタブレット",
@@ -565,6 +567,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.title": "司祭も魔女も皆大好き",
   "advancements.apprenticecodex.apprentice_codex.craft_spellcasters_flask.description": "魔術詠唱者のフラスコを作る",
   "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.title": "アイアンのアトリエ",
-  "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description": "アトリエステーションを作る"
+  "advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description": "アトリエステーションを作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_ashen_circlet.title": "王となれ",
+  "advancements.apprenticecodex.apprentice_codex.craft_ashen_circlet.description": "灰のサークレットを作る",
 
 }
