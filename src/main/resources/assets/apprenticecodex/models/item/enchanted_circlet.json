@@ -1,0 +1,57 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "base": {
+    "parent": "apprenticecodex:item/enchanted_circlet_3d"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/enchanted_circlet"
+      }
+    },
+    "ground": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/enchanted_circlet"
+      }
+    },
+    "fixed": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/enchanted_circlet"
+      }
+    },
+    "head": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/enchanted_circlet"
+      }
+    },
+    "firstperson_lefthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/enchanted_circlet"
+      }
+    },
+    "firstperson_righthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/enchanted_circlet"
+      }
+    },
+    "thirdperson_lefthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/enchanted_circlet"
+      }
+    },
+    "thirdperson_righthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/enchanted_circlet"
+      }
+    }
+  }
+}

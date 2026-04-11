@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "apprenticecodex:enchanted_circlet"
+  },
+  "results": [
+    {
+      "count": 1,
+      "id": "irons_spellbooks:mithril_scrap"
+    }
+  ]
+}

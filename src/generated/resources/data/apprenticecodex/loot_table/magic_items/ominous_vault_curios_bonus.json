@@ -13,6 +13,10 @@
         {
           "type": "minecraft:item",
           "name": "apprenticecodex:protection_spell_supporter"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:enchanted_circlet"
         }
       ],
       "rolls": 1.0

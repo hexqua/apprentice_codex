@@ -15,6 +15,8 @@ import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
+import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
@@ -171,6 +173,10 @@ public final class ItemRegistry {
             ITEMS.register("spellcaster_ammo_pouch", SpellcasterAmmoPouch::new);
     public static final DeferredHolder<Item, Item> ABSORPTION_AMPLIFY_AMULET =
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
+    public static final DeferredHolder<Item, Item> ASHEN_CIRCLET =
+            ITEMS.register("ashen_circlet", AshenCirclet::new);
+    public static final DeferredHolder<Item, Item> ENCHANTED_CIRCLET =
+            ITEMS.register("enchanted_circlet", EnchantedCirclet::new);
     public static final DeferredHolder<Item, Item> ENDER_GRIMOIRE =
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final DeferredHolder<Item, Item> EXPLORERS_CODEX =

@@ -20,7 +20,8 @@ public final class CurioLootDataGenerator implements DataProvider {
     private static final List<ResourceLocation> APPRENTICE_BASIC_CURIO_ITEM_IDS = List.of(
             ItemRegistry.SCARLET_THIRST.getId(),
             ItemRegistry.CRAFTSMANS_DELIGHT.getId(),
-            ItemRegistry.PROTECTION_SPELL_SUPPORTER.getId()
+            ItemRegistry.PROTECTION_SPELL_SUPPORTER.getId(),
+            ItemRegistry.ENCHANTED_CIRCLET.getId()
     );
 
     private static final ResourceLocation BASIC_CURIOS_BONUS =

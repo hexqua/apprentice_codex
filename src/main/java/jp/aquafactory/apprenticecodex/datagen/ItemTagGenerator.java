@@ -30,6 +30,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
+    private static final TagKey<Item> CURIOS_HEAD = createTag("curios", "head");
     private static final TagKey<Item> CURIOS_NECKLACE = createTag("curios", "necklace");
     private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
     private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = createTag("create", "contraption_controlled");
@@ -236,7 +237,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get(),
-                ItemRegistry.EXPLORERS_CANE.get()
+                ItemRegistry.EXPLORERS_CANE.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get()
         );
         // spell gun 専用 enchant は offhand 補助具を巻き込まないように個別タグで分離する.
         tag(SPELL_GUN_ENCHANTABLE).add(
@@ -249,6 +251,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
         wisdomEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
@@ -266,7 +269,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get(),
-                ItemRegistry.EXPLORERS_CANE.get()
+                ItemRegistry.EXPLORERS_CANE.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get()
         );
         // 付呪魔女防具は 1.20.1 と同様に叡智のみを許可し、専用エンチャ系タグから外す.
         tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE)
@@ -288,6 +292,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get()
         );
         tag(CURIOS_NECKLACE).add(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
+        tag(CURIOS_HEAD).add(
+                ItemRegistry.ASHEN_CIRCLET.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get()
+        );
         tag(CREATE_CONTRAPTION_CONTROLLED).add(ItemRegistry.SPELL_DISPENSER.get());
         tag(TagRegistry.Items.SPELLCASTER_AMMO_POUCH_STORABLE).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
@@ -308,7 +316,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get()
         );
-        tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE);
+        tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
+                ItemRegistry.ENCHANTED_CIRCLET.get()
+        );
 
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
