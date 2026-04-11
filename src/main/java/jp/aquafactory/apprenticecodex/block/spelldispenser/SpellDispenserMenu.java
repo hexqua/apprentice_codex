@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -43,7 +43,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         this(containerId, playerInventory, MenuContext.forBlockEntity(blockEntity));
     }
 
-    public SpellDispenserMenu(int containerId, Inventory playerInventory, FriendlyByteBuf data) {
+    public SpellDispenserMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf data) {
         this(containerId, playerInventory, MenuContext.fromNetwork(playerInventory, data));
     }
 
@@ -199,7 +199,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             return new MenuContext(localPos, null, inventory, true, hasOwnerProfile);
         }
 
-        private static MenuContext fromNetwork(Inventory playerInventory, FriendlyByteBuf data) {
+        private static MenuContext fromNetwork(Inventory playerInventory, RegistryFriendlyByteBuf data) {
             var mounted = data.readBoolean();
             var blockPos = data.readBlockPos();
             if (!mounted) {
@@ -215,7 +215,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
             var hasOwnerProfile = data.readBoolean();
             var inventory = new ItemStackHandler(1);
-            inventory.setStackInSlot(0, data.readItem());
+            inventory.setStackInSlot(0, ItemStack.OPTIONAL_STREAM_CODEC.decode(data));
             return new MenuContext(blockPos, null, inventory, true, hasOwnerProfile);
         }
     }

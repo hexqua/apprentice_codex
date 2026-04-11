@@ -129,9 +129,9 @@ dependencies {
     // Create.
     // Create 連携のコンパイル用.
     // ランタイム検証時のみ必要に応じてON.
-    compileOnly fg.deobf("curse.maven:create-328085:7178775")
-    compileOnly fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}")
-    // runtimeOnly fg.deobf("curse.maven:create-328085:7178775")
+    compileOnly "curse.maven:create-328085:7178775"
+    compileOnly "com.tterrag.registrate:Registrate:${registrate_version}"
+    // runtimeOnly "curse.maven:create-328085:7178775"
 
     // EasyMagic.
     // 必要に応じてON、デフォルトは入れない(前提にはしないため)

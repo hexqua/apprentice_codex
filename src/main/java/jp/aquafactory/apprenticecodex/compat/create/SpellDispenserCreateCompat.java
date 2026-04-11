@@ -13,7 +13,10 @@ public final class SpellDispenserCreateCompat {
     public static void register() {
         // Create 未導入時は bridge から反射呼び出しされないため、ここでは Create API を素直に使う.
         // 1.21.1 では mounted storage / movement API が変わる可能性が高いため、接着コードは compat/create に隔離する.
-        MountedItemStorageType.REGISTRY.register(BlockRegistry.SPELL_DISPENSER.get(), AllMountedStorageTypes.SIMPLE.get());
+        MountedItemStorageType.REGISTRY.register(
+                BlockRegistry.SPELL_DISPENSER.get(),
+                (MountedItemStorageType<?>) AllMountedStorageTypes.SIMPLE.get()
+        );
         MovementBehaviour.REGISTRY.register(BlockRegistry.SPELL_DISPENSER.get(), new SpellDispenserMovementBehaviour());
         MovingInteractionBehaviour.REGISTRY.register(BlockRegistry.SPELL_DISPENSER.get(), new SpellDispenserInteractionBehaviour());
     }

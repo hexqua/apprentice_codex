@@ -46,7 +46,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
             buffer.writeBoolean(true);
             buffer.writeBlockPos(localPos);
             buffer.writeBoolean(ownerProfile != null);
-            buffer.writeItem(mountedInventory.getStackInSlot(0).copy());
+            net.minecraft.world.item.ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, mountedInventory.getStackInSlot(0).copy());
         });
         return true;
     }

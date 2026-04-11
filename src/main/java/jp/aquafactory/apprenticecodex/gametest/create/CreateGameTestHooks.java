@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.authlib.GameProfile;
 import com.simibubi.create.AllMountedStorageTypes;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
+import com.simibubi.create.api.contraption.storage.item.MountedItemStorageType;
 import com.simibubi.create.api.contraption.storage.item.WrapperMountedItemStorage;
 import com.simibubi.create.content.contraptions.Contraption;
 import com.simibubi.create.content.contraptions.MountedStorageManager;
@@ -137,7 +138,7 @@ public final class CreateGameTestHooks {
 
     private static final class TestMountedItemStorage extends WrapperMountedItemStorage<ItemStackHandler> {
         private TestMountedItemStorage(ItemStackHandler wrapped) {
-            super(AllMountedStorageTypes.SIMPLE.get(), wrapped);
+            super((MountedItemStorageType<?>) AllMountedStorageTypes.SIMPLE.get(), wrapped);
         }
 
         @Override
