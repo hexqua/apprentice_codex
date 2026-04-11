@@ -122,6 +122,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
@@ -137,7 +138,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -1705,11 +1706,10 @@ public final class ApprenticeCodexGameTests {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
 
             var baselinePlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_baseline_test"));
-            var baselineExperience = new BlockEvent.BreakEvent(level, new BlockPos(0, 2, 0), state, baselinePlayer);
-            baselineExperience.setExpToDrop(3);
-            WisdomExperienceDropEvent.onBlockBreak(baselineExperience);
-            helper.assertTrue(baselineExperience.getExpToDrop() == 3,
-                    "Block experience should stay unchanged without Wisdom but got " + baselineExperience.getExpToDrop());
+            var baselineExperience = createBlockDropsExperienceEvent(level, new BlockPos(0, 2, 0), state, baselinePlayer, ItemStack.EMPTY, 3);
+            WisdomExperienceDropEvent.onBlockDrops(baselineExperience);
+            helper.assertTrue(baselineExperience.getDroppedExperience() == 3,
+                    "Block experience should stay unchanged without Wisdom but got " + baselineExperience.getDroppedExperience());
 
             var curioPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_curio_test"));
             var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
@@ -1719,23 +1719,27 @@ public final class ApprenticeCodexGameTests {
                     .orElseThrow(() -> new IllegalStateException("Missing curios inventory for block wisdom test"));
             curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
 
-            var roundedCurioExperience = new BlockEvent.BreakEvent(level, new BlockPos(1, 2, 0), state, curioPlayer);
-            roundedCurioExperience.setExpToDrop(1);
-            WisdomExperienceDropEvent.onBlockBreak(roundedCurioExperience);
-            helper.assertTrue(roundedCurioExperience.getExpToDrop() == 2,
-                    "Curio Wisdom should round block experience up from 1 to 2 at +5% but got " + roundedCurioExperience.getExpToDrop());
+            var roundedCurioExperience = createBlockDropsExperienceEvent(level, new BlockPos(1, 2, 0), state, curioPlayer, ItemStack.EMPTY, 1);
+            WisdomExperienceDropEvent.onBlockDrops(roundedCurioExperience);
+            helper.assertTrue(roundedCurioExperience.getDroppedExperience() == 2,
+                    "Curio Wisdom should round block experience up from 1 to 2 at +5% but got " + roundedCurioExperience.getDroppedExperience());
 
             var heldPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_held_test"));
             var spellGunStack = new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get());
             spellGunStack.enchant(enchantmentLookup.getOrThrow(Enchantments.WISDOM), 1);
             heldPlayer.setItemInHand(InteractionHand.MAIN_HAND, spellGunStack);
 
-            var heldExperience = new BlockEvent.BreakEvent(level, new BlockPos(2, 2, 0), state, heldPlayer);
-            heldExperience.setExpToDrop(3);
-            WisdomExperienceDropEvent.onBlockBreak(heldExperience);
-            helper.assertTrue(heldExperience.getExpToDrop() == 4,
-                    "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getExpToDrop());
+            var heldExperience = createBlockDropsExperienceEvent(level, new BlockPos(2, 2, 0), state, heldPlayer, spellGunStack, 3);
+            WisdomExperienceDropEvent.onBlockDrops(heldExperience);
+            helper.assertTrue(heldExperience.getDroppedExperience() == 4,
+                    "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getDroppedExperience());
         });
+    }
+
+    private static BlockDropsEvent createBlockDropsExperienceEvent(ServerLevel level, BlockPos pos, BlockState state, Player breaker, ItemStack tool, int droppedExperience) {
+        var event = new BlockDropsEvent(level, pos, state, null, new ArrayList<>(), breaker, tool);
+        event.setDroppedExperience(droppedExperience);
+        return event;
     }
 
     @GameTest(template = TEMPLATE)

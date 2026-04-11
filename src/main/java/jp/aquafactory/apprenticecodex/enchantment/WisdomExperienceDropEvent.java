@@ -9,7 +9,7 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
@@ -45,19 +45,18 @@ public final class WisdomExperienceDropEvent {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onBlockBreak(BlockEvent.BreakEvent event) {
-        var player = event.getPlayer();
-        if (player == null) {
+    public static void onBlockDrops(BlockDropsEvent event) {
+        if (!(event.getBreaker() instanceof Player player)) {
             return;
         }
 
-        var droppedExperience = event.getExpToDrop();
+        var droppedExperience = event.getDroppedExperience();
         if (droppedExperience <= 0) {
             return;
         }
 
-        // 1.20.1 Forge では通常採掘 XP の補正口が BreakEvent なので、ブロック破壊分はここでまとめて補正する。
-        event.setExpToDrop(applyWisdomBonus(droppedExperience, getApplicableWisdomBonusUnits(player)));
+        // 1.21.1 NeoForge では採掘 XP の最終補正口が BlockDropsEvent なので、ここで丸め込みまで含めて調整する。
+        event.setDroppedExperience(applyWisdomBonus(droppedExperience, getApplicableWisdomBonusUnits(player)));
     }
 
     private static int getApplicableHeldWisdomLevel(Player player) {
