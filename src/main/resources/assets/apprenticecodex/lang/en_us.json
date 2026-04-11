@@ -308,7 +308,7 @@
   "enchantment.apprenticecodex.surge.desc": "Increases spell power for all elements.",
   "enchantment.apprenticecodex.attunement.desc": "Increases spell power for the imbued element.",
   "enchantment.apprenticecodex.transcendence.desc": "Only while held, increases the level of the imbued spell.",
-  "enchantment.apprenticecodex.wisdom.desc": "Mobs will drop more experience when killed.",
+  "enchantment.apprenticecodex.wisdom.desc": "Mobs and minerals will drop more experience when killed or mined.",
   "enchantment.apprenticecodex.plunder.desc": "Mobs will drop more drop when killed with magic weapons.",
   "enchantment.apprenticecodex.guzzle.desc": "Increases drink flask speed.",
   "enchantment.apprenticecodex.large_mug.desc": "Increases capacity of flask.",
