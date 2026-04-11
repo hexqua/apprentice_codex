@@ -1,0 +1,33 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_ashen_circlet": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:ashen_circlet"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_ashen_circlet.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:ashen_circlet",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:1b,spellWheel:1b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_ashen_circlet.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_ashen_circlet"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

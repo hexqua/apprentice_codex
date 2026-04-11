@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "T": {
+      "item": "irons_spellbooks:tarnished_helmet"
+    }
+  },
+  "pattern": [
+    " D ",
+    "ATA"
+  ],
+  "result": {
+    "item": "apprenticecodex:ashen_circlet"
+  },
+  "show_notification": true
+}
