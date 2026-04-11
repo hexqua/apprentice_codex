@@ -17,7 +17,15 @@
     "ATA"
   ],
   "result": {
-    "item": "apprenticecodex:ashen_circlet"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": true,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:ashen_circlet"
+  }
 }

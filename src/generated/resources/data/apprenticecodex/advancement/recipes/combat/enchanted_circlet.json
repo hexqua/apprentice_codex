@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:tarnished_helmet"
-            ]
+            "items": "irons_spellbooks:tarnished_helmet"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_tarnished_helmet",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_tarnished_helmet"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:enchanted_circlet"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

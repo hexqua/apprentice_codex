@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicModifierHelper;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -18,7 +19,7 @@ public class EnchantedCirclet extends AbstractCircletItem
     private static final String ITEM_KEY = "enchanted_circlet";
     private static final AttributeContainer[] CIRCLET_ATTRIBUTES = {
             new AttributeContainer(
-                    () -> Attributes.ATTACK_DAMAGE,
+                    Attributes.ATTACK_DAMAGE,
                     -0.10D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             )
@@ -40,7 +41,7 @@ public class EnchantedCirclet extends AbstractCircletItem
 
     @Override
     protected void addAdditionalHeadModifiers(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
             SlotContext slotContext,
             ItemStack stack,
             String modifierSlotName

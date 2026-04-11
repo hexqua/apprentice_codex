@@ -6,16 +6,18 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
@@ -54,25 +56,44 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
-        var baseModifiers = ICurioItem.super.getAttributeModifiers(slotContext, uuid, stack);
+    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
+            SlotContext slotContext,
+            ResourceLocation id,
+            ItemStack stack
+    ) {
+        var baseModifiers = ICurioItem.super.getAttributeModifiers(slotContext, id, stack);
         if (!CuriosSlotConstants.HEAD.equals(slotContext.identifier())) {
             return baseModifiers;
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         builder.putAll(baseModifiers);
 
         var modifierSlotName = String.format("%s_%s", CuriosSlotConstants.HEAD, slotContext.index());
         for (var attributeContainer : circletAttributes) {
-            builder.put(attributeContainer.attribute().get(), attributeContainer.createModifier(modifierSlotName));
+            builder.put(attributeContainer.attribute(), attributeContainer.createModifier(modifierSlotName));
         }
         addAdditionalHeadModifiers(builder, slotContext, stack, modifierSlotName);
         return builder.build();
     }
 
+    @Override
+    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
+            SlotContext slotContext,
+            UUID uuid,
+            ItemStack stack
+    ) {
+        // 1.21.1 Curios は UUID 経路で属性を引く呼び出しが残っているため、
+        // ResourceLocation 側の実装へ寄せて head 用補正が欠落しないようにする。
+        return getAttributeModifiers(
+                slotContext,
+                ResourceLocation.withDefaultNamespace(uuid.toString()),
+                stack
+        );
+    }
+
     protected void addAdditionalHeadModifiers(
-            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
             SlotContext slotContext,
             ItemStack stack,
             String modifierSlotName
@@ -85,9 +106,8 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
-                                net.minecraft.world.item.@NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         initializeSpellContainer(stack);
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
     }
 }

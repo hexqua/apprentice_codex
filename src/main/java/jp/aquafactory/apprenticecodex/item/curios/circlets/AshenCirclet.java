@@ -19,7 +19,7 @@ public class AshenCirclet extends AbstractCircletItem {
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ),
             new AttributeContainer(
-                    () -> Attributes.ATTACK_DAMAGE,
+                    Attributes.ATTACK_DAMAGE,
                     -0.20D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             )

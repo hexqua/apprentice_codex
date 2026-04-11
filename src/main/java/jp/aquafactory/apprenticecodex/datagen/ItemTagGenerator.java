@@ -237,7 +237,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get(),
-                ItemRegistry.EXPLORERS_CANE.get()
+                ItemRegistry.EXPLORERS_CANE.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get()
         );
         // spell gun 専用 enchant は offhand 補助具を巻き込まないように個別タグで分離する.
         tag(SPELL_GUN_ENCHANTABLE).add(
@@ -250,6 +251,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
         wisdomEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
@@ -267,7 +269,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
                 ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
                 ItemRegistry.PHOTON_SIPHON.get(),
-                ItemRegistry.EXPLORERS_CANE.get()
+                ItemRegistry.EXPLORERS_CANE.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get()
         );
         // 付呪魔女防具は 1.20.1 と同様に叡智のみを許可し、専用エンチャ系タグから外す.
         tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE)

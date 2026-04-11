@@ -67,6 +67,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentPredicate;
@@ -1594,7 +1595,7 @@ public final class ApprenticeCodexGameTests {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.value(),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION,
                     0.02D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Enchanted Circlet Alacrity regression"
@@ -1604,7 +1605,7 @@ public final class ApprenticeCodexGameTests {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.value(),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN,
                     0.05D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Enchanted Circlet Reflux regression"
@@ -1614,7 +1615,7 @@ public final class ApprenticeCodexGameTests {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.value(),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA,
                     20.0D,
                     AttributeModifier.Operation.ADD_VALUE,
                     "Enchanted Circlet Reservoir regression"
@@ -1624,7 +1625,7 @@ public final class ApprenticeCodexGameTests {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.value(),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER,
                     0.02D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Enchanted Circlet Surge regression"
@@ -1634,7 +1635,7 @@ public final class ApprenticeCodexGameTests {
                     item,
                     slotContext,
                     stack,
-                    resolvedSpellPower,
+                    BuiltInRegistries.ATTRIBUTE.wrapAsHolder(resolvedSpellPower),
                     0.04D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Enchanted Circlet Attunement regression"
@@ -1644,7 +1645,7 @@ public final class ApprenticeCodexGameTests {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.value(),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION,
                     0.05D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Enchanted Circlet Tense regression"
@@ -2905,7 +2906,7 @@ public final class ApprenticeCodexGameTests {
             top.theillusivec4.curios.api.type.capability.ICurioItem item,
             top.theillusivec4.curios.api.SlotContext slotContext,
             ItemStack stack,
-            Attribute attribute,
+            Holder<Attribute> attribute,
             double expectedAmount,
             AttributeModifier.Operation operation,
             String message
@@ -2922,15 +2923,15 @@ public final class ApprenticeCodexGameTests {
             AttributeModifier.Operation operation
     ) {
         return modifiers.stream()
-                .filter(modifier -> modifier.getOperation() == operation)
-                .mapToDouble(AttributeModifier::getAmount)
+                .filter(modifier -> modifier.operation() == operation)
+                .mapToDouble(AttributeModifier::amount)
                 .sum();
     }
 
-    private static String describeModifiers(com.google.common.collect.Multimap<Attribute, AttributeModifier> modifiers) {
+    private static String describeModifiers(com.google.common.collect.Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
         return modifiers.entries().stream()
-                .map(entry -> BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey()) + "="
-                        + entry.getValue().getAmount() + "@" + entry.getValue().getOperation())
+                .map(entry -> BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey().value()) + "="
+                        + entry.getValue().amount() + "@" + entry.getValue().operation())
                 .collect(Collectors.joining(", "));
     }
 
