@@ -1,11 +1,16 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import top.theillusivec4.curios.api.CuriosApi;
+
+import java.util.List;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class WisdomExperienceDropEvent {
@@ -24,7 +29,7 @@ public final class WisdomExperienceDropEvent {
         }
 
         var bonusUnits = getApplicableHeldWisdomLevel(attackingPlayer) * HELD_WISDOM_BONUS_UNITS_PER_LEVEL
-                + getApplicableArmorWisdomLevel(attackingPlayer) * ARMOR_WISDOM_BONUS_UNITS_PER_LEVEL;
+                + (getApplicableArmorWisdomLevel(attackingPlayer) + getApplicableCurioWisdomLevel(attackingPlayer)) * ARMOR_WISDOM_BONUS_UNITS_PER_LEVEL;
         if (bonusUnits <= 0) {
             return;
         }
@@ -54,6 +59,16 @@ public final class WisdomExperienceDropEvent {
             }
         }
         return totalLevel;
+    }
+
+    private static int getApplicableCurioWisdomLevel(Player player) {
+        return CuriosApi.getCuriosInventory(player)
+                .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof OffhandMagicCompatibleItem))
+                .orElse(List.of())
+                .stream()
+                .filter(slotResult -> CuriosSlotConstants.HEAD.equals(slotResult.slotContext().identifier()))
+                .mapToInt(slotResult -> Enchantments.getLevel(slotResult.stack(), Enchantments.WISDOM))
+                .sum();
     }
 
     private static int getHeldWisdomLevel(ItemStack stack) {

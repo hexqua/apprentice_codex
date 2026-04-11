@@ -1,8 +1,7 @@
-package jp.aquafactory.apprenticecodex.item.curios.ashencirclet;
+package jp.aquafactory.apprenticecodex.item.curios.circlets;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
@@ -11,7 +10,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -24,27 +22,12 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.List;
 import java.util.UUID;
 
-public class AshenCirclet extends Item implements ICurioItem, IPresetSpellContainer {
-    private static final AttributeContainer[] CIRCLET_ATTRIBUTES = {
-            new AttributeContainer(
-                    AttributeRegistry.MAX_MANA,
-                    100,
-                    AttributeModifier.Operation.ADDITION
-            ),
-            new AttributeContainer(
-                    AttributeRegistry.MANA_REGEN,
-                    0.20D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            ),
-            new AttributeContainer(
-                    () -> Attributes.ATTACK_DAMAGE,
-                    -0.20D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
-            )
-    };
+public abstract class AbstractCircletItem extends Item implements ICurioItem, IPresetSpellContainer {
+    private final AttributeContainer[] circletAttributes;
 
-    public AshenCirclet() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+    protected AbstractCircletItem(Rarity rarity, AttributeContainer... circletAttributes) {
+        super(new Item.Properties().stacksTo(1).rarity(rarity));
+        this.circletAttributes = circletAttributes;
     }
 
     @Override
@@ -81,10 +64,19 @@ public class AshenCirclet extends Item implements ICurioItem, IPresetSpellContai
         builder.putAll(baseModifiers);
 
         var modifierSlotName = String.format("%s_%s", CuriosSlotConstants.HEAD, slotContext.index());
-        for (var attributeContainer : CIRCLET_ATTRIBUTES) {
+        for (var attributeContainer : circletAttributes) {
             builder.put(attributeContainer.attribute().get(), attributeContainer.createModifier(modifierSlotName));
         }
+        addAdditionalHeadModifiers(builder, slotContext, stack, modifierSlotName);
         return builder.build();
+    }
+
+    protected void addAdditionalHeadModifiers(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            SlotContext slotContext,
+            ItemStack stack,
+            String modifierSlotName
+    ) {
     }
 
     @Override

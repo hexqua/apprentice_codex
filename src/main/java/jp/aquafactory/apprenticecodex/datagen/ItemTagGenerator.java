@@ -289,7 +289,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get()
         );
         tag(CURIOS_NECKLACE).add(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
-        tag(CURIOS_HEAD).add(ItemRegistry.ASHEN_CIRCLET.get());
+        tag(CURIOS_HEAD).add(
+                ItemRegistry.ASHEN_CIRCLET.get(),
+                ItemRegistry.ENCHANTED_CIRCLET.get()
+        );
         tag(CREATE_CONTRAPTION_CONTROLLED).add(ItemRegistry.SPELL_DISPENSER.get());
         tag(TagRegistry.Items.SPELLCASTER_AMMO_POUCH_STORABLE).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
@@ -310,7 +313,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get()
         );
-        tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE);
+        tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
+                ItemRegistry.ENCHANTED_CIRCLET.get()
+        );
 
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
