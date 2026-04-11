@@ -108,7 +108,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 AUTO_TURRET,
                 ILLUMINATE_STELLAR,
                 UNITE_LUNA,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                SHOCK
         );
 
         // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
@@ -175,7 +176,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 AUTO_TURRET,
                 ILLUMINATE_STELLAR,
                 UNITE_LUNA,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                SHOCK
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

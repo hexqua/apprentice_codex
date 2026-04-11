@@ -1411,7 +1411,7 @@ public final class ApprenticeCodexGameTests {
             var spellData = spellContainer.getSpellAtIndex(0);
             helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
                     "Copper Spell Amplifier has no preset spell");
-            helper.assertTrue(spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(),
+            helper.assertTrue(spellData.getSpell() == SpellRegistry.SHOCK.get(),
                     "Copper Spell Amplifier preset spell mismatch: " + spellData.getSpell().getSpellResource());
             helper.assertTrue(spellData.getLevel() == 1,
                     "Copper Spell Amplifier preset spell level mismatch: " + spellData.getLevel());
