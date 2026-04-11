@@ -143,8 +143,8 @@ dependencies {
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
     // ランタイム検証時は Better Combat の前提である Cloth Config も合わせて入れる.
     compileOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
-    // runtimeOnly fg.deobf("maven.modrinth:cloth-config:t8TXrZvZ")
-    // runtimeOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
+    runtimeOnly fg.deobf("maven.modrinth:cloth-config:t8TXrZvZ")
+    runtimeOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
