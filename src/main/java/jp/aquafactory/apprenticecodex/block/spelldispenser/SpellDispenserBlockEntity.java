@@ -12,6 +12,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.Direction;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -19,6 +20,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +29,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     private static final String INVENTORY_TAG = "Inventory";
     private static final String OWNER_UUID_TAG = "OwnerUuid";
     private static final String OWNER_NAME_TAG = "OwnerName";
+    private static final String CONTINUOUS_RESET_REQUIRED_TAG = "ContinuousResetRequired";
     private final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -47,6 +50,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     private GameProfile ownerProfile;
     @Nullable
     private SpellDispenserCastHelper.ContinuousCastSession activeContinuousCast;
+    private boolean continuousResetRequired;
 
     public SpellDispenserBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELL_DISPENSER.get(), pos, state);
@@ -85,6 +89,10 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
 
     public boolean hasActiveContinuousCast() {
         return activeContinuousCast != null && !activeContinuousCast.isFinished();
+    }
+
+    public boolean requiresContinuousReset() {
+        return continuousResetRequired;
     }
 
     public SpellDispenserCastHelper.CastResult tryActivate() {
@@ -162,6 +170,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
 
         if (activeContinuousCast.isFinished()) {
             activeContinuousCast = null;
+            continuousResetRequired = state.getValue(SpellDispenser.TRIGGERED);
             setChanged();
             return;
         }
@@ -191,26 +200,39 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
 
         if (!SpellDispenserCastHelper.tickContinuousCast(level, activeContinuousCast)) {
             activeContinuousCast = null;
+            continuousResetRequired = state.getValue(SpellDispenser.TRIGGERED);
             setChanged();
         }
     }
 
     public void startContinuousCast(@Nullable SpellDispenserCastHelper.ContinuousCastSession session) {
         activeContinuousCast = session;
+        continuousResetRequired = false;
         setChanged();
     }
 
     public void stopContinuousCast(boolean cancelled) {
         if (!(level instanceof ServerLevel serverLevel)) {
             activeContinuousCast = null;
+            continuousResetRequired = false;
             return;
         }
 
         if (activeContinuousCast != null) {
             SpellDispenserCastHelper.finishContinuousCast(serverLevel, activeContinuousCast, cancelled);
             activeContinuousCast = null;
-            setChanged();
         }
+        continuousResetRequired = false;
+        setChanged();
+    }
+
+    public void clearContinuousResetRequired() {
+        if (!continuousResetRequired) {
+            return;
+        }
+
+        continuousResetRequired = false;
+        setChanged();
     }
 
     public void dropStoredItem() {
@@ -249,21 +271,16 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
-        if (ownerProfile != null && ownerProfile.getId() != null && ownerProfile.getName() != null && !ownerProfile.getName().isBlank()) {
-            tag.putUUID(OWNER_UUID_TAG, ownerProfile.getId());
-            tag.putString(OWNER_NAME_TAG, ownerProfile.getName());
-        }
+        saveOwnerProfile(tag, ownerProfile);
+        tag.putBoolean(CONTINUOUS_RESET_REQUIRED_TAG, continuousResetRequired);
     }
 
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG));
-        if (tag.hasUUID(OWNER_UUID_TAG) && tag.contains(OWNER_NAME_TAG, net.minecraft.nbt.Tag.TAG_STRING)) {
-            ownerProfile = normalizeOwnerProfile(new GameProfile(tag.getUUID(OWNER_UUID_TAG), tag.getString(OWNER_NAME_TAG)));
-        } else {
-            ownerProfile = null;
-        }
+        ownerProfile = readOwnerProfile(tag);
+        continuousResetRequired = tag.getBoolean(CONTINUOUS_RESET_REQUIRED_TAG);
     }
 
     private void markUpdated() {
@@ -271,6 +288,30 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    public static void saveOwnerProfile(@NotNull CompoundTag tag, @Nullable GameProfile ownerProfile) {
+        var normalizedOwnerProfile = normalizeOwnerProfile(ownerProfile);
+        if (normalizedOwnerProfile == null) {
+            return;
+        }
+
+        tag.putUUID(OWNER_UUID_TAG, normalizedOwnerProfile.getId());
+        tag.putString(OWNER_NAME_TAG, normalizedOwnerProfile.getName());
+    }
+
+    public static @Nullable GameProfile readOwnerProfile(@Nullable CompoundTag tag) {
+        if (tag == null) {
+            return null;
+        }
+        if (!tag.hasUUID(OWNER_UUID_TAG) || !tag.contains(OWNER_NAME_TAG, net.minecraft.nbt.Tag.TAG_STRING)) {
+            return null;
+        }
+        return normalizeOwnerProfile(new GameProfile(tag.getUUID(OWNER_UUID_TAG), tag.getString(OWNER_NAME_TAG)));
+    }
+
+    public @Nullable IItemHandler getItemHandler(@Nullable Direction side) {
+        return inventory;
     }
 
     private static @Nullable GameProfile normalizeOwnerProfile(@Nullable GameProfile ownerProfile) {

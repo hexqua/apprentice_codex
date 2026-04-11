@@ -49,6 +49,11 @@ repositories {
     maven {
         url = uri("https://maven.theillusivec4.top/")
     }
+
+    // Create が同梱している Registrate API を compileOnly 参照するため.
+    maven {
+        url = uri("https://maven.tterrag.com/")
+    }
 }
 
 base {
@@ -122,8 +127,11 @@ dependencies {
     runtimeOnly "curse.maven:playeranimator-658587:6024462"
 
     // Create.
-    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
-    // runtimeOnly fg.deobf("curse.maven:create-328085:7178761")
+    // Create 連携のコンパイル用.
+    // ランタイム検証時のみ必要に応じてON.
+    compileOnly "curse.maven:create-328085:7178775"
+    compileOnly "com.tterrag.registrate:Registrate:${registrate_version}"
+    // runtimeOnly "curse.maven:create-328085:7178775"
 
     // EasyMagic.
     // 必要に応じてON、デフォルトは入れない(前提にはしないため)
@@ -187,6 +195,7 @@ tasks.named('processResources', ProcessResources).configure {
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
+            create_version         : create_version,
             lodestone_version      : lodestone_version,
             malum_version          : malum_version,
             mod_id                 : mod_id,

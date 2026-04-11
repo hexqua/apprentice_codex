@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -10,6 +11,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
@@ -33,24 +35,37 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
     @Nullable
     private final SpellDispenserBlockEntity blockEntity;
-    private final ItemStackHandler inventory;
+    private final IItemHandlerModifiable inventory;
+    private final boolean mounted;
+    private final boolean hasOwnerProfile;
 
     public SpellDispenserMenu(int containerId, Inventory playerInventory, SpellDispenserBlockEntity blockEntity) {
-        this(containerId, playerInventory, blockEntity.getBlockPos(), blockEntity, blockEntity.getInventory());
+        this(containerId, playerInventory, MenuContext.forBlockEntity(blockEntity));
     }
 
-    public SpellDispenserMenu(int containerId, Inventory playerInventory, BlockPos blockPos) {
-        this(containerId, playerInventory, blockPos, resolveBlockEntity(playerInventory, blockPos), resolveInventory(playerInventory, blockPos));
+    public SpellDispenserMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf data) {
+        this(containerId, playerInventory, MenuContext.fromNetwork(playerInventory, data));
     }
 
-    private SpellDispenserMenu(int containerId, Inventory playerInventory, BlockPos blockPos,
-                               @Nullable SpellDispenserBlockEntity blockEntity, ItemStackHandler inventory) {
+    public static SpellDispenserMenu createMounted(
+            int containerId,
+            Inventory playerInventory,
+            BlockPos localPos,
+            IItemHandlerModifiable inventory,
+            boolean hasOwnerProfile
+    ) {
+        return new SpellDispenserMenu(containerId, playerInventory, MenuContext.forMounted(localPos, inventory, hasOwnerProfile));
+    }
+
+    private SpellDispenserMenu(int containerId, Inventory playerInventory, MenuContext context) {
         super(MenuRegistry.SPELL_DISPENSER.get(), containerId);
         this.playerInventory = playerInventory;
-        this.blockPos = blockPos;
-        this.blockEntity = blockEntity;
-        this.inventory = inventory;
-        this.access = ContainerLevelAccess.create(playerInventory.player.level(), blockPos);
+        this.blockPos = context.blockPos();
+        this.blockEntity = context.blockEntity();
+        this.inventory = context.inventory();
+        this.mounted = context.mounted();
+        this.hasOwnerProfile = context.hasOwnerProfile();
+        this.access = mounted ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(playerInventory.player.level(), blockPos);
 
         addSlot(new SpellSourceSlot(inventory, SPELL_SLOT_INDEX, SPELL_SLOT_X, SPELL_SLOT_Y));
         for (var row = 0; row < 3; ++row) {
@@ -66,6 +81,10 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player player) {
+        if (mounted) {
+            // からくり上ではワールド上の block entity が存在しないため、設置ブロック前提の距離判定を使わない。
+            return true;
+        }
         return stillValid(access, player, BlockRegistry.SPELL_DISPENSER.get());
     }
 
@@ -103,17 +122,14 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
     }
 
     public @NotNull Component getStatus(Player player) {
-        var blockEntity = getBlockEntity();
-        if (blockEntity != null && !blockEntity.hasOwnerProfile()) {
+        if (!hasOwnerProfile()) {
             return Component.translatable("container.apprenticecodex.spell_dispenser.status.owner_missing");
         }
         return getValidation(player).getStatus(player);
     }
 
     public boolean isReadyToCast(Player player) {
-        var blockEntity = getBlockEntity();
-        return blockEntity != null
-                && blockEntity.hasOwnerProfile()
+        return hasOwnerProfile()
                 && getValidation(player).isSupported();
     }
 
@@ -122,6 +138,9 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
     }
 
     public @Nullable SpellDispenserBlockEntity getBlockEntity() {
+        if (mounted) {
+            return null;
+        }
         if (blockEntity != null) {
             return blockEntity;
         }
@@ -142,7 +161,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         return null;
     }
 
-    private static @NotNull ItemStackHandler resolveInventory(Inventory playerInventory, BlockPos pos) {
+    private static @NotNull IItemHandlerModifiable resolveInventory(Inventory playerInventory, BlockPos pos) {
         var blockEntity = resolveBlockEntity(playerInventory, pos);
         if (blockEntity != null) {
             return blockEntity.getInventory();
@@ -151,8 +170,58 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         return new ItemStackHandler(1);
     }
 
+    private boolean hasOwnerProfile() {
+        var currentBlockEntity = getBlockEntity();
+        if (currentBlockEntity != null) {
+            return currentBlockEntity.hasOwnerProfile();
+        }
+        return hasOwnerProfile;
+    }
+
+    private record MenuContext(
+            BlockPos blockPos,
+            @Nullable SpellDispenserBlockEntity blockEntity,
+            IItemHandlerModifiable inventory,
+            boolean mounted,
+            boolean hasOwnerProfile
+    ) {
+        private static MenuContext forBlockEntity(SpellDispenserBlockEntity blockEntity) {
+            return new MenuContext(
+                    blockEntity.getBlockPos(),
+                    blockEntity,
+                    blockEntity.getInventory(),
+                    false,
+                    blockEntity.hasOwnerProfile()
+            );
+        }
+
+        private static MenuContext forMounted(BlockPos localPos, IItemHandlerModifiable inventory, boolean hasOwnerProfile) {
+            return new MenuContext(localPos, null, inventory, true, hasOwnerProfile);
+        }
+
+        private static MenuContext fromNetwork(Inventory playerInventory, RegistryFriendlyByteBuf data) {
+            var mounted = data.readBoolean();
+            var blockPos = data.readBlockPos();
+            if (!mounted) {
+                var blockEntity = resolveBlockEntity(playerInventory, blockPos);
+                return new MenuContext(
+                        blockPos,
+                        blockEntity,
+                        resolveInventory(playerInventory, blockPos),
+                        false,
+                        blockEntity != null && blockEntity.hasOwnerProfile()
+                );
+            }
+
+            var hasOwnerProfile = data.readBoolean();
+            var inventory = new ItemStackHandler(1);
+            inventory.setStackInSlot(0, ItemStack.OPTIONAL_STREAM_CODEC.decode(data));
+            return new MenuContext(blockPos, null, inventory, true, hasOwnerProfile);
+        }
+    }
+
     private static final class SpellSourceSlot extends SlotItemHandler {
-        private SpellSourceSlot(ItemStackHandler inventory, int index, int xPosition, int yPosition) {
+        private SpellSourceSlot(IItemHandlerModifiable inventory, int index, int xPosition, int yPosition) {
             super(inventory, index, xPosition, yPosition);
         }
 

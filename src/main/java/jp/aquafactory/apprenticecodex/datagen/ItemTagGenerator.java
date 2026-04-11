@@ -32,6 +32,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
     private static final TagKey<Item> CURIOS_NECKLACE = createTag("curios", "necklace");
     private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
+    private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = createTag("create", "contraption_controlled");
     private static final TagKey<Item> MINECRAFT_HEAD_ARMOR = createTag("minecraft", "head_armor");
     private static final TagKey<Item> MINECRAFT_CHEST_ARMOR = createTag("minecraft", "chest_armor");
     private static final TagKey<Item> MINECRAFT_LEG_ARMOR = createTag("minecraft", "leg_armor");
@@ -287,6 +288,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get()
         );
         tag(CURIOS_NECKLACE).add(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
+        tag(CREATE_CONTRAPTION_CONTROLLED).add(ItemRegistry.SPELL_DISPENSER.get());
         tag(TagRegistry.Items.SPELLCASTER_AMMO_POUCH_STORABLE).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(),

@@ -53,7 +53,7 @@ public final class SpellDispenser extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
+    public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
         return defaultBlockState()
                 .setValue(FACING, context.getNearestLookingDirection().getOpposite())
                 .setValue(TRIGGERED, false);
@@ -90,7 +90,7 @@ public final class SpellDispenser extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+    public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         return new SpellDispenserBlockEntity(pos, state);
     }
 
@@ -115,7 +115,10 @@ public final class SpellDispenser extends BaseEntityBlock {
 
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(spellDispenser, buffer -> buffer.writeBlockPos(pos));
+            serverPlayer.openMenu(spellDispenser, buffer -> {
+                buffer.writeBoolean(false);
+                buffer.writeBlockPos(pos);
+            });
             return InteractionResult.CONSUME;
         }
 
@@ -145,6 +148,10 @@ public final class SpellDispenser extends BaseEntityBlock {
             );
             level.setBlock(pos, state.setValue(TRIGGERED, true), 4);
         } else if (!powered && triggered) {
+            var blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
+                spellDispenser.clearContinuousResetRequired();
+            }
             level.setBlock(pos, state.setValue(TRIGGERED, false), 4);
         }
     }

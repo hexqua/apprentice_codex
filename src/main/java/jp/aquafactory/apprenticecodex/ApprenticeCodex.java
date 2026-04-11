@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex;
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.IsekaiTravelGuidebookConfigSyncEvents;
@@ -61,6 +62,7 @@ public class ApprenticeCodex
         SoundRegistry.register(modEventBus);
         MenuRegistry.register(modEventBus);
         CreativeTabRegistry.register(modEventBus);
+        CreateCompat.register(modEventBus);
         ParticleRegistry.PARTICLES.register(modEventBus);
         RecipeRegistry.register(modEventBus);
         RecipeConditionRegistry.register(modEventBus);

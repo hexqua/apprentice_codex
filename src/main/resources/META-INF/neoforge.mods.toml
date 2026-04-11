@@ -53,7 +53,7 @@ config="mixins.apprenticecodex.json"
 [[dependencies.${mod_id}]]
     modId="create"
     type="optional"
-    versionRange="[0,)"
+    versionRange="[${create_version},)"
     ordering="NONE"
     side="BOTH"
 
