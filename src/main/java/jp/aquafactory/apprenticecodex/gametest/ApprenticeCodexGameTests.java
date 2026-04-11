@@ -29,6 +29,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
@@ -56,6 +57,7 @@ import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
@@ -116,6 +118,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
@@ -1601,6 +1604,158 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantedCircletEnchantments(stack),
+                    allRegisteredEnchantmentIds(),
+                    expectedEnchantedCircletEnchantments(stack),
+                    "Enchanted Circlet"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) stack.getItem();
+            var slotContext = new top.theillusivec4.curios.api.SlotContext(
+                    CuriosSlotConstants.HEAD,
+                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
+                    0,
+                    false,
+                    true
+            );
+
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    -0.10D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet attack damage penalty regression"
+            );
+
+            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
+            stack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
+            stack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
+            stack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+            stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null, "Enchanted Circlet imbued school could not be resolved");
+
+            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(resolvedSpellPower != null,
+                    "Enchanted Circlet could not resolve spell power attribute for Attunement: " + imbuedSchool.getId());
+
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
+                    0.02D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Alacrity regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get(),
+                    0.05D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Reflux regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                    20.0D,
+                    AttributeModifier.Operation.ADDITION,
+                    "Enchanted Circlet Reservoir regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
+                    0.02D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Surge regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    resolvedSpellPower,
+                    0.04D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Attunement regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
+                    0.05D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Tense regression"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            helper.assertTrue(new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Enchanted Circlet should be extractable in Spellcaster Workbench");
+            helper.assertFalse(new ItemStack(ItemRegistry.ASHEN_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Ashen Circlet should remain non-extractable in Spellcaster Workbench");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletWisdomMatchesArmorRate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "enchanted_circlet_wisdom_test"));
+            var baseExperience = 20;
+
+            var withoutCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 0)), player, baseExperience);
+            MinecraftForge.EVENT_BUS.post(withoutCirclet);
+            helper.assertTrue(withoutCirclet.getDroppedExperience() == baseExperience,
+                    "Wisdom baseline should stay unchanged without enchanted circlet");
+
+            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+
+            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for wisdom test"));
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
+
+            var withCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0)), player, baseExperience);
+            MinecraftForge.EVENT_BUS.post(withCirclet);
+            helper.assertTrue(withCirclet.getDroppedExperience() == 21,
+                    "Enchanted Circlet Wisdom should match armor rate (+5% at level 1) but got " + withCirclet.getDroppedExperience());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
@@ -2315,6 +2470,12 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
+    private static Set<ResourceLocation> expectedEnchantedCircletEnchantments(ItemStack stack) {
+        var expectedEnchantments = new LinkedHashSet<>(expectedOffhandEnchantments(stack));
+        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        return expectedEnchantments;
+    }
+
     private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
@@ -2493,6 +2654,23 @@ public final class ApprenticeCodexGameTests {
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected stacked amount " + expectedAmount + " but got " + actualAmount
                         + " modifiers=" + describeModifiers(item.getAttributeModifiers(EquipmentSlot.OFFHAND, stack)));
+    }
+
+    private static void assertCurioModifierAmount(
+            GameTestHelper helper,
+            top.theillusivec4.curios.api.type.capability.ICurioItem item,
+            top.theillusivec4.curios.api.SlotContext slotContext,
+            ItemStack stack,
+            Attribute attribute,
+            double expectedAmount,
+            AttributeModifier.Operation operation,
+            String message
+    ) {
+        var modifiers = item.getAttributeModifiers(slotContext, UUID.randomUUID(), stack);
+        var actualAmount = sumModifierAmount(modifiers.get(attribute), operation);
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected stacked amount " + expectedAmount + " but got " + actualAmount
+                        + " modifiers=" + describeModifiers(modifiers));
     }
 
     private static void assertCastingMoveSpeedAdjustment(
