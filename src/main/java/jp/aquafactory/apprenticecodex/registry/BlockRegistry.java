@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStation;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJar;
 import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbench;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlock;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
@@ -38,6 +39,9 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> SPELLCASTER_WORKBENCH =
             BLOCKS.register("spellcaster_workbench", SpellcasterWorkbench::new);
+
+    public static final DeferredHolder<Block, Block> SPELL_DISPENSER =
+            BLOCKS.register("spell_dispenser", () -> new SpellDispenser());
 
     public static final DeferredHolder<Block, Block> ARCANUM_IN_A_JAR =
             BLOCKS.register("arcanum_in_a_jar", () -> new ArcanumInAJar());

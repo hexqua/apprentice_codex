@@ -153,6 +153,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> SPELLCASTER_WORKBENCH =
             ITEMS.register("spellcaster_workbench",
                     () -> new SpellcasterWorkbenchItem(BlockRegistry.SPELLCASTER_WORKBENCH.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, Item> SPELL_DISPENSER = block("spell_dispenser", BlockRegistry.SPELL_DISPENSER);
     public static final DeferredHolder<Item, Item> ARCANUM_IN_A_JAR =
             ITEMS.register("arcanum_in_a_jar",
                     () -> new ArcanumInAJarItem(BlockRegistry.ARCANUM_IN_A_JAR.get(), new Item.Properties()));

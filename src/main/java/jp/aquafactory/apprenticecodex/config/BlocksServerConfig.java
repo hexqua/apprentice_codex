@@ -1,30 +1,36 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
 import jp.aquafactory.apprenticecodex.config.block.ApprenticeDeskServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.SpellDispenserServerConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 final class BlocksServerConfig {
     private final ApprenticeDeskServerConfig apprenticeDeskConfig;
     private final ArcanumInAJarServerConfig arcanumInAJarConfig;
+    private final SpellDispenserServerConfig spellDispenserConfig;
 
     private BlocksServerConfig(
             ApprenticeDeskServerConfig apprenticeDeskConfig,
-            ArcanumInAJarServerConfig arcanumInAJarConfig
+            ArcanumInAJarServerConfig arcanumInAJarConfig,
+            SpellDispenserServerConfig spellDispenserConfig
     ) {
         this.apprenticeDeskConfig = apprenticeDeskConfig;
         this.arcanumInAJarConfig = arcanumInAJarConfig;
+        this.spellDispenserConfig = spellDispenserConfig;
     }
 
     static BlocksServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("Blocks");
         var apprenticeDeskConfig = ApprenticeDeskServerConfig.define(builder);
         var arcanumInAJarConfig = ArcanumInAJarServerConfig.define(builder);
+        var spellDispenserConfig = SpellDispenserServerConfig.define(builder);
         builder.pop();
 
         return new BlocksServerConfig(
                 apprenticeDeskConfig,
-                arcanumInAJarConfig
+                arcanumInAJarConfig,
+                spellDispenserConfig
         );
     }
 
@@ -46,5 +52,9 @@ final class BlocksServerConfig {
 
     int arcanumInAJarTicksPerStoredParameter() {
         return arcanumInAJarConfig.ticksPerStoredParameter();
+    }
+
+    boolean spellDispenserRelaxedSpellFilter() {
+        return spellDispenserConfig.relaxedSpellFilter();
     }
 }

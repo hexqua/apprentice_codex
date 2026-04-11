@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
@@ -80,6 +81,7 @@ import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRend
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -144,6 +146,7 @@ public final class ClientModBusEvents {
     private static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(MenuRegistry.APPRENTICE_DESK.get(), ApprenticeDeskScreen::new);
         event.register(MenuRegistry.SPELLCASTER_WORKBENCH.get(), SpellcasterWorkbenchScreen::new);
+        event.register(MenuRegistry.SPELL_DISPENSER.get(), SpellDispenserScreen::new);
         event.register(MenuRegistry.ATELIER_STATION.get(), AtelierStationScreen::new);
         event.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new);
         event.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new);
@@ -383,6 +386,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.PHALANX_WEAPONRY.get(), PhalanxWeaponryRenderer::new);
         event.registerEntityRenderer(EntityRegistry.PHALANX_CHARGE_BEAM.get(), PhalanxChargeBeamRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SEARCH_BEACON.get(), SearchBeaconRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SPELL_DISPENSER_ANCHOR.get(), SpellDispenserAnchorRenderer::new);
     }
 }
 
