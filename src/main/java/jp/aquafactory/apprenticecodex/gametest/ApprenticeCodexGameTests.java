@@ -1067,9 +1067,10 @@ public final class ApprenticeCodexGameTests {
     public static void spellDispenserCastHelperSupportsSpectralHammer(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var castPos = new BlockPos(0, 1, 0);
-            var targetPos = new BlockPos(0, 1, 3);
-            helper.setBlock(targetPos, Blocks.STONE);
+            var relativeCastPos = new BlockPos(0, 1, 0);
+            var relativeTargetPos = new BlockPos(0, 1, 3);
+            var castPos = helper.absolutePos(relativeCastPos);
+            helper.setBlock(relativeTargetPos, Blocks.STONE);
 
             var castResult = SpellDispenserCastHelper.tryCast(
                     (ServerLevel) level,
@@ -2911,7 +2912,11 @@ public final class ApprenticeCodexGameTests {
             AttributeModifier.Operation operation,
             String message
     ) {
-        var modifiers = item.getAttributeModifiers(slotContext, UUID.randomUUID(), stack);
+        var slotId = ResourceLocation.fromNamespaceAndPath(
+                ApprenticeCodex.MODID,
+                "gametest/curio/%s_%d".formatted(slotContext.identifier(), slotContext.index())
+        );
+        var modifiers = item.getAttributeModifiers(slotContext, slotId, stack);
         var actualAmount = sumModifierAmount(modifiers.get(attribute), operation);
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected stacked amount " + expectedAmount + " but got " + actualAmount

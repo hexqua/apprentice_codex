@@ -35,6 +35,16 @@ Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 - 注意:
   これらはサーバー側の起動・読込・登録ミスの検知が主目的です。renderer や screen など client 専用の起動不良は別途 `runClient` で確認が必要です。
 
+## PR 運用
+
+- `1.21.1-main` への取り込みは PR 経由で行い、`PR CI / build-and-gametest` の成功を必須とします。
+- GitHub Actions は `pull_request` でのみ実行し、`pull_request_target` は使いません。
+- CI では secrets を使いません。workflow 権限は read-only に固定します。
+- 通常の PR は `Create a merge commit` を使います。
+- バージョン更新 PR だけは `Rebase and merge` を使ってかまいません。
+- `Squash and merge` は使いません。
+- GitHub 側の設定手順と bootstrap 順序は `docs/github-pr-protection.md` を参照してください。
+
 ## データパック調整
 
 - 親和ポーションの素材は、既定では各 school の `focus` を使います。
