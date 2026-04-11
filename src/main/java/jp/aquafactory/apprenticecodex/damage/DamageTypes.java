@@ -39,6 +39,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> ILLUMINATE_STELLAR = register("illuminate_stellar");
     public static final ResourceKey<DamageType> UNITE_LUNA = register("unite_luna");
     public static final ResourceKey<DamageType> HEALING_BLOOM = register("healing_bloom");
+    public static final ResourceKey<DamageType> SHOCK = register("shock");
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
 
     private static ResourceKey<DamageType> register(String name){
@@ -83,6 +84,7 @@ public final class DamageTypes {
         context.register(ILLUMINATE_STELLAR, createTemplate(ILLUMINATE_STELLAR));
         context.register(UNITE_LUNA, createTemplate(UNITE_LUNA));
         context.register(HEALING_BLOOM, createTemplate(HEALING_BLOOM));
+        context.register(SHOCK, createTemplate(SHOCK));
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
     }
 }
