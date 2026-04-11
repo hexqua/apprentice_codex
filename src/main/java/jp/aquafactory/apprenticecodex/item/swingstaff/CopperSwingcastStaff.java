@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.swingstaff;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +21,7 @@ public class CopperSwingcastStaff extends AbstractSwingcastStaffItem {
     );
 
     public CopperSwingcastStaff() {
-        super("copper_swingcast_staff", TIER);
+        super("copper_swingcast_staff", TIER, SpellRegistry.BALL_LIGHTNING_SPELL, 1);
     }
 
     @Override

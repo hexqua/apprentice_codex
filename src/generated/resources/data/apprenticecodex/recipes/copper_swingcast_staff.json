@@ -5,11 +5,11 @@
     "A": {
       "item": "irons_spellbooks:arcane_ingot"
     },
+    "B": {
+      "item": "irons_spellbooks:lightning_bottle"
+    },
     "C": {
       "item": "minecraft:copper_ingot"
-    },
-    "G": {
-      "item": "minecraft:glass"
     },
     "L": {
       "item": "minecraft:leather"
@@ -19,7 +19,7 @@
     }
   },
   "pattern": [
-    " AG",
+    " AB",
     "LWC",
     "C  "
   ],

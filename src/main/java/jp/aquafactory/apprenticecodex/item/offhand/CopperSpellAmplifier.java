@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.offhand;
 
 import com.google.common.collect.ImmutableMultimap;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -12,7 +13,7 @@ public class CopperSpellAmplifier extends AbstractSpellAmplifierItem {
 
     public CopperSpellAmplifier() {
         super(
-                io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL,
+                SpellRegistry.SHOCK,
                 1,
                 Rarity.UNCOMMON,
                 "copper_spell_amplifier"

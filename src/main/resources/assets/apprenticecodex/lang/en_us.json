@@ -286,6 +286,7 @@
   "spell.apprenticecodex.search_beacon": "Search Beacon",
   "spell.apprenticecodex.tamers_pocket": "Tamer's Pocket",
   "spell.apprenticecodex.harvest_moon": "Harvest Moon",
+  "spell.apprenticecodex.shock": "Shock",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -363,6 +364,7 @@
   "spell.apprenticecodex.search_beacon.guide": "Summon a magical brazier that searches for different structures depending on the item you offer it. If it finds anything, it points the way with glowing markers. If it finds nothing, some of the offered items may be returned.",
   "spell.apprenticecodex.tamers_pocket.guide": "Stores one of your tamed pets from your line of sight or the surrounding area inside a personal magical domain. If no tamed pet is in sight but you already have one stored, it is brought out near you instead. While stored, pets inside recover naturally, though only very slowly.",
   "spell.apprenticecodex.harvest_moon.guide": "Harvest crops around you without destroying them and bringing them to you.",
+  "spell.apprenticecodex.shock.guide": "Shot lightning bolt converted from elemental energy.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -503,6 +505,7 @@
   "death.attack.apprenticecodex.unite_luna": "%1$s was purified by %2$s's dim magic.",
   "death.attack.apprenticecodex.healing_bloom": "The power of healing was too harmful to %1$s.",
   "death.attack.apprenticecodex.haunted_bonus": "%1$s was consumed by %2$s's haunted magic.",
+  "death.attack.apprenticecodex.shock": "%1$s was disassembled by %2$s's shock.",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",
