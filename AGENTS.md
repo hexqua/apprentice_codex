@@ -88,10 +88,13 @@ Get-ChildItem build\libs\*.jar
 6. サーバー側の登録・データ読込・レシピ・生成・GameTest 対象構造に影響する変更では、`./gradlew.bat runGameTestServer` が成功することを確認する。
 7. 必要に応じて `./gradlew.bat runClient` で動作確認する。
 8. 必要に応じて関連ドキュメントを更新する。
+9. `main` へ反映する変更は、バージョン更新を含めて必ずブランチ + PR で流し、直 push しない。
+10. `main` の PR は GitHub Actions の `PR CI / build-and-gametest` 通過を必須とし、通常は merge commit で取り込む。バージョン更新だけは rebase merge を使ってよい。
 
 ## 6. レビューチェックリスト
 - 必須チェック項目: Java 17 環境で `./gradlew.bat build` が成功すること。
 - 必須チェック項目: サーバー側の登録・データ読込・レシピ・生成に影響する変更では、`./gradlew.bat runGameTestServer` が成功すること。
+- 必須チェック項目: `main` へ送る PR では GitHub Actions の `PR CI / build-and-gametest` が成功していること。
 - 必須チェック項目: 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - 必須チェック項目: サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - 必須チェック項目: 1 機能が `cherry-pick` しやすい独立したコミット列として保たれ、無関係な整形・rename・広域整理が同一コミットに混ざっていないこと。
@@ -104,6 +107,7 @@ Get-ChildItem build\libs\*.jar
 - コード変更時に更新すべきファイル: `gradle.properties`（バージョン）、`build.gradle`（依存/タスク）、`src/main/resources/META-INF/mods.toml`（依存条件）、`README.md`（仕様/導入手順）、`THIRD_PARTY_NOTICES.md`（ライセンス）、`.codex/skills/**`（エージェント向け手順）。
 - 更新ルール: 実装変更と同一 PR/コミット内で関連ドキュメントを更新し、差分の理由が追跡できる状態にする。
 - 更新ルール: 実行手順や開発フローに影響する変更は `AGENTS.md` も同時更新する。
+- 更新ルール: GitHub Actions / Ruleset / merge 運用に変更がある場合は `docs/github-pr-protection.md` も更新する。
 
 ## 8. ブランチ間取り込み準備（1.20.1 -> 1.21.1）
 - 基本方針: `main`（1.20.1 / Forge）を開発基準ブランチとし、`1.21.1-main` への反映は forward-port（`cherry-pick`）前提で考える。
