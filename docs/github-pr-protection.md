@@ -56,3 +56,4 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-21-1-main-pr-ci-protection
 2. workflow を含む最初の PR では、required check 未設定の状態で CI 成功後に merge できることを確認する。
 3. workflow 反映後に ruleset へ `PR CI / build-and-gametest` を required check として追加する。
 4. 以後の PR では、この check が成功しない限り merge できないことを確認する。
+5. merge 可否まで確認したい場合は、無害な docs 変更を使った検証 PR を 1 本だけ merge してもよい。
