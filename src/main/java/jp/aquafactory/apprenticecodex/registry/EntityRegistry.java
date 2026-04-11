@@ -32,6 +32,7 @@ import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
+import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
@@ -133,6 +134,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<ArcaneBeamEntity>> ARCANE_BEAM =
             regProjectile("arcane_beam", ArcaneBeamEntity::new, 64, 1);
+
+    public static final RegistryObject<EntityType<ShockBoltEntity>> SHOCK_BOLT =
+            regProjectile("shock_bolt", ShockBoltEntity::new, 64, 1);
 
     public static final RegistryObject<EntityType<ManaSlashProjectileEntity>> MANA_SLASH_PROJECTILE =
             regProjectile("mana_slash_projectile", ManaSlashProjectileEntity::new, 64, 1);
