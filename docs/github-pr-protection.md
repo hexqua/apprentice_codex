@@ -1,6 +1,6 @@
 # GitHub PR 保護設定
 
-このリポジトリでは `main` への反映を PR に統一し、`PR CI / build-and-gametest` が成功しない限りマージしない。
+このリポジトリでは `main` への反映を PR に統一し、GitHub Actions の check run `build-and-gametest` が成功しない限りマージしない。
 
 ## 1. Actions セキュリティ設定
 
@@ -31,8 +31,12 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 - Require a pull request before merging: `On`
 - Require status checks to pass before merging: `On`
 - Required status checks:
-  - `PR CI / build-and-gametest`
+  - `build-and-gametest`（GitHub Actions）
 - Require branches to be up to date before merging: `On`
+
+補足:
+
+- GitHub の画面上では workflow 名込みで `PR CI / build-and-gametest` と表示されることがあるが、ruleset には GitHub Actions の check run `build-and-gametest` を登録する。
 
 必要に応じて次も有効化する。
 
@@ -48,7 +52,7 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 
 ## 4. 受け入れ確認
 
-1. 軽微な変更で PR を作成し、`PR CI / build-and-gametest` が自動起動することを確認する。
+1. 軽微な変更で PR を作成し、`PR CI / build-and-gametest` の workflow が自動起動し、`build-and-gametest` check run が記録されることを確認する。
 2. 意図的に GameTest を落とした PR で required check failure により merge できないことを確認する。
 3. 修正 push 後に同じ check 名で再実行され、成功時のみ merge 可能になることを確認する。
 4. `main` への直接 push が拒否されることを確認する。
