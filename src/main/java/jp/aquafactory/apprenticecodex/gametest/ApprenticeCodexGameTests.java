@@ -2912,7 +2912,11 @@ public final class ApprenticeCodexGameTests {
             AttributeModifier.Operation operation,
             String message
     ) {
-        var modifiers = item.getAttributeModifiers(slotContext, UUID.randomUUID(), stack);
+        var slotId = ResourceLocation.fromNamespaceAndPath(
+                ApprenticeCodex.MODID,
+                "gametest/curio/%s_%d".formatted(slotContext.identifier(), slotContext.index())
+        );
+        var modifiers = item.getAttributeModifiers(slotContext, slotId, stack);
         var actualAmount = sumModifierAmount(modifiers.get(attribute), operation);
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected stacked amount " + expectedAmount + " but got " + actualAmount
