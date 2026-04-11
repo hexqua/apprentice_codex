@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEn
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -119,6 +120,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
@@ -997,9 +999,10 @@ public final class ApprenticeCodexGameTests {
     public static void spellDispenserCastHelperSupportsSpectralHammer(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var castPos = new BlockPos(0, 1, 0);
-            var targetPos = new BlockPos(0, 1, 3);
-            helper.setBlock(targetPos, Blocks.STONE);
+            var relativeCastPos = new BlockPos(0, 1, 0);
+            var relativeTargetPos = new BlockPos(0, 1, 3);
+            var castPos = helper.absolutePos(relativeCastPos);
+            helper.setBlock(relativeTargetPos, Blocks.STONE);
 
             var castResult = SpellDispenserCastHelper.tryCast(
                     (ServerLevel) level,
@@ -1752,6 +1755,51 @@ public final class ApprenticeCodexGameTests {
             MinecraftForge.EVENT_BUS.post(withCirclet);
             helper.assertTrue(withCirclet.getDroppedExperience() == 21,
                     "Enchanted Circlet Wisdom should match armor rate (+5% at level 1) but got " + withCirclet.getDroppedExperience());
+
+            var roundedUp = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0)), player, 1);
+            MinecraftForge.EVENT_BUS.post(roundedUp);
+            helper.assertTrue(roundedUp.getDroppedExperience() == 2,
+                    "Wisdom should round enemy experience up from 1 to 2 at +5% but got " + roundedUp.getDroppedExperience());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void wisdomAppliesToBlockBreakExperienceAndRoundsUp(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var state = Blocks.DIAMOND_ORE.defaultBlockState();
+
+            var baselinePlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_baseline_test"));
+            var baselineExperience = new BlockEvent.BreakEvent(level, new BlockPos(0, 2, 0), state, baselinePlayer);
+            baselineExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(baselineExperience);
+            helper.assertTrue(baselineExperience.getExpToDrop() == 3,
+                    "Block experience should stay unchanged without Wisdom but got " + baselineExperience.getExpToDrop());
+
+            var curioPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_curio_test"));
+            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+
+            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(curioPlayer)
+                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for block wisdom test"));
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
+
+            var roundedCurioExperience = new BlockEvent.BreakEvent(level, new BlockPos(1, 2, 0), state, curioPlayer);
+            roundedCurioExperience.setExpToDrop(1);
+            WisdomExperienceDropEvent.onBlockBreak(roundedCurioExperience);
+            helper.assertTrue(roundedCurioExperience.getExpToDrop() == 2,
+                    "Curio Wisdom should round block experience up from 1 to 2 at +5% but got " + roundedCurioExperience.getExpToDrop());
+
+            var heldPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_held_test"));
+            var spellGunStack = new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get());
+            spellGunStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            heldPlayer.setItemInHand(InteractionHand.MAIN_HAND, spellGunStack);
+
+            var heldExperience = new BlockEvent.BreakEvent(level, new BlockPos(2, 2, 0), state, heldPlayer);
+            heldExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(heldExperience);
+            helper.assertTrue(heldExperience.getExpToDrop() == 4,
+                    "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getExpToDrop());
         });
     }
 
