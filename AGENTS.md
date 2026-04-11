@@ -93,12 +93,14 @@ Get-ChildItem build\libs\*.jar
 4. サーバー側の登録・データ読込・レシピ・生成・GameTest 対象構造に影響する変更では、`./gradlew.bat runGameTestServer` が成功することを確認する。
 5. `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` が成功することを確認する。
 6. 必要に応じて `./gradlew.bat runClient` で動作確認する。
-7. 必要に応じて関連ドキュメントを更新する。
+7. `1.21.1-main` へ取り込む変更は PR で流し、`PR CI / build-and-gametest` の成功を確認してから merge する。
+8. 必要に応じて関連ドキュメントを更新する。
 
 ## 6. レビューチェックリスト
 - 必須チェック項目: Java 21 環境で `./gradlew.bat build` が成功すること。
 - 必須チェック項目: サーバー側の登録・データ読込・レシピ・生成に影響する変更では、`./gradlew.bat runGameTestServer` が成功すること。
 - 必須チェック項目: `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` が成功すること。
+- 必須チェック項目: `1.21.1-main` 向け PR では `PR CI / build-and-gametest` が成功していること。
 - 必須チェック項目: 追加・変更した要素の登録漏れ（Registry/EventBus）がないこと。
 - 必須チェック項目: サーバー専用環境で問題となるクライアント専用参照を追加していないこと。
 - リグレッション確認: 既存コンテンツの ID 変更や削除による互換性破壊を避ける。
@@ -126,6 +128,15 @@ Get-ChildItem build\libs\*.jar
 - 取り込み判断で迷わないよう、`main` 側では無関係な整形・リネームの混在を避ける。
 - 同種コンフリクトの再解決コストを下げるため、`git config rerere.enabled true` を推奨する。
 - `1.21.1-main` のみで必要になった修正は、`main` への逆取り込みが必要かを別途判断し、必要時のみ個別対応で反映する。
+
+## 8.1 `1.21.1-main` の PR CI 運用
+- `1.21.1-main` への反映は PR 経由のみとし、直接 push しない。
+- required check は `PR CI / build-and-gametest` とする。
+- workflow は `pull_request` でのみ動かし、`pull_request_target` は使わない。
+- CI では repository secrets を使わず、`GITHUB_TOKEN` は read-only に固定する。
+- 通常変更は `merge commit` を使い、バージョン更新 PR だけ `rebase merge` を許可する。
+- `squash merge` は使わない。
+- bootstrap 詰まりを避けるため、workflow を target branch に載せる前に required check を有効化しない。手順は `docs/github-pr-protection.md` に従う。
 
 ## 9. Codex運用上の注意（コメント保全/文字化け対策）
 - 原因整理: Windows PowerShell 5.1（コードページ 932）で `Get-Content` 既定読み取りを使うと、UTF-8日本語が文字化けして表示される。
