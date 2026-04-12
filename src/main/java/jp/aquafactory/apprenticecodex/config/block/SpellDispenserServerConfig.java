@@ -3,23 +3,26 @@ package jp.aquafactory.apprenticecodex.config.block;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class SpellDispenserServerConfig {
-    private final ForgeConfigSpec.BooleanValue relaxedSpellFilter;
+    private final ForgeConfigSpec.BooleanValue ignoreSpellProfileAndDenylistFiles;
 
-    private SpellDispenserServerConfig(ForgeConfigSpec.BooleanValue relaxedSpellFilter) {
-        this.relaxedSpellFilter = relaxedSpellFilter;
+    private SpellDispenserServerConfig(ForgeConfigSpec.BooleanValue ignoreSpellProfileAndDenylistFiles) {
+        this.ignoreSpellProfileAndDenylistFiles = ignoreSpellProfileAndDenylistFiles;
     }
 
     public static SpellDispenserServerConfig define(ForgeConfigSpec.Builder builder) {
-        builder.comment("true にすると Spell Dispenser の spell profile / denylist を無視し、基本条件だけで検証できるようにする")
+        builder.comment(
+                        "WARNING: Ignores Spell Dispenser spell profile and denylist config files.",
+                        "Use at your own risk. This can allow unsupported or intentionally blocked spells."
+                )
                 .push("SpellDispenser");
 
-        var relaxedSpellFilter = builder.define("relaxedSpellFilter", false);
+        var ignoreSpellProfileAndDenylistFiles = builder.define("ignoreSpellProfileAndDenylistFiles", false);
 
         builder.pop();
-        return new SpellDispenserServerConfig(relaxedSpellFilter);
+        return new SpellDispenserServerConfig(ignoreSpellProfileAndDenylistFiles);
     }
 
-    public boolean relaxedSpellFilter() {
-        return relaxedSpellFilter.get();
+    public boolean ignoreSpellProfileAndDenylistFiles() {
+        return ignoreSpellProfileAndDenylistFiles.get();
     }
 }

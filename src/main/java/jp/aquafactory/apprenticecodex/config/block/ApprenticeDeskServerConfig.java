@@ -23,7 +23,7 @@ public final class ApprenticeDeskServerConfig {
     }
 
     public static ApprenticeDeskServerConfig define(ForgeConfigSpec.Builder builder) {
-        builder.comment("spellCraftBlacklist : \"modid:spell_id\"(example: \"irons_spellbooks:black_hole\")")
+        builder.comment("Entries for spellCraftBlacklist use \"modid:spell_id\" (example: \"irons_spellbooks:black_hole\").")
                 .push("ApprenticeDesk");
 
         var enableSpellCraftBlacklist = builder.define("enableSpellCraftBlacklist", false);
