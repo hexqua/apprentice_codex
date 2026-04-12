@@ -1,0 +1,53 @@
+package jp.aquafactory.apprenticecodex.compat.bettercombat;
+
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+
+public final class BetterCombatOffhandSpellSelectionRescueCompat {
+    private BetterCombatOffhandSpellSelectionRescueCompat() {
+    }
+
+    public static void appendSelectionIfNeeded(SpellSelectionManager.SpellSelectionEvent event) {
+        var player = event.getEntity();
+        if (!BetterCombatOffhandAttributeRescueCompat.isRescueActive(player)) {
+            return;
+        }
+
+        if (!event.getManager().getSpellsForSlot(SpellSelectionManager.OFFHAND).isEmpty()) {
+            return;
+        }
+
+        var offhandStack = BetterCombatOffhandAttributeRescueCompat.getPhysicalOffhandStack(player);
+        if (!(offhandStack.getItem() instanceof AbstractOffhandMagicItem offhandMagicItem)) {
+            return;
+        }
+
+        if (!ISpellContainer.isSpellContainer(offhandStack)) {
+            // Better Combat は OFFHAND 装備参照を空へ差し替えるため、
+            // 初期化前の固定魔法だけここで補完して wheel を再構築する。
+            offhandMagicItem.initializeSpellContainer(offhandStack);
+        }
+
+        var spellData = resolveFixedOffhandSpell(offhandStack);
+        if (spellData == SpellData.EMPTY) {
+            return;
+        }
+
+        event.addSelectionOption(spellData, SpellSelectionManager.OFFHAND, 0);
+    }
+
+    private static SpellData resolveFixedOffhandSpell(net.minecraft.world.item.ItemStack offhandStack) {
+        if (!ISpellContainer.isSpellContainer(offhandStack)) {
+            return SpellData.EMPTY;
+        }
+
+        var spellContainer = ISpellContainer.get(offhandStack);
+        if (spellContainer == null || !spellContainer.isSpellWheel() || spellContainer.getActiveSpellCount() <= 0) {
+            return SpellData.EMPTY;
+        }
+
+        return spellContainer.getSpellAtIndex(0);
+    }
+}

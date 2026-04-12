@@ -146,6 +146,7 @@
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "- Phalanx Charge: Increases movement speed while guarding with the shield.",
   "jei.apprenticecodex.offhand_magic_items.desc_1": "Spellcasting aids meant to be used in your offhand.",
   "jei.apprenticecodex.offhand_magic_items.desc_2": "When your main hand holds a weapon or tool without a special use action, you can use these from your offhand-like a staff-to cast spells.",
+  "jei.apprenticecodex.offhand_magic_items.desc_3": "Additionally, you can gain ability bonuses and cast imbued spell when you need to use two-handed weapons.",
 
   "block.apprenticecodex.mage_light_torch" : "Magician's Torch",
   "block.apprenticecodex.personal_shelf_chest" : "Personal Interface",
