@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.create;
 
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
+import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.api.contraption.dispenser.MountedDispenseBehavior;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import io.redspace.ironsspellbooks.api.spells.CastType;
@@ -379,7 +380,68 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         }
 
         setRefillCheckTicks(context, 0);
-        SpellDispenserManaHelper.tryRefillMana(new MountedManaAccess(context));
+        tryRefillMana(context);
+    }
+
+    private static boolean tryRefillMana(MovementContext context) {
+        if (SpellDispenserManaHelper.tryRefillMana(new MountedManaAccess(context))) {
+            return true;
+        }
+
+        return tryRefillManaFromMountedFuelStorage(context);
+    }
+
+    private static boolean tryRefillManaFromMountedFuelStorage(MovementContext context) {
+        var remainingCapacity = SpellDispenserManaHelper.MAX_MANA - getCurrentMana(context);
+        if (remainingCapacity <= 0 || context.contraption == null) {
+            return false;
+        }
+
+        var storageManager = context.contraption.getStorage();
+        if (storageManager == null) {
+            return false;
+        }
+
+        var fuelItems = storageManager.getFuelItems();
+        if (fuelItems == null) {
+            return false;
+        }
+
+        ExternalRefillCandidate bestCandidate = null;
+        // fuelItems は Create 側の exposed / fuel-usable storage だけを残した集合。
+        // Spell Dispenser 自身の storage は localPos で除外し、保護対象の Vault 等には触らない。
+        for (var entry : fuelItems.storages.entrySet()) {
+            var storagePos = entry.getKey();
+            if (context.localPos.equals(storagePos)) {
+                continue;
+            }
+
+            var storage = entry.getValue();
+            for (var slot = 0; slot < storage.getSlots(); ++slot) {
+                var stack = storage.getStackInSlot(slot);
+                var recoveredMana = SpellDispenserManaHelper.getAutomationInputManaRecovery(stack);
+                if (recoveredMana <= 0 || recoveredMana > remainingCapacity) {
+                    continue;
+                }
+
+                var remainder = SpellDispenserManaHelper.consumeAutomationInput(stack);
+                if (remainder.isEmpty() && !stack.isEmpty()) {
+                    continue;
+                }
+
+                if (bestCandidate == null || recoveredMana > bestCandidate.recoveredMana()) {
+                    bestCandidate = new ExternalRefillCandidate(storage, slot, recoveredMana, remainder);
+                }
+            }
+        }
+
+        if (bestCandidate == null) {
+            return false;
+        }
+
+        bestCandidate.storage().setStackInSlot(bestCandidate.slot(), bestCandidate.remainder());
+        setCurrentMana(context, getCurrentMana(context) + bestCandidate.recoveredMana());
+        return true;
     }
 
     private static ContinuousRuntime getContinuousRuntime(MovementContext context) {
@@ -422,6 +484,14 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     }
 
     private record ContinuousRuntime(SpellDispenserCastHelper.ContinuousCastSession session) {
+    }
+
+    private record ExternalRefillCandidate(
+            MountedItemStorage storage,
+            int slot,
+            int recoveredMana,
+            ItemStack remainder
+    ) {
     }
 
     private static final class RuntimeState {

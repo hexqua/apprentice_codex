@@ -62,6 +62,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             return 1;
         }
     };
+    private final IItemHandler automationInventory = new AutomationInventoryHandler();
     @Nullable
     private GameProfile ownerProfile;
     @Nullable
@@ -387,6 +388,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     public void setInventoryStack(int slot, @NotNull ItemStack stack) {
         inventory.setStackInSlot(slot, stack);
     }
+
     private void markUpdated() {
         setChanged();
         if (level instanceof ServerLevel serverLevel) {
@@ -452,7 +454,8 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     }
 
     public @Nullable IItemHandler getItemHandler(@Nullable Direction side) {
-        return inventory;
+        // side == null は内部アクセス(Create mounted storage 含む)として扱い、全面公開する。
+        return side == null ? inventory : automationInventory;
     }
 
     public static void saveCurrentMana(@NotNull CompoundTag tag, int currentMana) {
@@ -477,6 +480,84 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         return Math.max(0, tag.getInt(REFILL_CHECK_TICKS_TAG));
     }
 
+    private final class AutomationInventoryHandler implements IItemHandler {
+        @Override
+        public int getSlots() {
+            return inventory.getSlots();
+        }
+
+        @Override
+        public @NotNull ItemStack getStackInSlot(int slot) {
+            return isValidAutomationSlot(slot) ? inventory.getStackInSlot(slot) : ItemStack.EMPTY;
+        }
+
+        @Override
+        public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+            if (!isValidAutomationInsert(slot, stack)) {
+                return stack;
+            }
+
+            if (!inventory.getStackInSlot(slot).isEmpty()) {
+                return stack;
+            }
+
+            var inserted = stack.copyWithCount(1);
+            if (!simulate) {
+                inventory.setStackInSlot(slot, inserted);
+            }
+
+            var remainder = stack.copy();
+            remainder.shrink(1);
+            return remainder;
+        }
+
+        @Override
+        public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (!isValidAutomationSlot(slot) || amount <= 0) {
+                return ItemStack.EMPTY;
+            }
+
+            var current = inventory.getStackInSlot(slot);
+            if (!SpellDispenserManaHelper.canAutomationExtract(current)) {
+                return ItemStack.EMPTY;
+            }
+
+            var extracted = current.copyWithCount(Math.min(amount, current.getCount()));
+            if (!simulate) {
+                if (current.getCount() <= extracted.getCount()) {
+                    inventory.setStackInSlot(slot, ItemStack.EMPTY);
+                } else {
+                    var remainder = current.copy();
+                    remainder.shrink(extracted.getCount());
+                    inventory.setStackInSlot(slot, remainder);
+                }
+            }
+            return extracted;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            if (!isValidAutomationSlot(slot)) {
+                return 0;
+            }
+            return slot == SPELL_SLOT_INDEX ? 0 : inventory.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+            return isValidAutomationInsert(slot, stack);
+        }
+
+        private boolean isValidAutomationSlot(int slot) {
+            return slot >= 0 && slot < inventory.getSlots();
+        }
+
+        private boolean isValidAutomationInsert(int slot, @NotNull ItemStack stack) {
+            return isValidAutomationSlot(slot)
+                    && slot != SPELL_SLOT_INDEX
+                    && SpellDispenserManaHelper.isAutomationInputItem(stack);
+        }
+    }
     private static @Nullable GameProfile normalizeOwnerProfile(@Nullable GameProfile ownerProfile) {
         if (ownerProfile == null || ownerProfile.getId() == null || ownerProfile.getName() == null || ownerProfile.getName().isBlank()) {
             return null;
