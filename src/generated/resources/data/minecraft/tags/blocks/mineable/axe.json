@@ -1,6 +1,7 @@
 {
   "values": [
     "apprenticecodex:apprentice_desk",
-    "apprenticecodex:spellcaster_workbench"
+    "apprenticecodex:spellcaster_workbench",
+    "apprenticecodex:spell_dispenser"
   ]
 }

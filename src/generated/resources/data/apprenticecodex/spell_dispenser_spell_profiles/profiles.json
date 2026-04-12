@@ -1,28 +1,31 @@
 {
   "values": [
     {
-      "spell": "irons_spellbooks:magic_missile"
+      "spell": "irons_spellbooks:acupuncture"
     },
     {
-      "spell": "irons_spellbooks:heal"
+      "spell": "irons_spellbooks:blood_needles"
     },
     {
-      "spell": "irons_spellbooks:spectral_hammer"
+      "spell": "irons_spellbooks:blood_slash"
     },
     {
-      "spell": "apprenticecodex:mage_light"
+      "spell": "irons_spellbooks:devour"
     },
     {
-      "spell": "apprenticecodex:compound_phial"
+      "spell": "irons_spellbooks:ray_of_siphoning"
     },
     {
-      "spell": "irons_spellbooks:blaze_storm"
+      "spell": "irons_spellbooks:wither_skull"
     },
     {
-      "profile": {
-        "cast_anchor": "tracked_anchor"
-      },
-      "spell": "irons_spellbooks:fire_breath"
+      "spell": "irons_spellbooks:sculk_tentacles"
+    },
+    {
+      "spell": "irons_spellbooks:sonic_boom"
+    },
+    {
+      "spell": "irons_spellbooks:black_hole"
     },
     {
       "profile": {
@@ -31,10 +34,160 @@
       "spell": "irons_spellbooks:dragon_breath"
     },
     {
+      "spell": "irons_spellbooks:magic_arrow"
+    },
+    {
+      "spell": "irons_spellbooks:magic_missile"
+    },
+    {
+      "spell": "irons_spellbooks:shadow_slash"
+    },
+    {
+      "spell": "irons_spellbooks:starfall"
+    },
+    {
+      "spell": "irons_spellbooks:arrow_volley"
+    },
+    {
+      "spell": "irons_spellbooks:chain_creeper"
+    },
+    {
+      "spell": "irons_spellbooks:fang_strike"
+    },
+    {
+      "spell": "irons_spellbooks:fang_ward"
+    },
+    {
+      "spell": "irons_spellbooks:firecracker"
+    },
+    {
+      "spell": "irons_spellbooks:gust"
+    },
+    {
+      "spell": "irons_spellbooks:lob_creeper"
+    },
+    {
+      "spell": "irons_spellbooks:shield"
+    },
+    {
+      "spell": "irons_spellbooks:slow"
+    },
+    {
+      "spell": "irons_spellbooks:spectral_hammer"
+    },
+    {
+      "spell": "irons_spellbooks:blaze_storm"
+    },
+    {
+      "spell": "irons_spellbooks:fire_arrow"
+    },
+    {
+      "profile": {
+        "cast_anchor": "tracked_anchor"
+      },
+      "spell": "irons_spellbooks:fire_breath"
+    },
+    {
+      "spell": "irons_spellbooks:fireball"
+    },
+    {
+      "spell": "irons_spellbooks:firebolt"
+    },
+    {
+      "spell": "irons_spellbooks:flaming_strike"
+    },
+    {
+      "spell": "irons_spellbooks:magma_bomb"
+    },
+    {
+      "spell": "irons_spellbooks:scorch"
+    },
+    {
+      "spell": "irons_spellbooks:blessing_of_life"
+    },
+    {
+      "spell": "irons_spellbooks:cleanse"
+    },
+    {
+      "spell": "irons_spellbooks:divine_smite"
+    },
+    {
+      "spell": "irons_spellbooks:fortify"
+    },
+    {
+      "spell": "irons_spellbooks:guiding_bolt"
+    },
+    {
+      "spell": "irons_spellbooks:haste"
+    },
+    {
+      "spell": "irons_spellbooks:healing_circle"
+    },
+    {
+      "spell": "irons_spellbooks:sunbeam"
+    },
+    {
+      "spell": "irons_spellbooks:wisp"
+    },
+    {
       "profile": {
         "cast_anchor": "tracked_anchor"
       },
       "spell": "irons_spellbooks:cone_of_cold"
+    },
+    {
+      "spell": "irons_spellbooks:frostwave"
+    },
+    {
+      "spell": "irons_spellbooks:ice_block"
+    },
+    {
+      "spell": "irons_spellbooks:ice_spikes"
+    },
+    {
+      "spell": "irons_spellbooks:icicle"
+    },
+    {
+      "spell": "irons_spellbooks:ray_of_frost"
+    },
+    {
+      "spell": "irons_spellbooks:snowball"
+    },
+    {
+      "spell": "irons_spellbooks:ball_lightning"
+    },
+    {
+      "spell": "irons_spellbooks:chain_lightning"
+    },
+    {
+      "profile": {
+        "cast_anchor": "tracked_anchor"
+      },
+      "spell": "irons_spellbooks:electrocute"
+    },
+    {
+      "spell": "irons_spellbooks:lightning_bolt"
+    },
+    {
+      "spell": "irons_spellbooks:lightning_lance"
+    },
+    {
+      "spell": "irons_spellbooks:shockwave"
+    },
+    {
+      "spell": "irons_spellbooks:acid_orb"
+    },
+    {
+      "spell": "irons_spellbooks:blight"
+    },
+    {
+      "spell": "irons_spellbooks:earthquake"
+    },
+    {
+      "spell": "irons_spellbooks:firefly_swarm"
+    },
+    {
+      "spell": "irons_spellbooks:poison_arrow"
     },
     {
       "profile": {
@@ -43,10 +196,94 @@
       "spell": "irons_spellbooks:poison_breath"
     },
     {
-      "profile": {
-        "cast_anchor": "tracked_anchor"
-      },
-      "spell": "irons_spellbooks:electrocute"
+      "spell": "irons_spellbooks:poison_splash"
+    },
+    {
+      "spell": "irons_spellbooks:root"
+    },
+    {
+      "spell": "irons_spellbooks:stomp"
+    },
+    {
+      "spell": "irons_spellbooks:touch_dig"
+    },
+    {
+      "spell": "apprenticecodex:arcane_blast"
+    },
+    {
+      "spell": "apprenticecodex:arcane_beam"
+    },
+    {
+      "spell": "apprenticecodex:quick_arms"
+    },
+    {
+      "spell": "apprenticecodex:feather_rush"
+    },
+    {
+      "spell": "apprenticecodex:slash_blade"
+    },
+    {
+      "spell": "apprenticecodex:precision_jack"
+    },
+    {
+      "spell": "apprenticecodex:auto_turret"
+    },
+    {
+      "spell": "apprenticecodex:search_beacon"
+    },
+    {
+      "spell": "apprenticecodex:thermal_process"
+    },
+    {
+      "spell": "apprenticecodex:mage_light"
+    },
+    {
+      "spell": "apprenticecodex:force_field"
+    },
+    {
+      "spell": "apprenticecodex:illuminate_stellar"
+    },
+    {
+      "spell": "apprenticecodex:unite_luna"
+    },
+    {
+      "spell": "apprenticecodex:sky_edge"
+    },
+    {
+      "spell": "apprenticecodex:breaching_enemy"
+    },
+    {
+      "spell": "apprenticecodex:bullet_stream"
+    },
+    {
+      "spell": "apprenticecodex:fly_swatter"
+    },
+    {
+      "spell": "apprenticecodex:shock"
+    },
+    {
+      "spell": "apprenticecodex:compound_phial"
+    },
+    {
+      "spell": "apprenticecodex:tiny_lumberjack"
+    },
+    {
+      "spell": "apprenticecodex:graced_rain"
+    },
+    {
+      "spell": "apprenticecodex:world_flatter"
+    },
+    {
+      "spell": "apprenticecodex:earth_forge"
+    },
+    {
+      "spell": "apprenticecodex:grind_runner"
+    },
+    {
+      "spell": "apprenticecodex:harvest_moon"
+    },
+    {
+      "spell": "apprenticecodex:moon_light"
     }
   ]
 }

@@ -33,8 +33,8 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.arcanumInAJarTicksPerStoredParameter();
     }
 
-    public static boolean spellDispenserRelaxedSpellFilter() {
-        return BLOCKS_CONFIG.spellDispenserRelaxedSpellFilter();
+    public static boolean spellDispenserIgnoreSpellProfileAndDenylistFiles() {
+        return BLOCKS_CONFIG.spellDispenserIgnoreSpellProfileAndDenylistFiles();
     }
 
     public static boolean apprenticeDeskEnableSpellCraftBlacklist() {
