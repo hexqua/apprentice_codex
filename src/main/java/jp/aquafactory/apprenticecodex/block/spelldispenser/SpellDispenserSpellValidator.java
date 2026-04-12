@@ -60,7 +60,7 @@ public final class SpellDispenserSpellValidator {
         if (spell.getRecastCount(spellData.getLevel(), null) > 0) {
             return new ValidationResult(stack, spellData, FailureReason.HAS_RECAST);
         }
-        if (ApprenticeCodexServerConfig.spellDispenserRelaxedSpellFilter()) {
+        if (ApprenticeCodexServerConfig.spellDispenserIgnoreSpellProfileAndDenylistFiles()) {
             return new ValidationResult(stack, spellData, FailureReason.NONE);
         }
         if (SpellDispenserSpellListManager.isDenylisted(spell)) {

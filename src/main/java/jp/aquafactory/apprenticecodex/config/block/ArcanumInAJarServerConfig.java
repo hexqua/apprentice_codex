@@ -10,7 +10,7 @@ public final class ArcanumInAJarServerConfig {
     }
 
     public static ArcanumInAJarServerConfig define(ModConfigSpec.Builder builder) {
-        builder.comment("20 tick = 1 sec, default = 1 min.")
+        builder.comment("20 ticks = 1 second. Default = 1 minute.")
                 .push("ArcanumInAJar");
         var ticksPerStoredParameter = builder.defineInRange("ticksPerStoredParameter", 3600, 1, Integer.MAX_VALUE);
         builder.pop();

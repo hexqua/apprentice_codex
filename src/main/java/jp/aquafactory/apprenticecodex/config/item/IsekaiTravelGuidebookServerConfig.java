@@ -17,10 +17,10 @@ public final class IsekaiTravelGuidebookServerConfig {
     public static IsekaiTravelGuidebookServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("IsekaiTravelGuidebook");
         var showTooltip = builder
-                .comment("Add tooltip to Isekai Travel Guidebook.(can disable because of immersive)")
+                .comment("Show a tooltip on the Isekai Travel Guidebook. Disable this if it feels too intrusive.")
                 .define("showTooltip", true);
         var enableBonusChestLoot = builder
-                .comment("Add Isekai Travel Guidebook to bonus chest loot.")
+                .comment("Add the Isekai Travel Guidebook to bonus chest loot.")
                 .define("enableBonusChestLoot", true);
         builder.pop();
 

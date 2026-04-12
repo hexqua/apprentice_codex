@@ -24,8 +24,10 @@ public final class ApprenticeCodexCommonConfig {
         DISABLE_ARCANUM_IN_A_JAR_RECIPE = builder.define("disableArcanumInAJarRecipe", false);
         DISABLE_EXPLORERS_CODEX_RECIPE = builder.define("disableExplorersCodexRecipe", false);
         builder.pop();
-        builder.comment(" schoolAffinityPriority / schoolAffinityDeny : \"modid:school_id\"",
-                        " If exists not empty \"data/" + ApprenticeCodex.MODID + "/school_affinity_policies/*.json\", use that instead.")
+        builder.comment(
+                        "Entries for schoolAffinityPriority and schoolAffinityDeny use \"modid:school_id\".",
+                        "If non-empty files exist under \"data/" + ApprenticeCodex.MODID + "/school_affinity_policies/*.json\", those files take precedence."
+                )
                 .push("SchoolAffinity");
         SCHOOL_AFFINITY_PRIORITY = builder.defineList("schoolAffinityPriority", java.util.List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());
