@@ -19,6 +19,8 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
@@ -38,6 +40,7 @@ import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTra
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
@@ -74,6 +77,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
@@ -85,6 +89,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -2784,7 +2789,7 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void healingBloomIgnoresOwnerDamageAndStaysSavable(GameTestHelper helper) {
+    public static void healingBloomAcceptsOwnerDamageAndStaysSavable(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_owner_test"));
@@ -2792,16 +2797,17 @@ public final class ApprenticeCodexGameTests {
             bloom.setOwner(owner);
             bloom.setAnchorPos(new BlockPos(0, 2, 0));
             helper.assertTrue(bloom.shouldBeSaved(), "Healing Bloom should now be saved with the world");
-            helper.assertFalse(bloom.hurt(level.damageSources().playerAttack(owner), 2.0f),
-                    "Healing Bloom should ignore damage from its owner");
+            helper.assertTrue(bloom.hurt(level.damageSources().playerAttack(owner), 2.0f),
+                    "Healing Bloom should now accept damage from its owner");
         });
     }
 
     @GameTest(template = TEMPLATE)
     public static void healingBloomRootLossUsesDeathState(GameTestHelper helper) {
         var level = helper.getLevel();
-        var anchorPos = new BlockPos(0, 2, 0);
-        helper.setBlock(anchorPos.below(), Blocks.DIRT);
+        var relativeAnchorPos = new BlockPos(0, 2, 0);
+        var anchorPos = helper.absolutePos(relativeAnchorPos);
+        helper.setBlock(relativeAnchorPos.below(), Blocks.DIRT);
 
         var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_root_loss_test"));
         var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
@@ -2811,7 +2817,7 @@ public final class ApprenticeCodexGameTests {
         bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
         helper.getLevel().addFreshEntity(bloom);
 
-        helper.runAtTickTime(1, () -> helper.setBlock(anchorPos.below(), Blocks.AIR));
+        helper.runAtTickTime(1, () -> helper.setBlock(relativeAnchorPos.below(), Blocks.AIR));
         helper.runAtTickTime(3, () -> {
             var blooms = level.getEntitiesOfClass(HealingBloomEntity.class, new net.minecraft.world.phys.AABB(anchorPos).inflate(1.5));
             helper.assertTrue(!blooms.isEmpty(),
@@ -2819,6 +2825,144 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(blooms.stream().allMatch(entity -> !entity.isAlive() || entity.isDeadOrDying()),
                     "Healing Bloom should enter its death state when its root is lost");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var relativeAnchorPos = new BlockPos(0, 2, 0);
+        var anchorPos = helper.absolutePos(relativeAnchorPos);
+        helper.setBlock(relativeAnchorPos.below(), Blocks.STONE);
+
+        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_regen_test"));
+        var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+        bloom.setOwner(owner);
+        bloom.setAnchorPos(anchorPos);
+        bloom.setBloomMaxHealth(10.0f);
+        bloom.setHealth(5.0f);
+        bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
+        level.addFreshEntity(bloom);
+
+        helper.runAtTickTime(45, () -> {
+            helper.assertFalse(bloom.hasEffect(MobEffects.REGENERATION),
+                    "Healing Bloom should not grant its own regeneration effect to itself");
+            helper.assertTrue(Math.abs(bloom.getHealth() - 5.0f) < 0.01f,
+                    "Healing Bloom should not recover before its low-speed natural heal ticks");
+        });
+        helper.runAtTickTime(81, () -> {
+            helper.assertTrue(Math.abs(bloom.getHealth() - 6.0f) < 0.01f,
+                    "Healing Bloom should recover exactly one point from low-speed natural healing after 80 ticks");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomCanBePlacedOnSupportedSlab(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_slab_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE_SLAB);
+
+            castHealingBloom(helper, owner, 1, anchorPos, false);
+
+            var bloom = getSingleLivingHealingBloom(helper, owner);
+            helper.assertTrue(Math.abs(bloom.getY() - (helper.absolutePos(anchorPos).below().getY() + 0.5)) < 0.01,
+                    "Healing Bloom should now sit on top of a slab support instead of refusing the placement");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomNormalRecastFailsForSameOwner(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_recast_same_owner_test");
+            var firstAnchor = new BlockPos(0, 2, 0);
+            var secondAnchor = new BlockPos(2, 2, 0);
+            helper.setBlock(firstAnchor.below(), Blocks.STONE);
+            helper.setBlock(secondAnchor.below(), Blocks.STONE);
+
+            castHealingBloom(helper, owner, 1, firstAnchor, false);
+            var firstBloom = getSingleLivingHealingBloom(helper, owner);
+
+            castHealingBloom(helper, owner, 1, secondAnchor, false);
+
+            var blooms = getOwnedHealingBlooms(helper, owner);
+            helper.assertTrue(blooms.size() == 1,
+                    "Healing Bloom should still allow only one active bloom for the same owner");
+            helper.assertTrue(blooms.get(0) == firstBloom,
+                    "Healing Bloom should keep the original bloom when recast without sneaking");
+            helper.assertTrue(firstBloom.blockPosition().equals(helper.absolutePos(firstAnchor)),
+                    "Healing Bloom should remain at the original anchor after a blocked recast");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomAllowsDifferentOwnersToEachHaveOne(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var firstOwner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_owner_a_test");
+            var secondOwner = createHealingBloomPlayer(helper, new BlockPos(4, 2, 0), "healing_bloom_owner_b_test");
+            var firstAnchor = new BlockPos(0, 2, 0);
+            var secondAnchor = new BlockPos(4, 2, 0);
+            helper.setBlock(firstAnchor.below(), Blocks.STONE);
+            helper.setBlock(secondAnchor.below(), Blocks.STONE);
+
+            castHealingBloom(helper, firstOwner, 1, firstAnchor, false);
+            castHealingBloom(helper, secondOwner, 1, secondAnchor, false);
+
+            helper.assertTrue(getOwnedHealingBlooms(helper, firstOwner).size() == 1,
+                    "The first owner should keep exactly one Healing Bloom");
+            helper.assertTrue(getOwnedHealingBlooms(helper, secondOwner).size() == 1,
+                    "A different owner should be able to place a separate Healing Bloom");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomMissingManagedBloomDoesNotBlockRecast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_missing_state_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+
+            var spellData = Capabilities.getSpellDataOrNull(owner);
+            helper.assertTrue(spellData != null,
+                    "Healing Bloom stale-state test could not resolve spell data capability");
+            spellData.edit(CodexSpellStateTypeRegister.HEALING_BLOOM_STATE, state -> state.setBloomUuid(UUID.randomUUID()));
+
+            castHealingBloom(helper, owner, 1, anchorPos, false);
+
+            helper.assertTrue(getOwnedHealingBlooms(helper, owner).size() == 1,
+                    "A missing managed Healing Bloom should not block recasting for the same owner");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomSneakCastReplacesOnlyOwnersPreviousBloom(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var firstOwner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_force_owner_a_test");
+            var secondOwner = createHealingBloomPlayer(helper, new BlockPos(4, 2, 0), "healing_bloom_force_owner_b_test");
+            var firstAnchor = new BlockPos(0, 2, 0);
+            var replacementAnchor = new BlockPos(2, 2, 0);
+            var secondAnchor = new BlockPos(4, 2, 0);
+            helper.setBlock(firstAnchor.below(), Blocks.STONE);
+            helper.setBlock(replacementAnchor.below(), Blocks.STONE);
+            helper.setBlock(secondAnchor.below(), Blocks.STONE);
+
+            castHealingBloom(helper, firstOwner, 1, firstAnchor, false);
+            var previousBloom = getSingleLivingHealingBloom(helper, firstOwner);
+            castHealingBloom(helper, secondOwner, 1, secondAnchor, false);
+            var otherOwnersBloom = getSingleLivingHealingBloom(helper, secondOwner);
+
+            castHealingBloom(helper, firstOwner, 1, replacementAnchor, true);
+
+            var currentBloom = getSingleLivingHealingBloom(helper, firstOwner);
+            helper.assertTrue(currentBloom != previousBloom,
+                    "Sneak casting should create a new Healing Bloom for the owner");
+            helper.assertTrue(currentBloom.blockPosition().equals(helper.absolutePos(replacementAnchor)),
+                    "The replacement Healing Bloom should appear at the new anchor");
+            helper.assertTrue(!previousBloom.isAlive() || previousBloom.isDeadOrDying(),
+                    "The previous Healing Bloom should enter its death state after the replacement bloom is created");
+            helper.assertTrue(otherOwnersBloom.isAlive() && otherOwnersBloom.blockPosition().equals(helper.absolutePos(secondAnchor)),
+                    "Replacing your own Healing Bloom should not affect blooms owned by other players");
         });
     }
 
@@ -3078,6 +3222,47 @@ public final class ApprenticeCodexGameTests {
     private static void castHarvestMoon(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.HARVEST_MOON.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static FakePlayer createHealingBloomPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static void castHealingBloom(GameTestHelper helper, FakePlayer player, int spellLevel, BlockPos anchorPos, boolean forceReplace) {
+        var spell = (HealingBloom) SpellRegistry.HEALING_BLOOM.get();
+        var castData = new HealingBloom.HealingBloomCastData();
+        var absoluteAnchorPos = helper.absolutePos(anchorPos);
+        var tag = new CompoundTag();
+        tag.putInt("PositionX", absoluteAnchorPos.getX());
+        tag.putInt("PositionY", absoluteAnchorPos.getY());
+        tag.putInt("PositionZ", absoluteAnchorPos.getZ());
+        tag.putBoolean("ForceReplace", forceReplace);
+        castData.deserializeNBT(tag);
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.setAdditionalCastData(castData);
+        spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
+    }
+
+    private static java.util.List<HealingBloomEntity> getOwnedHealingBlooms(GameTestHelper helper, FakePlayer owner) {
+        var blooms = new java.util.ArrayList<HealingBloomEntity>();
+        for (var entity : helper.getLevel().getAllEntities()) {
+            if (entity instanceof HealingBloomEntity bloom
+                    && bloom.isAlive()
+                    && owner.getUUID().equals(bloom.getOwnerUuid())) {
+                blooms.add(bloom);
+            }
+        }
+        return blooms;
+    }
+
+    private static HealingBloomEntity getSingleLivingHealingBloom(GameTestHelper helper, FakePlayer owner) {
+        var blooms = getOwnedHealingBlooms(helper, owner);
+        helper.assertTrue(blooms.size() == 1, "Expected exactly one living Healing Bloom but found " + blooms.size());
+        return blooms.get(0);
     }
 
     private static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
