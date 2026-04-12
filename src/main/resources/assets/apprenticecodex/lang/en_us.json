@@ -222,6 +222,7 @@
   "container.apprenticecodex.spell_dispenser.status.no_active_spell": "The inserted item has no active spell",
   "container.apprenticecodex.spell_dispenser.status.multiple_spells": "Items with multiple active spells are not supported yet",
   "container.apprenticecodex.spell_dispenser.status.owner_missing": "Cannot cast because the placer profile is missing",
+  "container.apprenticecodex.spell_dispenser.status.insufficient_mana": "Cannot cast because it does not have enough mana",
   "container.apprenticecodex.spell_dispenser.status.unsupported_cast": "%s does not use an INSTANT, LONG, or CONTINUOUS cast type",
   "container.apprenticecodex.spell_dispenser.status.has_recast": "%s is excluded because it has recast",
   "container.apprenticecodex.spell_dispenser.status.not_profiled": "%s has no Spell Dispenser profile",

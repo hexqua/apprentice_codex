@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -70,6 +72,7 @@ public final class SpellDispenser extends BaseEntityBlock {
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
             spellDispenser.setOwnerProfile(player.getGameProfile());
+            spellDispenser.setCurrentMana(resolveInitialMana(player));
         }
     }
 
@@ -189,5 +192,25 @@ public final class SpellDispenser extends BaseEntityBlock {
         if (!result.reachedOnCast()) {
             level.playSound(null, pos, SoundEvents.DISPENSER_FAIL, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
+    }
+
+    private static int resolveInitialMana(@NotNull Player player) {
+        // 設置時にだけ設置者の手持ちマナを吸い上げる。しゃがみ設置は opt-out として 0 開始にする。
+        if (player.isShiftKeyDown()) {
+            return 0;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null) {
+            return 0;
+        }
+
+        var transferableMana = Math.min(SpellDispenserManaHelper.MAX_MANA, Mth.floor(magicData.getMana()));
+        if (transferableMana <= 0) {
+            return 0;
+        }
+
+        magicData.setMana(Math.max(0.0F, magicData.getMana() - transferableMana));
+        return transferableMana;
     }
 }

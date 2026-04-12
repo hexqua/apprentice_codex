@@ -45,7 +45,18 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
-        return tryCast(level, Vec3.atCenterOf(pos), Vec3.atLowerCornerOf(facing.getNormal()), spellSource, ownerProfile);
+        return tryCast(level, Vec3.atCenterOf(pos), Vec3.atLowerCornerOf(facing.getNormal()), spellSource, ownerProfile, null);
+    }
+
+    public static CastResult tryCast(
+            ServerLevel level,
+            BlockPos pos,
+            Direction facing,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
+    ) {
+        return tryCast(level, Vec3.atCenterOf(pos), Vec3.atLowerCornerOf(facing.getNormal()), spellSource, ownerProfile, manaAccess);
     }
 
     public static CastResult tryCast(
@@ -55,7 +66,18 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
-        return tryCast(level, Vec3.atCenterOf(pos), forward, spellSource, ownerProfile);
+        return tryCast(level, Vec3.atCenterOf(pos), forward, spellSource, ownerProfile, null);
+    }
+
+    public static CastResult tryCast(
+            ServerLevel level,
+            BlockPos pos,
+            Vec3 forward,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
+    ) {
+        return tryCast(level, Vec3.atCenterOf(pos), forward, spellSource, ownerProfile, manaAccess);
     }
 
     public static CastResult tryCast(
@@ -64,6 +86,17 @@ public final class SpellDispenserCastHelper {
             Vec3 forward,
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
+    ) {
+        return tryCast(level, castBasePosition, forward, spellSource, ownerProfile, null);
+    }
+
+    public static CastResult tryCast(
+            ServerLevel level,
+            Vec3 castBasePosition,
+            Vec3 forward,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
     ) {
         var failurePos = BlockPos.containing(castBasePosition);
         var validation = SpellDispenserSpellValidator.validate(spellSource);
@@ -94,6 +127,7 @@ public final class SpellDispenserCastHelper {
                 magicData.initiateCast(spell, spellData.getLevel(), 0, CastSource.COMMAND, SpellSelectionManager.MAINHAND);
                 // 短命な proxy にも casting item を持たせ、scroll 起点の通常経路に近い条件で検証する。
                 magicData.setPlayerCastingItem(spellSource.copy());
+                syncProxyMana(manaAccess, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.INITIATE_CAST, exception, false, 0);
                 notifyFailureToNearbyPlayers(level, failurePos, result);
@@ -102,6 +136,7 @@ public final class SpellDispenserCastHelper {
 
             final boolean canCast;
             try {
+                syncProxyMana(manaAccess, magicData);
                 canCast = spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.CHECK_PRE_CAST, exception, false, 0);
@@ -113,6 +148,7 @@ public final class SpellDispenserCastHelper {
             }
 
             try {
+                syncProxyMana(manaAccess, magicData);
                 spell.onServerPreCast(level, spellData.getLevel(), spellCaster, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_PRE_CAST, exception, false, 0);
@@ -120,9 +156,14 @@ public final class SpellDispenserCastHelper {
                 return result;
             }
 
+            if (manaAccess != null && !SpellDispenserManaHelper.tryConsumeSpellMana(manaAccess, spellData)) {
+                return CastResult.insufficientMana(validation);
+            }
+
             try {
                 // 空撃ち音を suppress する条件は「発射処理へ入れたか」で判断する。
                 // そのため onCast 本体へ到達した時点からは失敗でも reachedOnCast=true として扱う。
+                syncProxyMana(manaAccess, magicData);
                 spell.onCast(level, spellData.getLevel(), spellCaster, CastSource.COMMAND, magicData);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.CAST, exception, true, cooldownTicks);
@@ -131,6 +172,7 @@ public final class SpellDispenserCastHelper {
             }
 
             try {
+                syncProxyMana(manaAccess, magicData);
                 spell.onServerCastComplete(level, spellData.getLevel(), spellCaster, magicData, false);
             } catch (RuntimeException exception) {
                 result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_CAST_COMPLETE, exception, true, cooldownTicks);
@@ -153,7 +195,19 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
-        return tryStartContinuousCast(level, Vec3.atCenterOf(pos), Vec3.atLowerCornerOf(facing.getNormal()), validation, spellSource, ownerProfile);
+        return tryStartContinuousCast(level, Vec3.atCenterOf(pos), Vec3.atLowerCornerOf(facing.getNormal()), validation, spellSource, ownerProfile, null);
+    }
+
+    public static ContinuousCastStartResult tryStartContinuousCast(
+            ServerLevel level,
+            BlockPos pos,
+            Direction facing,
+            SpellDispenserSpellValidator.ValidationResult validation,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
+    ) {
+        return tryStartContinuousCast(level, Vec3.atCenterOf(pos), Vec3.atLowerCornerOf(facing.getNormal()), validation, spellSource, ownerProfile, manaAccess);
     }
 
     public static ContinuousCastStartResult tryStartContinuousCast(
@@ -164,7 +218,19 @@ public final class SpellDispenserCastHelper {
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
     ) {
-        return tryStartContinuousCast(level, Vec3.atCenterOf(pos), forward, validation, spellSource, ownerProfile);
+        return tryStartContinuousCast(level, Vec3.atCenterOf(pos), forward, validation, spellSource, ownerProfile, null);
+    }
+
+    public static ContinuousCastStartResult tryStartContinuousCast(
+            ServerLevel level,
+            BlockPos pos,
+            Vec3 forward,
+            SpellDispenserSpellValidator.ValidationResult validation,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
+    ) {
+        return tryStartContinuousCast(level, Vec3.atCenterOf(pos), forward, validation, spellSource, ownerProfile, manaAccess);
     }
 
     public static ContinuousCastStartResult tryStartContinuousCast(
@@ -174,6 +240,18 @@ public final class SpellDispenserCastHelper {
             SpellDispenserSpellValidator.ValidationResult validation,
             ItemStack spellSource,
             @Nullable GameProfile ownerProfile
+    ) {
+        return tryStartContinuousCast(level, castBasePosition, forward, validation, spellSource, ownerProfile, null);
+    }
+
+    public static ContinuousCastStartResult tryStartContinuousCast(
+            ServerLevel level,
+            Vec3 castBasePosition,
+            Vec3 forward,
+            SpellDispenserSpellValidator.ValidationResult validation,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
     ) {
         var failurePos = BlockPos.containing(castBasePosition);
         if (!validation.isSupported()) {
@@ -201,6 +279,7 @@ public final class SpellDispenserCastHelper {
             var castDuration = Math.max(0, spell.getEffectiveCastTime(spellData.getLevel(), proxy));
             magicData.initiateCast(spell, spellData.getLevel(), castDuration, CastSource.COMMAND, SpellSelectionManager.MAINHAND);
             magicData.setPlayerCastingItem(spellSource.copy());
+            syncProxyMana(manaAccess, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.INITIATE_CAST, exception, false, 0);
             notifyFailureToNearbyPlayers(level, failurePos, result);
@@ -210,6 +289,7 @@ public final class SpellDispenserCastHelper {
 
         final boolean canCast;
         try {
+            syncProxyMana(manaAccess, magicData);
             canCast = spell.checkPreCastConditions(level, spellData.getLevel(), spellCaster, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.CHECK_PRE_CAST, exception, false, 0);
@@ -223,12 +303,18 @@ public final class SpellDispenserCastHelper {
         }
 
         try {
+            syncProxyMana(manaAccess, magicData);
             spell.onServerPreCast(level, spellData.getLevel(), spellCaster, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(validation, spellId, CastStage.SERVER_PRE_CAST, exception, false, 0);
             notifyFailureToNearbyPlayers(level, failurePos, result);
             cleanupProxy(spellId, magicData, proxy, trackedAnchor);
             return new ContinuousCastStartResult(result, null);
+        }
+
+        if (manaAccess != null && !SpellDispenserManaHelper.tryConsumeSpellMana(manaAccess, spellData)) {
+            cleanupProxy(spellId, magicData, proxy, trackedAnchor);
+            return new ContinuousCastStartResult(CastResult.insufficientMana(validation), null);
         }
 
         return new ContinuousCastStartResult(
@@ -241,7 +327,8 @@ public final class SpellDispenserCastHelper {
                         proxy,
                         magicData,
                         trackedAnchor,
-                        cooldownTicks
+                        cooldownTicks,
+                        manaAccess
                 )
         );
     }
@@ -266,6 +353,7 @@ public final class SpellDispenserCastHelper {
         var proxy = session.proxy();
         var spellCaster = session.spellCaster();
         var magicData = session.magicData();
+        syncProxyMana(session.manaAccess(), magicData);
 
         proxy.tickCount++;
         syncTrackedAnchor(session);
@@ -279,8 +367,14 @@ public final class SpellDispenserCastHelper {
         }
 
         if ((magicData.getCastDurationRemaining() + 1) % CONTINUOUS_CAST_TICK_INTERVAL == 0) {
+            if (session.manaAccess() != null && !SpellDispenserManaHelper.tryConsumeSpellMana(session.manaAccess(), spellData)) {
+                finishContinuousCast(level, session, true);
+                return false;
+            }
+
             session.markReachedOnCast();
             try {
+                syncProxyMana(session.manaAccess(), magicData);
                 spell.onCast(level, spellData.getLevel(), spellCaster, CastSource.COMMAND, magicData);
             } catch (RuntimeException exception) {
                 var result = CastResult.exceptionFailure(
@@ -304,6 +398,7 @@ public final class SpellDispenserCastHelper {
         }
 
         try {
+            syncProxyMana(session.manaAccess(), magicData);
             spell.onServerCastTick(level, spellData.getLevel(), spellCaster, magicData);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(session.validation(), session.spellId(), CastStage.SERVER_CAST_TICK, exception, session.hasReachedOnCast(), session.hasReachedOnCast() ? session.cooldownTicks() : 0);
@@ -315,6 +410,12 @@ public final class SpellDispenserCastHelper {
         return !session.isFinished();
     }
 
+    private static void syncProxyMana(@Nullable SpellDispenserManaHelper.ManaAccess manaAccess, MagicData magicData) {
+        if (manaAccess != null) {
+            magicData.setMana(manaAccess.getCurrentMana());
+        }
+    }
+
     public static void finishContinuousCast(ServerLevel level, ContinuousCastSession session, boolean cancelled) {
         if (session.isFinished()) {
             return;
@@ -323,6 +424,7 @@ public final class SpellDispenserCastHelper {
         session.markFinished(session.hasReachedOnCast() ? session.cooldownTicks() : 0);
         var spellData = session.validation().spellData();
         try {
+            syncProxyMana(session.manaAccess(), session.magicData());
             spellData.getSpell().onServerCastComplete(level, spellData.getLevel(), session.spellCaster(), session.magicData(), cancelled);
         } catch (RuntimeException exception) {
             var result = CastResult.exceptionFailure(
@@ -548,14 +650,15 @@ public final class SpellDispenserCastHelper {
             @Nullable RuntimeException exception,
             boolean reachedOnCast,
             int cooldownTicks,
-            boolean missingOwnerProfile
+            boolean missingOwnerProfile,
+            boolean insufficientMana
     ) {
         private static CastResult success(
                 SpellDispenserSpellValidator.ValidationResult validation,
                 ResourceLocation spellId,
                 int cooldownTicks
         ) {
-            return new CastResult(true, validation, spellId, null, null, true, cooldownTicks, false);
+            return new CastResult(true, validation, spellId, null, null, true, cooldownTicks, false, false);
         }
 
         public static CastResult validationFailure(SpellDispenserSpellValidator.ValidationResult validation) {
@@ -564,16 +667,21 @@ public final class SpellDispenserCastHelper {
 
         public static CastResult cooldownBlocked(SpellDispenserSpellValidator.ValidationResult validation) {
             var spellId = validation.spellData() == SpellData.EMPTY ? null : validation.spellData().getSpell().getSpellResource();
-            return new CastResult(false, validation, spellId, null, null, false, 0, false);
+            return new CastResult(false, validation, spellId, null, null, false, 0, false, false);
         }
 
         private static CastResult preCastRejected(SpellDispenserSpellValidator.ValidationResult validation, ResourceLocation spellId) {
-            return new CastResult(false, validation, spellId, null, null, false, 0, false);
+            return new CastResult(false, validation, spellId, null, null, false, 0, false, false);
         }
 
         public static CastResult missingOwnerProfile(SpellDispenserSpellValidator.ValidationResult validation) {
             var spellId = validation.spellData() == SpellData.EMPTY ? null : validation.spellData().getSpell().getSpellResource();
-            return new CastResult(false, validation, spellId, null, null, false, 0, true);
+            return new CastResult(false, validation, spellId, null, null, false, 0, true, false);
+        }
+
+        public static CastResult insufficientMana(SpellDispenserSpellValidator.ValidationResult validation) {
+            var spellId = validation.spellData() == SpellData.EMPTY ? null : validation.spellData().getSpell().getSpellResource();
+            return new CastResult(false, validation, spellId, null, null, false, 0, false, true);
         }
 
         private static CastResult exceptionFailure(
@@ -585,7 +693,7 @@ public final class SpellDispenserCastHelper {
                 int cooldownTicks
         ) {
             ApprenticeCodex.LOGGER.warn("Spell Dispenser cast failed at {}: {}", failedStage.name(), spellId, exception);
-            return new CastResult(false, validation, spellId, failedStage, exception, reachedOnCast, cooldownTicks, false);
+            return new CastResult(false, validation, spellId, failedStage, exception, reachedOnCast, cooldownTicks, false, false);
         }
 
         public @Nullable Component createExceptionMessage(net.minecraft.server.level.ServerPlayer player) {
@@ -627,6 +735,8 @@ public final class SpellDispenserCastHelper {
         private final MagicData magicData;
         private final int cooldownTicks;
         @Nullable
+        private final SpellDispenserManaHelper.ManaAccess manaAccess;
+        @Nullable
         private SpellDispenserAnchorEntity trackedAnchor;
         private boolean finished;
         private boolean reachedOnCast;
@@ -640,7 +750,8 @@ public final class SpellDispenserCastHelper {
                 FakePlayer proxy,
                 MagicData magicData,
                 @Nullable SpellDispenserAnchorEntity trackedAnchor,
-                int cooldownTicks
+                int cooldownTicks,
+                @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
         ) {
             this.spellId = validation.spellData().getSpell().getSpellResource();
             this.origin = origin.immutable();
@@ -651,6 +762,7 @@ public final class SpellDispenserCastHelper {
             this.magicData = magicData;
             this.trackedAnchor = trackedAnchor;
             this.cooldownTicks = Math.max(0, cooldownTicks);
+            this.manaAccess = manaAccess;
             this.finished = false;
             this.reachedOnCast = false;
             this.finishedCooldownTicks = 0;
@@ -686,6 +798,10 @@ public final class SpellDispenserCastHelper {
 
         public int cooldownTicks() {
             return cooldownTicks;
+        }
+
+        public @Nullable SpellDispenserManaHelper.ManaAccess manaAccess() {
+            return manaAccess;
         }
 
         public @Nullable SpellDispenserAnchorEntity trackedAnchor() {
