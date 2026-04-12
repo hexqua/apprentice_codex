@@ -1447,6 +1447,189 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var spellbreaker = ForgeRegistries.ITEMS.getValue(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
+            );
+            helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat regression test");
+            var spellbreakerAttributes = net.bettercombat.logic.WeaponRegistry.getAttributes(new ItemStack(spellbreaker));
+            helper.assertTrue(spellbreakerAttributes != null && spellbreakerAttributes.isTwoHanded(),
+                    "Better Combat spellbreaker should resolve as a two-handed weapon but got " + spellbreakerAttributes);
+
+            var amplifierStack = new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
+            var amplifierEvent = new ItemAttributeModifierEvent(
+                    amplifierStack,
+                    EquipmentSlot.OFFHAND,
+                    ItemRegistry.IRON_SPELL_AMPLIFIER.get().getAttributeModifiers(EquipmentSlot.OFFHAND, amplifierStack)
+            );
+            MinecraftForge.EVENT_BUS.post(amplifierEvent);
+
+            var spellPowerBonus = sumModifierAmount(
+                    amplifierEvent.getModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            );
+            helper.assertTrue(Math.abs(spellPowerBonus - 0.05D) < 1.0e-9D,
+                    "Iron Spell Amplifier should expose +0.05 spell power in offhand modifiers but got "
+                            + spellPowerBonus + " modifiers=" + describeModifiers(amplifierEvent.getModifiers()));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var ironAmplifier = new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
+            ironAmplifier.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            var rescuedIronModifiers =
+                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                            .buildRescueModifiers(ironAmplifier);
+
+            var rescuedSpellPowerBonus = sumModifierAmount(
+                    rescuedIronModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            );
+            helper.assertTrue(Math.abs(rescuedSpellPowerBonus - 0.07D) < 1.0e-9D,
+                    "Better Combat rescue should keep Iron Spell Amplifier + Surge at +0.07 spell power but got "
+                            + rescuedSpellPowerBonus + " modifiers=" + describeModifiers(rescuedIronModifiers));
+
+            var copperAmplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var copperAmplifier = new ItemStack(copperAmplifierItem);
+            copperAmplifierItem.initializeSpellContainer(copperAmplifier);
+            copperAmplifier.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+            var rescuedCopperModifiers =
+                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                            .buildRescueModifiers(copperAmplifier);
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(copperAmplifier);
+            helper.assertTrue(imbuedSchool != null,
+                    "Copper Spell Amplifier rescue test could not resolve imbued school");
+            var imbuedSpellPowerAttribute =
+                    jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(imbuedSpellPowerAttribute != null,
+                    "Copper Spell Amplifier rescue test could not resolve school spell power attribute");
+
+            var rescuedAttunementBonus = sumModifierAmount(
+                    rescuedCopperModifiers.get(imbuedSpellPowerAttribute),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            );
+            helper.assertTrue(Math.abs(rescuedAttunementBonus - 0.14D) < 1.0e-9D,
+                    "Better Combat rescue should keep Copper Spell Amplifier base + Attunement at +0.14 but got "
+                            + rescuedAttunementBonus + " modifiers=" + describeModifiers(rescuedCopperModifiers));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void betterCombatRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var spellbreaker = ForgeRegistries.ITEMS.getValue(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
+            );
+            helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat rescue test");
+
+            var player = createBetterCombatHiddenOffhandPlayer(
+                    helper,
+                    new ItemStack(spellbreaker),
+                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    "better_combat_hidden_offhand_attribute_test"
+            );
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Better Combat should hide getOffhandItem() for spellbreaker but returned " + player.getOffhandItem());
+
+            var physicalOffhand =
+                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                            .getPhysicalOffhandStack(player);
+            helper.assertTrue(
+                    physicalOffhand.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    "Physical offhand resolver should keep Silver Spell Amplifier but got " + physicalOffhand
+            );
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                            .isRescueActive(player),
+                    "Better Combat rescue should stay active while physical offhand stack exists"
+            );
+
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var expectedMaxManaBonus = sumModifierAmount(
+                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                            .buildRescueModifiers(physicalOffhand)
+                            .get(maxManaAttribute),
+                    AttributeModifier.Operation.ADDITION
+            );
+            helper.assertTrue(expectedMaxManaBonus > 0.0D,
+                    "Silver Spell Amplifier Better Combat rescue should provide positive max mana but got "
+                            + expectedMaxManaBonus);
+
+            var baseMaxMana = player.getAttributeValue(maxManaAttribute);
+            jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat.sync(player);
+            var rescuedMaxMana = player.getAttributeValue(maxManaAttribute);
+            helper.assertTrue(Math.abs((rescuedMaxMana - baseMaxMana) - expectedMaxManaBonus) < 1.0e-9D,
+                    "Better Combat rescue should restore Silver Spell Amplifier max mana by "
+                            + expectedMaxManaBonus + " but changed from " + baseMaxMana + " to " + rescuedMaxMana);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var spellbreaker = ForgeRegistries.ITEMS.getValue(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
+            );
+            helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat spell rescue test");
+
+            var copperAmplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var copperAmplifier = new ItemStack(copperAmplifierItem);
+            copperAmplifierItem.initializeSpellContainer(copperAmplifier);
+            var expectedSpell = ISpellContainer.get(copperAmplifier).getSpellAtIndex(0);
+            helper.assertTrue(expectedSpell != SpellData.EMPTY,
+                    "Copper Spell Amplifier should expose a fixed offhand spell for Better Combat spell rescue test");
+
+            var player = createBetterCombatHiddenOffhandPlayer(
+                    helper,
+                    new ItemStack(spellbreaker),
+                    copperAmplifier,
+                    "better_combat_hidden_offhand_spell_test"
+            );
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Better Combat should hide getOffhandItem() for spellbreaker spell rescue but returned "
+                            + player.getOffhandItem());
+
+            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var offhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND);
+            helper.assertTrue(offhandSelections.size() == 1,
+                    "Better Combat spell rescue should add exactly one fixed offhand spell but got "
+                            + offhandSelections.size() + " selections=" + offhandSelections);
+
+            var rescuedSpell = selectionManager.getSpellForSlot(
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+                    0
+            );
+            helper.assertTrue(
+                    rescuedSpell != SpellData.EMPTY
+                            && rescuedSpell.getSpell().equals(expectedSpell.getSpell())
+                            && rescuedSpell.getLevel() == expectedSpell.getLevel(),
+                    "Better Combat spell rescue should restore Copper Spell Amplifier fixed spell "
+                            + expectedSpell + " but got " + rescuedSpell
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertCastingMoveSpeedAdjustment(helper, 0.0D, 0.8D, "No external bonus should keep full cancellation");
@@ -2338,6 +2521,24 @@ public final class ApprenticeCodexGameTests {
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
+        return player;
+    }
+
+    private static FakePlayer createBetterCombatHiddenOffhandPlayer(
+            GameTestHelper helper,
+            ItemStack mainHandStack,
+            ItemStack offhandStack,
+            String profileName
+    ) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
+
+        // Better Combat に空扱いされても inventory.offhand[0] 自体は保持されるので、
+        // 救済系テストは実スロットへ直接積んで隠蔽前提を再現する。
+        player.getInventory().offhand.set(0, offhandStack.copy());
         return player;
     }
 

@@ -146,6 +146,7 @@
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "- ファランクスチャージ：盾を構えた時の移動速度が上昇する。",
   "jei.apprenticecodex.offhand_magic_items.desc_1": "利き手ではない方につけて使う魔法詠唱補助具。",
   "jei.apprenticecodex.offhand_magic_items.desc_2": "利き手に特殊な機能を持たない武器や道具などを持っている時に、杖と同じようにオフハンド側で使用することで魔法を詠唱できる。",
+  "jei.apprenticecodex.offhand_magic_items.desc_3": "また、両手で武器を持つ必要がある状態でも補助具についた能力ボーナスと注入した魔法を選択することができる。",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",

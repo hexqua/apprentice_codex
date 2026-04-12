@@ -201,6 +201,12 @@ public abstract class AbstractOffhandMagicItem extends Item
         return false;
     }
 
+    // Better Combat は両手武器中に OFFHAND 装備参照を空へ差し替えるため、
+    // 救済可否の責務を offhand 専用品側へ寄せて個別調整できるようにする。
+    public boolean allowsBetterCombatOffhandRescue(ItemStack stack) {
+        return true;
+    }
+
     protected static void addEquippedModifier(
             ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
             Attribute attribute,
