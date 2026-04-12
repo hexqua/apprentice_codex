@@ -63,7 +63,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
             buffer.writeVarInt(SpellDispenserBlockEntity.readCurrentMana(blockInfo.nbt()));
             for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {
                 var stack = slot < mountedInventory.getSlots() ? mountedInventory.getStackInSlot(slot).copy() : net.minecraft.world.item.ItemStack.EMPTY;
-                buffer.writeItem(stack);
+                net.minecraft.world.item.ItemStack.STREAM_CODEC.encode(buffer, stack);
             }
         });
         return true;

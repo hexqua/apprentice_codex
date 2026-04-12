@@ -321,7 +321,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             var currentMana = SpellDispenserManaHelper.clampMana(data.readVarInt());
             var inventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
             for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {
-                inventory.setStackInSlot(slot, data.readItem());
+                inventory.setStackInSlot(slot, ItemStack.STREAM_CODEC.decode(data));
             }
             return new MenuContext(blockPos, null, inventory, true, hasOwnerProfile, ownerName, null, currentMana);
         }

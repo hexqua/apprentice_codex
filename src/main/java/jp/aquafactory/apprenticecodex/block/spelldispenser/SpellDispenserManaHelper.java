@@ -2,12 +2,12 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellDispenserManaHelper {
@@ -154,13 +154,13 @@ public final class SpellDispenserManaHelper {
     }
 
     private static boolean isSupportedManaPotion(@NotNull ItemStack stack) {
-        if (!stack.is(Items.POTION) || !MobEffectRegistry.INSTANT_MANA.isPresent()) {
+        if (!stack.is(Items.POTION)) {
             return false;
         }
 
-        var effects = PotionUtils.getMobEffects(stack);
+        var effects = PotionContentsHelper.getMobEffects(stack);
         return !effects.isEmpty()
-                && effects.stream().allMatch(effect -> effect.getEffect() == MobEffectRegistry.INSTANT_MANA.get());
+                && effects.stream().allMatch(effect -> effect.getEffect().value() == MobEffectRegistry.INSTANT_MANA.get());
     }
 
     private static boolean isEmptyFlask(@NotNull ItemStack stack) {
@@ -168,12 +168,12 @@ public final class SpellDispenserManaHelper {
     }
 
     private static int resolveManaRecoveryFromPotionStack(@NotNull ItemStack potionStack, int amplifierBonus) {
-        if (potionStack.isEmpty() || !MobEffectRegistry.INSTANT_MANA.isPresent()) {
+        if (potionStack.isEmpty()) {
             return 0;
         }
 
-        for (var effect : PotionUtils.getMobEffects(potionStack)) {
-            if (effect.getEffect() == MobEffectRegistry.INSTANT_MANA.get()) {
+        for (var effect : PotionContentsHelper.getMobEffects(potionStack)) {
+            if (effect.getEffect().value() == MobEffectRegistry.INSTANT_MANA.get()) {
                 return resolveManaRecoveryFromAmplifier(effect.getAmplifier() + amplifierBonus);
             }
         }
@@ -192,9 +192,7 @@ public final class SpellDispenserManaHelper {
     }
 
     private static int getGlowEnergyLevel(@NotNull ItemStack flaskStack) {
-        return EnchantmentRegistry.GLOW_ENERGY.isPresent()
-                ? flaskStack.getEnchantmentLevel(EnchantmentRegistry.GLOW_ENERGY.get())
-                : 0;
+        return Enchantments.getLevel(flaskStack, Enchantments.GLOW_ENERGY);
     }
 
     public interface ManaAccess {

@@ -64,6 +64,7 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
 import net.minecraft.core.BlockPos;
@@ -112,7 +113,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -912,12 +912,13 @@ public final class ApprenticeCodexGameTests {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var itemHandler = blockEntity.getItemHandler(Direction.UP);
             var manaFlask = createFilledSpellcastersFlask(
+                    helper.getLevel().registryAccess(),
                     createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
                     1,
                     0
             );
-            var nonManaPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
-            var nonManaFlask = createFilledSpellcastersFlask(nonManaPotion, 1, 0);
+            var nonManaPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.HEALING.value());
+            var nonManaFlask = createFilledSpellcastersFlask(helper.getLevel().registryAccess(), nonManaPotion, 1, 0);
 
             helper.assertTrue(itemHandler != null, "Spell Dispenser item capability was not exposed for flask slot validation");
             helper.assertTrue(
@@ -1048,7 +1049,7 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(spellDispenser.getCurrentMana() == 930,
                     "Spell Dispenser did not pick the highest refill that still fits: " + spellDispenser.getCurrentMana());
             helper.assertTrue(
-                    ItemStack.isSameItemSameTags(
+                    ItemStack.isSameItemSameComponents(
                             spellDispenser.getInventory().getStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START),
                             overflowPotion
                     ),
@@ -1073,6 +1074,7 @@ public final class ApprenticeCodexGameTests {
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
 
             var glowEnergyFlask = createFilledSpellcastersFlask(
+                    helper.getLevel().registryAccess(),
                     createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
                     1,
                     1
@@ -1360,7 +1362,7 @@ public final class ApprenticeCodexGameTests {
                 tickCreateSpellDispenserMovement(harness);
             }
 
-            helper.assertTrue(ItemStack.isSameItemSameTags(externalInventory.getStackInSlot(0), manaPotion),
+            helper.assertTrue(ItemStack.isSameItemSameComponents(externalInventory.getStackInSlot(0), manaPotion),
                     "Create-mounted Spell Dispenser consumed a potion from protected contraption storage");
         });
     }
@@ -1418,6 +1420,7 @@ public final class ApprenticeCodexGameTests {
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
             var itemHandler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
             var filledFlask = createFilledSpellcastersFlask(
+                    helper.getLevel().registryAccess(),
                     createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
                     1,
                     0
@@ -3981,13 +3984,20 @@ public final class ApprenticeCodexGameTests {
     }
 
     private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
-        return PotionUtils.setPotion(new ItemStack(Items.POTION), potion);
+        return PotionContentsHelper.createPotionStack(Items.POTION, potion);
     }
 
-    private static ItemStack createFilledSpellcastersFlask(ItemStack storedItem, int doseCount, int glowEnergyLevel) {
+    private static ItemStack createFilledSpellcastersFlask(
+            RegistryAccess registryAccess,
+            ItemStack storedItem,
+            int doseCount,
+            int glowEnergyLevel
+    ) {
         var flask = new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get());
-        if (EnchantmentRegistry.GLOW_ENERGY.isPresent() && glowEnergyLevel > 0) {
-            flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), glowEnergyLevel);
+        if (glowEnergyLevel > 0) {
+            registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
+                    .get(Enchantments.GLOW_ENERGY)
+                    .ifPresent(enchantment -> flask.enchant(enchantment, glowEnergyLevel));
         }
         return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
     }
