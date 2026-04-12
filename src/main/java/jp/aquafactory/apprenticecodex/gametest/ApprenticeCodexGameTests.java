@@ -63,6 +63,7 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
+import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
@@ -131,7 +132,9 @@ import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
@@ -2462,6 +2465,58 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertApprenticeEnchantmentFlags(helper, Enchantments.ALACRITY, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.REFLUX, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.RESERVOIR, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.SURGE, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.ATTUNEMENT, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.TENSE, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.WISDOM, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.PLUNDER, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.TRANSCENDENCE, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.GUZZLE, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.LARGE_MUG, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.RED_ENERGY, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.GLOW_ENERGY, false, false, true);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var function = EnchantRandomlyFunction.randomApplicableEnchantment().build();
+            var seenApprenticeEnchantments = new LinkedHashSet<ResourceLocation>();
+
+            for (long seed = 0L; seed < 4096L; ++seed) {
+                var result = function.apply(new ItemStack(Items.BOOK), createEmptyLootContext(helper, seed));
+                var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(result);
+                helper.assertTrue(result.is(Items.ENCHANTED_BOOK),
+                        "Random applicable enchantment loot should convert books into enchanted books");
+                helper.assertTrue(enchantments.size() == 1,
+                        "Random applicable enchantment loot should apply exactly one enchantment: " + enchantments);
+
+                for (var enchantment : enchantments.keySet()) {
+                    var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
+                    if (enchantmentId == null || !ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
+                        continue;
+                    }
+
+                    helper.assertFalse(ApprenticeEnchantmentAvailability.isFlaskExclusiveEnchantment(enchantment.value()),
+                            "Random applicable enchantment loot included flask enchantment: " + enchantmentId + " at seed " + seed);
+                    seenApprenticeEnchantments.add(enchantmentId);
+                }
+            }
+
+            var expectedEnchantments = expectedRandomBookLootEnchantments();
+            helper.assertTrue(seenApprenticeEnchantments.containsAll(expectedEnchantments),
+                    "Random applicable enchantment loot lost apprentice enchantments: "
+                            + describeEnchantmentDifference(expectedEnchantments, seenApprenticeEnchantments));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertCategoryEnchantments(
@@ -3490,6 +3545,20 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
+    private static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
+        return registryIdSet(
+                Enchantments.ALACRITY,
+                Enchantments.REFLUX,
+                Enchantments.RESERVOIR,
+                Enchantments.SURGE,
+                Enchantments.ATTUNEMENT,
+                Enchantments.TENSE,
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER
+        );
+    }
+
     private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
@@ -3588,6 +3657,23 @@ public final class ApprenticeCodexGameTests {
         unexpectedEnchantments.removeAll(expectedEnchantments);
 
         return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
+    }
+
+    private static void assertApprenticeEnchantmentFlags(
+            GameTestHelper helper,
+            ResourceKey<Enchantment> enchantmentKey,
+            boolean expectedTreasureOnly,
+            boolean expectedTradeable,
+            boolean expectedDiscoverable
+    ) {
+        var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(enchantmentKey).value();
+        var enchantmentId = enchantmentKey.location();
+        helper.assertTrue(enchantment.isTreasureOnly() == expectedTreasureOnly,
+                "Treasure flag changed for " + enchantmentId + ": expected " + expectedTreasureOnly + " but got " + enchantment.isTreasureOnly());
+        helper.assertTrue(enchantment.isTradeable() == expectedTradeable,
+                "Tradeable flag changed for " + enchantmentId + ": expected " + expectedTradeable + " but got " + enchantment.isTradeable());
+        helper.assertTrue(enchantment.isDiscoverable() == expectedDiscoverable,
+                "Discoverable flag changed for " + enchantmentId + ": expected " + expectedDiscoverable + " but got " + enchantment.isDiscoverable());
     }
 
     private static void assertBaseAttackModifier(
@@ -3914,6 +4000,12 @@ public final class ApprenticeCodexGameTests {
 
     private static LootParams createEmptyLootParams(GameTestHelper helper) {
         return new LootParams.Builder(helper.getLevel()).create(LootContextParamSets.EMPTY);
+    }
+
+    private static LootContext createEmptyLootContext(GameTestHelper helper, long seed) {
+        return new LootContext.Builder(createEmptyLootParams(helper))
+                .withOptionalRandomSeed(seed)
+                .create(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/random_applicable_enchantment"));
     }
 
     private static void assertLootTableGeneratesAllItems(
