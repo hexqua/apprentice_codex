@@ -132,7 +132,7 @@ dependencies {
     // ランタイム検証時のみ必要に応じてON.
     compileOnly fg.deobf("curse.maven:create-328085:7178761")
     compileOnly fg.deobf("com.tterrag.registrate:Registrate:MC1.20-1.3.3")
-    // runtimeOnly fg.deobf("curse.maven:create-328085:7178761")
+    runtimeOnly fg.deobf("curse.maven:create-328085:7178761")
 
     // EasyMagic.
     // 必要に応じてON、デフォルトは入れない(前提にはしないため)
