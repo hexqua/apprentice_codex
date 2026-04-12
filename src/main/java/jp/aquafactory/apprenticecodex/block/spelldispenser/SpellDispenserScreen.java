@@ -8,7 +8,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
@@ -41,9 +40,6 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
     private static final int MANA_BAR_HEIGHT = 52;
     private static final int MANA_BAR_U = 0;
     private static final int MANA_BAR_V = 204;
-    private static final int DISPLAY_MANA = 600;
-    private static final int DISPLAY_MAX_MANA = 1000;
-
     public SpellDispenserScreen(SpellDispenserMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         imageWidth = 176;
@@ -79,8 +75,8 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
                     font,
                     Component.translatable(
                             "container.apprenticecodex.spell_dispenser.mana.tooltip",
-                            DISPLAY_MANA,
-                            DISPLAY_MAX_MANA
+                            menu.getCurrentMana(),
+                            menu.getMaxMana()
                     ),
                     mouseX,
                     mouseY
@@ -106,7 +102,11 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
     }
 
     private void renderDisplayedMana(GuiGraphics gui) {
-        var filledHeight = Mth.clamp((int) Math.floor((double) DISPLAY_MANA * MANA_BAR_HEIGHT / DISPLAY_MAX_MANA), 0, MANA_BAR_HEIGHT);
+        var filledHeight = Mth.clamp(
+                (int) Math.floor((double) menu.getCurrentMana() * MANA_BAR_HEIGHT / Math.max(1, menu.getMaxMana())),
+                0,
+                MANA_BAR_HEIGHT
+        );
         if (filledHeight <= 0) {
             return;
         }

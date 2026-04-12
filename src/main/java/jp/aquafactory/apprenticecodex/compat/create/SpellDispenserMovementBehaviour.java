@@ -6,6 +6,7 @@ import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -21,6 +22,8 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     private static final String CONTINUOUS_RESET_REQUIRED_TAG = "SpellDispenserContinuousResetRequired";
     private static final String LAST_POWERED_TAG = "SpellDispenserContinuousLastPowered";
     private static final String COOLDOWN_REMAINING_TAG = "CooldownRemaining";
+    private static final String CURRENT_MANA_TAG = "CurrentMana";
+    private static final String REFILL_CHECK_TICKS_TAG = "RefillCheckTicks";
     private static final int CONTINUOUS_STATE_IDLE = 0;
     private static final int CONTINUOUS_STATE_CASTING = 1;
     private static final int CONTINUOUS_STATE_WAITING_FOR_RESET = 2;
@@ -33,6 +36,8 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
                 : CONTINUOUS_STATE_IDLE);
         setContinuousResetRequired(context, getContinuousState(context) == CONTINUOUS_STATE_WAITING_FOR_RESET);
         setRemainingCooldownTicks(context, Math.max(0, context.blockEntityData.getInt(COOLDOWN_REMAINING_TAG)));
+        setCurrentMana(context, SpellDispenserBlockEntity.readCurrentMana(context.blockEntityData));
+        setRefillCheckTicks(context, SpellDispenserBlockEntity.readRefillCheckTicks(context.blockEntityData));
         setLastPowered(context, false);
     }
 
@@ -76,7 +81,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         }
 
         var forward = resolveForward(context);
-        var castResult = SpellDispenserCastHelper.tryCast(serverLevel, pos, forward, spellSource.copy(), ownerProfile);
+        var castResult = SpellDispenserCastHelper.tryCast(serverLevel, pos, forward, spellSource.copy(), ownerProfile, new MountedManaAccess(context));
         playActivationSound(serverLevel, pos, castResult);
         startCooldown(context, castResult.cooldownTicks());
     }
@@ -88,6 +93,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         }
 
         tickCooldown(context);
+        tickRefillCheck(context);
         var runtime = getContinuousRuntime(context);
         if (!isContinuousSpell(context)) {
             finishContinuousCast(serverLevel, context, runtime, true);
@@ -162,7 +168,8 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
                 resolveForward(context),
                 validation,
                 spellSource.copy(),
-                ownerProfile
+                ownerProfile,
+                new MountedManaAccess(context)
         );
         playActivationSound(serverLevel, resolveSoundPos(context), startResult.result());
         if (startResult.result().succeeded() && startResult.session() != null) {
@@ -301,6 +308,32 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         context.blockEntityData.putInt(COOLDOWN_REMAINING_TAG, normalized);
     }
 
+    private static int getCurrentMana(MovementContext context) {
+        if (context.data.contains(CURRENT_MANA_TAG)) {
+            return SpellDispenserManaHelper.clampMana(context.data.getInt(CURRENT_MANA_TAG));
+        }
+        return SpellDispenserBlockEntity.readCurrentMana(context.blockEntityData);
+    }
+
+    private static void setCurrentMana(MovementContext context, int currentMana) {
+        var normalized = SpellDispenserManaHelper.clampMana(currentMana);
+        context.data.putInt(CURRENT_MANA_TAG, normalized);
+        SpellDispenserBlockEntity.saveCurrentMana(context.blockEntityData, normalized);
+    }
+
+    private static int getRefillCheckTicks(MovementContext context) {
+        if (context.data.contains(REFILL_CHECK_TICKS_TAG)) {
+            return Math.max(0, context.data.getInt(REFILL_CHECK_TICKS_TAG));
+        }
+        return SpellDispenserBlockEntity.readRefillCheckTicks(context.blockEntityData);
+    }
+
+    private static void setRefillCheckTicks(MovementContext context, int refillCheckTicks) {
+        var normalized = Math.max(0, refillCheckTicks);
+        context.data.putInt(REFILL_CHECK_TICKS_TAG, normalized);
+        SpellDispenserBlockEntity.saveRefillCheckTicks(context.blockEntityData, normalized);
+    }
+
     private static void startCooldown(MovementContext context, int cooldownTicks) {
         if (cooldownTicks <= 0) {
             return;
@@ -316,6 +349,17 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         }
 
         setRemainingCooldownTicks(context, remaining - 1);
+    }
+
+    private static void tickRefillCheck(MovementContext context) {
+        var refillCheckTicks = getRefillCheckTicks(context) + 1;
+        if (refillCheckTicks < SpellDispenserManaHelper.REFILL_INTERVAL_TICKS) {
+            setRefillCheckTicks(context, refillCheckTicks);
+            return;
+        }
+
+        setRefillCheckTicks(context, 0);
+        SpellDispenserManaHelper.tryRefillMana(new MountedManaAccess(context));
     }
 
     private static ContinuousRuntime getContinuousRuntime(MovementContext context) {
@@ -335,4 +379,41 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
     private record ContinuousRuntime(SpellDispenserCastHelper.ContinuousCastSession session) {
     }
+
+    private record MountedManaAccess(MovementContext context) implements SpellDispenserManaHelper.ManaAccess {
+
+        @Override
+            public int getCurrentMana() {
+                return SpellDispenserMovementBehaviour.getCurrentMana(context);
+            }
+
+            @Override
+            public void setCurrentMana(int mana) {
+                SpellDispenserMovementBehaviour.setCurrentMana(context, mana);
+            }
+
+            @Override
+            public int getInventorySlotCount() {
+                var itemStorage = context.getItemStorage();
+                return itemStorage == null ? 0 : itemStorage.getSlots();
+            }
+
+            @Override
+            public @NotNull ItemStack getInventoryStack(int slot) {
+                var itemStorage = context.getItemStorage();
+                if (itemStorage == null || slot < 0 || slot >= itemStorage.getSlots()) {
+                    return ItemStack.EMPTY;
+                }
+                return itemStorage.getStackInSlot(slot);
+            }
+
+            @Override
+            public void setInventoryStack(int slot, @NotNull ItemStack stack) {
+                var itemStorage = context.getItemStorage();
+                if (itemStorage == null || slot < 0 || slot >= itemStorage.getSlots()) {
+                    return;
+                }
+                itemStorage.setStackInSlot(slot, stack);
+            }
+        }
 }

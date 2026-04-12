@@ -3,17 +3,16 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.core.Direction;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -26,7 +25,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class SpellDispenserBlockEntity extends BlockEntity implements MenuProvider {
+public final class SpellDispenserBlockEntity extends BlockEntity
+        implements MenuProvider, SpellDispenserManaHelper.ManaAccess {
     public static final int SPELL_SLOT_INDEX = 0;
     public static final int FLASK_SLOT_START = 1;
     public static final int FLASK_SLOT_COUNT = 8;
@@ -36,6 +36,9 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     private static final String OWNER_NAME_TAG = "OwnerName";
     private static final String CONTINUOUS_RESET_REQUIRED_TAG = "ContinuousResetRequired";
     private static final String COOLDOWN_REMAINING_TAG = "CooldownRemaining";
+    private static final String CURRENT_MANA_TAG = "CurrentMana";
+    private static final String REFILL_CHECK_TICKS_TAG = "RefillCheckTicks";
+
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_SLOT_COUNT) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -47,8 +50,8 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
             if (slot == SPELL_SLOT_INDEX) {
                 return SpellDispenserSpellValidator.isPlaceableScroll(stack);
             }
-            // flask 枠は今後の自動供給処理を別ブランチで足しやすいよう scroll 枠と分離しておく。
-            return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get());
+            // 空瓶も残留先として許可し、補充候補の判定は Spell Dispenser 側ロジックへ集約する。
+            return SpellDispenserManaHelper.isSupportedFlaskSlotItem(stack);
         }
 
         @Override
@@ -62,6 +65,8 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     private SpellDispenserCastHelper.ContinuousCastSession activeContinuousCast;
     private boolean continuousResetRequired;
     private int remainingCooldownTicks;
+    private int currentMana = SpellDispenserManaHelper.MAX_MANA;
+    private int refillCheckTicks;
 
     public SpellDispenserBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELL_DISPENSER.get(), pos, state);
@@ -114,6 +119,19 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         return remainingCooldownTicks;
     }
 
+    @Override
+    public int getCurrentMana() {
+        return currentMana;
+    }
+
+    public int getMaxMana() {
+        return SpellDispenserManaHelper.MAX_MANA;
+    }
+
+    public boolean canAffordSpell(SpellData spellData) {
+        return SpellDispenserManaHelper.canAffordSpell(currentMana, spellData);
+    }
+
     public SpellDispenserCastHelper.CastResult tryActivate() {
         if (!(level instanceof ServerLevel serverLevel)) {
             return new SpellDispenserCastHelper.CastResult(
@@ -124,6 +142,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
                     null,
                     false,
                     0,
+                    false,
                     false
             );
         }
@@ -138,6 +157,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
                     null,
                     false,
                     0,
+                    false,
                     false
             );
         }
@@ -158,6 +178,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
                     null,
                     false,
                     0,
+                    false,
                     false
             );
         }
@@ -178,7 +199,8 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
                     spellDispenser.getFacing(state),
                     validation,
                     source.copy(),
-                    ownerProfile
+                    ownerProfile,
+                    this
             );
             if (startResult.result().succeeded()) {
                 startContinuousCast(startResult.session());
@@ -191,7 +213,8 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
                 worldPosition,
                 spellDispenser.getFacing(state),
                 source.copy(),
-                ownerProfile
+                ownerProfile,
+                this
         );
         startCooldown(result.cooldownTicks());
         return result;
@@ -202,7 +225,8 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     }
 
     private void serverTick(ServerLevel level, BlockPos pos, BlockState state) {
-        tickCooldown(state);
+        tickCooldown();
+        tickRefillCheck();
 
         if (activeContinuousCast == null) {
             return;
@@ -319,6 +343,8 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         saveOwnerProfile(tag, ownerProfile);
         tag.putBoolean(CONTINUOUS_RESET_REQUIRED_TAG, continuousResetRequired);
         tag.putInt(COOLDOWN_REMAINING_TAG, remainingCooldownTicks);
+        saveCurrentMana(tag, currentMana);
+        saveRefillCheckTicks(tag, refillCheckTicks);
     }
 
     @Override
@@ -328,8 +354,35 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         ownerProfile = readOwnerProfile(tag);
         continuousResetRequired = tag.getBoolean(CONTINUOUS_RESET_REQUIRED_TAG);
         remainingCooldownTicks = Math.max(0, tag.getInt(COOLDOWN_REMAINING_TAG));
+        currentMana = readCurrentMana(tag);
+        refillCheckTicks = readRefillCheckTicks(tag);
     }
 
+    @Override
+    public void setCurrentMana(int mana) {
+        var normalizedMana = SpellDispenserManaHelper.clampMana(mana);
+        if (currentMana == normalizedMana) {
+            return;
+        }
+
+        currentMana = normalizedMana;
+        markUpdated();
+    }
+
+    @Override
+    public int getInventorySlotCount() {
+        return inventory.getSlots();
+    }
+
+    @Override
+    public @NotNull ItemStack getInventoryStack(int slot) {
+        return inventory.getStackInSlot(slot);
+    }
+
+    @Override
+    public void setInventoryStack(int slot, @NotNull ItemStack stack) {
+        inventory.setStackInSlot(slot, stack);
+    }
     private void markUpdated() {
         setChanged();
         if (level instanceof ServerLevel serverLevel) {
@@ -355,12 +408,23 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         setChanged();
     }
 
-    private void tickCooldown(@NotNull BlockState state) {
-        var coolingDown = remainingCooldownTicks > 0;
-        if (coolingDown) {
+    private void tickCooldown() {
+        if (remainingCooldownTicks > 0) {
             remainingCooldownTicks--;
             setChanged();
         }
+    }
+
+    private void tickRefillCheck() {
+        refillCheckTicks++;
+        if (refillCheckTicks < SpellDispenserManaHelper.REFILL_INTERVAL_TICKS) {
+            setChanged();
+            return;
+        }
+
+        refillCheckTicks = 0;
+        setChanged();
+        SpellDispenserManaHelper.tryRefillMana(this);
     }
 
     public static void saveOwnerProfile(@NotNull CompoundTag tag, @Nullable GameProfile ownerProfile) {
@@ -385,6 +449,28 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
 
     public @Nullable IItemHandler getItemHandler(@Nullable Direction side) {
         return inventory;
+    }
+
+    public static void saveCurrentMana(@NotNull CompoundTag tag, int currentMana) {
+        tag.putInt(CURRENT_MANA_TAG, SpellDispenserManaHelper.clampMana(currentMana));
+    }
+
+    public static int readCurrentMana(@Nullable CompoundTag tag) {
+        if (tag == null || !tag.contains(CURRENT_MANA_TAG, net.minecraft.nbt.Tag.TAG_INT)) {
+            return SpellDispenserManaHelper.MAX_MANA;
+        }
+        return SpellDispenserManaHelper.clampMana(tag.getInt(CURRENT_MANA_TAG));
+    }
+
+    public static void saveRefillCheckTicks(@NotNull CompoundTag tag, int refillCheckTicks) {
+        tag.putInt(REFILL_CHECK_TICKS_TAG, Math.max(0, refillCheckTicks));
+    }
+
+    public static int readRefillCheckTicks(@Nullable CompoundTag tag) {
+        if (tag == null) {
+            return 0;
+        }
+        return Math.max(0, tag.getInt(REFILL_CHECK_TICKS_TAG));
     }
 
     private static @Nullable GameProfile normalizeOwnerProfile(@Nullable GameProfile ownerProfile) {

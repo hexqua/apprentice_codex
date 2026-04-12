@@ -40,12 +40,20 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
 
             @Override
             public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int containerId, net.minecraft.world.entity.player.@NotNull Inventory inventory, @NotNull Player menuPlayer) {
-                return SpellDispenserMenu.createMounted(containerId, inventory, localPos, mountedInventory, ownerProfile != null);
+                return SpellDispenserMenu.createMounted(
+                        containerId,
+                        inventory,
+                        localPos,
+                        mountedInventory,
+                        ownerProfile != null,
+                        () -> SpellDispenserBlockEntity.readCurrentMana(blockInfo.nbt())
+                );
             }
         }, buffer -> {
             buffer.writeBoolean(true);
             buffer.writeBlockPos(localPos);
             buffer.writeBoolean(ownerProfile != null);
+            buffer.writeVarInt(SpellDispenserBlockEntity.readCurrentMana(blockInfo.nbt()));
             for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {
                 var stack = slot < mountedInventory.getSlots() ? mountedInventory.getStackInSlot(slot).copy() : net.minecraft.world.item.ItemStack.EMPTY;
                 buffer.writeItem(stack);
