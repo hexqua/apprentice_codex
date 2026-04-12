@@ -4,7 +4,6 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -185,19 +184,6 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
     public SpellDispenserSpellValidator.ValidationResult getValidation(Player player) {
         return SpellDispenserSpellValidator.validate(getSpellSource());
-    }
-
-    public @NotNull Component getStatus(Player player) {
-        if (!hasOwnerProfile()) {
-            return Component.translatable("container.apprenticecodex.spell_dispenser.status.owner_missing");
-        }
-
-        var validation = getValidation(player);
-        if (validation.isSupported() && !SpellDispenserManaHelper.canAffordSpell(getCurrentMana(), validation.spellData())) {
-            return Component.translatable("container.apprenticecodex.spell_dispenser.status.insufficient_mana");
-        }
-
-        return validation.getStatus(player);
     }
 
     public boolean isReadyToCast(Player player) {

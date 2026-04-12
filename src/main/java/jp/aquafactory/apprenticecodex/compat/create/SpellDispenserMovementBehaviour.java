@@ -16,6 +16,10 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public final class SpellDispenserMovementBehaviour implements MovementBehaviour {
     private static final String CONTINUOUS_STATE_TAG = "SpellDispenserContinuousState";
@@ -30,7 +34,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
     @Override
     public void startMoving(MovementContext context) {
-        context.temporaryData = null;
+        context.temporaryData = new RuntimeState();
         setContinuousState(context, getContinuousState(context) == CONTINUOUS_STATE_WAITING_FOR_RESET
                 ? CONTINUOUS_STATE_WAITING_FOR_RESET
                 : CONTINUOUS_STATE_IDLE);
@@ -49,19 +53,25 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
         var spellSource = getSpellSource(context);
         if (spellSource.isEmpty()) {
-            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.validationFailure(SpellDispenserSpellValidator.validate(spellSource)));
+            var result = SpellDispenserCastHelper.CastResult.noScroll(SpellDispenserSpellValidator.validate(spellSource));
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
         if (ownerProfile == null) {
-            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.missingOwnerProfile(SpellDispenserSpellValidator.validate(spellSource)));
+            var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(SpellDispenserSpellValidator.validate(spellSource));
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
         var validation = SpellDispenserSpellValidator.validate(spellSource);
         if (!validation.isSupported()) {
-            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.validationFailure(validation));
+            var result = SpellDispenserCastHelper.CastResult.validationFailure(validation);
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
@@ -71,17 +81,22 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
         if (castType != CastType.INSTANT && castType != CastType.LONG) {
-            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.validationFailure(validation));
+            var result = SpellDispenserCastHelper.CastResult.validationFailure(validation);
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
         if (isCoolingDown(context)) {
-            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.cooldownBlocked(validation));
+            var result = SpellDispenserCastHelper.CastResult.cooldownBlocked(validation, getRemainingCooldownTicks(context));
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
         var forward = resolveForward(context);
         var castResult = SpellDispenserCastHelper.tryCast(serverLevel, pos, forward, spellSource.copy(), ownerProfile, new MountedManaAccess(context));
+        notifyFailure(serverLevel, pos, context, castResult);
         playActivationSound(serverLevel, pos, castResult);
         startCooldown(context, castResult.cooldownTicks());
     }
@@ -124,7 +139,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             SpellDispenserCastHelper.syncContinuousCastTransform(runtime.session(), resolveCastBasePosition(context), resolveForward(context));
             if (!SpellDispenserCastHelper.tickContinuousCast(serverLevel, runtime.session())) {
                 startCooldown(context, runtime.session().consumeFinishedCooldownTicks());
-                context.temporaryData = null;
+                getOrCreateRuntimeState(context).setContinuousRuntime(null);
                 setContinuousState(context, CONTINUOUS_STATE_WAITING_FOR_RESET);
                 setContinuousResetRequired(context, true);
                 setLastPowered(context, true);
@@ -150,14 +165,18 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         var spellSource = getSpellSource(context);
         var validation = SpellDispenserSpellValidator.validate(spellSource);
         if (isCoolingDown(context)) {
-            playActivationSound(serverLevel, resolveSoundPos(context), SpellDispenserCastHelper.CastResult.cooldownBlocked(validation));
+            var result = SpellDispenserCastHelper.CastResult.cooldownBlocked(validation, getRemainingCooldownTicks(context));
+            notifyFailure(serverLevel, resolveSoundPos(context), context, result);
+            playActivationSound(serverLevel, resolveSoundPos(context), result);
             setLastPowered(context, true);
             return;
         }
 
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
         if (ownerProfile == null) {
-            playActivationSound(serverLevel, resolveSoundPos(context), SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation));
+            var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation);
+            notifyFailure(serverLevel, resolveSoundPos(context), context, result);
+            playActivationSound(serverLevel, resolveSoundPos(context), result);
             setLastPowered(context, true);
             return;
         }
@@ -171,9 +190,10 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
                 ownerProfile,
                 new MountedManaAccess(context)
         );
+        notifyFailure(serverLevel, resolveSoundPos(context), context, startResult.result());
         playActivationSound(serverLevel, resolveSoundPos(context), startResult.result());
         if (startResult.result().succeeded() && startResult.session() != null) {
-            context.temporaryData = new ContinuousRuntime(startResult.session());
+            getOrCreateRuntimeState(context).setContinuousRuntime(new ContinuousRuntime(startResult.session()));
             setContinuousState(context, CONTINUOUS_STATE_CASTING);
             setContinuousResetRequired(context, false);
         } else {
@@ -193,7 +213,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         if (context.world instanceof ServerLevel serverLevel) {
             finishContinuousCast(serverLevel, context, getContinuousRuntime(context), true);
         } else {
-            context.temporaryData = null;
+            context.temporaryData = new RuntimeState();
         }
 
         setContinuousState(context, CONTINUOUS_STATE_IDLE);
@@ -274,7 +294,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         if (runtime != null) {
             SpellDispenserCastHelper.finishContinuousCast(level, runtime.session(), cancelled);
             startCooldown(context, runtime.session().consumeFinishedCooldownTicks());
-            context.temporaryData = null;
+            getOrCreateRuntimeState(context).setContinuousRuntime(null);
         }
     }
 
@@ -363,7 +383,31 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     }
 
     private static ContinuousRuntime getContinuousRuntime(MovementContext context) {
-        return context.temporaryData instanceof ContinuousRuntime runtime ? runtime : null;
+        var state = getOrCreateRuntimeState(context);
+        return state.continuousRuntime();
+    }
+
+    private static RuntimeState getOrCreateRuntimeState(MovementContext context) {
+        if (context.temporaryData instanceof RuntimeState state) {
+            return state;
+        }
+        var state = new RuntimeState();
+        context.temporaryData = state;
+        return state;
+    }
+
+    private static void notifyFailure(
+            ServerLevel level,
+            BlockPos pos,
+            MovementContext context,
+            SpellDispenserCastHelper.CastResult result
+    ) {
+        SpellDispenserCastHelper.notifyFailureToNearbyPlayers(
+                level,
+                pos,
+                result,
+                getOrCreateRuntimeState(context).recentFailureNoticeTicks()
+        );
     }
 
     private static void playActivationSound(ServerLevel level, BlockPos pos, SpellDispenserCastHelper.CastResult result) {
@@ -378,6 +422,24 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     }
 
     private record ContinuousRuntime(SpellDispenserCastHelper.ContinuousCastSession session) {
+    }
+
+    private static final class RuntimeState {
+        @Nullable
+        private ContinuousRuntime continuousRuntime;
+        private final Map<String, Long> recentFailureNoticeTicks = new HashMap<>();
+
+        private @Nullable ContinuousRuntime continuousRuntime() {
+            return continuousRuntime;
+        }
+
+        private Map<String, Long> recentFailureNoticeTicks() {
+            return recentFailureNoticeTicks;
+        }
+
+        private void setContinuousRuntime(@Nullable ContinuousRuntime continuousRuntime) {
+            this.continuousRuntime = continuousRuntime;
+        }
     }
 
     private record MountedManaAccess(MovementContext context) implements SpellDispenserManaHelper.ManaAccess {

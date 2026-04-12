@@ -155,7 +155,7 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
         var hasSpell = validation.spellData() != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY;
         var label = hasSpell
                 ? validation.spellData().getSpell().getDisplayName(player)
-                : Component.translatable("container.apprenticecodex.spell_dispenser.current_spell.none");
+                : menu.getSpellSource().getHoverName();
         var icon = hasSpell ? validation.spellData().getSpell().getSpellIconResource() : SpellRegistry.none().getSpellIconResource();
         return new SpellPresentation(label, icon, false, tooltip);
     }

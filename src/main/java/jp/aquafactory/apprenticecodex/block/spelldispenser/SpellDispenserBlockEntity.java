@@ -26,6 +26,9 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public final class SpellDispenserBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity
         implements MenuProvider, SpellDispenserManaHelper.ManaAccess {
     public static final int SPELL_SLOT_INDEX = 0;
@@ -67,6 +70,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     private GameProfile ownerProfile;
     @Nullable
     private SpellDispenserCastHelper.ContinuousCastSession activeContinuousCast;
+    private final Map<String, Long> recentFailureNoticeTicks = new HashMap<>();
     private boolean continuousResetRequired;
     private int remainingCooldownTicks;
     private int currentMana = SpellDispenserManaHelper.MAX_MANA;
@@ -142,12 +146,13 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
                     false,
                     SpellDispenserSpellValidator.validate(ItemStack.EMPTY),
                     null,
-                    null,
-                    null,
                     false,
                     0,
-                    false,
-                    false
+                    SpellDispenserCastHelper.FailureType.NONE,
+                    0,
+                    0,
+                    0,
+                    null
             );
         }
 
@@ -157,12 +162,13 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
                     false,
                     SpellDispenserSpellValidator.validate(ItemStack.EMPTY),
                     null,
-                    null,
-                    null,
                     false,
                     0,
-                    false,
-                    false
+                    SpellDispenserCastHelper.FailureType.NONE,
+                    0,
+                    0,
+                    0,
+                    null
             );
         }
 
@@ -170,29 +176,19 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         var validation = SpellDispenserSpellValidator.validate(source);
 
         if (isCoolingDown()) {
-            return SpellDispenserCastHelper.CastResult.cooldownBlocked(validation);
+            return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.cooldownBlocked(validation, remainingCooldownTicks));
         }
 
         if (source.isEmpty()) {
-            return new SpellDispenserCastHelper.CastResult(
-                    false,
-                    validation,
-                    null,
-                    null,
-                    null,
-                    false,
-                    0,
-                    false,
-                    false
-            );
+            return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.noScroll(validation));
         }
 
         if (!hasOwnerProfile()) {
-            return SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation);
+            return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation));
         }
 
         if (hasActiveContinuousCast()) {
-            return SpellDispenserCastHelper.CastResult.validationFailure(validation);
+            return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.validationFailure(validation));
         }
 
         var spellData = validation.spellData();
@@ -209,7 +205,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
             if (startResult.result().succeeded()) {
                 startContinuousCast(startResult.session());
             }
-            return startResult.result();
+            return notifyActivationFailure(serverLevel, startResult.result());
         }
 
         var result = SpellDispenserCastHelper.tryCast(
@@ -221,6 +217,14 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
                 this
         );
         startCooldown(result.cooldownTicks());
+        return notifyActivationFailure(serverLevel, result);
+    }
+
+    private SpellDispenserCastHelper.CastResult notifyActivationFailure(
+            ServerLevel serverLevel,
+            SpellDispenserCastHelper.CastResult result
+    ) {
+        SpellDispenserCastHelper.notifyFailureToNearbyPlayers(serverLevel, worldPosition, result, recentFailureNoticeTicks);
         return result;
     }
 
