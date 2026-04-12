@@ -1447,8 +1447,9 @@ public final class ApprenticeCodexGameTests {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
             mountedInventory.setStackInSlot(0, scrollStack.copy());
             var currentMana = new AtomicInteger(320);
+            var ownerName = "spell_dispenser_mounted_menu_owner_test";
 
-            var menu = SpellDispenserMenu.createMounted(0, new Inventory(player), BlockPos.ZERO, mountedInventory, true, currentMana::get);
+            var menu = SpellDispenserMenu.createMounted(0, new Inventory(player), BlockPos.ZERO, mountedInventory, true, ownerName, currentMana::get);
             helper.assertTrue(menu.stillValid(player), "Spell Dispenser mounted menu closed because it expected a world block entity");
             helper.assertTrue(ItemStack.isSameItemSameComponents(menu.getSpellSource(), scrollStack),
                     "Spell Dispenser mounted menu did not expose the mounted inventory stack");
@@ -1456,15 +1457,19 @@ public final class ApprenticeCodexGameTests {
                     "Spell Dispenser mounted menu did not report a valid mounted scroll as ready");
             helper.assertTrue(menu.getCurrentMana() == 320,
                     "Spell Dispenser mounted menu did not expose the mounted mana value");
+            helper.assertTrue(ownerName.equals(menu.getOwnerName()),
+                    "Spell Dispenser mounted menu did not expose the mounted owner name");
 
             currentMana.set(180);
             helper.assertTrue(menu.getCurrentMana() == 180,
                     "Spell Dispenser mounted menu did not follow the live contraption mana source");
 
-            var clientMenu = SpellDispenserMenu.createMounted(1, new Inventory(player), BlockPos.ZERO, mountedInventory, true, 320);
+            var clientMenu = SpellDispenserMenu.createMounted(1, new Inventory(player), BlockPos.ZERO, mountedInventory, true, ownerName, 320);
             clientMenu.setData(0, 180);
             helper.assertTrue(clientMenu.getCurrentMana() == 180,
                     "Spell Dispenser mounted menu did not accept mana updates from menu data sync");
+            helper.assertTrue(ownerName.equals(clientMenu.getOwnerName()),
+                    "Spell Dispenser mounted client menu did not retain the synced owner name");
         });
     }
 

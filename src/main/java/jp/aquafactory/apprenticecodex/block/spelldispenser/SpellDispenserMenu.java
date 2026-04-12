@@ -46,6 +46,8 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
     private final IItemHandlerModifiable inventory;
     private final boolean mounted;
     private final boolean hasOwnerProfile;
+    @Nullable
+    private final String ownerName;
     private final IntSupplier currentManaSupplier;
     private int currentMana;
 
@@ -64,7 +66,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             IItemHandlerModifiable inventory,
             boolean hasOwnerProfile
     ) {
-        return createMounted(containerId, playerInventory, localPos, inventory, hasOwnerProfile, SpellDispenserManaHelper.MAX_MANA);
+        return createMounted(containerId, playerInventory, localPos, inventory, hasOwnerProfile, null, SpellDispenserManaHelper.MAX_MANA);
     }
 
     public static SpellDispenserMenu createMounted(
@@ -73,12 +75,13 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             BlockPos localPos,
             IItemHandlerModifiable inventory,
             boolean hasOwnerProfile,
+            @Nullable String ownerName,
             IntSupplier currentManaSupplier
     ) {
         return new SpellDispenserMenu(
                 containerId,
                 playerInventory,
-                MenuContext.forMounted(localPos, inventory, hasOwnerProfile, currentManaSupplier, currentManaSupplier.getAsInt())
+                MenuContext.forMounted(localPos, inventory, hasOwnerProfile, ownerName, currentManaSupplier, currentManaSupplier.getAsInt())
         );
     }
 
@@ -88,12 +91,13 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             BlockPos localPos,
             IItemHandlerModifiable inventory,
             boolean hasOwnerProfile,
+            @Nullable String ownerName,
             int currentMana
     ) {
         return new SpellDispenserMenu(
                 containerId,
                 playerInventory,
-                MenuContext.forMounted(localPos, inventory, hasOwnerProfile, null, currentMana)
+                MenuContext.forMounted(localPos, inventory, hasOwnerProfile, ownerName, null, currentMana)
         );
     }
 
@@ -105,6 +109,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         this.inventory = context.inventory();
         this.mounted = context.mounted();
         this.hasOwnerProfile = context.hasOwnerProfile();
+        this.ownerName = context.ownerName();
         this.currentMana = SpellDispenserManaHelper.clampMana(context.currentMana());
         this.currentManaSupplier = context.currentManaSupplier() != null
                 ? context.currentManaSupplier()
@@ -206,6 +211,14 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         return hasOwnerProfile;
     }
 
+    public @Nullable String getOwnerName() {
+        var currentBlockEntity = getBlockEntity();
+        if (currentBlockEntity != null) {
+            return currentBlockEntity.getOwnerName();
+        }
+        return ownerName;
+    }
+
     public int getCurrentMana() {
         var currentBlockEntity = getBlockEntity();
         if (currentBlockEntity != null) {
@@ -257,6 +270,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             IItemHandlerModifiable inventory,
             boolean mounted,
             boolean hasOwnerProfile,
+            @Nullable String ownerName,
             @Nullable IntSupplier currentManaSupplier,
             int currentMana
     ) {
@@ -267,6 +281,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
                     blockEntity.getInventory(),
                     false,
                     blockEntity.hasOwnerProfile(),
+                    blockEntity.getOwnerName(),
                     blockEntity::getCurrentMana,
                     blockEntity.getCurrentMana()
             );
@@ -276,15 +291,18 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
                 BlockPos localPos,
                 IItemHandlerModifiable inventory,
                 boolean hasOwnerProfile,
+                @Nullable String ownerName,
                 @Nullable IntSupplier currentManaSupplier,
                 int currentMana
         ) {
-            return new MenuContext(localPos, null, inventory, true, hasOwnerProfile, currentManaSupplier, currentMana);
+            return new MenuContext(localPos, null, inventory, true, hasOwnerProfile, ownerName, currentManaSupplier, currentMana);
         }
 
         private static MenuContext fromNetwork(Inventory playerInventory, RegistryFriendlyByteBuf data) {
             var mounted = data.readBoolean();
             var blockPos = data.readBlockPos();
+            var hasOwnerName = data.readBoolean();
+            var ownerName = hasOwnerName ? data.readUtf() : null;
             if (!mounted) {
                 var blockEntity = resolveBlockEntity(playerInventory, blockPos);
                 return new MenuContext(
@@ -293,6 +311,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
                         resolveInventory(playerInventory, blockPos),
                         false,
                         blockEntity != null && blockEntity.hasOwnerProfile(),
+                        blockEntity != null ? blockEntity.getOwnerName() : ownerName,
                         blockEntity != null ? blockEntity::getCurrentMana : null,
                         blockEntity != null ? blockEntity.getCurrentMana() : SpellDispenserManaHelper.MAX_MANA
                 );
@@ -304,7 +323,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {
                 inventory.setStackInSlot(slot, data.readItem());
             }
-            return new MenuContext(blockPos, null, inventory, true, hasOwnerProfile, null, currentMana);
+            return new MenuContext(blockPos, null, inventory, true, hasOwnerProfile, ownerName, null, currentMana);
         }
     }
 

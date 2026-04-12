@@ -104,6 +104,11 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         return ownerProfile;
     }
 
+    public @Nullable String getOwnerName() {
+        var normalizedOwnerProfile = normalizeOwnerProfile(ownerProfile);
+        return normalizedOwnerProfile != null ? normalizedOwnerProfile.getName() : null;
+    }
+
     public boolean hasOwnerProfile() {
         return normalizeOwnerProfile(ownerProfile) != null;
     }
@@ -456,6 +461,11 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     public @Nullable IItemHandler getItemHandler(@Nullable Direction side) {
         // side == null は内部アクセス(Create mounted storage 含む)として扱い、全面公開する。
         return side == null ? inventory : automationInventory;
+    }
+
+    public static @Nullable String readOwnerName(@Nullable CompoundTag tag) {
+        var ownerProfile = readOwnerProfile(tag);
+        return ownerProfile != null ? ownerProfile.getName() : null;
     }
 
     public static void saveCurrentMana(@NotNull CompoundTag tag, int currentMana) {

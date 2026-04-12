@@ -32,6 +32,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
         }
 
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(blockInfo.nbt());
+        var ownerName = ownerProfile != null ? ownerProfile.getName() : null;
         serverPlayer.openMenu(new MenuProvider() {
             @Override
             public @NotNull Component getDisplayName() {
@@ -46,12 +47,18 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
                         localPos,
                         mountedInventory,
                         ownerProfile != null,
+                        ownerName,
                         () -> SpellDispenserBlockEntity.readCurrentMana(blockInfo.nbt())
                 );
             }
         }, buffer -> {
             buffer.writeBoolean(true);
             buffer.writeBlockPos(localPos);
+            // mounted menu は client 側に block entity が無いので owner 名を明示同期する。
+            buffer.writeBoolean(ownerName != null && !ownerName.isBlank());
+            if (ownerName != null && !ownerName.isBlank()) {
+                buffer.writeUtf(ownerName);
+            }
             buffer.writeBoolean(ownerProfile != null);
             buffer.writeVarInt(SpellDispenserBlockEntity.readCurrentMana(blockInfo.nbt()));
             for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {

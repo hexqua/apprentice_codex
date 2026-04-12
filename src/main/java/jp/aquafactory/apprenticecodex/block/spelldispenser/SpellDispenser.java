@@ -122,6 +122,7 @@ public final class SpellDispenser extends BaseEntityBlock {
             serverPlayer.openMenu(spellDispenser, buffer -> {
                 buffer.writeBoolean(false);
                 buffer.writeBlockPos(pos);
+                writeOwnerName(buffer, spellDispenser.getOwnerName());
             });
             return InteractionResult.CONSUME;
         }
@@ -179,6 +180,13 @@ public final class SpellDispenser extends BaseEntityBlock {
     @Override
     protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
+    }
+
+    private static void writeOwnerName(net.minecraft.network.FriendlyByteBuf buffer, @Nullable String ownerName) {
+        buffer.writeBoolean(ownerName != null && !ownerName.isBlank());
+        if (ownerName != null && !ownerName.isBlank()) {
+            buffer.writeUtf(ownerName);
+        }
     }
 
     private static void playActivationSound(
