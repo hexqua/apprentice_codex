@@ -20,6 +20,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     private static final String CONTINUOUS_STATE_TAG = "SpellDispenserContinuousState";
     private static final String CONTINUOUS_RESET_REQUIRED_TAG = "SpellDispenserContinuousResetRequired";
     private static final String LAST_POWERED_TAG = "SpellDispenserContinuousLastPowered";
+    private static final String COOLDOWN_REMAINING_TAG = "CooldownRemaining";
     private static final int CONTINUOUS_STATE_IDLE = 0;
     private static final int CONTINUOUS_STATE_CASTING = 1;
     private static final int CONTINUOUS_STATE_WAITING_FOR_RESET = 2;
@@ -31,6 +32,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
                 ? CONTINUOUS_STATE_WAITING_FOR_RESET
                 : CONTINUOUS_STATE_IDLE);
         setContinuousResetRequired(context, getContinuousState(context) == CONTINUOUS_STATE_WAITING_FOR_RESET);
+        setRemainingCooldownTicks(context, Math.max(0, context.blockEntityData.getInt(COOLDOWN_REMAINING_TAG)));
         setLastPowered(context, false);
     }
 
@@ -42,19 +44,19 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
         var spellSource = getSpellSource(context);
         if (spellSource.isEmpty()) {
-            playActivationSound(serverLevel, pos, false);
+            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.validationFailure(SpellDispenserSpellValidator.validate(spellSource)));
             return;
         }
 
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
         if (ownerProfile == null) {
-            playActivationSound(serverLevel, pos, false);
+            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.missingOwnerProfile(SpellDispenserSpellValidator.validate(spellSource)));
             return;
         }
 
         var validation = SpellDispenserSpellValidator.validate(spellSource);
         if (!validation.isSupported()) {
-            playActivationSound(serverLevel, pos, false);
+            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.validationFailure(validation));
             return;
         }
 
@@ -64,13 +66,19 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
         if (castType != CastType.INSTANT && castType != CastType.LONG) {
-            playActivationSound(serverLevel, pos, false);
+            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.validationFailure(validation));
+            return;
+        }
+
+        if (isCoolingDown(context)) {
+            playActivationSound(serverLevel, pos, SpellDispenserCastHelper.CastResult.cooldownBlocked(validation));
             return;
         }
 
         var forward = resolveForward(context);
         var castResult = SpellDispenserCastHelper.tryCast(serverLevel, pos, forward, spellSource.copy(), ownerProfile);
-        playActivationSound(serverLevel, pos, castResult.succeeded());
+        playActivationSound(serverLevel, pos, castResult);
+        startCooldown(context, castResult.cooldownTicks());
     }
 
     @Override
@@ -79,6 +87,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
 
+        tickCooldown(context);
         var runtime = getContinuousRuntime(context);
         if (!isContinuousSpell(context)) {
             finishContinuousCast(serverLevel, context, runtime, true);
@@ -108,6 +117,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
             SpellDispenserCastHelper.syncContinuousCastTransform(runtime.session(), resolveCastBasePosition(context), resolveForward(context));
             if (!SpellDispenserCastHelper.tickContinuousCast(serverLevel, runtime.session())) {
+                startCooldown(context, runtime.session().consumeFinishedCooldownTicks());
                 context.temporaryData = null;
                 setContinuousState(context, CONTINUOUS_STATE_WAITING_FOR_RESET);
                 setContinuousResetRequired(context, true);
@@ -132,14 +142,20 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         }
 
         var spellSource = getSpellSource(context);
-        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
-        if (ownerProfile == null) {
-            playActivationSound(serverLevel, resolveSoundPos(context), false);
+        var validation = SpellDispenserSpellValidator.validate(spellSource);
+        if (isCoolingDown(context)) {
+            playActivationSound(serverLevel, resolveSoundPos(context), SpellDispenserCastHelper.CastResult.cooldownBlocked(validation));
             setLastPowered(context, true);
             return;
         }
 
-        var validation = SpellDispenserSpellValidator.validate(spellSource);
+        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
+        if (ownerProfile == null) {
+            playActivationSound(serverLevel, resolveSoundPos(context), SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation));
+            setLastPowered(context, true);
+            return;
+        }
+
         var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
                 serverLevel,
                 resolveCastBasePosition(context),
@@ -148,7 +164,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
                 spellSource.copy(),
                 ownerProfile
         );
-        playActivationSound(serverLevel, resolveSoundPos(context), startResult.result().succeeded());
+        playActivationSound(serverLevel, resolveSoundPos(context), startResult.result());
         if (startResult.result().succeeded() && startResult.session() != null) {
             context.temporaryData = new ContinuousRuntime(startResult.session());
             setContinuousState(context, CONTINUOUS_STATE_CASTING);
@@ -191,6 +207,10 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
     public static boolean requiresContinuousReset(MovementContext context) {
         return context.data.getBoolean(CONTINUOUS_RESET_REQUIRED_TAG);
+    }
+
+    public static boolean isCoolingDown(MovementContext context) {
+        return getRemainingCooldownTicks(context) > 0;
     }
 
     private static ItemStack getSpellSource(MovementContext context) {
@@ -246,6 +266,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     ) {
         if (runtime != null) {
             SpellDispenserCastHelper.finishContinuousCast(level, runtime.session(), cancelled);
+            startCooldown(context, runtime.session().consumeFinishedCooldownTicks());
             context.temporaryData = null;
         }
     }
@@ -270,19 +291,46 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         context.data.putBoolean(CONTINUOUS_RESET_REQUIRED_TAG, required);
     }
 
+    private static int getRemainingCooldownTicks(MovementContext context) {
+        return Math.max(0, context.data.getInt(COOLDOWN_REMAINING_TAG));
+    }
+
+    private static void setRemainingCooldownTicks(MovementContext context, int cooldownTicks) {
+        var normalized = Math.max(0, cooldownTicks);
+        context.data.putInt(COOLDOWN_REMAINING_TAG, normalized);
+        context.blockEntityData.putInt(COOLDOWN_REMAINING_TAG, normalized);
+    }
+
+    private static void startCooldown(MovementContext context, int cooldownTicks) {
+        if (cooldownTicks <= 0) {
+            return;
+        }
+
+        setRemainingCooldownTicks(context, cooldownTicks);
+    }
+
+    private static void tickCooldown(MovementContext context) {
+        var remaining = getRemainingCooldownTicks(context);
+        if (remaining <= 0) {
+            return;
+        }
+
+        setRemainingCooldownTicks(context, remaining - 1);
+    }
+
     private static ContinuousRuntime getContinuousRuntime(MovementContext context) {
         return context.temporaryData instanceof ContinuousRuntime runtime ? runtime : null;
     }
 
-    private static void playActivationSound(ServerLevel level, BlockPos pos, boolean succeeded) {
-        level.playSound(
-                null,
-                pos,
-                succeeded ? SoundEvents.DISPENSER_DISPENSE : SoundEvents.DISPENSER_FAIL,
-                SoundSource.BLOCKS,
-                1.0F,
-                1.0F
-        );
+    private static void playActivationSound(ServerLevel level, BlockPos pos, SpellDispenserCastHelper.CastResult result) {
+        if (result.succeeded()) {
+            level.playSound(null, pos, SoundEvents.DISPENSER_DISPENSE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            return;
+        }
+
+        if (!result.reachedOnCast()) {
+            level.playSound(null, pos, SoundEvents.DISPENSER_FAIL, SoundSource.BLOCKS, 1.0F, 1.0F);
+        }
     }
 
     private record ContinuousRuntime(SpellDispenserCastHelper.ContinuousCastSession session) {

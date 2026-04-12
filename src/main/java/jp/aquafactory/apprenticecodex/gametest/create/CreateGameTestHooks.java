@@ -61,6 +61,11 @@ public final class CreateGameTestHooks {
         typedHarness.behaviour.tick(typedHarness.context);
     }
 
+    public static void visitNewPosition(Object harness, BlockPos pos) {
+        var typedHarness = asHarness(harness);
+        typedHarness.behaviour.visitNewPosition(typedHarness.context, pos);
+    }
+
     public static void stopMoving(Object harness) {
         var typedHarness = asHarness(harness);
         typedHarness.behaviour.stopMoving(typedHarness.context);
@@ -76,6 +81,10 @@ public final class CreateGameTestHooks {
 
     public static boolean requiresContinuousReset(Object harness) {
         return SpellDispenserMovementBehaviour.requiresContinuousReset(asHarness(harness).context);
+    }
+
+    public static boolean isCoolingDown(Object harness) {
+        return SpellDispenserMovementBehaviour.isCoolingDown(asHarness(harness).context);
     }
 
     private static SpellDispenserMovementHarness asHarness(Object harness) {

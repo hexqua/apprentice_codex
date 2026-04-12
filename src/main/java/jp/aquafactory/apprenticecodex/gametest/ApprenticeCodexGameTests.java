@@ -543,7 +543,8 @@ public final class ApprenticeCodexGameTests {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
 
             var castResult = SpellDispenserCastHelper.tryCast(
                     (ServerLevel) level,
@@ -553,6 +554,9 @@ public final class ApprenticeCodexGameTests {
                     createSpellDispenserOwnerProfile("spell_dispenser_heal_test")
             );
             helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a Heal scroll");
+            helper.assertTrue(castResult.reachedOnCast(), "Spell Dispenser Heal cast did not mark that it reached onCast");
+            helper.assertTrue(castResult.cooldownTicks() == spell.getSpellCooldown(),
+                    "Spell Dispenser Heal cast returned the wrong cooldown: " + castResult.cooldownTicks());
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after Heal cast");
         });
     }
@@ -562,7 +566,8 @@ public final class ApprenticeCodexGameTests {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
-            var scrollStack = createSpellScroll(SpellRegistry.COMPOUND_PHIAL.get());
+            var spell = SpellRegistry.COMPOUND_PHIAL.get();
+            var scrollStack = createSpellScroll(spell);
 
             var castResult = SpellDispenserCastHelper.tryCast(
                     (ServerLevel) level,
@@ -572,6 +577,10 @@ public final class ApprenticeCodexGameTests {
                     createSpellDispenserOwnerProfile("spell_dispenser_long_test")
             );
             helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a LONG Compound Phial scroll");
+            var expectedCooldown = spell.getSpellCooldown()
+                    + spell.getEffectiveCastTime(1, new FakePlayer((ServerLevel) level, createSpellDispenserOwnerProfile("spell_dispenser_long_probe")));
+            helper.assertTrue(castResult.cooldownTicks() == expectedCooldown,
+                    "Spell Dispenser LONG cast returned the wrong cooldown: " + castResult.cooldownTicks() + " / expected " + expectedCooldown);
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after LONG cast");
 
             var projectileBox = new AABB(castPos).inflate(5.0D);
@@ -609,6 +618,8 @@ public final class ApprenticeCodexGameTests {
             }
 
             helper.assertTrue(session.isFinished(), "Spell Dispenser CONTINUOUS cast did not stop by its cast duration cap");
+            helper.assertTrue(session.consumeFinishedCooldownTicks() == spell.getSpellCooldown(),
+                    "Spell Dispenser CONTINUOUS cast did not record the expected cooldown after completion");
             var fireballBox = new AABB(castPos).inflate(16.0D);
             var fireballs = level.getEntitiesOfClass(SmallMagicFireball.class, fireballBox);
             helper.assertTrue(!fireballs.isEmpty(), "Spell Dispenser CONTINUOUS cast completed without spawning Blaze Storm fireballs");
@@ -781,8 +792,43 @@ public final class ApprenticeCodexGameTests {
                     "Spell Dispenser CONTINUOUS cast stayed active after its held-signal duration cap");
             helper.assertTrue(spellDispenser.requiresContinuousReset(),
                     "Spell Dispenser did not record that CONTINUOUS needs a signal reset after held completion");
+            helper.assertTrue(spellDispenser.isCoolingDown(),
+                    "Spell Dispenser did not enter cooldown after a held CONTINUOUS cast completed");
             assertNoSpellDispenserProxy(helper, pos, scrollStack, "Spell Dispenser proxy caster was left behind after held completion reset state");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserBlockEntityStartsAndClearsInstantCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+            spellDispenser.getInventory().setStackInSlot(0, scrollStack);
+            spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_cooldown_test"));
+
+            var firstResult = spellDispenser.tryActivate();
+            helper.assertTrue(firstResult.succeeded(), "Spell Dispenser failed to activate an INSTANT spell for cooldown test");
+            helper.assertTrue(spellDispenser.getRemainingCooldownTicks() == spell.getSpellCooldown(),
+                    "Spell Dispenser stored the wrong cooldown after an INSTANT cast: " + spellDispenser.getRemainingCooldownTicks());
+
+            var blockedResult = spellDispenser.tryActivate();
+            helper.assertTrue(!blockedResult.succeeded() && !blockedResult.reachedOnCast(),
+                    "Spell Dispenser did not reject activation while cooling down");
+
+            for (var tick = 0; tick < spell.getSpellCooldown(); tick++) {
+                SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            }
+
+            helper.assertFalse(spellDispenser.isCoolingDown(), "Spell Dispenser cooldown did not expire after the expected number of ticks");
         });
     }
 
@@ -817,6 +863,8 @@ public final class ApprenticeCodexGameTests {
                     "Create-mounted Spell Dispenser CONTINUOUS cast did not stop at its duration cap");
             helper.assertTrue(createSpellDispenserRequiresReset(harness),
                     "Create-mounted Spell Dispenser did not enter reset-required state after held completion");
+            helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser did not enter cooldown after held completion");
 
             tickCreateSpellDispenserMovement(harness);
             helper.assertFalse(hasCreateSpellDispenserContinuousCast(harness),
@@ -826,6 +874,12 @@ public final class ApprenticeCodexGameTests {
             tickCreateSpellDispenserMovement(harness);
             helper.assertFalse(createSpellDispenserRequiresReset(harness),
                     "Create-mounted Spell Dispenser did not clear reset-required state when disabled");
+
+            for (var tick = 0; tick < spell.getSpellCooldown() && createSpellDispenserIsCoolingDown(harness); tick++) {
+                tickCreateSpellDispenserMovement(harness);
+            }
+            helper.assertFalse(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser cooldown did not expire after the expected ticks");
 
             setCreateSpellDispenserDisabled(harness, false);
             tickCreateSpellDispenserMovement(harness);
@@ -867,7 +921,54 @@ public final class ApprenticeCodexGameTests {
                     "Create-mounted Spell Dispenser kept a CONTINUOUS session active after disable");
             helper.assertFalse(createSpellDispenserRequiresReset(harness),
                     "Create-mounted Spell Dispenser incorrectly required reset after disable cancellation");
+            helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser did not enter cooldown after cancelling an already-casting CONTINUOUS spell");
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Create-mounted Spell Dispenser left proxy state behind after disable");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCreateInstantCastUsesCooldown(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = SpellRegistry.COMPOUND_PHIAL.get();
+            var scrollStack = createSpellScroll(spell);
+            var mountedInventory = new ItemStackHandler(1);
+            mountedInventory.setStackInSlot(0, scrollStack.copy());
+            var harness = createSpellDispenserMovementHarness(level, castPos, mountedInventory, createSpellDispenserOwnerProfile("spell_dispenser_create_instant_test"));
+
+            startCreateSpellDispenserMovement(harness);
+            visitCreateSpellDispenserPosition(harness, castPos);
+            helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser did not enter cooldown after a non-continuous cast");
+
+            var projectileBox = new AABB(castPos).inflate(5.0D);
+            var firstProjectileCount = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox).size();
+            helper.assertTrue(firstProjectileCount > 0,
+                    "Create-mounted Spell Dispenser did not spawn a projectile on the first cast");
+
+            visitCreateSpellDispenserPosition(harness, castPos);
+            var secondProjectileCount = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox).size();
+            helper.assertTrue(secondProjectileCount == firstProjectileCount,
+                    "Create-mounted Spell Dispenser ignored cooldown and fired again immediately");
+
+            var expectedCooldown = spell.getSpellCooldown()
+                    + spell.getEffectiveCastTime(1, new FakePlayer(level, createSpellDispenserOwnerProfile("spell_dispenser_create_instant_probe")));
+            for (var tick = 0; tick < expectedCooldown && createSpellDispenserIsCoolingDown(harness); tick++) {
+                tickCreateSpellDispenserMovement(harness);
+            }
+
+            helper.assertFalse(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser cooldown did not expire after the expected ticks");
+            visitCreateSpellDispenserPosition(harness, castPos);
+            var thirdProjectileCount = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox).size();
+            helper.assertTrue(thirdProjectileCount > secondProjectileCount,
+                    "Create-mounted Spell Dispenser did not fire again after cooldown expired");
         });
     }
 
@@ -3206,6 +3307,10 @@ public final class ApprenticeCodexGameTests {
         invokeCreateGameTestHook("tick", new Class<?>[]{Object.class}, harness);
     }
 
+    private static void visitCreateSpellDispenserPosition(Object harness, BlockPos pos) {
+        invokeCreateGameTestHook("visitNewPosition", new Class<?>[]{Object.class, BlockPos.class}, harness, pos);
+    }
+
     private static void stopCreateSpellDispenserMovement(Object harness) {
         invokeCreateGameTestHook("stopMoving", new Class<?>[]{Object.class}, harness);
     }
@@ -3220,6 +3325,10 @@ public final class ApprenticeCodexGameTests {
 
     private static boolean createSpellDispenserRequiresReset(Object harness) {
         return invokeCreateGameTestHookBoolean("requiresContinuousReset", harness);
+    }
+
+    private static boolean createSpellDispenserIsCoolingDown(Object harness) {
+        return invokeCreateGameTestHookBoolean("isCoolingDown", harness);
     }
 
     private static boolean invokeCreateGameTestHookBoolean(String methodName, Object harness) {
