@@ -67,7 +67,7 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
     }
 
     private double getRange(int spellLevel, LivingEntity entity){
-        return 8 * getSpellPower(spellLevel, entity) /10.0f;
+        return 16 + 4 * getSpellPower(spellLevel, entity) /10.0f;
     }
 
     @Override

@@ -34,8 +34,14 @@ import org.jetbrains.annotations.NotNull;
 public class ComfortBerryBushBlock extends BushBlock implements BonemealableBlock {
     public static final int MAX_AGE = 4;
     public static final IntegerProperty AGE = BlockStateProperties.AGE_4;
-    private static final VoxelShape SAPLING_SHAPE = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
-    private static final VoxelShape MID_GROWTH_SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
+    // 5段階化した各テクスチャの透過余白に合わせ、見た目と選択アウトラインを揃える。
+    private static final VoxelShape[] OUTLINE_SHAPES_BY_AGE = new VoxelShape[]{
+            Block.box(5.0D, 0.0D, 5.0D, 11.0D, 9.0D, 11.0D),
+            Block.box(5.0D, 0.0D, 5.0D, 11.0D, 11.0D, 11.0D),
+            Block.box(3.0D, 0.0D, 3.0D, 12.0D, 12.0D, 12.0D),
+            Block.box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D),
+            Block.box(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D)
+    };
 
     public ComfortBerryBushBlock() {
         super(BlockBehaviour.Properties.copy(Blocks.SWEET_BERRY_BUSH).lightLevel(ComfortBerryBushBlock::getLightLevel));
@@ -61,12 +67,7 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
     @Override
     public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos,
                                         @NotNull CollisionContext context) {
-        int age = state.getValue(AGE);
-        if (age == 0) {
-            return SAPLING_SHAPE;
-        }
-
-        return age < MAX_AGE ? MID_GROWTH_SHAPE : super.getShape(state, level, pos, context);
+        return OUTLINE_SHAPES_BY_AGE[state.getValue(AGE)];
     }
 
     @Override

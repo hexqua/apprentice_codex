@@ -36,7 +36,7 @@ public class UniteLuna extends AbstractSpell {
 
     public UniteLuna() {
         baseSpellPower = 100;
-        spellPowerPerLevel = 50;
+        spellPowerPerLevel = 150;
         baseManaCost = 160;
         manaCostPerLevel = 160;
         castTime = 0;
@@ -50,7 +50,7 @@ public class UniteLuna extends AbstractSpell {
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 16.0f * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 20.0f * getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.UNITE_LUNA);
     }
 

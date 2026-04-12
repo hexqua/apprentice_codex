@@ -8,6 +8,7 @@
   "mixins": [
     "AbstractFurnaceBlockEntityMixin",
     "ArcaneAnvilMenuMixin",
+    "EnchantRandomlyFunctionMixin",
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
     "EntitySharedFlagAccessor",
