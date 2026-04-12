@@ -142,8 +142,8 @@ dependencies {
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
     // ランタイムは必要に応じてON(1.20.1と異なり前提が増えている点に注意)
     compileOnly "maven.modrinth:better-combat:2NyTus6V"
-    runtimeOnly "maven.modrinth:cloth-config:DqgODWcH"
-    runtimeOnly "maven.modrinth:better-combat:2NyTus6V"
+    // runtimeOnly "maven.modrinth:cloth-config:DqgODWcH"
+    // runtimeOnly "maven.modrinth:better-combat:2NyTus6V"
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
