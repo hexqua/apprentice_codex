@@ -9,7 +9,7 @@ public class ManaRegeneration extends MobEffect {
     private static final double MANA_REGEN_BONUS_PER_LEVEL = 0.25D;
 
     public ManaRegeneration() {
-        super(MobEffectCategory.BENEFICIAL, 0xFF7AB8);
+        super(MobEffectCategory.BENEFICIAL, 0x8899FF);
 
         addAttributeModifier(
                 AttributeRegistry.MANA_REGEN.get(),
