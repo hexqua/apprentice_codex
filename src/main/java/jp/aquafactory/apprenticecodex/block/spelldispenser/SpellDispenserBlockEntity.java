@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -27,11 +28,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SpellDispenserBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity implements MenuProvider {
+    public static final int SPELL_SLOT_INDEX = 0;
+    public static final int FLASK_SLOT_START = 1;
+    public static final int FLASK_SLOT_COUNT = 8;
+    public static final int INVENTORY_SLOT_COUNT = FLASK_SLOT_START + FLASK_SLOT_COUNT;
+
     private static final String INVENTORY_TAG = "Inventory";
     private static final String OWNER_UUID_TAG = "OwnerUuid";
     private static final String OWNER_NAME_TAG = "OwnerName";
     private static final String CONTINUOUS_RESET_REQUIRED_TAG = "ContinuousResetRequired";
-    private final ItemStackHandler inventory = new ItemStackHandler(1) {
+    private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_SLOT_COUNT) {
         @Override
         protected void onContentsChanged(int slot) {
             markUpdated();
@@ -39,7 +45,11 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
 
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            return SpellDispenserSpellValidator.isSupported(stack);
+            if (slot == SPELL_SLOT_INDEX) {
+                return SpellDispenserSpellValidator.isPlaceableScroll(stack);
+            }
+            // flask 枠は今後の自動供給処理を別ブランチで足しやすいよう scroll 枠と分離しておく。
+            return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get());
         }
 
         @Override
@@ -73,7 +83,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     }
 
     public @NotNull ItemStack getSpellSource() {
-        return inventory.getStackInSlot(0);
+        return inventory.getStackInSlot(SPELL_SLOT_INDEX);
     }
 
     public void setOwnerProfile(@Nullable GameProfile ownerProfile) {
@@ -237,18 +247,20 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         setChanged();
     }
 
-    public void dropStoredItem() {
+    public void dropStoredItems() {
         if (level == null || level.isClientSide) {
             return;
         }
 
-        var stack = inventory.getStackInSlot(0);
-        if (stack.isEmpty()) {
-            return;
-        }
+        for (var slot = 0; slot < inventory.getSlots(); ++slot) {
+            var stack = inventory.getStackInSlot(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
 
-        net.minecraft.world.Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack.copy());
-        inventory.setStackInSlot(0, ItemStack.EMPTY);
+            net.minecraft.world.Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack.copy());
+            inventory.setStackInSlot(slot, ItemStack.EMPTY);
+        }
     }
 
     @Override
