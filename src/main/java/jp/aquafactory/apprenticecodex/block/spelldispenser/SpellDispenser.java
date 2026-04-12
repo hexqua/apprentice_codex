@@ -118,6 +118,7 @@ public final class SpellDispenser extends BaseEntityBlock {
             NetworkHooks.openScreen(serverPlayer, spellDispenser, buffer -> {
                 buffer.writeBoolean(false);
                 buffer.writeBlockPos(pos);
+                writeOwnerName(buffer, spellDispenser.getOwnerName());
             });
             return InteractionResult.CONSUME;
         }
@@ -170,6 +171,13 @@ public final class SpellDispenser extends BaseEntityBlock {
 
     public Direction getFacing(BlockState state) {
         return state.getValue(FACING);
+    }
+
+    private static void writeOwnerName(net.minecraft.network.FriendlyByteBuf buffer, @Nullable String ownerName) {
+        buffer.writeBoolean(ownerName != null && !ownerName.isBlank());
+        if (ownerName != null && !ownerName.isBlank()) {
+            buffer.writeUtf(ownerName);
+        }
     }
 
     private static void playActivationSound(

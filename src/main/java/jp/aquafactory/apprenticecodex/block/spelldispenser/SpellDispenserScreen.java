@@ -6,14 +6,17 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDispenserMenu> {
@@ -84,17 +87,20 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
             return;
         }
 
-        if (minecraft != null && minecraft.player != null && isHoveringSpellEntry(mouseX, mouseY)) {
-            var validation = menu.getValidation(minecraft.player);
-            if (validation.isSupported()) {
-                gui.renderTooltip(font, TooltipsUtils.createSpellDescriptionTooltip(validation.spellData().getSpell(), font), mouseX, mouseY);
+        if (isHoveringTitle(mouseX, mouseY)) {
+            var ownerTooltip = createOwnerTooltipLines(true);
+            if (ownerTooltip != null) {
+                gui.renderTooltip(font, ownerTooltip, mouseX, mouseY);
                 return;
             }
         }
 
-        var spellPresentation = resolveSpellPresentation();
-        if (spellPresentation != null && spellPresentation.tooltip() != null && isHoveringSpellEntry(mouseX, mouseY)) {
-            gui.renderTooltip(font, List.of(spellPresentation.tooltip().getVisualOrderText()), mouseX, mouseY);
+        if (isHoveringSpellEntry(mouseX, mouseY)) {
+            var spellTooltip = createSpellEntryTooltip();
+            if (spellTooltip != null) {
+                gui.renderTooltip(font, spellTooltip, mouseX, mouseY);
+                return;
+            }
             return;
         }
 
@@ -166,6 +172,61 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
 
     private boolean isHoveringSpellEntry(double mouseX, double mouseY) {
         return isHovering(SPELL_ENTRY_X, SPELL_ENTRY_Y, SPELL_ENTRY_WIDTH, SPELL_ENTRY_HEIGHT, mouseX, mouseY);
+    }
+
+    private boolean isHoveringTitle(double mouseX, double mouseY) {
+        return mouseX >= leftPos + titleLabelX
+                && mouseX < leftPos + titleLabelX + font.width(title)
+                && mouseY >= topPos + titleLabelY
+                && mouseY < topPos + titleLabelY + font.lineHeight;
+    }
+
+    private @Nullable List<FormattedCharSequence> createSpellEntryTooltip() {
+        if (minecraft == null || minecraft.player == null) {
+            return null;
+        }
+
+        var tooltipLines = createOwnerTooltipLines(false);
+        var validation = menu.getValidation(minecraft.player);
+        if (validation.isSupported()) {
+            if (tooltipLines == null) {
+                tooltipLines = new ArrayList<>();
+            }
+            tooltipLines.addAll(TooltipsUtils.createSpellDescriptionTooltip(validation.spellData().getSpell(), font));
+            return tooltipLines;
+        }
+
+        var spellPresentation = resolveSpellPresentation();
+        if (spellPresentation == null || spellPresentation.tooltip() == null) {
+            return tooltipLines;
+        }
+
+        if (tooltipLines == null) {
+            tooltipLines = new ArrayList<>();
+        }
+        tooltipLines.addAll(font.split(spellPresentation.tooltip(), tooltipMaxWidth()));
+        return tooltipLines;
+    }
+
+    private @Nullable List<FormattedCharSequence> createOwnerTooltipLines(boolean includeMissing) {
+        var ownerName = menu.getOwnerName();
+        if (ownerName != null && !ownerName.isBlank()) {
+            return new ArrayList<>(font.split(
+                    Component.translatable("container.apprenticecodex.spell_dispenser.owner.tooltip", ownerName)
+                            .withStyle(ChatFormatting.GRAY),
+                    tooltipMaxWidth()
+            ));
+        }
+
+        if (!includeMissing) {
+            return null;
+        }
+
+        return new ArrayList<>(font.split(OWNER_MISSING_TOOLTIP.copy().withStyle(ChatFormatting.RED), tooltipMaxWidth()));
+    }
+
+    private int tooltipMaxWidth() {
+        return Math.max(120, imageWidth - 24);
     }
 
     private FormattedText trimText(Font font, Component component, int maxWidth) {

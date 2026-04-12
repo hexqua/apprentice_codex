@@ -109,6 +109,11 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         return ownerProfile;
     }
 
+    public @Nullable String getOwnerName() {
+        var normalizedOwnerProfile = normalizeOwnerProfile(ownerProfile);
+        return normalizedOwnerProfile != null ? normalizedOwnerProfile.getName() : null;
+    }
+
     public boolean hasOwnerProfile() {
         return normalizeOwnerProfile(ownerProfile) != null;
     }
@@ -481,6 +486,11 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
             return null;
         }
         return normalizeOwnerProfile(new GameProfile(tag.getUUID(OWNER_UUID_TAG), tag.getString(OWNER_NAME_TAG)));
+    }
+
+    public static @Nullable String readOwnerName(@Nullable CompoundTag tag) {
+        var ownerProfile = readOwnerProfile(tag);
+        return ownerProfile != null ? ownerProfile.getName() : null;
     }
 
     public static void saveCurrentMana(@NotNull CompoundTag tag, int currentMana) {

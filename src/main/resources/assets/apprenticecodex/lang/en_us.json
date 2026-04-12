@@ -205,6 +205,7 @@
   "container.apprenticecodex.apprentice_desk": "Apprentice Desk",
   "container.apprenticecodex.spellcaster_workbench": "Spellcaster Workbench",
   "container.apprenticecodex.spell_dispenser": "Spell Dispenser",
+  "container.apprenticecodex.spell_dispenser.owner.tooltip": "Owner: %1$s",
   "container.apprenticecodex.spell_dispenser.flask": "Flask Storage",
   "container.apprenticecodex.spell_dispenser.mana.tooltip": "Contains Mana: %1$d/%2$d",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.owner_missing": "(todo:翻訳)スペルディスペンサーを設置したプレイヤーの情報が存在しない",
