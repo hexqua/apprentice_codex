@@ -516,13 +516,13 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorAcceptsSingleHealScroll(GameTestHelper helper) {
+    public static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
 
             var validation = SpellDispenserSpellValidator.validate(scrollStack);
-            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a simple Heal scroll");
-            helper.assertTrue(validation.spellData().getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(),
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a simple Magic Missile scroll");
+            helper.assertTrue(validation.spellData().getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(),
                     "Spell Dispenser validator resolved the wrong spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
@@ -617,7 +617,7 @@ public final class ApprenticeCodexGameTests {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var scrollStack = createSpellScroll(spell);
 
             var castResult = SpellDispenserCastHelper.tryCast(
@@ -625,13 +625,13 @@ public final class ApprenticeCodexGameTests {
                     castPos,
                     Direction.NORTH,
                     scrollStack,
-                    createSpellDispenserOwnerProfile("spell_dispenser_heal_test")
+                    createSpellDispenserOwnerProfile("spell_dispenser_magic_missile_test")
             );
-            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a Heal scroll");
-            helper.assertTrue(castResult.reachedOnCast(), "Spell Dispenser Heal cast did not mark that it reached onCast");
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a Magic Missile scroll");
+            helper.assertTrue(castResult.reachedOnCast(), "Spell Dispenser Magic Missile cast did not mark that it reached onCast");
             helper.assertTrue(castResult.cooldownTicks() == spell.getSpellCooldown(),
-                    "Spell Dispenser Heal cast returned the wrong cooldown: " + castResult.cooldownTicks());
-            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after Heal cast");
+                    "Spell Dispenser Magic Missile cast returned the wrong cooldown: " + castResult.cooldownTicks());
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after Magic Missile cast");
         });
     }
 
@@ -884,7 +884,7 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
 
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var scrollStack = createSpellScroll(spell);
             spellDispenser.getInventory().setStackInSlot(0, scrollStack);
             spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_cooldown_test"));
@@ -966,7 +966,7 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellDispenserPlacementDrainsPlacerManaIntoInitialMana(GameTestHelper helper) {
+    public static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var pos = new BlockPos(0, 1, 0);
@@ -982,15 +982,14 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(magicData != null, "Spell Dispenser placement test could not resolve player mana data");
             magicData.setMana(1350.75F);
             var initialMana = magicData.getMana();
-            var expectedTransferredMana = Math.min(SpellDispenserManaHelper.MAX_MANA, (int) Math.floor(initialMana));
 
             var state = level.getBlockState(absolutePos);
             ((SpellDispenser) state.getBlock()).setPlacedBy(level, absolutePos, state, player, new ItemStack(ItemRegistry.SPELL_DISPENSER.get()));
 
-            helper.assertTrue(spellDispenser.getCurrentMana() == expectedTransferredMana,
-                    "Spell Dispenser did not copy the expected placement mana: " + spellDispenser.getCurrentMana());
-            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - expectedTransferredMana)) < 1.0e-4F,
-                    "Spell Dispenser drained the wrong amount of mana on placement: " + magicData.getMana());
+            helper.assertTrue(spellDispenser.getCurrentMana() == 0,
+                    "Spell Dispenser placement should now start at zero mana: " + spellDispenser.getCurrentMana());
+            helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
+                    "Spell Dispenser placement should no longer drain player mana: " + magicData.getMana());
             helper.assertTrue(spellDispenser.hasOwnerProfile(), "Spell Dispenser placement did not store the owner profile");
         });
     }
@@ -1444,7 +1443,7 @@ public final class ApprenticeCodexGameTests {
         helper.succeedIf(() -> {
             var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "spell_dispenser_mounted_menu_test"));
             var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
             mountedInventory.setStackInSlot(0, scrollStack.copy());
             var currentMana = new AtomicInteger(320);
             var ownerName = "spell_dispenser_mounted_menu_owner_test";
