@@ -40,11 +40,7 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.SURGE,
                         Enchantments.ATTUNEMENT,
                         Enchantments.WISDOM,
-                        Enchantments.PLUNDER,
-                        Enchantments.GUZZLE,
-                        Enchantments.LARGE_MUG,
-                        Enchantments.RED_ENERGY,
-                        Enchantments.GLOW_ENERGY
+                        Enchantments.PLUNDER
                 );
         tag(EnchantmentTags.TREASURE)
                 .add(Enchantments.TRANSCENDENCE);
@@ -65,6 +61,19 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.GLOW_ENERGY
                 );
 
+        tag(EnchantmentTags.TRADEABLE)
+                .add(
+                        Enchantments.REFLUX,
+                        Enchantments.RESERVOIR,
+                        Enchantments.ALACRITY,
+                        Enchantments.TENSE,
+                        Enchantments.SURGE,
+                        Enchantments.ATTUNEMENT,
+                        Enchantments.TRANSCENDENCE,
+                        Enchantments.WISDOM,
+                        Enchantments.PLUNDER
+                );
+
         tag(EnchantmentTags.ON_RANDOM_LOOT)
                 .add(
                         Enchantments.REFLUX,
@@ -75,11 +84,7 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.ATTUNEMENT,
                         Enchantments.TRANSCENDENCE,
                         Enchantments.WISDOM,
-                        Enchantments.PLUNDER,
-                        Enchantments.GUZZLE,
-                        Enchantments.LARGE_MUG,
-                        Enchantments.RED_ENERGY,
-                        Enchantments.GLOW_ENERGY
+                        Enchantments.PLUNDER
                 );
     }
 }

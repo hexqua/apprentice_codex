@@ -67,7 +67,6 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
-import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
@@ -90,6 +89,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
@@ -167,6 +167,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -2517,27 +2518,28 @@ public final class ApprenticeCodexGameTests {
     @GameTest(template = TEMPLATE)
     public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            assertApprenticeEnchantmentFlags(helper, Enchantments.ALACRITY, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.REFLUX, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.RESERVOIR, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SURGE, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.ATTUNEMENT, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.TENSE, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.WISDOM, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.PLUNDER, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.TRANSCENDENCE, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.GUZZLE, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.LARGE_MUG, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.RED_ENERGY, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.GLOW_ENERGY, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.ALACRITY, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.REFLUX, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.RESERVOIR, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.SURGE, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.ATTUNEMENT, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.TENSE, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.WISDOM, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.PLUNDER, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.TRANSCENDENCE, true, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.GUZZLE, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.LARGE_MUG, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.RED_ENERGY, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.GLOW_ENERGY, false, true, false, false);
         });
     }
 
     @GameTest(template = TEMPLATE)
     public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var function = EnchantRandomlyFunction.randomApplicableEnchantment().build();
+            var function = EnchantRandomlyFunction.randomApplicableEnchantment(helper.getLevel().registryAccess()).build();
             var seenApprenticeEnchantments = new LinkedHashSet<ResourceLocation>();
+            var flaskEnchantments = expectedFlaskEnchantments();
 
             for (long seed = 0L; seed < 4096L; ++seed) {
                 var result = function.apply(new ItemStack(Items.BOOK), createEmptyLootContext(helper, seed));
@@ -2553,7 +2555,7 @@ public final class ApprenticeCodexGameTests {
                         continue;
                     }
 
-                    helper.assertFalse(ApprenticeEnchantmentAvailability.isFlaskExclusiveEnchantment(enchantment.value()),
+                    helper.assertFalse(flaskEnchantments.contains(enchantmentId),
                             "Random applicable enchantment loot included flask enchantment: " + enchantmentId + " at seed " + seed);
                     seenApprenticeEnchantments.add(enchantmentId);
                 }
@@ -3547,7 +3549,7 @@ public final class ApprenticeCodexGameTests {
         tag.putInt("PositionY", absoluteAnchorPos.getY());
         tag.putInt("PositionZ", absoluteAnchorPos.getZ());
         tag.putBoolean("ForceReplace", forceReplace);
-        castData.deserializeNBT(tag);
+        castData.deserializeNBT(helper.getLevel().registryAccess(), tag);
         var magicData = MagicData.getPlayerMagicData(player);
         magicData.setAdditionalCastData(castData);
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
@@ -3974,17 +3976,24 @@ public final class ApprenticeCodexGameTests {
             GameTestHelper helper,
             ResourceKey<Enchantment> enchantmentKey,
             boolean expectedTreasureOnly,
+            boolean expectedInEnchantingTable,
             boolean expectedTradeable,
-            boolean expectedDiscoverable
+            boolean expectedOnRandomLoot
     ) {
-        var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(enchantmentKey).value();
+        var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(enchantmentKey);
         var enchantmentId = enchantmentKey.location();
-        helper.assertTrue(enchantment.isTreasureOnly() == expectedTreasureOnly,
-                "Treasure flag changed for " + enchantmentId + ": expected " + expectedTreasureOnly + " but got " + enchantment.isTreasureOnly());
-        helper.assertTrue(enchantment.isTradeable() == expectedTradeable,
-                "Tradeable flag changed for " + enchantmentId + ": expected " + expectedTradeable + " but got " + enchantment.isTradeable());
-        helper.assertTrue(enchantment.isDiscoverable() == expectedDiscoverable,
-                "Discoverable flag changed for " + enchantmentId + ": expected " + expectedDiscoverable + " but got " + enchantment.isDiscoverable());
+        var actualTreasureOnly = enchantment.is(EnchantmentTags.TREASURE);
+        var actualInEnchantingTable = enchantment.is(EnchantmentTags.IN_ENCHANTING_TABLE);
+        var actualTradeable = enchantment.is(EnchantmentTags.TRADEABLE);
+        var actualOnRandomLoot = enchantment.is(EnchantmentTags.ON_RANDOM_LOOT);
+        helper.assertTrue(actualTreasureOnly == expectedTreasureOnly,
+                "Treasure tag changed for " + enchantmentId + ": expected " + expectedTreasureOnly + " but got " + actualTreasureOnly);
+        helper.assertTrue(actualInEnchantingTable == expectedInEnchantingTable,
+                "Enchanting-table tag changed for " + enchantmentId + ": expected " + expectedInEnchantingTable + " but got " + actualInEnchantingTable);
+        helper.assertTrue(actualTradeable == expectedTradeable,
+                "Tradeable tag changed for " + enchantmentId + ": expected " + expectedTradeable + " but got " + actualTradeable);
+        helper.assertTrue(actualOnRandomLoot == expectedOnRandomLoot,
+                "Random-loot tag changed for " + enchantmentId + ": expected " + expectedOnRandomLoot + " but got " + actualOnRandomLoot);
     }
 
     private static void assertBaseAttackModifier(
@@ -4316,7 +4325,7 @@ public final class ApprenticeCodexGameTests {
     private static LootContext createEmptyLootContext(GameTestHelper helper, long seed) {
         return new LootContext.Builder(createEmptyLootParams(helper))
                 .withOptionalRandomSeed(seed)
-                .create(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/random_applicable_enchantment"));
+                .create(Optional.of(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/random_applicable_enchantment")));
     }
 
     private static void assertLootTableGeneratesAllItems(
@@ -4406,7 +4415,7 @@ public final class ApprenticeCodexGameTests {
                 "Potion " + potionId + " should have exactly one effect but got " + effects.size());
 
         var effect = effects.isEmpty() ? null : effects.get(0);
-        helper.assertTrue(effect != null && effect.getEffect() == EffectRegistry.MANA_REGENERATION.get(),
+        helper.assertTrue(effect != null && effect.getEffect().value() == EffectRegistry.MANA_REGENERATION.get(),
                 "Potion " + potionId + " should grant mana regeneration");
         helper.assertTrue(effect != null && effect.getDuration() == expectedDuration,
                 "Potion " + potionId + " duration regression: "
