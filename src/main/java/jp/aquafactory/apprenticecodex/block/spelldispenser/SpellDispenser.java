@@ -163,7 +163,7 @@ public final class SpellDispenser extends BaseEntityBlock {
             var blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
                 spellDispenser.stopContinuousCast(true);
-                spellDispenser.dropStoredItem();
+                spellDispenser.dropStoredItems();
             }
         }
 

@@ -16,6 +16,10 @@ public final class SpellDispenserSpellValidator {
     private SpellDispenserSpellValidator() {
     }
 
+    public static boolean isPlaceableScroll(ItemStack stack) {
+        return stack.getItem() instanceof Scroll;
+    }
+
     public static ValidationResult validate(ItemStack stack) {
         if (stack.isEmpty()) {
             return new ValidationResult(ItemStack.EMPTY, SpellData.EMPTY, FailureReason.EMPTY);
@@ -80,6 +84,10 @@ public final class SpellDispenserSpellValidator {
             return failureReason == FailureReason.NONE && spellData != SpellData.EMPTY;
         }
 
+        public boolean shouldUseHiddenPresentation() {
+            return failureReason != FailureReason.NONE;
+        }
+
         public Component getStatus(Player player) {
             if (isSupported()) {
                 return Component.translatable(
@@ -100,6 +108,10 @@ public final class SpellDispenserSpellValidator {
                     "container." + ApprenticeCodex.MODID + ".spell_dispenser.current_spell",
                     spellData.getSpell().getDisplayName(player)
             );
+        }
+
+        public @Nullable Component getGuiTooltip() {
+            return failureReason.createGuiTooltip();
         }
     }
 
@@ -140,6 +152,20 @@ public final class SpellDispenserSpellValidator {
                         keyBase + "denylisted",
                         spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
                 );
+            };
+        }
+
+        public @Nullable Component createGuiTooltip() {
+            var keyBase = "container." + ApprenticeCodex.MODID + ".spell_dispenser.spell.tooltip.";
+            return switch (this) {
+                case NONE -> null;
+                case EMPTY -> null;
+                case NOT_SCROLL, NOT_SPELL_CONTAINER, NO_ACTIVE_SPELL, MULTIPLE_ACTIVE_SPELLS ->
+                        Component.translatable(keyBase + "general_error");
+                case UNSUPPORTED_CAST_TYPE -> Component.translatable(keyBase + "unsupported_cast");
+                case HAS_RECAST -> Component.translatable(keyBase + "has_recast");
+                case NOT_PROFILED -> Component.translatable(keyBase + "not_profiled");
+                case DENYLISTED -> Component.translatable(keyBase + "denylisted");
             };
         }
     }

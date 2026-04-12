@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,14 +19,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SpellDispenserMenu extends AbstractContainerMenu {
-    private static final int SPELL_SLOT_X = 80;
-    private static final int SPELL_SLOT_Y = 35;
+    static final int SPELL_SLOT_X = 151;
+    static final int SPELL_SLOT_Y = 18;
+    static final int FLASK_SLOT_X = 26;
+    static final int FLASK_SLOT_Y = 54;
+    static final int FLASK_SLOT_SPACING = 18;
     private static final int PLAYER_INVENTORY_X = 8;
     private static final int PLAYER_INVENTORY_Y = 84;
     private static final int HOTBAR_Y = 142;
 
-    private static final int SPELL_SLOT_INDEX = 0;
-    private static final int PLAYER_INVENTORY_START = 1;
+    private static final int SPELL_SLOT_INDEX = SpellDispenserBlockEntity.SPELL_SLOT_INDEX;
+    private static final int FLASK_SLOT_START = SpellDispenserBlockEntity.FLASK_SLOT_START;
+    private static final int FLASK_SLOT_END = FLASK_SLOT_START + SpellDispenserBlockEntity.FLASK_SLOT_COUNT;
+    private static final int PLAYER_INVENTORY_START = FLASK_SLOT_END;
     private static final int PLAYER_INVENTORY_END = PLAYER_INVENTORY_START + 27;
     private static final int HOTBAR_START = PLAYER_INVENTORY_END;
     private static final int HOTBAR_END = HOTBAR_START + 9;
@@ -68,6 +74,9 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         this.access = mounted ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(playerInventory.player.level(), blockPos);
 
         addSlot(new SpellSourceSlot(inventory, SPELL_SLOT_INDEX, SPELL_SLOT_X, SPELL_SLOT_Y));
+        for (var slot = 0; slot < SpellDispenserBlockEntity.FLASK_SLOT_COUNT; ++slot) {
+            addSlot(new FlaskSlot(inventory, FLASK_SLOT_START + slot, FLASK_SLOT_X + slot * FLASK_SLOT_SPACING, FLASK_SLOT_Y));
+        }
         for (var row = 0; row < 3; ++row) {
             for (var col = 0; col < 9; ++col) {
                 addSlot(new Slot(playerInventory, col + row * 9 + 9,
@@ -97,13 +106,20 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
         var stack = slot.getItem();
         var copy = stack.copy();
-        if (slotIndex == SPELL_SLOT_INDEX) {
+        if (slotIndex == SPELL_SLOT_INDEX || (slotIndex >= FLASK_SLOT_START && slotIndex < FLASK_SLOT_END)) {
             if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
                 return ItemStack.EMPTY;
             }
         } else {
-            if (!SpellDispenserSpellValidator.isSupported(stack)
-                    || !moveItemStackTo(stack, SPELL_SLOT_INDEX, PLAYER_INVENTORY_START, false)) {
+            if (SpellDispenserSpellValidator.isPlaceableScroll(stack)) {
+                if (!moveItemStackTo(stack, SPELL_SLOT_INDEX, FLASK_SLOT_START, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+                if (!moveItemStackTo(stack, FLASK_SLOT_START, FLASK_SLOT_END, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else {
                 return ItemStack.EMPTY;
             }
         }
@@ -137,6 +153,14 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         return slots.get(SPELL_SLOT_INDEX).getItem();
     }
 
+    public boolean hasOwnerProfile() {
+        var currentBlockEntity = getBlockEntity();
+        if (currentBlockEntity != null) {
+            return currentBlockEntity.hasOwnerProfile();
+        }
+        return hasOwnerProfile;
+    }
+
     public @Nullable SpellDispenserBlockEntity getBlockEntity() {
         if (mounted) {
             return null;
@@ -167,15 +191,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             return blockEntity.getInventory();
         }
 
-        return new ItemStackHandler(1);
-    }
-
-    private boolean hasOwnerProfile() {
-        var currentBlockEntity = getBlockEntity();
-        if (currentBlockEntity != null) {
-            return currentBlockEntity.hasOwnerProfile();
-        }
-        return hasOwnerProfile;
+        return new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
     }
 
     private record MenuContext(
@@ -214,8 +230,10 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
             }
 
             var hasOwnerProfile = data.readBoolean();
-            var inventory = new ItemStackHandler(1);
-            inventory.setStackInSlot(0, ItemStack.OPTIONAL_STREAM_CODEC.decode(data));
+            var inventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
+            for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {
+                inventory.setStackInSlot(slot, data.readItem());
+            }
             return new MenuContext(blockPos, null, inventory, true, hasOwnerProfile);
         }
     }
@@ -227,7 +245,23 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return SpellDispenserSpellValidator.isSupported(stack);
+            return SpellDispenserSpellValidator.isPlaceableScroll(stack);
+        }
+    }
+
+    private static final class FlaskSlot extends SlotItemHandler {
+        private FlaskSlot(IItemHandlerModifiable inventory, int index, int xPosition, int yPosition) {
+            super(inventory, index, xPosition, yPosition);
+        }
+
+        @Override
+        public boolean mayPlace(@NotNull ItemStack stack) {
+            return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get());
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1;
         }
     }
 }
