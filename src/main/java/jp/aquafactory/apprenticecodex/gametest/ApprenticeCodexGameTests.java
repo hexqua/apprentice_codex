@@ -2905,6 +2905,15 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertPotionEffect(helper, PotionRegistry.MEDITATION.get(), "apprenticecodex:meditation", 20 * 60 * 3, 0);
+            assertPotionEffect(helper, PotionRegistry.LONG_MEDITATION.get(), "apprenticecodex:long_meditation", 20 * 60 * 8, 0);
+            assertPotionEffect(helper, PotionRegistry.STRONG_MEDITATION.get(), "apprenticecodex:strong_meditation", 20 * 90, 1);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var instantSpell = SpellRegistry.AUTO_MAGNET.get();
@@ -4379,6 +4388,32 @@ public final class ApprenticeCodexGameTests {
 
     private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
         return PotionContentsHelper.createPotionStack(Items.POTION, potion);
+    }
+
+    private static void assertPotionEffect(
+            GameTestHelper helper,
+            net.minecraft.world.item.alchemy.Potion potion,
+            String expectedPotionId,
+            int expectedDuration,
+            int expectedAmplifier
+    ) {
+        var potionId = ResourceLocation.parse(expectedPotionId);
+        helper.assertTrue(BuiltInRegistries.POTION.get(potionId) == potion,
+                "Missing potion registry entry: " + potionId);
+
+        var effects = potion.getEffects();
+        helper.assertTrue(effects.size() == 1,
+                "Potion " + potionId + " should have exactly one effect but got " + effects.size());
+
+        var effect = effects.isEmpty() ? null : effects.get(0);
+        helper.assertTrue(effect != null && effect.getEffect() == EffectRegistry.MANA_REGENERATION.get(),
+                "Potion " + potionId + " should grant mana regeneration");
+        helper.assertTrue(effect != null && effect.getDuration() == expectedDuration,
+                "Potion " + potionId + " duration regression: "
+                        + (effect == null ? "missing" : effect.getDuration()));
+        helper.assertTrue(effect != null && effect.getAmplifier() == expectedAmplifier,
+                "Potion " + potionId + " amplifier regression: "
+                        + (effect == null ? "missing" : effect.getAmplifier()));
     }
 
     private static ItemStack createFilledSpellcastersFlask(

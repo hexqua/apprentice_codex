@@ -39,6 +39,21 @@ public final class PotionRegistry {
                     "intelligence",
                     new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.INTELLIGENCE.get()), STRONG_DURATION_TICKS, 1)
             ));
+    public static final DeferredHolder<Potion, Potion> MEDITATION =
+            POTIONS.register("meditation", () -> new Potion(
+                    "meditation",
+                    new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.MANA_REGENERATION.get()), BASE_DURATION_TICKS)
+            ));
+    public static final DeferredHolder<Potion, Potion> LONG_MEDITATION =
+            POTIONS.register("long_meditation", () -> new Potion(
+                    "meditation",
+                    new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.MANA_REGENERATION.get()), LONG_DURATION_TICKS)
+            ));
+    public static final DeferredHolder<Potion, Potion> STRONG_MEDITATION =
+            POTIONS.register("strong_meditation", () -> new Potion(
+                    "meditation",
+                    new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.MANA_REGENERATION.get()), STRONG_DURATION_TICKS, 1)
+            ));
 
     private PotionRegistry() {
     }
@@ -68,6 +83,9 @@ public final class PotionRegistry {
         builder.addMix(Potions.STRONG_STRENGTH, ItemRegistry.ARCANE_CINDER.get(), STRONG_INTELLIGENCE);
         builder.addMix(INTELLIGENCE, Items.REDSTONE, LONG_INTELLIGENCE);
         builder.addMix(INTELLIGENCE, Items.GLOWSTONE_DUST, STRONG_INTELLIGENCE);
+        builder.addMix(Potions.AWKWARD, ItemRegistry.COMFORT_BERRIES.get(), MEDITATION);
+        builder.addMix(MEDITATION, Items.REDSTONE, LONG_MEDITATION);
+        builder.addMix(MEDITATION, Items.GLOWSTONE_DUST, STRONG_MEDITATION);
 
         for (var transition : SchoolAffinityPotionBrewing.getTransitions()) {
             builder.addMix(
