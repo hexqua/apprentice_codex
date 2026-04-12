@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
@@ -63,6 +64,7 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
 import net.minecraft.core.BlockPos;
@@ -156,6 +158,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -513,13 +516,13 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorAcceptsSingleHealScroll(GameTestHelper helper) {
+    public static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
 
             var validation = SpellDispenserSpellValidator.validate(scrollStack);
-            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a simple Heal scroll");
-            helper.assertTrue(validation.spellData().getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(),
+            helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected a simple Magic Missile scroll");
+            helper.assertTrue(validation.spellData().getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(),
                     "Spell Dispenser validator resolved the wrong spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
@@ -614,17 +617,21 @@ public final class ApprenticeCodexGameTests {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
 
             var castResult = SpellDispenserCastHelper.tryCast(
                     (ServerLevel) level,
                     castPos,
                     Direction.NORTH,
                     scrollStack,
-                    createSpellDispenserOwnerProfile("spell_dispenser_heal_test")
+                    createSpellDispenserOwnerProfile("spell_dispenser_magic_missile_test")
             );
-            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a Heal scroll");
-            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after Heal cast");
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a Magic Missile scroll");
+            helper.assertTrue(castResult.reachedOnCast(), "Spell Dispenser Magic Missile cast did not mark that it reached onCast");
+            helper.assertTrue(castResult.cooldownTicks() == spell.getSpellCooldown(),
+                    "Spell Dispenser Magic Missile cast returned the wrong cooldown: " + castResult.cooldownTicks());
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after Magic Missile cast");
         });
     }
 
@@ -633,7 +640,8 @@ public final class ApprenticeCodexGameTests {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
-            var scrollStack = createSpellScroll(SpellRegistry.COMPOUND_PHIAL.get());
+            var spell = SpellRegistry.COMPOUND_PHIAL.get();
+            var scrollStack = createSpellScroll(spell);
 
             var castResult = SpellDispenserCastHelper.tryCast(
                     (ServerLevel) level,
@@ -643,6 +651,10 @@ public final class ApprenticeCodexGameTests {
                     createSpellDispenserOwnerProfile("spell_dispenser_long_test")
             );
             helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a LONG Compound Phial scroll");
+            var expectedCooldown = spell.getSpellCooldown()
+                    + spell.getEffectiveCastTime(1, new FakePlayer((ServerLevel) level, createSpellDispenserOwnerProfile("spell_dispenser_long_probe")));
+            helper.assertTrue(castResult.cooldownTicks() == expectedCooldown,
+                    "Spell Dispenser LONG cast returned the wrong cooldown: " + castResult.cooldownTicks() + " / expected " + expectedCooldown);
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after LONG cast");
 
             var projectileBox = new AABB(castPos).inflate(5.0D);
@@ -680,6 +692,8 @@ public final class ApprenticeCodexGameTests {
             }
 
             helper.assertTrue(session.isFinished(), "Spell Dispenser CONTINUOUS cast did not stop by its cast duration cap");
+            helper.assertTrue(session.consumeFinishedCooldownTicks() == spell.getSpellCooldown(),
+                    "Spell Dispenser CONTINUOUS cast did not record the expected cooldown after completion");
             var fireballBox = new AABB(castPos).inflate(16.0D);
             var fireballs = level.getEntitiesOfClass(SmallMagicFireball.class, fireballBox);
             helper.assertTrue(!fireballs.isEmpty(), "Spell Dispenser CONTINUOUS cast completed without spawning Blaze Storm fireballs");
@@ -852,8 +866,296 @@ public final class ApprenticeCodexGameTests {
                     "Spell Dispenser CONTINUOUS cast stayed active after its held-signal duration cap");
             helper.assertTrue(spellDispenser.requiresContinuousReset(),
                     "Spell Dispenser did not record that CONTINUOUS needs a signal reset after held completion");
+            helper.assertTrue(spellDispenser.isCoolingDown(),
+                    "Spell Dispenser did not enter cooldown after a held CONTINUOUS cast completed");
             assertNoSpellDispenserProxy(helper, pos, scrollStack, "Spell Dispenser proxy caster was left behind after held completion reset state");
             helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserBlockEntityStartsAndClearsInstantCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+            spellDispenser.getInventory().setStackInSlot(0, scrollStack);
+            spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_cooldown_test"));
+
+            var firstResult = spellDispenser.tryActivate();
+            helper.assertTrue(firstResult.succeeded(), "Spell Dispenser failed to activate an INSTANT spell for cooldown test");
+            helper.assertTrue(spellDispenser.getRemainingCooldownTicks() == spell.getSpellCooldown(),
+                    "Spell Dispenser stored the wrong cooldown after an INSTANT cast: " + spellDispenser.getRemainingCooldownTicks());
+
+            var blockedResult = spellDispenser.tryActivate();
+            helper.assertTrue(!blockedResult.succeeded() && !blockedResult.reachedOnCast(),
+                    "Spell Dispenser did not reject activation while cooling down");
+
+            for (var tick = 0; tick < spell.getSpellCooldown(); tick++) {
+                SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            }
+
+            helper.assertFalse(spellDispenser.isCoolingDown(), "Spell Dispenser cooldown did not expire after the expected number of ticks");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserAutomationOnlyAcceptsManaContainers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var itemHandler = blockEntity.getItemHandler(Direction.UP);
+            var manaFlask = createFilledSpellcastersFlask(
+                    helper.getLevel().registryAccess(),
+                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
+                    1,
+                    0
+            );
+            var nonManaPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.HEALING.value());
+            var nonManaFlask = createFilledSpellcastersFlask(helper.getLevel().registryAccess(), nonManaPotion, 1, 0);
+
+            helper.assertTrue(itemHandler != null, "Spell Dispenser item capability was not exposed for flask slot validation");
+            helper.assertTrue(
+                    itemHandler != null && itemHandler.isItemValid(
+                            SpellDispenserBlockEntity.FLASK_SLOT_START,
+                            createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get())
+                    ),
+                    "Spell Dispenser flask slot rejected a mana potion"
+            );
+            helper.assertTrue(
+                    itemHandler != null && itemHandler.isItemValid(
+                            SpellDispenserBlockEntity.FLASK_SLOT_START,
+                            manaFlask
+                    ),
+                    "Spell Dispenser flask slot rejected a mana flask"
+            );
+            helper.assertTrue(
+                    itemHandler != null && !itemHandler.isItemValid(
+                            SpellDispenserBlockEntity.FLASK_SLOT_START,
+                            new ItemStack(Items.GLASS_BOTTLE)
+                    ),
+                    "Spell Dispenser flask slot accepted a glass bottle from automation"
+            );
+            helper.assertTrue(
+                    itemHandler != null && !itemHandler.isItemValid(
+                            SpellDispenserBlockEntity.FLASK_SLOT_START,
+                            nonManaPotion
+                    ),
+                    "Spell Dispenser flask slot accepted a non-mana potion"
+            );
+            helper.assertTrue(
+                    itemHandler != null && !itemHandler.isItemValid(
+                            SpellDispenserBlockEntity.FLASK_SLOT_START,
+                            nonManaFlask
+                    ),
+                    "Spell Dispenser flask slot accepted a non-mana flask"
+            );
+            helper.assertTrue(
+                    itemHandler != null && !itemHandler.isItemValid(
+                            SpellDispenserBlockEntity.FLASK_SLOT_START,
+                            new ItemStack(Items.STICK)
+                    ),
+                    "Spell Dispenser flask slot accepted an unrelated item"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            var absolutePos = helper.absolutePos(pos);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+            var blockEntity = level.getBlockEntity(absolutePos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var player = createSpellDispenserPlacer(helper, new BlockPos(0, 2, 0), "spell_dispenser_place_mana_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Spell Dispenser placement test could not resolve player mana data");
+            magicData.setMana(1350.75F);
+            var initialMana = magicData.getMana();
+
+            var state = level.getBlockState(absolutePos);
+            ((SpellDispenser) state.getBlock()).setPlacedBy(level, absolutePos, state, player, new ItemStack(ItemRegistry.SPELL_DISPENSER.get()));
+
+            helper.assertTrue(spellDispenser.getCurrentMana() == 0,
+                    "Spell Dispenser placement should now start at zero mana: " + spellDispenser.getCurrentMana());
+            helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
+                    "Spell Dispenser placement should no longer drain player mana: " + magicData.getMana());
+            helper.assertTrue(spellDispenser.hasOwnerProfile(), "Spell Dispenser placement did not store the owner profile");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserSneakPlacementStartsAtZeroMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            var absolutePos = helper.absolutePos(pos);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+            var blockEntity = level.getBlockEntity(absolutePos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var player = createSpellDispenserPlacer(helper, new BlockPos(0, 2, 0), "spell_dispenser_place_sneak_test");
+            player.setShiftKeyDown(true);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Spell Dispenser sneak placement test could not resolve player mana data");
+            magicData.setMana(640.5F);
+            var initialMana = magicData.getMana();
+
+            var state = level.getBlockState(absolutePos);
+            ((SpellDispenser) state.getBlock()).setPlacedBy(level, absolutePos, state, player, new ItemStack(ItemRegistry.SPELL_DISPENSER.get()));
+
+            helper.assertTrue(spellDispenser.getCurrentMana() == 0,
+                    "Spell Dispenser sneak placement should start at zero mana: " + spellDispenser.getCurrentMana());
+            helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
+                    "Spell Dispenser sneak placement should not drain player mana: " + magicData.getMana());
+            helper.assertTrue(spellDispenser.hasOwnerProfile(), "Spell Dispenser sneak placement did not store the owner profile");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserRefillsFromHighestManaPotionThatFits(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var overflowPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_THREE.get());
+            var fittingPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_TWO.get());
+            spellDispenser.setCurrentMana(780);
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START, overflowPotion.copy());
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START + 1, fittingPotion.copy());
+
+            for (var tick = 0; tick < SpellDispenserManaHelper.REFILL_INTERVAL_TICKS; ++tick) {
+                SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            }
+
+            helper.assertTrue(spellDispenser.getCurrentMana() == 930,
+                    "Spell Dispenser did not pick the highest refill that still fits: " + spellDispenser.getCurrentMana());
+            helper.assertTrue(
+                    ItemStack.isSameItemSameComponents(
+                            spellDispenser.getInventory().getStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START),
+                            overflowPotion
+                    ),
+                    "Spell Dispenser consumed a potion that should have overflowed"
+            );
+            helper.assertTrue(
+                    spellDispenser.getInventory().getStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START + 1).is(Items.GLASS_BOTTLE),
+                    "Spell Dispenser did not leave a glass bottle after consuming a direct mana potion"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserRefillsFromGlowEnergyFlask(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var glowEnergyFlask = createFilledSpellcastersFlask(
+                    helper.getLevel().registryAccess(),
+                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
+                    1,
+                    1
+            );
+            spellDispenser.setCurrentMana(700);
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START, glowEnergyFlask);
+
+            for (var tick = 0; tick < SpellDispenserManaHelper.REFILL_INTERVAL_TICKS; ++tick) {
+                SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            }
+
+            helper.assertTrue(spellDispenser.getCurrentMana() == 850,
+                    "Spell Dispenser did not apply Glow Energy to flask refill mana: " + spellDispenser.getCurrentMana());
+            helper.assertTrue(
+                    spellDispenser.getInventory().getStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START).is(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    "Spell Dispenser replaced the flask item instead of emptying one dose"
+            );
+            helper.assertTrue(
+                    !SpellcastersFlask.isFilled(spellDispenser.getInventory().getStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START)),
+                    "Spell Dispenser did not consume exactly one flask dose"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserActivationFailsWhenManaIsInsufficient(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var spell = SpellRegistry.COMPOUND_PHIAL.get();
+            var requiredMana = spell.getManaCost(1);
+            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(spell));
+            spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_low_mana_test"));
+            spellDispenser.setCurrentMana(Math.max(0, requiredMana - 1));
+
+            var castResult = spellDispenser.tryActivate();
+            helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated even though it had insufficient mana");
+            helper.assertTrue(castResult.insufficientMana(), "Spell Dispenser returned the wrong failure for insufficient mana");
+            helper.assertTrue(spellDispenser.getCurrentMana() == Math.max(0, requiredMana - 1),
+                    "Spell Dispenser changed mana despite rejecting the cast");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+            helper.setBlock(pos, helper.getBlockState(pos).setValue(SpellDispenser.TRIGGERED, true));
+
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blaze_storm")
+            );
+            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(spell));
+            spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_continuous_low_mana_test"));
+            spellDispenser.setCurrentMana(spell.getManaCost(1));
+
+            var startResult = spellDispenser.tryActivate();
+            helper.assertTrue(startResult.succeeded(), "Spell Dispenser failed to start a CONTINUOUS cast with exactly one cost worth of mana");
+            helper.assertTrue(spellDispenser.hasActiveContinuousCast(), "Spell Dispenser did not keep the CONTINUOUS session active after start");
+            helper.assertTrue(spellDispenser.getCurrentMana() == 0,
+                    "Spell Dispenser did not consume the initial CONTINUOUS mana cost at start: " + spellDispenser.getCurrentMana());
+
+            for (var tick = 0; tick < 40 && spellDispenser.hasActiveContinuousCast(); ++tick) {
+                SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            }
+
+            helper.assertFalse(spellDispenser.hasActiveContinuousCast(),
+                    "Spell Dispenser kept a CONTINUOUS cast active after its mana ran out");
+            helper.assertTrue(spellDispenser.getCurrentMana() == 0,
+                    "Spell Dispenser mana changed unexpectedly after a mana-depleted CONTINUOUS stop");
         });
     }
 
@@ -888,6 +1190,8 @@ public final class ApprenticeCodexGameTests {
                     "Create-mounted Spell Dispenser CONTINUOUS cast did not stop at its duration cap");
             helper.assertTrue(createSpellDispenserRequiresReset(harness),
                     "Create-mounted Spell Dispenser did not enter reset-required state after held completion");
+            helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser did not enter cooldown after held completion");
 
             tickCreateSpellDispenserMovement(harness);
             helper.assertFalse(hasCreateSpellDispenserContinuousCast(harness),
@@ -897,6 +1201,12 @@ public final class ApprenticeCodexGameTests {
             tickCreateSpellDispenserMovement(harness);
             helper.assertFalse(createSpellDispenserRequiresReset(harness),
                     "Create-mounted Spell Dispenser did not clear reset-required state when disabled");
+
+            for (var tick = 0; tick < spell.getSpellCooldown() && createSpellDispenserIsCoolingDown(harness); tick++) {
+                tickCreateSpellDispenserMovement(harness);
+            }
+            helper.assertFalse(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser cooldown did not expire after the expected ticks");
 
             setCreateSpellDispenserDisabled(harness, false);
             tickCreateSpellDispenserMovement(harness);
@@ -938,7 +1248,122 @@ public final class ApprenticeCodexGameTests {
                     "Create-mounted Spell Dispenser kept a CONTINUOUS session active after disable");
             helper.assertFalse(createSpellDispenserRequiresReset(harness),
                     "Create-mounted Spell Dispenser incorrectly required reset after disable cancellation");
+            helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser did not enter cooldown after cancelling an already-casting CONTINUOUS spell");
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Create-mounted Spell Dispenser left proxy state behind after disable");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCreateInstantCastUsesCooldown(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = SpellRegistry.COMPOUND_PHIAL.get();
+            var scrollStack = createSpellScroll(spell);
+            var mountedInventory = new ItemStackHandler(1);
+            mountedInventory.setStackInSlot(0, scrollStack.copy());
+            var harness = createSpellDispenserMovementHarness(level, castPos, mountedInventory, createSpellDispenserOwnerProfile("spell_dispenser_create_instant_test"));
+
+            startCreateSpellDispenserMovement(harness);
+            visitCreateSpellDispenserPosition(harness, castPos);
+            helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser did not enter cooldown after a non-continuous cast");
+
+            var projectileBox = new AABB(castPos).inflate(5.0D);
+            var firstProjectileCount = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox).size();
+            helper.assertTrue(firstProjectileCount > 0,
+                    "Create-mounted Spell Dispenser did not spawn a projectile on the first cast");
+
+            visitCreateSpellDispenserPosition(harness, castPos);
+            var secondProjectileCount = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox).size();
+            helper.assertTrue(secondProjectileCount == firstProjectileCount,
+                    "Create-mounted Spell Dispenser ignored cooldown and fired again immediately");
+
+            var expectedCooldown = spell.getSpellCooldown()
+                    + spell.getEffectiveCastTime(1, new FakePlayer(level, createSpellDispenserOwnerProfile("spell_dispenser_create_instant_probe")));
+            for (var tick = 0; tick < expectedCooldown && createSpellDispenserIsCoolingDown(harness); tick++) {
+                tickCreateSpellDispenserMovement(harness);
+            }
+
+            helper.assertFalse(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser cooldown did not expire after the expected ticks");
+            visitCreateSpellDispenserPosition(harness, castPos);
+            var thirdProjectileCount = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox).size();
+            helper.assertTrue(thirdProjectileCount > secondProjectileCount,
+                    "Create-mounted Spell Dispenser did not fire again after cooldown expired");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCreateRefillsFromFuelStorageAndReturnsBottle(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
+            var externalInventory = new ItemStackHandler(2);
+            externalInventory.setStackInSlot(0,
+                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()));
+
+            var harness = createSpellDispenserMovementHarness(
+                    level,
+                    castPos,
+                    mountedInventory,
+                    createSpellDispenserOwnerProfile("spell_dispenser_create_fuel_refill_test"),
+                    800,
+                    externalInventory,
+                    true
+            );
+
+            startCreateSpellDispenserMovement(harness);
+            for (var tick = 0; tick < SpellDispenserManaHelper.REFILL_INTERVAL_TICKS; ++tick) {
+                tickCreateSpellDispenserMovement(harness);
+            }
+
+            helper.assertTrue(externalInventory.getStackInSlot(0).is(Items.GLASS_BOTTLE),
+                    "Create-mounted Spell Dispenser did not return a glass bottle to accessible contraption storage");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCreateIgnoresProtectedFuelStorage(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
+            var externalInventory = new ItemStackHandler(2);
+            var manaPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            externalInventory.setStackInSlot(0, manaPotion.copy());
+
+            var harness = createSpellDispenserMovementHarness(
+                    level,
+                    castPos,
+                    mountedInventory,
+                    createSpellDispenserOwnerProfile("spell_dispenser_create_protected_storage_test"),
+                    800,
+                    externalInventory,
+                    false
+            );
+
+            startCreateSpellDispenserMovement(harness);
+            for (var tick = 0; tick < SpellDispenserManaHelper.REFILL_INTERVAL_TICKS; ++tick) {
+                tickCreateSpellDispenserMovement(harness);
+            }
+
+            helper.assertTrue(ItemStack.isSameItemSameComponents(externalInventory.getStackInSlot(0), manaPotion),
+                    "Create-mounted Spell Dispenser consumed a potion from protected contraption storage");
         });
     }
 
@@ -960,21 +1385,59 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellDispenserItemCapabilityExposesInventory(GameTestHelper helper) {
+    public static void spellDispenserSidedAutomationProtectsScrollSlot(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var pos = new BlockPos(0, 1, 0);
             helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
             var itemHandler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.SPELL_SLOT_INDEX, scrollStack.copy());
 
             helper.assertTrue(itemHandler != null, "Spell Dispenser item capability was not exposed");
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
-            helper.assertTrue(itemHandler != null && itemHandler.isItemValid(0, scrollStack),
-                    "Spell Dispenser item capability rejected a supported scroll");
+            helper.assertTrue(itemHandler != null && !itemHandler.isItemValid(0, scrollStack),
+                    "Spell Dispenser sided automation exposed the scroll slot as insertable");
 
             var remainder = itemHandler == null ? scrollStack.copy() : itemHandler.insertItem(0, scrollStack.copy(), false);
-            helper.assertTrue(remainder.isEmpty(), "Spell Dispenser item capability failed to insert a supported scroll");
+            helper.assertTrue(ItemStack.isSameItemSameComponents(remainder, scrollStack),
+                    "Spell Dispenser sided automation consumed a scroll while rejecting the protected slot");
             helper.assertTrue(itemHandler != null && ItemStack.isSameItemSameComponents(itemHandler.getStackInSlot(0), scrollStack),
-                    "Spell Dispenser item capability did not expose the inserted scroll");
+                    "Spell Dispenser sided automation inserted a scroll into the protected slot");
+            helper.assertTrue(itemHandler != null && itemHandler.extractItem(0, 1, false).isEmpty(),
+                    "Spell Dispenser sided automation extracted the protected scroll slot");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserSidedAutomationExtractsOnlyEmptyContainers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+            var itemHandler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+            var filledFlask = createFilledSpellcastersFlask(
+                    helper.getLevel().registryAccess(),
+                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
+                    1,
+                    0
+            );
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START, filledFlask);
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START + 1, new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()));
+            spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START + 2, new ItemStack(Items.GLASS_BOTTLE));
+
+            helper.assertTrue(itemHandler != null, "Spell Dispenser sided automation capability was not exposed");
+            helper.assertTrue(itemHandler != null && itemHandler.extractItem(SpellDispenserBlockEntity.FLASK_SLOT_START, 1, false).isEmpty(),
+                    "Spell Dispenser sided automation extracted a filled mana container");
+            helper.assertTrue(itemHandler != null
+                            && itemHandler.extractItem(SpellDispenserBlockEntity.FLASK_SLOT_START + 1, 1, false).is(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    "Spell Dispenser sided automation failed to extract an empty flask");
+            helper.assertTrue(itemHandler != null
+                            && itemHandler.extractItem(SpellDispenserBlockEntity.FLASK_SLOT_START + 2, 1, false).is(Items.GLASS_BOTTLE),
+                    "Spell Dispenser sided automation failed to extract a glass bottle");
         });
     }
 
@@ -982,16 +1445,33 @@ public final class ApprenticeCodexGameTests {
     public static void spellDispenserMountedMenuKeepsContraptionInventoryAccessible(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "spell_dispenser_mounted_menu_test"));
-            var mountedInventory = new ItemStackHandler(1);
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
+            var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
             mountedInventory.setStackInSlot(0, scrollStack.copy());
+            var currentMana = new AtomicInteger(320);
+            var ownerName = "spell_dispenser_mounted_menu_owner_test";
 
-            var menu = SpellDispenserMenu.createMounted(0, new Inventory(player), BlockPos.ZERO, mountedInventory, true);
+            var menu = SpellDispenserMenu.createMounted(0, new Inventory(player), BlockPos.ZERO, mountedInventory, true, ownerName, currentMana::get);
             helper.assertTrue(menu.stillValid(player), "Spell Dispenser mounted menu closed because it expected a world block entity");
             helper.assertTrue(ItemStack.isSameItemSameComponents(menu.getSpellSource(), scrollStack),
                     "Spell Dispenser mounted menu did not expose the mounted inventory stack");
             helper.assertTrue(menu.isReadyToCast(player),
                     "Spell Dispenser mounted menu did not report a valid mounted scroll as ready");
+            helper.assertTrue(menu.getCurrentMana() == 320,
+                    "Spell Dispenser mounted menu did not expose the mounted mana value");
+            helper.assertTrue(ownerName.equals(menu.getOwnerName()),
+                    "Spell Dispenser mounted menu did not expose the mounted owner name");
+
+            currentMana.set(180);
+            helper.assertTrue(menu.getCurrentMana() == 180,
+                    "Spell Dispenser mounted menu did not follow the live contraption mana source");
+
+            var clientMenu = SpellDispenserMenu.createMounted(1, new Inventory(player), BlockPos.ZERO, mountedInventory, true, ownerName, 320);
+            clientMenu.setData(0, 180);
+            helper.assertTrue(clientMenu.getCurrentMana() == 180,
+                    "Spell Dispenser mounted menu did not accept mana updates from menu data sync");
+            helper.assertTrue(ownerName.equals(clientMenu.getOwnerName()),
+                    "Spell Dispenser mounted client menu did not retain the synced owner name");
         });
     }
 
@@ -2694,6 +3174,14 @@ public final class ApprenticeCodexGameTests {
         return player;
     }
 
+    private static FakePlayer createSpellDispenserPlacer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
     private static FakePlayer createBetterCombatHiddenOffhandPlayer(
             GameTestHelper helper,
             ItemStack mainHandStack,
@@ -3495,6 +3983,25 @@ public final class ApprenticeCodexGameTests {
         return stack;
     }
 
+    private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
+        return PotionContentsHelper.createPotionStack(Items.POTION, potion);
+    }
+
+    private static ItemStack createFilledSpellcastersFlask(
+            RegistryAccess registryAccess,
+            ItemStack storedItem,
+            int doseCount,
+            int glowEnergyLevel
+    ) {
+        var flask = new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get());
+        if (glowEnergyLevel > 0) {
+            registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
+                    .get(Enchantments.GLOW_ENERGY)
+                    .ifPresent(enchantment -> flask.enchant(enchantment, glowEnergyLevel));
+        }
+        return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
+    }
+
     private static SpellDispenserSpellValidator.ValidationResult createSpellDispenserValidation(ItemStack stack, AbstractSpell spell) {
         return new SpellDispenserSpellValidator.ValidationResult(stack, new SpellData(spell, 1), SpellDispenserSpellValidator.FailureReason.NONE);
     }
@@ -3536,12 +4043,32 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
+    private static Object createSpellDispenserMovementHarness(
+            ServerLevel level,
+            BlockPos worldPos,
+            ItemStackHandler mountedInventory,
+            GameProfile ownerProfile,
+            int currentMana,
+            ItemStackHandler externalInventory,
+            boolean externalAvailableForFuel
+    ) {
+        return invokeCreateGameTestHook(
+                "createSpellDispenserMovementHarness",
+                new Class<?>[]{ServerLevel.class, BlockPos.class, ItemStackHandler.class, GameProfile.class, int.class, ItemStackHandler.class, boolean.class},
+                level, worldPos, mountedInventory, ownerProfile, currentMana, externalInventory, externalAvailableForFuel
+        );
+    }
+
     private static void startCreateSpellDispenserMovement(Object harness) {
         invokeCreateGameTestHook("startMoving", new Class<?>[]{Object.class}, harness);
     }
 
     private static void tickCreateSpellDispenserMovement(Object harness) {
         invokeCreateGameTestHook("tick", new Class<?>[]{Object.class}, harness);
+    }
+
+    private static void visitCreateSpellDispenserPosition(Object harness, BlockPos pos) {
+        invokeCreateGameTestHook("visitNewPosition", new Class<?>[]{Object.class, BlockPos.class}, harness, pos);
     }
 
     private static void stopCreateSpellDispenserMovement(Object harness) {
@@ -3558,6 +4085,10 @@ public final class ApprenticeCodexGameTests {
 
     private static boolean createSpellDispenserRequiresReset(Object harness) {
         return invokeCreateGameTestHookBoolean("requiresContinuousReset", harness);
+    }
+
+    private static boolean createSpellDispenserIsCoolingDown(Object harness) {
+        return invokeCreateGameTestHookBoolean("isCoolingDown", harness);
     }
 
     private static boolean invokeCreateGameTestHookBoolean(String methodName, Object harness) {

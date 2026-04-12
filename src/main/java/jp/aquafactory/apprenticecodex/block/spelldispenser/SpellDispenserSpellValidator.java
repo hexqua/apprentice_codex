@@ -5,15 +5,17 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellSlot;
 import io.redspace.ironsspellbooks.item.Scroll;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public final class SpellDispenserSpellValidator {
     private SpellDispenserSpellValidator() {
+    }
+
+    public static boolean isPlaceableScroll(ItemStack stack) {
+        return stack.getItem() instanceof Scroll;
     }
 
     public static ValidationResult validate(ItemStack stack) {
@@ -58,7 +60,7 @@ public final class SpellDispenserSpellValidator {
         if (spell.getRecastCount(spellData.getLevel(), null) > 0) {
             return new ValidationResult(stack, spellData, FailureReason.HAS_RECAST);
         }
-        if (ApprenticeCodexServerConfig.spellDispenserRelaxedSpellFilter()) {
+        if (ApprenticeCodexServerConfig.spellDispenserIgnoreSpellProfileAndDenylistFiles()) {
             return new ValidationResult(stack, spellData, FailureReason.NONE);
         }
         if (SpellDispenserSpellListManager.isDenylisted(spell)) {
@@ -80,26 +82,12 @@ public final class SpellDispenserSpellValidator {
             return failureReason == FailureReason.NONE && spellData != SpellData.EMPTY;
         }
 
-        public Component getStatus(Player player) {
-            if (isSupported()) {
-                return Component.translatable(
-                        "container." + ApprenticeCodex.MODID + ".spell_dispenser.status.ready",
-                        spellData.getSpell().getDisplayName(player)
-                );
-            }
-
-            return failureReason.createMessage(spellData, player);
+        public boolean shouldUseHiddenPresentation() {
+            return failureReason != FailureReason.NONE;
         }
 
-        public @Nullable Component getCurrentSpellLabel(Player player) {
-            if (spellData == SpellData.EMPTY) {
-                return null;
-            }
-
-            return Component.translatable(
-                    "container." + ApprenticeCodex.MODID + ".spell_dispenser.current_spell",
-                    spellData.getSpell().getDisplayName(player)
-            );
+        public @Nullable Component getGuiTooltip() {
+            return failureReason.createGuiTooltip();
         }
     }
 
@@ -115,31 +103,17 @@ public final class SpellDispenserSpellValidator {
         NOT_PROFILED,
         DENYLISTED;
 
-        public Component createMessage(SpellData spellData, @Nullable Player player) {
-            var keyBase = "container." + ApprenticeCodex.MODID + ".spell_dispenser.status.";
+        public @Nullable Component createGuiTooltip() {
+            var keyBase = "container.apprenticecodex.spell_dispenser.spell.tooltip.";
             return switch (this) {
-                case NONE -> Component.empty();
-                case EMPTY -> Component.translatable(keyBase + "empty");
-                case NOT_SCROLL -> Component.translatable(keyBase + "not_scroll");
-                case NOT_SPELL_CONTAINER -> Component.translatable(keyBase + "invalid_item");
-                case NO_ACTIVE_SPELL -> Component.translatable(keyBase + "no_active_spell");
-                case MULTIPLE_ACTIVE_SPELLS -> Component.translatable(keyBase + "multiple_spells");
-                case UNSUPPORTED_CAST_TYPE -> Component.translatable(
-                        keyBase + "unsupported_cast",
-                        spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
-                );
-                case HAS_RECAST -> Component.translatable(
-                        keyBase + "has_recast",
-                        spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
-                );
-                case NOT_PROFILED -> Component.translatable(
-                        keyBase + "not_profiled",
-                        spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
-                );
-                case DENYLISTED -> Component.translatable(
-                        keyBase + "denylisted",
-                        spellData == SpellData.EMPTY ? Component.empty() : spellData.getSpell().getDisplayName(player)
-                );
+                case NONE -> null;
+                case EMPTY -> null;
+                case NOT_SCROLL, NOT_SPELL_CONTAINER, NO_ACTIVE_SPELL, MULTIPLE_ACTIVE_SPELLS ->
+                        Component.translatable(keyBase + "general_error");
+                case UNSUPPORTED_CAST_TYPE -> Component.translatable(keyBase + "unsupported_cast");
+                case HAS_RECAST -> Component.translatable(keyBase + "has_recast");
+                case NOT_PROFILED -> Component.translatable(keyBase + "not_profiled");
+                case DENYLISTED -> Component.translatable(keyBase + "denylisted");
             };
         }
     }

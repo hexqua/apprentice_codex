@@ -1,49 +1,45 @@
 {
   "variants": {
     "facing=down,triggered=false": {
-      "model": "minecraft:block/dispenser",
-      "x": 90
+      "model": "apprenticecodex:block/spell_dispenser_vertical_down"
     },
     "facing=down,triggered=true": {
-      "model": "minecraft:block/dispenser",
-      "x": 90
+      "model": "apprenticecodex:block/spell_dispenser_vertical_down"
     },
     "facing=east,triggered=false": {
-      "model": "minecraft:block/dispenser",
+      "model": "apprenticecodex:block/spell_dispenser_horizontal",
       "y": 90
     },
     "facing=east,triggered=true": {
-      "model": "minecraft:block/dispenser",
+      "model": "apprenticecodex:block/spell_dispenser_horizontal",
       "y": 90
     },
     "facing=north,triggered=false": {
-      "model": "minecraft:block/dispenser"
+      "model": "apprenticecodex:block/spell_dispenser_horizontal"
     },
     "facing=north,triggered=true": {
-      "model": "minecraft:block/dispenser"
+      "model": "apprenticecodex:block/spell_dispenser_horizontal"
     },
     "facing=south,triggered=false": {
-      "model": "minecraft:block/dispenser",
+      "model": "apprenticecodex:block/spell_dispenser_horizontal",
       "y": 180
     },
     "facing=south,triggered=true": {
-      "model": "minecraft:block/dispenser",
+      "model": "apprenticecodex:block/spell_dispenser_horizontal",
       "y": 180
     },
     "facing=up,triggered=false": {
-      "model": "minecraft:block/dispenser",
-      "x": 270
+      "model": "apprenticecodex:block/spell_dispenser_vertical_up"
     },
     "facing=up,triggered=true": {
-      "model": "minecraft:block/dispenser",
-      "x": 270
+      "model": "apprenticecodex:block/spell_dispenser_vertical_up"
     },
     "facing=west,triggered=false": {
-      "model": "minecraft:block/dispenser",
+      "model": "apprenticecodex:block/spell_dispenser_horizontal",
       "y": 270
     },
     "facing=west,triggered=true": {
-      "model": "minecraft:block/dispenser",
+      "model": "apprenticecodex:block/spell_dispenser_horizontal",
       "y": 270
     }
   }

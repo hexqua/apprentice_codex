@@ -5,11 +5,13 @@ import com.mojang.authlib.GameProfile;
 import com.simibubi.create.AllMountedStorageTypes;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorageType;
+import com.simibubi.create.api.contraption.storage.item.MountedItemStorageWrapper;
 import com.simibubi.create.api.contraption.storage.item.WrapperMountedItemStorage;
 import com.simibubi.create.content.contraptions.Contraption;
 import com.simibubi.create.content.contraptions.MountedStorageManager;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.compat.create.SpellDispenserMovementBehaviour;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import net.minecraft.core.BlockPos;
@@ -18,6 +20,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 
@@ -34,15 +37,55 @@ public final class CreateGameTestHooks {
             ItemStackHandler mountedInventory,
             GameProfile ownerProfile
     ) {
+        return createSpellDispenserMovementHarness(
+                level,
+                worldPos,
+                mountedInventory,
+                ownerProfile,
+                SpellDispenserManaHelper.MAX_MANA,
+                null,
+                false
+        );
+    }
+
+    public static Object createSpellDispenserMovementHarness(
+            ServerLevel level,
+            BlockPos worldPos,
+            ItemStackHandler mountedInventory,
+            GameProfile ownerProfile,
+            ItemStackHandler externalInventory,
+            boolean externalAvailableForFuel
+    ) {
+        return createSpellDispenserMovementHarness(
+                level,
+                worldPos,
+                mountedInventory,
+                ownerProfile,
+                SpellDispenserManaHelper.MAX_MANA,
+                externalInventory,
+                externalAvailableForFuel
+        );
+    }
+
+    public static Object createSpellDispenserMovementHarness(
+            ServerLevel level,
+            BlockPos worldPos,
+            ItemStackHandler mountedInventory,
+            GameProfile ownerProfile,
+            int currentMana,
+            ItemStackHandler externalInventory,
+            boolean externalAvailableForFuel
+    ) {
         var localPos = BlockPos.ZERO;
         var blockEntityTag = new CompoundTag();
         SpellDispenserBlockEntity.saveOwnerProfile(blockEntityTag, ownerProfile);
+        SpellDispenserBlockEntity.saveCurrentMana(blockEntityTag, currentMana);
         var blockInfo = new StructureTemplate.StructureBlockInfo(
                 localPos,
                 BlockRegistry.SPELL_DISPENSER.get().defaultBlockState(),
                 blockEntityTag
         );
-        var contraption = new TestSpellDispenserContraption(localPos, mountedInventory);
+        var contraption = new TestSpellDispenserContraption(localPos, mountedInventory, externalInventory, externalAvailableForFuel);
         var context = new MovementContext(level, blockInfo, contraption);
         context.position = Vec3.atCenterOf(worldPos);
         context.motion = Vec3.ZERO;
@@ -62,6 +105,11 @@ public final class CreateGameTestHooks {
         typedHarness.behaviour.tick(typedHarness.context);
     }
 
+    public static void visitNewPosition(Object harness, BlockPos pos) {
+        var typedHarness = asHarness(harness);
+        typedHarness.behaviour.visitNewPosition(typedHarness.context, pos);
+    }
+
     public static void stopMoving(Object harness) {
         var typedHarness = asHarness(harness);
         typedHarness.behaviour.stopMoving(typedHarness.context);
@@ -79,6 +127,10 @@ public final class CreateGameTestHooks {
         return SpellDispenserMovementBehaviour.requiresContinuousReset(asHarness(harness).context);
     }
 
+    public static boolean isCoolingDown(Object harness) {
+        return SpellDispenserMovementBehaviour.isCoolingDown(asHarness(harness).context);
+    }
+
     private static SpellDispenserMovementHarness asHarness(Object harness) {
         if (harness instanceof SpellDispenserMovementHarness typedHarness) {
             return typedHarness;
@@ -94,8 +146,13 @@ public final class CreateGameTestHooks {
     }
 
     private static final class TestSpellDispenserContraption extends Contraption {
-        private TestSpellDispenserContraption(BlockPos localPos, ItemStackHandler mountedInventory) {
-            this.storage = new TestMountedStorageManager(localPos, mountedInventory);
+        private TestSpellDispenserContraption(
+                BlockPos localPos,
+                ItemStackHandler mountedInventory,
+                ItemStackHandler externalInventory,
+                boolean externalAvailableForFuel
+        ) {
+            this.storage = new TestMountedStorageManager(localPos, mountedInventory, externalInventory, externalAvailableForFuel);
             this.disabledActors = new ArrayList<>();
         }
 
@@ -118,11 +175,35 @@ public final class CreateGameTestHooks {
     private static final class TestMountedStorageManager extends MountedStorageManager {
         private final ImmutableMap<BlockPos, MountedItemStorage> storages;
         private final CombinedInvWrapper allItems;
+        private final MountedItemStorageWrapper fuelItems;
 
-        private TestMountedStorageManager(BlockPos localPos, ItemStackHandler mountedInventory) {
-            var storage = new TestMountedItemStorage(mountedInventory);
-            this.storages = ImmutableMap.of(localPos, storage);
-            this.allItems = new CombinedInvWrapper(storage);
+        private TestMountedStorageManager(
+                BlockPos localPos,
+                ItemStackHandler mountedInventory,
+                ItemStackHandler externalInventory,
+                boolean externalAvailableForFuel
+        ) {
+            var localStorage = new TestMountedItemStorage(mountedInventory);
+            var storagesBuilder = ImmutableMap.<BlockPos, MountedItemStorage>builder()
+                    .put(localPos, localStorage);
+            var allWrappers = new ArrayList<MountedItemStorage>();
+            allWrappers.add(localStorage);
+
+            var fuelBuilder = ImmutableMap.<BlockPos, MountedItemStorage>builder()
+                    .put(localPos, localStorage);
+            if (externalInventory != null) {
+                var externalPos = new BlockPos(1, 0, 0);
+                var externalStorage = new TestMountedItemStorage(externalInventory);
+                storagesBuilder.put(externalPos, externalStorage);
+                allWrappers.add(externalStorage);
+                if (externalAvailableForFuel) {
+                    fuelBuilder.put(externalPos, externalStorage);
+                }
+            }
+
+            this.storages = storagesBuilder.build();
+            this.allItems = new CombinedInvWrapper(allWrappers.toArray(IItemHandlerModifiable[]::new));
+            this.fuelItems = new MountedItemStorageWrapper(fuelBuilder.build());
         }
 
         @Override
@@ -133,6 +214,11 @@ public final class CreateGameTestHooks {
         @Override
         public CombinedInvWrapper getAllItems() {
             return allItems;
+        }
+
+        @Override
+        public MountedItemStorageWrapper getFuelItems() {
+            return fuelItems;
         }
     }
 

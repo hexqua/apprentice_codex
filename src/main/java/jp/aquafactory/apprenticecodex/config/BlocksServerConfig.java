@@ -54,7 +54,7 @@ final class BlocksServerConfig {
         return arcanumInAJarConfig.ticksPerStoredParameter();
     }
 
-    boolean spellDispenserRelaxedSpellFilter() {
-        return spellDispenserConfig.relaxedSpellFilter();
+    boolean spellDispenserIgnoreSpellProfileAndDenylistFiles() {
+        return spellDispenserConfig.ignoreSpellProfileAndDenylistFiles();
     }
 }

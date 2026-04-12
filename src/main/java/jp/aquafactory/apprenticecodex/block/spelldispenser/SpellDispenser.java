@@ -15,18 +15,18 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.MapColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,10 @@ public final class SpellDispenser extends BaseEntityBlock {
     }
 
     public SpellDispenser() {
-        this(BlockBehaviour.Properties.ofFullCopy(Blocks.DISPENSER));
+        this(Properties.of()
+                .mapColor(MapColor.STONE)
+                .strength(3.5F)
+                .sound(SoundType.WOOD));
     }
 
     @Override
@@ -71,6 +74,7 @@ public final class SpellDispenser extends BaseEntityBlock {
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
             spellDispenser.setOwnerProfile(player.getGameProfile());
+            spellDispenser.setCurrentMana(0);
         }
     }
 
@@ -118,6 +122,7 @@ public final class SpellDispenser extends BaseEntityBlock {
             serverPlayer.openMenu(spellDispenser, buffer -> {
                 buffer.writeBoolean(false);
                 buffer.writeBlockPos(pos);
+                writeOwnerName(buffer, spellDispenser.getOwnerName());
             });
             return InteractionResult.CONSUME;
         }
@@ -137,22 +142,20 @@ public final class SpellDispenser extends BaseEntityBlock {
         if (powered && !triggered) {
             var blockEntity = level.getBlockEntity(pos);
             var result = blockEntity instanceof SpellDispenserBlockEntity spellDispenser ? spellDispenser.tryActivate() : null;
-            var succeeded = result != null && result.succeeded();
-            level.playSound(
-                    null,
-                    pos,
-                    succeeded ? SoundEvents.DISPENSER_DISPENSE : SoundEvents.DISPENSER_FAIL,
-                    SoundSource.BLOCKS,
-                    1.0F,
-                    1.0F
-            );
-            level.setBlock(pos, state.setValue(TRIGGERED, true), 4);
+            playActivationSound(level, pos, result);
+            var latestState = level.getBlockState(pos);
+            if (latestState.is(this)) {
+                level.setBlock(pos, latestState.setValue(TRIGGERED, true), 4);
+            }
         } else if (!powered && triggered) {
             var blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
                 spellDispenser.clearContinuousResetRequired();
             }
-            level.setBlock(pos, state.setValue(TRIGGERED, false), 4);
+            var latestState = level.getBlockState(pos);
+            if (latestState.is(this)) {
+                level.setBlock(pos, latestState.setValue(TRIGGERED, false), 4);
+            }
         }
     }
 
@@ -163,7 +166,7 @@ public final class SpellDispenser extends BaseEntityBlock {
             var blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
                 spellDispenser.stopContinuousCast(true);
-                spellDispenser.dropStoredItem();
+                spellDispenser.dropStoredItems();
             }
         }
 
@@ -177,5 +180,32 @@ public final class SpellDispenser extends BaseEntityBlock {
     @Override
     protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
+    }
+
+    private static void writeOwnerName(net.minecraft.network.FriendlyByteBuf buffer, @Nullable String ownerName) {
+        buffer.writeBoolean(ownerName != null && !ownerName.isBlank());
+        if (ownerName != null && !ownerName.isBlank()) {
+            buffer.writeUtf(ownerName);
+        }
+    }
+
+    private static void playActivationSound(
+            @NotNull Level level,
+            @NotNull BlockPos pos,
+            @Nullable SpellDispenserCastHelper.CastResult result
+    ) {
+        if (result == null) {
+            level.playSound(null, pos, SoundEvents.DISPENSER_FAIL, SoundSource.BLOCKS, 1.0F, 1.0F);
+            return;
+        }
+
+        if (result.succeeded()) {
+            level.playSound(null, pos, SoundEvents.DISPENSER_DISPENSE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            return;
+        }
+
+        if (!result.reachedOnCast()) {
+            level.playSound(null, pos, SoundEvents.DISPENSER_FAIL, SoundSource.BLOCKS, 1.0F, 1.0F);
+        }
     }
 }

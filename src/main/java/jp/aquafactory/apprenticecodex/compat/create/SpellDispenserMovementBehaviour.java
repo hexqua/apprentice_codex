@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.compat.create;
 
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
+import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.api.contraption.dispenser.MountedDispenseBehavior;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -15,22 +17,32 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public final class SpellDispenserMovementBehaviour implements MovementBehaviour {
     private static final String CONTINUOUS_STATE_TAG = "SpellDispenserContinuousState";
     private static final String CONTINUOUS_RESET_REQUIRED_TAG = "SpellDispenserContinuousResetRequired";
     private static final String LAST_POWERED_TAG = "SpellDispenserContinuousLastPowered";
+    private static final String COOLDOWN_REMAINING_TAG = "CooldownRemaining";
+    private static final String CURRENT_MANA_TAG = "CurrentMana";
+    private static final String REFILL_CHECK_TICKS_TAG = "RefillCheckTicks";
     private static final int CONTINUOUS_STATE_IDLE = 0;
     private static final int CONTINUOUS_STATE_CASTING = 1;
     private static final int CONTINUOUS_STATE_WAITING_FOR_RESET = 2;
 
     @Override
     public void startMoving(MovementContext context) {
-        context.temporaryData = null;
+        context.temporaryData = new RuntimeState();
         setContinuousState(context, getContinuousState(context) == CONTINUOUS_STATE_WAITING_FOR_RESET
                 ? CONTINUOUS_STATE_WAITING_FOR_RESET
                 : CONTINUOUS_STATE_IDLE);
         setContinuousResetRequired(context, getContinuousState(context) == CONTINUOUS_STATE_WAITING_FOR_RESET);
+        setRemainingCooldownTicks(context, Math.max(0, context.blockEntityData.getInt(COOLDOWN_REMAINING_TAG)));
+        setCurrentMana(context, SpellDispenserBlockEntity.readCurrentMana(context.blockEntityData));
+        setRefillCheckTicks(context, SpellDispenserBlockEntity.readRefillCheckTicks(context.blockEntityData));
         setLastPowered(context, false);
     }
 
@@ -42,19 +54,25 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
         var spellSource = getSpellSource(context);
         if (spellSource.isEmpty()) {
-            playActivationSound(serverLevel, pos, false);
+            var result = SpellDispenserCastHelper.CastResult.noScroll(SpellDispenserSpellValidator.validate(spellSource));
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
         if (ownerProfile == null) {
-            playActivationSound(serverLevel, pos, false);
+            var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(SpellDispenserSpellValidator.validate(spellSource));
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
         var validation = SpellDispenserSpellValidator.validate(spellSource);
         if (!validation.isSupported()) {
-            playActivationSound(serverLevel, pos, false);
+            var result = SpellDispenserCastHelper.CastResult.validationFailure(validation);
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
@@ -64,13 +82,24 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
         if (castType != CastType.INSTANT && castType != CastType.LONG) {
-            playActivationSound(serverLevel, pos, false);
+            var result = SpellDispenserCastHelper.CastResult.validationFailure(validation);
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
+            return;
+        }
+
+        if (isCoolingDown(context)) {
+            var result = SpellDispenserCastHelper.CastResult.cooldownBlocked(validation, getRemainingCooldownTicks(context));
+            notifyFailure(serverLevel, pos, context, result);
+            playActivationSound(serverLevel, pos, result);
             return;
         }
 
         var forward = resolveForward(context);
-        var castResult = SpellDispenserCastHelper.tryCast(serverLevel, pos, forward, spellSource.copy(), ownerProfile);
-        playActivationSound(serverLevel, pos, castResult.succeeded());
+        var castResult = SpellDispenserCastHelper.tryCast(serverLevel, pos, forward, spellSource.copy(), ownerProfile, new MountedManaAccess(context));
+        notifyFailure(serverLevel, pos, context, castResult);
+        playActivationSound(serverLevel, pos, castResult);
+        startCooldown(context, castResult.cooldownTicks());
     }
 
     @Override
@@ -79,6 +108,8 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
 
+        tickCooldown(context);
+        tickRefillCheck(context);
         var runtime = getContinuousRuntime(context);
         if (!isContinuousSpell(context)) {
             finishContinuousCast(serverLevel, context, runtime, true);
@@ -108,7 +139,8 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
             SpellDispenserCastHelper.syncContinuousCastTransform(runtime.session(), resolveCastBasePosition(context), resolveForward(context));
             if (!SpellDispenserCastHelper.tickContinuousCast(serverLevel, runtime.session())) {
-                context.temporaryData = null;
+                startCooldown(context, runtime.session().consumeFinishedCooldownTicks());
+                getOrCreateRuntimeState(context).setContinuousRuntime(null);
                 setContinuousState(context, CONTINUOUS_STATE_WAITING_FOR_RESET);
                 setContinuousResetRequired(context, true);
                 setLastPowered(context, true);
@@ -132,25 +164,37 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         }
 
         var spellSource = getSpellSource(context);
-        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
-        if (ownerProfile == null) {
-            playActivationSound(serverLevel, resolveSoundPos(context), false);
+        var validation = SpellDispenserSpellValidator.validate(spellSource);
+        if (isCoolingDown(context)) {
+            var result = SpellDispenserCastHelper.CastResult.cooldownBlocked(validation, getRemainingCooldownTicks(context));
+            notifyFailure(serverLevel, resolveSoundPos(context), context, result);
+            playActivationSound(serverLevel, resolveSoundPos(context), result);
             setLastPowered(context, true);
             return;
         }
 
-        var validation = SpellDispenserSpellValidator.validate(spellSource);
+        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
+        if (ownerProfile == null) {
+            var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation);
+            notifyFailure(serverLevel, resolveSoundPos(context), context, result);
+            playActivationSound(serverLevel, resolveSoundPos(context), result);
+            setLastPowered(context, true);
+            return;
+        }
+
         var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
                 serverLevel,
                 resolveCastBasePosition(context),
                 resolveForward(context),
                 validation,
                 spellSource.copy(),
-                ownerProfile
+                ownerProfile,
+                new MountedManaAccess(context)
         );
-        playActivationSound(serverLevel, resolveSoundPos(context), startResult.result().succeeded());
+        notifyFailure(serverLevel, resolveSoundPos(context), context, startResult.result());
+        playActivationSound(serverLevel, resolveSoundPos(context), startResult.result());
         if (startResult.result().succeeded() && startResult.session() != null) {
-            context.temporaryData = new ContinuousRuntime(startResult.session());
+            getOrCreateRuntimeState(context).setContinuousRuntime(new ContinuousRuntime(startResult.session()));
             setContinuousState(context, CONTINUOUS_STATE_CASTING);
             setContinuousResetRequired(context, false);
         } else {
@@ -170,7 +214,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         if (context.world instanceof ServerLevel serverLevel) {
             finishContinuousCast(serverLevel, context, getContinuousRuntime(context), true);
         } else {
-            context.temporaryData = null;
+            context.temporaryData = new RuntimeState();
         }
 
         setContinuousState(context, CONTINUOUS_STATE_IDLE);
@@ -191,6 +235,10 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
 
     public static boolean requiresContinuousReset(MovementContext context) {
         return context.data.getBoolean(CONTINUOUS_RESET_REQUIRED_TAG);
+    }
+
+    public static boolean isCoolingDown(MovementContext context) {
+        return getRemainingCooldownTicks(context) > 0;
     }
 
     private static ItemStack getSpellSource(MovementContext context) {
@@ -246,7 +294,8 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     ) {
         if (runtime != null) {
             SpellDispenserCastHelper.finishContinuousCast(level, runtime.session(), cancelled);
-            context.temporaryData = null;
+            startCooldown(context, runtime.session().consumeFinishedCooldownTicks());
+            getOrCreateRuntimeState(context).setContinuousRuntime(null);
         }
     }
 
@@ -270,21 +319,233 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         context.data.putBoolean(CONTINUOUS_RESET_REQUIRED_TAG, required);
     }
 
-    private static ContinuousRuntime getContinuousRuntime(MovementContext context) {
-        return context.temporaryData instanceof ContinuousRuntime runtime ? runtime : null;
+    private static int getRemainingCooldownTicks(MovementContext context) {
+        return Math.max(0, context.data.getInt(COOLDOWN_REMAINING_TAG));
     }
 
-    private static void playActivationSound(ServerLevel level, BlockPos pos, boolean succeeded) {
-        level.playSound(
-                null,
+    private static void setRemainingCooldownTicks(MovementContext context, int cooldownTicks) {
+        var normalized = Math.max(0, cooldownTicks);
+        context.data.putInt(COOLDOWN_REMAINING_TAG, normalized);
+        context.blockEntityData.putInt(COOLDOWN_REMAINING_TAG, normalized);
+    }
+
+    private static int getCurrentMana(MovementContext context) {
+        if (context.data.contains(CURRENT_MANA_TAG)) {
+            return SpellDispenserManaHelper.clampMana(context.data.getInt(CURRENT_MANA_TAG));
+        }
+        return SpellDispenserBlockEntity.readCurrentMana(context.blockEntityData);
+    }
+
+    private static void setCurrentMana(MovementContext context, int currentMana) {
+        var normalized = SpellDispenserManaHelper.clampMana(currentMana);
+        context.data.putInt(CURRENT_MANA_TAG, normalized);
+        SpellDispenserBlockEntity.saveCurrentMana(context.blockEntityData, normalized);
+    }
+
+    private static int getRefillCheckTicks(MovementContext context) {
+        if (context.data.contains(REFILL_CHECK_TICKS_TAG)) {
+            return Math.max(0, context.data.getInt(REFILL_CHECK_TICKS_TAG));
+        }
+        return SpellDispenserBlockEntity.readRefillCheckTicks(context.blockEntityData);
+    }
+
+    private static void setRefillCheckTicks(MovementContext context, int refillCheckTicks) {
+        var normalized = Math.max(0, refillCheckTicks);
+        context.data.putInt(REFILL_CHECK_TICKS_TAG, normalized);
+        SpellDispenserBlockEntity.saveRefillCheckTicks(context.blockEntityData, normalized);
+    }
+
+    private static void startCooldown(MovementContext context, int cooldownTicks) {
+        if (cooldownTicks <= 0) {
+            return;
+        }
+
+        setRemainingCooldownTicks(context, cooldownTicks);
+    }
+
+    private static void tickCooldown(MovementContext context) {
+        var remaining = getRemainingCooldownTicks(context);
+        if (remaining <= 0) {
+            return;
+        }
+
+        setRemainingCooldownTicks(context, remaining - 1);
+    }
+
+    private static void tickRefillCheck(MovementContext context) {
+        var refillCheckTicks = getRefillCheckTicks(context) + 1;
+        if (refillCheckTicks < SpellDispenserManaHelper.REFILL_INTERVAL_TICKS) {
+            setRefillCheckTicks(context, refillCheckTicks);
+            return;
+        }
+
+        setRefillCheckTicks(context, 0);
+        tryRefillMana(context);
+    }
+
+    private static boolean tryRefillMana(MovementContext context) {
+        if (SpellDispenserManaHelper.tryRefillMana(new MountedManaAccess(context))) {
+            return true;
+        }
+
+        return tryRefillManaFromMountedFuelStorage(context);
+    }
+
+    private static boolean tryRefillManaFromMountedFuelStorage(MovementContext context) {
+        var remainingCapacity = SpellDispenserManaHelper.MAX_MANA - getCurrentMana(context);
+        if (remainingCapacity <= 0 || context.contraption == null) {
+            return false;
+        }
+
+        var storageManager = context.contraption.getStorage();
+        if (storageManager == null) {
+            return false;
+        }
+
+        var fuelItems = storageManager.getFuelItems();
+        if (fuelItems == null) {
+            return false;
+        }
+
+        ExternalRefillCandidate bestCandidate = null;
+        // fuelItems は Create 側の exposed / fuel-usable storage だけを残した集合。
+        // Spell Dispenser 自身の storage は localPos で除外し、保護対象の Vault 等には触らない。
+        for (var entry : fuelItems.storages.entrySet()) {
+            var storagePos = entry.getKey();
+            if (context.localPos.equals(storagePos)) {
+                continue;
+            }
+
+            var storage = entry.getValue();
+            for (var slot = 0; slot < storage.getSlots(); ++slot) {
+                var stack = storage.getStackInSlot(slot);
+                var recoveredMana = SpellDispenserManaHelper.getAutomationInputManaRecovery(stack);
+                if (recoveredMana <= 0 || recoveredMana > remainingCapacity) {
+                    continue;
+                }
+
+                var remainder = SpellDispenserManaHelper.consumeAutomationInput(stack);
+                if (remainder.isEmpty() && !stack.isEmpty()) {
+                    continue;
+                }
+
+                if (bestCandidate == null || recoveredMana > bestCandidate.recoveredMana()) {
+                    bestCandidate = new ExternalRefillCandidate(storage, slot, recoveredMana, remainder);
+                }
+            }
+        }
+
+        if (bestCandidate == null) {
+            return false;
+        }
+
+        bestCandidate.storage().setStackInSlot(bestCandidate.slot(), bestCandidate.remainder());
+        setCurrentMana(context, getCurrentMana(context) + bestCandidate.recoveredMana());
+        return true;
+    }
+
+    private static ContinuousRuntime getContinuousRuntime(MovementContext context) {
+        var state = getOrCreateRuntimeState(context);
+        return state.continuousRuntime();
+    }
+
+    private static RuntimeState getOrCreateRuntimeState(MovementContext context) {
+        if (context.temporaryData instanceof RuntimeState state) {
+            return state;
+        }
+        var state = new RuntimeState();
+        context.temporaryData = state;
+        return state;
+    }
+
+    private static void notifyFailure(
+            ServerLevel level,
+            BlockPos pos,
+            MovementContext context,
+            SpellDispenserCastHelper.CastResult result
+    ) {
+        SpellDispenserCastHelper.notifyFailureToNearbyPlayers(
+                level,
                 pos,
-                succeeded ? SoundEvents.DISPENSER_DISPENSE : SoundEvents.DISPENSER_FAIL,
-                SoundSource.BLOCKS,
-                1.0F,
-                1.0F
+                result,
+                getOrCreateRuntimeState(context).recentFailureNoticeTicks()
         );
+    }
+
+    private static void playActivationSound(ServerLevel level, BlockPos pos, SpellDispenserCastHelper.CastResult result) {
+        if (result.succeeded()) {
+            level.playSound(null, pos, SoundEvents.DISPENSER_DISPENSE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            return;
+        }
+
+        if (!result.reachedOnCast()) {
+            level.playSound(null, pos, SoundEvents.DISPENSER_FAIL, SoundSource.BLOCKS, 1.0F, 1.0F);
+        }
     }
 
     private record ContinuousRuntime(SpellDispenserCastHelper.ContinuousCastSession session) {
     }
+
+    private record ExternalRefillCandidate(
+            MountedItemStorage storage,
+            int slot,
+            int recoveredMana,
+            ItemStack remainder
+    ) {
+    }
+
+    private static final class RuntimeState {
+        @Nullable
+        private ContinuousRuntime continuousRuntime;
+        private final Map<String, Long> recentFailureNoticeTicks = new HashMap<>();
+
+        private @Nullable ContinuousRuntime continuousRuntime() {
+            return continuousRuntime;
+        }
+
+        private Map<String, Long> recentFailureNoticeTicks() {
+            return recentFailureNoticeTicks;
+        }
+
+        private void setContinuousRuntime(@Nullable ContinuousRuntime continuousRuntime) {
+            this.continuousRuntime = continuousRuntime;
+        }
+    }
+
+    private record MountedManaAccess(MovementContext context) implements SpellDispenserManaHelper.ManaAccess {
+
+        @Override
+            public int getCurrentMana() {
+                return SpellDispenserMovementBehaviour.getCurrentMana(context);
+            }
+
+            @Override
+            public void setCurrentMana(int mana) {
+                SpellDispenserMovementBehaviour.setCurrentMana(context, mana);
+            }
+
+            @Override
+            public int getInventorySlotCount() {
+                var itemStorage = context.getItemStorage();
+                return itemStorage == null ? 0 : itemStorage.getSlots();
+            }
+
+            @Override
+            public @NotNull ItemStack getInventoryStack(int slot) {
+                var itemStorage = context.getItemStorage();
+                if (itemStorage == null || slot < 0 || slot >= itemStorage.getSlots()) {
+                    return ItemStack.EMPTY;
+                }
+                return itemStorage.getStackInSlot(slot);
+            }
+
+            @Override
+            public void setInventoryStack(int slot, @NotNull ItemStack stack) {
+                var itemStorage = context.getItemStorage();
+                if (itemStorage == null || slot < 0 || slot >= itemStorage.getSlots()) {
+                    return;
+                }
+                itemStorage.setStackInSlot(slot, stack);
+            }
+        }
 }
