@@ -31,12 +31,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.border.WorldBorder;
-import net.minecraft.world.phys.AABB;
 
 import java.util.List;
 import java.util.Optional;
@@ -145,27 +142,38 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
 
     @Override
     public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        if (level instanceof ServerLevel serverLevel && hasExistingBloom(serverLevel)) {
-            sendAlreadyPlacedMessage(entity);
-            return false;
-        }
-
         var placement = HealingBloomPlacementHelper.resolveServer(level, entity, getSpellResource(), getTargetingRange());
         if (placement.isEmpty()) {
             sendCantPlaceMessage(entity);
             return false;
         }
 
+        var hasExistingBloom = entity instanceof ServerPlayer serverPlayer && HealingBloomManager.hasManagedBloom(serverPlayer);
+        var forceReplace = hasExistingBloom && entity.isShiftKeyDown();
+        if (hasExistingBloom && !forceReplace) {
+            sendAlreadyPlacedMessage(entity);
+            return false;
+        }
+
         var castData = new HealingBloomCastData();
         castData.position = placement.get().blockPos();
+        castData.forceReplace = forceReplace;
         playerMagicData.setAdditionalCastData(castData);
+        if (forceReplace) {
+            sendForceCastMessage(entity);
+        }
         return true;
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (level instanceof ServerLevel serverLevel) {
-            if (hasExistingBloom(serverLevel)) {
+            var forceReplace = false;
+            if (playerMagicData.getAdditionalCastData() instanceof HealingBloomCastData castData) {
+                forceReplace = castData.forceReplace;
+            }
+
+            if (entity instanceof ServerPlayer serverPlayer && HealingBloomManager.hasManagedBloom(serverPlayer) && !forceReplace) {
                 sendAlreadyPlacedMessage(entity);
                 super.onCast(level, spellLevel, entity, castSource, playerMagicData);
                 return;
@@ -184,6 +192,9 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
                 bloom.setFruitGrowthInterval(getMatureIntervalTick(spellLevel, entity));
                 bloom.moveTo(placement.get().center().x, placement.get().center().y, placement.get().center().z, entity.getYRot(), 0.0f);
                 serverLevel.addFreshEntity(bloom);
+                if (entity instanceof ServerPlayer serverPlayer) {
+                    HealingBloomManager.registerBloom(serverPlayer, bloom, forceReplace);
+                }
             }
         }
 
@@ -216,25 +227,18 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
         }
     }
 
-    private boolean hasExistingBloom(ServerLevel level) {
-        return !level.getEntities((Entity) null, createLevelSearchBox(level), candidate ->
-                candidate instanceof HealingBloomEntity bloom && bloom.isAlive()).isEmpty();
-    }
-
-    private static AABB createLevelSearchBox(ServerLevel level) {
-        WorldBorder border = level.getWorldBorder();
-        return new AABB(
-                border.getMinX(),
-                level.getMinBuildHeight(),
-                border.getMinZ(),
-                border.getMaxX(),
-                level.getMaxBuildHeight(),
-                border.getMaxZ()
-        );
+    private void sendForceCastMessage(LivingEntity entity) {
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.healing_bloom.force_cast")
+                            .withStyle(ChatFormatting.YELLOW)
+            ));
+        }
     }
 
     public static class HealingBloomCastData implements ICastDataSerializable {
         private BlockPos position;
+        private boolean forceReplace;
 
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
@@ -242,16 +246,19 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
             if (position != null) {
                 friendlyByteBuf.writeBlockPos(position);
             }
+            friendlyByteBuf.writeBoolean(forceReplace);
         }
 
         @Override
         public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
             position = friendlyByteBuf.readBoolean() ? friendlyByteBuf.readBlockPos() : null;
+            forceReplace = friendlyByteBuf.readBoolean();
         }
 
         @Override
         public void reset() {
             position = null;
+            forceReplace = false;
         }
 
         @Override
@@ -262,6 +269,7 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
                 tag.putInt("PositionY", position.getY());
                 tag.putInt("PositionZ", position.getZ());
             }
+            tag.putBoolean("ForceReplace", forceReplace);
             return tag;
         }
 
@@ -272,6 +280,7 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
             } else {
                 position = null;
             }
+            forceReplace = nbt.getBoolean("ForceReplace");
         }
     }
 }

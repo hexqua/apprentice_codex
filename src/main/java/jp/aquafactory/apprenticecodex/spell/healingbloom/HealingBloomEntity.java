@@ -38,7 +38,6 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -67,6 +66,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     private static final int UNDEAD_DAMAGE_INTERVAL_TICK = 50;
     private static final int LIGHT_RETRY_INTERVAL_TICK = 20;
     private static final int PULSE_INTERVAL_TICK = 100;
+    private static final int HEAL_INTERVAL_TICK = 80;
     private static final float PULSE_RADIUS_MARGIN = 0.25f;
     private static final int DEFAULT_FRUIT_GROWTH_INTERVAL_TICK = 20 * 60 * 3;
     private static final RawAnimation ANIM_GROW = RawAnimation.begin().thenPlay("grow");
@@ -155,9 +155,16 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         if (position().distanceToSqr(anchorCenter) > 0.0001) {
             setPos(anchorCenter.x, anchorCenter.y, anchorCenter.z);
         }
+        if (shouldDiscardBecauseUnmanaged(level)) {
+            discardWithoutDeath();
+            return;
+        }
         if (!canStayAtAnchor()) {
             dieFromAnchorLoss(level);
             return;
+        }
+        if (tickCount % HEAL_INTERVAL_TICK == 0 && isAlive() && getHealth() < getMaxHealth()) {
+            heal(1.0f);
         }
 
         tryPlayGrowthSound(level);
@@ -198,11 +205,10 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     private void applyRegenerationAura(ServerLevel level) {
         for (var target : level.getEntitiesOfClass(LivingEntity.class, createEffectArea(), LivingEntity::isAlive)) {
-            if (UndeadTools.isUndead(target)) {
+            if (target == this || UndeadTools.isUndead(target)) {
                 continue;
             }
-            var showParticles = target != this;
-            target.addEffect(new MobEffectInstance(MobEffects.REGENERATION, REGEN_DURATION_TICK, 0, false, showParticles, showParticles));
+            target.addEffect(new MobEffectInstance(MobEffects.REGENERATION, REGEN_DURATION_TICK, 0, false, true, true));
         }
     }
 
@@ -255,10 +261,6 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         }
     }
 
-    private boolean canStayAtAnchor() {
-        return BlockRegistry.COMFORT_BERRY_BUSH.get().defaultBlockState().canSurvive(level(), anchorPos);
-    }
-
     private AABB createEffectArea() {
         return getBoundingBox().inflate(effectRange);
     }
@@ -285,6 +287,10 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
             }
         }
         return null;
+    }
+
+    public @Nullable UUID getOwnerUuid() {
+        return ownerUuid;
     }
 
     public void setAnchorPos(BlockPos anchorPos) {
@@ -320,7 +326,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     }
 
     private Vec3 getAnchorCenter() {
-        return new Vec3(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5);
+        return new Vec3(anchorPos.getX() + 0.5, getAnchorY(), anchorPos.getZ() + 0.5);
     }
 
     private BlockPos getLightPos() {
@@ -346,6 +352,16 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         // 根本が失われた場合も消滅ではなく死亡処理へ寄せ、果実化やドロップの共通処理を通す。
         setHealth(0.0f);
         die(level.damageSources().genericKill());
+    }
+
+    public void dieFromReplacement() {
+        if (level() instanceof ServerLevel serverLevel) {
+            dieFromAnchorLoss(serverLevel);
+        }
+    }
+
+    public void discardWithoutDeath() {
+        discard();
     }
 
     @Override
@@ -414,8 +430,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
-        if (isOwnerDamageSource(source)
-                || source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
+        if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.DROWN)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
             return false;
@@ -423,24 +438,16 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         return super.hurt(source, amount);
     }
 
-    private boolean isOwnerDamageSource(DamageSource source) {
-        var owner = getOwner();
-        if (owner == null) {
-            return false;
-        }
-
-        if (source.getEntity() == owner || source.getDirectEntity() == owner) {
-            return true;
-        }
-
-        var direct = source.getDirectEntity();
-        return direct instanceof Projectile projectile && projectile.getOwner() == owner;
-    }
-
     @Override
     public void remove(@NotNull RemovalReason reason) {
         if (!level().isClientSide) {
             removeLightBlock(level());
+            if (reason.shouldDestroy()) {
+                var owner = getOwner();
+                if (owner instanceof ServerPlayer serverPlayer) {
+                    HealingBloomManager.onBloomRemoved(serverPlayer, this);
+                }
+            }
         }
         super.remove(reason);
     }
@@ -587,5 +594,22 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         private static BloomAnimationState of(int rawId) {
             return rawId == 1 ? IDLE : GROW;
         }
+    }
+
+    private boolean shouldDiscardBecauseUnmanaged(ServerLevel level) {
+        if (ownerUuid == null) {
+            return false;
+        }
+
+        var owner = level.getServer().getPlayerList().getPlayer(ownerUuid);
+        return owner != null && !HealingBloomManager.shouldKeepLoadedBloom(owner, this);
+    }
+
+    private boolean canStayAtAnchor() {
+        return HealingBloomPlacementHelper.hasSupportBelow(level(), anchorPos);
+    }
+
+    private double getAnchorY() {
+        return HealingBloomPlacementHelper.getSupportTopY(level(), anchorPos);
     }
 }
