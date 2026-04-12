@@ -24,9 +24,50 @@ public final class SpellDispenserManaHelper {
     }
 
     public static boolean isSupportedFlaskSlotItem(@NotNull ItemStack stack) {
-        return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())
-                || stack.is(Items.POTION)
-                || stack.is(Items.GLASS_BOTTLE);
+        return isAutomationInputItem(stack);
+    }
+
+    public static boolean isAutomationInputItem(@NotNull ItemStack stack) {
+        if (stack.isEmpty() || stack.getCount() != 1) {
+            return false;
+        }
+
+        return isSupportedManaFlask(stack) || isSupportedManaPotion(stack);
+    }
+
+    public static boolean canAutomationExtract(@NotNull ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+
+        return stack.is(Items.GLASS_BOTTLE) || isEmptyFlask(stack);
+    }
+
+    public static int getAutomationInputManaRecovery(@NotNull ItemStack stack) {
+        if (isSupportedManaFlask(stack)) {
+            return resolveManaRecoveryFromPotionStack(
+                    SpellcastersFlask.getStoredItem(stack),
+                    getGlowEnergyLevel(stack)
+            );
+        }
+
+        if (isSupportedManaPotion(stack)) {
+            return resolveManaRecoveryFromPotionStack(stack, 0);
+        }
+
+        return 0;
+    }
+
+    public static @NotNull ItemStack consumeAutomationInput(@NotNull ItemStack stack) {
+        if (isSupportedManaFlask(stack)) {
+            return SpellcastersFlask.copyAfterExtractingOneDose(stack);
+        }
+
+        if (isSupportedManaPotion(stack)) {
+            return new ItemStack(Items.GLASS_BOTTLE);
+        }
+
+        return ItemStack.EMPTY;
     }
 
     public static int getSpellManaCost(SpellData spellData) {
@@ -89,36 +130,41 @@ public final class SpellDispenserManaHelper {
     }
 
     private static RefillCandidate resolveRefillCandidate(@NotNull ItemStack stack, int remainingCapacity) {
-        if (stack.isEmpty()) {
+        if (stack.isEmpty() || !isAutomationInputItem(stack)) {
             return null;
         }
 
-        if (stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
-            if (!SpellcastersFlask.canExtractOneDose(stack)) {
-                return null;
-            }
-
-            var recoveredMana = resolveManaRecoveryFromPotionStack(
-                    SpellcastersFlask.getStoredItem(stack),
-                    getGlowEnergyLevel(stack)
-            );
-            if (recoveredMana <= 0 || recoveredMana > remainingCapacity) {
-                return null;
-            }
-
-            return new RefillCandidate(-1, recoveredMana, SpellcastersFlask.copyAfterExtractingOneDose(stack));
-        }
-
-        if (!stack.is(Items.POTION)) {
-            return null;
-        }
-
-        var recoveredMana = resolveManaRecoveryFromPotionStack(stack, 0);
+        var recoveredMana = getAutomationInputManaRecovery(stack);
         if (recoveredMana <= 0 || recoveredMana > remainingCapacity) {
             return null;
         }
 
-        return new RefillCandidate(-1, recoveredMana, new ItemStack(Items.GLASS_BOTTLE));
+        var remainingStack = consumeAutomationInput(stack);
+        if (remainingStack.isEmpty() && stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+            return null;
+        }
+
+        return new RefillCandidate(-1, recoveredMana, remainingStack);
+    }
+
+    private static boolean isSupportedManaFlask(@NotNull ItemStack stack) {
+        return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())
+                && SpellcastersFlask.canExtractOneDose(stack)
+                && isSupportedManaPotion(SpellcastersFlask.getStoredItem(stack));
+    }
+
+    private static boolean isSupportedManaPotion(@NotNull ItemStack stack) {
+        if (!stack.is(Items.POTION) || !MobEffectRegistry.INSTANT_MANA.isPresent()) {
+            return false;
+        }
+
+        var effects = PotionUtils.getMobEffects(stack);
+        return !effects.isEmpty()
+                && effects.stream().allMatch(effect -> effect.getEffect() == MobEffectRegistry.INSTANT_MANA.get());
+    }
+
+    private static boolean isEmptyFlask(@NotNull ItemStack stack) {
+        return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get()) && !SpellcastersFlask.canExtractOneDose(stack);
     }
 
     private static int resolveManaRecoveryFromPotionStack(@NotNull ItemStack potionStack, int amplifierBonus) {
