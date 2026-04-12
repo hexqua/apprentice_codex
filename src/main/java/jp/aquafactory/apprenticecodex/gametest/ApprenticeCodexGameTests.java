@@ -19,7 +19,6 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
-import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
@@ -28,6 +27,7 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
@@ -46,6 +46,7 @@ import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectil
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
@@ -80,6 +81,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
@@ -91,6 +93,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageType;
@@ -131,6 +134,7 @@ import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -158,6 +162,7 @@ import net.neoforged.fml.ModList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -1655,6 +1660,23 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var caster = createSenseEvilPlayer(helper, new BlockPos(0, 2, 0), "sense_evil_horizontal_cube_test");
+            var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
+            var range = getSenseEvilRange(spell, caster, 1);
+            var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
+            var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.5, 0.0, 0.0);
+            var zombie = spawnPositionedZombie(level, zombieCenter);
+
+            var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
+            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
+                    "SenseEvil should detect undead in the added X direction cube band");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void bonusChestLootIncludesIsekaiTravelGuidebook(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var lootTable = helper.getLevel().getServer().reloadableRegistries().getLootTable(BuiltInLootTables.SPAWN_BONUS_CHEST);
@@ -1666,6 +1688,31 @@ public final class ApprenticeCodexGameTests {
 
             helper.assertTrue(generatedLoot.stream().anyMatch(stack -> stack.is(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())),
                     "Spawn bonus chest loot no longer contains Isekai Travel Guidebook: " + generatedLoot);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var caster = createSenseEvilPlayer(helper, new BlockPos(0, 2, 0), "sense_evil_spawner_cube_test");
+            var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
+            var range = getSenseEvilRange(spell, caster, 1);
+            var diagonalOffset = Mth.floor(range * 0.75);
+
+            helper.assertTrue(Math.sqrt(2.0 * diagonalOffset * diagonalOffset) > range,
+                    "Diagonal test offset must stay outside the old spherical spawner range");
+
+            var zombieCenter = caster.getBoundingBox().getCenter().add(diagonalOffset, 0.0, diagonalOffset);
+            var zombie = spawnPositionedZombie(level, zombieCenter);
+            var spawnerPos = caster.blockPosition().offset(diagonalOffset, 0, diagonalOffset);
+            placeZombieSpawner(level, spawnerPos);
+
+            var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
+            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
+                    "SenseEvil should still detect entities at the shared diagonal cube offset");
+            assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(spawnerPos), 0.25,
+                    "SenseEvil should detect spawners at the same diagonal cube offset as entities");
         });
     }
 
@@ -3101,7 +3148,7 @@ public final class ApprenticeCodexGameTests {
             var anchorPos = new BlockPos(0, 2, 0);
             helper.setBlock(anchorPos.below(), Blocks.STONE);
 
-            var spellData = Capabilities.getSpellDataOrNull(owner);
+            var spellData = jp.aquafactory.apprenticecodex.capability.Capabilities.getSpellDataOrNull(owner);
             helper.assertTrue(spellData != null,
                     "Healing Bloom stale-state test could not resolve spell data capability");
             spellData.edit(CodexSpellStateTypeRegister.HEALING_BLOOM_STATE, state -> state.setBloomUuid(UUID.randomUUID()));
@@ -3400,6 +3447,78 @@ public final class ApprenticeCodexGameTests {
     private static void castHarvestMoon(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.HARVEST_MOON.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static FakePlayer createSenseEvilPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static net.minecraft.world.entity.LivingEntity spawnPositionedZombie(ServerLevel level, Vec3 targetCenter) {
+        forceLoadChunk(level, BlockPos.containing(targetCenter));
+        var zombie = EntityType.ZOMBIE.create(level);
+        if (zombie == null) {
+            throw new IllegalStateException("Failed to create zombie for SenseEvil GameTest");
+        }
+        zombie.moveTo(targetCenter.x, targetCenter.y - zombie.getBbHeight() * 0.5, targetCenter.z, 0.0f, 0.0f);
+        level.addFreshEntity(zombie);
+        return zombie;
+    }
+
+    private static void placeZombieSpawner(ServerLevel level, BlockPos pos) {
+        forceLoadChunk(level, pos);
+        level.setBlock(pos, Blocks.SPAWNER.defaultBlockState(), 3);
+        var blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof SpawnerBlockEntity spawner)) {
+            throw new IllegalStateException("Failed to place spawner for SenseEvil GameTest at " + pos);
+        }
+        spawner.setEntityId(EntityType.ZOMBIE, level.getRandom());
+        spawner.setChanged();
+    }
+
+    private static void forceLoadChunk(ServerLevel level, BlockPos pos) {
+        level.getChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
+    }
+
+    private static double getSenseEvilRange(SenseEvil spell, net.minecraft.world.entity.LivingEntity caster, int spellLevel) {
+        try {
+            var method = SenseEvil.class.getDeclaredMethod("getRange", int.class, net.minecraft.world.entity.LivingEntity.class);
+            method.setAccessible(true);
+            return (double) method.invoke(spell, spellLevel, caster);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to read SenseEvil range for GameTest", exception);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<SenseEvilHighlightsPacket.TargetData> collectSenseEvilHighlights(
+            SenseEvil spell,
+            ServerLevel level,
+            int spellLevel,
+            net.minecraft.world.entity.LivingEntity caster
+    ) {
+        try {
+            var method = SenseEvil.class.getDeclaredMethod("collectHighlights", ServerLevel.class, int.class, net.minecraft.world.entity.LivingEntity.class);
+            method.setAccessible(true);
+            return (List<SenseEvilHighlightsPacket.TargetData>) method.invoke(spell, level, spellLevel, caster);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to collect SenseEvil highlights for GameTest", exception);
+        }
+    }
+
+    private static void assertSenseEvilHighlightPresent(
+            GameTestHelper helper,
+            List<SenseEvilHighlightsPacket.TargetData> highlights,
+            Vec3 expectedPosition,
+            double tolerance,
+            String message
+    ) {
+        var found = highlights.stream()
+                .anyMatch(target -> target.position().distanceTo(expectedPosition) <= tolerance);
+        helper.assertTrue(found, message + " / expected near " + expectedPosition + " but got " + highlights);
     }
 
     private static FakePlayer createHealingBloomPlayer(GameTestHelper helper, BlockPos pos, String profileName) {

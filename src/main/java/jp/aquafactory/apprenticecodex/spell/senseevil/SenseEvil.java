@@ -25,6 +25,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -102,16 +103,16 @@ public class SenseEvil extends AbstractSpell {
 
     private List<SenseEvilHighlightsPacket.TargetData> collectHighlights(ServerLevel level, int spellLevel, LivingEntity caster) {
         var range = getRange(spellLevel, caster);
+        var detectionBox = createDetectionBox(caster, range);
         var highlights = new ArrayList<SenseEvilHighlightsPacket.TargetData>();
-        collectUndeadEntities(level, caster, range, highlights);
-        collectUndeadSpawners(level, caster, range, highlights);
+        collectUndeadEntities(level, caster, detectionBox, highlights);
+        collectUndeadSpawners(level, detectionBox, highlights);
         return highlights;
     }
 
-    private static void collectUndeadEntities(ServerLevel level, LivingEntity caster, double range,
+    private static void collectUndeadEntities(ServerLevel level, LivingEntity caster, AABB detectionBox,
                                               List<SenseEvilHighlightsPacket.TargetData> highlights) {
-        var searchBox = caster.getBoundingBox().inflate(range);
-        for (var target : level.getEntitiesOfClass(LivingEntity.class, searchBox, living ->
+        for (var target : level.getEntitiesOfClass(LivingEntity.class, detectionBox, living ->
                 living.isAlive() && living != caster)) {
             var configuredVariant = SenseEvilHighlightManager.getConfiguredVariant(target.getType());
             if (configuredVariant == null && !UndeadTools.isUndead(target.getType())) {
@@ -126,16 +127,15 @@ public class SenseEvil extends AbstractSpell {
         }
     }
 
-    private static void collectUndeadSpawners(ServerLevel level, LivingEntity caster, double range,
+    private static void collectUndeadSpawners(ServerLevel level, AABB detectionBox,
                                               List<SenseEvilHighlightsPacket.TargetData> highlights) {
-        var origin = caster.position();
-        var rangeSqr = range * range;
-        var minChunkX = SectionPos.blockToSectionCoord(Mth.floor(origin.x - range));
-        var maxChunkX = SectionPos.blockToSectionCoord(Mth.floor(origin.x + range));
-        var minChunkZ = SectionPos.blockToSectionCoord(Mth.floor(origin.z - range));
-        var maxChunkZ = SectionPos.blockToSectionCoord(Mth.floor(origin.z + range));
+        var minChunkX = SectionPos.blockToSectionCoord(Mth.floor(detectionBox.minX));
+        var maxChunkX = SectionPos.blockToSectionCoord(Mth.floor(detectionBox.maxX));
+        var minChunkZ = SectionPos.blockToSectionCoord(Mth.floor(detectionBox.minZ));
+        var maxChunkZ = SectionPos.blockToSectionCoord(Mth.floor(detectionBox.maxZ));
 
         // 発動時スナップショットだけ欲しいので、未読込チャンクは触らず現在の block entity 一覧だけを使う。
+        // 走査自体は chunk 単位のままにしてコストを抑えつつ、最終判定だけは entity と同じ立方体へ揃える。
         for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
             for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
                 var chunk = level.getChunkSource().getChunkNow(chunkX, chunkZ);
@@ -149,7 +149,7 @@ public class SenseEvil extends AbstractSpell {
                     }
 
                     var center = Vec3.atCenterOf(spawner.getBlockPos());
-                    if (center.distanceToSqr(origin) > rangeSqr) {
+                    if (!detectionBox.contains(center)) {
                         continue;
                     }
                     var highlightVariant = getSpawnerHighlightVariant(spawner);
@@ -159,6 +159,20 @@ public class SenseEvil extends AbstractSpell {
                 }
             }
         }
+    }
+
+    private static AABB createDetectionBox(LivingEntity caster, double range) {
+        var center = caster.getBoundingBox().getCenter();
+        // 既存の上下到達距離は維持しつつ、X/Z も同じ半径へ揃えて entity / spawner を同じ立方体判定にする。
+        var halfExtent = range + caster.getBoundingBox().getYsize() * 0.5;
+        return new AABB(
+                center.x - halfExtent,
+                center.y - halfExtent,
+                center.z - halfExtent,
+                center.x + halfExtent,
+                center.y + halfExtent,
+                center.z + halfExtent
+        );
     }
 
     private static SenseEvilHighlightVariant getSpawnerHighlightVariant(SpawnerBlockEntity spawner) {
