@@ -35,6 +35,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     private static final String OWNER_UUID_TAG = "OwnerUuid";
     private static final String OWNER_NAME_TAG = "OwnerName";
     private static final String CONTINUOUS_RESET_REQUIRED_TAG = "ContinuousResetRequired";
+    private static final String COOLDOWN_REMAINING_TAG = "CooldownRemaining";
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_SLOT_COUNT) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -60,6 +61,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     @Nullable
     private SpellDispenserCastHelper.ContinuousCastSession activeContinuousCast;
     private boolean continuousResetRequired;
+    private int remainingCooldownTicks;
 
     public SpellDispenserBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELL_DISPENSER.get(), pos, state);
@@ -104,6 +106,14 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         return continuousResetRequired;
     }
 
+    public boolean isCoolingDown() {
+        return remainingCooldownTicks > 0;
+    }
+
+    public int getRemainingCooldownTicks() {
+        return remainingCooldownTicks;
+    }
+
     public SpellDispenserCastHelper.CastResult tryActivate() {
         if (!(level instanceof ServerLevel serverLevel)) {
             return new SpellDispenserCastHelper.CastResult(
@@ -112,6 +122,8 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
                     null,
                     null,
                     null,
+                    false,
+                    0,
                     false
             );
         }
@@ -124,31 +136,40 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
                     null,
                     null,
                     null,
+                    false,
+                    0,
                     false
             );
         }
 
         var source = getSpellSource();
+        var validation = SpellDispenserSpellValidator.validate(source);
+
+        if (isCoolingDown()) {
+            return SpellDispenserCastHelper.CastResult.cooldownBlocked(validation);
+        }
+
         if (source.isEmpty()) {
             return new SpellDispenserCastHelper.CastResult(
                     false,
-                    SpellDispenserSpellValidator.validate(source),
+                    validation,
                     null,
                     null,
                     null,
+                    false,
+                    0,
                     false
             );
         }
 
         if (!hasOwnerProfile()) {
-            return SpellDispenserCastHelper.CastResult.missingOwnerProfile(SpellDispenserSpellValidator.validate(source));
+            return SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation);
         }
 
         if (hasActiveContinuousCast()) {
-            return SpellDispenserCastHelper.CastResult.validationFailure(SpellDispenserSpellValidator.validate(source));
+            return SpellDispenserCastHelper.CastResult.validationFailure(validation);
         }
 
-        var validation = SpellDispenserSpellValidator.validate(source);
         var spellData = validation.spellData();
         if (spellData != SpellData.EMPTY && spellData.getSpell().getCastType() == CastType.CONTINUOUS) {
             var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
@@ -165,7 +186,15 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
             return startResult.result();
         }
 
-        return SpellDispenserCastHelper.tryCast(serverLevel, worldPosition, spellDispenser.getFacing(state), source.copy(), ownerProfile);
+        var result = SpellDispenserCastHelper.tryCast(
+                serverLevel,
+                worldPosition,
+                spellDispenser.getFacing(state),
+                source.copy(),
+                ownerProfile
+        );
+        startCooldown(result.cooldownTicks());
+        return result;
     }
 
     public static void serverTick(ServerLevel level, BlockPos pos, BlockState state, SpellDispenserBlockEntity blockEntity) {
@@ -173,11 +202,14 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
     }
 
     private void serverTick(ServerLevel level, BlockPos pos, BlockState state) {
+        tickCooldown(state);
+
         if (activeContinuousCast == null) {
             return;
         }
 
         if (activeContinuousCast.isFinished()) {
+            startCooldown(activeContinuousCast.consumeFinishedCooldownTicks());
             activeContinuousCast = null;
             continuousResetRequired = state.getValue(SpellDispenser.TRIGGERED);
             setChanged();
@@ -208,6 +240,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         }
 
         if (!SpellDispenserCastHelper.tickContinuousCast(level, activeContinuousCast)) {
+            startCooldown(activeContinuousCast.consumeFinishedCooldownTicks());
             activeContinuousCast = null;
             continuousResetRequired = state.getValue(SpellDispenser.TRIGGERED);
             setChanged();
@@ -229,6 +262,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
 
         if (activeContinuousCast != null) {
             SpellDispenserCastHelper.finishContinuousCast(serverLevel, activeContinuousCast, cancelled);
+            startCooldown(activeContinuousCast.consumeFinishedCooldownTicks());
             activeContinuousCast = null;
         }
         continuousResetRequired = false;
@@ -284,6 +318,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
         saveOwnerProfile(tag, ownerProfile);
         tag.putBoolean(CONTINUOUS_RESET_REQUIRED_TAG, continuousResetRequired);
+        tag.putInt(COOLDOWN_REMAINING_TAG, remainingCooldownTicks);
     }
 
     @Override
@@ -292,12 +327,39 @@ public final class SpellDispenserBlockEntity extends BlockEntity implements Menu
         inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG));
         ownerProfile = readOwnerProfile(tag);
         continuousResetRequired = tag.getBoolean(CONTINUOUS_RESET_REQUIRED_TAG);
+        remainingCooldownTicks = Math.max(0, tag.getInt(COOLDOWN_REMAINING_TAG));
     }
 
     private void markUpdated() {
         setChanged();
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+    }
+
+    public void startCooldown(int cooldownTicks) {
+        if (cooldownTicks <= 0) {
+            return;
+        }
+
+        remainingCooldownTicks = cooldownTicks;
+        setChanged();
+    }
+
+    public void clearCooldown() {
+        if (remainingCooldownTicks == 0) {
+            return;
+        }
+
+        remainingCooldownTicks = 0;
+        setChanged();
+    }
+
+    private void tickCooldown(@NotNull BlockState state) {
+        var coolingDown = remainingCooldownTicks > 0;
+        if (coolingDown) {
+            remainingCooldownTicks--;
+            setChanged();
         }
     }
 

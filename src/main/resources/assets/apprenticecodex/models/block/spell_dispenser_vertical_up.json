@@ -1,0 +1,23 @@
+{
+  "ambientocclusion": true,
+  "textures": {
+    "particle": "apprenticecodex:block/spell_dispenser_side",
+    "side": "apprenticecodex:block/spell_dispenser_side",
+    "vertical": "apprenticecodex:block/spell_dispenser_vertical",
+    "vertical_no_hole": "apprenticecodex:block/spell_dispenser_vertical_no_hole"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": {"texture": "#vertical_no_hole", "cullface": "down"},
+        "up": {"texture": "#vertical", "cullface": "up"},
+        "north": {"texture": "#side", "cullface": "north"},
+        "south": {"texture": "#side", "cullface": "south"},
+        "west": {"texture": "#side", "cullface": "west"},
+        "east": {"texture": "#side", "cullface": "east"}
+      }
+    }
+  ]
+}
