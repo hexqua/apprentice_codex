@@ -187,19 +187,6 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
         return SpellDispenserSpellValidator.validate(getSpellSource());
     }
 
-    public @NotNull Component getStatus(Player player) {
-        if (!hasOwnerProfile()) {
-            return Component.translatable("container.apprenticecodex.spell_dispenser.status.owner_missing");
-        }
-
-        var validation = getValidation(player);
-        if (validation.isSupported() && !SpellDispenserManaHelper.canAffordSpell(getCurrentMana(), validation.spellData())) {
-            return Component.translatable("container.apprenticecodex.spell_dispenser.status.insufficient_mana");
-        }
-
-        return validation.getStatus(player);
-    }
-
     public boolean isReadyToCast(Player player) {
         var validation = getValidation(player);
         return hasOwnerProfile()
