@@ -37,7 +37,7 @@ public class AttunementEnchantment extends Enchantment {
 
     @Override
     public boolean isTradeable() {
-        return false;
+        return true;
     }
 
     @Override
