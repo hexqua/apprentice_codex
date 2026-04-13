@@ -41,7 +41,6 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
                 recipe(Items.STONE, result(Items.COBBLESTONE, 1)),
                 recipe(Items.COBBLESTONE, result(Items.GRAVEL, 1)),
                 recipe(Items.GRAVEL, result(Items.SAND, 1)),
-                recipe(Items.BOOK, result(Items.LEATHER, 1), result(Items.PAPER, 3)),
 
                 recipe(ItemRegistry.AFFINITY_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(ItemRegistry.CAST_TIME_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
@@ -50,6 +49,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
                 recipe(ItemRegistry.VISIBILITY_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(ItemRegistry.CONCENTRATION_AMULET.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(ItemRegistry.SILVER_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(ItemRegistry.CONJURERS_TALISMAN.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
 
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.SCARLET_THIRST.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.CRAFTSMANS_DELIGHT.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.NATURE_RUNE.get(), 1)),
@@ -58,7 +58,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
 
                 recipe(ItemRegistry.FIREWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.CINDER_ESSENCE.get(), 1)),
                 recipe(ItemRegistry.FROSTWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.ICE_CRYSTAL.get(), 1)),
-                recipe(ItemRegistry.POISONWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(Items.POISONOUS_POTATO, 1))
+                recipe(ItemRegistry.POISONWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.NATURE_RUNE.get(), 1))
         );
 
         return CompletableFuture.allOf(recipes.stream()

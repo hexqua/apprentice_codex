@@ -1,16 +1,12 @@
 {
   "type": "apprenticecodex:grind_runner",
   "ingredient": {
-    "item": "irons_spellbooks:poisonward_ring"
+    "item": "irons_spellbooks:conjurers_talisman"
   },
   "results": [
     {
       "count": 1,
       "item": "irons_spellbooks:mithril_scrap"
-    },
-    {
-      "count": 1,
-      "item": "irons_spellbooks:nature_rune"
     }
   ]
 }
