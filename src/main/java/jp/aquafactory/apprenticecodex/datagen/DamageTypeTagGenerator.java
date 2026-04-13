@@ -40,6 +40,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public static final TagKey<DamageType> RANGED_ATTACK = create("ranged_attack");
     public static final TagKey<DamageType> CODEX_MAGIC = create("codex_magic");
     public static final TagKey<DamageType> EXPLOSIONS = create("explosions");
+    public static final TagKey<DamageType> SUMMON_DAMAGE = create("summon_damage");
 
     @SafeVarargs
     private void addTagLinks(TagKey<DamageType> target, TagKey<DamageType>... sources) {
@@ -157,6 +158,14 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         // EXPLOSIONS: 爆発扱いのダメージ.
         tag(EXPLOSIONS).add(
                 FLY_SWATTER
+        );
+
+        // SUMMON_DAMAGE: 召喚のネックレス系のダメージブーストが乗る.
+        tag(SUMMON_DAMAGE).add(
+                ARCHER_MULTIPLE,
+                ARCHER_MULTIPLE_LAST,
+                HEALING_BLOOM,
+                AUTO_TURRET
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
