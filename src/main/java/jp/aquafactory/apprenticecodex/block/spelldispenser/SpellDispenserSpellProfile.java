@@ -9,7 +9,8 @@ public record SpellDispenserSpellProfile(
         double upOffset,
         double sideOffset,
         float yawOffset,
-        float pitchOffset
+        float pitchOffset,
+        boolean ownerRequired
 ) {
     public static final SpellDispenserSpellProfile DEFAULT = new SpellDispenserSpellProfile(
             SpellDispenserCastAnchorMode.AUTO,
@@ -17,7 +18,8 @@ public record SpellDispenserSpellProfile(
             0.0D,
             0.0D,
             0.0F,
-            0.0F
+            0.0F,
+            true
     );
 
     public static final SpellDispenserSpellProfile MINIMUM_CONE = new SpellDispenserSpellProfile(
@@ -26,7 +28,18 @@ public record SpellDispenserSpellProfile(
             0.0D,
             0.0D,
             0.0F,
-            0.0F
+            0.0F,
+            true
+    );
+
+    public static final SpellDispenserSpellProfile OWNER_OPTIONAL = new SpellDispenserSpellProfile(
+            SpellDispenserCastAnchorMode.AUTO,
+            0.0D,
+            0.0D,
+            0.0D,
+            0.0F,
+            0.0F,
+            false
     );
 
     public static final Codec<SpellDispenserSpellProfile> CODEC = RecordCodecBuilder.create(instance ->
@@ -36,7 +49,8 @@ public record SpellDispenserSpellProfile(
                     Codec.DOUBLE.optionalFieldOf("up_offset", DEFAULT.upOffset()).forGetter(SpellDispenserSpellProfile::upOffset),
                     Codec.DOUBLE.optionalFieldOf("side_offset", DEFAULT.sideOffset()).forGetter(SpellDispenserSpellProfile::sideOffset),
                     Codec.FLOAT.optionalFieldOf("yaw_offset", DEFAULT.yawOffset()).forGetter(SpellDispenserSpellProfile::yawOffset),
-                    Codec.FLOAT.optionalFieldOf("pitch_offset", DEFAULT.pitchOffset()).forGetter(SpellDispenserSpellProfile::pitchOffset)
+                    Codec.FLOAT.optionalFieldOf("pitch_offset", DEFAULT.pitchOffset()).forGetter(SpellDispenserSpellProfile::pitchOffset),
+                    Codec.BOOL.optionalFieldOf("owner_required", DEFAULT.ownerRequired()).forGetter(SpellDispenserSpellProfile::ownerRequired)
             ).apply(instance, SpellDispenserSpellProfile::new)
     );
 }

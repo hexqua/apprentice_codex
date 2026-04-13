@@ -190,7 +190,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
             return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.noScroll(validation));
         }
 
-        if (!hasOwnerProfile()) {
+        if (requiresOwnerProfile(validation) && !hasOwnerProfile()) {
             return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation));
         }
 
@@ -265,7 +265,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
             return;
         }
 
-        if (!hasOwnerProfile()) {
+        if (activeContinuousCast.profile().ownerRequired() && !hasOwnerProfile()) {
             stopContinuousCast(true);
             return;
         }
@@ -424,6 +424,10 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         inventory.setStackInSlot(slot, stack);
     }
 
+    private static boolean requiresOwnerProfile(SpellDispenserSpellValidator.ValidationResult validation) {
+        return SpellDispenserSpellProfileManager.requiresOwner(validation.spellData());
+    }
+
     private void markUpdated() {
         setChanged();
         if (level instanceof ServerLevel serverLevel) {
@@ -520,7 +524,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     }
 
     private LazyOptional<IItemHandler> createAutomationInventoryCapability() {
-        return LazyOptional.of(() -> new AutomationInventoryHandler());
+        return LazyOptional.of(AutomationInventoryHandler::new);
     }
 
     private final class AutomationInventoryHandler implements IItemHandler {
