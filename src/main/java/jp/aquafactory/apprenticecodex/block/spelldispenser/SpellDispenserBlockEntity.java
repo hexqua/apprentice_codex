@@ -185,7 +185,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.noScroll(validation));
         }
 
-        if (!hasOwnerProfile()) {
+        if (requiresOwnerProfile(validation) && !hasOwnerProfile()) {
             return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation));
         }
 
@@ -260,7 +260,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             return;
         }
 
-        if (!hasOwnerProfile()) {
+        if (activeContinuousCast.profile().ownerRequired() && !hasOwnerProfile()) {
             stopContinuousCast(true);
             return;
         }
@@ -392,6 +392,10 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     @Override
     public void setInventoryStack(int slot, @NotNull ItemStack stack) {
         inventory.setStackInSlot(slot, stack);
+    }
+
+    private static boolean requiresOwnerProfile(SpellDispenserSpellValidator.ValidationResult validation) {
+        return SpellDispenserSpellProfileManager.requiresOwner(validation.spellData());
     }
 
     private void markUpdated() {
