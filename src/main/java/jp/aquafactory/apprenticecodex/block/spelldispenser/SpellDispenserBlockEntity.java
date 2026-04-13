@@ -494,13 +494,6 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         return Math.max(0, tag.getInt(REFILL_CHECK_TICKS_TAG));
     }
 
-    private LazyOptional<IItemHandlerModifiable> createInventoryCapability() {
-        return LazyOptional.of(() -> inventory);
-    }
-
-    private LazyOptional<IItemHandler> createAutomationInventoryCapability() {
-        return LazyOptional.of(AutomationInventoryHandler::new);
-    }
     private final class AutomationInventoryHandler implements IItemHandler {
         @Override
         public int getSlots() {
