@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -72,6 +73,14 @@ public final class CombatTools {
     public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
                                       KnockbackTypes type) {
         if (target instanceof LivingEntity livingTarget) {
+            // Iron'sの召喚ダメージはLivingEntityのみ対象なので合わせる.
+            if (source.is(DamageTypeTagGenerator.SUMMON_DAMAGE) && source.getEntity() instanceof LivingEntity caster){
+                var attributeInstance = caster.getAttribute(AttributeRegistry.SUMMON_DAMAGE);
+                if (attributeInstance != null){
+                    baseAmount *= (float) attributeInstance.getValue();
+                }
+            }
+
             if (type == KnockbackTypes.NO_KNOCKBACK) {
                 KnockbackControlEvent.markIgnoreNextKnockback(livingTarget);
             }

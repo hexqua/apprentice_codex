@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.archermultiple;
 
+import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -57,6 +58,7 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
     private boolean isReadyToFire;
     private Entity autoTarget;
     private int currentHitSequence;
+    private boolean summonTrackingCleanedUp;
 
     public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -376,6 +378,18 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
                 );
             }
         }
+    }
+
+    @Override
+    public void remove(@NotNull RemovalReason reason) {
+        if (!level().isClientSide && reason.shouldDestroy() && !summonTrackingCleanedUp) {
+            // Archer Multiple は summon 側の UUID 集合が最後の 1 体消滅を拾って
+            // USED_ALL_RECASTS を決めるため、個別消滅時も SummonManager cleanup を通す。
+            summonTrackingCleanedUp = true;
+            SummonManager.removeSummon(this);
+            SummonManager.stopTrackingExpiration(this);
+        }
+        super.remove(reason);
     }
 }
 
