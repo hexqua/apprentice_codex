@@ -115,6 +115,8 @@ public class ArcherMultiple  extends AbstractSpell {
 
     @Override
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
+        // SummonManager 側が Greater Conjurer's Talisman を含む timeout 時の cooldown 例外を持つため、
+        // Archer Multiple では終了理由ごとの独自分岐を足さず summon/recast の標準処理へ委譲する。
         if (SummonManager.recastFinishedHelper(serverPlayer, recastInstance, recastResult, castDataSerializable)) {
             super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
         }
