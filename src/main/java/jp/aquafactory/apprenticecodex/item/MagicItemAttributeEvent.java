@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.OffhandUpgradeAttributeEvent;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
@@ -13,7 +14,7 @@ public final class MagicItemAttributeEvent {
     private MagicItemAttributeEvent() {
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onItemAttributeModifier(ItemAttributeModifierEvent event) {
         var stack = event.getItemStack();
         if (stack.isEmpty()) {
@@ -22,6 +23,8 @@ public final class MagicItemAttributeEvent {
 
         var item = stack.getItem();
         if (item instanceof AbstractSpellGunItem spellGunItem) {
+            // Iron's 側も同じイベントで UpgradeData を差し込むため、
+            // stack 固有補正の差し戻しは最後に行って二重適用を防ぐ。
             // 1.21.1 では ATTRIBUTE_MODIFIERS component が stack-sensitive override を上書きし得るため、
             // item 側で定義した正規の計算結果をイベント経由で差し戻す。
             replaceModifiers(event, spellGunItem.getDefaultAttributeModifiers(stack));
