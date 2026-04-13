@@ -40,15 +40,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public final class SpellDispenserCastHelper {
     private static final double FAILURE_NOTICE_RANGE = 8.0D;
     private static final long FAILURE_NOTICE_COOLDOWN_TICKS = 40L;
     private static final int CONTINUOUS_CAST_TICK_INTERVAL = 10;
     private static final double DEFAULT_FORWARD_OFFSET = 0.7D;
+    private static final UUID OWNER_OPTIONAL_FALLBACK_UUID =
+            UUID.nameUUIDFromBytes("apprenticecodex:spell_dispenser_owner_optional".getBytes(StandardCharsets.UTF_8));
+    private static final String OWNER_OPTIONAL_FALLBACK_NAME = "[SpellDispenser]";
 
     private SpellDispenserCastHelper() {
     }
@@ -118,15 +123,16 @@ public final class SpellDispenserCastHelper {
         if (!validation.isSupported()) {
             return CastResult.validationFailure(validation);
         }
-        if (!isValidOwnerProfile(ownerProfile)) {
-            return CastResult.missingOwnerProfile(validation);
-        }
 
         var spellData = validation.spellData();
         var spell = spellData.getSpell();
         var spellId = spell.getSpellResource();
         var profile = SpellDispenserSpellProfileManager.getResolvedProfile(spell);
-        var proxy = createProxy(level, castBasePosition, forward, ownerProfile, profile);
+        var casterProfile = resolveCasterProfile(ownerProfile, profile);
+        if (casterProfile == null) {
+            return CastResult.missingOwnerProfile(validation);
+        }
+        var proxy = createProxy(level, castBasePosition, forward, casterProfile, profile);
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
 
@@ -267,7 +273,9 @@ public final class SpellDispenserCastHelper {
         if (!validation.isSupported()) {
             return new ContinuousCastStartResult(CastResult.validationFailure(validation), null);
         }
-        if (!isValidOwnerProfile(ownerProfile)) {
+        var profile = SpellDispenserSpellProfileManager.getResolvedProfile(validation.spellData());
+        var casterProfile = resolveCasterProfile(ownerProfile, profile);
+        if (casterProfile == null) {
             return new ContinuousCastStartResult(CastResult.missingOwnerProfile(validation), null);
         }
 
@@ -278,8 +286,7 @@ public final class SpellDispenserCastHelper {
         }
 
         var spellId = spell.getSpellResource();
-        var profile = SpellDispenserSpellProfileManager.getResolvedProfile(spell);
-        var proxy = createProxy(level, castBasePosition, forward, ownerProfile, profile);
+        var proxy = createProxy(level, castBasePosition, forward, casterProfile, profile);
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
         var magicData = MagicData.getPlayerMagicData(proxy);
@@ -552,18 +559,31 @@ public final class SpellDispenserCastHelper {
             ServerLevel level,
             Vec3 castBasePosition,
             Vec3 forward,
-            GameProfile ownerProfile,
+            GameProfile casterProfile,
             SpellDispenserSpellProfile profile
     ) {
         var castTransform = resolveCastTransform(castBasePosition, forward, profile);
-        // Spectral Hammer のように後続 tick で Player を要求する spell があるため、
-        // Spell Dispenser は設置者 profile を持つ FakePlayer を caster として扱う。
-        var proxy = new CapturingFakePlayer(level, new GameProfile(ownerProfile.getId(), ownerProfile.getName()));
+        // owner 任意 spell でも内部は Player 経路を通るため、
+        // owner 不在時だけ共有ダミー profile を使って FakePlayer caster を維持する。
+        var proxy = new CapturingFakePlayer(level, new GameProfile(casterProfile.getId(), casterProfile.getName()));
         proxy.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         proxy.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         proxy.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
         moveCaster(proxy, castTransform);
         return proxy;
+    }
+
+    private static @Nullable GameProfile resolveCasterProfile(
+            @Nullable GameProfile ownerProfile,
+            SpellDispenserSpellProfile profile
+    ) {
+        if (isValidOwnerProfile(ownerProfile)) {
+            return ownerProfile;
+        }
+        if (profile.ownerRequired()) {
+            return null;
+        }
+        return new GameProfile(OWNER_OPTIONAL_FALLBACK_UUID, OWNER_OPTIONAL_FALLBACK_NAME);
     }
 
     private static void moveCaster(FakePlayer proxy, CastTransform castTransform) {

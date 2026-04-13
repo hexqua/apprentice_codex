@@ -34,9 +34,15 @@
       "spell": "irons_spellbooks:dragon_breath"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:magic_arrow"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:magic_missile"
     },
     {
@@ -88,9 +94,15 @@
       "spell": "irons_spellbooks:fire_breath"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:fireball"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:firebolt"
     },
     {
@@ -145,12 +157,18 @@
       "spell": "irons_spellbooks:ice_spikes"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:icicle"
     },
     {
       "spell": "irons_spellbooks:ray_of_frost"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:snowball"
     },
     {
@@ -166,6 +184,9 @@
       "spell": "irons_spellbooks:electrocute"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:lightning_bolt"
     },
     {
@@ -175,6 +196,9 @@
       "spell": "irons_spellbooks:shockwave"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:acid_orb"
     },
     {
@@ -208,6 +232,9 @@
       "spell": "irons_spellbooks:touch_dig"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:arcane_blast"
     },
     {
@@ -259,6 +286,9 @@
       "spell": "apprenticecodex:fly_swatter"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:shock"
     },
     {

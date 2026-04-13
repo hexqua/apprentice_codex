@@ -185,7 +185,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.noScroll(validation));
         }
 
-        if (!hasOwnerProfile()) {
+        if (requiresOwnerProfile(validation) && !hasOwnerProfile()) {
             return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation));
         }
 
@@ -260,7 +260,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             return;
         }
 
-        if (!hasOwnerProfile()) {
+        if (activeContinuousCast.profile().ownerRequired() && !hasOwnerProfile()) {
             stopContinuousCast(true);
             return;
         }
@@ -394,6 +394,10 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         inventory.setStackInSlot(slot, stack);
     }
 
+    private static boolean requiresOwnerProfile(SpellDispenserSpellValidator.ValidationResult validation) {
+        return SpellDispenserSpellProfileManager.requiresOwner(validation.spellData());
+    }
+
     private void markUpdated() {
         setChanged();
         if (level instanceof ServerLevel serverLevel) {
@@ -490,6 +494,13 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         return Math.max(0, tag.getInt(REFILL_CHECK_TICKS_TAG));
     }
 
+    private LazyOptional<IItemHandlerModifiable> createInventoryCapability() {
+        return LazyOptional.of(() -> inventory);
+    }
+
+    private LazyOptional<IItemHandler> createAutomationInventoryCapability() {
+        return LazyOptional.of(AutomationInventoryHandler::new);
+    }
     private final class AutomationInventoryHandler implements IItemHandler {
         @Override
         public int getSlots() {

@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -43,6 +44,17 @@ public final class SpellDispenserSpellProfileManager extends SimpleJsonResourceR
 
     public static SpellDispenserSpellProfile getResolvedProfile(AbstractSpell spell) {
         return getProfile(spell).orElse(SpellDispenserSpellProfile.DEFAULT);
+    }
+
+    public static SpellDispenserSpellProfile getResolvedProfile(SpellData spellData) {
+        if (spellData == null || spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellDispenserSpellProfile.DEFAULT;
+        }
+        return getResolvedProfile(spellData.getSpell());
+    }
+
+    public static boolean requiresOwner(SpellData spellData) {
+        return getResolvedProfile(spellData).ownerRequired();
     }
 
     @Override

@@ -649,6 +649,27 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    (ServerLevel) level,
+                    castPos,
+                    Direction.NORTH,
+                    scrollStack,
+                    null
+            );
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser owner-optional cast failed without an owner profile");
+            helper.assertTrue(castResult.reachedOnCast(), "Spell Dispenser owner-optional cast did not reach onCast");
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser owner-optional cast left proxy state behind");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
@@ -1313,6 +1334,28 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserCreateAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+            var mountedInventory = new ItemStackHandler(1);
+            mountedInventory.setStackInSlot(0, scrollStack.copy());
+            var harness = createSpellDispenserMovementHarness(level, castPos, mountedInventory, null);
+
+            startCreateSpellDispenserMovement(harness);
+            visitCreateSpellDispenserPosition(harness, castPos);
+            helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                    "Create-mounted Spell Dispenser did not cast an owner-optional spell without an owner profile");
+            assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Create-mounted Spell Dispenser owner-optional cast left proxy state behind");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserCreateRefillsFromFuelStorageAndReturnsBottle(GameTestHelper helper) {
         if (skipWhenCreateMissing(helper)) {
             return;
@@ -1389,11 +1432,29 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
 
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
-            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get()));
+            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get()));
 
             var castResult = spellDispenser.tryActivate();
             helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated without an owner profile");
             helper.assertTrue(castResult.missingOwnerProfile(), "Spell Dispenser returned the wrong failure for missing owner profile");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserBlockEntityAllowsOwnerOptionalActivationWithoutOwnerProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pos = new BlockPos(0, 1, 0);
+            helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+            var blockEntity = helper.getBlockEntity(pos);
+            helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+
+            var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+            spellDispenser.getInventory().setStackInSlot(0, scrollStack);
+
+            var castResult = spellDispenser.tryActivate();
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser rejected an owner-optional spell without an owner profile");
+            assertNoSpellDispenserProxy(helper, pos, scrollStack, "Spell Dispenser block entity owner-optional cast left proxy state behind");
         });
     }
 
@@ -1485,6 +1546,19 @@ public final class ApprenticeCodexGameTests {
                     "Spell Dispenser mounted menu did not accept mana updates from menu data sync");
             helper.assertTrue(ownerName.equals(clientMenu.getOwnerName()),
                     "Spell Dispenser mounted client menu did not retain the synced owner name");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserMountedMenuTreatsOwnerOptionalSpellAsReadyWithoutOwnerProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "spell_dispenser_owner_optional_menu_test"));
+            var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
+            mountedInventory.setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()));
+
+            var menu = SpellDispenserMenu.createMounted(0, new Inventory(player), BlockPos.ZERO, mountedInventory, false, null, 320);
+            helper.assertTrue(menu.isReadyToCast(player),
+                    "Spell Dispenser mounted menu still required an owner for an owner-optional spell");
         });
     }
 

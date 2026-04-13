@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellProfileManager;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -60,17 +61,17 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
             return;
         }
 
-        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
-        if (ownerProfile == null) {
-            var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(SpellDispenserSpellValidator.validate(spellSource));
+        var validation = SpellDispenserSpellValidator.validate(spellSource);
+        if (!validation.isSupported()) {
+            var result = SpellDispenserCastHelper.CastResult.validationFailure(validation);
             notifyFailure(serverLevel, pos, context, result);
             playActivationSound(serverLevel, pos, result);
             return;
         }
 
-        var validation = SpellDispenserSpellValidator.validate(spellSource);
-        if (!validation.isSupported()) {
-            var result = SpellDispenserCastHelper.CastResult.validationFailure(validation);
+        var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
+        if (SpellDispenserSpellProfileManager.requiresOwner(validation.spellData()) && ownerProfile == null) {
+            var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation);
             notifyFailure(serverLevel, pos, context, result);
             playActivationSound(serverLevel, pos, result);
             return;
@@ -174,7 +175,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         }
 
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
-        if (ownerProfile == null) {
+        if (SpellDispenserSpellProfileManager.requiresOwner(validation.spellData()) && ownerProfile == null) {
             var result = SpellDispenserCastHelper.CastResult.missingOwnerProfile(validation);
             notifyFailure(serverLevel, resolveSoundPos(context), context, result);
             playActivationSound(serverLevel, resolveSoundPos(context), result);
@@ -280,7 +281,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
     ) {
         var ownerProfile = SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData);
         var source = getSpellSource(context);
-        return ownerProfile != null
+        return (!session.profile().ownerRequired() || ownerProfile != null)
                 && !source.isEmpty()
                 && source.getCount() == session.spellSource().getCount()
                 && ItemStack.isSameItemSameComponents(source, session.spellSource());
