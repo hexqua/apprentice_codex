@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.healingbloom;
 
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
@@ -64,6 +66,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
     private static final int REGEN_APPLY_INTERVAL_TICK = 200;
     private static final int REGEN_DURATION_TICK = 300;
     private static final int UNDEAD_DAMAGE_INTERVAL_TICK = 50;
+    private static final float UNDEAD_DAMAGE_AMOUNT = 4.0f;
     private static final int LIGHT_RETRY_INTERVAL_TICK = 20;
     private static final int PULSE_INTERVAL_TICK = 100;
     private static final int HEAL_INTERVAL_TICK = 80;
@@ -219,10 +222,11 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
                 continue;
             }
 
+            var finalDamage = UNDEAD_DAMAGE_AMOUNT * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.HEALING_BLOOM);
             var source = owner != null
                     ? CombatTools.getDamageSource(level, this, owner, DamageTypes.HEALING_BLOOM)
                     : CombatTools.getDamageSource(level, this, DamageTypes.HEALING_BLOOM);
-            CombatTools.applyDamage(target, 4.0f, source, SpellRegistry.HEALING_BLOOM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applyDamage(target, finalDamage, source, SpellRegistry.HEALING_BLOOM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
     }
 
