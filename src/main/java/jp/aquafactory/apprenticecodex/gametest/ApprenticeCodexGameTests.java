@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTra
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
@@ -3203,6 +3204,53 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void archerMultipleTimeoutWithGreaterConjurersTalismanSkipsCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 2, 0), "archer_multiple_greater_conjurer_timeout_test");
+            equipGreaterConjurersTalisman(player);
+
+            castArcherMultiple(helper, player, 1);
+
+            var spell = SpellRegistry.ARCHER_MULTIPLE.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            var recast = magicData.getPlayerRecasts().getRecastInstance(spell.getSpellId());
+            helper.assertTrue(recast != null, "Archer Multiple should create a recast instance on initial cast");
+            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(spell),
+                    "Archer Multiple recast should remain active before timeout completion");
+
+            magicData.getPlayerRecasts().removeRecast(recast, io.redspace.ironsspellbooks.capabilities.magic.RecastResult.TIMEOUT);
+
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
+                    "Archer Multiple recast should be removed after timeout completion");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Greater Conjurer's Talisman should suppress Archer Multiple cooldown when the recast ends by timeout");
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 60)
+    public static void archerMultipleAllBowRemovalEndsRecastAndStartsCooldown(GameTestHelper helper) {
+        var player = createArcherMultiplePlayer(helper, new BlockPos(0, 2, 0), "archer_multiple_all_bows_removed_test");
+        var spell = SpellRegistry.ARCHER_MULTIPLE.get();
+        var magicData = MagicData.getPlayerMagicData(player);
+
+        helper.runAtTickTime(1, () -> {
+            castArcherMultiple(helper, player, 1);
+            helper.assertTrue(getOwnedArcherMultipleBows(helper, player).size() == 4,
+                    "Archer Multiple should summon all bows before the removal test starts");
+        });
+        helper.runAtTickTime(3, () -> getOwnedArcherMultipleBows(helper, player).forEach(bow -> bow.remove(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED)));
+
+        helper.succeedWhen(() -> {
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
+                    "Archer Multiple recast should end once every summoned bow has disappeared");
+            helper.assertTrue(getOwnedArcherMultipleBows(helper, player).isEmpty(),
+                    "Archer Multiple bows should all be gone after the forced removal");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Archer Multiple should start its normal cooldown when every summoned bow disappears");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
@@ -3571,6 +3619,40 @@ public final class ApprenticeCodexGameTests {
         var blooms = getOwnedHealingBlooms(helper, owner);
         helper.assertTrue(blooms.size() == 1, "Expected exactly one living Healing Bloom but found " + blooms.size());
         return blooms.get(0);
+    }
+
+    private static FakePlayer createArcherMultiplePlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        // SummonManager は owner を level lookup で引き直して recast cleanup するため、
+        // Archer Multiple の summon 消滅テストでは FakePlayer もワールドへ参加させる。
+        helper.getLevel().addFreshEntity(player);
+        return player;
+    }
+
+    private static void equipGreaterConjurersTalisman(FakePlayer player) {
+        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Greater Conjurer's Talisman test"));
+        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, 0,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
+    }
+
+    private static void castArcherMultiple(GameTestHelper helper, FakePlayer player, int spellLevel) {
+        var spell = SpellRegistry.ARCHER_MULTIPLE.get();
+        spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static List<ArcherMultipleBowEntity> getOwnedArcherMultipleBows(GameTestHelper helper, FakePlayer owner) {
+        return helper.getLevel().getEntitiesOfClass(
+                ArcherMultipleBowEntity.class,
+                new AABB(owner.position(), owner.position()).inflate(32.0),
+                bow -> {
+                    var summonOwner = bow.getOwner();
+                    return summonOwner != null && owner.getUUID().equals(summonOwner.getUUID());
+                }
+        );
     }
 
     private static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
