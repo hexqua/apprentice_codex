@@ -75,7 +75,7 @@ public final class CombatTools {
         if (target instanceof LivingEntity livingTarget) {
             // Iron'sの召喚ダメージはLivingEntityのみ対象なので合わせる.
             if (source.is(DamageTypeTagGenerator.SUMMON_DAMAGE) && source.getEntity() instanceof LivingEntity caster){
-                var attributeInstance = caster.getAttribute(AttributeRegistry.SUMMON_DAMAGE.get());
+                var attributeInstance = caster.getAttribute(AttributeRegistry.SUMMON_DAMAGE);
                 if (attributeInstance != null){
                     baseAmount *= (float) attributeInstance.getValue();
                 }
