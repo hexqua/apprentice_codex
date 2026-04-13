@@ -46,7 +46,7 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.EVOCATION_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(0)
+            .setCooldownSeconds(2)
             .build();
 
     public AutoTurret() {
