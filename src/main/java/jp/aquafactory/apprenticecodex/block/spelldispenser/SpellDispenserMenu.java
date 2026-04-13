@@ -193,7 +193,7 @@ public final class SpellDispenserMenu extends AbstractContainerMenu {
 
     public boolean isReadyToCast(Player player) {
         var validation = getValidation(player);
-        return hasOwnerProfile()
+        return (!SpellDispenserSpellProfileManager.requiresOwner(validation.spellData()) || hasOwnerProfile())
                 && validation.isSupported()
                 && SpellDispenserManaHelper.canAffordSpell(getCurrentMana(), validation.spellData());
     }

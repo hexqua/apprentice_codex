@@ -151,8 +151,10 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
 
         var player = minecraft.player;
         var validation = menu.getValidation(player);
-        var hidden = !menu.hasOwnerProfile() || validation.shouldUseHiddenPresentation();
-        var tooltip = !menu.hasOwnerProfile() ? OWNER_MISSING_TOOLTIP : validation.getGuiTooltip();
+        var ownerRequired = SpellDispenserSpellProfileManager.requiresOwner(validation.spellData());
+        var missingOwner = ownerRequired && !menu.hasOwnerProfile();
+        var hidden = missingOwner || validation.shouldUseHiddenPresentation();
+        var tooltip = missingOwner ? OWNER_MISSING_TOOLTIP : validation.getGuiTooltip();
 
         if (hidden) {
             return new SpellPresentation(HIDDEN_SPELL_LABEL, SpellRegistry.none().getSpellIconResource(), true, tooltip);

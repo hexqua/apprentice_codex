@@ -74,11 +74,11 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.MAGIC_ARROW_SPELL),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.MAGIC_MISSILE_SPELL),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.SHADOW_SLASH),
@@ -142,11 +142,11 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.FIREBALL_SPELL),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.FIREBOLT_SPELL),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.FLAMING_STRIKE_SPELL),
@@ -214,7 +214,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.ICICLE_SPELL),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.RAY_OF_FROST_SPELL),
@@ -222,7 +222,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.SNOWBALL_SPELL),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.BALL_LIGHTNING_SPELL),
@@ -238,7 +238,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.LIGHTNING_BOLT_SPELL),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.LIGHTNING_LANCE_SPELL),
@@ -250,7 +250,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.ACID_ORB_SPELL),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.BLIGHT_SPELL),
@@ -290,7 +290,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARCANE_BLAST),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARCANE_BEAM),
@@ -358,7 +358,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK),
-                                        SpellDispenserSpellProfile.DEFAULT
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.COMPOUND_PHIAL),
