@@ -49,8 +49,8 @@ public class Shock extends AbstractSpell {
             .build();
 
     public Shock() {
-        baseSpellPower = 100;
-        spellPowerPerLevel = 25;
+        baseSpellPower = 500;
+        spellPowerPerLevel = 50;
         baseManaCost = 15;
         manaCostPerLevel = 2;
         castTime = 0;
@@ -65,7 +65,7 @@ public class Shock extends AbstractSpell {
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 2 * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.SHOCK);
     }
 

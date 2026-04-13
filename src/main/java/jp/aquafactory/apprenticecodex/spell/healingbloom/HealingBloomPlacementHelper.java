@@ -97,8 +97,7 @@ final class HealingBloomPlacementHelper {
             return Optional.empty();
         }
 
-        var bushState = jp.aquafactory.apprenticecodex.registry.BlockRegistry.COMFORT_BERRY_BUSH.get().defaultBlockState();
-        if (!bushState.canSurvive(level, placementPos)) {
+        if (!hasSupportBelow(level, placementPos)) {
             return Optional.empty();
         }
 
@@ -109,7 +108,7 @@ final class HealingBloomPlacementHelper {
 
         var center = new Vec3(
                 placementPos.getX() + 0.5,
-                placementPos.getY(),
+                getSupportTopY(level, placementPos),
                 placementPos.getZ() + 0.5
         );
         var placementBox = HealingBloomEntity.makePlacementAabb(center);
@@ -118,6 +117,19 @@ final class HealingBloomPlacementHelper {
         }
 
         return Optional.of(new PlacementResult(placementPos.immutable(), center, placementBox));
+    }
+
+    static boolean hasSupportBelow(Level level, BlockPos placementPos) {
+        return !level.getBlockState(placementPos.below()).getCollisionShape(level, placementPos.below()).isEmpty();
+    }
+
+    static double getSupportTopY(Level level, BlockPos placementPos) {
+        var supportPos = placementPos.below();
+        var supportShape = level.getBlockState(supportPos).getCollisionShape(level, supportPos);
+        if (supportShape.isEmpty()) {
+            return placementPos.getY();
+        }
+        return supportPos.getY() + supportShape.max(Direction.Axis.Y);
     }
 
     private static Optional<BlockHitResult> raycastTargetBlock(Level level, LivingEntity entity, double range) {

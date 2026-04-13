@@ -29,13 +29,13 @@ public class ManaSlash extends AbstractSpell {
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
             .setMaxLevel(1)
-            .setCooldownSeconds(6)
+            .setCooldownSeconds(8)
             .setAllowCrafting(false)
             .build();
 
     public ManaSlash() {
-        baseSpellPower = 25;
-        spellPowerPerLevel = 25;
+        baseSpellPower = 75;
+        spellPowerPerLevel = 50;
         baseManaCost = 15;
         manaCostPerLevel = 0;
         castTime = 0;

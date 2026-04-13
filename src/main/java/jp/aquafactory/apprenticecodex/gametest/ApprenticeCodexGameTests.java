@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
@@ -26,6 +27,7 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
@@ -41,8 +43,10 @@ import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTra
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
@@ -76,18 +80,20 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentPredicate;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageType;
@@ -97,6 +103,7 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -127,11 +134,14 @@ import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
@@ -152,10 +162,12 @@ import net.neoforged.fml.ModList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1649,6 +1661,23 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var caster = createSenseEvilPlayer(helper, new BlockPos(0, 2, 0), "sense_evil_horizontal_cube_test");
+            var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
+            var range = getSenseEvilRange(spell, caster, 1);
+            var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
+            var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.5, 0.0, 0.0);
+            var zombie = spawnPositionedZombie(level, zombieCenter);
+
+            var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
+            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
+                    "SenseEvil should detect undead in the added X direction cube band");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void bonusChestLootIncludesIsekaiTravelGuidebook(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var lootTable = helper.getLevel().getServer().reloadableRegistries().getLootTable(BuiltInLootTables.SPAWN_BONUS_CHEST);
@@ -1660,6 +1689,31 @@ public final class ApprenticeCodexGameTests {
 
             helper.assertTrue(generatedLoot.stream().anyMatch(stack -> stack.is(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())),
                     "Spawn bonus chest loot no longer contains Isekai Travel Guidebook: " + generatedLoot);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var caster = createSenseEvilPlayer(helper, new BlockPos(0, 2, 0), "sense_evil_spawner_cube_test");
+            var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
+            var range = getSenseEvilRange(spell, caster, 1);
+            var diagonalOffset = Mth.floor(range * 0.75);
+
+            helper.assertTrue(Math.sqrt(2.0 * diagonalOffset * diagonalOffset) > range,
+                    "Diagonal test offset must stay outside the old spherical spawner range");
+
+            var zombieCenter = caster.getBoundingBox().getCenter().add(diagonalOffset, 0.0, diagonalOffset);
+            var zombie = spawnPositionedZombie(level, zombieCenter);
+            var spawnerPos = caster.blockPosition().offset(diagonalOffset, 0, diagonalOffset);
+            placeZombieSpawner(level, spawnerPos);
+
+            var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
+            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
+                    "SenseEvil should still detect entities at the shared diagonal cube offset");
+            assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(spawnerPos), 0.25,
+                    "SenseEvil should detect spawners at the same diagonal cube offset as entities");
         });
     }
 
@@ -2462,6 +2516,59 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertApprenticeEnchantmentFlags(helper, Enchantments.ALACRITY, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.REFLUX, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.RESERVOIR, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.SURGE, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.ATTUNEMENT, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.TENSE, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.WISDOM, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.PLUNDER, false, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.TRANSCENDENCE, true, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.GUZZLE, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.LARGE_MUG, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.RED_ENERGY, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.GLOW_ENERGY, false, true, false, false);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var function = EnchantRandomlyFunction.randomApplicableEnchantment(helper.getLevel().registryAccess()).build();
+            var seenApprenticeEnchantments = new LinkedHashSet<ResourceLocation>();
+            var flaskEnchantments = expectedFlaskEnchantments();
+
+            for (long seed = 0L; seed < 4096L; ++seed) {
+                var result = function.apply(new ItemStack(Items.BOOK), createEmptyLootContext(helper, seed));
+                var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(result);
+                helper.assertTrue(result.is(Items.ENCHANTED_BOOK),
+                        "Random applicable enchantment loot should convert books into enchanted books");
+                helper.assertTrue(enchantments.size() == 1,
+                        "Random applicable enchantment loot should apply exactly one enchantment: " + enchantments);
+
+                for (var enchantment : enchantments.keySet()) {
+                    var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
+                    if (enchantmentId == null || !ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
+                        continue;
+                    }
+
+                    helper.assertFalse(flaskEnchantments.contains(enchantmentId),
+                            "Random applicable enchantment loot included flask enchantment: " + enchantmentId + " at seed " + seed);
+                    seenApprenticeEnchantments.add(enchantmentId);
+                }
+            }
+
+            var expectedEnchantments = expectedRandomBookLootEnchantments();
+            helper.assertTrue(seenApprenticeEnchantments.containsAll(expectedEnchantments),
+                    "Random applicable enchantment loot lost apprentice enchantments: "
+                            + describeEnchantmentDifference(expectedEnchantments, seenApprenticeEnchantments));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertCategoryEnchantments(
@@ -2800,6 +2907,15 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertPotionEffect(helper, PotionRegistry.MEDITATION.get(), "apprenticecodex:meditation", 20 * 60 * 3, 0);
+            assertPotionEffect(helper, PotionRegistry.LONG_MEDITATION.get(), "apprenticecodex:long_meditation", 20 * 60 * 8, 0);
+            assertPotionEffect(helper, PotionRegistry.STRONG_MEDITATION.get(), "apprenticecodex:strong_meditation", 20 * 90, 1);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var instantSpell = SpellRegistry.AUTO_MAGNET.get();
@@ -2910,7 +3026,7 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void healingBloomIgnoresOwnerDamageAndStaysSavable(GameTestHelper helper) {
+    public static void healingBloomAcceptsOwnerDamageAndStaysSavable(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_owner_test"));
@@ -2918,16 +3034,17 @@ public final class ApprenticeCodexGameTests {
             bloom.setOwner(owner);
             bloom.setAnchorPos(new BlockPos(0, 2, 0));
             helper.assertTrue(bloom.shouldBeSaved(), "Healing Bloom should now be saved with the world");
-            helper.assertFalse(bloom.hurt(level.damageSources().playerAttack(owner), 2.0f),
-                    "Healing Bloom should ignore damage from its owner");
+            helper.assertTrue(bloom.hurt(level.damageSources().playerAttack(owner), 2.0f),
+                    "Healing Bloom should now accept damage from its owner");
         });
     }
 
     @GameTest(template = TEMPLATE)
     public static void healingBloomRootLossUsesDeathState(GameTestHelper helper) {
         var level = helper.getLevel();
-        var anchorPos = new BlockPos(0, 2, 0);
-        helper.setBlock(anchorPos.below(), Blocks.DIRT);
+        var relativeAnchorPos = new BlockPos(0, 2, 0);
+        var anchorPos = helper.absolutePos(relativeAnchorPos);
+        helper.setBlock(relativeAnchorPos.below(), Blocks.DIRT);
 
         var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_root_loss_test"));
         var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
@@ -2937,7 +3054,7 @@ public final class ApprenticeCodexGameTests {
         bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
         helper.getLevel().addFreshEntity(bloom);
 
-        helper.runAtTickTime(1, () -> helper.setBlock(anchorPos.below(), Blocks.AIR));
+        helper.runAtTickTime(1, () -> helper.setBlock(relativeAnchorPos.below(), Blocks.AIR));
         helper.runAtTickTime(3, () -> {
             var blooms = level.getEntitiesOfClass(HealingBloomEntity.class, new net.minecraft.world.phys.AABB(anchorPos).inflate(1.5));
             helper.assertTrue(!blooms.isEmpty(),
@@ -2947,6 +3064,144 @@ public final class ApprenticeCodexGameTests {
             helper.succeed();
         });
     }
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var relativeAnchorPos = new BlockPos(0, 2, 0);
+        var anchorPos = helper.absolutePos(relativeAnchorPos);
+        helper.setBlock(relativeAnchorPos.below(), Blocks.STONE);
+
+        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_regen_test"));
+        var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+        bloom.setOwner(owner);
+        bloom.setAnchorPos(anchorPos);
+        bloom.setBloomMaxHealth(10.0f);
+        bloom.setHealth(5.0f);
+        bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
+        level.addFreshEntity(bloom);
+
+        helper.runAtTickTime(45, () -> {
+            helper.assertFalse(bloom.hasEffect(MobEffects.REGENERATION),
+                    "Healing Bloom should not grant its own regeneration effect to itself");
+            helper.assertTrue(Math.abs(bloom.getHealth() - 5.0f) < 0.01f,
+                    "Healing Bloom should not recover before its low-speed natural heal ticks");
+        });
+        helper.runAtTickTime(81, () -> {
+            helper.assertTrue(Math.abs(bloom.getHealth() - 6.0f) < 0.01f,
+                    "Healing Bloom should recover exactly one point from low-speed natural healing after 80 ticks");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomCanBePlacedOnSupportedSlab(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_slab_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE_SLAB);
+
+            castHealingBloom(helper, owner, 1, anchorPos, false);
+
+            var bloom = getSingleLivingHealingBloom(helper, owner);
+            helper.assertTrue(Math.abs(bloom.getY() - (helper.absolutePos(anchorPos).below().getY() + 0.5)) < 0.01,
+                    "Healing Bloom should now sit on top of a slab support instead of refusing the placement");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomNormalRecastFailsForSameOwner(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_recast_same_owner_test");
+            var firstAnchor = new BlockPos(0, 2, 0);
+            var secondAnchor = new BlockPos(2, 2, 0);
+            helper.setBlock(firstAnchor.below(), Blocks.STONE);
+            helper.setBlock(secondAnchor.below(), Blocks.STONE);
+
+            castHealingBloom(helper, owner, 1, firstAnchor, false);
+            var firstBloom = getSingleLivingHealingBloom(helper, owner);
+
+            castHealingBloom(helper, owner, 1, secondAnchor, false);
+
+            var blooms = getOwnedHealingBlooms(helper, owner);
+            helper.assertTrue(blooms.size() == 1,
+                    "Healing Bloom should still allow only one active bloom for the same owner");
+            helper.assertTrue(blooms.get(0) == firstBloom,
+                    "Healing Bloom should keep the original bloom when recast without sneaking");
+            helper.assertTrue(firstBloom.blockPosition().equals(helper.absolutePos(firstAnchor)),
+                    "Healing Bloom should remain at the original anchor after a blocked recast");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomAllowsDifferentOwnersToEachHaveOne(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var firstOwner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_owner_a_test");
+            var secondOwner = createHealingBloomPlayer(helper, new BlockPos(4, 2, 0), "healing_bloom_owner_b_test");
+            var firstAnchor = new BlockPos(0, 2, 0);
+            var secondAnchor = new BlockPos(4, 2, 0);
+            helper.setBlock(firstAnchor.below(), Blocks.STONE);
+            helper.setBlock(secondAnchor.below(), Blocks.STONE);
+
+            castHealingBloom(helper, firstOwner, 1, firstAnchor, false);
+            castHealingBloom(helper, secondOwner, 1, secondAnchor, false);
+
+            helper.assertTrue(getOwnedHealingBlooms(helper, firstOwner).size() == 1,
+                    "The first owner should keep exactly one Healing Bloom");
+            helper.assertTrue(getOwnedHealingBlooms(helper, secondOwner).size() == 1,
+                    "A different owner should be able to place a separate Healing Bloom");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomMissingManagedBloomDoesNotBlockRecast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_missing_state_test");
+            var anchorPos = new BlockPos(0, 2, 0);
+            helper.setBlock(anchorPos.below(), Blocks.STONE);
+
+            var spellData = jp.aquafactory.apprenticecodex.capability.Capabilities.getSpellDataOrNull(owner);
+            helper.assertTrue(spellData != null,
+                    "Healing Bloom stale-state test could not resolve spell data capability");
+            spellData.edit(CodexSpellStateTypeRegister.HEALING_BLOOM_STATE, state -> state.setBloomUuid(UUID.randomUUID()));
+
+            castHealingBloom(helper, owner, 1, anchorPos, false);
+
+            helper.assertTrue(getOwnedHealingBlooms(helper, owner).size() == 1,
+                    "A missing managed Healing Bloom should not block recasting for the same owner");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void healingBloomSneakCastReplacesOnlyOwnersPreviousBloom(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var firstOwner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_force_owner_a_test");
+            var secondOwner = createHealingBloomPlayer(helper, new BlockPos(4, 2, 0), "healing_bloom_force_owner_b_test");
+            var firstAnchor = new BlockPos(0, 2, 0);
+            var replacementAnchor = new BlockPos(2, 2, 0);
+            var secondAnchor = new BlockPos(4, 2, 0);
+            helper.setBlock(firstAnchor.below(), Blocks.STONE);
+            helper.setBlock(replacementAnchor.below(), Blocks.STONE);
+            helper.setBlock(secondAnchor.below(), Blocks.STONE);
+
+            castHealingBloom(helper, firstOwner, 1, firstAnchor, false);
+            var previousBloom = getSingleLivingHealingBloom(helper, firstOwner);
+            castHealingBloom(helper, secondOwner, 1, secondAnchor, false);
+            var otherOwnersBloom = getSingleLivingHealingBloom(helper, secondOwner);
+
+            castHealingBloom(helper, firstOwner, 1, replacementAnchor, true);
+
+            var currentBloom = getSingleLivingHealingBloom(helper, firstOwner);
+            helper.assertTrue(currentBloom != previousBloom,
+                    "Sneak casting should create a new Healing Bloom for the owner");
+            helper.assertTrue(currentBloom.blockPosition().equals(helper.absolutePos(replacementAnchor)),
+                    "The replacement Healing Bloom should appear at the new anchor");
+            helper.assertTrue(!previousBloom.isAlive() || previousBloom.isDeadOrDying(),
+                    "The previous Healing Bloom should enter its death state after the replacement bloom is created");
+            helper.assertTrue(otherOwnersBloom.isAlive() && otherOwnersBloom.blockPosition().equals(helper.absolutePos(secondAnchor)),
+                    "Replacing your own Healing Bloom should not affect blooms owned by other players");
+        });
+    }
+
     @GameTest(template = TEMPLATE)
     public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         helper.succeedIf(() -> {
@@ -3203,6 +3458,119 @@ public final class ApprenticeCodexGameTests {
     private static void castHarvestMoon(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.HARVEST_MOON.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static FakePlayer createSenseEvilPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static net.minecraft.world.entity.LivingEntity spawnPositionedZombie(ServerLevel level, Vec3 targetCenter) {
+        forceLoadChunk(level, BlockPos.containing(targetCenter));
+        var zombie = EntityType.ZOMBIE.create(level);
+        if (zombie == null) {
+            throw new IllegalStateException("Failed to create zombie for SenseEvil GameTest");
+        }
+        zombie.moveTo(targetCenter.x, targetCenter.y - zombie.getBbHeight() * 0.5, targetCenter.z, 0.0f, 0.0f);
+        level.addFreshEntity(zombie);
+        return zombie;
+    }
+
+    private static void placeZombieSpawner(ServerLevel level, BlockPos pos) {
+        forceLoadChunk(level, pos);
+        level.setBlock(pos, Blocks.SPAWNER.defaultBlockState(), 3);
+        var blockEntity = level.getBlockEntity(pos);
+        if (!(blockEntity instanceof SpawnerBlockEntity spawner)) {
+            throw new IllegalStateException("Failed to place spawner for SenseEvil GameTest at " + pos);
+        }
+        spawner.setEntityId(EntityType.ZOMBIE, level.getRandom());
+        spawner.setChanged();
+    }
+
+    private static void forceLoadChunk(ServerLevel level, BlockPos pos) {
+        level.getChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
+    }
+
+    private static double getSenseEvilRange(SenseEvil spell, net.minecraft.world.entity.LivingEntity caster, int spellLevel) {
+        try {
+            var method = SenseEvil.class.getDeclaredMethod("getRange", int.class, net.minecraft.world.entity.LivingEntity.class);
+            method.setAccessible(true);
+            return (double) method.invoke(spell, spellLevel, caster);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to read SenseEvil range for GameTest", exception);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<SenseEvilHighlightsPacket.TargetData> collectSenseEvilHighlights(
+            SenseEvil spell,
+            ServerLevel level,
+            int spellLevel,
+            net.minecraft.world.entity.LivingEntity caster
+    ) {
+        try {
+            var method = SenseEvil.class.getDeclaredMethod("collectHighlights", ServerLevel.class, int.class, net.minecraft.world.entity.LivingEntity.class);
+            method.setAccessible(true);
+            return (List<SenseEvilHighlightsPacket.TargetData>) method.invoke(spell, level, spellLevel, caster);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to collect SenseEvil highlights for GameTest", exception);
+        }
+    }
+
+    private static void assertSenseEvilHighlightPresent(
+            GameTestHelper helper,
+            List<SenseEvilHighlightsPacket.TargetData> highlights,
+            Vec3 expectedPosition,
+            double tolerance,
+            String message
+    ) {
+        var found = highlights.stream()
+                .anyMatch(target -> target.position().distanceTo(expectedPosition) <= tolerance);
+        helper.assertTrue(found, message + " / expected near " + expectedPosition + " but got " + highlights);
+    }
+
+    private static FakePlayer createHealingBloomPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static void castHealingBloom(GameTestHelper helper, FakePlayer player, int spellLevel, BlockPos anchorPos, boolean forceReplace) {
+        var spell = (HealingBloom) SpellRegistry.HEALING_BLOOM.get();
+        var castData = new HealingBloom.HealingBloomCastData();
+        var absoluteAnchorPos = helper.absolutePos(anchorPos);
+        var tag = new CompoundTag();
+        tag.putInt("PositionX", absoluteAnchorPos.getX());
+        tag.putInt("PositionY", absoluteAnchorPos.getY());
+        tag.putInt("PositionZ", absoluteAnchorPos.getZ());
+        tag.putBoolean("ForceReplace", forceReplace);
+        castData.deserializeNBT(helper.getLevel().registryAccess(), tag);
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.setAdditionalCastData(castData);
+        spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
+    }
+
+    private static java.util.List<HealingBloomEntity> getOwnedHealingBlooms(GameTestHelper helper, FakePlayer owner) {
+        var blooms = new java.util.ArrayList<HealingBloomEntity>();
+        for (var entity : helper.getLevel().getAllEntities()) {
+            if (entity instanceof HealingBloomEntity bloom
+                    && bloom.isAlive()
+                    && owner.getUUID().equals(bloom.getOwnerUuid())) {
+                blooms.add(bloom);
+            }
+        }
+        return blooms;
+    }
+
+    private static HealingBloomEntity getSingleLivingHealingBloom(GameTestHelper helper, FakePlayer owner) {
+        var blooms = getOwnedHealingBlooms(helper, owner);
+        helper.assertTrue(blooms.size() == 1, "Expected exactly one living Healing Bloom but found " + blooms.size());
+        return blooms.get(0);
     }
 
     private static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
@@ -3490,6 +3858,20 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
+    private static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
+        return registryIdSet(
+                Enchantments.ALACRITY,
+                Enchantments.REFLUX,
+                Enchantments.RESERVOIR,
+                Enchantments.SURGE,
+                Enchantments.ATTUNEMENT,
+                Enchantments.TENSE,
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER
+        );
+    }
+
     private static Set<ResourceLocation> expectedEnchantressRobeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
@@ -3588,6 +3970,30 @@ public final class ApprenticeCodexGameTests {
         unexpectedEnchantments.removeAll(expectedEnchantments);
 
         return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
+    }
+
+    private static void assertApprenticeEnchantmentFlags(
+            GameTestHelper helper,
+            ResourceKey<Enchantment> enchantmentKey,
+            boolean expectedTreasureOnly,
+            boolean expectedInEnchantingTable,
+            boolean expectedTradeable,
+            boolean expectedOnRandomLoot
+    ) {
+        var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(enchantmentKey);
+        var enchantmentId = enchantmentKey.location();
+        var actualTreasureOnly = enchantment.is(EnchantmentTags.TREASURE);
+        var actualInEnchantingTable = enchantment.is(EnchantmentTags.IN_ENCHANTING_TABLE);
+        var actualTradeable = enchantment.is(EnchantmentTags.TRADEABLE);
+        var actualOnRandomLoot = enchantment.is(EnchantmentTags.ON_RANDOM_LOOT);
+        helper.assertTrue(actualTreasureOnly == expectedTreasureOnly,
+                "Treasure tag changed for " + enchantmentId + ": expected " + expectedTreasureOnly + " but got " + actualTreasureOnly);
+        helper.assertTrue(actualInEnchantingTable == expectedInEnchantingTable,
+                "Enchanting-table tag changed for " + enchantmentId + ": expected " + expectedInEnchantingTable + " but got " + actualInEnchantingTable);
+        helper.assertTrue(actualTradeable == expectedTradeable,
+                "Tradeable tag changed for " + enchantmentId + ": expected " + expectedTradeable + " but got " + actualTradeable);
+        helper.assertTrue(actualOnRandomLoot == expectedOnRandomLoot,
+                "Random-loot tag changed for " + enchantmentId + ": expected " + expectedOnRandomLoot + " but got " + actualOnRandomLoot);
     }
 
     private static void assertBaseAttackModifier(
@@ -3916,6 +4322,12 @@ public final class ApprenticeCodexGameTests {
         return new LootParams.Builder(helper.getLevel()).create(LootContextParamSets.EMPTY);
     }
 
+    private static LootContext createEmptyLootContext(GameTestHelper helper, long seed) {
+        return new LootContext.Builder(createEmptyLootParams(helper))
+                .withOptionalRandomSeed(seed)
+                .create(Optional.of(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/random_applicable_enchantment")));
+    }
+
     private static void assertLootTableGeneratesAllItems(
             GameTestHelper helper,
             ResourceLocation lootTableId,
@@ -3985,6 +4397,32 @@ public final class ApprenticeCodexGameTests {
 
     private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
         return PotionContentsHelper.createPotionStack(Items.POTION, potion);
+    }
+
+    private static void assertPotionEffect(
+            GameTestHelper helper,
+            net.minecraft.world.item.alchemy.Potion potion,
+            String expectedPotionId,
+            int expectedDuration,
+            int expectedAmplifier
+    ) {
+        var potionId = ResourceLocation.parse(expectedPotionId);
+        helper.assertTrue(BuiltInRegistries.POTION.get(potionId) == potion,
+                "Missing potion registry entry: " + potionId);
+
+        var effects = potion.getEffects();
+        helper.assertTrue(effects.size() == 1,
+                "Potion " + potionId + " should have exactly one effect but got " + effects.size());
+
+        var effect = effects.isEmpty() ? null : effects.get(0);
+        helper.assertTrue(effect != null && effect.getEffect().value() == EffectRegistry.MANA_REGENERATION.get(),
+                "Potion " + potionId + " should grant mana regeneration");
+        helper.assertTrue(effect != null && effect.getDuration() == expectedDuration,
+                "Potion " + potionId + " duration regression: "
+                        + (effect == null ? "missing" : effect.getDuration()));
+        helper.assertTrue(effect != null && effect.getAmplifier() == expectedAmplifier,
+                "Potion " + potionId + " amplifier regression: "
+                        + (effect == null ? "missing" : effect.getAmplifier()));
     }
 
     private static ItemStack createFilledSpellcastersFlask(

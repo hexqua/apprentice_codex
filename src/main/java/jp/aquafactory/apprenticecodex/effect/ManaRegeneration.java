@@ -12,7 +12,7 @@ public class ManaRegeneration extends MobEffect {
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "mana_regeneration");
 
     public ManaRegeneration() {
-        super(MobEffectCategory.BENEFICIAL, 0xFF7AB8);
+        super(MobEffectCategory.BENEFICIAL, 0x8899FF);
 
         addAttributeModifier(
                 AttributeRegistry.MANA_REGEN,

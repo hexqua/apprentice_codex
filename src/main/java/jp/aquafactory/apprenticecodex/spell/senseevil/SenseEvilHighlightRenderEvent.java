@@ -35,7 +35,7 @@ public final class SenseEvilHighlightRenderEvent {
     private static final int TOTAL_TICKS = HOLD_TICKS + FADE_TICKS;
     private static final int MAX_ACTIVE_CASTS = 8;
     // 中心の灯り感はここで固定コスト化し、見た目調整で粒子数を増やし続けないようにする。
-    private static final int CORE_PARTICLE_COUNT = 8;
+    private static final int CORE_PARTICLE_COUNT = 6;
     private static final float TAU = (float) (Math.PI * 2.0);
     private static final Deque<ActiveCast> ACTIVE_CASTS = new ArrayDeque<>();
 
