@@ -128,10 +128,8 @@ public class AlchemistsFlask extends AbstractPotionFlaskItem
 
     @Override
     protected boolean isSupportedFlaskEnchantment(Enchantment enchantment) {
-        return (EnchantmentRegistry.LARGE_MUG.isPresent() && enchantment == EnchantmentRegistry.LARGE_MUG.get())
-                || (EnchantmentRegistry.RED_ENERGY.isPresent() && enchantment == EnchantmentRegistry.RED_ENERGY.get())
-                || (EnchantmentRegistry.GLOW_ENERGY.isPresent() && enchantment == EnchantmentRegistry.GLOW_ENERGY.get())
-                || (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get());
+        return (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
+                || super.isSupportedFlaskEnchantment(enchantment);
     }
 
     private @Nullable SpellData getPrimarySpellData(ItemStack stack) {
