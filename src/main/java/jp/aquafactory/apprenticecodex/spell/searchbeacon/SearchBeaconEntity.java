@@ -536,6 +536,19 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         return Objects.equals(ownerUuid, ownerId);
     }
 
+    public @Nullable String getOwnerName() {
+        var owner = getOwner();
+        return owner != null ? owner.getName().getString() : null;
+    }
+
+    public ItemStack getOfferedItem() {
+        return offeredItem.copy();
+    }
+
+    public @Nullable String getTargetLabel() {
+        return targetLabel.isBlank() ? null : targetLabel;
+    }
+
     private @Nullable ServerPlayer getOwner() {
         if (cachedOwner != null && cachedOwner.isAlive() && !cachedOwner.isRemoved()) {
             return cachedOwner;
