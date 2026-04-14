@@ -161,6 +161,11 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
 
+    // Jade.
+    // 1.20.1 Forge の最新版を固定し、開発環境では JEI 同様に常時読み込む.
+    compileOnly fg.deobf("maven.modrinth:jade:LecuGude")
+    runtimeOnly fg.deobf("maven.modrinth:jade:LecuGude")
+
     // Patchouli.
     runtimeOnly fg.deobf("curse.maven:patchouli-306770:6164575")
 }
@@ -170,7 +175,7 @@ tasks.named('processResources', ProcessResources).configure {
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
             forge_version: forge_version, forge_version_range: forge_version_range,
             loader_version_range: loader_version_range, create_version: create_version,
-            lodestone_version: lodestone_version, malum_version: malum_version,
+            jade_version: jade_version, lodestone_version: lodestone_version, malum_version: malum_version,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
             mod_display_url: mod_display_url, mod_issue_tracker_url: mod_issue_tracker_url, mod_logo_file: mod_logo_file,
