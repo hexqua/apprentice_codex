@@ -112,7 +112,7 @@ public final class BlockTools {
         var hitResult = new BlockHitResult(Vec3.atCenterOf(pos), hitFace, pos, true);
         try {
             player.setItemInHand(InteractionHand.MAIN_HAND, interactionStack);
-            return level.getBlockState(pos).use(level, player, InteractionHand.MAIN_HAND, hitResult);
+            return level.getBlockState(pos).useWithoutItem(level, player, hitResult);
         } finally {
             player.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
         }
