@@ -223,7 +223,17 @@ public abstract class AbstractPotionFlaskItem extends Item {
     }
 
     protected float getEffectDurationMultiplier(ItemStack stack) {
-        return 1.0F + getRedEnergyLevel(stack) * RED_ENERGY_DURATION_BONUS_PER_LEVEL;
+        return (1.0F + getRedEnergyLevel(stack) * RED_ENERGY_DURATION_BONUS_PER_LEVEL)
+                * getGlowEnergyDurationMultiplier(stack);
+    }
+
+    protected float getGlowEnergyDurationMultiplier(ItemStack stack) {
+        var glowEnergyLevel = getGlowEnergyLevel(stack);
+        if (glowEnergyLevel <= 0) {
+            return 1.0F;
+        }
+
+        return 1.0F / (1.0F + glowEnergyLevel);
     }
 
     protected @NotNull ItemStack normalizeAcceptedItem(ItemStack representativeItem) {
@@ -465,6 +475,7 @@ public abstract class AbstractPotionFlaskItem extends Item {
     protected final MobEffectInstance scaleEffect(ItemStack flaskStack, MobEffectInstance originalEffect, int additionalAmplifier) {
         var scaledDuration = originalEffect.getEffect().isInstantenous()
                 ? originalEffect.getDuration()
+                // Glow Energy の増幅は維持しつつ、フラスコ全般では duration を逆補正してバランスを取る。
                 : Math.max(1, Math.round(originalEffect.getDuration() * getEffectDurationMultiplier(flaskStack)));
         var scaledAmplifier = Math.max(0, originalEffect.getAmplifier() + getGlowEnergyLevel(flaskStack) + additionalAmplifier);
         var visible = !isEffectParticlesSuppressed(flaskStack) && originalEffect.isVisible();
