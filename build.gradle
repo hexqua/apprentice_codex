@@ -159,6 +159,12 @@ dependencies {
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
+    // Jade.
+    // 1.21.1 NeoForge 版の Modrinth version ID は build.gradle に直接固定し、
+    // mods.toml 側で使う表示用バージョン文字列だけを gradle.properties に持つ。
+    compileOnly "maven.modrinth:jade:yd8FKCmx"
+    runtimeOnly "maven.modrinth:jade:yd8FKCmx"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -196,6 +202,7 @@ tasks.named('processResources', ProcessResources).configure {
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
             create_version         : create_version,
+            jade_version           : jade_version,
             lodestone_version      : lodestone_version,
             malum_version          : malum_version,
             mod_id                 : mod_id,
