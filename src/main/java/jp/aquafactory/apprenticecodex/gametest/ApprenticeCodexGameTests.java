@@ -131,6 +131,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.block.AttachedStemBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
@@ -138,6 +139,8 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -183,8 +186,14 @@ public final class ApprenticeCodexGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String CREATE_GAMETEST_HOOKS_CLASS =
             "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
+    private static final String VANILLA_NAMESPACE = "minecraft";
+    private static final String FARMERS_DELIGHT_MOD_ID = "farmersdelight";
     private static final String LODESTONE_MOD_ID = "lodestone";
     private static final String MALUM_MOD_ID = "malum";
+    private static final ResourceLocation FARMERS_DELIGHT_TOMATO_BLOCK =
+            ResourceLocation.fromNamespaceAndPath(FARMERS_DELIGHT_MOD_ID, "tomatoes");
+    private static final ResourceLocation FARMERS_DELIGHT_TOMATO_ITEM =
+            ResourceLocation.fromNamespaceAndPath(FARMERS_DELIGHT_MOD_ID, "tomato");
     private static final ResourceLocation LODESTONE_MAGIC_PROFICIENCY =
             ResourceLocation.fromNamespaceAndPath(LODESTONE_MOD_ID, "magic_proficiency");
     private static final TagKey<DamageType> COMMON_IS_MAGIC = TagKey.create(
@@ -3549,6 +3558,90 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void harvestMoonHarvestsFarmersDelightTomatoViaRightClick(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 3, 0);
+        var tomatoPos = new BlockPos(3, 2, 0);
+
+        if (!ModList.get().isLoaded(FARMERS_DELIGHT_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var tomatoBlock = requireForgeBlock(helper, FARMERS_DELIGHT_TOMATO_BLOCK);
+        var tomatoItem = requireForgeItem(helper, FARMERS_DELIGHT_TOMATO_ITEM);
+        helper.setBlock(tomatoPos.below(), Blocks.FARMLAND);
+        helper.setBlock(tomatoPos, withIntegerProperty(helper, tomatoBlock.defaultBlockState(), "age", 3));
+
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+        helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
+
+        helper.succeedWhen(() -> {
+            var harvestedState = helper.getBlockState(tomatoPos);
+            helper.assertTrue(harvestedState.is(tomatoBlock), "Farmer's Delight tomato should remain planted after HarvestMoon");
+            helper.assertTrue(getIntegerPropertyValue(helper, harvestedState, "age") == 0,
+                    "Farmer's Delight tomato should reset to age 0 after HarvestMoon but got " + harvestedState);
+            helper.assertItemEntityPresent(tomatoItem, casterPos, 1.5);
+            helper.assertItemEntityNotPresent(tomatoItem, tomatoPos, 1.5);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void harvestMoonKeepsFarmersDelightTomatoRopeState(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 3, 0);
+        var baseTomatoPos = new BlockPos(3, 2, 0);
+        var ropeTomatoPos = baseTomatoPos.above();
+
+        if (!ModList.get().isLoaded(FARMERS_DELIGHT_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var tomatoBlock = requireForgeBlock(helper, FARMERS_DELIGHT_TOMATO_BLOCK);
+        var tomatoItem = requireForgeItem(helper, FARMERS_DELIGHT_TOMATO_ITEM);
+        helper.setBlock(baseTomatoPos.below(), Blocks.FARMLAND);
+        // rope 付きトマトは上段で天井扱いになりやすく、GameTest テンプレート内だと
+        // 光量不足で下段が先に自壊するため、実ワールドの屋外相当として補助光を置く。
+        helper.setBlock(baseTomatoPos.east(), Blocks.GLOWSTONE);
+        helper.setBlock(baseTomatoPos, withIntegerProperty(helper, tomatoBlock.defaultBlockState(), "age", 0));
+        helper.setBlock(
+                ropeTomatoPos,
+                withBooleanProperty(
+                        helper,
+                        withIntegerProperty(helper, tomatoBlock.defaultBlockState(), "age", 3),
+                        "ropelogged",
+                        true
+                )
+        );
+
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+        helper.runAtTickTime(1, () -> {
+            var initialBaseState = helper.getBlockState(baseTomatoPos);
+            var initialRopeState = helper.getBlockState(ropeTomatoPos);
+            helper.assertTrue(initialBaseState.is(tomatoBlock),
+                    "Rope test setup lost the lower tomato before HarvestMoon: " + initialBaseState);
+            helper.assertTrue(initialRopeState.is(tomatoBlock) && getBooleanPropertyValue(helper, initialRopeState, "ropelogged"),
+                    "Rope test setup lost the ropelogged tomato before HarvestMoon: " + initialRopeState);
+            castHarvestMoon(helper, player, 1);
+        });
+
+        helper.succeedWhen(() -> {
+            var baseState = helper.getBlockState(baseTomatoPos);
+            var ropeState = helper.getBlockState(ropeTomatoPos);
+            helper.assertTrue(baseState.is(tomatoBlock), "Lower tomato support should remain planted after HarvestMoon but got " + baseState);
+            helper.assertTrue(getIntegerPropertyValue(helper, baseState, "age") == 0,
+                    "Lower tomato support should stay at age 0 after HarvestMoon but got " + baseState);
+            helper.assertTrue(ropeState.is(tomatoBlock),
+                    "Harvested ropelogged tomato should stay planted after HarvestMoon but got " + ropeState);
+            helper.assertTrue(getBooleanPropertyValue(helper, ropeState, "ropelogged"),
+                    "HarvestMoon should preserve Farmer's Delight tomato rope state but got " + ropeState);
+            helper.assertTrue(getIntegerPropertyValue(helper, ropeState, "age") == 0,
+                    "Harvested ropelogged tomato should reset to age 0 after HarvestMoon but got " + ropeState);
+            helper.assertItemEntityPresent(tomatoItem, casterPos, 1.5);
+            helper.assertItemEntityNotPresent(tomatoItem, ropeTomatoPos, 1.5);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void harvestMoonHarvestsStemFruitWithoutBreakingStem(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var stemPos = new BlockPos(2, 2, 1);
@@ -3891,6 +3984,57 @@ public final class ApprenticeCodexGameTests {
             }
         }
         return count;
+    }
+
+    private static Block requireForgeBlock(GameTestHelper helper, ResourceLocation id) {
+        var block = BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
+        helper.assertTrue(block != null, "Missing required block for GameTest: " + id);
+        return block;
+    }
+
+    private static Item requireForgeItem(GameTestHelper helper, ResourceLocation id) {
+        var item = BuiltInRegistries.ITEM.getOptional(id).orElse(null);
+        helper.assertTrue(item != null, "Missing required item for GameTest: " + id);
+        return item;
+    }
+
+    private static BlockState withIntegerProperty(GameTestHelper helper, BlockState state, String propertyName, int value) {
+        var property = findIntegerProperty(helper, state, propertyName);
+        helper.assertTrue(property.getPossibleValues().contains(value),
+                "Property " + propertyName + " does not accept " + value + " on " + state);
+        return state.setValue(property, value);
+    }
+
+    private static int getIntegerPropertyValue(GameTestHelper helper, BlockState state, String propertyName) {
+        return state.getValue(findIntegerProperty(helper, state, propertyName));
+    }
+
+    private static BlockState withBooleanProperty(GameTestHelper helper, BlockState state, String propertyName, boolean value) {
+        return state.setValue(findBooleanProperty(helper, state, propertyName), value);
+    }
+
+    private static boolean getBooleanPropertyValue(GameTestHelper helper, BlockState state, String propertyName) {
+        return state.getValue(findBooleanProperty(helper, state, propertyName));
+    }
+
+    private static IntegerProperty findIntegerProperty(GameTestHelper helper, BlockState state, String propertyName) {
+        for (var property : state.getProperties()) {
+            if (property instanceof IntegerProperty integerProperty && integerProperty.getName().equals(propertyName)) {
+                return integerProperty;
+            }
+        }
+        helper.fail("Missing integer property " + propertyName + " on " + state);
+        throw new IllegalStateException("Unreachable after helper.fail");
+    }
+
+    private static BooleanProperty findBooleanProperty(GameTestHelper helper, BlockState state, String propertyName) {
+        for (var property : state.getProperties()) {
+            if (property instanceof BooleanProperty booleanProperty && booleanProperty.getName().equals(propertyName)) {
+                return booleanProperty;
+            }
+        }
+        helper.fail("Missing boolean property " + propertyName + " on " + state);
+        throw new IllegalStateException("Unreachable after helper.fail");
     }
 
     private static boolean isApprenticeSpell(AbstractSpell spell) {

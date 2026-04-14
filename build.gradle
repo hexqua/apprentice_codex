@@ -138,6 +138,11 @@ dependencies {
     // localRuntime "maven.modrinth:puzzles-lib:v21.1.39-1.21.1-NeoForge"
     // localRuntime "maven.modrinth:easy-magic:v21.1.4-1.21.1-NeoForge"
 
+    // Farmer's Delight.
+    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
+    // HarvestMoon の互換回帰を GameTest で検証するため、開発環境では読み込む.
+    runtimeOnly "maven.modrinth:farmers-delight:cYqC3svy"
+
     // Better Combat.
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
     // ランタイムは必要に応じてON(1.20.1と異なり前提が増えている点に注意)

@@ -87,6 +87,7 @@ public final class BlockTools {
         }
 
         var originalItem = player.getMainHandItem();
+        // まずは通常の useItemOn 経路へ流し、mod 独自の右クリック収穫を優先する。
         var hitResult = new BlockHitResult(Vec3.atCenterOf(pos), hitFace, pos, false);
         try {
             // 右クリック判定だけ現在手持ちのコピーへ差し替え、耐久や個数は本物へ反映しない。

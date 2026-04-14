@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlo
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -70,10 +71,9 @@ public interface HarvestMoonAction {
                 return 0;
             }
 
-            if (manualHarvestKind == ManualHarvestKind.CROP || manualHarvestKind == ManualHarvestKind.NETHER_WART) {
-                return HarvestMoonActionUtil.executeManualAgeHarvest(level, player, pos, toolTemplate, attractPos, manualHarvestKind) ? 1 : 0;
-            }
-
+            // mod 追加作物には CropBlock 継承でも独自の use 収穫を持つものがある。
+            // 先に age リセット手動収穫へ落とすと、Farmer's Delight のトマトのような
+            // rope 付き構造を壊し得るため、まずは通常の右クリック収穫を試す。
             var beforeIds = HarvestMoonActionUtil.captureNearbyItemIds(level, HarvestMoonActionUtil.createDropBox(pos));
             var result = BlockTools.useItemOnBlockByPlayerMainHand(level, player, pos, toolTemplate.copy(), Direction.UP);
             var afterState = level.getBlockState(pos);
@@ -84,6 +84,9 @@ public interface HarvestMoonAction {
             }
 
             if (manualHarvestKind == ManualHarvestKind.NONE) {
+                return 0;
+            }
+            if (HarvestMoonActionUtil.shouldAvoidManualFallback(state)) {
                 return 0;
             }
 
@@ -423,6 +426,15 @@ public interface HarvestMoonAction {
             var above = level.getBlockState(pos.above());
             var below = level.getBlockState(pos.below());
             return above.getBlock() != state.getBlock() && below.getBlock() != state.getBlock();
+        }
+
+        static boolean shouldAvoidManualFallback(BlockState state) {
+            var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+
+            // Farmer's DelightのトマトだけはIssueでも報告されている不具合があるため特殊判定をする.
+            return blockId != null
+                    && "farmersdelight".equals(blockId.getNamespace())
+                    && "tomatoes".equals(blockId.getPath());
         }
 
         static IntegerProperty findGenericAgeProperty(BlockState state) {
