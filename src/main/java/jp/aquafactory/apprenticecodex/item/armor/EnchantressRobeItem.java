@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.EnchantressRobeRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -31,6 +32,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.function.Consumer;
 
 public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
+    private static final double IMBUED_SCHOOL_SPELL_POWER_BONUS = 0.05D;
+
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Type armorType;
     private final Multimap<Attribute, AttributeModifier> robeAttributeModifiers;
@@ -122,6 +125,7 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         builder.putAll(baseModifiers);
         builder.putAll(robeAttributeModifiers);
+        addImbuedSchoolSpellPowerModifier(builder, stack);
         return builder.build();
     }
 
@@ -144,6 +148,26 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    private void addImbuedSchoolSpellPowerModifier(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemStack stack
+    ) {
+        if (!hasImbueSlot()) {
+            return;
+        }
+
+        // 学派依存の補正は胴体の Imbue 状態を読む必要があるため、固定値テーブルではなく stack 側で付与する。
+        var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
+        var imbuedSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+        MagicArmorAttributeHelper.addModifier(
+                builder,
+                imbuedSpellPowerAttribute,
+                IMBUED_SCHOOL_SPELL_POWER_BONUS,
+                AttributeModifier.Operation.MULTIPLY_BASE,
+                "apprenticecodex.enchantress_robe.chestplate.imbued_spell_power"
+        );
     }
 
     private boolean isSupportedRobeEnchantment(Enchantment enchantment) {
