@@ -15,6 +15,9 @@ import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -35,6 +38,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class Extract extends AbstractSpell {
+    private static final HolderLookup.Provider SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String MESSAGE_NO_FLASK = "ui.apprenticecodex.extract.no_flask";
     private static final String MESSAGE_EMPTY_FLASK = "ui.apprenticecodex.extract.empty_flask";
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "extract");
@@ -201,7 +206,7 @@ public class Extract extends AbstractSpell {
             var heldStack = entity.getItemInHand(castData.hand);
             if (heldStack.getItem() instanceof AlchemistsFlask
                     && AbstractPotionFlaskItem.canExtractOneDose(heldStack)
-                    && ItemStack.isSameItemSameTags(AbstractPotionFlaskItem.getStoredItem(heldStack), castData.storedItem)) {
+                    && ItemStack.isSameItemSameComponents(AbstractPotionFlaskItem.getStoredItem(heldStack), castData.storedItem)) {
                 return new FlaskResolution(castData.hand, heldStack, castData.storedItem);
             }
         }
@@ -241,7 +246,7 @@ public class Extract extends AbstractSpell {
             }
 
             friendlyByteBuf.writeEnum(hand);
-            friendlyByteBuf.writeItem(storedItem);
+            friendlyByteBuf.writeNbt((CompoundTag) storedItem.saveOptional(SERIALIZATION_LOOKUP));
         }
 
         @Override
@@ -252,7 +257,10 @@ public class Extract extends AbstractSpell {
             }
 
             hand = friendlyByteBuf.readEnum(InteractionHand.class);
-            storedItem = friendlyByteBuf.readItem();
+            storedItem = ItemStack.parseOptional(
+                    SERIALIZATION_LOOKUP,
+                    friendlyByteBuf.readNbt() instanceof CompoundTag tag ? tag : new CompoundTag()
+            );
         }
 
         @Override
@@ -262,26 +270,26 @@ public class Extract extends AbstractSpell {
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             if (hand == null || storedItem.isEmpty()) {
                 return tag;
             }
 
             tag.putString("Hand", hand.name());
-            tag.put("StoredItem", storedItem.save(new CompoundTag()));
+            tag.put("StoredItem", storedItem.saveOptional(provider));
             return tag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             if (!nbt.contains("Hand") || !nbt.contains("StoredItem")) {
                 reset();
                 return;
             }
 
             hand = InteractionHand.valueOf(nbt.getString("Hand"));
-            storedItem = ItemStack.of(nbt.getCompound("StoredItem"));
+            storedItem = ItemStack.parseOptional(provider, nbt.getCompound("StoredItem"));
         }
 
         public InteractionHand hand() {

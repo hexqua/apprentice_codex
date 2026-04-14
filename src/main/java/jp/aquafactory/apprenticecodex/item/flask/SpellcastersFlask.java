@@ -1,7 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.flask;
 
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -63,7 +64,7 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         return Math.max(1, Math.round(BASE_DRINK_DURATION_TICKS * getDrinkDurationMultiplier(stack)));
     }
 
@@ -96,13 +97,13 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
     }
 
     @Override
-    protected boolean isSupportedFlaskEnchantment(Enchantment enchantment) {
-        return (EnchantmentRegistry.GUZZLE.isPresent() && enchantment == EnchantmentRegistry.GUZZLE.get())
+    protected boolean isSupportedFlaskEnchantment(Holder<Enchantment> enchantment) {
+        return enchantment.is(Enchantments.GUZZLE)
                 || super.isSupportedFlaskEnchantment(enchantment);
     }
 
     private int getGuzzleLevel(ItemStack stack) {
-        return getEnchantmentLevel(stack, EnchantmentRegistry.GUZZLE);
+        return Enchantments.getLevel(stack, Enchantments.GUZZLE);
     }
 
     private float getDrinkDurationMultiplier(ItemStack stack) {
@@ -120,9 +121,9 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
 
     private void applyScaledEffect(ItemStack flaskStack, LivingEntity livingEntity, MobEffectInstance originalEffect) {
         var scaledEffect = scaleEffect(flaskStack, originalEffect);
-        if (scaledEffect.getEffect().isInstantenous()) {
+        if (scaledEffect.getEffect().value().isInstantenous()) {
             // 即時効果は addEffect では発火しないため、PotionItem 相当の経路で適用する。
-            scaledEffect.getEffect().applyInstantenousEffect(
+            scaledEffect.getEffect().value().applyInstantenousEffect(
                     livingEntity,
                     livingEntity,
                     livingEntity,

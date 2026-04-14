@@ -144,7 +144,7 @@ public final class ClientModBusEvents {
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.ALCHEMISTS_FLASK.get(),
-                new ResourceLocation("filled"),
+                ResourceLocation.withDefaultNamespace("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> {

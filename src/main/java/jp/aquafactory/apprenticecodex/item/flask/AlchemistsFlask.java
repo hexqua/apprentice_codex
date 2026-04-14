@@ -8,10 +8,11 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import net.minecraft.core.Holder;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -127,8 +128,8 @@ public class AlchemistsFlask extends AbstractPotionFlaskItem
     }
 
     @Override
-    protected boolean isSupportedFlaskEnchantment(Enchantment enchantment) {
-        return (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
+    protected boolean isSupportedFlaskEnchantment(Holder<Enchantment> enchantment) {
+        return enchantment.is(Enchantments.TRANSCENDENCE)
                 || super.isSupportedFlaskEnchantment(enchantment);
     }
 

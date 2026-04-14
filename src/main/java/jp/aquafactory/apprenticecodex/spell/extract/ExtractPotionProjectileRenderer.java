@@ -13,14 +13,15 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -73,7 +74,7 @@ public class ExtractPotionProjectileRenderer extends EntityRenderer<ExtractPotio
         var damping = Mth.clamp(speed * 3.0f, 0.0f, 1.0f);
         var swayYaw = Mth.sin(tick * FREQ + seed) * AMP_DEG * damping;
         var swayPitch = Mth.cos(tick * (FREQ * 0.9f) + seed) * (AMP_DEG * 0.6f) * damping;
-        var color = PotionUtils.getColor(potionStack);
+        var color = potionStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).getColor();
         var red = (color >> 16) & 0xFF;
         var green = (color >> 8) & 0xFF;
         var blue = color & 0xFF;
@@ -176,12 +177,11 @@ public class ExtractPotionProjectileRenderer extends EntityRenderer<ExtractPotio
 
     private static void vertex(VertexConsumer buffer, Matrix4f poseMatrix, Matrix3f normalMatrix, Vec3 position,
                                float u, float v, Vec3 normal, int red, int green, int blue, int alpha) {
-        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(red, green, blue, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, (float) normal.x, (float) normal.y, (float) normal.z)
-                .endVertex();
+        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(red, green, blue, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal((float) normal.x, (float) normal.y, (float) normal.z);
     }
 }
