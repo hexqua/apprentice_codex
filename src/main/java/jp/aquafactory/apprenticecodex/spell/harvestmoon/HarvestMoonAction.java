@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlo
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -30,7 +31,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -429,7 +429,7 @@ public interface HarvestMoonAction {
         }
 
         static boolean shouldAvoidManualFallback(BlockState state) {
-            var blockId = ForgeRegistries.BLOCKS.getKey(state.getBlock());
+            var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
 
             // Farmer's DelightのトマトだけはIssueでも報告されている不具合があるため特殊判定をする.
             return blockId != null

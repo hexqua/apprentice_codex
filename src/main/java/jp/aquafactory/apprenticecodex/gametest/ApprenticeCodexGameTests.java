@@ -139,7 +139,6 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
@@ -3988,13 +3987,13 @@ public final class ApprenticeCodexGameTests {
     }
 
     private static Block requireForgeBlock(GameTestHelper helper, ResourceLocation id) {
-        var block = ForgeRegistries.BLOCKS.getValue(id);
+        var block = BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
         helper.assertTrue(block != null, "Missing required block for GameTest: " + id);
         return block;
     }
 
     private static Item requireForgeItem(GameTestHelper helper, ResourceLocation id) {
-        var item = ForgeRegistries.ITEMS.getValue(id);
+        var item = BuiltInRegistries.ITEM.getOptional(id).orElse(null);
         helper.assertTrue(item != null, "Missing required item for GameTest: " + id);
         return item;
     }
