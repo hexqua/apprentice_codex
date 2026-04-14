@@ -6,7 +6,6 @@ import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.AlchemistCauldronFluidTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -37,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public final class AtelierStationBlockEntity extends BlockEntity implements MenuProvider {
@@ -126,6 +126,29 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
     public @NotNull List<StoredPotionEntry> getStoredFluidsForDisplay() {
         return storedFluids.stream().map(StoredPotionEntry::copy).toList();
+    }
+
+    public @NotNull List<StoredPotionEntry> getTopStoredFluidsForJade(int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
+
+        return storedFluids.stream()
+                .map(StoredPotionEntry::copy)
+                .sorted(Comparator.comparingInt(StoredPotionEntry::amountMb).reversed())
+                .limit(limit)
+                .toList();
+    }
+
+    public @NotNull List<ItemStack> getLoadedFlasksForDisplay() {
+        var flasks = new ArrayList<ItemStack>(flaskInventory.getSlots());
+        for (var slot = 0; slot < flaskInventory.getSlots(); ++slot) {
+            var stack = flaskInventory.getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                flasks.add(stack.copy());
+            }
+        }
+        return flasks;
     }
 
     public boolean setFilter(int slot, @NotNull ItemStack filterStack) {
