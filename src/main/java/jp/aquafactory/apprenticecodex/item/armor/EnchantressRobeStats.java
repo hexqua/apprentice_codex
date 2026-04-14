@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 public final class EnchantressRobeStats {
     private static final int DURABILITY_MULTIPLIER = 33;
     private static final int ENCHANTMENT_VALUE = 22;
+    public static final double MAX_MANA_BONUS_PER_PIECE = 75.0D;
     public static final int ENCHANTING_TABLE_LEVEL_BONUS_PER_PIECE = 5;
     private static final float TOUGHNESS = 0.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
@@ -38,7 +39,7 @@ public final class EnchantressRobeStats {
     );
 
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
-            new AttributeBonus(AttributeRegistry.MAX_MANA, 50.0D, AttributeModifier.Operation.ADD_VALUE, "max_mana"),
+            new AttributeBonus(AttributeRegistry.MAX_MANA, MAX_MANA_BONUS_PER_PIECE, AttributeModifier.Operation.ADD_VALUE, "max_mana"),
             new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE, "spell_power"),
             new AttributeBonus(
                     ApprenticeAttributeRegistry.MAX_ENCHANTMENT_TABLE_LEVEL,

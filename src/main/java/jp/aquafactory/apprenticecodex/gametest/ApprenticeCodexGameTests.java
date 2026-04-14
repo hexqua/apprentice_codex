@@ -66,6 +66,7 @@ import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeStats;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
@@ -2669,6 +2670,86 @@ public final class ApprenticeCodexGameTests {
                     item -> item instanceof StealthRuneArmorItem,
                     stack -> expectedStealthRuneArmorEnchantments(helper.getLevel().registryAccess(), stack)
             );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA;
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER;
+            var lightningSpellPowerAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get().getSchoolType()
+            );
+            helper.assertTrue(lightningSpellPowerAttribute != null,
+                    "Enchantress Robe test could not resolve lightning school spell power attribute");
+            var lightningSpellPowerHolder = BuiltInRegistries.ATTRIBUTE.wrapAsHolder(lightningSpellPowerAttribute);
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_HAT.get(),
+                    ArmorItem.Type.CHESTPLATE, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get(),
+                    ArmorItem.Type.LEGGINGS, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                    ArmorItem.Type.BOOTS, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_BOOTS.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADD_VALUE);
+                helper.assertTrue(Math.abs(maxManaBonus - EnchantressRobeStats.MAX_MANA_BONUS_PER_PIECE) < 1.0e-9D,
+                        "Enchantress Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+                helper.assertTrue(Math.abs(spellPowerBonus - 0.10D) < 1.0e-9D,
+                        "Enchantress Robe " + armorType + " spell power regression: " + describeModifiers(modifiers));
+
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
+                        "Enchantress Robe " + armorType + " imbue surface regression: hasImbueSlot="
+                                + item.hasImbueSlot() + " stack=" + stack);
+
+                var lightningSpellPowerBonus = sumModifierAmount(
+                        modifiers.get(lightningSpellPowerHolder),
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
+                helper.assertTrue(Math.abs(lightningSpellPowerBonus) < 1.0e-9D,
+                        "Enchantress Robe " + armorType + " should not gain school spell power before imbue: "
+                                + describeModifiers(modifiers));
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantressRobeChestplateAddsImbuedSchoolSpellPowerWithoutChangingGlobalSpellPower(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Enchantress Robe chestplate test could not resolve imbued school");
+            var imbuedSpellPowerAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(imbuedSpellPowerAttribute != null,
+                    "Enchantress Robe chestplate test could not resolve school spell power attribute");
+
+            var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
+            var globalSpellPowerBonus = sumModifierAmount(
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(globalSpellPowerBonus - 0.10D) < 1.0e-9D,
+                    "Enchantress Robe chestplate should keep +0.10 spell power after imbue: " + describeModifiers(modifiers));
+
+            var imbuedSchoolSpellPowerBonus = sumModifierAmount(
+                    modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(imbuedSpellPowerAttribute)),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(imbuedSchoolSpellPowerBonus - 0.05D) < 1.0e-9D,
+                    "Enchantress Robe chestplate should add +0.05 imbued school spell power: " + describeModifiers(modifiers));
         });
     }
 
