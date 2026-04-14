@@ -5,6 +5,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public final class ApprenticeCodexClientConfig {
     public static final ForgeConfigSpec SPEC;
     private static final ForgeConfigSpec.BooleanValue ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION;
+    private static final ForgeConfigSpec.BooleanValue ENABLE_SPELLGUN_AMMO_HUD;
     private static final ForgeConfigSpec.BooleanValue DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS;
 
     static {
@@ -13,6 +14,9 @@ public final class ApprenticeCodexClientConfig {
         ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION = builder
                 .comment("Enable cape animation for the Apprentice Mage Robe.")
                 .define("enableApprenticeMageRobeCapeAnimation", true);
+        ENABLE_SPELLGUN_AMMO_HUD = builder
+                .comment("Show Spellgun ammo HUD near the crosshair.")
+                .define("enableSpellgunAmmoHud", true);
         builder.pop();
 
         builder.push("Blocks");
@@ -29,6 +33,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean enableApprenticeMageRobeCapeAnimation() {
         return ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION.get();
+    }
+
+    public static boolean enableSpellgunAmmoHud() {
+        return ENABLE_SPELLGUN_AMMO_HUD.get();
     }
 
     public static boolean disableEssenceSmokerParticleTextureAnalysis() {

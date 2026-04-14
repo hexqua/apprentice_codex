@@ -216,6 +216,17 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
         return withAccessiblePouch(player, pouchStack -> containsItem(pouchStack, ammoItem));
     }
 
+    public static int countAmmoInAccessiblePouches(Player player, Item ammoItem) {
+        var total = 0;
+        for (var pouchStack : getEquippedPouches(player)) {
+            total += countItem(pouchStack, ammoItem);
+        }
+        for (var pouchStack : getInventoryPouches(player)) {
+            total += countItem(pouchStack, ammoItem);
+        }
+        return total;
+    }
+
     public static boolean consumeAmmoFromAccessiblePouches(Player player, Item ammoItem) {
         return withAccessiblePouch(player, pouchStack -> consumeOne(pouchStack, ammoItem));
     }
@@ -278,6 +289,16 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
             return true;
         }
         return false;
+    }
+
+    private static int countItem(ItemStack pouchStack, Item item) {
+        var total = 0;
+        for (var entry : readContents(pouchStack)) {
+            if (entry.count > 0 && entry.displayStack.is(item)) {
+                total += entry.count;
+            }
+        }
+        return total;
     }
 
     private static int addToPouch(ItemStack pouchStack, ItemStack stack) {
