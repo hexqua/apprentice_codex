@@ -297,6 +297,11 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
         return ownerUuid;
     }
 
+    public @Nullable String getOwnerName() {
+        var owner = getOwner();
+        return owner != null ? owner.getName().getString() : null;
+    }
+
     public void setAnchorPos(BlockPos anchorPos) {
         this.anchorPos = anchorPos.immutable();
     }
@@ -319,6 +324,10 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     public int getFruitCount() {
         return entityData.get(FRUIT_COUNT);
+    }
+
+    public int getRemainingTicksUntilNextFruit() {
+        return Math.max(0, fruitGrowthIntervalTick - fruitGrowthProgressTick);
     }
 
     boolean managesLightAt(BlockPos pos) {

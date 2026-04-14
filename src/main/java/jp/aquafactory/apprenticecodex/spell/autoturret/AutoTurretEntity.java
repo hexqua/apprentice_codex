@@ -30,6 +30,7 @@ import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -357,6 +358,15 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity {
 
     public void setRestBulletCount(int count) {
         restBulletCount = Math.max(0, count);
+    }
+
+    public int getRestBulletCount() {
+        return restBulletCount;
+    }
+
+    public @Nullable String getOwnerName() {
+        var owner = getOwner();
+        return owner != null ? owner.getName().getString() : null;
     }
 
     public void setTurretMaxHealth(float maxHealth) {

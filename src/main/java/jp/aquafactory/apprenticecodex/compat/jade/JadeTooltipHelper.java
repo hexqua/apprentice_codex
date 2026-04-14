@@ -24,4 +24,12 @@ final class JadeTooltipHelper {
         tooltip.add(icon);
         tooltip.append(label);
     }
+
+    static void appendItemCountLine(ITooltip tooltip, ItemStack stack, int count) {
+        appendItemLine(
+                tooltip,
+                stack,
+                Component.translatable("jade.apprenticecodex.item_count", count, stack.getHoverName().copy())
+        );
+    }
 }
