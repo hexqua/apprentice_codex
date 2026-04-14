@@ -33,7 +33,8 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
@@ -558,6 +559,113 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskStartsWithExtractAndNoSpellWheel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Alchemist's Flask did not initialize a spell container");
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Alchemist's Flask spell container is null");
+            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
+                    "Alchemist's Flask spell slot count mismatch: " + (spellContainer == null ? -1 : spellContainer.getMaxSpellCount()));
+            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
+                    "Alchemist's Flask should not expose the imbued spell in the spell wheel");
+
+            var spellData = spellContainer == null ? SpellData.EMPTY : spellContainer.getSpellAtIndex(0);
+            helper.assertTrue(spellData != SpellData.EMPTY, "Alchemist's Flask has no preset spell");
+            helper.assertTrue(spellData.getSpell() == SpellRegistry.EXTRACT.get(),
+                    "Alchemist's Flask preset spell mismatch: " + (spellData == SpellData.EMPTY ? "empty" : spellData.getSpell().getSpellResource()));
+            helper.assertTrue(spellData.getLevel() == 1,
+                    "Alchemist's Flask preset spell level mismatch: " + (spellData == SpellData.EMPTY ? -1 : spellData.getLevel()));
+            helper.assertTrue(!spellData.canRemove(), "Alchemist's Flask preset spell should stay locked by default");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskAllowsInstantLongAndContinuousImbues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
+            helper.assertTrue(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
+                    "Alchemist's Flask should allow instant spell imbuing");
+            helper.assertTrue(item.canImbueSpell(SpellRegistry.COMPOUND_PHIAL.get(), 1),
+                    "Alchemist's Flask should allow long spell imbuing");
+            helper.assertTrue(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
+                    "Alchemist's Flask should allow continuous spell imbuing");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var emptyFlask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
+            var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+
+            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
+                    "Alchemist's Flask accepted a regular potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
+                    "Alchemist's Flask rejected a splash potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
+                    "Alchemist's Flask rejected a lingering potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, simpleElixir),
+                    "Alchemist's Flask rejected a Simple Elixir");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskUsesDoubleCapacityAndExtractRecipeSupportsSplashPotion(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
+            helper.assertTrue(SpellcastersFlask.getMaxDoseCapacity(flask) == 16,
+                    "Alchemist's Flask base capacity mismatch: " + SpellcastersFlask.getMaxDoseCapacity(flask));
+
+            if (EnchantmentRegistry.LARGE_MUG.isPresent()) {
+                flask.enchant(EnchantmentRegistry.LARGE_MUG.get(), 1);
+                helper.assertTrue(SpellcastersFlask.getMaxDoseCapacity(flask) == 20,
+                        "Alchemist's Flask Large Mug bonus mismatch: " + SpellcastersFlask.getMaxDoseCapacity(flask));
+            }
+
+            var filledFlask = SpellcastersFlask.copyWithAddedDoses(flask, splashPotion, 16);
+            helper.assertTrue(!filledFlask.isEmpty(), "Alchemist's Flask failed to store sixteen splash potion doses");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(filledFlask) == 16,
+                    "Alchemist's Flask stored dose count mismatch: " + SpellcastersFlask.getStoredDoseCount(filledFlask));
+
+            var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe) helper.getLevel()
+                    .getRecipeManager()
+                    .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcasters_flask_extract"))
+                    .orElseThrow();
+            var craftingContainer = createCraftingContainer(
+                    SpellcastersFlask.copyWithAddedDoses(new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()), splashPotion, 1),
+                    new ItemStack(Items.GLASS_BOTTLE)
+            );
+
+            helper.assertTrue(recipe.matches(craftingContainer, helper.getLevel()),
+                    "Spellcaster's Flask extract recipe should accept Alchemist's Flask");
+
+            var result = recipe.assemble(craftingContainer, helper.getLevel().registryAccess());
+            var remainingFlask = recipe.getRemainingItems(craftingContainer).get(0);
+
+            helper.assertTrue(ItemStack.isSameItemSameTags(result, splashPotion),
+                    "Alchemist's Flask extract recipe returned the wrong potion");
+            helper.assertTrue(remainingFlask.is(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                    "Alchemist's Flask extract recipe did not return the flask");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(remainingFlask) == 0,
+                    "Alchemist's Flask extract recipe left dose count behind: " + SpellcastersFlask.getStoredDoseCount(remainingFlask));
+            helper.assertTrue(SpellcastersFlask.getStoredItem(remainingFlask).isEmpty(),
+                    "Alchemist's Flask extract recipe left StoredItem behind");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
@@ -979,6 +1087,14 @@ public final class ApprenticeCodexGameTests {
                     1,
                     0
             );
+            var alchemistsManaFlask = createFilledAlchemistsFlask(
+                    PotionUtils.setPotion(
+                            new ItemStack(Items.SPLASH_POTION),
+                            io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
+                    ),
+                    1,
+                    0
+            );
             var nonManaPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
             var nonManaFlask = createFilledSpellcastersFlask(nonManaPotion, 1, 0);
 
@@ -1017,6 +1133,13 @@ public final class ApprenticeCodexGameTests {
                             nonManaFlask
                     ),
                     "Spell Dispenser flask slot accepted a non-mana flask"
+            );
+            helper.assertTrue(
+                    itemHandler != null && !itemHandler.isItemValid(
+                            SpellDispenserBlockEntity.FLASK_SLOT_START,
+                            alchemistsManaFlask
+                    ),
+                    "Spell Dispenser flask slot accepted an Alchemist's Flask"
             );
             helper.assertTrue(
                     itemHandler != null && !itemHandler.isItemValid(
@@ -2756,8 +2879,18 @@ public final class ApprenticeCodexGameTests {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
                 "Spellcasters Flask",
-                item -> item instanceof SpellcastersFlask,
+                item -> item.getClass() == SpellcastersFlask.class,
                 expectedFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Alchemists Flask",
+                item -> item.getClass() == AlchemistsFlask.class,
+                expectedAlchemistsFlaskEnchantments()
         ));
     }
 
@@ -3887,6 +4020,15 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
+    private static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
+        return registryIdSet(
+                EnchantmentRegistry.LARGE_MUG,
+                EnchantmentRegistry.RED_ENERGY,
+                EnchantmentRegistry.GLOW_ENERGY,
+                EnchantmentRegistry.TRANSCENDENCE
+        );
+    }
+
     private static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
         return registryIdSet(
                 EnchantmentRegistry.ALACRITY,
@@ -4333,6 +4475,14 @@ public final class ApprenticeCodexGameTests {
 
     private static ItemStack createFilledSpellcastersFlask(ItemStack storedItem, int doseCount, int glowEnergyLevel) {
         var flask = new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get());
+        if (EnchantmentRegistry.GLOW_ENERGY.isPresent() && glowEnergyLevel > 0) {
+            flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), glowEnergyLevel);
+        }
+        return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
+    }
+
+    private static ItemStack createFilledAlchemistsFlask(ItemStack storedItem, int doseCount, int glowEnergyLevel) {
+        var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
         if (EnchantmentRegistry.GLOW_ENERGY.isPresent() && glowEnergyLevel > 0) {
             flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), glowEnergyLevel);
         }

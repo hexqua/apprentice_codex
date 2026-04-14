@@ -24,6 +24,8 @@ import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
@@ -199,6 +201,8 @@ public final class ItemRegistry {
             ITEMS.register("explorers_cane", ExplorersCane::new);
     public static final RegistryObject<Item> SPELLCASTERS_FLASK =
             ITEMS.register("spellcasters_flask", SpellcastersFlask::new);
+    public static final RegistryObject<Item> ALCHEMISTS_FLASK =
+            ITEMS.register("alchemists_flask", AlchemistsFlask::new);
     public static final RegistryObject<Item> GRIMOIRE_MANIFEST =
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final RegistryObject<Item> PASTEL_STAFF =

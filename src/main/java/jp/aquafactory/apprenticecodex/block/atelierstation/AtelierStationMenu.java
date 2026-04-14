@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.block.atelierstation;
 
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
@@ -111,7 +113,7 @@ public final class AtelierStationMenu extends AbstractContainerMenu {
         } else if (slotIndex < FILTER_SLOT_END) {
             return ItemStack.EMPTY;
         } else {
-            if (!stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())
+            if (!(stack.getItem() instanceof AbstractPotionFlaskItem)
                     || !moveItemStackTo(stack, FLASK_SLOT_START, FLASK_SLOT_END, false)) {
                 return ItemStack.EMPTY;
             }
@@ -326,7 +328,7 @@ public final class AtelierStationMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get());
+            return stack.getItem() instanceof AbstractPotionFlaskItem;
         }
 
         @Override
