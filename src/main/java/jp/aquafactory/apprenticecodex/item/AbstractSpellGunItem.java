@@ -266,7 +266,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         var spellData = getPrimarySpellData(stack);
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
         if (spellData != null && canImbueSpell(spellData)) {
-            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
+            // Arcane Anvil で差し替えた呪文まで固定すると Workbench 抽出不能になるため、preset 以外は removable に戻す。
+            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
         }
         ISpellContainer.set(stack, normalized.toImmutable());
     }
@@ -637,12 +638,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             AttributeModifier.Operation operation,
             String modifierIdSeed
     ) {
-        if (attribute == null || amount == 0.0D) {
-            return;
-        }
-
-        var modifierId = UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8));
-        builder.put(attribute, new AttributeModifier(modifierId, modifierIdSeed, amount, operation));
+        OffhandMagicModifierHelper.addEquippedModifier(builder, attribute, amount, operation, modifierIdSeed);
     }
 
     private static Multimap<Attribute, AttributeModifier> mergeTooltipEquivalentModifiers(
