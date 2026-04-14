@@ -1,11 +1,11 @@
 package jp.aquafactory.apprenticecodex.compat.jade;
 
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -32,7 +32,7 @@ public enum ArcanumInAJarJadeProvider implements IBlockComponentProvider {
                 )
         );
 
-        var arcaneEssence = ForgeRegistries.ITEMS.getValue(ARCANE_ESSENCE_ITEM_ID);
+        var arcaneEssence = BuiltInRegistries.ITEM.getOptional(ARCANE_ESSENCE_ITEM_ID).orElse(null);
         if (arcaneEssence != null) {
             JadeTooltipHelper.appendItemLine(
                     tooltip,

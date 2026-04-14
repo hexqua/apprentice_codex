@@ -14,7 +14,6 @@ import snownee.jade.api.config.IPluginConfig;
 public enum SearchBeaconJadeProvider implements IEntityComponentProvider, IServerDataProvider<EntityAccessor> {
     INSTANCE;
 
-    private static final String OWNER_NAME_TAG = "OwnerName";
     private static final String OFFERED_ITEM_TAG = "OfferedItem";
     private static final String TARGET_LABEL_TAG = "TargetLabel";
 
@@ -24,14 +23,9 @@ public enum SearchBeaconJadeProvider implements IEntityComponentProvider, IServe
             return;
         }
 
-        var ownerName = beacon.getOwnerName();
-        if (ownerName != null && !ownerName.isBlank()) {
-            data.putString(OWNER_NAME_TAG, ownerName);
-        }
-
         var offeredItem = beacon.getOfferedItem();
         if (!offeredItem.isEmpty()) {
-            data.put(OFFERED_ITEM_TAG, offeredItem.save(new CompoundTag()));
+            data.put(OFFERED_ITEM_TAG, offeredItem.saveOptional(accessor.getLevel().registryAccess()));
         }
 
         var targetLabel = beacon.getTargetLabel();
@@ -44,7 +38,7 @@ public enum SearchBeaconJadeProvider implements IEntityComponentProvider, IServe
     public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
         var data = accessor.getServerData();
         if (data.contains(OFFERED_ITEM_TAG, CompoundTag.TAG_COMPOUND)) {
-            var stack = ItemStack.of(data.getCompound(OFFERED_ITEM_TAG));
+            var stack = ItemStack.parseOptional(accessor.getLevel().registryAccess(), data.getCompound(OFFERED_ITEM_TAG));
             if (!stack.isEmpty()) {
                 JadeTooltipHelper.appendItemCountLine(tooltip, stack, stack.getCount());
             }
