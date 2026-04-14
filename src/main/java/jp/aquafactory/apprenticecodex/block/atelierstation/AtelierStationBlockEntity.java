@@ -407,11 +407,6 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                 continue;
             }
 
-            // 残量0でも中身情報が残るフラスコは、自動供給のフィルタとして維持する。
-            if (!SpellcastersFlask.copyFilterItem(stack).isEmpty()) {
-                continue;
-            }
-
             var representativeItem = getRandomStoredFluidRepresentative(level);
             if (representativeItem.isEmpty()) {
                 break;
