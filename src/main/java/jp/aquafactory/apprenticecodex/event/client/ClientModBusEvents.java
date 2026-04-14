@@ -11,7 +11,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticleP
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
@@ -139,6 +139,11 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.SPELLCASTERS_FLASK.get(),
                 ResourceLocation.withDefaultNamespace("filled"),
+                (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.ALCHEMISTS_FLASK.get(),
+                new ResourceLocation("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> {
@@ -331,7 +336,7 @@ public final class ClientModBusEvents {
     }
 
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
-        event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get());
+        event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get(), ItemRegistry.ALCHEMISTS_FLASK.get());
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

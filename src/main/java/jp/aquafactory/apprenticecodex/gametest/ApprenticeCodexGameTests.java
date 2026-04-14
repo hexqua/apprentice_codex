@@ -35,7 +35,8 @@ import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
@@ -627,6 +628,113 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskStartsWithExtractAndNoSpellWheel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+
+            helper.assertTrue(ISpellContainer.isSpellContainer(stack), "Alchemist's Flask did not initialize a spell container");
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Alchemist's Flask spell container is null");
+            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
+                    "Alchemist's Flask spell slot count mismatch: " + (spellContainer == null ? -1 : spellContainer.getMaxSpellCount()));
+            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
+                    "Alchemist's Flask should not expose the imbued spell in the spell wheel");
+
+            var spellData = spellContainer == null ? SpellData.EMPTY : spellContainer.getSpellAtIndex(0);
+            helper.assertTrue(spellData != SpellData.EMPTY, "Alchemist's Flask has no preset spell");
+            helper.assertTrue(spellData.getSpell() == SpellRegistry.EXTRACT.get(),
+                    "Alchemist's Flask preset spell mismatch: " + (spellData == SpellData.EMPTY ? "empty" : spellData.getSpell().getSpellResource()));
+            helper.assertTrue(spellData.getLevel() == 1,
+                    "Alchemist's Flask preset spell level mismatch: " + (spellData == SpellData.EMPTY ? -1 : spellData.getLevel()));
+            helper.assertTrue(!spellData.canRemove(), "Alchemist's Flask preset spell should stay locked by default");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskAllowsInstantLongAndContinuousImbues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
+            helper.assertTrue(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
+                    "Alchemist's Flask should allow instant spell imbuing");
+            helper.assertTrue(item.canImbueSpell(SpellRegistry.COMPOUND_PHIAL.get(), 1),
+                    "Alchemist's Flask should allow long spell imbuing");
+            helper.assertTrue(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
+                    "Alchemist's Flask should allow continuous spell imbuing");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var emptyFlask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
+            var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+
+            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
+                    "Alchemist's Flask accepted a regular potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
+                    "Alchemist's Flask rejected a splash potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
+                    "Alchemist's Flask rejected a lingering potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, simpleElixir),
+                    "Alchemist's Flask rejected a Simple Elixir");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskUsesDoubleCapacityAndExtractRecipeSupportsSplashPotion(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
+            helper.assertTrue(SpellcastersFlask.getMaxDoseCapacity(flask) == 16,
+                    "Alchemist's Flask base capacity mismatch: " + SpellcastersFlask.getMaxDoseCapacity(flask));
+
+            if (EnchantmentRegistry.LARGE_MUG.isPresent()) {
+                flask.enchant(EnchantmentRegistry.LARGE_MUG.get(), 1);
+                helper.assertTrue(SpellcastersFlask.getMaxDoseCapacity(flask) == 20,
+                        "Alchemist's Flask Large Mug bonus mismatch: " + SpellcastersFlask.getMaxDoseCapacity(flask));
+            }
+
+            var filledFlask = SpellcastersFlask.copyWithAddedDoses(flask, splashPotion, 16);
+            helper.assertTrue(!filledFlask.isEmpty(), "Alchemist's Flask failed to store sixteen splash potion doses");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(filledFlask) == 16,
+                    "Alchemist's Flask stored dose count mismatch: " + SpellcastersFlask.getStoredDoseCount(filledFlask));
+
+            var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe) helper.getLevel()
+                    .getRecipeManager()
+                    .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcasters_flask_extract"))
+                    .orElseThrow();
+            var craftingContainer = createCraftingContainer(
+                    SpellcastersFlask.copyWithAddedDoses(new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()), splashPotion, 1),
+                    new ItemStack(Items.GLASS_BOTTLE)
+            );
+
+            helper.assertTrue(recipe.matches(craftingContainer, helper.getLevel()),
+                    "Spellcaster's Flask extract recipe should accept Alchemist's Flask");
+
+            var result = recipe.assemble(craftingContainer, helper.getLevel().registryAccess());
+            var remainingFlask = recipe.getRemainingItems(craftingContainer).get(0);
+
+            helper.assertTrue(ItemStack.isSameItemSameTags(result, splashPotion),
+                    "Alchemist's Flask extract recipe returned the wrong potion");
+            helper.assertTrue(remainingFlask.is(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                    "Alchemist's Flask extract recipe did not return the flask");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(remainingFlask) == 0,
+                    "Alchemist's Flask extract recipe left dose count behind: " + SpellcastersFlask.getStoredDoseCount(remainingFlask));
+            helper.assertTrue(SpellcastersFlask.getStoredItem(remainingFlask).isEmpty(),
+                    "Alchemist's Flask extract recipe left StoredItem behind");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
@@ -1049,6 +1157,14 @@ public final class ApprenticeCodexGameTests {
                     1,
                     0
             );
+            var alchemistsManaFlask = createFilledAlchemistsFlask(
+                    PotionUtils.setPotion(
+                            new ItemStack(Items.SPLASH_POTION),
+                            io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
+                    ),
+                    1,
+                    0
+            );
             var nonManaPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.HEALING.value());
             var nonManaFlask = createFilledSpellcastersFlask(helper.getLevel().registryAccess(), nonManaPotion, 1, 0);
 
@@ -1087,6 +1203,13 @@ public final class ApprenticeCodexGameTests {
                             nonManaFlask
                     ),
                     "Spell Dispenser flask slot accepted a non-mana flask"
+            );
+            helper.assertTrue(
+                    itemHandler != null && !itemHandler.isItemValid(
+                            SpellDispenserBlockEntity.FLASK_SLOT_START,
+                            alchemistsManaFlask
+                    ),
+                    "Spell Dispenser flask slot accepted an Alchemist's Flask"
             );
             helper.assertTrue(
                     itemHandler != null && !itemHandler.isItemValid(
@@ -3165,6 +3288,507 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spell Gun",
+                item -> item instanceof AbstractSpellGunItem,
+                ApprenticeCodexGameTests::expectedSpellGunEnchantments
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var expectedBookEnchantments = allRegisteredEnchantmentIds();
+            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
+            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
+
+            for (var stack : stacks) {
+                // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
+                // 本判定だけは広く通る。Malum 側は main hand 前提で soul_hunter_weapon を使うため、
+                // 実際に固定したい付与面はエンチャント台と独自金床側の offhand 非対応面。
+                assertExactEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        expectedOffhandEnchantments(stack),
+                        expectedBookEnchantments,
+                        expectedOffhandEnchantments(stack),
+                        "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
+                );
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantedCircletEnchantments(stack),
+                    allRegisteredEnchantmentIds(),
+                    expectedEnchantedCircletEnchantments(stack),
+                    "Enchanted Circlet"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) stack.getItem();
+            var slotContext = new top.theillusivec4.curios.api.SlotContext(
+                    CuriosSlotConstants.HEAD,
+                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
+                    0,
+                    false,
+                    true
+            );
+
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    -0.10D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet attack damage penalty regression"
+            );
+
+            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
+            stack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
+            stack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
+            stack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+            stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null, "Enchanted Circlet imbued school could not be resolved");
+
+            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(resolvedSpellPower != null,
+                    "Enchanted Circlet could not resolve spell power attribute for Attunement: " + imbuedSchool.getId());
+
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
+                    0.02D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Alacrity regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get(),
+                    0.05D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Reflux regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                    20.0D,
+                    AttributeModifier.Operation.ADDITION,
+                    "Enchanted Circlet Reservoir regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
+                    0.02D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Surge regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    resolvedSpellPower,
+                    0.04D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Attunement regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
+                    0.05D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Tense regression"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            helper.assertTrue(new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Enchanted Circlet should be extractable in Spellcaster Workbench");
+            helper.assertFalse(new ItemStack(ItemRegistry.ASHEN_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Ashen Circlet should remain non-extractable in Spellcaster Workbench");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletWisdomMatchesArmorRate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "enchanted_circlet_wisdom_test"));
+            var baseExperience = 20;
+
+            var withoutCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 0)), player, baseExperience);
+            MinecraftForge.EVENT_BUS.post(withoutCirclet);
+            helper.assertTrue(withoutCirclet.getDroppedExperience() == baseExperience,
+                    "Wisdom baseline should stay unchanged without enchanted circlet");
+
+            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+
+            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for wisdom test"));
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
+
+            var withCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0)), player, baseExperience);
+            MinecraftForge.EVENT_BUS.post(withCirclet);
+            helper.assertTrue(withCirclet.getDroppedExperience() == 21,
+                    "Enchanted Circlet Wisdom should match armor rate (+5% at level 1) but got " + withCirclet.getDroppedExperience());
+
+            var roundedUp = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0)), player, 1);
+            MinecraftForge.EVENT_BUS.post(roundedUp);
+            helper.assertTrue(roundedUp.getDroppedExperience() == 2,
+                    "Wisdom should round enemy experience up from 1 to 2 at +5% but got " + roundedUp.getDroppedExperience());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void wisdomAppliesToBlockBreakExperienceAndRoundsUp(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var state = Blocks.DIAMOND_ORE.defaultBlockState();
+
+            var baselinePlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_baseline_test"));
+            var baselineExperience = new BlockEvent.BreakEvent(level, new BlockPos(0, 2, 0), state, baselinePlayer);
+            baselineExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(baselineExperience);
+            helper.assertTrue(baselineExperience.getExpToDrop() == 3,
+                    "Block experience should stay unchanged without Wisdom but got " + baselineExperience.getExpToDrop());
+
+            var curioPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_curio_test"));
+            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+
+            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(curioPlayer)
+                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for block wisdom test"));
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
+
+            var roundedCurioExperience = new BlockEvent.BreakEvent(level, new BlockPos(1, 2, 0), state, curioPlayer);
+            roundedCurioExperience.setExpToDrop(1);
+            WisdomExperienceDropEvent.onBlockBreak(roundedCurioExperience);
+            helper.assertTrue(roundedCurioExperience.getExpToDrop() == 2,
+                    "Curio Wisdom should round block experience up from 1 to 2 at +5% but got " + roundedCurioExperience.getExpToDrop());
+
+            var heldPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_held_test"));
+            var spellGunStack = new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get());
+            spellGunStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            heldPlayer.setItemInHand(InteractionHand.MAIN_HAND, spellGunStack);
+
+            var heldExperience = new BlockEvent.BreakEvent(level, new BlockPos(2, 2, 0), state, heldPlayer);
+            heldExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(heldExperience);
+            helper.assertTrue(heldExperience.getExpToDrop() == 4,
+                    "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getExpToDrop());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Right Click Magic Weapon",
+                // 1.21.1申し送り事項:
+                // 1.20.1 では StaffItem にしていない武器でも、1.21.1 側では StaffItem 化する場合がある。
+                // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
+                // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
+                item -> item instanceof AbstractRightClickMagicWeaponItem,
+                ApprenticeCodexGameTests::expectedRightClickMagicWeaponEnchantments
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedReflectcastShieldEnchantments(stack),
+                    "Reflectcast Shield"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spellcasters Flask",
+                item -> item.getClass() == SpellcastersFlask.class,
+                expectedFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Alchemists Flask",
+                item -> item.getClass() == AlchemistsFlask.class,
+                expectedAlchemistsFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ALACRITY, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.REFLUX, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RESERVOIR, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SURGE, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ATTUNEMENT, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.TENSE, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.WISDOM, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.PLUNDER, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.TRANSCENDENCE, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GUZZLE, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.LARGE_MUG, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RED_ENERGY, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GLOW_ENERGY, false, false, true);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var function = EnchantRandomlyFunction.randomApplicableEnchantment().build();
+            var seenApprenticeEnchantments = new LinkedHashSet<ResourceLocation>();
+
+            for (long seed = 0L; seed < 4096L; ++seed) {
+                var result = function.apply(new ItemStack(Items.BOOK), createEmptyLootContext(helper, seed));
+                var enchantments = EnchantmentHelper.getEnchantments(result);
+                helper.assertTrue(result.is(Items.ENCHANTED_BOOK),
+                        "Random applicable enchantment loot should convert books into enchanted books");
+                helper.assertTrue(enchantments.size() == 1,
+                        "Random applicable enchantment loot should apply exactly one enchantment: " + enchantments);
+
+                for (var enchantment : enchantments.keySet()) {
+                    var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                    if (enchantmentId == null || !ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
+                        continue;
+                    }
+
+                    helper.assertFalse(ApprenticeEnchantmentAvailability.isFlaskExclusiveEnchantment(enchantment),
+                            "Random applicable enchantment loot included flask enchantment: " + enchantmentId + " at seed " + seed);
+                    seenApprenticeEnchantments.add(enchantmentId);
+                }
+            }
+
+            var expectedEnchantments = expectedRandomBookLootEnchantments();
+            helper.assertTrue(seenApprenticeEnchantments.containsAll(expectedEnchantments),
+                    "Random applicable enchantment loot lost apprentice enchantments: "
+                            + describeEnchantmentDifference(expectedEnchantments, seenApprenticeEnchantments));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertCategoryEnchantments(
+                    helper,
+                    "Enchantress Robe",
+                    item -> item instanceof EnchantressRobeItem,
+                    ApprenticeCodexGameTests::expectedEnchantressRobeEnchantments
+            );
+            assertCategoryEnchantments(
+                    helper,
+                    "Stealth Rune Armor",
+                    item -> item instanceof StealthRuneArmorItem,
+                    ApprenticeCodexGameTests::expectedStealthRuneArmorEnchantments
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            var item = stack.getItem();
+            var expectedVanillaEnchantments = Set.of(
+                    ResourceLocation.withDefaultNamespace("fortune"),
+                    ResourceLocation.withDefaultNamespace("knockback"),
+                    ResourceLocation.withDefaultNamespace("looting"),
+                    ResourceLocation.withDefaultNamespace("silk_touch")
+            );
+
+            var actualAllowedVanillaEnchantments = collectAllowedEnchantments(
+                    stack,
+                    enchantment -> {
+                        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                        return enchantmentId != null
+                                && VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                                && item.canApplyAtEnchantingTable(stack, enchantment);
+                    }
+            );
+            helper.assertTrue(actualAllowedVanillaEnchantments.equals(expectedVanillaEnchantments),
+                    "Pastel Staff allowed vanilla enchantments changed: "
+                            + describeEnchantmentDifference(expectedVanillaEnchantments, actualAllowedVanillaEnchantments));
+
+            // Iron's StaffItem 側の広い互換性は 1.21.1 で揺れやすいため固定せず、
+            // この mod が明示したバニラ武器許可と耐久系拒否だけを回帰監視する。
+            for (var enchantment : getRegisteredEnchantments()) {
+                var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                if (enchantmentId == null) {
+                    continue;
+                }
+
+                var expectedVanillaAllowed = VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                        && expectedVanillaEnchantments.contains(enchantmentId);
+                if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
+                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment) == expectedVanillaAllowed,
+                            "Pastel Staff vanilla enchanting-table rule changed for " + enchantmentId
+                                    + ": expected " + expectedVanillaAllowed);
+                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedVanillaAllowed,
+                            "Pastel Staff vanilla book rule changed for " + enchantmentId
+                                    + ": expected " + expectedVanillaAllowed);
+                }
+
+                if (isDurabilityTargetEnchantment(enchantment)) {
+                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should keep rejecting durability-target enchantments at the enchanting table: "
+                                    + enchantmentId);
+                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should keep rejecting durability-target enchantments from books: "
+                                    + enchantmentId);
+                }
+
+                if (MALUM_HAUNTED.equals(enchantmentId)) {
+                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should allow malum:haunted at the enchanting table");
+                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should allow malum:haunted from books");
+                }
+
+                if (MALUM_ANIMATED.equals(enchantmentId)) {
+                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should keep rejecting malum:animated at the enchanting table");
+                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should keep rejecting malum:animated from books");
+                }
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var haunted = MalumHauntedCompat.getHauntedEnchantment();
+            helper.assertTrue(haunted != null, "malum:haunted is not registered");
+
+            var pastelStaff = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            pastelStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(pastelStaff),
+                    "Pastel Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(pastelStaff) > 0.0D,
+                    "Pastel Staff should resolve a positive Haunted magic damage bonus");
+
+            var crystalBladedStaff = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+            crystalBladedStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(crystalBladedStaff),
+                    "Crystal Bladed Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(crystalBladedStaff) > 0.0D,
+                    "Crystal Bladed Staff should resolve a positive Haunted magic damage bonus");
+
+            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())),
+                    "Spellgun should stay outside Haunted support");
+            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())),
+                    "Reflectcast Shield should stay outside Haunted support");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malumHauntedBonusUsesDedicatedDamageType(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var source = MalumHauntedCompat.createHauntedBonusDamageSource(attacker);
+            helper.assertTrue(source.is(DamageTypes.HAUNTED_BONUS),
+                    "Haunted bonus should use apprenticecodex:haunted_bonus");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.MAGIC_DAMAGE),
+                    "Haunted bonus should stay on the magic damage tag path");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.FORGE_IS_MAGIC),
+                    "Haunted bonus should stay on the forge:is_magic path for Lodestone magic_proficiency");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
+                    "Haunted bonus should bypass cooldown-based I-Frame checks");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicDamageTagActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(LODESTONE_MOD_ID)) {
+                return;
+            }
+
+            var magicProficiency = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
+            helper.assertTrue(magicProficiency != null, "lodestone:magic_proficiency is not registered");
+
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var proficiencyInstance = attacker.getAttribute(magicProficiency);
+            helper.assertTrue(proficiencyInstance != null, "Attacker is missing lodestone:magic_proficiency");
+
+            var baselineTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(1, 2, 0));
+            var amplifiedTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(2, 2, 0));
+            var baseDamage = 4.0F;
+
+            var baselineHealth = baselineTarget.getHealth();
+            helper.assertTrue(baselineTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
+                    "Baseline haunted bonus damage should apply");
+            var baselineTaken = baselineHealth - baselineTarget.getHealth();
+            helper.assertTrue(Math.abs(baselineTaken - baseDamage) < 1.0e-4F,
+                    "Baseline haunted bonus damage should stay unscaled at proficiency 1.0, actual=" + baselineTaken);
+
+            proficiencyInstance.setBaseValue(1.5D);
+            var amplifiedHealth = amplifiedTarget.getHealth();
+            helper.assertTrue(amplifiedTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
+                    "Amplified haunted bonus damage should apply");
+            var amplifiedTaken = amplifiedHealth - amplifiedTarget.getHealth();
+            helper.assertTrue(Math.abs(amplifiedTaken - 6.0F) < 1.0e-4F,
+                    "Amplified haunted bonus damage should scale to 6.0 at proficiency 1.5, actual=" + amplifiedTaken);
+            helper.assertTrue(amplifiedTaken > baselineTaken,
+                    "Amplified haunted bonus damage should exceed baseline damage");
+        });
+    }
     public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
@@ -4118,6 +4742,15 @@ public final class ApprenticeCodexGameTests {
         );
     }
 
+    private static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
+        return registryIdSet(
+                EnchantmentRegistry.LARGE_MUG,
+                EnchantmentRegistry.RED_ENERGY,
+                EnchantmentRegistry.GLOW_ENERGY,
+                EnchantmentRegistry.TRANSCENDENCE
+        );
+    }
+
     private static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
         return registryIdSet(
                 Enchantments.ALACRITY,
@@ -4696,6 +5329,14 @@ public final class ApprenticeCodexGameTests {
             registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
                     .get(Enchantments.GLOW_ENERGY)
                     .ifPresent(enchantment -> flask.enchant(enchantment, glowEnergyLevel));
+        }
+        return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
+    }
+
+    private static ItemStack createFilledAlchemistsFlask(ItemStack storedItem, int doseCount, int glowEnergyLevel) {
+        var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
+        if (EnchantmentRegistry.GLOW_ENERGY.isPresent() && glowEnergyLevel > 0) {
+            flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), glowEnergyLevel);
         }
         return SpellcastersFlask.copyWithAddedDoses(flask, storedItem, doseCount);
     }

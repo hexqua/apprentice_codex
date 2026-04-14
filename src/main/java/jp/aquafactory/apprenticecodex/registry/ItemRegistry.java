@@ -34,6 +34,8 @@ import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.NetheriteSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
@@ -211,6 +213,8 @@ public final class ItemRegistry {
             ITEMS.register("explorers_cane", ExplorersCane::new);
     public static final DeferredHolder<Item, Item> SPELLCASTERS_FLASK =
             ITEMS.register("spellcasters_flask", SpellcastersFlask::new);
+    public static final DeferredHolder<Item, Item> ALCHEMISTS_FLASK =
+            ITEMS.register("alchemists_flask", AlchemistsFlask::new);
     public static final DeferredHolder<Item, Item> GRIMOIRE_MANIFEST =
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =

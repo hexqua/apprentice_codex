@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.block.spelldispenser;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.world.item.ItemStack;

@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import net.minecraft.world.item.Item;
 
 final class MagicItemEnchantmentTargeting {
@@ -38,6 +39,7 @@ final class MagicItemEnchantmentTargeting {
         return isSupportedOffhandMagicItem(item)
                 || isSupportedSpellGunItem(item)
                 || item instanceof AbstractRightClickMagicWeaponItem
+                || item instanceof AlchemistsFlask
                 || isSupportedSpellContainerArmorItem(item);
     }
 
@@ -48,13 +50,16 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedWisdomEnchantingItem(Item item) {
         return item instanceof AbstractSpellGunItem
                 || item instanceof AbstractRightClickMagicWeaponItem
+                || item instanceof AlchemistsFlask
                 || item instanceof EnchantressRobeItem
                 || item instanceof StealthRuneArmorItem
                 || item instanceof OffhandMagicCompatibleItem;
     }
 
     static boolean isSupportedHeldWisdomMagicItem(Item item) {
-        return item instanceof AbstractSpellGunItem || item instanceof AbstractRightClickMagicWeaponItem;
+        return item instanceof AbstractSpellGunItem
+                || item instanceof AbstractRightClickMagicWeaponItem
+                || item instanceof AlchemistsFlask;
     }
 
     static boolean isSupportedLootingMagicItem(Item item) {
