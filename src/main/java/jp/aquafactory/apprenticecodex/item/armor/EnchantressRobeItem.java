@@ -4,11 +4,15 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.armor.EnchantressRobeRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -25,6 +29,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.function.Consumer;
 
 public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
+    private static final double IMBUED_SCHOOL_SPELL_POWER_BONUS = 0.05D;
+
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers robeAttributeModifiers;
 
@@ -81,6 +87,7 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
         for (var entry : robeAttributeModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
+        addImbuedSchoolSpellPowerModifier(builder, stack);
         return builder.build();
     }
 
@@ -126,6 +133,28 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.cache;
+    }
+
+    private void addImbuedSchoolSpellPowerModifier(ItemAttributeModifiers.Builder builder, ItemStack stack) {
+        if (!hasImbueSlot()) {
+            return;
+        }
+
+        // 学派依存の補正は胴体の Imbue 状態を読む必要があるため、固定値テーブルではなく stack 側で付与する。
+        var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
+        var imbuedSpellPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+        if (imbuedSpellPowerAttribute == null) {
+            return;
+        }
+
+        MagicArmorAttributeHelper.addModifier(
+                builder,
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(imbuedSpellPowerAttribute),
+                IMBUED_SCHOOL_SPELL_POWER_BONUS,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                EquipmentSlotGroup.bySlot(getType().getSlot()),
+                "enchantress_robe_chestplate_imbued_spell_power"
+        );
     }
 
     private static boolean isSupportedRobeEnchantment(ResourceLocation enchantmentId) {
