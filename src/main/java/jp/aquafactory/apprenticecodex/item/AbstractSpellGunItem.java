@@ -261,6 +261,21 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     @Nullable
+    public final Item getDisplayedAmmoItem(ItemStack stack) {
+        // Spellgun は手元参照だけでは初期化されないため、HUD 判定前に一度だけ補完する。
+        if (!ISpellContainer.isSpellContainer(stack)) {
+            initializeSpellContainer(stack);
+        }
+
+        var spellData = getPrimarySpellData(stack);
+        if (spellData == null || !canImbueSpell(spellData)) {
+            return null;
+        }
+
+        return getAmmoItem(stack, spellData);
+    }
+
+    @Nullable
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
         return null;
     }

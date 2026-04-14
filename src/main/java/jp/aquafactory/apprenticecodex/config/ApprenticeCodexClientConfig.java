@@ -5,6 +5,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class ApprenticeCodexClientConfig {
     public static final ModConfigSpec SPEC;
     private static final ModConfigSpec.BooleanValue ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION;
+    private static final ModConfigSpec.BooleanValue ENABLE_SPELLGUN_AMMO_HUD;
     private static final ModConfigSpec.BooleanValue DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS;
 
     static {
@@ -13,6 +14,9 @@ public final class ApprenticeCodexClientConfig {
         ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION = builder
                 .comment("見習い魔術師のローブのケープアニメーションを有効化する")
                 .define("enableApprenticeMageRobeCapeAnimation", true);
+        ENABLE_SPELLGUN_AMMO_HUD = builder
+                .comment("スペルガンの残弾 HUD をクロスヘア付近に表示する")
+                .define("enableSpellgunAmmoHud", true);
         builder.pop();
 
         builder.push("Blocks");
@@ -29,6 +33,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean enableApprenticeMageRobeCapeAnimation() {
         return ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION.get();
+    }
+
+    public static boolean enableSpellgunAmmoHud() {
+        return ENABLE_SPELLGUN_AMMO_HUD.get();
     }
 
     public static boolean disableEssenceSmokerParticleTextureAnalysis() {
