@@ -441,6 +441,7 @@
   "ui.apprenticecodex.tamers_pocket.no_safe_place": "No safe place found to deploy pets.",
   "ui.apprenticecodex.extract.no_flask": "Require Alchemist's Flask in your hand",
   "ui.apprenticecodex.extract.empty_flask": "Alchemist's Flask is empty!",
+  "ui.apprenticecodex.extract.effect_use": "%s to use",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

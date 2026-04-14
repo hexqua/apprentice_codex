@@ -442,6 +442,7 @@
   "ui.apprenticecodex.tamers_pocket.no_safe_place": "ペットを出せる安全な場所が見つからない",
   "ui.apprenticecodex.extract.no_flask": "この魔法は手に錬金術師のフラスコが必要だ",
   "ui.apprenticecodex.extract.empty_flask": "錬金術師のフラスコの中身がない！",
+  "ui.apprenticecodex.extract.effect_use": "%s として使用する",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
