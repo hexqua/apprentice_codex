@@ -29,9 +29,11 @@ import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
+import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
@@ -2298,6 +2300,65 @@ public final class ApprenticeCodexGameTests {
                     "Copper Swingcast Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
             helper.assertTrue(spellData.getLevel() == 1,
                     "Copper Swingcast Staff preset spell level mismatch: " + spellData.getLevel());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
+            var stack = createInitializedPresetStack(item);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Gold Spellcaster Gun normalized spell container is null");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Gold Spellcaster Gun imbued spell should be removable");
+            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
+                    "Gold Spellcaster Gun imbued spell should remain extractable in Spellcaster Workbench");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
+            var stack = createInitializedPresetStack(item);
+            var initialContainer = ISpellContainer.get(stack);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+
+            helper.assertTrue(initialContainer != null, "Copper Swingcast Staff spell container is null");
+            assertSpellData(helper, initialContainer, 0, io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, true,
+                    "Copper Swingcast Staff preset spell should remain locked");
+
+            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
+
+            var normalizedContainer = ISpellContainer.get(stack);
+            helper.assertTrue(normalizedContainer != null, "Copper Swingcast Staff normalized spell container is null");
+            assertSpellData(helper, normalizedContainer, 0, replacementSpell, 1, false,
+                    "Copper Swingcast Staff replacement spell should be removable");
+            helper.assertTrue(normalizedContainer.getSpellAtIndex(0).canRemove(),
+                    "Copper Swingcast Staff replacement spell should remain extractable in Spellcaster Workbench");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractImbueShieldItem) ItemRegistry.REFLECTCAST_SHIELD.get();
+            var stack = createInitializedPresetStack(item);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Reflectcast Shield normalized spell container is null");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Reflectcast Shield imbued spell should be removable");
+            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
+                    "Reflectcast Shield imbued spell should remain extractable in Spellcaster Workbench");
         });
     }
 
@@ -4967,6 +5028,27 @@ public final class ApprenticeCodexGameTests {
             presetSpellContainer.initializeSpellContainer(stack);
         }
         return stack;
+    }
+
+    private static void applyRestrictedImbueNormalization(
+            GameTestHelper helper,
+            ItemStack stack,
+            RestrictedSpellImbuableItem item,
+            AbstractSpell spell,
+            int spellLevel
+    ) {
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, "Missing spell container before restricted imbue normalization test");
+
+        var mutable = spellContainer.mutableCopy();
+        if (mutable.getSpellAtIndex(0) != SpellData.EMPTY) {
+            helper.assertTrue(mutable.removeSpellAtIndex(0),
+                    "Failed to clear existing spell before restricted imbue normalization test");
+        }
+        helper.assertTrue(mutable.addSpellAtIndex(spell, spellLevel, 0, false),
+                "Failed to prepare unlocked spell data before restricted imbue normalization test");
+        ISpellContainer.set(stack, mutable.toImmutable());
+        item.normalizeImbuedSpellContainer(stack);
     }
 
     private static CraftingContainer createCraftingContainer(ItemStack... stacks) {
