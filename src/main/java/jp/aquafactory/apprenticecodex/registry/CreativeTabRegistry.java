@@ -76,6 +76,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.PHOTON_SIPHON.get());
         output.accept(ItemRegistry.EXPLORERS_CANE.get());
         output.accept(ItemRegistry.SPELLCASTERS_FLASK.get());
+        output.accept(ItemRegistry.ALCHEMISTS_FLASK.get());
         output.accept(ItemRegistry.PASTEL_STAFF.get());
         output.accept(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
         output.accept(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());

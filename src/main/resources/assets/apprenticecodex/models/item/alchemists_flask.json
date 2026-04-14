@@ -1,0 +1,14 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "apprenticecodex:item/alchemists_flask"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "filled": 1.0
+      },
+      "model": "apprenticecodex:item/alchemists_flask_filled"
+    }
+  ]
+}

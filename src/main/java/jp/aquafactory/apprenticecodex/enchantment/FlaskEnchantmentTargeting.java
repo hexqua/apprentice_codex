@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import net.minecraft.world.item.Item;
 
 final class FlaskEnchantmentTargeting {
@@ -8,6 +8,6 @@ final class FlaskEnchantmentTargeting {
     }
 
     static boolean isSupportedFlaskItem(Item item) {
-        return item instanceof SpellcastersFlask;
+        return item instanceof AbstractPotionFlaskItem;
     }
 }
