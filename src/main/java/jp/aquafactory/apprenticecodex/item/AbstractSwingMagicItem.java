@@ -139,7 +139,8 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
 
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
         if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
-            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
+            // 初期 preset と違い、後から注入した呪文は Spellcaster Workbench で取り外せる状態を維持する。
+            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
         }
         ISpellContainer.set(stack, normalized.toImmutable());
     }

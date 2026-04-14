@@ -230,7 +230,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         var spellData = getPrimarySpellData(stack);
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
         if (spellData != null && canImbueSpell(spellData)) {
-            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
+            // Arcane Anvil で差し替えた呪文まで固定すると Workbench 抽出不能になるため、preset 以外は removable に戻す。
+            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
         }
         ISpellContainer.set(stack, normalized.toImmutable());
     }
