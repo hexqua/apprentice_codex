@@ -80,6 +80,10 @@ public final class BlockTools {
         return useItemOnBlockByPlayerMainHand(level, player, pos, interactionStack, Direction.UP);
     }
 
+    public static InteractionResult useBlockByPlayerMainHand(Level level, ServerPlayer player, BlockPos pos, ItemStack interactionStack) {
+        return useBlockByPlayerMainHand(level, player, pos, interactionStack, Direction.UP);
+    }
+
     public static InteractionResult useItemOnBlockByPlayerMainHand(Level level, ServerPlayer player, BlockPos pos,
                                                                    ItemStack interactionStack, Direction hitFace) {
         if (player == null || player.isRemoved()) {
@@ -87,11 +91,28 @@ public final class BlockTools {
         }
 
         var originalItem = player.getMainHandItem();
+        // まずは通常の useItemOn 経路へ流し、mod 独自の右クリック収穫を優先する。
         var hitResult = new BlockHitResult(Vec3.atCenterOf(pos), hitFace, pos, false);
         try {
             // 右クリック判定だけ現在手持ちのコピーへ差し替え、耐久や個数は本物へ反映しない。
             player.setItemInHand(InteractionHand.MAIN_HAND, interactionStack);
             return player.gameMode.useItemOn(player, level, interactionStack, InteractionHand.MAIN_HAND, hitResult);
+        } finally {
+            player.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
+        }
+    }
+
+    public static InteractionResult useBlockByPlayerMainHand(Level level, ServerPlayer player, BlockPos pos,
+                                                             ItemStack interactionStack, Direction hitFace) {
+        if (player == null || player.isRemoved()) {
+            return InteractionResult.PASS;
+        }
+
+        var originalItem = player.getMainHandItem();
+        var hitResult = new BlockHitResult(Vec3.atCenterOf(pos), hitFace, pos, true);
+        try {
+            player.setItemInHand(InteractionHand.MAIN_HAND, interactionStack);
+            return level.getBlockState(pos).use(level, player, InteractionHand.MAIN_HAND, hitResult);
         } finally {
             player.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
         }
