@@ -460,6 +460,104 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskRejectsSplashAndLingeringPotions(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var emptyFlask = new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get());
+
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
+                    "Spellcaster's Flask rejected a regular potion");
+            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
+                    "Spellcaster's Flask accepted a splash potion");
+            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
+                    "Spellcaster's Flask accepted a lingering potion");
+            helper.assertTrue(SpellcastersFlask.copyWithAddedDoses(emptyFlask, splashPotion, 1).isEmpty(),
+                    "Spellcaster's Flask stored a splash potion through copyWithAddedDoses");
+            helper.assertTrue(SpellcastersFlask.copyWithAddedDoses(emptyFlask, lingeringPotion, 1).isEmpty(),
+                    "Spellcaster's Flask stored a lingering potion through copyWithAddedDoses");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskDrinkingLastDoseClearsStoredItem(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var flask = createFilledSpellcastersFlask(
+                    PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION),
+                    1,
+                    0
+            );
+            var player = new FakePlayer((ServerLevel) helper.getLevel(), new GameProfile(UUID.randomUUID(), "spellcasters_flask_drink_test"));
+
+            var result = flask.getItem().finishUsingItem(flask, helper.getLevel(), player);
+
+            helper.assertTrue(result.is(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    "Drinking the last dose should keep the flask item");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(result) == 0,
+                    "Drinking the last dose did not clear the stored dose count: " + SpellcastersFlask.getStoredDoseCount(result));
+            helper.assertTrue(SpellcastersFlask.getStoredItem(result).isEmpty(),
+                    "Drinking the last dose left StoredItem behind");
+            helper.assertTrue(player.hasEffect(MobEffects.REGENERATION),
+                    "Drinking the flask did not apply the stored potion effect");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskBatchExtractionClearsStoredItemAtZero(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var flask = createFilledSpellcastersFlask(
+                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
+                    1,
+                    0
+            );
+
+            var emptiedFlask = SpellcastersFlask.copyAfterExtractingDoses(flask, 1);
+
+            helper.assertTrue(emptiedFlask.is(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    "Extracting the last dose should keep the flask item");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(emptiedFlask) == 0,
+                    "Batch extraction did not clear the stored dose count: " + SpellcastersFlask.getStoredDoseCount(emptiedFlask));
+            helper.assertTrue(SpellcastersFlask.getStoredItem(emptiedFlask).isEmpty(),
+                    "Batch extraction left StoredItem behind");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskExtractRecipeClearsStoredItemWhenEmpty(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe) helper.getLevel()
+                    .getRecipeManager()
+                    .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcasters_flask_extract"))
+                    .orElseThrow();
+            var flask = createFilledSpellcastersFlask(
+                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
+                    1,
+                    0
+            );
+            var craftingContainer = createCraftingContainer(flask, new ItemStack(Items.GLASS_BOTTLE));
+
+            helper.assertTrue(recipe.matches(craftingContainer, helper.getLevel()),
+                    "Spellcaster's Flask extract recipe should match a filled flask and glass bottle");
+
+            var result = recipe.assemble(craftingContainer, helper.getLevel().registryAccess());
+            var remainingFlask = recipe.getRemainingItems(craftingContainer).get(0);
+
+            helper.assertTrue(ItemStack.isSameItemSameTags(result,
+                            createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get())),
+                    "Spellcaster's Flask extract recipe returned the wrong potion");
+            helper.assertTrue(remainingFlask.is(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    "Spellcaster's Flask extract recipe did not return the flask");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(remainingFlask) == 0,
+                    "Spellcaster's Flask extract recipe left dose count behind: " + SpellcastersFlask.getStoredDoseCount(remainingFlask));
+            helper.assertTrue(SpellcastersFlask.getStoredItem(remainingFlask).isEmpty(),
+                    "Spellcaster's Flask extract recipe left StoredItem behind");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
@@ -1058,6 +1156,12 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(
                     !SpellcastersFlask.isFilled(spellDispenser.getInventory().getStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START)),
                     "Spell Dispenser did not consume exactly one flask dose"
+            );
+            helper.assertTrue(
+                    SpellcastersFlask.getStoredItem(
+                            spellDispenser.getInventory().getStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START)
+                    ).isEmpty(),
+                    "Spell Dispenser left StoredItem behind after consuming the last mana flask dose"
             );
         });
     }

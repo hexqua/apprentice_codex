@@ -801,10 +801,18 @@ public class SpellcastersFlask extends Item {
 
     private static boolean isSupportedStoredItem(ItemStack stack) {
         var item = stack.getItem();
-        return item instanceof PotionItem
+        return isSupportedPotionItem(stack)
                 || item instanceof SimpleElixir
                 || item instanceof FireAleItem
                 || item instanceof NetherwardTinctureItem;
+    }
+
+    private static boolean isSupportedPotionItem(ItemStack stack) {
+        if (!(stack.getItem() instanceof PotionItem)) {
+            return false;
+        }
+
+        return stack.is(Items.POTION);
     }
 
     private static void applyTransfer(ItemStack flaskStack, AlchemistCauldronTile cauldronTile, TransferPreview preview) {
@@ -848,6 +856,11 @@ public class SpellcastersFlask extends Item {
         }
 
         var remainingDoseCount = Math.max(0, getStoredDoseCount(flaskStack) - consumedDoseCount);
+        if (remainingDoseCount <= 0) {
+            clearStoredState(flaskStack);
+            return;
+        }
+
         setStoredState(flaskStack, storedItem, remainingDoseCount);
     }
 
@@ -866,7 +879,7 @@ public class SpellcastersFlask extends Item {
 
     private static void setStoredState(ItemStack flaskStack, ItemStack storedItem, int storedDoseCount) {
         var normalizedItem = normalizeAcceptedItem(storedItem);
-        if (normalizedItem.isEmpty()) {
+        if (normalizedItem.isEmpty() || storedDoseCount <= 0) {
             clearStoredState(flaskStack);
             return;
         }
