@@ -12,7 +12,6 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.InteractionHand;
@@ -147,7 +146,8 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
         if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
-            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
+            // Workbench 抽出可否は locked を見るため、差し替え後の呪文は preset 扱いにしない。
+            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
         }
         ISpellContainer.set(stack, normalized.toImmutable());
     }
