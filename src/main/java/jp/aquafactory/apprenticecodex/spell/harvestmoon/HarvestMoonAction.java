@@ -75,7 +75,9 @@ public interface HarvestMoonAction {
             // 先に age リセット手動収穫へ落とすと、Farmer's Delight のトマトのような
             // rope 付き構造を壊し得るため、まずは通常の右クリック収穫を試す。
             var beforeIds = HarvestMoonActionUtil.captureNearbyItemIds(level, HarvestMoonActionUtil.createDropBox(pos));
-            var result = BlockTools.useItemOnBlockByPlayerMainHand(level, player, pos, toolTemplate.copy(), Direction.UP);
+            var result = HarvestMoonActionUtil.isFarmersDelightTomato(state)
+                    ? BlockTools.useBlockByPlayerMainHand(level, player, pos, toolTemplate.copy(), Direction.UP)
+                    : BlockTools.useItemOnBlockByPlayerMainHand(level, player, pos, toolTemplate.copy(), Direction.UP);
             var afterState = level.getBlockState(pos);
             var changedState = !afterState.equals(state);
             var movedDrops = HarvestMoonActionUtil.moveNewDropsTo(level, HarvestMoonActionUtil.createDropBox(pos), beforeIds, attractPos);
@@ -429,8 +431,11 @@ public interface HarvestMoonAction {
         }
 
         static boolean shouldAvoidManualFallback(BlockState state) {
-            var blockId = ForgeRegistries.BLOCKS.getKey(state.getBlock());
+            return isFarmersDelightTomato(state);
+        }
 
+        static boolean isFarmersDelightTomato(BlockState state) {
+            var blockId = ForgeRegistries.BLOCKS.getKey(state.getBlock());
             // Farmer's DelightのトマトだけはIssueでも報告されている不具合があるため特殊判定をする.
             return blockId != null
                     && "farmersdelight".equals(blockId.getNamespace())
