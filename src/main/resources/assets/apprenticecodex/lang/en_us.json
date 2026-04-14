@@ -312,7 +312,7 @@
   "enchantment.apprenticecodex.guzzle.desc": "Increases drink flask speed.",
   "enchantment.apprenticecodex.large_mug.desc": "Increases capacity of flask.",
   "enchantment.apprenticecodex.red_energy.desc": "Increases duration of effects in flask.",
-  "enchantment.apprenticecodex.glow_energy.desc": "Increases potency of effects in flask.",
+  "enchantment.apprenticecodex.glow_energy.desc": "Increases potency of effects in flask but reduces the duration.",
   "enchantment.apprenticecodex.plunder.desc": "Mobs will drop more loot when killed with magic weapons.",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",

@@ -576,6 +576,26 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskDrinkingGlowEnergyTradesDurationForAmplifier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var originalEffect = PotionUtils.getMobEffects(storedPotion).get(0);
+            var flask = createFilledSpellcastersFlask(storedPotion, 1, 2);
+            var player = new FakePlayer((ServerLevel) helper.getLevel(), new GameProfile(UUID.randomUUID(), "spellcasters_flask_glow_tradeoff_test"));
+
+            flask.getItem().finishUsingItem(flask, helper.getLevel(), player);
+
+            var appliedEffect = player.getEffect(MobEffects.REGENERATION);
+            helper.assertTrue(appliedEffect != null, "Drinking the flask did not apply regeneration");
+            helper.assertTrue(appliedEffect != null && appliedEffect.getAmplifier() == originalEffect.getAmplifier() + 2,
+                    "Glow Energy should still amplify drunk flask effects");
+            helper.assertTrue(appliedEffect != null
+                            && appliedEffect.getDuration() == Math.max(1, Math.round(originalEffect.getDuration() * (1.0F / 3.0F))),
+                    "Glow Energy should reduce drunk flask duration by 1 / (1 + level)");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellcastersFlaskBatchExtractionClearsStoredItemAtZero(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var flask = createFilledSpellcastersFlask(
@@ -842,8 +862,8 @@ public final class ApprenticeCodexGameTests {
                     "Extract should preserve non-lingering contents as splash potions");
             helper.assertTrue(extractedEffect.getAmplifier() == originalEffect.getAmplifier() + 2,
                     "Extract should add both Glow Energy and Extract amplification bonuses");
-            helper.assertTrue(extractedEffect.getDuration() == Math.max(1, Math.round(originalEffect.getDuration() * 1.25F)),
-                    "Extract should extend potion duration by Red Energy without adding extra spell-side duration");
+            helper.assertTrue(extractedEffect.getDuration() == Math.max(1, Math.round(originalEffect.getDuration() * 1.25F * 0.5F)),
+                    "Extract should keep spell-side amplify while Glow Energy halves the Red Energy adjusted duration");
         });
     }
 
