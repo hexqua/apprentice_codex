@@ -78,16 +78,25 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         return remainingOperationCount < MAX_STORED_PARAMETER;
     }
 
+    public long getRemainingTicksUntilNextConversion() {
+        if (level == null || !shouldProcess() || progressStartGameTime < 0L) {
+            return -1L;
+        }
+
+        var ticksPerParameter = ticksPerStoredParameter();
+        var elapsedTicks = Math.max(0L, level.getGameTime() - progressStartGameTime);
+        var progressedTicks = elapsedTicks % ticksPerParameter;
+        var remainingTicks = ticksPerParameter - progressedTicks;
+        return remainingTicks > 0L ? remainingTicks : ticksPerParameter;
+    }
+
     public int insertRedstone(long gameTime, int availableCount) {
         var capacity = MAX_STORED_PARAMETER - remainingOperationCount;
         if (capacity <= 0 || availableCount <= 0) {
             return 0;
         }
 
-        var inserted = Math.min(1, Math.min(capacity, availableCount));
-        if (inserted <= 0) {
-            return 0;
-        }
+        var inserted = 1;
 
         remainingOperationCount += inserted;
         if (shouldProcess() && progressStartGameTime < 0L) {

@@ -110,6 +110,14 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         return processing;
     }
 
+    public long getRemainingProcessTicks() {
+        if (!processing || processFinishGameTime < 0L || level == null) {
+            return 0L;
+        }
+
+        return Math.max(0L, processFinishGameTime - level.getGameTime());
+    }
+
     public boolean markColoredParticleGameTime(long gameTime) {
         if (lastColoredParticleGameTime == gameTime) {
             return false;
