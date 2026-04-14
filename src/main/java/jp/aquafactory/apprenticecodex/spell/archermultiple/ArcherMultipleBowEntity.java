@@ -20,6 +20,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
 
@@ -112,6 +113,15 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
 
     public void setRestBulletCount(int count) {
         this.restBulletCount = count;
+    }
+
+    public int getRestBulletCount() {
+        return restBulletCount;
+    }
+
+    public @Nullable String getOwnerName() {
+        var owner = getOwner();
+        return owner != null ? owner.getName().getString() : null;
     }
 
     public int getStage() {
