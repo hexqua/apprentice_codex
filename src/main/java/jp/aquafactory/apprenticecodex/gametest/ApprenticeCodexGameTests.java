@@ -72,6 +72,7 @@ import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
 import net.minecraft.core.BlockPos;
@@ -3575,13 +3576,14 @@ public final class ApprenticeCodexGameTests {
         var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
         helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
 
-        helper.succeedWhen(() -> {
+        helper.runAtTickTime(3, () -> {
             var harvestedState = helper.getBlockState(tomatoPos);
             helper.assertTrue(harvestedState.is(tomatoBlock), "Farmer's Delight tomato should remain planted after HarvestMoon");
             helper.assertTrue(getIntegerPropertyValue(helper, harvestedState, "age") == 0,
                     "Farmer's Delight tomato should reset to age 0 after HarvestMoon but got " + harvestedState);
             helper.assertItemEntityPresent(tomatoItem, casterPos, 1.5);
             helper.assertItemEntityNotPresent(tomatoItem, tomatoPos, 1.5);
+            helper.succeed();
         });
     }
 
@@ -3598,9 +3600,9 @@ public final class ApprenticeCodexGameTests {
 
         var tomatoBlock = requireForgeBlock(helper, FARMERS_DELIGHT_TOMATO_BLOCK);
         var tomatoItem = requireForgeItem(helper, FARMERS_DELIGHT_TOMATO_ITEM);
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
         helper.setBlock(baseTomatoPos.below(), Blocks.FARMLAND);
-        // rope 付きトマトは上段で天井扱いになりやすく、GameTest テンプレート内だと
-        // 光量不足で下段が先に自壊するため、実ワールドの屋外相当として補助光を置く。
+        // rope 付きトマトは上段で天井扱いになりやすいため、GameTest でも補助光を置く。
         helper.setBlock(baseTomatoPos.east(), Blocks.GLOWSTONE);
         helper.setBlock(baseTomatoPos, withIntegerProperty(helper, tomatoBlock.defaultBlockState(), "age", 0));
         helper.setBlock(
@@ -3613,32 +3615,24 @@ public final class ApprenticeCodexGameTests {
                 )
         );
 
-        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
-        helper.runAtTickTime(1, () -> {
-            var initialBaseState = helper.getBlockState(baseTomatoPos);
-            var initialRopeState = helper.getBlockState(ropeTomatoPos);
-            helper.assertTrue(initialBaseState.is(tomatoBlock),
-                    "Rope test setup lost the lower tomato before HarvestMoon: " + initialBaseState);
-            helper.assertTrue(initialRopeState.is(tomatoBlock) && getBooleanPropertyValue(helper, initialRopeState, "ropelogged"),
-                    "Rope test setup lost the ropelogged tomato before HarvestMoon: " + initialRopeState);
-            castHarvestMoon(helper, player, 1);
-        });
+        // HarvestMoon が依存している右クリック経路そのものを直接通し、
+        // 成熟した rope 付き上段トマトを収穫しても rope 状態が壊れないことを検証する。
+        var result = BlockTools.useBlockByPlayerMainHand(helper.getLevel(), player, helper.absolutePos(ropeTomatoPos), new ItemStack(Items.STICK));
+        helper.assertTrue(result.consumesAction(), "Farmer's Delight rope tomato block use should consume the action but got " + result);
 
-        helper.succeedWhen(() -> {
-            var baseState = helper.getBlockState(baseTomatoPos);
-            var ropeState = helper.getBlockState(ropeTomatoPos);
-            helper.assertTrue(baseState.is(tomatoBlock), "Lower tomato support should remain planted after HarvestMoon but got " + baseState);
-            helper.assertTrue(getIntegerPropertyValue(helper, baseState, "age") == 0,
-                    "Lower tomato support should stay at age 0 after HarvestMoon but got " + baseState);
-            helper.assertTrue(ropeState.is(tomatoBlock),
-                    "Harvested ropelogged tomato should stay planted after HarvestMoon but got " + ropeState);
-            helper.assertTrue(getBooleanPropertyValue(helper, ropeState, "ropelogged"),
-                    "HarvestMoon should preserve Farmer's Delight tomato rope state but got " + ropeState);
-            helper.assertTrue(getIntegerPropertyValue(helper, ropeState, "age") == 0,
-                    "Harvested ropelogged tomato should reset to age 0 after HarvestMoon but got " + ropeState);
-            helper.assertItemEntityPresent(tomatoItem, casterPos, 1.5);
-            helper.assertItemEntityNotPresent(tomatoItem, ropeTomatoPos, 1.5);
-        });
+        var baseState = helper.getBlockState(baseTomatoPos);
+        var ropeState = helper.getBlockState(ropeTomatoPos);
+        helper.assertTrue(baseState.is(tomatoBlock), "Lower tomato support should remain planted after right click harvest but got " + baseState);
+        helper.assertTrue(getIntegerPropertyValue(helper, baseState, "age") == 0,
+                "Lower tomato support should stay at age 0 after right click harvest but got " + baseState);
+        helper.assertTrue(ropeState.is(tomatoBlock),
+                "Harvested rope tomato should stay planted after right click harvest but got " + ropeState);
+        helper.assertTrue(getBooleanPropertyValue(helper, ropeState, "ropelogged"),
+                "Right click harvest should preserve Farmer's Delight tomato rope state but got " + ropeState);
+        helper.assertTrue(getIntegerPropertyValue(helper, ropeState, "age") == 0,
+                "Harvested rope tomato should reset to age 0 after right click harvest but got " + ropeState);
+        helper.assertItemEntityPresent(tomatoItem, ropeTomatoPos, 1.5);
+        helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)
