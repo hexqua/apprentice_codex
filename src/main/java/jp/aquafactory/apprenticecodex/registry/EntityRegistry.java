@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
+import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
@@ -113,6 +114,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<CompoundPhialProjectileEntity>> COMPOUND_PHIAL_PROJECTILE =
             regProjectile("compound_phial_projectile", CompoundPhialProjectileEntity::new, 48, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ExtractPotionProjectileEntity>> EXTRACT_POTION_PROJECTILE =
+            regProjectile("extract_potion_projectile", ExtractPotionProjectileEntity::new, 48, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<QuickArmsHandgunEntity>> QUICK_ARMS_HANDGUN =
             regWeapon("quick_arms_handgun", QuickArmsHandgunEntity::new, 1);

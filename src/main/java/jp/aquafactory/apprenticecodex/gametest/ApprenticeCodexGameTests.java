@@ -735,6 +735,119 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void extractPreCastUsesFirstFilledFlaskAcrossHands(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = (jp.aquafactory.apprenticecodex.spell.extract.Extract) SpellRegistry.EXTRACT.get();
+            var player = createExtractPlayer(helper, new BlockPos(0, 2, 0), "extract_precast_hand_test");
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var magicData = MagicData.getPlayerMagicData(player);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(splashPotion, 2, 0));
+            player.setItemInHand(InteractionHand.OFF_HAND, createFilledAlchemistsFlask(lingeringPotion, 2, 0));
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Extract should cast when the main hand flask is filled");
+            helper.assertTrue(magicData.getAdditionalCastData() instanceof jp.aquafactory.apprenticecodex.spell.extract.Extract.ExtractCastData,
+                    "Extract should store cast data for the selected flask");
+            var mainCastData = (jp.aquafactory.apprenticecodex.spell.extract.Extract.ExtractCastData) magicData.getAdditionalCastData();
+            helper.assertTrue(mainCastData.hand() == InteractionHand.MAIN_HAND,
+                    "Extract should prefer the main hand filled flask");
+            helper.assertTrue(ItemStack.isSameItemSameTags(mainCastData.storedItem(), splashPotion),
+                    "Extract selected the wrong stored item from the main hand flask");
+
+            magicData.setAdditionalCastData(null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()));
+            player.setItemInHand(InteractionHand.OFF_HAND, createFilledAlchemistsFlask(lingeringPotion, 2, 0));
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Extract should cast when only the offhand flask is filled");
+            var offhandCastData = (jp.aquafactory.apprenticecodex.spell.extract.Extract.ExtractCastData) magicData.getAdditionalCastData();
+            helper.assertTrue(offhandCastData.hand() == InteractionHand.OFF_HAND,
+                    "Extract should fall back to the offhand filled flask when the main hand flask is empty");
+            helper.assertTrue(ItemStack.isSameItemSameTags(offhandCastData.storedItem(), lingeringPotion),
+                    "Extract selected the wrong stored item from the offhand flask");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void extractPreCastFailsWithoutFilledAlchemistsFlask(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = SpellRegistry.EXTRACT.get();
+            var player = createExtractPlayer(helper, new BlockPos(0, 2, 0), "extract_precast_fail_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Extract should fail when no Alchemist's Flask is held");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()));
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Extract should fail when the only Alchemist's Flask is empty");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void extractCastConsumesDoseAndSpawnsExpectedPotionProjectile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = (jp.aquafactory.apprenticecodex.spell.extract.Extract) SpellRegistry.EXTRACT.get();
+            var player = createExtractPlayer(helper, new BlockPos(0, 2, 0), "extract_cast_projectile_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(lingeringPotion, 2, 0));
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Extract should prepare a lingering potion cast");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            var lingeringProjectile = getSingleExtractProjectile(helper, player);
+            helper.assertTrue(lingeringProjectile.getItem().is(Items.LINGERING_POTION),
+                    "Extract should throw a lingering potion when the flask stores a lingering potion");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()) == 1,
+                    "Extract should consume exactly one dose from the casting flask");
+
+            lingeringProjectile.discard();
+            magicData.setAdditionalCastData(null);
+
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setItemInHand(InteractionHand.OFF_HAND, createFilledAlchemistsFlask(simpleElixir, 2, 0));
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Extract should prepare a Simple Elixir cast");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            var splashProjectile = getSingleExtractProjectile(helper, player);
+            helper.assertTrue(splashProjectile.getItem().is(Items.SPLASH_POTION),
+                    "Extract should throw Simple Elixir contents as a splash potion");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.getStoredDoseCount(player.getOffhandItem()) == 1,
+                    "Extract should consume exactly one offhand dose after a successful cast");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void extractThrownPotionRespectsGlowRedEnergyAndAmplify(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
+            if (EnchantmentRegistry.RED_ENERGY.isPresent()) {
+                flask.enchant(EnchantmentRegistry.RED_ENERGY.get(), 1);
+            }
+            if (EnchantmentRegistry.GLOW_ENERGY.isPresent()) {
+                flask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), 1);
+            }
+            flask = SpellcastersFlask.copyWithAddedDoses(flask, storedPotion, 1);
+
+            var thrownPotion = jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.createExtractedPotionForThrow(flask, 1);
+            var originalEffect = PotionUtils.getMobEffects(storedPotion).get(0);
+            var extractedEffect = PotionUtils.getMobEffects(thrownPotion).get(0);
+
+            helper.assertTrue(thrownPotion.is(Items.SPLASH_POTION),
+                    "Extract should preserve non-lingering contents as splash potions");
+            helper.assertTrue(extractedEffect.getAmplifier() == originalEffect.getAmplifier() + 2,
+                    "Extract should add both Glow Energy and Extract amplification bonuses");
+            helper.assertTrue(extractedEffect.getDuration() == Math.max(1, Math.round(originalEffect.getDuration() * 1.25F)),
+                    "Extract should extend potion duration by Red Energy without adding extra spell-side duration");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
@@ -4279,6 +4392,14 @@ public final class ApprenticeCodexGameTests {
         return player;
     }
 
+    private static FakePlayer createExtractPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
     private static FakePlayer createSpellDispenserPlacer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
@@ -4468,6 +4589,20 @@ public final class ApprenticeCodexGameTests {
     private static void castCompanionTrunk(GameTestHelper helper, FakePlayer player, int spellLevel) {
         var spell = SpellRegistry.COMPANION_TRUNK.get();
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+    }
+
+    private static jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity getSingleExtractProjectile(
+            GameTestHelper helper,
+            FakePlayer owner
+    ) {
+        var projectiles = helper.getLevel().getEntitiesOfClass(
+                jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity.class,
+                new AABB(owner.position(), owner.position()).inflate(16.0),
+                projectile -> projectile.getOwner() == owner
+        );
+        helper.assertTrue(projectiles.size() == 1,
+                "Expected exactly one Extract projectile but found " + projectiles.size());
+        return projectiles.get(0);
     }
 
     private static CompanionTrunkEntity createCompanionTrunk(GameTestHelper helper, FakePlayer owner, BlockPos pos) {

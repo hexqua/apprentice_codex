@@ -25,6 +25,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -351,6 +352,38 @@ public abstract class AbstractPotionFlaskItem extends Item {
         return flaskItem == null ? ItemStack.EMPTY : flaskItem.copyAfterExtractingDosesInternal(flaskStack, extractedDoseCount);
     }
 
+    public static @NotNull ItemStack createExtractedPotionForThrow(@NotNull ItemStack flaskStack, int additionalAmplifier) {
+        return createExtractedPotionForThrow(flaskStack, getStoredItem(flaskStack), additionalAmplifier);
+    }
+
+    public static @NotNull ItemStack createExtractedPotionForThrow(@NotNull ItemStack flaskStack, @NotNull ItemStack storedItem,
+                                                                   int additionalAmplifier) {
+        var flaskItem = getFlaskItem(flaskStack);
+        if (flaskItem == null) {
+            return ItemStack.EMPTY;
+        }
+
+        var normalizedStoredItem = flaskItem.normalizeAcceptedItem(storedItem);
+        if (normalizedStoredItem.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        var scaledEffects = flaskItem.extractEffectsFromItem(normalizedStoredItem).stream()
+                .map(effect -> flaskItem.scaleEffect(flaskStack, effect, additionalAmplifier))
+                .toList();
+        if (scaledEffects.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        var thrownPotion = new ItemStack(normalizedStoredItem.is(Items.LINGERING_POTION)
+                ? Items.LINGERING_POTION
+                : Items.SPLASH_POTION);
+        PotionUtils.setPotion(thrownPotion, Potions.WATER);
+        PotionUtils.setCustomEffects(thrownPotion, scaledEffects);
+        thrownPotion.getOrCreateTag().putInt("CustomPotionColor", getStoredItemTintColor(normalizedStoredItem) & 0x00FFFFFF);
+        return thrownPotion;
+    }
+
     public static @NotNull ItemStack resolveRepresentativeItem(@NotNull Level level, @NotNull FluidStack fluidStack) {
         return createRepresentativeItemForAnyFlask(level, fluidStack);
     }
@@ -426,10 +459,14 @@ public abstract class AbstractPotionFlaskItem extends Item {
     }
 
     protected final MobEffectInstance scaleEffect(ItemStack flaskStack, MobEffectInstance originalEffect) {
+        return scaleEffect(flaskStack, originalEffect, 0);
+    }
+
+    protected final MobEffectInstance scaleEffect(ItemStack flaskStack, MobEffectInstance originalEffect, int additionalAmplifier) {
         var scaledDuration = originalEffect.getEffect().isInstantenous()
                 ? originalEffect.getDuration()
                 : Math.max(1, Math.round(originalEffect.getDuration() * getEffectDurationMultiplier(flaskStack)));
-        var scaledAmplifier = Math.max(0, originalEffect.getAmplifier() + getGlowEnergyLevel(flaskStack));
+        var scaledAmplifier = Math.max(0, originalEffect.getAmplifier() + getGlowEnergyLevel(flaskStack) + additionalAmplifier);
         var visible = !isEffectParticlesSuppressed(flaskStack) && originalEffect.isVisible();
         return new MobEffectInstance(
                 originalEffect.getEffect(),
@@ -626,7 +663,7 @@ public abstract class AbstractPotionFlaskItem extends Item {
         }
 
         var appliedDoseCount = fillAmount / MILLIBUCKETS_PER_DOSE;
-        if (appliedDoseCount <= 0) {
+        if (appliedDoseCount == 0) {
             return null;
         }
 
@@ -797,7 +834,7 @@ public abstract class AbstractPotionFlaskItem extends Item {
         }
 
         var remainingDoseCount = Math.max(0, getStoredDoseCount(flaskStack) - consumedDoseCount);
-        if (remainingDoseCount <= 0) {
+        if (remainingDoseCount == 0) {
             clearStoredState(flaskStack);
             return;
         }
