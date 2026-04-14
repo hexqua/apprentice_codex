@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -70,10 +71,9 @@ public interface HarvestMoonAction {
                 return 0;
             }
 
-            if (manualHarvestKind == ManualHarvestKind.CROP || manualHarvestKind == ManualHarvestKind.NETHER_WART) {
-                return HarvestMoonActionUtil.executeManualAgeHarvest(level, player, pos, toolTemplate, attractPos, manualHarvestKind) ? 1 : 0;
-            }
-
+            // mod 追加作物には CropBlock 継承でも独自の use 収穫を持つものがある。
+            // 先に age リセット手動収穫へ落とすと、Farmer's Delight のトマトのような
+            // rope 付き構造を壊し得るため、まずは通常の右クリック収穫を試す。
             var beforeIds = HarvestMoonActionUtil.captureNearbyItemIds(level, HarvestMoonActionUtil.createDropBox(pos));
             var result = BlockTools.useItemOnBlockByPlayerMainHand(level, player, pos, toolTemplate.copy(), Direction.UP);
             var afterState = level.getBlockState(pos);
@@ -84,6 +84,9 @@ public interface HarvestMoonAction {
             }
 
             if (manualHarvestKind == ManualHarvestKind.NONE) {
+                return 0;
+            }
+            if (HarvestMoonActionUtil.shouldAvoidManualFallback(state)) {
                 return 0;
             }
 
@@ -423,6 +426,15 @@ public interface HarvestMoonAction {
             var above = level.getBlockState(pos.above());
             var below = level.getBlockState(pos.below());
             return above.getBlock() != state.getBlock() && below.getBlock() != state.getBlock();
+        }
+
+        static boolean shouldAvoidManualFallback(BlockState state) {
+            var blockId = ForgeRegistries.BLOCKS.getKey(state.getBlock());
+
+            // Farmer's DelightのトマトだけはIssueでも報告されている不具合があるため特殊判定をする.
+            return blockId != null
+                    && "farmersdelight".equals(blockId.getNamespace())
+                    && "tomatoes".equals(blockId.getPath());
         }
 
         static IntegerProperty findGenericAgeProperty(BlockState state) {

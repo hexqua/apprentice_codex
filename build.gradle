@@ -139,6 +139,11 @@ dependencies {
     // runtimeOnly fg.deobf("maven.modrinth:puzzles-lib:V4g0yKzo")
     // runtimeOnly fg.deobf("maven.modrinth:easy-magic:W2xPEG9I")
 
+    // Farmer's Delight.
+    // 必要に応じてON、デフォルトは入れない(前提にはしないため)
+    // HarvestMoon の互換回帰を GameTest で検証するため、開発環境では読み込む.
+    runtimeOnly fg.deobf("maven.modrinth:farmers-delight:bCtijHxU")
+
     // Better Combat.
     // Better Combat の攻撃開始フックへ接続する互換コードのコンパイル用.
     // ランタイム検証時は Better Combat の前提である Cloth Config も合わせて入れる.
