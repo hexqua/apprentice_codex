@@ -71,9 +71,13 @@ public final class SpellGunCastEvent {
     }
 
     public static boolean hasAmmo(Player player, Inventory inventory, Item ammoItem) {
-        return SpellcasterAmmoPouch.hasAmmoInAccessiblePouches(player, ammoItem)
-                || containsAmmo(inventory.items, ammoItem)
-                || containsAmmo(inventory.offhand, ammoItem);
+        return countAvailableAmmo(player, inventory, ammoItem) > 0;
+    }
+
+    public static int countAvailableAmmo(Player player, Inventory inventory, Item ammoItem) {
+        return SpellcasterAmmoPouch.countAmmoInAccessiblePouches(player, ammoItem)
+                + countAmmo(inventory.items, ammoItem)
+                + countAmmo(inventory.offhand, ammoItem);
     }
 
     private static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, AbstractSpellGunItem spellGunItem) {
@@ -92,14 +96,14 @@ public final class SpellGunCastEvent {
         }
     }
 
-    private static boolean containsAmmo(java.util.List<ItemStack> stacks, Item ammoItem) {
+    private static int countAmmo(java.util.List<ItemStack> stacks, Item ammoItem) {
+        var total = 0;
         for (var stack : stacks) {
             if (stack.is(ammoItem)) {
-                return true;
+                total += stack.getCount();
             }
         }
-
-        return false;
+        return total;
     }
 
     private static boolean consumeOne(java.util.List<ItemStack> stacks, Item ammoItem) {
