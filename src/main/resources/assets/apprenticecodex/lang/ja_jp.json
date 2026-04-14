@@ -52,6 +52,7 @@
   "item.apprenticecodex.reflectcast_shield": "反射詠唱の盾",
   "item.apprenticecodex.explorers_cane": "探索者のステッキ",
   "item.apprenticecodex.spellcasters_flask": "魔術詠唱者のフラスコ",
+  "item.apprenticecodex.alchemists_flask": "錬金術師のフラスコ",
 
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
@@ -313,6 +314,7 @@
   "spell.apprenticecodex.tamers_pocket": "テイマーズポケット",
   "spell.apprenticecodex.harvest_moon": "ハーベストムーン",
   "spell.apprenticecodex.shock": "衝撃",
+  "spell.apprenticecodex.extract": "抽出",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -363,6 +365,7 @@
   "spell.apprenticecodex.tamers_pocket.guide": "視線の先か周囲の飼いならした生き物を自分専用の魔法の領域へしまい込む。視線先に飼いならした生き物がおらず既にしまっている生き物がいる場合は自分の近くに出現させる。しまっている間、中にいる生き物はごくゆっくりだが自然回復する。",
   "spell.apprenticecodex.harvest_moon.guide": "周囲の収穫可能な作物を、作物を破壊することなく収穫して手元に取り寄せる。",
   "spell.apprenticecodex.shock.guide": "元素のエネルギーを稲妻として集中して放って攻撃する。",
+  "spell.apprenticecodex.extract.guide": "手元の錬金術師のフラスコから中身を抽出し、ポーションとして投擲する。効果そのものやスプラッシュか残留かは取り出した中身に依存する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -388,6 +391,7 @@
   "ui.apprenticecodex.search_beacon.initial_distance": "検索する距離: %dブロック",
   "ui.apprenticecodex.search_beacon.addition_distance": "アイテム追加時の追加検索距離: %dブロック/アイテム",
   "ui.apprenticecodex.tamers_pocket.current_count": "格納しているペットの数: %d",
+  "ui.apprenticecodex.extract.amplify_level": "ポーションの効果増幅: +%d",
 
   "ui.apprenticecodex.cant_place": "そこには設置できない",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s で自動ターゲットに設定",
@@ -436,6 +440,9 @@
   "ui.apprenticecodex.tamers_pocket.deploy": "召喚予定ペット数: %d",
   "ui.apprenticecodex.tamers_pocket.no_pets": "しまい込める自分のペットが見つからない",
   "ui.apprenticecodex.tamers_pocket.no_safe_place": "ペットを出せる安全な場所が見つからない",
+  "ui.apprenticecodex.extract.no_flask": "この魔法は手に錬金術師のフラスコが必要だ",
+  "ui.apprenticecodex.extract.empty_flask": "錬金術師のフラスコの中身がない！",
+  "ui.apprenticecodex.extract.effect_use": "%s として使用する",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

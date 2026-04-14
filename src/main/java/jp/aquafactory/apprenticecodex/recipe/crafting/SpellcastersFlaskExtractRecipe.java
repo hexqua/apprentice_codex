@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.recipe.crafting;
 
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -66,7 +66,7 @@ public final class SpellcastersFlaskExtractRecipe extends CustomRecipe {
                 continue;
             }
 
-            if (stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+            if (stack.getItem() instanceof AbstractPotionFlaskItem) {
                 if (!flaskStack.isEmpty()) {
                     return null;
                 }

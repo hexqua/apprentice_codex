@@ -7,7 +7,9 @@ import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -663,7 +665,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         var inputStack = container.getItem(sourceSlotIndex);
-        if (!(inputStack.getItem() instanceof SpellcastersFlask)) {
+        if (!(inputStack.getItem() instanceof AbstractPotionFlaskItem)) {
             return null;
         }
 
@@ -780,12 +782,13 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AbstractImbueShieldItem
                 || item instanceof AbstractOffhandMagicItem
+                || item instanceof AlchemistsFlask
                 || stack.is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE);
     }
 
     private boolean consumeFlaskForParticleToggle(int sourceSlotIndex) {
         var inputStack = container.getItem(sourceSlotIndex);
-        if (!(inputStack.getItem() instanceof SpellcastersFlask)) {
+        if (!(inputStack.getItem() instanceof AbstractPotionFlaskItem)) {
             return false;
         }
 

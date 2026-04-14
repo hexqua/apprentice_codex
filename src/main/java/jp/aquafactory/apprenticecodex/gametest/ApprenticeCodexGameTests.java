@@ -35,7 +35,8 @@ import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
@@ -2591,6 +2592,16 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Alchemists Flask",
+                item -> item instanceof AlchemistsFlask,
+                expectedAlchemistsFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertApprenticeEnchantmentFlags(helper, Enchantments.ALACRITY, false, true, true, true);
@@ -4008,6 +4019,15 @@ public final class ApprenticeCodexGameTests {
     private static Set<ResourceLocation> expectedFlaskEnchantments() {
         return registryIdSet(
                 Enchantments.GUZZLE,
+                Enchantments.LARGE_MUG,
+                Enchantments.RED_ENERGY,
+                Enchantments.GLOW_ENERGY
+        );
+    }
+
+    private static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
+        return registryIdSet(
+                Enchantments.TRANSCENDENCE,
                 Enchantments.LARGE_MUG,
                 Enchantments.RED_ENERGY,
                 Enchantments.GLOW_ENERGY

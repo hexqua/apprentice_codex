@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "apprenticecodex:item/alchemists_flask_overlay",
+    "layer1": "apprenticecodex:item/alchemists_flask"
+  }
+}

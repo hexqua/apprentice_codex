@@ -1,5 +1,6 @@
 {
   "values": [
-    "apprenticecodex:spellcasters_flask"
+    "#apprenticecodex:drinkable_flask_enchantable",
+    "#apprenticecodex:alchemists_flask_enchantable"
   ]
 }

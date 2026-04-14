@@ -1,7 +1,8 @@
 package jp.aquafactory.apprenticecodex.block.atelierstation;
 
 import io.redspace.ironsspellbooks.block.alchemist_cauldron.AlchemistCauldronTile;
-import jp.aquafactory.apprenticecodex.item.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
@@ -66,7 +67,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get());
+            return stack.getItem() instanceof AbstractPotionFlaskItem;
         }
 
         @Override
@@ -385,7 +386,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
         for (var slot = 0; slot < flaskInventory.getSlots(); ++slot) {
             var stack = flaskInventory.getStackInSlot(slot);
-            if (stack.isEmpty() || !stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+            if (stack.isEmpty() || !(stack.getItem() instanceof AbstractPotionFlaskItem)) {
                 continue;
             }
 
@@ -399,16 +400,11 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
         for (var slot = 0; slot < flaskInventory.getSlots(); ++slot) {
             var stack = flaskInventory.getStackInSlot(slot);
-            if (stack.isEmpty() || !stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+            if (stack.isEmpty() || !(stack.getItem() instanceof AbstractPotionFlaskItem)) {
                 continue;
             }
 
             if (SpellcastersFlask.getStoredDoseCount(stack) > 0) {
-                continue;
-            }
-
-            // 残量0でも中身情報が残るフラスコは、自動供給のフィルタとして維持する。
-            if (!SpellcastersFlask.copyFilterItem(stack).isEmpty()) {
                 continue;
             }
 
@@ -464,7 +460,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         var playerItems = player.getInventory().items;
         for (var slot = 0; slot < playerItems.size(); ++slot) {
             var stack = playerItems.get(slot);
-            if (stack.isEmpty() || !stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())) {
+            if (stack.isEmpty() || !(stack.getItem() instanceof AbstractPotionFlaskItem)) {
                 continue;
             }
 

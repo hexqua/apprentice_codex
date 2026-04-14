@@ -56,6 +56,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE;
     private static final TagKey<Item> SPELL_CONTAINER_MAGIC_ENCHANTABLE = Enchantments.SPELL_CONTAINER_MAGIC_ENCHANTABLE;
     private static final TagKey<Item> SPELL_GUN_ENCHANTABLE = Enchantments.SPELL_GUN_ENCHANTABLE;
+    private static final TagKey<Item> DRINKABLE_FLASK_ENCHANTABLE = Enchantments.DRINKABLE_FLASK_ENCHANTABLE;
+    private static final TagKey<Item> ALCHEMISTS_FLASK_ENCHANTABLE = Enchantments.ALCHEMISTS_FLASK_ENCHANTABLE;
     private static final TagKey<Item> FLASK_ENCHANTABLE = Enchantments.FLASK_ENCHANTABLE;
     private static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = Enchantments.TRANSCENDENCE_ENCHANTABLE;
     private static final TagKey<Item> WISDOM_ENCHANTABLE = Enchantments.WISDOM_ENCHANTABLE;
@@ -247,7 +249,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
                 ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
         );
-        tag(FLASK_ENCHANTABLE).add(ItemRegistry.SPELLCASTERS_FLASK.get());
+        // 1.21.1 の enchantment JSON は supported_items tag を直接参照するため、
+        // 飲用専用の Guzzle と共通 flask enchant 群を分離して誤適用を防ぐ。
+        tag(DRINKABLE_FLASK_ENCHANTABLE).add(ItemRegistry.SPELLCASTERS_FLASK.get());
+        // 錬金術師のフラスコは Large/Red/Glow/Transcendence のみを許可したいので、
+        // spell container 系や Wisdom と混線しない専用タグで分離する。
+        tag(ALCHEMISTS_FLASK_ENCHANTABLE).add(ItemRegistry.ALCHEMISTS_FLASK.get());
+        tag(FLASK_ENCHANTABLE)
+                .addTag(DRINKABLE_FLASK_ENCHANTABLE)
+                .addTag(ALCHEMISTS_FLASK_ENCHANTABLE);
         // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
         wisdomEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
@@ -280,6 +290,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 .addTag(SPELL_GUN_ENCHANTABLE);
         transcendenceEnchantableTag
                 .addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
+                .addTag(ALCHEMISTS_FLASK_ENCHANTABLE)
                 .add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
 
         // 指輪.

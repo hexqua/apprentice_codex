@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensor;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
+import jp.aquafactory.apprenticecodex.spell.extract.Extract;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
@@ -132,6 +133,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> TREASURE_DIVINATION = reg("treasure_divination", TreasureDivination::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> HEALING_BLOOM = reg("healing_bloom", HealingBloom::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> HARVEST_MOON = reg("harvest_moon", HarvestMoon::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> EXTRACT = reg("extract", Extract::new);
 
     // エルドリッチ.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);
