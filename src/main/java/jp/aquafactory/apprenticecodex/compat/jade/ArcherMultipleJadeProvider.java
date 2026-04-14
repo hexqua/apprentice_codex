@@ -15,7 +15,6 @@ import snownee.jade.api.config.IPluginConfig;
 public enum ArcherMultipleJadeProvider implements IEntityComponentProvider, IServerDataProvider<EntityAccessor> {
     INSTANCE;
 
-    private static final String OWNER_NAME_TAG = "OwnerName";
     private static final String REMAINING_AMMO_TAG = "RemainingAmmo";
 
     @Override
@@ -26,7 +25,7 @@ public enum ArcherMultipleJadeProvider implements IEntityComponentProvider, ISer
 
         var ownerName = bow.getOwnerName();
         if (ownerName != null && !ownerName.isBlank()) {
-            data.putString(OWNER_NAME_TAG, ownerName);
+            data.putString(JadeTooltipHelper.OWNER_NAME_TAG, ownerName);
         }
 
         data.putInt(REMAINING_AMMO_TAG, bow.getRestBulletCount());
@@ -35,6 +34,7 @@ public enum ArcherMultipleJadeProvider implements IEntityComponentProvider, ISer
     @Override
     public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
         var data = accessor.getServerData();
+        JadeTooltipHelper.appendOwnerLine(tooltip, data.getString(JadeTooltipHelper.OWNER_NAME_TAG));
         var remainingAmmo = Math.max(0, data.getInt(REMAINING_AMMO_TAG));
         JadeTooltipHelper.appendItemLine(
                 tooltip,

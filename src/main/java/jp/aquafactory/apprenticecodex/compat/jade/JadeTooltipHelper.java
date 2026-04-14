@@ -7,6 +7,10 @@ import snownee.jade.api.ITooltip;
 import snownee.jade.api.ui.IElementHelper;
 
 final class JadeTooltipHelper {
+    // Jade 1.21.1 の built-in owner 表示は OwnableEntity 前提になったため、
+    // 独自エンティティの owner 名は server data から明示的に描画する。
+    static final String OWNER_NAME_TAG = "OwnerName";
+
     private JadeTooltipHelper() {
     }
 
@@ -31,5 +35,12 @@ final class JadeTooltipHelper {
                 stack,
                 Component.translatable("jade.apprenticecodex.item_count", count, stack.getHoverName().copy())
         );
+    }
+
+    static void appendOwnerLine(ITooltip tooltip, String ownerName) {
+        if (ownerName == null || ownerName.isBlank()) {
+            return;
+        }
+        tooltip.add(Component.translatable("jade.owner", Component.literal(ownerName)));
     }
 }

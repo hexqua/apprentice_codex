@@ -23,6 +23,11 @@ public enum SearchBeaconJadeProvider implements IEntityComponentProvider, IServe
             return;
         }
 
+        var ownerName = beacon.getOwnerName();
+        if (ownerName != null && !ownerName.isBlank()) {
+            data.putString(JadeTooltipHelper.OWNER_NAME_TAG, ownerName);
+        }
+
         var offeredItem = beacon.getOfferedItem();
         if (!offeredItem.isEmpty()) {
             data.put(OFFERED_ITEM_TAG, offeredItem.saveOptional(accessor.getLevel().registryAccess()));
@@ -37,6 +42,7 @@ public enum SearchBeaconJadeProvider implements IEntityComponentProvider, IServe
     @Override
     public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
         var data = accessor.getServerData();
+        JadeTooltipHelper.appendOwnerLine(tooltip, data.getString(JadeTooltipHelper.OWNER_NAME_TAG));
         if (data.contains(OFFERED_ITEM_TAG, CompoundTag.TAG_COMPOUND)) {
             var stack = ItemStack.parseOptional(accessor.getLevel().registryAccess(), data.getCompound(OFFERED_ITEM_TAG));
             if (!stack.isEmpty()) {

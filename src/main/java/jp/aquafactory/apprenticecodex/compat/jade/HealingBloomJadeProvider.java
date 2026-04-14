@@ -15,7 +15,6 @@ import snownee.jade.api.config.IPluginConfig;
 public enum HealingBloomJadeProvider implements IEntityComponentProvider, IServerDataProvider<EntityAccessor> {
     INSTANCE;
 
-    private static final String OWNER_NAME_TAG = "OwnerName";
     private static final String NEXT_FRUIT_TICKS_TAG = "NextFruitTicks";
     private static final String FRUIT_COUNT_TAG = "FruitCount";
 
@@ -27,7 +26,7 @@ public enum HealingBloomJadeProvider implements IEntityComponentProvider, IServe
 
         var ownerName = bloom.getOwnerName();
         if (ownerName != null && !ownerName.isBlank()) {
-            data.putString(OWNER_NAME_TAG, ownerName);
+            data.putString(JadeTooltipHelper.OWNER_NAME_TAG, ownerName);
         }
 
         data.putInt(NEXT_FRUIT_TICKS_TAG, bloom.getRemainingTicksUntilNextFruit());
@@ -37,6 +36,7 @@ public enum HealingBloomJadeProvider implements IEntityComponentProvider, IServe
     @Override
     public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
         var data = accessor.getServerData();
+        JadeTooltipHelper.appendOwnerLine(tooltip, data.getString(JadeTooltipHelper.OWNER_NAME_TAG));
         var nextFruitTicks = data.getInt(NEXT_FRUIT_TICKS_TAG);
         if (nextFruitTicks > 0) {
             tooltip.add(Component.translatable(
