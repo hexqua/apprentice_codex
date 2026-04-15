@@ -3,11 +3,13 @@ package jp.aquafactory.apprenticecodex.item;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -29,7 +31,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.ToolActions;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -42,6 +43,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item implements IPresetSpellContainer, NonDamageableAnvilMergeItem {
@@ -167,7 +169,15 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return;
+        }
+
+        if (repairPresetSpellContainerStateIfNeeded(itemStack)) {
+            return;
+        }
+
+        if (ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
@@ -176,6 +186,31 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             spellContainer.addSpellAtIndex(configuredSpell.get(), configuredSpellLevel, 0, true);
         }
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
+    }
+
+    public final boolean repairPresetSpellContainerStateIfNeeded(ItemStack itemStack) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return false;
+        }
+
+        Predicate<SpellData> trackedStateValidator = this instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
+                ? restrictedSpellImbuableItem::canImbueSpell
+                : spellData -> spellData != SpellData.EMPTY && spellData.getSpell() != SpellRegistry.none();
+        if (PresetSpellContainerStateHelper.restoreIfNeeded(
+                itemStack,
+                1,
+                spellWheelEnabled,
+                false,
+                trackedStateValidator
+        )) {
+            return true;
+        }
+
+        return normalizeLegacyOverriddenSpellContainerIfNeeded(itemStack);
+    }
+
+    protected boolean normalizeLegacyOverriddenSpellContainerIfNeeded(ItemStack stack) {
+        return false;
     }
 
     @Override
@@ -245,10 +280,6 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             return true;
         }
 
-        if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
-            return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
-        }
-
         return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
     }
 
@@ -315,6 +346,14 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
 
         var spellData = spellContainer.getSpellAtIndex(0);
         return spellData == SpellData.EMPTY ? null : spellData;
+    }
+
+    protected final boolean matchesConfiguredPresetSpell(@Nullable SpellData spellData) {
+        return spellData != null
+                && startsWithPresetSpell
+                && configuredSpell != null
+                && configuredSpell.get().equals(spellData.getSpell())
+                && configuredSpellLevel == spellData.getLevel();
     }
 
     private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {
