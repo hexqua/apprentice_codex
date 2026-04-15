@@ -3557,6 +3557,34 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = new TouchDigSpell();
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_range_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            var targetPos = helper.absolutePos(new BlockPos(0, 3, 12));
+
+            helper.assertTrue(magicData != null, "Touch Dig range test could not resolve player mana data");
+            player.setYRot(0.0f);
+            player.setXRot(0.0f);
+            helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
+
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Touch Dig should keep the default 8 block range without CraftsmansDelight");
+
+            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Touch Dig should reach a target 12 blocks away when CraftsmansDelight is equipped");
+            helper.assertTrue(spell.getUniqueInfo(1, player).stream().anyMatch(component -> component.getString().contains("16")),
+                    "Touch Dig unique info should display 16 block range while CraftsmansDelight is equipped");
+
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+            helper.assertTrue(helper.getLevel().getBlockState(targetPos).isAir(),
+                    "Touch Dig should destroy the targeted block inside the extended range");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_ring_enchant_merge_test");
