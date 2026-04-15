@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
@@ -34,6 +35,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -93,6 +95,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
@@ -3263,6 +3266,463 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            var expectedEnchantments = expectedElementalBowEnchantments();
+            var expectedBookEnchantments = expectedElementalBowBookEnchantments();
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantments,
+                    expectedBookEnchantments,
+                    expectedEnchantments,
+                    "Elemental Bow"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowCyclesModesWhenSneakUsed(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mode_cycle_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.setShiftKeyDown(true);
+
+            assertElementalBowMode(helper, stack, null, "Elemental Bow should start in vanilla mode");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowMode(helper, stack, SchoolRegistry.FIRE_RESOURCE, "Elemental Bow should switch to Fire first");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowMode(helper, stack, SchoolRegistry.ENDER_RESOURCE, "Elemental Bow should switch to Ender second");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowMode(helper, stack, SchoolRegistry.NATURE_RESOURCE, "Elemental Bow should switch to Nature third");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowMode(helper, stack, null, "Elemental Bow should return to vanilla mode after Nature");
+            helper.assertFalse(player.isUsingItem(), "Sneak mode switching should not start drawing the bow");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow mana gate test could not resolve player mana data");
+            magicData.setMana(0.0F);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow should fail to start drawing when mana is insufficient: " + result.getResult());
+            helper.assertFalse(player.isUsingItem(), "Elemental Bow should not enter use state without enough mana");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+
+            item.initializeSpellContainer(stack);
+
+            assertElementalBowMode(helper, stack, null, "Elemental Bow should clear unresolved legacy mode values");
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should remove its spell container after falling back to NONE");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            item.initializeSpellContainer(stack);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Elemental Bow should expose a spell container outside NONE mode");
+            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
+                    "Elemental Bow should keep its derived spell out of the spell wheel");
+            assertSpellData(
+                    helper,
+                    spellContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    1,
+                    true,
+                    "Elemental Bow should sync Fire mode into a locked spell container"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.enchant(Enchantments.POWER_ARROWS, 2);
+            stack.enchant(Enchantments.FLAMING_ARROWS, 1);
+
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            item.initializeSpellContainer(stack);
+            var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(fireProfile != null, "Elemental Bow should expose a displayed spell profile in Fire mode");
+            helper.assertTrue(fireProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    "Elemental Bow Fire mode should resolve Fire Arrow");
+            helper.assertTrue(fireProfile.spellLevel() == 5,
+                    "Elemental Bow Fire mode should apply POWER II + FLAME I to level 5 but got " + fireProfile.spellLevel());
+            var fireContainer = ISpellContainer.get(stack);
+            helper.assertTrue(fireContainer != null, "Elemental Bow Fire mode should keep a synced spell container");
+            helper.assertTrue(fireContainer != null && !fireContainer.isSpellWheel(),
+                    "Elemental Bow Fire mode container should stay hidden from the spell wheel");
+            assertSpellData(
+                    helper,
+                    fireContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    5,
+                    true,
+                    "Elemental Bow Fire mode container should reflect POWER and FLAME"
+            );
+
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.ENDER_RESOURCE.toString());
+            item.initializeSpellContainer(stack);
+            var enderProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(enderProfile != null, "Elemental Bow should expose a displayed spell profile in Ender mode");
+            helper.assertTrue(enderProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                    "Elemental Bow Ender mode should resolve Magic Arrow");
+            helper.assertTrue(enderProfile.spellLevel() == 3,
+                    "Elemental Bow Ender mode should apply only POWER II to level 3 but got " + enderProfile.spellLevel());
+            var enderContainer = ISpellContainer.get(stack);
+            helper.assertTrue(enderContainer != null, "Elemental Bow Ender mode should keep a synced spell container");
+            helper.assertTrue(enderContainer != null && !enderContainer.isSpellWheel(),
+                    "Elemental Bow Ender mode container should stay hidden from the spell wheel");
+            assertSpellData(
+                    helper,
+                    enderContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                    3,
+                    true,
+                    "Elemental Bow Ender mode container should ignore FLAME"
+            );
+
+            stack.getOrCreateTag().remove("ElementalBowMode");
+            item.initializeSpellContainer(stack);
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should remove its spell container in NONE mode");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_spell_wheel_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            ((ElementalBow) stack.getItem()).initializeSpellContainer(stack);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var mainhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+            helper.assertTrue(mainhandSelections.isEmpty(),
+                    "Elemental Bow should not add its derived spell to the mainhand spell wheel: " + mainhandSelections);
+            helper.assertTrue(selectionManager.getSelection() == null,
+                    "Elemental Bow should not create a selected spell from its derived container");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    "Elemental Bow should reject Arcane Anvil spell imbuing regardless of scroll spell"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var message = ElementalBow.createInsufficientManaMessage(
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    null
+            );
+            assertTranslatableKey(
+                    helper,
+                    message,
+                    "ui.irons_spellbooks.cast_error_mana",
+                    "Elemental Bow mana error should use Iron's cast_error_mana key"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow partial release test could not resolve player mana data");
+            magicData.setMana(250.0F);
+            var initialMana = magicData.getMana();
+
+            var useResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(useResult.getResult().consumesAction(),
+                    "Elemental Bow should start drawing when mana and ammo are available: " + useResult.getResult());
+
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 21);
+            helper.assertTrue(stack.getDamageValue() == 0, "Elemental Bow should not lose durability before full draw");
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow should not consume arrows before full draw");
+            helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
+                    "Elemental Bow should not consume mana before full draw: " + magicData.getMana());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow should start vanilla draw with Infinity even without arrows: " + result.getResult());
+            helper.assertTrue(player.isUsingItem(), "Elemental Bow should enter use state for Infinity vanilla draw");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow cooldown test could not resolve player mana data");
+            magicData.setPlayerCastingItem(stack.copy());
+
+            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(160, fireArrow, player, CastSource.SWORD);
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
+                    "Elemental Bow should suppress elemental arrow cooldowns but got " + cooldownEvent.getEffectiveCooldown());
+
+            var controlEvent = new SpellCooldownAddedEvent.Pre(
+                    160,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get(),
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(controlEvent);
+            helper.assertTrue(controlEvent.getEffectiveCooldown() == 160,
+                    "Elemental Bow cooldown suppression should not affect unrelated spells");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow overheat mana test could not resolve player mana data");
+
+            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var baseMana = fireArrow.getManaCost(1);
+            magicData.setMana(300.0F);
+            var initialMana = magicData.getMana();
+
+            var firstUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(firstUseResult.getResult().consumesAction(),
+                    "Elemental Bow should start the first elemental draw: " + firstUseResult.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            var manaAfterFirstShot = magicData.getMana();
+            helper.assertTrue(Math.abs(manaAfterFirstShot - (initialMana - baseMana)) < 1.0e-3F,
+                    "Elemental Bow first overheatable shot should consume only base mana: " + manaAfterFirstShot);
+
+            var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    baseMana
+            );
+            helper.assertTrue(extraMana > 0.0F, "Elemental Bow should enter overheat after the first elemental shot");
+
+            var secondUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(secondUseResult.getResult().consumesAction(),
+                    "Elemental Bow should still allow a second overheated draw: " + secondUseResult.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            var manaAfterSecondShot = magicData.getMana();
+            helper.assertTrue(Math.abs(manaAfterSecondShot - (manaAfterFirstShot - baseMana - extraMana)) < 1.0e-3F,
+                    "Elemental Bow second overheated shot consumed the wrong mana: " + manaAfterSecondShot);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_school_test");
+            var fireStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            fireStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+
+            var natureStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            natureStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.NATURE_RESOURCE.toString());
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow school overheat test could not resolve player mana data");
+
+            magicData.setPlayerCastingItem(fireStack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+
+            magicData.setPlayerCastingItem(natureStack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            120,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.NATURE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.NATURE_RESOURCE,
+                            0
+                    )
+            );
+
+            var fireState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireState.active() && fireState.chainDepth() == 1,
+                    "Elemental Bow fire overheat should stay isolated at depth 1: " + fireState);
+
+            var natureState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.NATURE_RESOURCE);
+            helper.assertTrue(natureState.active() && natureState.chainDepth() == 1,
+                    "Elemental Bow nature overheat should stay isolated at depth 1: " + natureState);
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                            player,
+                            SchoolRegistry.ENDER_RESOURCE,
+                            10.0F
+                    ) == 0.0F,
+                    "Elemental Bow should not leak overheat into untouched schools"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_refresh_test");
+        var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+        stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+        var magicData = MagicData.getPlayerMagicData(player);
+        var firstExpire = new java.util.concurrent.atomic.AtomicLong();
+
+        helper.assertTrue(magicData != null, "Elemental Bow overheat refresh test could not resolve player mana data");
+
+        helper.runAtTickTime(1, () -> {
+            magicData.setPlayerCastingItem(stack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+            firstExpire.set(jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE).expireGameTime());
+        });
+
+        helper.runAtTickTime(40, () -> {
+            magicData.setPlayerCastingItem(stack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+
+            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(state.active(), "Elemental Bow repeated cast should keep fire overheat active");
+            helper.assertTrue(state.chainDepth() == 2, "Elemental Bow repeated cast should raise overheat chain depth to 2: " + state.chainDepth());
+            helper.assertTrue(state.expireGameTime() > firstExpire.get(),
+                    "Elemental Bow repeated cast should refresh overheat expiry but got " + state.expireGameTime() + " <= " + firstExpire.get());
+            helper.assertTrue(state.expireGameTime() - helper.getLevel().getGameTime() == 160,
+                    "Elemental Bow repeated cast should reset overheat duration from the latest cast");
+        });
+
+        helper.succeedOnTickWhen(41, () -> {
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
@@ -4664,6 +5124,22 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    private static Set<ResourceLocation> expectedElementalBowEnchantments() {
+        var bowStack = new ItemStack(Items.BOW);
+        return collectAllowedEnchantments(
+                bowStack,
+                enchantment -> Items.BOW.canApplyAtEnchantingTable(bowStack, enchantment)
+        );
+    }
+
+    private static Set<ResourceLocation> expectedElementalBowBookEnchantments() {
+        var bowStack = new ItemStack(Items.BOW);
+        return collectAllowedEnchantments(
+                bowStack,
+                enchantment -> Items.BOW.isBookEnchantable(bowStack, createEnchantedBook(enchantment))
+        );
+    }
+
     private static Set<ResourceLocation> expectedFlaskEnchantments() {
         return registryIdSet(
                 EnchantmentRegistry.GUZZLE,
@@ -4748,6 +5224,27 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static Set<ResourceLocation> allRegisteredEnchantmentIds() {
         return collectAllowedEnchantments(ItemStack.EMPTY, enchantment -> true);
+    }
+
+    private static void assertElementalBowMode(GameTestHelper helper, ItemStack stack, ResourceLocation expectedMode, String message) {
+        var tag = stack.getTag();
+        var actualMode = tag != null && tag.contains("ElementalBowMode")
+                ? ResourceLocation.tryParse(tag.getString("ElementalBowMode"))
+                : null;
+        helper.assertTrue(
+                java.util.Objects.equals(actualMode, expectedMode),
+                message + ": expected " + expectedMode + " but got " + actualMode
+        );
+    }
+
+    private static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
+        var contents = component.getContents();
+        helper.assertTrue(contents instanceof TranslatableContents,
+                message + " (component was not translatable: " + component + ")");
+        if (contents instanceof TranslatableContents translatableContents) {
+            helper.assertTrue(expectedKey.equals(translatableContents.getKey()),
+                    message + " (expected=" + expectedKey + ", actual=" + translatableContents.getKey() + ")");
+        }
     }
 
     private static Set<ResourceLocation> collectAllowedEnchantments(

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.jei.ArcaneAnvilJeiRecipe;
+import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +31,16 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
     private void apprenticecodex$filterSpellGunImbueRecipes(
             CallbackInfoReturnable<ArcaneAnvilJeiRecipe.Tuple<List<ItemStack>, List<ItemStack>, List<ItemStack>>> cir
     ) {
-        if (!isImbueRecipe() || !(leftItem instanceof RestrictedSpellImbuableItem spellImbueItem)) {
+        if (!isImbueRecipe()) {
+            return;
+        }
+
+        if (leftItem instanceof ArcaneAnvilImbueBlockItem) {
+            cir.setReturnValue(new ArcaneAnvilJeiRecipe.Tuple<>(List.of(), List.of(), List.of()));
+            return;
+        }
+
+        if (!(leftItem instanceof RestrictedSpellImbuableItem spellImbueItem)) {
             return;
         }
 

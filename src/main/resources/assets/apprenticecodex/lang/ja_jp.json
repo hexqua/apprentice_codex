@@ -53,6 +53,9 @@
   "item.apprenticecodex.explorers_cane": "探索者のステッキ",
   "item.apprenticecodex.spellcasters_flask": "魔術詠唱者のフラスコ",
   "item.apprenticecodex.alchemists_flask": "錬金術師のフラスコ",
+  "item.apprenticecodex.elemental_bow": "エレメンタルボウ",
+  "item.apprenticecodex.elemental_bow.mode": "現在調律されている系統: %s",
+  "item.apprenticecodex.elemental_bow.mode.none": "無し",
 
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
@@ -93,6 +96,7 @@
   "item.apprenticecodex.crystal_bladed_staff.desc": "この杖は盾を優先的に使用できる。",
   "item.apprenticecodex.isekai_travel_guidebook.desc": "『ようこそMinecraftの世界へ！』",
   "item.apprenticecodex.stealth_rune_armor.desc": "この防具は透明化の効果を阻害しない。",
+  "item.apprenticecodex.elemental_bow.desc": "この弓はスニークしながら使うと調律する系統を変更できる。",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
   "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",
   "item.apprenticecodex.arcane_spellcaster_round.desc": "やや複雑な即時詠唱魔法用の実包",
@@ -463,6 +467,11 @@
   "ui.apprenticecodex.extract.no_flask": "この魔法は手に錬金術師のフラスコが必要だ",
   "ui.apprenticecodex.extract.empty_flask": "錬金術師のフラスコの中身がない！",
   "ui.apprenticecodex.extract.effect_use": "%s として使用する",
+
+  "ui.apprenticecodex.elemental_bow.mode_switched": "エレメンタルボウの回路を%sに設定",
+  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "魔導回路がオーバーヒート中のため、消費マナが%sに増加している！",
+  "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "魔導回路のオーバーヒートによって消費マナが%sになっており、今のマナでは足りない！",
+  "ui.apprenticecodex.elemental_bow.cooling_complete": "%sの魔導回路の冷却が完了した...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

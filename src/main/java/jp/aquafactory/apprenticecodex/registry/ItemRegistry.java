@@ -225,6 +225,8 @@ public final class ItemRegistry {
             ITEMS.register("illuminate_stellar_staff", IlluminateStellarStaff::new);
     public static final RegistryObject<Item> UNITE_LUNA_STAFF =
             ITEMS.register("unite_luna_staff", UniteLunaStaff::new);
+    public static final RegistryObject<Item> ELEMENTAL_BOW =
+            ITEMS.register("elemental_bow", ElementalBow::new);
     public static final RegistryObject<Item> REFLECTCAST_SHIELD =
             ITEMS.register("reflectcast_shield", ReflectcastShield::new);
 }
