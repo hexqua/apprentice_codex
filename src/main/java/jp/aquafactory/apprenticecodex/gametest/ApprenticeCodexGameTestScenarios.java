@@ -3542,6 +3542,187 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow overheat mana test could not resolve player mana data");
+
+            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var baseMana = fireArrow.getManaCost(1);
+            magicData.setMana(300.0F);
+            var initialMana = magicData.getMana();
+
+            var firstUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(firstUseResult.getResult().consumesAction(),
+                    "Elemental Bow should start the first elemental draw: " + firstUseResult.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            var manaAfterFirstShot = magicData.getMana();
+            helper.assertTrue(Math.abs(manaAfterFirstShot - (initialMana - baseMana)) < 1.0e-3F,
+                    "Elemental Bow first overheatable shot should consume only base mana: " + manaAfterFirstShot);
+
+            var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    baseMana
+            );
+            helper.assertTrue(extraMana > 0.0F, "Elemental Bow should enter overheat after the first elemental shot");
+
+            var secondUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(secondUseResult.getResult().consumesAction(),
+                    "Elemental Bow should still allow a second overheated draw: " + secondUseResult.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            var manaAfterSecondShot = magicData.getMana();
+            helper.assertTrue(Math.abs(manaAfterSecondShot - (manaAfterFirstShot - baseMana - extraMana)) < 1.0e-3F,
+                    "Elemental Bow second overheated shot consumed the wrong mana: " + manaAfterSecondShot);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_school_test");
+            var fireStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            fireStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+
+            var natureStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            natureStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.NATURE_RESOURCE.toString());
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow school overheat test could not resolve player mana data");
+
+            magicData.setPlayerCastingItem(fireStack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+
+            magicData.setPlayerCastingItem(natureStack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            120,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.NATURE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.NATURE_RESOURCE,
+                            0
+                    )
+            );
+
+            var fireState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireState.active() && fireState.chainDepth() == 1,
+                    "Elemental Bow fire overheat should stay isolated at depth 1: " + fireState);
+
+            var natureState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.NATURE_RESOURCE);
+            helper.assertTrue(natureState.active() && natureState.chainDepth() == 1,
+                    "Elemental Bow nature overheat should stay isolated at depth 1: " + natureState);
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                            player,
+                            SchoolRegistry.ENDER_RESOURCE,
+                            10.0F
+                    ) == 0.0F,
+                    "Elemental Bow should not leak overheat into untouched schools"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_refresh_test");
+        var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+        stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+        var magicData = MagicData.getPlayerMagicData(player);
+        var firstExpire = new java.util.concurrent.atomic.AtomicLong();
+
+        helper.assertTrue(magicData != null, "Elemental Bow overheat refresh test could not resolve player mana data");
+
+        helper.runAtTickTime(1, () -> {
+            magicData.setPlayerCastingItem(stack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+            firstExpire.set(jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE).expireGameTime());
+        });
+
+        helper.runAtTickTime(40, () -> {
+            magicData.setPlayerCastingItem(stack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+
+            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(state.active(), "Elemental Bow repeated cast should keep fire overheat active");
+            helper.assertTrue(state.chainDepth() == 2, "Elemental Bow repeated cast should raise overheat chain depth to 2: " + state.chainDepth());
+            helper.assertTrue(state.expireGameTime() > firstExpire.get(),
+                    "Elemental Bow repeated cast should refresh overheat expiry but got " + state.expireGameTime() + " <= " + firstExpire.get());
+            helper.assertTrue(state.expireGameTime() - helper.getLevel().getGameTime() == 160,
+                    "Elemental Bow repeated cast should reset overheat duration from the latest cast");
+        });
+
+        helper.succeedOnTickWhen(41, () -> {
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
