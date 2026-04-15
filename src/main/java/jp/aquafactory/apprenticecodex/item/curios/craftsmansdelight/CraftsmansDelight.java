@@ -268,7 +268,18 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return ItemStack.EMPTY;
         }
 
-        return applyMiningEnchants(entity.getMainHandItem(), getEquippedStack(entity), entity);
+        var ringStack = getEquippedStack(entity);
+        var mainHandStack = entity.getMainHandItem();
+        if (!mainHandStack.isEmpty()) {
+            return applyMiningEnchants(mainHandStack, ringStack, entity);
+        }
+
+        if (!hasMiningEnchantments(ringStack)) {
+            return ItemStack.EMPTY;
+        }
+
+        // TouchDig は素手だと downstream に空スタックが渡り、追加の採掘エンチャント効果が発火しない。
+        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack, entity);
     }
 
     public static ItemStack createSpectralHammerTool(@Nullable LivingEntity entity) {

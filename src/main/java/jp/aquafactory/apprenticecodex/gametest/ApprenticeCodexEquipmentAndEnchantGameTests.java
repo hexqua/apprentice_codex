@@ -235,6 +235,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spectralHammerUsesCraftsmansDelightRingMiningEnchantments(helper);
     }
