@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -20,8 +19,7 @@ public final class CraftsmansDelightCooldownReductionEvent {
         if (!CraftsmansDelight.isEquippedBy(player)) {
             return;
         }
-        if (!(event.getSpell() instanceof ICraftsmansDelightAffectedSpell affectedSpell)
-                || !affectedSpell.isCraftsmansDelightCooldownReductionEnabled()) {
+        if (!CraftsmansDelightSpellSupport.isCooldownReductionTarget(event.getSpell())) {
             return;
         }
 
