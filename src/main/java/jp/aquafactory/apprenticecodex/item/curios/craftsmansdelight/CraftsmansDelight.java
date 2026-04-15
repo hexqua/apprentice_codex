@@ -27,6 +27,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -46,6 +47,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
     private static final int COOLDOWN_DIVISOR = 3;
+    private static final int TOUCH_DIG_RANGE_BLOCKS = 8;
+    private static final int TOUCH_DIG_RANGE_WITH_BONUS_BLOCKS = 16;
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
@@ -96,6 +99,11 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
         for (var spellEntry : TARGET_SPELLS) {
             var spell = spellEntry.get();
+            tooltips.add(Component.literal(" - ")
+                    .append(spell.getDisplayName(null))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        }
+        for (var spell : CraftsmansDelightSpellSupport.getExternalTargetSpells()) {
             tooltips.add(Component.literal(" - ")
                     .append(spell.getDisplayName(null))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
@@ -200,6 +208,14 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         return Math.max(1, baseCooldown / COOLDOWN_DIVISOR);
     }
 
+    public static int getTouchDigRangeBlocks(@Nullable LivingEntity entity) {
+        return isEquippedBy(entity) ? TOUCH_DIG_RANGE_WITH_BONUS_BLOCKS : TOUCH_DIG_RANGE_BLOCKS;
+    }
+
+    public static double getTouchDigRange(@Nullable LivingEntity entity) {
+        return getTouchDigRangeBlocks(entity);
+    }
+
     public static int getReducedEffectiveCooldown(AbstractSpell spell, @Nullable LivingEntity entity, CastSource castSource) {
         if (!(entity instanceof Player player)) {
             return spell.getSpellCooldown();
@@ -241,6 +257,62 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         }
 
         return baseTool;
+    }
+
+    public static ItemStack createTouchDigTool(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return ItemStack.EMPTY;
+        }
+
+        return applyMiningEnchants(entity.getMainHandItem(), getEquippedStack(entity));
+    }
+
+    public static ItemStack createSpectralHammerTool(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return ItemStack.EMPTY;
+        }
+
+        var ringStack = getEquippedStack(entity);
+        if (!hasMiningEnchantments(ringStack)) {
+            return ItemStack.EMPTY;
+        }
+
+        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack);
+    }
+
+    private static ItemStack applyMiningEnchants(ItemStack baseTool, ItemStack ringStack) {
+        if (baseTool.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        var tool = baseTool.copy();
+        if (ringStack.isEmpty()) {
+            return tool;
+        }
+
+        var baseFortuneLevel = tool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
+        var ringFortuneLevel = ringStack.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
+        var hasSilkTouch = tool.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0
+                || ringStack.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0;
+        if (ringFortuneLevel <= 0 && !hasSilkTouch) {
+            return tool;
+        }
+
+        var enchantments = new HashMap<>(EnchantmentHelper.getEnchantments(tool));
+        if (hasSilkTouch) {
+            enchantments.remove(Enchantments.BLOCK_FORTUNE);
+            enchantments.put(Enchantments.SILK_TOUCH, 1);
+        } else {
+            enchantments.remove(Enchantments.SILK_TOUCH);
+            enchantments.put(Enchantments.BLOCK_FORTUNE, Math.max(baseFortuneLevel, ringFortuneLevel));
+        }
+        EnchantmentHelper.setEnchantments(enchantments, tool);
+        return tool;
+    }
+
+    private static boolean hasMiningEnchantments(ItemStack stack) {
+        return stack.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) > 0
+                || stack.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0;
     }
 
     private static ItemStack getEquippedStack(LivingEntity entity) {
