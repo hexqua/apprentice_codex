@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
@@ -3291,11 +3292,11 @@ public final class ApprenticeCodexGameTestScenarios {
 
             assertElementalBowMode(helper, stack, null, "Elemental Bow should start in vanilla mode");
             stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowMode(helper, stack, "fire", "Elemental Bow should switch to Fire first");
+            assertElementalBowMode(helper, stack, SchoolRegistry.FIRE_RESOURCE, "Elemental Bow should switch to Fire first");
             stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowMode(helper, stack, "ender", "Elemental Bow should switch to Ender second");
+            assertElementalBowMode(helper, stack, SchoolRegistry.ENDER_RESOURCE, "Elemental Bow should switch to Ender second");
             stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowMode(helper, stack, "nature", "Elemental Bow should switch to Nature third");
+            assertElementalBowMode(helper, stack, SchoolRegistry.NATURE_RESOURCE, "Elemental Bow should switch to Nature third");
             stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             assertElementalBowMode(helper, stack, null, "Elemental Bow should return to vanilla mode after Nature");
             helper.assertFalse(player.isUsingItem(), "Sneak mode switching should not start drawing the bow");
@@ -3307,7 +3308,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW));
 
@@ -3323,11 +3324,26 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+    public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
             var stack = new ItemStack(item);
             stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+
+            item.initializeSpellContainer(stack);
+
+            assertElementalBowMode(helper, stack, null, "Elemental Bow should clear unresolved legacy mode values");
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should remove its spell container after falling back to NONE");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             item.initializeSpellContainer(stack);
 
             var spellContainer = ISpellContainer.get(stack);
@@ -3354,7 +3370,7 @@ public final class ApprenticeCodexGameTestScenarios {
             stack.enchant(Enchantments.POWER_ARROWS, 2);
             stack.enchant(Enchantments.FLAMING_ARROWS, 1);
 
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             item.initializeSpellContainer(stack);
             var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
             helper.assertTrue(fireProfile != null, "Elemental Bow should expose a displayed spell profile in Fire mode");
@@ -3376,7 +3392,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow Fire mode container should reflect POWER and FLAME"
             );
 
-            stack.getOrCreateTag().putString("ElementalBowMode", "ender");
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.ENDER_RESOURCE.toString());
             item.initializeSpellContainer(stack);
             var enderProfile = ElementalBow.getDisplayedSpellProfile(stack);
             helper.assertTrue(enderProfile != null, "Elemental Bow should expose a displayed spell profile in Ender mode");
@@ -3410,7 +3426,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_spell_wheel_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             ((ElementalBow) stack.getItem()).initializeSpellContainer(stack);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
@@ -3427,7 +3443,7 @@ public final class ApprenticeCodexGameTestScenarios {
     public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
 
             helper.assertTrue(
@@ -3458,7 +3474,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
 
@@ -3500,7 +3516,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
             var magicData = MagicData.getPlayerMagicData(player);
@@ -5029,9 +5045,11 @@ public final class ApprenticeCodexGameTestScenarios {
         return collectAllowedEnchantments(ItemStack.EMPTY, enchantment -> true);
     }
 
-    private static void assertElementalBowMode(GameTestHelper helper, ItemStack stack, String expectedMode, String message) {
+    private static void assertElementalBowMode(GameTestHelper helper, ItemStack stack, ResourceLocation expectedMode, String message) {
         var tag = stack.getTag();
-        var actualMode = tag != null && tag.contains("ElementalBowMode") ? tag.getString("ElementalBowMode") : null;
+        var actualMode = tag != null && tag.contains("ElementalBowMode")
+                ? ResourceLocation.tryParse(tag.getString("ElementalBowMode"))
+                : null;
         helper.assertTrue(
                 java.util.Objects.equals(actualMode, expectedMode),
                 message + ": expected " + expectedMode + " but got " + actualMode

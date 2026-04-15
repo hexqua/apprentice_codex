@@ -7,15 +7,17 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -43,18 +45,13 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     private static final float MANA_SAFE_MARGIN = 0.001F;
     private static final float PARTICLE_SIZE = 0.12F;
     private static final int PARTICLE_WHITEN_TICKS = 2;
-    private static final int FIRE_COLOR = 0xFF8A2A;
-    private static final int ENDER_COLOR = 0xCC55FF;
-    private static final int NATURE_COLOR = 0x68D66A;
 
     public ElementalBow() {
         super(new Properties().durability(384));
     }
 
     public static boolean isElementalSpell(@Nullable AbstractSpell spell) {
-        return spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get()
-                || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get()
-                || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get();
+        return ElementalBowModeManager.isElementalSpell(spell);
     }
 
     @Override
@@ -63,12 +60,12 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         initializeSpellContainer(stack);
         if (player.isSecondaryUseActive()) {
             if (!level.isClientSide) {
-                var nextMode = getMode(stack).next();
-                setMode(stack, nextMode);
+                var nextModeId = resolveNextModeId(stack);
+                setMode(stack, nextModeId);
                 player.displayClientMessage(
                         Component.translatable(
                                         "ui.apprenticecodex.elemental_bow.mode_switched",
-                                        nextMode.getDisplayName()
+                                        getModeDisplayName(stack)
                                 )
                                 .withStyle(ChatFormatting.GOLD),
                         true
@@ -78,8 +75,8 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
 
-        var mode = getMode(stack);
-        if (mode == ElementalMode.NONE) {
+        var mode = normalizeModeState(stack);
+        if (mode == null) {
             var projectile = player.getProjectile(stack);
             if (!projectile.isEmpty() || !hasInfinity(stack) || player.getAbilities().instabuild) {
                 return super.use(level, player, usedHand);
@@ -131,7 +128,8 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             return;
         }
 
-        var profile = resolveSpellProfile(stack, getMode(stack));
+        var mode = normalizeModeState(stack);
+        var profile = resolveSpellProfile(stack, mode);
         if (profile == null) {
             ISpellContainer.remove(stack);
             return;
@@ -150,7 +148,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             }
         }
 
-        // 属性モードの spell 情報は tooltip と外部参照先で共有したいが、
+        // モード由来の spell 情報は tooltip と外部参照先で共有したいが、
         // 通常の spell wheel へは流さない。
         var mutable = ISpellContainer.create(1, false, false).mutableCopy();
         mutable.addSpellAtIndex(profile.spell(), profile.spellLevel(), 0, true);
@@ -169,8 +167,8 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             return;
         }
 
-        var mode = getMode(stack);
-        if (mode == ElementalMode.NONE) {
+        var mode = normalizeModeState(stack);
+        if (mode == null) {
             return;
         }
 
@@ -189,8 +187,8 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         }
         initializeSpellContainer(stack);
 
-        var mode = getMode(stack);
-        if (mode == ElementalMode.NONE) {
+        var mode = normalizeModeState(stack);
+        if (mode == null) {
             var projectile = player.getProjectile(stack);
             if (!projectile.isEmpty() || !hasInfinity(stack) || player.getAbilities().instabuild) {
                 super.releaseUsing(stack, level, livingEntity, timeLeft);
@@ -219,10 +217,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         initializeSpellContainer(stack);
         super.appendHoverText(stack, level, lines, flag);
         lines.add(
-                Component.translatable(
-                                "item.apprenticecodex.elemental_bow.mode",
-                                getMode(stack).getDisplayName()
-                        )
+                Component.translatable("item.apprenticecodex.elemental_bow.mode", getModeDisplayName(stack))
                         .withStyle(ChatFormatting.GRAY)
         );
     }
@@ -242,7 +237,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         fireVanillaArrow(level, player, stack, new ItemStack(Items.ARROW), power, true);
     }
 
-    private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ElementalMode mode) {
+    private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ResolvedDefinition mode) {
         var ammoSource = resolveAmmoSource(player, stack);
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
         var drawDuration = getUseDuration(stack) - timeLeft;
@@ -374,8 +369,8 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         player.awardStat(Stats.ITEM_USED.get(this));
     }
 
-    private void spawnChargeParticles(ServerLevel level, LivingEntity entity, ElementalMode mode) {
-        var color = mode.getSparkColor();
+    private void spawnChargeParticles(ServerLevel level, LivingEntity entity, ResolvedDefinition mode) {
+        var color = mode.color();
         var red = ((color >> 16) & 0xFF) / 255.0F;
         var green = ((color >> 8) & 0xFF) / 255.0F;
         var blue = (color & 0xFF) / 255.0F;
@@ -412,24 +407,11 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     }
 
     @Nullable
-    private SpellCastProfile resolveSpellProfile(ItemStack stack, ElementalMode mode) {
-        if (mode == ElementalMode.NONE) {
+    private SpellCastProfile resolveSpellProfile(ItemStack stack, @Nullable ResolvedDefinition mode) {
+        if (mode == null) {
             return null;
         }
-
-        var spell = switch (mode) {
-            case FIRE -> io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-            case ENDER -> io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
-            case NATURE -> io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get();
-            case NONE -> null;
-        };
-
-        var spellLevel = 1 + stack.getEnchantmentLevel(Enchantments.POWER_ARROWS);
-        if (mode == ElementalMode.FIRE && stack.getEnchantmentLevel(Enchantments.FLAMING_ARROWS) > 0) {
-            spellLevel += 2;
-        }
-        spellLevel = Mth.clamp(spellLevel, spell.getMinLevel(), spell.getMaxLevel());
-        return new SpellCastProfile(mode, spell, spellLevel);
+        return new SpellCastProfile(mode.spell(), mode.resolveSpellLevel(stack));
     }
 
     @Nullable
@@ -438,7 +420,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             return null;
         }
 
-        var profile = elementalBow.resolveSpellProfile(stack, getMode(stack));
+        var profile = elementalBow.resolveSpellProfile(stack, elementalBow.resolveConfiguredMode(stack));
         if (profile == null) {
             return null;
         }
@@ -466,78 +448,89 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         return stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
     }
 
-    private static ElementalMode getMode(ItemStack stack) {
-        var tag = stack.getTag();
-        return ElementalMode.fromSerializedName(tag == null ? "" : tag.getString(MODE_TAG));
+    @Nullable
+    private ResolvedDefinition resolveConfiguredMode(ItemStack stack) {
+        return ElementalBowModeManager.getResolvedDefinition(getStoredModeId(stack));
     }
 
-    private static void setMode(ItemStack stack, ElementalMode mode) {
-        if (mode == ElementalMode.NONE) {
-            var tag = stack.getTag();
-            if (tag != null) {
-                tag.remove(MODE_TAG);
-                if (tag.isEmpty()) {
-                    stack.setTag(null);
-                }
-            }
-            if (stack.getItem() instanceof ElementalBow elementalBow) {
-                elementalBow.initializeSpellContainer(stack);
-            }
-            return;
+    @Nullable
+    private ResolvedDefinition normalizeModeState(ItemStack stack) {
+        var tag = stack.getTag();
+        if (tag == null || !tag.contains(MODE_TAG)) {
+            return null;
         }
 
-        stack.getOrCreateTag().putString(MODE_TAG, mode.serializedName);
+        var storedModeId = ResourceLocation.tryParse(tag.getString(MODE_TAG));
+        var resolvedMode = ElementalBowModeManager.getResolvedDefinition(storedModeId);
+        if (resolvedMode != null) {
+            return resolvedMode;
+        }
+
+        clearStoredMode(stack);
+        return null;
+    }
+
+    @Nullable
+    private static ResourceLocation getStoredModeId(ItemStack stack) {
+        var tag = stack.getTag();
+        if (tag == null || !tag.contains(MODE_TAG)) {
+            return null;
+        }
+        return ResourceLocation.tryParse(tag.getString(MODE_TAG));
+    }
+
+    @Nullable
+    private static ResourceLocation resolveNextModeId(ItemStack stack) {
+        var resolvedDefinitions = ElementalBowModeManager.getResolvedDefinitions();
+        if (resolvedDefinitions.isEmpty()) {
+            return null;
+        }
+
+        var currentModeId = getStoredModeId(stack);
+        if (currentModeId == null) {
+            return resolvedDefinitions.get(0).schoolId();
+        }
+
+        for (int index = 0; index < resolvedDefinitions.size(); index++) {
+            if (!resolvedDefinitions.get(index).schoolId().equals(currentModeId)) {
+                continue;
+            }
+            return index + 1 < resolvedDefinitions.size() ? resolvedDefinitions.get(index + 1).schoolId() : null;
+        }
+
+        return resolvedDefinitions.get(0).schoolId();
+    }
+
+    private static void setMode(ItemStack stack, @Nullable ResourceLocation modeId) {
+        if (modeId == null) {
+            clearStoredMode(stack);
+        } else {
+            stack.getOrCreateTag().putString(MODE_TAG, modeId.toString());
+        }
         if (stack.getItem() instanceof ElementalBow elementalBow) {
             elementalBow.initializeSpellContainer(stack);
         }
     }
 
-    private record SpellCastProfile(ElementalMode mode, AbstractSpell spell, int spellLevel) {
+    private static void clearStoredMode(ItemStack stack) {
+        var tag = stack.getTag();
+        if (tag == null) {
+            return;
+        }
+        tag.remove(MODE_TAG);
+        if (tag.isEmpty()) {
+            stack.setTag(null);
+        }
+    }
+
+    private Component getModeDisplayName(ItemStack stack) {
+        var mode = resolveConfiguredMode(stack);
+        return mode != null ? mode.schoolType().getDisplayName() : Component.translatable("item.apprenticecodex.elemental_bow.mode.none");
+    }
+
+    private record SpellCastProfile(AbstractSpell spell, int spellLevel) {
     }
 
     public record DisplayedSpellProfile(AbstractSpell spell, int spellLevel) {
-    }
-
-    private enum ElementalMode {
-        NONE("none", "item.apprenticecodex.elemental_bow.mode.none", 0),
-        FIRE("fire", "item.apprenticecodex.elemental_bow.mode.fire", FIRE_COLOR),
-        ENDER("ender", "item.apprenticecodex.elemental_bow.mode.ender", ENDER_COLOR),
-        NATURE("nature", "item.apprenticecodex.elemental_bow.mode.nature", NATURE_COLOR);
-
-        private final String serializedName;
-        private final String translationKey;
-        private final int sparkColor;
-
-        ElementalMode(String serializedName, String translationKey, int sparkColor) {
-            this.serializedName = serializedName;
-            this.translationKey = translationKey;
-            this.sparkColor = sparkColor;
-        }
-
-        public Component getDisplayName() {
-            return Component.translatable(translationKey);
-        }
-
-        public int getSparkColor() {
-            return sparkColor;
-        }
-
-        public ElementalMode next() {
-            return switch (this) {
-                case NONE -> FIRE;
-                case FIRE -> ENDER;
-                case ENDER -> NATURE;
-                case NATURE -> NONE;
-            };
-        }
-
-        public static ElementalMode fromSerializedName(String serializedName) {
-            for (var mode : values()) {
-                if (mode.serializedName.equals(serializedName)) {
-                    return mode;
-                }
-            }
-            return NONE;
-        }
     }
 }

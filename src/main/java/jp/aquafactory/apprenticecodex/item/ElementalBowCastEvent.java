@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -24,7 +25,7 @@ public final class ElementalBowCastEvent {
         }
 
         var castingItem = magicData.getPlayerCastingItem();
-        if (!(castingItem.getItem() instanceof ElementalBow) || !ElementalBow.isElementalSpell(event.getSpell())) {
+        if (!(castingItem.getItem() instanceof ElementalBow) || !ElementalBowModeManager.isElementalSpell(event.getSpell())) {
             return;
         }
 
