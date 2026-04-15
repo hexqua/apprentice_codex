@@ -28,6 +28,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -48,6 +49,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
     private static final int COOLDOWN_DIVISOR = 3;
+    private static final int TOUCH_DIG_RANGE_BLOCKS = 8;
+    private static final int TOUCH_DIG_RANGE_WITH_BONUS_BLOCKS = 16;
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
@@ -99,6 +102,11 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
         for (var spellEntry : TARGET_SPELLS) {
             var spell = spellEntry.get();
+            tooltips.add(Component.literal(" - ")
+                    .append(spell.getDisplayName(null))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        }
+        for (var spell : CraftsmansDelightSpellSupport.getExternalTargetSpells()) {
             tooltips.add(Component.literal(" - ")
                     .append(spell.getDisplayName(null))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
@@ -169,9 +177,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return false;
         }
 
-        return CuriosApi.getCuriosInventory(entity)
-                .map(inventory -> inventory.isEquipped(ItemRegistry.CRAFTSMANS_DELIGHT.get()))
-                .orElse(false);
+        return !getEquippedStack(entity).isEmpty();
     }
 
     public static float applyBreakSpeedBonus(float breakSpeed, @Nullable LivingEntity entity) {
@@ -204,6 +210,14 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         }
 
         return Math.max(1, baseCooldown / COOLDOWN_DIVISOR);
+    }
+
+    public static int getTouchDigRangeBlocks(@Nullable LivingEntity entity) {
+        return isEquippedBy(entity) ? TOUCH_DIG_RANGE_WITH_BONUS_BLOCKS : TOUCH_DIG_RANGE_BLOCKS;
+    }
+
+    public static double getTouchDigRange(@Nullable LivingEntity entity) {
+        return getTouchDigRangeBlocks(entity);
     }
 
     public static int getReducedEffectiveCooldown(AbstractSpell spell, @Nullable LivingEntity entity, CastSource castSource) {
@@ -249,11 +263,101 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         return baseTool;
     }
 
+    public static ItemStack createTouchDigTool(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return ItemStack.EMPTY;
+        }
+
+        return applyMiningEnchants(entity.getMainHandItem(), getEquippedStack(entity), entity);
+    }
+
+    public static ItemStack createSpectralHammerTool(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return ItemStack.EMPTY;
+        }
+
+        var ringStack = getEquippedStack(entity);
+        if (!hasMiningEnchantments(ringStack)) {
+            return ItemStack.EMPTY;
+        }
+
+        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack, entity);
+    }
+
+    private static ItemStack applyMiningEnchants(ItemStack baseTool, ItemStack ringStack, @Nullable LivingEntity entity) {
+        if (baseTool.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        var tool = baseTool.copy();
+        if (ringStack.isEmpty()) {
+            return tool;
+        }
+
+        var baseFortuneLevel = getFortuneLevel(tool);
+        var ringFortuneLevel = getFortuneLevel(ringStack);
+        var hasSilkTouch = getSilkTouchLevel(tool) > 0 || getSilkTouchLevel(ringStack) > 0;
+        if (ringFortuneLevel <= 0 && !hasSilkTouch) {
+            return tool;
+        }
+
+        if (entity == null) {
+            return tool;
+        }
+
+        var enchantmentRegistry = entity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        var fortune = enchantmentRegistry.getOrThrow(Enchantments.FORTUNE);
+        var silkTouch = enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH);
+        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(tool).entrySet()) {
+            var enchantment = entry.getKey();
+            if (enchantment == null
+                    || enchantment.is(Enchantments.FORTUNE)
+                    || enchantment.is(Enchantments.SILK_TOUCH)) {
+                continue;
+            }
+            enchantments.set(enchantment, entry.getValue());
+        }
+
+        if (hasSilkTouch) {
+            enchantments.set(silkTouch, 1);
+        } else {
+            enchantments.set(fortune, Math.max(baseFortuneLevel, ringFortuneLevel));
+        }
+        EnchantmentHelper.setEnchantments(tool, enchantments.toImmutable());
+        return tool;
+    }
+
+    private static boolean hasMiningEnchantments(ItemStack stack) {
+        return getFortuneLevel(stack) > 0 || getSilkTouchLevel(stack) > 0;
+    }
+
+    private static int getFortuneLevel(ItemStack stack) {
+        return jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(stack, Enchantments.FORTUNE);
+    }
+
+    private static int getSilkTouchLevel(ItemStack stack) {
+        return jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(stack, Enchantments.SILK_TOUCH);
+    }
+
     private static ItemStack getEquippedStack(LivingEntity entity) {
         return CuriosApi.getCuriosInventory(entity)
-                .map(inventory -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
-                        .map(slotResult -> slotResult.stack().copy())
-                        .orElse(ItemStack.EMPTY))
+                .map(inventory -> inventory.getStacksHandler(Curios.RING_SLOT)
+                        .map(ringHandler -> {
+                            var stacks = ringHandler.getStacks();
+                            for (var slot = 0; slot < stacks.getSlots(); slot++) {
+                                var stack = stacks.getStackInSlot(slot);
+                                if (stack.is(ItemRegistry.CRAFTSMANS_DELIGHT.get())) {
+                                    return stack.copy();
+                                }
+                            }
+                            return inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
+                                    .map(slotResult -> slotResult.stack().copy())
+                                    .orElse(ItemStack.EMPTY);
+                        })
+                        .orElseGet(() -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
+                                .map(slotResult -> slotResult.stack().copy())
+                                .orElse(ItemStack.EMPTY)))
                 .orElse(ItemStack.EMPTY);
     }
 
