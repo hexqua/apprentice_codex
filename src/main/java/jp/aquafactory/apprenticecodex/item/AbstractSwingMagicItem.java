@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -141,8 +142,31 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
         if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
             // 初期 preset と違い、後から注入した呪文は Spellcaster Workbench で取り外せる状態を維持する。
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
+            PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
+        } else {
+            PresetSpellContainerStateHelper.clearRememberedState(stack);
         }
         ISpellContainer.set(stack, normalized.toImmutable());
+    }
+
+    @Override
+    protected boolean normalizeLegacyOverriddenSpellContainerIfNeeded(ItemStack stack) {
+        var spellData = getPrimarySpellData(stack);
+        if (spellData == null
+                || spellData.canRemove()
+                || !canImbueSpell(spellData)
+                || matchesConfiguredPresetSpell(spellData)) {
+            return false;
+        }
+
+        var normalized = ISpellContainer.create(1, false, false).mutableCopy();
+        if (!normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false)) {
+            return false;
+        }
+
+        ISpellContainer.set(stack, normalized.toImmutable());
+        PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
+        return true;
     }
 
     @Override
@@ -266,7 +290,7 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
         lines.add(Component.translatable("item.apprenticecodex.swingcast.common.desc").withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, lines, flag);

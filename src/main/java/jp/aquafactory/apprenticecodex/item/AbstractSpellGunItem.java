@@ -15,12 +15,14 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.Spellcast
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -137,7 +139,15 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Override
     public final void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return;
+        }
+
+        if (repairPresetSpellContainerStateIfNeeded(itemStack)) {
+            return;
+        }
+
+        if (ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
@@ -154,6 +164,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }
 
+    public final boolean repairPresetSpellContainerStateIfNeeded(ItemStack itemStack) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return false;
+        }
+
+        if (PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, false, false, this::canImbueSpell)) {
+            return true;
+        }
+
+        return normalizeLegacyOverriddenSpellContainerIfNeeded(itemStack);
+    }
+
     @Override
     public final @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
@@ -166,7 +188,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return 1;
     }
 
@@ -176,28 +198,28 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
 
-        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return enchantmentId != null && isMalumSpiritPlunder(stack, enchantmentId);
     }
 
     @Override
-    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         appendSpellGunHelpTooltip(stack, lines);
     }
 
     @Override
-    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         return buildMainhandModifiers(stack, baseMainhandModifiers);
     }
 
@@ -232,8 +254,30 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (spellData != null && canImbueSpell(spellData)) {
             // Arcane Anvil で差し替えた呪文まで固定すると Workbench 抽出不能になるため、preset 以外は removable に戻す。
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
+            PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
+        } else {
+            PresetSpellContainerStateHelper.clearRememberedState(stack);
         }
         ISpellContainer.set(stack, normalized.toImmutable());
+    }
+
+    private boolean normalizeLegacyOverriddenSpellContainerIfNeeded(ItemStack stack) {
+        var spellData = getPrimarySpellData(stack);
+        if (spellData == null
+                || spellData.canRemove()
+                || !canImbueSpell(spellData)
+                || matchesConfiguredPresetSpell(spellData)) {
+            return false;
+        }
+
+        var normalized = ISpellContainer.create(1, false, false).mutableCopy();
+        if (!normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false)) {
+            return false;
+        }
+
+        ISpellContainer.set(stack, normalized.toImmutable());
+        PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
+        return true;
     }
 
     @Override
@@ -259,6 +303,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
         var spellData = spellContainer.getSpellAtIndex(0);
         return spellData == SpellData.EMPTY ? null : spellData;
+    }
+
+    private boolean matchesConfiguredPresetSpell(@Nullable SpellData spellData) {
+        return spellData != null
+                && startsWithPresetSpell
+                && configuredSpell != null
+                && configuredSpell.get().equals(spellData.getSpell())
+                && configuredSpellLevel == spellData.getLevel();
     }
 
     @Nullable

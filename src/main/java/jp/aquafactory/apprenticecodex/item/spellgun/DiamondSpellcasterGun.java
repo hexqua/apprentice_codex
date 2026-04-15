@@ -10,6 +10,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -78,7 +79,7 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
     }
     
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return 10;
     }
 }
