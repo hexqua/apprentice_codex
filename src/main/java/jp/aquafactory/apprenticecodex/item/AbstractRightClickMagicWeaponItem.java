@@ -1,14 +1,17 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -37,6 +40,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.function.Predicate;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item implements IPresetSpellContainer, NonDamageableAnvilMergeItem {
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
@@ -147,7 +151,15 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return;
+        }
+
+        if (repairPresetSpellContainerStateIfNeeded(itemStack)) {
+            return;
+        }
+
+        if (ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
@@ -156,9 +168,36 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             if (configuredSpell instanceof net.neoforged.neoforge.registries.DeferredHolder<?, ?> deferredHolder && !deferredHolder.isBound()) {
                 return;
             }
-            spellContainer.addSpellAtIndex(configuredSpell.get(), configuredSpellLevel, 0, true);
+            if (configuredSpell != null) {
+                spellContainer.addSpellAtIndex(configuredSpell.get(), configuredSpellLevel, 0, true);
+            }
         }
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
+    }
+
+    public final boolean repairPresetSpellContainerStateIfNeeded(ItemStack itemStack) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return false;
+        }
+
+        Predicate<SpellData> trackedStateValidator = this instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
+                ? restrictedSpellImbuableItem::canImbueSpell
+                : spellData -> spellData != SpellData.EMPTY && spellData.getSpell() != SpellRegistry.none();
+        if (PresetSpellContainerStateHelper.restoreIfNeeded(
+                itemStack,
+                1,
+                false,
+                false,
+                trackedStateValidator
+        )) {
+            return true;
+        }
+
+        return normalizeLegacyOverriddenSpellContainerIfNeeded(itemStack);
+    }
+
+    protected boolean normalizeLegacyOverriddenSpellContainerIfNeeded(ItemStack stack) {
+        return false;
     }
 
     @Override
@@ -177,7 +216,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     @Override
-    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         return mainhandModifiers;
     }
 
@@ -192,17 +231,17 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return enchantmentValue;
     }
 
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
 
-        var enchantmentId = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
             return false;
         }
@@ -223,12 +262,12 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     @Override
-    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         if (!super.isBookEnchantable(stack, book)) {
             return false;
         }
@@ -253,7 +292,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
     }
 
     @Override
-    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+    public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
         return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
     }
 
@@ -287,6 +326,14 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
 
         var spellData = spellContainer.getSpellAtIndex(0);
         return spellData == SpellData.EMPTY ? null : spellData;
+    }
+
+    protected final boolean matchesConfiguredPresetSpell(@Nullable SpellData spellData) {
+        return spellData != null
+                && startsWithPresetSpell
+                && configuredSpell != null
+                && configuredSpell.get().equals(spellData.getSpell())
+                && configuredSpellLevel == spellData.getLevel();
     }
 
     private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {

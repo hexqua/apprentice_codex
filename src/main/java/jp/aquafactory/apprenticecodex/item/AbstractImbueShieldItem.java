@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.InteractionHand;
@@ -43,11 +44,27 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return;
+        }
+
+        if (repairPresetSpellContainerStateIfNeeded(itemStack)) {
+            return;
+        }
+
+        if (ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
         ISpellContainer.set(itemStack, ISpellContainer.create(1, true, false));
+    }
+
+    public final boolean repairPresetSpellContainerStateIfNeeded(ItemStack itemStack) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return false;
+        }
+
+        return PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, false, false, this::canImbueSpell);
     }
 
     @Override
@@ -70,7 +87,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         appendImbueTargetSpellTooltip(lines);
     }
@@ -148,6 +165,9 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
             // Workbench 抽出可否は locked を見るため、差し替え後の呪文は preset 扱いにしない。
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
+            PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
+        } else {
+            PresetSpellContainerStateHelper.clearRememberedState(stack);
         }
         ISpellContainer.set(stack, normalized.toImmutable());
     }

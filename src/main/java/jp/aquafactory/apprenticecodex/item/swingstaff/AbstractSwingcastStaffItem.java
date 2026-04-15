@@ -39,6 +39,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem {
     private static final String MAIN_CONTROLLER = "main";
@@ -124,9 +125,9 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     @Override
-    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         var baseModifiers = super.getDefaultAttributeModifiers(stack);
-        if (stack == null || stack.isEmpty()) {
+        if (stack.isEmpty()) {
             return baseModifiers;
         }
 
@@ -261,7 +262,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         appendSwingcastStaffTooltip(lines);
@@ -306,7 +307,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
     ) {
         // Swingcast Staff でも Offhand 系と同じ `bonus(...)` 記法を使えるよう、
         // mainhand 用 AttributeBonus を tier 定義専用の BonusSpec へ変換して受け取る。
-        var tierHandBonuses = List.of(handBonuses).stream()
+        var tierHandBonuses = Stream.of(handBonuses)
                 .map(AbstractSwingcastStaffItem::toBonusSpec)
                 .toList();
         return createTierFromBonusSpecs(
