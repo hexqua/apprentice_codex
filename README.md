@@ -4,6 +4,44 @@
 
 Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 
+## 開発環境
+
+- 開発ブランチ `1.21.1-main` では Java 21 を使用します。
+- `build.gradle` では Java toolchain を 21 に固定していますが、`gradlew.bat` 自体が使う JVM は `JAVA_HOME` または `PATH` に依存します。
+- ローカル開発では PowerShell 用の [`scripts/use-java.ps1`](scripts/use-java.ps1) を使う前提にします。
+
+## Java 切替
+
+- 推奨: ユーザー環境変数 `JDK17_HOME` / `JDK21_HOME` を設定します。
+- `JDKxx_HOME` が未設定でも、スクリプトは `%USERPROFILE%\.jdks` と `%USERPROFILE%\.gradle\jdks` を自動検出します。
+- スクリプトは Windows のローカル開発用です。CI の Java 設定は workflow 側で別管理します。
+
+- 例: ユーザー環境変数を設定する
+
+```powershell
+setx JDK17_HOME "%USERPROFILE%\.jdks\ms-17.0.16"
+setx JDK21_HOME "%USERPROFILE%\.jdks\ms-21.0.10"
+```
+
+- `setx` 実行後は PowerShell を開き直してから使います。
+- `1.21.1-main` で作業する場合:
+
+```powershell
+.\scripts\use-java.ps1
+```
+
+- `main`（1.20.1）で作業する場合:
+
+```powershell
+.\scripts\use-java.ps1 -Version 17
+```
+
+- 実行ポリシーでブロックされる環境では、次の形でも実行できます。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
+```
+
 ## 導入方法
 
 - `mods`配下に`jar`を入れればOKです。
@@ -14,12 +52,14 @@ Iron's Spells 'n Spellbooks用の小さなアドオンMODです.
 - 通常のビルド確認:
 
 ```powershell
+.\scripts\use-java.ps1
 ./gradlew.bat build
 ```
 
 - サーバー側の結合テスト:
 
 ```powershell
+.\scripts\use-java.ps1
 ./gradlew.bat runGameTestServer
 ```
 
