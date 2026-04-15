@@ -8,13 +8,15 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -30,13 +32,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,7 +93,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
                 return super.use(level, player, usedHand);
             }
 
-            var nockResult = ForgeEventFactory.onArrowNock(stack, level, player, usedHand, true);
+            var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, true);
             if (nockResult != null) {
                 return nockResult;
             }
@@ -127,7 +133,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             }
         }
 
-        var nockResult = ForgeEventFactory.onArrowNock(stack, level, player, usedHand, ammoSource != null || canFireWithoutAmmo);
+        var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, ammoSource != null || canFireWithoutAmmo);
         if (nockResult != null) {
             return nockResult;
         }
@@ -217,7 +223,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             return;
         }
 
-        var drawDuration = getUseDuration(stack) - remainingUseDuration;
+        var drawDuration = stack.getUseDuration(entity) - remainingUseDuration;
         if (drawDuration <= 0 || drawDuration >= READY_DRAW_TICKS) {
             return;
         }
@@ -255,19 +261,24 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return Items.BOW.canApplyAtEnchantingTable(ENCHANTMENT_PROBE_STACK, enchantment);
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return Items.BOW.supportsEnchantment(ENCHANTMENT_PROBE_STACK, enchantment);
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return Items.BOW.isPrimaryItemFor(ENCHANTMENT_PROBE_STACK, enchantment);
+    }
+
+    @Override
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         return Items.BOW.isBookEnchantable(ENCHANTMENT_PROBE_STACK, book);
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         initializeSpellContainer(stack);
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         lines.add(
                 Component.translatable("item.apprenticecodex.elemental_bow.mode", getModeDisplayName(stack))
                         .withStyle(ChatFormatting.GRAY)
@@ -275,8 +286,8 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     }
 
     private void releaseVanillaInfinityShot(ItemStack stack, Level level, Player player, int timeLeft) {
-        var drawDuration = getUseDuration(stack) - timeLeft;
-        drawDuration = ForgeEventFactory.onArrowLoose(stack, level, player, drawDuration, true);
+        var drawDuration = stack.getUseDuration(player) - timeLeft;
+        drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, true);
         if (drawDuration < 0) {
             return;
         }
@@ -292,8 +303,8 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ResolvedDefinition mode) {
         var ammoSource = resolveAmmoSource(player, stack);
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
-        var drawDuration = getUseDuration(stack) - timeLeft;
-        drawDuration = ForgeEventFactory.onArrowLoose(stack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
+        var drawDuration = stack.getUseDuration(player) - timeLeft;
+        drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
         if (drawDuration < READY_DRAW_TICKS) {
             return;
         }
@@ -348,7 +359,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         );
 
         if (!player.getAbilities().instabuild) {
-            stack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
+            stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (ammoSource != null && !hasInfinity(stack)) {
                 consumeAmmo(player, ammoSource);
             }
@@ -399,28 +410,14 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     private void fireVanillaArrow(Level level, Player player, ItemStack bowStack, ItemStack ammoStack, float power, boolean infiniteAmmo) {
         if (!level.isClientSide) {
             var arrowItem = ammoStack.getItem() instanceof ArrowItem arrow ? arrow : (ArrowItem) Items.ARROW;
-            var arrow = arrowItem.createArrow(level, ammoStack, player);
-            arrow = customArrow(arrow);
+            var arrow = arrowItem.createArrow(level, ammoStack, player, bowStack);
+            arrow = customArrow(arrow, ammoStack, bowStack);
             arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, power * 3.0F, 1.0F);
             if (power == 1.0F) {
                 arrow.setCritArrow(true);
             }
 
-            var powerLevel = bowStack.getEnchantmentLevel(Enchantments.POWER_ARROWS);
-            if (powerLevel > 0) {
-                arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D);
-            }
-
-            var punchLevel = bowStack.getEnchantmentLevel(Enchantments.PUNCH_ARROWS);
-            if (punchLevel > 0) {
-                arrow.setKnockback(punchLevel);
-            }
-
-            if (bowStack.getEnchantmentLevel(Enchantments.FLAMING_ARROWS) > 0) {
-                arrow.setSecondsOnFire(100);
-            }
-
-            bowStack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
+            bowStack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (infiniteAmmo) {
                 arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
             }
@@ -587,7 +584,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     }
 
     private static boolean hasInfinity(ItemStack stack) {
-        return stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+        return getEnchantmentLevel(stack, Enchantments.INFINITY.location()) > 0;
     }
 
     @Nullable
@@ -597,7 +594,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
 
     @Nullable
     private ResolvedDefinition normalizeModeState(ItemStack stack) {
-        var tag = stack.getTag();
+        var tag = getCustomDataTag(stack);
         if (tag == null || !tag.contains(MODE_TAG)) {
             return null;
         }
@@ -614,7 +611,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
 
     @Nullable
     private static ResourceLocation getStoredModeId(ItemStack stack) {
-        var tag = stack.getTag();
+        var tag = getCustomDataTag(stack);
         if (tag == null || !tag.contains(MODE_TAG)) {
             return null;
         }
@@ -630,7 +627,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
 
         var currentModeId = getStoredModeId(stack);
         if (currentModeId == null) {
-            return resolvedDefinitions.get(0).schoolId();
+            return resolvedDefinitions.getFirst().schoolId();
         }
 
         for (int index = 0; index < resolvedDefinitions.size(); index++) {
@@ -640,14 +637,14 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             return index + 1 < resolvedDefinitions.size() ? resolvedDefinitions.get(index + 1).schoolId() : null;
         }
 
-        return resolvedDefinitions.get(0).schoolId();
+        return resolvedDefinitions.getFirst().schoolId();
     }
 
     private static void setMode(ItemStack stack, @Nullable ResourceLocation modeId) {
         if (modeId == null) {
             clearStoredMode(stack);
         } else {
-            stack.getOrCreateTag().putString(MODE_TAG, modeId.toString());
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString(MODE_TAG, modeId.toString()));
         }
         if (stack.getItem() instanceof ElementalBow elementalBow) {
             elementalBow.initializeSpellContainer(stack);
@@ -655,14 +652,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     }
 
     private static void clearStoredMode(ItemStack stack) {
-        var tag = stack.getTag();
-        if (tag == null) {
-            return;
-        }
-        tag.remove(MODE_TAG);
-        if (tag.isEmpty()) {
-            stack.setTag(null);
-        }
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove(MODE_TAG));
     }
 
     private Component getModeDisplayName(ItemStack stack) {
@@ -674,5 +664,27 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     }
 
     public record DisplayedSpellProfile(AbstractSpell spell, int spellLevel) {
+    }
+
+    @Nullable
+    private static CompoundTag getCustomDataTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
+    }
+
+    private static int getEnchantmentLevel(ItemStack stack, ResourceLocation enchantmentId) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        if (enchantments.isEmpty()) {
+            return 0;
+        }
+
+        for (var enchantment : enchantments.keySet()) {
+            var enchantmentKey = enchantment.unwrapKey().orElse(null);
+            if (enchantmentKey != null && enchantmentId.equals(enchantmentKey.location())) {
+                return enchantments.getLevel(enchantment);
+            }
+        }
+
+        return 0;
     }
 }

@@ -38,6 +38,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_CHEST_ARMOR = createTag("minecraft", "chest_armor");
     private static final TagKey<Item> MINECRAFT_LEG_ARMOR = createTag("minecraft", "leg_armor");
     private static final TagKey<Item> MINECRAFT_FOOT_ARMOR = createTag("minecraft", "foot_armor");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_BOW = createTag("minecraft", "enchantable/bow");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_SWORD = createTag("minecraft", "enchantable/sword");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_FIRE_ASPECT = createTag("minecraft", "enchantable/fire_aspect");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_SHARP_WEAPON = createTag("minecraft", "enchantable/sharp_weapon");
@@ -172,6 +173,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
+                ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
         tag(MINECRAFT_ENCHANTABLE_EQUIPPABLE).add(
@@ -201,8 +203,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
+                ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
+        // Elemental Bow は bow tag に参加させ、バニラ弓と同じ enchantment JSON 面を使う。
+        tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.ELEMENTAL_BOW.get());
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         malumMagicCapableWeaponTag.add(

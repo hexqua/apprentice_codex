@@ -173,6 +173,7 @@ import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.fml.ModList;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -2821,7 +2822,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            setElementalBowMode(stack, "fire");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW));
 
@@ -2841,7 +2842,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            setElementalBowMode(stack, "fire");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
 
@@ -2854,7 +2855,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(useResult.getResult().consumesAction(),
                     "Elemental Bow should start drawing when mana and ammo are available: " + useResult.getResult());
 
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 21);
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 21);
             helper.assertTrue(stack.getDamageValue() == 0, "Elemental Bow should not lose durability before full draw");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
                     "Elemental Bow should not consume arrows before full draw");
@@ -2885,7 +2886,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            setElementalBowMode(stack, "fire");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
             var magicData = MagicData.getPlayerMagicData(player);
@@ -4948,12 +4949,31 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static void assertElementalBowMode(GameTestHelper helper, ItemStack stack, String expectedMode, String message) {
-        var tag = stack.getTag();
+        var tag = getCustomDataTag(stack);
         var actualMode = tag != null && tag.contains("ElementalBowMode") ? tag.getString("ElementalBowMode") : null;
         helper.assertTrue(
-                java.util.Objects.equals(actualMode, expectedMode),
+                java.util.Objects.equals(actualMode, normalizeElementalBowModeId(expectedMode)),
                 message + ": expected " + expectedMode + " but got " + actualMode
         );
+    }
+
+    private static void setElementalBowMode(ItemStack stack, String mode) {
+        var normalizedMode = normalizeElementalBowModeId(mode);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString("ElementalBowMode", normalizedMode));
+    }
+
+    private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
+    }
+
+    private static @Nullable String normalizeElementalBowModeId(@Nullable String mode) {
+        if (mode == null || mode.isBlank()) {
+            return mode;
+        }
+        return mode.contains(":")
+                ? mode
+                : ResourceLocation.fromNamespaceAndPath("irons_spellbooks", mode).toString();
     }
 
     private static Set<ResourceLocation> collectAllowedEnchantments(

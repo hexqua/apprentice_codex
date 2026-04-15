@@ -15,12 +15,11 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ElementalBowModeManager extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = "elemental_bow_modes";
 
@@ -143,17 +142,11 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
     private static List<ResolvedEnchantmentBonus> resolveBonuses(ResourceLocation resourceId, ElementalBowModeDefinition definition) {
         var resolvedBonuses = new ArrayList<ResolvedEnchantmentBonus>(definition.enchantmentBonuses().size());
         for (var bonus : definition.enchantmentBonuses()) {
-            var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(bonus.enchantment());
-            if (enchantment == null) {
-                ApprenticeCodex.LOGGER.warn(
-                        "Elemental Bow mode {} in {} was ignored because enchantment {} could not be resolved.",
-                        definition.school(),
-                        resourceId,
-                        bonus.enchantment()
-                );
-                return null;
-            }
-            resolvedBonuses.add(new ResolvedEnchantmentBonus(bonus.enchantment(), enchantment, bonus.bonusPerLevel(), bonus.flatBonus()));
+            resolvedBonuses.add(new ResolvedEnchantmentBonus(
+                    bonus.enchantment(),
+                    bonus.bonusPerLevel(),
+                    bonus.flatBonus()
+            ));
         }
         return List.copyOf(resolvedBonuses);
     }
@@ -170,9 +163,9 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
         }
 
         public int resolveSpellLevel(ItemStack stack) {
-            var spellLevel = 1 + stack.getEnchantmentLevel(Enchantments.POWER_ARROWS);
+            var spellLevel = 1 + getEnchantmentLevel(stack, Enchantments.POWER.location());
             for (var bonus : enchantmentBonuses) {
-                var enchantmentLevel = stack.getEnchantmentLevel(bonus.enchantment());
+                var enchantmentLevel = getEnchantmentLevel(stack, bonus.enchantmentId());
                 if (enchantmentLevel <= 0) {
                     continue;
                 }
@@ -188,9 +181,19 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
 
     public record ResolvedEnchantmentBonus(
             ResourceLocation enchantmentId,
-            Enchantment enchantment,
             int bonusPerLevel,
             int flatBonus
     ) {
+    }
+
+    private static int getEnchantmentLevel(ItemStack stack, ResourceLocation enchantmentId) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        for (var enchantment : enchantments.keySet()) {
+            var key = enchantment.unwrapKey().orElse(null);
+            if (key != null && enchantmentId.equals(key.location())) {
+                return enchantments.getLevel(enchantment);
+            }
+        }
+        return 0;
     }
 }
