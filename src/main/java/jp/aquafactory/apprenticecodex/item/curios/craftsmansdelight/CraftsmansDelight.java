@@ -28,6 +28,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -99,6 +100,11 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
         for (var spellEntry : TARGET_SPELLS) {
             var spell = spellEntry.get();
+            tooltips.add(Component.literal(" - ")
+                    .append(spell.getDisplayName(null))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        }
+        for (var spell : CraftsmansDelightSpellSupport.getExternalTargetSpells()) {
             tooltips.add(Component.literal(" - ")
                     .append(spell.getDisplayName(null))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
@@ -247,6 +253,62 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         }
 
         return baseTool;
+    }
+
+    public static ItemStack createTouchDigTool(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return ItemStack.EMPTY;
+        }
+
+        return applyMiningEnchants(entity.getMainHandItem(), getEquippedStack(entity));
+    }
+
+    public static ItemStack createSpectralHammerTool(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return ItemStack.EMPTY;
+        }
+
+        var ringStack = getEquippedStack(entity);
+        if (!hasMiningEnchantments(ringStack)) {
+            return ItemStack.EMPTY;
+        }
+
+        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack);
+    }
+
+    private static ItemStack applyMiningEnchants(ItemStack baseTool, ItemStack ringStack) {
+        if (baseTool.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        var tool = baseTool.copy();
+        if (ringStack.isEmpty()) {
+            return tool;
+        }
+
+        var baseFortuneLevel = tool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
+        var ringFortuneLevel = ringStack.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
+        var hasSilkTouch = tool.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0
+                || ringStack.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0;
+        if (ringFortuneLevel <= 0 && !hasSilkTouch) {
+            return tool;
+        }
+
+        var enchantments = new HashMap<>(EnchantmentHelper.getEnchantments(tool));
+        if (hasSilkTouch) {
+            enchantments.remove(Enchantments.BLOCK_FORTUNE);
+            enchantments.put(Enchantments.SILK_TOUCH, 1);
+        } else {
+            enchantments.remove(Enchantments.SILK_TOUCH);
+            enchantments.put(Enchantments.BLOCK_FORTUNE, Math.max(baseFortuneLevel, ringFortuneLevel));
+        }
+        EnchantmentHelper.setEnchantments(enchantments, tool);
+        return tool;
+    }
+
+    private static boolean hasMiningEnchantments(ItemStack stack) {
+        return stack.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) > 0
+                || stack.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0;
     }
 
     private static ItemStack getEquippedStack(LivingEntity entity) {

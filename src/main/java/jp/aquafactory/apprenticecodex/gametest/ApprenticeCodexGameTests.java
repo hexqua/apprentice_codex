@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
@@ -12,6 +14,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
+import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
@@ -37,6 +40,10 @@ import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -107,6 +114,7 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.effect.MobEffects;
@@ -129,6 +137,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.trading.ItemCost;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Block;
@@ -151,6 +160,7 @@ import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -3485,6 +3495,140 @@ public final class ApprenticeCodexGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
+            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var touchDigSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get();
+            var spectralHammerSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPECTRAL_HAMMER_SPELL.get();
+
+            var touchDigManaEvent = new SpellOnCastEvent(
+                    player,
+                    CraftsmansDelightSpellSupport.TOUCH_DIG_SPELL_ID,
+                    1,
+                    15,
+                    touchDigSpell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            CraftsmansDelightManaCostDiscountEvent.onSpellCast(touchDigManaEvent);
+            helper.assertTrue(touchDigManaEvent.getManaCost() == 8,
+                    "CraftsmansDelight should halve Touch Dig mana to 8 but got " + touchDigManaEvent.getManaCost());
+            var expectedTouchDigBaseCooldown = Math.max(1, touchDigSpell.getSpellCooldown() / 3);
+            helper.assertTrue(CraftsmansDelight.applyCooldownDiscount(touchDigSpell.getSpellCooldown(), player) == expectedTouchDigBaseCooldown,
+                    "CraftsmansDelight should reduce Touch Dig base cooldown to one third before player modifiers");
+
+            var touchDigCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    10,
+                    touchDigSpell,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(touchDigCooldownEvent);
+            helper.assertTrue(touchDigCooldownEvent.getEffectiveCooldown()
+                            == CraftsmansDelight.getReducedEffectiveCooldown(touchDigSpell, player, CastSource.SPELLBOOK),
+                    "CraftsmansDelight should route Touch Dig cooldown through the reduced cooldown helper");
+
+            var spectralHammerManaEvent = new SpellOnCastEvent(
+                    player,
+                    CraftsmansDelightSpellSupport.SPECTRAL_HAMMER_SPELL_ID,
+                    1,
+                    15,
+                    spectralHammerSpell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            CraftsmansDelightManaCostDiscountEvent.onSpellCast(spectralHammerManaEvent);
+            helper.assertTrue(spectralHammerManaEvent.getManaCost() == 8,
+                    "CraftsmansDelight should halve Spectral Hammer mana to 8 but got " + spectralHammerManaEvent.getManaCost());
+            var expectedSpectralHammerBaseCooldown = Math.max(1, spectralHammerSpell.getSpellCooldown() / 3);
+            helper.assertTrue(CraftsmansDelight.applyCooldownDiscount(spectralHammerSpell.getSpellCooldown(), player) == expectedSpectralHammerBaseCooldown,
+                    "CraftsmansDelight should reduce Spectral Hammer base cooldown to one third before player modifiers");
+
+            var spectralHammerCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    40,
+                    spectralHammerSpell,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(spectralHammerCooldownEvent);
+            helper.assertTrue(spectralHammerCooldownEvent.getEffectiveCooldown()
+                            == CraftsmansDelight.getReducedEffectiveCooldown(spectralHammerSpell, player, CastSource.SPELLBOOK),
+                    "CraftsmansDelight should route Spectral Hammer cooldown through the reduced cooldown helper");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_ring_enchant_merge_test");
+            var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
+            heldTool.enchant(Enchantments.BLOCK_FORTUNE, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
+
+            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(Enchantments.BLOCK_FORTUNE, 3);
+            equipCraftsmansDelight(player, ringStack);
+
+            var mergedFortuneTool = CraftsmansDelight.createTouchDigTool(player);
+            helper.assertTrue(mergedFortuneTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 3,
+                    "Touch Dig should prefer the higher Fortune level from the ring");
+
+            ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
+            equipCraftsmansDelight(player, ringStack);
+
+            var mergedSilkTool = CraftsmansDelight.createTouchDigTool(player);
+            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
+                    "Touch Dig should inherit Silk Touch from the ring");
+            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 0,
+                    "Touch Dig should drop Fortune when Silk Touch is present");
+
+            var blockPos = helper.absolutePos(new BlockPos(0, 2, 1));
+            helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
+            invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
+
+            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(blockPos).inflate(1.5D));
+            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
+                    "Touch Dig with ring Silk Touch should drop stone");
+            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
+                    "Touch Dig with ring Silk Touch should not drop cobblestone");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spectral_hammer_ring_enchant_test");
+            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
+            equipCraftsmansDelight(player, ringStack);
+
+            var targetPos = helper.absolutePos(new BlockPos(0, 2, 2));
+            helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
+
+            var hammer = new SpectralHammer(
+                    helper.getLevel(),
+                    player,
+                    new BlockHitResult(Vec3.atCenterOf(targetPos), Direction.NORTH, targetPos, false),
+                    0,
+                    1
+            );
+            var hammerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 1)));
+            hammer.setPos(hammerPos.x, hammerPos.y, hammerPos.z);
+            helper.getLevel().addFreshEntity(hammer);
+
+            for (var tick = 0; tick < 20 && !hammer.isRemoved(); tick++) {
+                hammer.tick();
+            }
+
+            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(targetPos).inflate(2.0D));
+            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
+                    "Spectral Hammer with ring Silk Touch should drop stone");
+            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
+                    "Spectral Hammer with ring Silk Touch should not drop cobblestone");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
@@ -3786,6 +3930,30 @@ public final class ApprenticeCodexGameTests {
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
         return player;
+    }
+
+    private static FakePlayer createCraftsmansDelightPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static void equipCraftsmansDelight(FakePlayer player, ItemStack ringStack) {
+        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for CraftsmansDelight test"));
+        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, 0, ringStack);
+    }
+
+    private static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {
+        try {
+            var method = TouchDigSpell.class.getDeclaredMethod("doDestroyBlock", Level.class, BlockPos.class, net.minecraft.world.entity.LivingEntity.class);
+            method.setAccessible(true);
+            method.invoke(spell, level, pos, player);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to invoke Touch Dig destroy helper for GameTest", exception);
+        }
     }
 
     private static FakePlayer createSpellDispenserPlacer(GameTestHelper helper, BlockPos pos, String profileName) {

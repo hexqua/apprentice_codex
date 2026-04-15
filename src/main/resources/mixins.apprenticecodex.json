@@ -23,8 +23,10 @@
     "MerchantMenuMixin",
     "PotionFluidTypeMixin",
     "SinglePoolElementAccessor",
+    "SpectralHammerMixin",
     "StructureTemplatePoolAccessor",
-    "SchoolTypeAccessor"
+    "SchoolTypeAccessor",
+    "TouchDigSpellMixin"
   ],
   "client": [
     "ArcaneAnvilJeiRecipeMixin",
