@@ -169,8 +169,6 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.fml.ModList;
@@ -190,9 +188,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-@GameTestHolder(ApprenticeCodex.MODID)
-@PrefixGameTestTemplate(false)
-public final class ApprenticeCodexGameTests {
+public final class ApprenticeCodexGameTestScenarios {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String CREATE_GAMETEST_HOOKS_CLASS =
             "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
@@ -229,7 +225,7 @@ public final class ApprenticeCodexGameTests {
     private static final ResourceLocation MALUM_ANIMATED =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "animated");
 
-    private ApprenticeCodexGameTests() {
+    private ApprenticeCodexGameTestScenarios() {
     }
 
     @GameTest(template = TEMPLATE)
@@ -1708,7 +1704,7 @@ public final class ApprenticeCodexGameTests {
     public static void creativeTabSpellsStayGroupedBySchool(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var apprenticeEnabledSpells = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells().stream()
-                    .filter(ApprenticeCodexGameTests::isApprenticeSpell)
+                    .filter(ApprenticeCodexGameTestScenarios::isApprenticeSpell)
                     .toList();
             var creativeTabSpells = CreativeTabRegistry.getCreativeTabSpells();
 
