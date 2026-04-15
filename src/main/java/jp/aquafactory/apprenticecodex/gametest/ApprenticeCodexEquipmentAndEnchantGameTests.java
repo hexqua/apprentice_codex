@@ -175,6 +175,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowKeepsVanillaBowEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowCyclesModesWhenSneakUsed(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowCyclesModesWhenSneakUsed(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowRequiresManaBeforeStartingElementalDraw(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowDoesNotConsumeResourcesBeforeFullDraw(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowInfinityAllowsVanillaDrawWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSuppressesElementalArrowCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.reflectcastShieldKeepsExpectedEnchantmentSurfaces(helper);
     }

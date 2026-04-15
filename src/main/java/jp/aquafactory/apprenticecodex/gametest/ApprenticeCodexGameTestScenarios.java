@@ -34,6 +34,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -93,6 +94,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.PoiTypeTags;
@@ -3263,6 +3265,243 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            var expectedEnchantments = expectedElementalBowEnchantments();
+            var expectedBookEnchantments = expectedElementalBowBookEnchantments();
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantments,
+                    expectedBookEnchantments,
+                    expectedEnchantments,
+                    "Elemental Bow"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowCyclesModesWhenSneakUsed(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mode_cycle_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.setShiftKeyDown(true);
+
+            assertElementalBowMode(helper, stack, null, "Elemental Bow should start in vanilla mode");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowMode(helper, stack, "fire", "Elemental Bow should switch to Fire first");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowMode(helper, stack, "ender", "Elemental Bow should switch to Ender second");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowMode(helper, stack, "nature", "Elemental Bow should switch to Nature third");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowMode(helper, stack, null, "Elemental Bow should return to vanilla mode after Nature");
+            helper.assertFalse(player.isUsingItem(), "Sneak mode switching should not start drawing the bow");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow mana gate test could not resolve player mana data");
+            magicData.setMana(0.0F);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow should fail to start drawing when mana is insufficient: " + result.getResult());
+            helper.assertFalse(player.isUsingItem(), "Elemental Bow should not enter use state without enough mana");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            item.initializeSpellContainer(stack);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Elemental Bow should expose a spell container outside NONE mode");
+            assertSpellData(
+                    helper,
+                    spellContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    1,
+                    true,
+                    "Elemental Bow should sync Fire mode into a locked spell container"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.enchant(Enchantments.POWER_ARROWS, 2);
+            stack.enchant(Enchantments.FLAMING_ARROWS, 1);
+
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            item.initializeSpellContainer(stack);
+            var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(fireProfile != null, "Elemental Bow should expose a displayed spell profile in Fire mode");
+            helper.assertTrue(fireProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    "Elemental Bow Fire mode should resolve Fire Arrow");
+            helper.assertTrue(fireProfile.spellLevel() == 5,
+                    "Elemental Bow Fire mode should apply POWER II + FLAME I to level 5 but got " + fireProfile.spellLevel());
+            var fireContainer = ISpellContainer.get(stack);
+            helper.assertTrue(fireContainer != null, "Elemental Bow Fire mode should keep a synced spell container");
+            assertSpellData(
+                    helper,
+                    fireContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    5,
+                    true,
+                    "Elemental Bow Fire mode container should reflect POWER and FLAME"
+            );
+
+            stack.getOrCreateTag().putString("ElementalBowMode", "ender");
+            item.initializeSpellContainer(stack);
+            var enderProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(enderProfile != null, "Elemental Bow should expose a displayed spell profile in Ender mode");
+            helper.assertTrue(enderProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                    "Elemental Bow Ender mode should resolve Magic Arrow");
+            helper.assertTrue(enderProfile.spellLevel() == 3,
+                    "Elemental Bow Ender mode should apply only POWER II to level 3 but got " + enderProfile.spellLevel());
+            var enderContainer = ISpellContainer.get(stack);
+            helper.assertTrue(enderContainer != null, "Elemental Bow Ender mode should keep a synced spell container");
+            assertSpellData(
+                    helper,
+                    enderContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                    3,
+                    true,
+                    "Elemental Bow Ender mode container should ignore FLAME"
+            );
+
+            stack.getOrCreateTag().remove("ElementalBowMode");
+            item.initializeSpellContainer(stack);
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should remove its spell container in NONE mode");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    "Elemental Bow should reject Arcane Anvil spell imbuing regardless of scroll spell"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var message = ElementalBow.createInsufficientManaMessage(
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    null
+            );
+            assertTranslatableKey(
+                    helper,
+                    message,
+                    "ui.irons_spellbooks.cast_error_mana",
+                    "Elemental Bow mana error should use Iron's cast_error_mana key"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow partial release test could not resolve player mana data");
+            magicData.setMana(250.0F);
+            var initialMana = magicData.getMana();
+
+            var useResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(useResult.getResult().consumesAction(),
+                    "Elemental Bow should start drawing when mana and ammo are available: " + useResult.getResult());
+
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 21);
+            helper.assertTrue(stack.getDamageValue() == 0, "Elemental Bow should not lose durability before full draw");
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow should not consume arrows before full draw");
+            helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
+                    "Elemental Bow should not consume mana before full draw: " + magicData.getMana());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow should start vanilla draw with Infinity even without arrows: " + result.getResult());
+            helper.assertTrue(player.isUsingItem(), "Elemental Bow should enter use state for Infinity vanilla draw");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow cooldown test could not resolve player mana data");
+            magicData.setPlayerCastingItem(stack.copy());
+
+            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(160, fireArrow, player, CastSource.SWORD);
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
+                    "Elemental Bow should suppress elemental arrow cooldowns but got " + cooldownEvent.getEffectiveCooldown());
+
+            var controlEvent = new SpellCooldownAddedEvent.Pre(
+                    160,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get(),
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(controlEvent);
+            helper.assertTrue(controlEvent.getEffectiveCooldown() == 160,
+                    "Elemental Bow cooldown suppression should not affect unrelated spells");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
@@ -4664,6 +4903,22 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    private static Set<ResourceLocation> expectedElementalBowEnchantments() {
+        var bowStack = new ItemStack(Items.BOW);
+        return collectAllowedEnchantments(
+                bowStack,
+                enchantment -> Items.BOW.canApplyAtEnchantingTable(bowStack, enchantment)
+        );
+    }
+
+    private static Set<ResourceLocation> expectedElementalBowBookEnchantments() {
+        var bowStack = new ItemStack(Items.BOW);
+        return collectAllowedEnchantments(
+                bowStack,
+                enchantment -> Items.BOW.isBookEnchantable(bowStack, createEnchantedBook(enchantment))
+        );
+    }
+
     private static Set<ResourceLocation> expectedFlaskEnchantments() {
         return registryIdSet(
                 EnchantmentRegistry.GUZZLE,
@@ -4748,6 +5003,25 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static Set<ResourceLocation> allRegisteredEnchantmentIds() {
         return collectAllowedEnchantments(ItemStack.EMPTY, enchantment -> true);
+    }
+
+    private static void assertElementalBowMode(GameTestHelper helper, ItemStack stack, String expectedMode, String message) {
+        var tag = stack.getTag();
+        var actualMode = tag != null && tag.contains("ElementalBowMode") ? tag.getString("ElementalBowMode") : null;
+        helper.assertTrue(
+                java.util.Objects.equals(actualMode, expectedMode),
+                message + ": expected " + expectedMode + " but got " + actualMode
+        );
+    }
+
+    private static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
+        var contents = component.getContents();
+        helper.assertTrue(contents instanceof TranslatableContents,
+                message + " (component was not translatable: " + component + ")");
+        if (contents instanceof TranslatableContents translatableContents) {
+            helper.assertTrue(expectedKey.equals(translatableContents.getKey()),
+                    message + " (expected=" + expectedKey + ", actual=" + translatableContents.getKey() + ")");
+        }
     }
 
     private static Set<ResourceLocation> collectAllowedEnchantments(
