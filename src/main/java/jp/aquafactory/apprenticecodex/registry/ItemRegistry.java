@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.AtelierStationItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
@@ -236,6 +237,8 @@ public final class ItemRegistry {
             ITEMS.register("illuminate_stellar_staff", IlluminateStellarStaff::new);
     public static final DeferredHolder<Item, Item> UNITE_LUNA_STAFF =
             ITEMS.register("unite_luna_staff", UniteLunaStaff::new);
+    public static final DeferredHolder<Item, Item> ELEMENTAL_BOW =
+            ITEMS.register("elemental_bow", ElementalBow::new);
     public static final DeferredHolder<Item, Item> REFLECTCAST_SHIELD =
             ITEMS.register("reflectcast_shield", ReflectcastShield::new);
 }
