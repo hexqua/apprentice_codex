@@ -21,28 +21,38 @@
 - 主要依存 MOD: Iron's Spells 'n Spellbooks（1.21.1-3.15.4）, Curios（9.5.1+1.21.1）, GeckoLib（4.8.3）
 - セットアップ手順:
 1. 64bit の Java 21 をインストールし、`java -version` で確認する。
-2. 既定の Java が 21 以外の場合は、ビルド実行前に一時的に `JAVA_HOME` を切り替える。
-3. `./gradlew.bat --version` を実行し、JVM が Java 21 であることを確認する。
-4. 必要に応じて IDE の Gradle プロジェクト再読み込みを実施する。
+2. ユーザー環境変数 `JDK21_HOME` を設定する。`main`（1.20.1）も触る場合は `JDK17_HOME` も設定する。
+3. PowerShell では `.\scripts\use-java.ps1` を実行して `JAVA_HOME` を切り替える。`JDKxx_HOME` が未設定でも `%USERPROFILE%\.jdks` と `%USERPROFILE%\.gradle\jdks` は自動検出される。
+4. `./gradlew.bat --version` を実行し、Launcher/Daemon JVM が Java 21 であることを確認する。
+5. 必要に応じて IDE の Gradle プロジェクト再読み込みを実施する。
 
 ## 3. 実行コマンド
-- PowerShell で Java 21 を一時適用（必要な場合）:
+- ユーザー環境変数の設定例（ローカル設定、リポジトリへはコミットしない）:
 ```powershell
-# 必須: <<REPLACE_WITH_YOUR_JDK21_PATH>> を実際の JDK 21 パスに置換する
-$env:JAVA_HOME='<<REPLACE_WITH_YOUR_JDK21_PATH>>'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
-java -version
+setx JDK17_HOME "%USERPROFILE%\.jdks\ms-17.0.16"
+setx JDK21_HOME "%USERPROFILE%\.jdks\ms-21.0.10"
+```
+- PowerShell で Java 21 を一時適用:
+```powershell
+.\scripts\use-java.ps1
+```
+- PowerShell で Java 17 を一時適用（`main` / 1.20.1 作業用）:
+```powershell
+.\scripts\use-java.ps1 -Version 17
 ```
 - ビルド（通常確認）:
 ```powershell
+.\scripts\use-java.ps1
 ./gradlew.bat build
 ```
 - クリーンビルド（必要時のみ）:
 ```powershell
+.\scripts\use-java.ps1
 ./gradlew.bat clean build
 ```
 - Datagen 再生成:
 ```powershell
+.\scripts\use-java.ps1
 ./gradlew.bat runData
 ```
 - jar 出力確認:
@@ -53,12 +63,16 @@ Get-ChildItem build\libs\*.jar
 `build\libs\apprentice_codex-<mod_version>+mc<minecraft_version>.jar`
 - 起動（開発クライアント）:
 ```powershell
+.\scripts\use-java.ps1
 ./gradlew.bat runClient
 ```
 - 結合テスト（GameTest サーバー）:
 ```powershell
+.\scripts\use-java.ps1
 ./gradlew.bat runGameTestServer
 ```
+- 注記: `scripts/use-java.ps1` は Windows のローカル開発用。CI の Java 設定は workflow 側で別管理する。
+- 注記: `scripts/use-java.ps1 -StopGradleDaemons` を使うと、切替前 JVM を掴んだ Gradle daemon を止めてから `--version` を確認できる。
 - 注記: `runClient` は GUI（Minecraft クライアント）を起動するため、CI やヘッドレス環境では実行しない。
 - 注記: `runGameTestServer` はサーバー側の登録・データ読込・レシピ・生成まわりの結合テストに使う。GUI を必要としないため、ヘッドレス環境でも実行しやすい。
 - 注記: `runGameTestServer` では renderer / screen など client 専用の起動不良は検知できないため、その確認は別途 `runClient` で行う。
