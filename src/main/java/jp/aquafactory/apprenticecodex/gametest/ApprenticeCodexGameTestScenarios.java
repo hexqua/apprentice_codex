@@ -179,9 +179,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-@GameTestHolder(ApprenticeCodex.MODID)
-@PrefixGameTestTemplate(false)
-public final class ApprenticeCodexGameTests {
+public final class ApprenticeCodexGameTestScenarios {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String CREATE_GAMETEST_HOOKS_CLASS =
             "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
@@ -207,7 +205,7 @@ public final class ApprenticeCodexGameTests {
     private static final ResourceLocation MALUM_ANIMATED = MalumHauntedCompat.animatedEnchantmentId();
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
 
-    private ApprenticeCodexGameTests() {
+    private ApprenticeCodexGameTestScenarios() {
     }
 
     @GameTest(template = TEMPLATE)
@@ -1991,7 +1989,7 @@ public final class ApprenticeCodexGameTests {
     public static void creativeTabSpellsStayGroupedBySchool(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var apprenticeEnabledSpells = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells().stream()
-                    .filter(ApprenticeCodexGameTests::isApprenticeSpell)
+                    .filter(ApprenticeCodexGameTestScenarios::isApprenticeSpell)
                     .toList();
             var creativeTabSpells = CreativeTabRegistry.getCreativeTabSpells();
 
@@ -2836,7 +2834,7 @@ public final class ApprenticeCodexGameTests {
                 helper,
                 "Spell Gun",
                 item -> item instanceof AbstractSpellGunItem,
-                ApprenticeCodexGameTests::expectedSpellGunEnchantments
+                ApprenticeCodexGameTestScenarios::expectedSpellGunEnchantments
         ));
     }
 
@@ -3232,7 +3230,7 @@ public final class ApprenticeCodexGameTests {
                 // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
                 // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
                 item -> item instanceof AbstractRightClickMagicWeaponItem,
-                ApprenticeCodexGameTests::expectedRightClickMagicWeaponEnchantments
+                ApprenticeCodexGameTestScenarios::expectedRightClickMagicWeaponEnchantments
         ));
     }
 
@@ -3330,13 +3328,13 @@ public final class ApprenticeCodexGameTests {
                     helper,
                     "Enchantress Robe",
                     item -> item instanceof EnchantressRobeItem,
-                    ApprenticeCodexGameTests::expectedEnchantressRobeEnchantments
+                    ApprenticeCodexGameTestScenarios::expectedEnchantressRobeEnchantments
             );
             assertCategoryEnchantments(
                     helper,
                     "Stealth Rune Armor",
                     item -> item instanceof StealthRuneArmorItem,
-                    ApprenticeCodexGameTests::expectedStealthRuneArmorEnchantments
+                    ApprenticeCodexGameTestScenarios::expectedStealthRuneArmorEnchantments
             );
         });
     }
