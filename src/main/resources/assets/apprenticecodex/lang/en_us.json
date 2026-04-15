@@ -415,7 +415,6 @@
   "ui.apprenticecodex.search_beacon.addition_distance": "Additional search distance: %d blocks/item",
   "ui.apprenticecodex.tamers_pocket.current_count": "Current contained pet count: %d",
   "ui.apprenticecodex.extract.amplify_level": "Amplify Potion Effect: +%d",
-  "ui.apprenticecodex.elemental_bow.mode_switched": "Elemental Bow mode: %s",
 
   "ui.apprenticecodex.cant_place": "Can't place here",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
@@ -467,6 +466,11 @@
   "ui.apprenticecodex.extract.no_flask": "Require Alchemist's Flask in your hand",
   "ui.apprenticecodex.extract.empty_flask": "Alchemist's Flask is empty!",
   "ui.apprenticecodex.extract.effect_use": "%s to use",
+
+  "ui.apprenticecodex.elemental_bow.mode_switched": "Switched Elemental Bow's circuit mode : %s",
+  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "The magitech circuit is overheating, increasing mana cost to %s!",
+  "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "The magitech circuit is overheating, pushing mana cost to %s, and your current mana is not enough!",
+  "ui.apprenticecodex.elemental_bow.cooling_complete": "The %s circuit has finished cooling...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

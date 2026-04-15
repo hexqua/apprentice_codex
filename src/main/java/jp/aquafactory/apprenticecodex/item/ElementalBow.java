@@ -7,14 +7,18 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -45,6 +49,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     private static final float MANA_SAFE_MARGIN = 0.001F;
     private static final float PARTICLE_SIZE = 0.12F;
     private static final int PARTICLE_WHITEN_TICKS = 2;
+    private static final int OVERHEAT_WARNING_INTERVAL_TICKS = 10;
 
     public ElementalBow() {
         super(new Properties().durability(384));
@@ -105,9 +110,18 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         var requiredMana = profile.spell().getManaCost(profile.spellLevel());
         if (!player.getAbilities().instabuild) {
             var magicData = MagicData.getPlayerMagicData(player);
-            if (magicData == null || magicData.getMana() + MANA_SAFE_MARGIN < requiredMana) {
+            var extraMana = level.isClientSide
+                    ? 0.0F
+                    : getAdditionalManaCost(player, mode, profile);
+            var totalRequiredMana = requiredMana + extraMana;
+            if (magicData == null || magicData.getMana() + MANA_SAFE_MARGIN < totalRequiredMana) {
                 if (!level.isClientSide) {
-                    player.displayClientMessage(createInsufficientManaMessage(profile.spell(), player), true);
+                    player.displayClientMessage(
+                            extraMana > MANA_SAFE_MARGIN
+                                    ? createOverheatInsufficientManaMessage(totalRequiredMana)
+                                    : createInsufficientManaMessage(profile.spell(), player),
+                            true
+                    );
                 }
                 return InteractionResultHolder.fail(stack);
             }
@@ -118,6 +132,9 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             return nockResult;
         }
 
+        if (!level.isClientSide && !player.getAbilities().instabuild) {
+            displayOverheatManaWarning(player, stack, mode);
+        }
         player.startUsingItem(usedHand);
         return InteractionResultHolder.consume(stack);
     }
@@ -159,11 +176,39 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
         initializeSpellContainer(stack);
+        if (level.isClientSide || !(entity instanceof Player player)) {
+            return;
+        }
+
+        if (!isHeldElementalBow(player.getMainHandItem()) && !isHeldElementalBow(player.getOffhandItem())) {
+            ElementalBowOverheatManager.clearObservedSchools(player);
+            return;
+        }
+
+        var notificationStack = isHeldElementalBow(player.getMainHandItem()) ? player.getMainHandItem() : player.getOffhandItem();
+        if (stack != notificationStack) {
+            return;
+        }
+
+        for (var cooledSchoolId : ElementalBowOverheatManager.collectCooledSchoolsWhileHolding(player)) {
+            player.displayClientMessage(
+                    Component.translatable(
+                                    "ui.apprenticecodex.elemental_bow.cooling_complete",
+                                    resolveSchoolDisplayName(cooledSchoolId)
+                            )
+                            .withStyle(ChatFormatting.AQUA),
+                    true
+            );
+        }
     }
 
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity entity, @NotNull ItemStack stack, int remainingUseDuration) {
         if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        if (!(entity instanceof Player player)) {
             return;
         }
 
@@ -173,7 +218,14 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         }
 
         var drawDuration = getUseDuration(stack) - remainingUseDuration;
-        if (drawDuration <= 0 || drawDuration >= READY_DRAW_TICKS || drawDuration % 2 != 0) {
+        if (drawDuration <= 0 || drawDuration >= READY_DRAW_TICKS) {
+            return;
+        }
+
+        if (!player.getAbilities().instabuild && (drawDuration == 1 || drawDuration % OVERHEAT_WARNING_INTERVAL_TICKS == 0)) {
+            displayOverheatManaWarning(player, stack, mode);
+        }
+        if (drawDuration % 2 != 0) {
             return;
         }
 
@@ -265,15 +317,35 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
 
             var magicData = MagicData.getPlayerMagicData(player);
             var requiredMana = profile.spell().getManaCost(profile.spellLevel());
-            if (magicData == null || magicData.getMana() + MANA_SAFE_MARGIN < requiredMana) {
-                player.displayClientMessage(createInsufficientManaMessage(profile.spell(), player), true);
+            var extraMana = getAdditionalManaCost(player, mode, profile);
+            var totalRequiredMana = requiredMana + extraMana;
+            if (magicData == null || magicData.getMana() + MANA_SAFE_MARGIN < totalRequiredMana) {
+                player.displayClientMessage(
+                        extraMana > MANA_SAFE_MARGIN
+                                ? createOverheatInsufficientManaMessage(totalRequiredMana)
+                                : createInsufficientManaMessage(profile.spell(), player),
+                        true
+                );
                 return;
             }
         }
 
+        ElementalBowOverheatManager.clearPendingCooldown(player, mode.schoolId());
+        var overheatMana = player.getAbilities().instabuild
+                ? 0.0F
+                : getAdditionalManaCost(player, mode, profile);
         if (!castElementalSpell(player, stack, profile)) {
             return;
         }
+
+        if (overheatMana > 0.0F) {
+            consumeAdditionalMana(player, overheatMana);
+        }
+        ElementalBowOverheatManager.applyOverheatAfterCast(
+                player,
+                mode.schoolId(),
+                ElementalBowOverheatManager.consumePendingCooldown(player, mode.schoolId(), profile.spell().getSpellCooldown())
+        );
 
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
@@ -427,8 +499,26 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         return new DisplayedSpellProfile(profile.spell(), profile.spellLevel());
     }
 
+    @Nullable
+    public static ResourceLocation getConfiguredSchoolId(ItemStack stack) {
+        if (!(stack.getItem() instanceof ElementalBow elementalBow)) {
+            return null;
+        }
+
+        var mode = elementalBow.resolveConfiguredMode(stack);
+        return mode != null ? mode.schoolId() : null;
+    }
+
     public static Component createInsufficientManaMessage(AbstractSpell spell, @Nullable Player caster) {
         return Component.translatable("ui.irons_spellbooks.cast_error_mana", spell.getDisplayName(caster))
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createOverheatInsufficientManaMessage(float manaCost) {
+        return Component.translatable(
+                        "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana",
+                        formatDisplayedOverheatManaCost(manaCost)
+                )
                 .withStyle(ChatFormatting.RED);
     }
 
@@ -442,6 +532,58 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
 
     private void consumeAmmo(Player player, ItemStack ammoStack) {
         ammoStack.shrink(1);
+    }
+
+    private float getAdditionalManaCost(Player player, ResolvedDefinition mode, SpellCastProfile profile) {
+        return ElementalBowOverheatManager.getAdditionalManaCost(player, mode.schoolId(), profile.spell().getManaCost(profile.spellLevel()));
+    }
+
+    private void displayOverheatManaWarning(Player player, ItemStack stack, ResolvedDefinition mode) {
+        var profile = resolveSpellProfile(stack, mode);
+        if (profile == null) {
+            return;
+        }
+
+        var extraMana = getAdditionalManaCost(player, mode, profile);
+        if (extraMana <= MANA_SAFE_MARGIN) {
+            return;
+        }
+
+        player.displayClientMessage(
+                Component.translatable(
+                                "ui.apprenticecodex.elemental_bow.overheat_mana_warning",
+                                formatDisplayedOverheatManaCost(profile.spell().getManaCost(profile.spellLevel()) + extraMana)
+                        )
+                        .withStyle(ChatFormatting.YELLOW),
+                true
+        );
+    }
+
+    private void consumeAdditionalMana(Player player, float manaCost) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || manaCost <= 0.0F) {
+            return;
+        }
+
+        magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));
+        if (player instanceof ServerPlayer serverPlayer) {
+            // overheat 分は通常の詠唱消費から外して後段で引いているため、
+            // client のマナ HUD もここで即座に同期して違和感を残さない。
+            PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
+        }
+    }
+
+    private static boolean isHeldElementalBow(ItemStack stack) {
+        return stack.getItem() instanceof ElementalBow;
+    }
+
+    private static int formatDisplayedOverheatManaCost(float manaCost) {
+        return (int) Math.ceil(manaCost - MANA_SAFE_MARGIN);
+    }
+
+    private static Component resolveSchoolDisplayName(ResourceLocation schoolId) {
+        var mode = ElementalBowModeManager.getResolvedDefinition(schoolId);
+        return mode != null ? mode.schoolType().getDisplayName() : Component.literal(schoolId.toString());
     }
 
     private static boolean hasInfinity(ItemStack stack) {
