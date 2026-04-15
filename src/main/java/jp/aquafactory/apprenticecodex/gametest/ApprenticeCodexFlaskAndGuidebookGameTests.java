@@ -1,0 +1,101 @@
+package jp.aquafactory.apprenticecodex.gametest;
+
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+
+@GameTestHolder(ApprenticeCodex.MODID)
+@PrefixGameTestTemplate(false)
+public final class ApprenticeCodexFlaskAndGuidebookGameTests {
+    private static final String TEMPLATE = "gametest/basic_floor";
+
+    private ApprenticeCodexFlaskAndGuidebookGameTests() {
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskRejectsSplashAndLingeringPotions(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcastersFlaskRejectsSplashAndLingeringPotions(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskDrinkingLastDoseClearsStoredItem(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcastersFlaskDrinkingLastDoseClearsStoredItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskDrinkingGlowEnergyTradesDurationForAmplifier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcastersFlaskDrinkingGlowEnergyTradesDurationForAmplifier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskBatchExtractionClearsStoredItemAtZero(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcastersFlaskBatchExtractionClearsStoredItemAtZero(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskExtractRecipeClearsStoredItemWhenEmpty(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcastersFlaskExtractRecipeClearsStoredItemWhenEmpty(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskStartsWithExtractAndNoSpellWheel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskStartsWithExtractAndNoSpellWheel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskAllowsInstantLongAndContinuousImbues(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskAllowsInstantLongAndContinuousImbues(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskUsesDoubleCapacityAndExtractRecipeSupportsSplashPotion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskUsesDoubleCapacityAndExtractRecipeSupportsSplashPotion(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void extractPreCastUsesFirstFilledFlaskAcrossHands(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.extractPreCastUsesFirstFilledFlaskAcrossHands(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void extractPreCastFailsWithoutFilledAlchemistsFlask(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.extractPreCastFailsWithoutFilledAlchemistsFlask(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void extractCastConsumesDoseAndSpawnsExpectedPotionProjectile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.extractCastConsumesDoseAndSpawnsExpectedPotionProjectile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void extractThrownPotionRespectsGlowRedEnergyAndAmplify(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.extractThrownPotionRespectsGlowRedEnergyAndAmplify(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void isekaiTravelGuidebookStartsWithTwoFixedSpellsAndNoAttributes(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.isekaiTravelGuidebookStartsWithTwoFixedSpellsAndNoAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void explorersCodexGuidebookTransferRecipeIgnoresDuplicateGuidebookSpell(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.explorersCodexGuidebookTransferRecipeIgnoresDuplicateGuidebookSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void explorersCodexGuidebookTransferRecipeRejectsSpellSlotOverflow(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.explorersCodexGuidebookTransferRecipeRejectsSpellSlotOverflow(helper);
+    }
+}
