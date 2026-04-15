@@ -3648,6 +3648,39 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_bare_hand_ring_enchant_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(silkTouch, 1);
+            equipCraftsmansDelight(player, ringStack);
+
+            var synthesizedTool = CraftsmansDelight.createTouchDigTool(player);
+            helper.assertFalse(synthesizedTool.isEmpty(),
+                    "Touch Dig should synthesize a mining tool when the caster is bare-handed but the ring has mining enchantments");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
+                            synthesizedTool,
+                            net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
+                    ) == 1,
+                    "Touch Dig should copy Silk Touch onto the synthesized bare-hand tool");
+
+            var blockPos = helper.absolutePos(new BlockPos(0, 2, 2));
+            helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
+            invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
+
+            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(blockPos).inflate(1.5D));
+            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
+                    "Bare-hand Touch Dig with ring Silk Touch should drop stone");
+            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
+                    "Bare-hand Touch Dig with ring Silk Touch should not drop cobblestone");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
