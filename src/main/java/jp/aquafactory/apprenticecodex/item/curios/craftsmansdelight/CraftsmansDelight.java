@@ -47,6 +47,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
     private static final int COOLDOWN_DIVISOR = 3;
+    private static final int TOUCH_DIG_RANGE_BLOCKS = 8;
+    private static final int TOUCH_DIG_RANGE_WITH_BONUS_BLOCKS = 16;
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
@@ -204,6 +206,14 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         }
 
         return Math.max(1, baseCooldown / COOLDOWN_DIVISOR);
+    }
+
+    public static int getTouchDigRangeBlocks(@Nullable LivingEntity entity) {
+        return isEquippedBy(entity) ? TOUCH_DIG_RANGE_WITH_BONUS_BLOCKS : TOUCH_DIG_RANGE_BLOCKS;
+    }
+
+    public static double getTouchDigRange(@Nullable LivingEntity entity) {
+        return getTouchDigRangeBlocks(entity);
     }
 
     public static int getReducedEffectiveCooldown(AbstractSpell spell, @Nullable LivingEntity entity, CastSource castSource) {
