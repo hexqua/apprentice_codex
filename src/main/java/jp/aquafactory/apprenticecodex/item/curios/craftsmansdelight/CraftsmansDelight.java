@@ -177,9 +177,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return false;
         }
 
-        return CuriosApi.getCuriosInventory(entity)
-                .map(inventory -> inventory.isEquipped(ItemRegistry.CRAFTSMANS_DELIGHT.get()))
-                .orElse(false);
+        return !getEquippedStack(entity).isEmpty();
     }
 
     public static float applyBreakSpeedBonus(float breakSpeed, @Nullable LivingEntity entity) {
@@ -270,7 +268,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return ItemStack.EMPTY;
         }
 
-        return applyMiningEnchants(entity.getMainHandItem(), getEquippedStack(entity));
+        return applyMiningEnchants(entity.getMainHandItem(), getEquippedStack(entity), entity);
     }
 
     public static ItemStack createSpectralHammerTool(@Nullable LivingEntity entity) {
@@ -283,10 +281,10 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return ItemStack.EMPTY;
         }
 
-        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack);
+        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack, entity);
     }
 
-    private static ItemStack applyMiningEnchants(ItemStack baseTool, ItemStack ringStack) {
+    private static ItemStack applyMiningEnchants(ItemStack baseTool, ItemStack ringStack, @Nullable LivingEntity entity) {
         if (baseTool.isEmpty()) {
             return ItemStack.EMPTY;
         }
@@ -296,36 +294,70 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             return tool;
         }
 
-        var baseFortuneLevel = tool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
-        var ringFortuneLevel = ringStack.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE);
-        var hasSilkTouch = tool.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0
-                || ringStack.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0;
+        var baseFortuneLevel = getFortuneLevel(tool);
+        var ringFortuneLevel = getFortuneLevel(ringStack);
+        var hasSilkTouch = getSilkTouchLevel(tool) > 0 || getSilkTouchLevel(ringStack) > 0;
         if (ringFortuneLevel <= 0 && !hasSilkTouch) {
             return tool;
         }
 
-        var enchantments = new HashMap<>(EnchantmentHelper.getEnchantments(tool));
-        if (hasSilkTouch) {
-            enchantments.remove(Enchantments.BLOCK_FORTUNE);
-            enchantments.put(Enchantments.SILK_TOUCH, 1);
-        } else {
-            enchantments.remove(Enchantments.SILK_TOUCH);
-            enchantments.put(Enchantments.BLOCK_FORTUNE, Math.max(baseFortuneLevel, ringFortuneLevel));
+        if (entity == null) {
+            return tool;
         }
-        EnchantmentHelper.setEnchantments(enchantments, tool);
+
+        var enchantmentRegistry = entity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        var fortune = enchantmentRegistry.getOrThrow(Enchantments.FORTUNE);
+        var silkTouch = enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH);
+        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(tool).entrySet()) {
+            var enchantment = entry.getKey();
+            if (enchantment == null
+                    || enchantment.is(Enchantments.FORTUNE)
+                    || enchantment.is(Enchantments.SILK_TOUCH)) {
+                continue;
+            }
+            enchantments.set(enchantment, entry.getValue());
+        }
+
+        if (hasSilkTouch) {
+            enchantments.set(silkTouch, 1);
+        } else {
+            enchantments.set(fortune, Math.max(baseFortuneLevel, ringFortuneLevel));
+        }
+        EnchantmentHelper.setEnchantments(tool, enchantments.toImmutable());
         return tool;
     }
 
     private static boolean hasMiningEnchantments(ItemStack stack) {
-        return stack.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) > 0
-                || stack.getEnchantmentLevel(Enchantments.SILK_TOUCH) > 0;
+        return getFortuneLevel(stack) > 0 || getSilkTouchLevel(stack) > 0;
+    }
+
+    private static int getFortuneLevel(ItemStack stack) {
+        return jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(stack, Enchantments.FORTUNE);
+    }
+
+    private static int getSilkTouchLevel(ItemStack stack) {
+        return jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(stack, Enchantments.SILK_TOUCH);
     }
 
     private static ItemStack getEquippedStack(LivingEntity entity) {
         return CuriosApi.getCuriosInventory(entity)
-                .map(inventory -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
-                        .map(slotResult -> slotResult.stack().copy())
-                        .orElse(ItemStack.EMPTY))
+                .map(inventory -> inventory.getStacksHandler(Curios.RING_SLOT)
+                        .map(ringHandler -> {
+                            var stacks = ringHandler.getStacks();
+                            for (var slot = 0; slot < stacks.getSlots(); slot++) {
+                                var stack = stacks.getStackInSlot(slot);
+                                if (stack.is(ItemRegistry.CRAFTSMANS_DELIGHT.get())) {
+                                    return stack.copy();
+                                }
+                            }
+                            return inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
+                                    .map(slotResult -> slotResult.stack().copy())
+                                    .orElse(ItemStack.EMPTY);
+                        })
+                        .orElseGet(() -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
+                                .map(slotResult -> slotResult.stack().copy())
+                                .orElse(ItemStack.EMPTY)))
                 .orElse(ItemStack.EMPTY);
     }
 

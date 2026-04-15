@@ -3567,16 +3567,27 @@ public final class ApprenticeCodexGameTests {
             helper.assertTrue(magicData != null, "Touch Dig range test could not resolve player mana data");
             player.setYRot(0.0f);
             player.setXRot(0.0f);
+            player.setYHeadRot(0.0f);
+            player.setYBodyRot(0.0f);
+            for (var z = 1; z < 12; z++) {
+                helper.getLevel().setBlock(helper.absolutePos(new BlockPos(0, 3, z)), Blocks.AIR.defaultBlockState(), 3);
+            }
             helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
 
             helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Touch Dig should keep the default 8 block range without CraftsmansDelight");
 
             equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var uniqueInfo = spell.getUniqueInfo(1, player).stream()
+                    .map(Component::getString)
+                    .collect(Collectors.joining(", "));
+            helper.assertTrue(uniqueInfo.contains("16"),
+                    "Touch Dig unique info should display 16 block range while CraftsmansDelight is equipped but got: " + uniqueInfo);
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
-                    "Touch Dig should reach a target 12 blocks away when CraftsmansDelight is equipped");
-            helper.assertTrue(spell.getUniqueInfo(1, player).stream().anyMatch(component -> component.getString().contains("16")),
-                    "Touch Dig unique info should display 16 block range while CraftsmansDelight is equipped");
+                    "Touch Dig should reach a target 12 blocks away when CraftsmansDelight is equipped"
+                            + " [equipped=" + CraftsmansDelight.isEquippedBy(player)
+                            + ", range=" + CraftsmansDelight.getTouchDigRange(player)
+                            + ", info=" + uniqueInfo + "]");
 
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
             helper.assertTrue(helper.getLevel().getBlockState(targetPos).isAir(),
@@ -3587,27 +3598,45 @@ public final class ApprenticeCodexGameTests {
     @GameTest(template = TEMPLATE)
     public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var fortune = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE);
+            var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_ring_enchant_merge_test");
             var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
-            heldTool.enchant(Enchantments.BLOCK_FORTUNE, 1);
+            heldTool.enchant(fortune, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
 
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.BLOCK_FORTUNE, 3);
-            equipCraftsmansDelight(player, ringStack);
+            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            setCraftsmansDelightEnchantments(player, enchantments -> enchantments.set(fortune, 3));
 
             var mergedFortuneTool = CraftsmansDelight.createTouchDigTool(player);
-            helper.assertTrue(mergedFortuneTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 3,
+            helper.assertTrue(jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
+                            mergedFortuneTool,
+                            net.minecraft.world.item.enchantment.Enchantments.FORTUNE
+                    ) == 3,
                     "Touch Dig should prefer the higher Fortune level from the ring");
 
-            ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipCraftsmansDelight(player, ringStack);
-
+            setCraftsmansDelightEnchantments(player, enchantments -> enchantments.set(silkTouch, 1));
+            var equippedRing = getEquippedCraftsmansDelight(player);
             var mergedSilkTool = CraftsmansDelight.createTouchDigTool(player);
-            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
-                    "Touch Dig should inherit Silk Touch from the ring");
-            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 0,
+            helper.assertTrue(jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
+                            mergedSilkTool,
+                            net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
+                    ) == 1,
+                    "Touch Dig should inherit Silk Touch from the ring"
+                            + " [equippedRingSilk=" + jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
+                                    equippedRing,
+                                    net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
+                            )
+                            + ", mergedSilk=" + jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
+                                    mergedSilkTool,
+                                    net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
+                            )
+                            + "]");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
+                            mergedSilkTool,
+                            net.minecraft.world.item.enchantment.Enchantments.FORTUNE
+                    ) == 0,
                     "Touch Dig should drop Fortune when Silk Touch is present");
 
             var blockPos = helper.absolutePos(new BlockPos(0, 2, 1));
@@ -3625,10 +3654,11 @@ public final class ApprenticeCodexGameTests {
     @GameTest(template = TEMPLATE)
     public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spectral_hammer_ring_enchant_test");
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipCraftsmansDelight(player, ringStack);
+            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            setCraftsmansDelightEnchantments(player, enchantments -> enchantments.set(silkTouch, 1));
 
             var targetPos = helper.absolutePos(new BlockPos(0, 2, 2));
             helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
@@ -3971,7 +4001,30 @@ public final class ApprenticeCodexGameTests {
     private static void equipCraftsmansDelight(FakePlayer player, ItemStack ringStack) {
         var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for CraftsmansDelight test"));
-        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, 0, ringStack);
+        var ringHandler = curiosInventory.getStacksHandler(io.redspace.ironsspellbooks.compat.Curios.RING_SLOT)
+                .orElseThrow(() -> new IllegalStateException("Missing ring slot handler for CraftsmansDelight test"));
+        ringHandler.getStacks().setStackInSlot(0, ringStack.copy());
+        ringHandler.update();
+    }
+
+    private static ItemStack getEquippedCraftsmansDelight(FakePlayer player) {
+        return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
+                        .map(slotResult -> slotResult.stack().copy()))
+                .orElse(ItemStack.EMPTY);
+    }
+
+    private static void setCraftsmansDelightEnchantments(
+            FakePlayer player,
+            java.util.function.Consumer<ItemEnchantments.Mutable> enchantmentApplier
+    ) {
+        var equippedRing = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
+                        .map(top.theillusivec4.curios.api.SlotResult::stack))
+                .orElseThrow(() -> new IllegalStateException("Missing equipped CraftsmansDelight for GameTest"));
+        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        enchantmentApplier.accept(enchantments);
+        EnchantmentHelper.setEnchantments(equippedRing, enchantments.toImmutable());
     }
 
     private static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {
