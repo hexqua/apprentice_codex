@@ -7,12 +7,9 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.util.MinecraftInstanceHelper;
-import io.redspace.ironsspellbooks.util.TooltipsUtils;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -147,14 +144,17 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
                     && spellData.getSpell() == profile.spell()
                     && spellData.getLevel() == profile.spellLevel()
                     && spellData.isLocked()
-                    && spellContainer.getMaxSpellCount() == 1) {
+                    && spellContainer.getMaxSpellCount() == 1
+                    && !spellContainer.isSpellWheel()) {
                 return;
             }
         }
 
-        // mode と弓エンチャントから導出した疑似 Imbue を実 container に反映し、
-        // tooltip と外部連携先が同じ spell 情報を見るようにする。
-        ISpellContainer.createImbuedContainer(profile.spell(), profile.spellLevel(), stack);
+        // 属性モードの spell 情報は tooltip と外部参照先で共有したいが、
+        // 通常の spell wheel へは流さない。
+        var mutable = ISpellContainer.create(1, false, false).mutableCopy();
+        mutable.addSpellAtIndex(profile.spell(), profile.spellLevel(), 0, true);
+        ISpellContainer.set(stack, mutable.toImmutable());
     }
 
     @Override
@@ -216,8 +216,8 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
 
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
         initializeSpellContainer(stack);
+        super.appendHoverText(stack, level, lines, flag);
         lines.add(
                 Component.translatable(
                                 "item.apprenticecodex.elemental_bow.mode",
@@ -225,7 +225,6 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
                         )
                         .withStyle(ChatFormatting.GRAY)
         );
-        lines.addAll(buildElementalSpellTooltipSection(stack));
     }
 
     private void releaseVanillaInfinityShot(ItemStack stack, Level level, Player player, int timeLeft) {
@@ -444,24 +443,6 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             return null;
         }
         return new DisplayedSpellProfile(profile.spell(), profile.spellLevel());
-    }
-
-    public static List<Component> buildElementalSpellTooltipSection(ItemStack stack) {
-        var displayedSpellProfile = getDisplayedSpellProfile(stack);
-        if (displayedSpellProfile == null) {
-            return List.of();
-        }
-
-        var player = MinecraftInstanceHelper.getPlayer();
-        if (!(player instanceof LocalPlayer localPlayer)) {
-            return List.of();
-        }
-
-        var spellData = new SpellData(displayedSpellProfile.spell(), displayedSpellProfile.spellLevel(), true);
-        return TooltipsUtils.formatActiveSpellTooltip(stack, spellData, CastSource.SWORD, localPlayer)
-                .stream()
-                .map(component -> (Component) component)
-                .toList();
     }
 
     public static Component createInsufficientManaMessage(AbstractSpell spell, @Nullable Player caster) {

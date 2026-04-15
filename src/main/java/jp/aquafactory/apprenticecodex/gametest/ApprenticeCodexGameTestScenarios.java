@@ -3332,6 +3332,8 @@ public final class ApprenticeCodexGameTestScenarios {
 
             var spellContainer = ISpellContainer.get(stack);
             helper.assertTrue(spellContainer != null, "Elemental Bow should expose a spell container outside NONE mode");
+            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
+                    "Elemental Bow should keep its derived spell out of the spell wheel");
             assertSpellData(
                     helper,
                     spellContainer,
@@ -3362,6 +3364,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow Fire mode should apply POWER II + FLAME I to level 5 but got " + fireProfile.spellLevel());
             var fireContainer = ISpellContainer.get(stack);
             helper.assertTrue(fireContainer != null, "Elemental Bow Fire mode should keep a synced spell container");
+            helper.assertTrue(fireContainer != null && !fireContainer.isSpellWheel(),
+                    "Elemental Bow Fire mode container should stay hidden from the spell wheel");
             assertSpellData(
                     helper,
                     fireContainer,
@@ -3382,6 +3386,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow Ender mode should apply only POWER II to level 3 but got " + enderProfile.spellLevel());
             var enderContainer = ISpellContainer.get(stack);
             helper.assertTrue(enderContainer != null, "Elemental Bow Ender mode should keep a synced spell container");
+            helper.assertTrue(enderContainer != null && !enderContainer.isSpellWheel(),
+                    "Elemental Bow Ender mode container should stay hidden from the spell wheel");
             assertSpellData(
                     helper,
                     enderContainer,
@@ -3396,6 +3402,24 @@ public final class ApprenticeCodexGameTestScenarios {
             item.initializeSpellContainer(stack);
             helper.assertFalse(ISpellContainer.isSpellContainer(stack),
                     "Elemental Bow should remove its spell container in NONE mode");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_spell_wheel_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+            ((ElementalBow) stack.getItem()).initializeSpellContainer(stack);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var mainhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+            helper.assertTrue(mainhandSelections.isEmpty(),
+                    "Elemental Bow should not add its derived spell to the mainhand spell wheel: " + mainhandSelections);
+            helper.assertTrue(selectionManager.getSelection() == null,
+                    "Elemental Bow should not create a selected spell from its derived container");
         });
     }
 
