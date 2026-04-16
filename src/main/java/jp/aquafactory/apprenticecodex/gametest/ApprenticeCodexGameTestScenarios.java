@@ -172,6 +172,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -181,6 +182,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -3436,18 +3438,52 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mode_cycle_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            var healingArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var regenerationArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var healingId = ForgeRegistries.POTIONS.getKey(PotionUtils.getPotion(healingArrow));
+            var regenerationId = ForgeRegistries.POTIONS.getKey(PotionUtils.getPotion(regenerationArrow));
+            helper.assertTrue(healingId != null && regenerationId != null,
+                    "Elemental Bow mode cycle test could not resolve tipped arrow potion ids");
+            var availablePotionIds = new LinkedHashSet<ResourceLocation>();
+            if (healingId != null) {
+                availablePotionIds.add(healingId);
+            }
+            if (regenerationId != null) {
+                availablePotionIds.add(regenerationId);
+            }
+            var expectedPotionOrder = ForgeRegistries.POTIONS.getValues().stream()
+                    .map(ForgeRegistries.POTIONS::getKey)
+                    .filter(id -> id != null && availablePotionIds.contains(id))
+                    .toList();
+
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+            player.getInventory().setItem(2, healingArrow);
+            player.getInventory().setItem(3, regenerationArrow);
             player.setShiftKeyDown(true);
 
-            assertElementalBowMode(helper, stack, null, "Elemental Bow should start in vanilla mode");
+            assertElementalBowSelection(helper, stack, null, null, "Elemental Bow should start in normal mode");
             stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowMode(helper, stack, SchoolRegistry.FIRE_RESOURCE, "Elemental Bow should switch to Fire first");
+            assertElementalBowSelection(helper, stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"),
+                    "Elemental Bow should switch to spectral arrows first");
             stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowMode(helper, stack, SchoolRegistry.ENDER_RESOURCE, "Elemental Bow should switch to Ender second");
+            assertElementalBowSelection(helper, stack, "special", expectedPotionOrder.get(0),
+                    "Elemental Bow should switch to the first available tipped arrow by registry order");
             stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowMode(helper, stack, SchoolRegistry.NATURE_RESOURCE, "Elemental Bow should switch to Nature third");
+            assertElementalBowSelection(helper, stack, "special", expectedPotionOrder.get(1),
+                    "Elemental Bow should switch to the second available tipped arrow by registry order");
             stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowMode(helper, stack, null, "Elemental Bow should return to vanilla mode after Nature");
+            assertElementalBowSelection(helper, stack, "magic", SchoolRegistry.FIRE_RESOURCE,
+                    "Elemental Bow should switch to Fire magic after tracked special arrows");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowSelection(helper, stack, "magic", SchoolRegistry.ENDER_RESOURCE,
+                    "Elemental Bow should switch to Ender magic next");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowSelection(helper, stack, "magic", SchoolRegistry.NATURE_RESOURCE,
+                    "Elemental Bow should switch to Nature magic after Ender");
+            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            assertElementalBowSelection(helper, stack, null, null,
+                    "Elemental Bow should return to normal mode after the last magic mode");
             helper.assertFalse(player.isUsingItem(), "Sneak mode switching should not start drawing the bow");
         });
     }
@@ -3481,9 +3517,10 @@ public final class ApprenticeCodexGameTestScenarios {
 
             item.initializeSpellContainer(stack);
 
-            assertElementalBowMode(helper, stack, null, "Elemental Bow should clear unresolved legacy mode values");
+            assertElementalBowSelection(helper, stack, null, null,
+                    "Elemental Bow should clear unresolved legacy mode values back to normal mode");
             helper.assertFalse(ISpellContainer.isSpellContainer(stack),
-                    "Elemental Bow should remove its spell container after falling back to NONE");
+                    "Elemental Bow should remove its spell container after falling back to normal mode");
         });
     }
 
@@ -3657,6 +3694,63 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(result.getResult().consumesAction(),
                     "Elemental Bow should start vanilla draw with Infinity even without arrows: " + result.getResult());
             helper.assertTrue(player.isUsingItem(), "Elemental Bow should enter use state for Infinity vanilla draw");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+
+            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(firstUse.getResult().consumesAction(),
+                    "Elemental Bow special mode should start drawing while the selected arrow exists: " + firstUse.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
+            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                    "Elemental Bow special mode should consume the selected arrow even with Infinity");
+
+            var secondUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(secondUse.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow special mode should fail after the selected arrow runs out: " + secondUse.getResult());
+            assertElementalBowSelection(helper, stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"),
+                    "Elemental Bow special mode should keep the selected arrow after ammo loss");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_infinity_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow magic mode should fail to start without ammo even with Infinity: " + result.getResult());
+            helper.assertFalse(player.isUsingItem(), "Elemental Bow magic mode should not enter use state without ammo");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
+
+            item.initializeSpellContainer(stack);
+
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should not expose a spell container outside magic mode");
+            helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack) == null,
+                    "Elemental Bow should not expose a displayed spell profile outside magic mode");
         });
     }
 
@@ -5462,15 +5556,49 @@ public final class ApprenticeCodexGameTestScenarios {
         return collectAllowedEnchantments(ItemStack.EMPTY, enchantment -> true);
     }
 
-    private static void assertElementalBowMode(GameTestHelper helper, ItemStack stack, ResourceLocation expectedMode, String message) {
+    private static void assertElementalBowSelection(
+            GameTestHelper helper,
+            ItemStack stack,
+            @Nullable String expectedShotMode,
+            @Nullable ResourceLocation expectedSelectionId,
+            String message
+    ) {
         var tag = stack.getTag();
-        var actualMode = tag != null && tag.contains("ElementalBowMode")
-                ? ResourceLocation.tryParse(tag.getString("ElementalBowMode"))
+        var actualShotMode = tag != null && tag.contains("ElementalBowShotMode")
+                ? tag.getString("ElementalBowShotMode")
                 : null;
+        ResourceLocation actualSelectionId = null;
+        if (tag != null) {
+            if ("magic".equals(actualShotMode) && tag.contains("ElementalBowMode")) {
+                actualSelectionId = ResourceLocation.tryParse(tag.getString("ElementalBowMode"));
+            } else if (tag.contains("ElementalBowAmmoSelection")) {
+                actualSelectionId = ResourceLocation.tryParse(tag.getString("ElementalBowAmmoSelection"));
+            } else if (actualShotMode == null && tag.contains("ElementalBowMode")) {
+                actualSelectionId = ResourceLocation.tryParse(tag.getString("ElementalBowMode"));
+            }
+        }
         helper.assertTrue(
-                java.util.Objects.equals(actualMode, expectedMode),
-                message + ": expected " + expectedMode + " but got " + actualMode
+                Objects.equals(actualShotMode, expectedShotMode) && Objects.equals(actualSelectionId, expectedSelectionId),
+                message + ": expected shotMode=" + expectedShotMode + ", selection=" + expectedSelectionId
+                        + " but got shotMode=" + actualShotMode + ", selection=" + actualSelectionId
         );
+    }
+
+    private static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
+        var tag = stack.getOrCreateTag();
+        tag.putString("ElementalBowShotMode", shotMode);
+        if ("magic".equals(shotMode)) {
+            if (selectionId != null) {
+                tag.putString("ElementalBowMode", selectionId.toString());
+            }
+            tag.remove("ElementalBowAmmoSelection");
+            return;
+        }
+
+        if (selectionId != null) {
+            tag.putString("ElementalBowAmmoSelection", selectionId.toString());
+        }
+        tag.remove("ElementalBowMode");
     }
 
     private static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {

@@ -54,8 +54,13 @@
   "item.apprenticecodex.spellcasters_flask": "魔術詠唱者のフラスコ",
   "item.apprenticecodex.alchemists_flask": "錬金術師のフラスコ",
   "item.apprenticecodex.elemental_bow": "エレメンタルボウ",
-  "item.apprenticecodex.elemental_bow.mode": "現在調律されている系統: %s",
+  "item.apprenticecodex.elemental_bow.mode": "現在の射撃モード: %s",
   "item.apprenticecodex.elemental_bow.mode.none": "無し",
+  "item.apprenticecodex.elemental_bow.mode.normal": "通常矢モード",
+  "item.apprenticecodex.elemental_bow.mode.special": "特殊矢モード",
+  "item.apprenticecodex.elemental_bow.mode.mod": "MOD矢モード",
+  "item.apprenticecodex.elemental_bow.mode.magic": "魔法モード",
+  "item.apprenticecodex.elemental_bow.mode.selected": "%s: %s",
 
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
@@ -468,7 +473,7 @@
   "ui.apprenticecodex.extract.empty_flask": "錬金術師のフラスコの中身がない！",
   "ui.apprenticecodex.extract.effect_use": "%s として使用する",
 
-  "ui.apprenticecodex.elemental_bow.mode_switched": "エレメンタルボウの回路を%sに設定",
+  "ui.apprenticecodex.elemental_bow.mode_switched": "エレメンタルボウの射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "オーバーヒートで消費マナが%sに増加していて今のマナでは足りない！",
   "ui.apprenticecodex.elemental_bow.cooling_complete": "%sの魔導回路の冷却が完了した...",

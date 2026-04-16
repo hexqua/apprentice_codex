@@ -30,14 +30,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -49,7 +53,11 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem {
@@ -57,10 +65,14 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private static final String MAIN_CONTROLLER = "main";
     private static final String RELEASE_ANIMATION = "release";
     private static final String MODE_TAG = "ElementalBowMode";
+    private static final String SHOT_MODE_TAG = "ElementalBowShotMode";
+    private static final String AMMO_SELECTION_TAG = "ElementalBowAmmoSelection";
     private static final ItemStack ENCHANTMENT_PROBE_STACK = new ItemStack(Items.BOW);
     private static final float MANA_SAFE_MARGIN = 0.001F;
     private static final int OVERHEAT_WARNING_INTERVAL_TICKS = 10;
     private static final float DRAW_ANIMATION_SOURCE_SECONDS = 0.32F;
+    private static final ResourceLocation SPECTRAL_ARROW_ID = ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow");
+    private static final Set<Item> VANILLA_ARROW_ITEMS = Set.of(Items.ARROW, Items.SPECTRAL_ARROW, Items.TIPPED_ARROW);
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_DRAW = RawAnimation.begin().thenPlayAndHold("draw");
     private static final RawAnimation ANIM_RELEASE = RawAnimation.begin().thenPlay("release");
@@ -126,12 +138,12 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         initializeSpellContainer(stack);
         if (player.isSecondaryUseActive()) {
             if (!level.isClientSide) {
-                var nextModeId = resolveNextModeId(stack);
-                setMode(stack, nextModeId);
+                var nextMode = resolveNextModeSelection(player, stack);
+                setModeSelection(stack, nextMode);
                 player.displayClientMessage(
                         Component.translatable(
                                         "ui.apprenticecodex.elemental_bow.mode_switched",
-                                        getModeDisplayName(stack)
+                                        resolveSelectionDisplayName(nextMode)
                                 )
                                 .withStyle(ChatFormatting.GOLD),
                         true
@@ -141,63 +153,12 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
 
-        var mode = normalizeModeState(stack);
-        if (mode == null) {
-            var projectile = player.getProjectile(stack);
-            if (!projectile.isEmpty() || !hasInfinity(stack) || player.getAbilities().instabuild) {
-                return super.use(level, player, usedHand);
-            }
-
-            var nockResult = ForgeEventFactory.onArrowNock(stack, level, player, usedHand, true);
-            if (nockResult != null) {
-                return nockResult;
-            }
-
-            player.startUsingItem(usedHand);
-            return InteractionResultHolder.consume(stack);
-        }
-
-        var ammoSource = resolveAmmoSource(player, stack);
-        var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
-        if (ammoSource == null && !canFireWithoutAmmo) {
-            return InteractionResultHolder.fail(stack);
-        }
-
-        var profile = resolveSpellProfile(stack, mode);
-        if (profile == null) {
-            return InteractionResultHolder.fail(stack);
-        }
-
-        var requiredMana = profile.spell().getManaCost(profile.spellLevel());
-        if (!player.getAbilities().instabuild) {
-            var magicData = MagicData.getPlayerMagicData(player);
-            var extraMana = level.isClientSide
-                    ? 0.0F
-                    : getAdditionalManaCost(player, mode, profile);
-            var totalRequiredMana = requiredMana + extraMana;
-            if (magicData == null || magicData.getMana() + MANA_SAFE_MARGIN < totalRequiredMana) {
-                if (!level.isClientSide) {
-                    player.displayClientMessage(
-                            extraMana > MANA_SAFE_MARGIN
-                                    ? createOverheatInsufficientManaMessage(totalRequiredMana)
-                                    : createInsufficientManaMessage(profile.spell(), player),
-                            true
-                    );
-                }
-                return InteractionResultHolder.fail(stack);
-            }
-        }
-
-        var nockResult = ForgeEventFactory.onArrowNock(stack, level, player, usedHand, ammoSource != null || canFireWithoutAmmo);
-        if (nockResult != null) {
-            return nockResult;
-        }
-
-        if (!level.isClientSide && !player.getAbilities().instabuild) {
-            displayOverheatManaWarning(player, stack, mode);
-        }
-        player.startUsingItem(usedHand);
-        return InteractionResultHolder.consume(stack);
+        var selection = normalizeModeState(stack);
+        return switch (selection.kind()) {
+            case NORMAL -> useNormalArrowMode(level, player, usedHand, stack);
+            case SPECIAL, MOD -> useTrackedArrowMode(level, player, usedHand, stack, selection);
+            case MAGIC -> useMagicMode(level, player, usedHand, stack, selection);
+        };
     }
 
     @Override
@@ -206,8 +167,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return;
         }
 
-        var mode = normalizeModeState(stack);
-        var profile = resolveSpellProfile(stack, mode);
+        var profile = resolveSpellProfile(stack, resolveConfiguredMagicMode(stack));
         if (profile == null) {
             ISpellContainer.remove(stack);
             return;
@@ -273,7 +233,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return;
         }
 
-        var mode = normalizeModeState(stack);
+        var mode = resolveConfiguredMagicMode(stack);
         if (mode == null) {
             return;
         }
@@ -295,13 +255,21 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
         initializeSpellContainer(stack);
 
-        var mode = normalizeModeState(stack);
-        if (mode == null) {
+        var selection = normalizeModeState(stack);
+        if (selection.kind() == ShotModeKind.NORMAL) {
             releaseVanillaShot(stack, level, player, timeLeft);
             return;
         }
 
-        releaseElementalShot(stack, level, player, timeLeft, mode);
+        if (selection.kind() == ShotModeKind.MAGIC) {
+            var mode = resolveConfiguredMagicMode(stack);
+            if (mode != null) {
+                releaseElementalShot(stack, level, player, timeLeft, mode);
+            }
+            return;
+        }
+
+        releaseTrackedArrowShot(stack, level, player, timeLeft, selection);
     }
 
     @Override
@@ -324,8 +292,101 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         );
     }
 
+    private InteractionResultHolder<ItemStack> useNormalArrowMode(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
+        var projectile = player.getProjectile(stack);
+        if (!projectile.isEmpty() || !hasInfinity(stack) || player.getAbilities().instabuild) {
+            return super.use(level, player, usedHand);
+        }
+
+        var nockResult = ForgeEventFactory.onArrowNock(stack, level, player, usedHand, true);
+        if (nockResult != null) {
+            return nockResult;
+        }
+
+        player.startUsingItem(usedHand);
+        return InteractionResultHolder.consume(stack);
+    }
+
+    private InteractionResultHolder<ItemStack> useTrackedArrowMode(
+            Level level,
+            Player player,
+            InteractionHand usedHand,
+            ItemStack stack,
+            ModeSelection selection
+    ) {
+        var ammoSource = resolveAmmoSource(player, stack, selection);
+        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        if (ammoSource == null && !canFireWithoutAmmo) {
+            return InteractionResultHolder.fail(stack);
+        }
+
+        var nockResult = ForgeEventFactory.onArrowNock(stack, level, player, usedHand, ammoSource != null || canFireWithoutAmmo);
+        if (nockResult != null) {
+            return nockResult;
+        }
+
+        player.startUsingItem(usedHand);
+        return InteractionResultHolder.consume(stack);
+    }
+
+    private InteractionResultHolder<ItemStack> useMagicMode(
+            Level level,
+            Player player,
+            InteractionHand usedHand,
+            ItemStack stack,
+            ModeSelection selection
+    ) {
+        var mode = ElementalBowModeManager.getResolvedDefinition(selection.id());
+        if (mode == null) {
+            clearAllModeTags(stack);
+            return InteractionResultHolder.fail(stack);
+        }
+
+        var ammoSource = resolveAmmoSource(player, stack, selection);
+        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        if (ammoSource == null && !canFireWithoutAmmo) {
+            return InteractionResultHolder.fail(stack);
+        }
+
+        var profile = resolveSpellProfile(stack, mode);
+        if (profile == null) {
+            return InteractionResultHolder.fail(stack);
+        }
+
+        var requiredMana = profile.spell().getManaCost(profile.spellLevel());
+        if (!player.getAbilities().instabuild) {
+            var magicData = MagicData.getPlayerMagicData(player);
+            var extraMana = level.isClientSide
+                    ? 0.0F
+                    : getAdditionalManaCost(player, mode, profile);
+            var totalRequiredMana = requiredMana + extraMana;
+            if (magicData == null || magicData.getMana() + MANA_SAFE_MARGIN < totalRequiredMana) {
+                if (!level.isClientSide) {
+                    player.displayClientMessage(
+                            extraMana > MANA_SAFE_MARGIN
+                                    ? createOverheatInsufficientManaMessage(totalRequiredMana)
+                                    : createInsufficientManaMessage(profile.spell(), player),
+                            true
+                    );
+                }
+                return InteractionResultHolder.fail(stack);
+            }
+        }
+
+        var nockResult = ForgeEventFactory.onArrowNock(stack, level, player, usedHand, ammoSource != null || canFireWithoutAmmo);
+        if (nockResult != null) {
+            return nockResult;
+        }
+
+        if (!level.isClientSide && !player.getAbilities().instabuild) {
+            displayOverheatManaWarning(player, stack, mode);
+        }
+        player.startUsingItem(usedHand);
+        return InteractionResultHolder.consume(stack);
+    }
+
     private void releaseVanillaShot(ItemStack stack, Level level, Player player, int timeLeft) {
-        var ammoSource = resolveAmmoSource(player, stack);
+        var ammoSource = resolveVanillaAmmoSource(player, stack);
         var hasAmmo = ammoSource != null && !ammoSource.isEmpty();
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
         var drawDuration = getUseDuration(stack) - timeLeft;
@@ -358,9 +419,43 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         triggerReleaseAnimation(player, stack);
     }
 
+    private void releaseTrackedArrowShot(ItemStack stack, Level level, Player player, int timeLeft, ModeSelection selection) {
+        var ammoSource = resolveAmmoSource(player, stack, selection);
+        var hasAmmo = ammoSource != null && !ammoSource.isEmpty();
+        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var drawDuration = getUseDuration(stack) - timeLeft;
+        drawDuration = ForgeEventFactory.onArrowLoose(stack, level, player, drawDuration, hasAmmo || canFireWithoutAmmo);
+        if (drawDuration < 0) {
+            return;
+        }
+
+        if (!hasAmmo && !canFireWithoutAmmo) {
+            return;
+        }
+
+        var ammoStack = hasAmmo ? ammoSource : createRepresentativeAmmo(selection);
+        var infiniteAmmo = player.getAbilities().instabuild
+                || ammoStack.getItem() instanceof ArrowItem arrowItem
+                && arrowItem.isInfinite(ammoStack, stack, player);
+        var power = getPowerForTime(drawDuration);
+        if (power < 0.1F) {
+            return;
+        }
+
+        if (level.isClientSide) {
+            return;
+        }
+
+        fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
+        if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
+            consumeAmmo(player, ammoSource);
+        }
+        triggerReleaseAnimation(player, stack);
+    }
+
     private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ResolvedDefinition mode) {
-        var ammoSource = resolveAmmoSource(player, stack);
-        var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
+        var ammoSource = resolveVanillaAmmoSource(player, stack);
+        var canFireWithoutAmmo = player.getAbilities().instabuild;
         var drawDuration = getUseDuration(stack) - timeLeft;
         drawDuration = ForgeEventFactory.onArrowLoose(stack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
         if (drawDuration < READY_DRAW_TICKS) {
@@ -380,7 +475,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         if (!player.getAbilities().instabuild) {
-            if (ammoSource == null && !hasInfinity(stack)) {
+            if (ammoSource == null) {
                 return;
             }
 
@@ -418,7 +513,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
-            if (ammoSource != null && !hasInfinity(stack)) {
+            if (ammoSource != null) {
                 consumeAmmo(player, ammoSource);
             }
         }
@@ -525,7 +620,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return null;
         }
 
-        var profile = elementalBow.resolveSpellProfile(stack, elementalBow.resolveConfiguredMode(stack));
+        var profile = elementalBow.resolveSpellProfile(stack, elementalBow.resolveConfiguredMagicMode(stack));
         if (profile == null) {
             return null;
         }
@@ -538,7 +633,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return null;
         }
 
-        var mode = elementalBow.resolveConfiguredMode(stack);
+        var mode = elementalBow.resolveConfiguredMagicMode(stack);
         return mode != null ? mode.schoolId() : null;
     }
 
@@ -556,11 +651,71 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     @Nullable
-    private ItemStack resolveAmmoSource(Player player, ItemStack bowStack) {
+    private ItemStack resolveAmmoSource(Player player, ItemStack bowStack, ModeSelection selection) {
+        return switch (selection.kind()) {
+            case NORMAL, MAGIC -> resolveVanillaAmmoSource(player, bowStack);
+            case SPECIAL -> resolveSpecialAmmoSource(player, selection.id());
+            case MOD -> resolveModAmmoSource(player, selection.id());
+        };
+    }
+
+    @Nullable
+    private ItemStack resolveVanillaAmmoSource(Player player, ItemStack bowStack) {
         // 外部矢筒系は格納仕様/API が mod ごとに揺れやすいため、現時点ではまず vanilla の矢取得面を固定する。
         // Supplementaries / Relics の個別連携は、1 本消費経路を安全に確定できた時点で別差分に分離する。
         var projectile = player.getProjectile(bowStack);
         return projectile.isEmpty() ? null : projectile;
+    }
+
+    @Nullable
+    private ItemStack resolveSpecialAmmoSource(Player player, @Nullable ResourceLocation selectionId) {
+        if (selectionId == null) {
+            return null;
+        }
+
+        for (var ammoStack : collectCandidateAmmoStacks(player)) {
+            if (ammoStack.isEmpty()) {
+                continue;
+            }
+
+            if (SPECTRAL_ARROW_ID.equals(selectionId)) {
+                if (ammoStack.is(Items.SPECTRAL_ARROW)) {
+                    return ammoStack;
+                }
+                continue;
+            }
+
+            if (!ammoStack.is(Items.TIPPED_ARROW)) {
+                continue;
+            }
+
+            var potion = PotionUtils.getPotion(ammoStack);
+            var potionId = ForgeRegistries.POTIONS.getKey(potion);
+            if (potion != Potions.EMPTY && selectionId.equals(potionId)) {
+                return ammoStack;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private ItemStack resolveModAmmoSource(Player player, @Nullable ResourceLocation selectionId) {
+        if (selectionId == null) {
+            return null;
+        }
+
+        for (var ammoStack : collectCandidateAmmoStacks(player)) {
+            if (ammoStack.isEmpty()) {
+                continue;
+            }
+
+            var item = ammoStack.getItem();
+            var itemId = ForgeRegistries.ITEMS.getKey(item);
+            if (item instanceof ArrowItem && !VANILLA_ARROW_ITEMS.contains(item) && selectionId.equals(itemId)) {
+                return ammoStack;
+            }
+        }
+        return null;
     }
 
     private void consumeAmmo(Player player, ItemStack ammoStack) {
@@ -641,88 +796,341 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     @Nullable
-    private ResolvedDefinition resolveConfiguredMode(ItemStack stack) {
-        return ElementalBowModeManager.getResolvedDefinition(getStoredModeId(stack));
+    private ResolvedDefinition resolveConfiguredMagicMode(ItemStack stack) {
+        var selection = normalizeModeState(stack);
+        return selection.kind() == ShotModeKind.MAGIC
+                ? ElementalBowModeManager.getResolvedDefinition(selection.id())
+                : null;
     }
 
-    @Nullable
-    private ResolvedDefinition normalizeModeState(ItemStack stack) {
+    private ModeSelection normalizeModeState(ItemStack stack) {
         var tag = stack.getTag();
-        if (tag == null || !tag.contains(MODE_TAG)) {
-            return null;
+        if (tag == null) {
+            return ModeSelection.normal();
         }
 
-        var storedModeId = ResourceLocation.tryParse(tag.getString(MODE_TAG));
-        var resolvedMode = ElementalBowModeManager.getResolvedDefinition(storedModeId);
-        if (resolvedMode != null) {
-            return resolvedMode;
+        var storedShotMode = tag.contains(SHOT_MODE_TAG) ? ShotModeKind.fromSerializedName(tag.getString(SHOT_MODE_TAG)) : null;
+        if (storedShotMode == null) {
+            if (!tag.contains(MODE_TAG)) {
+                return ModeSelection.normal();
+            }
+
+            var legacyModeId = ResourceLocation.tryParse(tag.getString(MODE_TAG));
+            var resolvedLegacyMode = ElementalBowModeManager.getResolvedDefinition(legacyModeId);
+            if (resolvedLegacyMode != null) {
+                return new ModeSelection(ShotModeKind.MAGIC, resolvedLegacyMode.schoolId());
+            }
+
+            clearLegacyMagicMode(stack);
+            return ModeSelection.normal();
         }
 
-        clearStoredMode(stack);
-        return null;
+        if (storedShotMode == ShotModeKind.NORMAL) {
+            clearAllModeTags(stack);
+            return ModeSelection.normal();
+        }
+
+        if (storedShotMode == ShotModeKind.MAGIC) {
+            var storedModeId = ResourceLocation.tryParse(tag.getString(MODE_TAG));
+            var resolvedMode = ElementalBowModeManager.getResolvedDefinition(storedModeId);
+            if (resolvedMode != null) {
+                return new ModeSelection(ShotModeKind.MAGIC, resolvedMode.schoolId());
+            }
+
+            clearAllModeTags(stack);
+            return ModeSelection.normal();
+        }
+
+        if (!tag.contains(AMMO_SELECTION_TAG)) {
+            clearAllModeTags(stack);
+            return ModeSelection.normal();
+        }
+
+        var selectionId = ResourceLocation.tryParse(tag.getString(AMMO_SELECTION_TAG));
+        if (selectionId == null) {
+            clearAllModeTags(stack);
+            return ModeSelection.normal();
+        }
+
+        return new ModeSelection(storedShotMode, selectionId);
     }
 
-    @Nullable
-    private static ResourceLocation getStoredModeId(ItemStack stack) {
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(MODE_TAG)) {
-            return null;
-        }
-        return ResourceLocation.tryParse(tag.getString(MODE_TAG));
-    }
-
-    @Nullable
-    private static ResourceLocation resolveNextModeId(ItemStack stack) {
-        var resolvedDefinitions = ElementalBowModeManager.getResolvedDefinitions();
-        if (resolvedDefinitions.isEmpty()) {
-            return null;
+    private static ModeSelection resolveNextModeSelection(Player player, ItemStack stack) {
+        var availableSelections = buildAvailableSelections(player);
+        if (availableSelections.isEmpty()) {
+            return ModeSelection.normal();
         }
 
-        var currentModeId = getStoredModeId(stack);
-        if (currentModeId == null) {
-            return resolvedDefinitions.get(0).schoolId();
-        }
-
-        for (int index = 0; index < resolvedDefinitions.size(); index++) {
-            if (!resolvedDefinitions.get(index).schoolId().equals(currentModeId)) {
+        var currentSelection = ((ElementalBow) stack.getItem()).normalizeModeState(stack);
+        for (int index = 0; index < availableSelections.size(); index++) {
+            if (!sameSelection(availableSelections.get(index), currentSelection)) {
                 continue;
             }
-            return index + 1 < resolvedDefinitions.size() ? resolvedDefinitions.get(index + 1).schoolId() : null;
+            return availableSelections.get((index + 1) % availableSelections.size());
         }
 
-        return resolvedDefinitions.get(0).schoolId();
+        return availableSelections.get(0);
     }
 
-    private static void setMode(ItemStack stack, @Nullable ResourceLocation modeId) {
-        if (modeId == null) {
-            clearStoredMode(stack);
-        } else {
-            stack.getOrCreateTag().putString(MODE_TAG, modeId.toString());
+    private static List<ModeSelection> buildAvailableSelections(Player player) {
+        var selections = new ArrayList<ModeSelection>();
+        selections.add(ModeSelection.normal());
+        selections.addAll(collectSpecialArrowSelections(player));
+        selections.addAll(collectModArrowSelections(player));
+        for (var resolvedDefinition : ElementalBowModeManager.getResolvedDefinitions()) {
+            selections.add(new ModeSelection(ShotModeKind.MAGIC, resolvedDefinition.schoolId()));
+        }
+        return selections;
+    }
+
+    private static List<ModeSelection> collectSpecialArrowSelections(Player player) {
+        var selections = new ArrayList<ModeSelection>();
+        var availablePotionIds = new HashSet<ResourceLocation>();
+        boolean hasSpectralArrow = false;
+
+        for (var ammoStack : collectCandidateAmmoStacks(player)) {
+            if (ammoStack.isEmpty()) {
+                continue;
+            }
+
+            if (ammoStack.is(Items.SPECTRAL_ARROW)) {
+                hasSpectralArrow = true;
+                continue;
+            }
+
+            if (!ammoStack.is(Items.TIPPED_ARROW)) {
+                continue;
+            }
+
+            var potion = PotionUtils.getPotion(ammoStack);
+            var potionId = ForgeRegistries.POTIONS.getKey(potion);
+            if (potion != Potions.EMPTY && potionId != null) {
+                availablePotionIds.add(potionId);
+            }
+        }
+
+        if (hasSpectralArrow) {
+            selections.add(new ModeSelection(ShotModeKind.SPECIAL, SPECTRAL_ARROW_ID));
+        }
+
+        for (var potion : ForgeRegistries.POTIONS.getValues()) {
+            if (potion == Potions.EMPTY) {
+                continue;
+            }
+
+            var potionId = ForgeRegistries.POTIONS.getKey(potion);
+            if (potionId != null && availablePotionIds.contains(potionId)) {
+                selections.add(new ModeSelection(ShotModeKind.SPECIAL, potionId));
+            }
+        }
+
+        return selections;
+    }
+
+    private static List<ModeSelection> collectModArrowSelections(Player player) {
+        var selections = new ArrayList<ModeSelection>();
+        var availableItemIds = new HashSet<ResourceLocation>();
+
+        for (var ammoStack : collectCandidateAmmoStacks(player)) {
+            if (ammoStack.isEmpty() || !(ammoStack.getItem() instanceof ArrowItem arrowItem) || VANILLA_ARROW_ITEMS.contains(arrowItem)) {
+                continue;
+            }
+
+            var itemId = ForgeRegistries.ITEMS.getKey(arrowItem);
+            if (itemId != null) {
+                availableItemIds.add(itemId);
+            }
+        }
+
+        for (var item : ForgeRegistries.ITEMS.getValues()) {
+            if (!(item instanceof ArrowItem) || VANILLA_ARROW_ITEMS.contains(item)) {
+                continue;
+            }
+
+            var itemId = ForgeRegistries.ITEMS.getKey(item);
+            if (itemId != null && availableItemIds.contains(itemId)) {
+                selections.add(new ModeSelection(ShotModeKind.MOD, itemId));
+            }
+        }
+
+        return selections;
+    }
+
+    private static List<ItemStack> collectCandidateAmmoStacks(Player player) {
+        var stacks = new ArrayList<ItemStack>(2 + player.getInventory().items.size());
+        stacks.add(player.getOffhandItem());
+        stacks.add(player.getMainHandItem());
+        stacks.addAll(player.getInventory().items);
+        return stacks;
+    }
+
+    private static boolean sameSelection(ModeSelection left, ModeSelection right) {
+        return left.kind() == right.kind() && Objects.equals(left.id(), right.id());
+    }
+
+    private static void setModeSelection(ItemStack stack, ModeSelection selection) {
+        switch (selection.kind()) {
+            case NORMAL -> clearAllModeTags(stack);
+            case SPECIAL, MOD -> {
+                stack.getOrCreateTag().putString(SHOT_MODE_TAG, selection.kind().serializedName());
+                stack.getOrCreateTag().putString(AMMO_SELECTION_TAG, selection.id().toString());
+                clearStoredValue(stack, MODE_TAG);
+            }
+            case MAGIC -> {
+                stack.getOrCreateTag().putString(SHOT_MODE_TAG, selection.kind().serializedName());
+                stack.getOrCreateTag().putString(MODE_TAG, selection.id().toString());
+                clearStoredValue(stack, AMMO_SELECTION_TAG);
+            }
         }
         if (stack.getItem() instanceof ElementalBow elementalBow) {
             elementalBow.initializeSpellContainer(stack);
         }
     }
 
-    private static void clearStoredMode(ItemStack stack) {
+    private static void clearLegacyMagicMode(ItemStack stack) {
+        clearStoredValue(stack, MODE_TAG);
+    }
+
+    private static void clearAllModeTags(ItemStack stack) {
+        clearStoredValue(stack, SHOT_MODE_TAG);
+        clearStoredValue(stack, MODE_TAG);
+        clearStoredValue(stack, AMMO_SELECTION_TAG);
+    }
+
+    private static void clearStoredValue(ItemStack stack, String key) {
         var tag = stack.getTag();
         if (tag == null) {
             return;
         }
-        tag.remove(MODE_TAG);
+        tag.remove(key);
         if (tag.isEmpty()) {
             stack.setTag(null);
         }
     }
 
     private Component getModeDisplayName(ItemStack stack) {
-        var mode = resolveConfiguredMode(stack);
-        return mode != null ? mode.schoolType().getDisplayName() : Component.translatable("item.apprenticecodex.elemental_bow.mode.none");
+        return resolveSelectionDisplayName(normalizeModeState(stack));
+    }
+
+    private static Component resolveSelectionDisplayName(ModeSelection selection) {
+        var baseName = Component.translatable(selection.kind().translationKey());
+        if (selection.kind() == ShotModeKind.NORMAL || selection.id() == null) {
+            return baseName;
+        }
+
+        if (selection.kind() == ShotModeKind.MAGIC) {
+            return Component.translatable(
+                    "item.apprenticecodex.elemental_bow.mode.selected",
+                    baseName,
+                    resolveSchoolDisplayName(selection.id())
+            );
+        }
+
+        return Component.translatable(
+                "item.apprenticecodex.elemental_bow.mode.selected",
+                baseName,
+                resolveAmmoDisplayName(selection)
+        );
+    }
+
+    private static Component resolveAmmoDisplayName(ModeSelection selection) {
+        if (selection.id() == null) {
+            return Component.literal("?");
+        }
+
+        return switch (selection.kind()) {
+            case SPECIAL -> resolveSpecialAmmoDisplayName(selection.id());
+            case MOD -> resolveModArrowDisplayName(selection.id());
+            case NORMAL, MAGIC -> Component.literal(selection.id().toString());
+        };
+    }
+
+    private static Component resolveSpecialAmmoDisplayName(ResourceLocation selectionId) {
+        if (SPECTRAL_ARROW_ID.equals(selectionId)) {
+            return new ItemStack(Items.SPECTRAL_ARROW).getHoverName();
+        }
+
+        var potion = ForgeRegistries.POTIONS.getValue(selectionId);
+        if (potion == null) {
+            return Component.literal(selectionId.toString());
+        }
+
+        var previewStack = new ItemStack(Items.TIPPED_ARROW);
+        PotionUtils.setPotion(previewStack, potion);
+        return previewStack.getHoverName();
+    }
+
+    private static Component resolveModArrowDisplayName(ResourceLocation selectionId) {
+        var item = ForgeRegistries.ITEMS.getValue(selectionId);
+        return item != null ? new ItemStack(item).getHoverName() : Component.literal(selectionId.toString());
+    }
+
+    private static ItemStack createRepresentativeAmmo(ModeSelection selection) {
+        if (selection.kind() == ShotModeKind.SPECIAL && selection.id() != null) {
+            if (SPECTRAL_ARROW_ID.equals(selection.id())) {
+                return new ItemStack(Items.SPECTRAL_ARROW);
+            }
+
+            var potion = ForgeRegistries.POTIONS.getValue(selection.id());
+            var previewStack = new ItemStack(Items.TIPPED_ARROW);
+            if (potion != null) {
+                PotionUtils.setPotion(previewStack, potion);
+            }
+            return previewStack;
+        }
+
+        if (selection.kind() == ShotModeKind.MOD && selection.id() != null) {
+            var item = ForgeRegistries.ITEMS.getValue(selection.id());
+            if (item instanceof ArrowItem) {
+                return new ItemStack(item);
+            }
+        }
+
+        return new ItemStack(Items.ARROW);
     }
 
     private record SpellCastProfile(AbstractSpell spell, int spellLevel) {
     }
 
     public record DisplayedSpellProfile(AbstractSpell spell, int spellLevel) {
+    }
+
+    private enum ShotModeKind {
+        NORMAL("normal", "item.apprenticecodex.elemental_bow.mode.normal"),
+        SPECIAL("special", "item.apprenticecodex.elemental_bow.mode.special"),
+        MOD("mod", "item.apprenticecodex.elemental_bow.mode.mod"),
+        MAGIC("magic", "item.apprenticecodex.elemental_bow.mode.magic");
+
+        private final String serializedName;
+        private final String translationKey;
+
+        ShotModeKind(String serializedName, String translationKey) {
+            this.serializedName = serializedName;
+            this.translationKey = translationKey;
+        }
+
+        public String serializedName() {
+            return serializedName;
+        }
+
+        public String translationKey() {
+            return translationKey;
+        }
+
+        @Nullable
+        public static ShotModeKind fromSerializedName(String serializedName) {
+            for (var value : values()) {
+                if (value.serializedName.equals(serializedName)) {
+                    return value;
+                }
+            }
+            return null;
+        }
+    }
+
+    private record ModeSelection(ShotModeKind kind, @Nullable ResourceLocation id) {
+        private static ModeSelection normal() {
+            return new ModeSelection(ShotModeKind.NORMAL, null);
+        }
     }
 }

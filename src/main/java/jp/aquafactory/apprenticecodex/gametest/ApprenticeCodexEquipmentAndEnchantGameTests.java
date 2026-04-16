@@ -240,6 +240,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowMagicModeIgnoresInfinityWithoutAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowNonMagicModesHideDerivedSpellPresentation(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowSuppressesElementalArrowCooldown(helper);
     }
