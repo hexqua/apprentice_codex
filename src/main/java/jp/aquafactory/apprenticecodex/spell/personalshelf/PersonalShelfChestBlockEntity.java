@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -25,10 +26,12 @@ import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +42,11 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
     private static final int EXPORT_COOLDOWN_TICK = 5;
     private static final int FALLBACK_LIFE_TIME_TICKS = 20 * 60;
     private static final double FALLBACK_KEEP_OWNER_RANGE = 10.0;
+    private static final DustParticleOptions EXPORT_SUCCESS_DUST =
+            new DustParticleOptions(new Vector3f(0.78f, 0.28f, 0.98f), 1.0f);
+    private static final int EXPORT_SUCCESS_DUST_COUNT = 6;
+    private static final double EXPORT_SUCCESS_FACE_OFFSET = 0.38D;
+    private static final double EXPORT_SUCCESS_FACE_SPREAD = 0.22D;
 
 
     private UUID owner;
@@ -279,11 +287,46 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
                                     }
 
                                     source.extractItem(i, insertedReal, false);
+                                    playExportSuccessEffects(serverLevel, pos);
                                     setChanged();
                                     exportCooldownTick = EXPORT_COOLDOWN_TICK;
                                     return;
                                 }
                             });
                 });
+    }
+
+    private void playExportSuccessEffects(ServerLevel serverLevel, BlockPos pos) {
+        if (exportFacing == null) {
+            return;
+        }
+
+        var effectOrigin = getExportEffectOrigin(pos, exportFacing);
+        AudioTools.playSoundFromPosition(serverLevel, effectOrigin, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.45F, 0.65F, 0.05F);
+
+        // 粒子は搬出面から漏れる見た目を優先する。1.21.1 側で粒子 API 差分が出たらここを基準に見直す。
+        for (var i = 0; i < EXPORT_SUCCESS_DUST_COUNT; ++i) {
+            var particlePos = randomizeOnExportFace(serverLevel, effectOrigin, exportFacing);
+            serverLevel.sendParticles(EXPORT_SUCCESS_DUST, particlePos.x, particlePos.y, particlePos.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        }
+    }
+
+    private Vec3 getExportEffectOrigin(BlockPos pos, Direction facing) {
+        return pos.getCenter().add(
+                facing.getStepX() * EXPORT_SUCCESS_FACE_OFFSET,
+                facing.getStepY() * EXPORT_SUCCESS_FACE_OFFSET,
+                facing.getStepZ() * EXPORT_SUCCESS_FACE_OFFSET
+        );
+    }
+
+    private Vec3 randomizeOnExportFace(ServerLevel serverLevel, Vec3 basePosition, Direction facing) {
+        var axisOffsetA = (serverLevel.random.nextDouble() - 0.5D) * EXPORT_SUCCESS_FACE_SPREAD * 2.0D;
+        var axisOffsetB = (serverLevel.random.nextDouble() - 0.5D) * EXPORT_SUCCESS_FACE_SPREAD * 2.0D;
+
+        return switch (facing.getAxis()) {
+            case X -> basePosition.add(0.0D, axisOffsetA, axisOffsetB);
+            case Y -> basePosition.add(axisOffsetA, 0.0D, axisOffsetB);
+            case Z -> basePosition.add(axisOffsetA, axisOffsetB, 0.0D);
+        };
     }
 }
