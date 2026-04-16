@@ -24,7 +24,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "12";
+    private static final String PROTOCOL_VERSION = "13";
 
     private Networks() {
     }
@@ -39,6 +39,11 @@ public final class Networks {
                 ClientBlockTargetCastPacket.TYPE,
                 ClientBlockTargetCastPacket.STREAM_CODEC,
                 ClientBlockTargetCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientConfirmElementalBowModePacket.TYPE,
+                ClientConfirmElementalBowModePacket.STREAM_CODEC,
+                ClientConfirmElementalBowModePacket::handle
         );
         registrar.playToServer(
                 ClientSwingMagicAttackPacket.TYPE,

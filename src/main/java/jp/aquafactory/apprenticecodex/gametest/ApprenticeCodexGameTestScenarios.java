@@ -2805,16 +2805,19 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowCyclesModesWhenSneakUsed(GameTestHelper helper) {
+    public static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mode_cycle_test");
+            var registryAccess = helper.getLevel().registryAccess();
+            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(infinity, 1);
             var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING.value());
             var regenerationArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
             var healingId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(healingArrow));
             var regenerationId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(regenerationArrow));
             helper.assertTrue(healingId != null && regenerationId != null,
-                    "Elemental Bow mode cycle test could not resolve tipped arrow potion ids");
+                    "Elemental Bow selection view test could not resolve tipped arrow potion ids");
             var availablePotionIds = new LinkedHashSet<ResourceLocation>();
             if (healingId != null) {
                 availablePotionIds.add(healingId);
@@ -2831,31 +2834,36 @@ public final class ApprenticeCodexGameTestScenarios {
             player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
             player.getInventory().setItem(2, healingArrow);
             player.getInventory().setItem(3, regenerationArrow);
-            player.setShiftKeyDown(true);
 
-            assertElementalBowSelection(helper, stack, null, null, "Elemental Bow should start in normal mode");
-            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowSelection(helper, stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"),
-                    "Elemental Bow should switch to spectral arrows first");
-            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowSelection(helper, stack, "special", expectedPotionOrder.get(0),
-                    "Elemental Bow should switch to the first available tipped arrow by registry order");
-            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowSelection(helper, stack, "special", expectedPotionOrder.get(1),
-                    "Elemental Bow should switch to the second available tipped arrow by registry order");
-            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowSelection(helper, stack, "magic", SchoolRegistry.FIRE_RESOURCE,
-                    "Elemental Bow should switch to Fire magic after tracked special arrows");
-            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowSelection(helper, stack, "magic", SchoolRegistry.ENDER_RESOURCE,
-                    "Elemental Bow should switch to Ender magic next");
-            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowSelection(helper, stack, "magic", SchoolRegistry.NATURE_RESOURCE,
-                    "Elemental Bow should switch to Nature magic after Ender");
-            stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            assertElementalBowSelection(helper, stack, null, null,
-                    "Elemental Bow should return to normal mode after the last magic mode");
-            helper.assertFalse(player.isUsingItem(), "Sneak mode switching should not start drawing the bow");
+            var views = ElementalBow.getAvailableSelectionViews(player, stack);
+            var actualSelections = views.stream()
+                    .map(ApprenticeCodexGameTestScenarios::describeElementalBowSelectionView)
+                    .toList();
+            var expectedSelections = new ArrayList<String>();
+            expectedSelections.add("normal");
+            expectedSelections.add("special:minecraft:spectral_arrow");
+            for (var potionId : expectedPotionOrder) {
+                expectedSelections.add("special:" + potionId);
+            }
+            expectedSelections.add("magic:" + SchoolRegistry.FIRE_RESOURCE);
+            expectedSelections.add("magic:" + SchoolRegistry.ENDER_RESOURCE);
+            expectedSelections.add("magic:" + SchoolRegistry.NATURE_RESOURCE);
+            helper.assertTrue(actualSelections.equals(expectedSelections),
+                    "Elemental Bow selection view order mismatch: expected=" + expectedSelections + ", actual=" + actualSelections);
+            helper.assertTrue("∞".equals(views.get(0).badgeText()),
+                    "Elemental Bow normal selection should show infinity while Infinity is enchanted: " + views.get(0).badgeText());
+
+            var fireView = views.stream()
+                    .filter(view -> "magic".equals(view.selection().shotMode()) && SchoolRegistry.FIRE_RESOURCE.equals(view.selection().selectionId()))
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(fireView != null, "Elemental Bow selection view should include Fire magic");
+            if (fireView != null) {
+                helper.assertTrue(fireView.iconKind() == ElementalBow.SelectionIconKind.SPELL,
+                        "Elemental Bow magic selection should render as a spell icon");
+                helper.assertTrue(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get().getSpellIconResource().equals(fireView.spellIcon()),
+                        "Elemental Bow Fire magic selection should use the Fire Arrow spell icon");
+            }
         });
     }
 
@@ -2981,6 +2989,37 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow should not expose a spell container outside magic mode");
             helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack) == null,
                     "Elemental Bow should not expose a displayed spell profile outside magic mode");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            setElementalBowShotSelection(stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"));
+
+            var selectedViews = ElementalBow.getAvailableSelectionViews(player, stack);
+            var spectralView = selectedViews.stream()
+                    .filter(view -> "special".equals(view.selection().shotMode())
+                            && ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow").equals(view.selection().selectionId()))
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(spectralView != null, "Elemental Bow should keep the empty current special selection in the UI");
+            if (spectralView != null) {
+                helper.assertTrue("0".equals(spectralView.badgeText()),
+                        "Elemental Bow empty current special selection should show 0 ammo");
+                helper.assertTrue(spectralView.badgeColor() == 0xFF5555,
+                        "Elemental Bow empty current special selection should render its ammo count in red");
+            }
+
+            setElementalBowShotSelection(stack, "normal", null);
+            var normalViews = ElementalBow.getAvailableSelectionViews(player, stack);
+            helper.assertTrue(normalViews.stream().noneMatch(view ->
+                            "special".equals(view.selection().shotMode())
+                                    && ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow").equals(view.selection().selectionId())),
+                    "Elemental Bow should drop the empty special selection after another mode is chosen");
         });
     }
 
@@ -5178,6 +5217,12 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + ": expected shotMode=" + expectedShotMode + ", selection=" + expectedSelectionId
                         + " but got shotMode=" + actualShotMode + ", selection=" + actualSelectionId
         );
+    }
+
+    private static String describeElementalBowSelectionView(ElementalBow.ModeSelectionView view) {
+        return view.selection().selectionId() == null
+                ? view.selection().shotMode()
+                : view.selection().shotMode() + ":" + view.selection().selectionId();
     }
 
     private static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {

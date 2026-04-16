@@ -1,22 +1,32 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
+public class SyncElementalBowOverheatPacket implements CustomPacketPayload {
+    public static final Type<SyncElementalBowOverheatPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_elemental_bow_overheat"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncElementalBowOverheatPacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncElementalBowOverheatPacket::decode);
 
-public class SyncElementalBowOverheatPacket {
     private final CompoundTag data;
 
     public SyncElementalBowOverheatPacket(@Nullable CompoundTag data) {
         this.data = data == null ? new CompoundTag() : data.copy();
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
     public static void encode(SyncElementalBowOverheatPacket packet, FriendlyByteBuf buffer) {
@@ -27,26 +37,14 @@ public class SyncElementalBowOverheatPacket {
         return new SyncElementalBowOverheatPacket(buffer.readNbt());
     }
 
-    public static void handle(SyncElementalBowOverheatPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private static final class ClientHandler {
-        private ClientHandler() {
-        }
-
-        private static void handle(SyncElementalBowOverheatPacket packet) {
+    public static void handle(SyncElementalBowOverheatPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
             var player = Minecraft.getInstance().player;
             if (player == null) {
                 return;
             }
 
             ElementalBowOverheatManager.applySyncedState(player, packet.data);
-        }
+        });
     }
 }

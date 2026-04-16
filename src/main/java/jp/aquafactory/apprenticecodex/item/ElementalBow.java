@@ -58,8 +58,9 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -140,23 +141,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
         initializeSpellContainer(stack);
-        if (player.isSecondaryUseActive()) {
-            if (!level.isClientSide) {
-                var nextMode = resolveNextModeSelection(player, stack);
-                setModeSelection(stack, nextMode);
-                player.displayClientMessage(
-                        Component.translatable(
-                                        "ui.apprenticecodex.elemental_bow.mode_switched",
-                                        resolveSelectionDisplayName(nextMode)
-                                )
-                                .withStyle(ChatFormatting.GOLD),
-                        true
-                );
-                level.playSound(null, player.blockPosition(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.35F, 1.1F);
-            }
-            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
-        }
-
         var selection = normalizeModeState(stack);
         return switch (selection.kind()) {
             case NORMAL -> useNormalArrowMode(level, player, usedHand, stack);
@@ -645,6 +629,84 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 .withStyle(ChatFormatting.RED);
     }
 
+    public static List<ModeSelectionView> getAvailableSelectionViews(Player player, ItemStack stack) {
+        if (!(stack.getItem() instanceof ElementalBow)) {
+            return List.of();
+        }
+
+        var currentSelection = normalizeModeState(stack);
+        var ammoSummary = summarizeAmmoInventory(player);
+        var selections = buildAvailableSelections(currentSelection, ammoSummary, true);
+        var views = new ArrayList<ModeSelectionView>(selections.size());
+        for (var selection : selections) {
+            views.add(createSelectionView(stack, selection, currentSelection, ammoSummary));
+        }
+        return List.copyOf(views);
+    }
+
+    public static void applyClientSelection(
+            ServerPlayer player,
+            InteractionHand hand,
+            String shotModeName,
+            @Nullable ResourceLocation selectionId,
+            boolean continueUse
+    ) {
+        var stack = player.getItemInHand(hand);
+        if (!(stack.getItem() instanceof ElementalBow)) {
+            return;
+        }
+
+        var requestedSelection = resolveSelectionFromKey(shotModeName, selectionId);
+        if (requestedSelection == null || !isSelectableMode(player, stack, requestedSelection)) {
+            return;
+        }
+
+        var currentSelection = normalizeModeState(stack);
+        if (sameSelection(currentSelection, requestedSelection)) {
+            if (continueUse) {
+                stack.getItem().use(player.level(), player, hand);
+            }
+            return;
+        }
+
+        setModeSelection(stack, requestedSelection);
+        player.displayClientMessage(
+                Component.translatable(
+                                "ui.apprenticecodex.elemental_bow.mode_switched",
+                                resolveSelectionDisplayName(stack, requestedSelection)
+                        )
+                        .withStyle(ChatFormatting.GOLD),
+                true
+        );
+        player.level().playSound(null, player.blockPosition(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.PLAYERS, 0.35F, 1.1F);
+
+        if (continueUse) {
+            stack.getItem().use(player.level(), player, hand);
+        }
+    }
+
+    private static boolean isSelectableMode(Player player, ItemStack stack, ModeSelection requestedSelection) {
+        var currentSelection = normalizeModeState(stack);
+        for (var selectable : buildAvailableSelections(currentSelection, summarizeAmmoInventory(player), true)) {
+            if (sameSelection(selectable, requestedSelection)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Nullable
+    private static ModeSelection resolveSelectionFromKey(String shotModeName, @Nullable ResourceLocation selectionId) {
+        var shotMode = ShotModeKind.fromSerializedName(shotModeName);
+        if (shotMode == null) {
+            return null;
+        }
+        if (shotMode == ShotModeKind.NORMAL) {
+            return ModeSelection.normal();
+        }
+        return selectionId != null ? new ModeSelection(shotMode, selectionId) : null;
+    }
+
     @Nullable
     private ItemStack resolveAmmoSource(Player player, ItemStack bowStack, ModeSelection selection) {
         return switch (selection.kind()) {
@@ -798,7 +860,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 : null;
     }
 
-    private ModeSelection normalizeModeState(ItemStack stack) {
+    private static ModeSelection normalizeModeState(ItemStack stack) {
         var tag = getCustomDataTag(stack);
         if (tag == null) {
             return ModeSelection.normal();
@@ -850,67 +912,36 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return new ModeSelection(storedShotMode, selectionId);
     }
 
-    private static ModeSelection resolveNextModeSelection(Player player, ItemStack stack) {
-        var availableSelections = buildAvailableSelections(player);
-        if (availableSelections.isEmpty()) {
-            return ModeSelection.normal();
-        }
-
-        var currentSelection = ((ElementalBow) stack.getItem()).normalizeModeState(stack);
-        for (int index = 0; index < availableSelections.size(); index++) {
-            if (!sameSelection(availableSelections.get(index), currentSelection)) {
-                continue;
-            }
-            return availableSelections.get((index + 1) % availableSelections.size());
-        }
-
-        return availableSelections.get(0);
-    }
-
-    private static List<ModeSelection> buildAvailableSelections(Player player) {
+    private static List<ModeSelection> buildAvailableSelections(
+            ModeSelection currentSelection,
+            AmmoInventorySummary ammoSummary,
+            boolean preserveCurrentUnavailableSelection
+    ) {
         var selections = new ArrayList<ModeSelection>();
         selections.add(ModeSelection.normal());
-        selections.addAll(collectSpecialArrowSelections(player));
-        selections.addAll(collectModArrowSelections(player));
+        selections.addAll(collectSpecialArrowSelections(ammoSummary, currentSelection, preserveCurrentUnavailableSelection));
+        selections.addAll(collectModArrowSelections(ammoSummary, currentSelection, preserveCurrentUnavailableSelection));
         for (var resolvedDefinition : ElementalBowModeManager.getResolvedDefinitions()) {
             selections.add(new ModeSelection(ShotModeKind.MAGIC, resolvedDefinition.schoolId()));
         }
         return selections;
     }
 
-    private static List<ModeSelection> collectSpecialArrowSelections(Player player) {
+    private static List<ModeSelection> collectSpecialArrowSelections(
+            AmmoInventorySummary ammoSummary,
+            ModeSelection currentSelection,
+            boolean preserveCurrentUnavailableSelection
+    ) {
         var selections = new ArrayList<ModeSelection>();
-        var availablePotionIds = new HashSet<ResourceLocation>();
-        boolean hasSpectralArrow = false;
-
-        for (var ammoStack : collectCandidateAmmoStacks(player)) {
-            if (ammoStack.isEmpty()) {
-                continue;
-            }
-
-            if (ammoStack.is(Items.SPECTRAL_ARROW)) {
-                hasSpectralArrow = true;
-                continue;
-            }
-
-            if (!ammoStack.is(Items.TIPPED_ARROW)) {
-                continue;
-            }
-
-            var potion = PotionContentsHelper.getPotion(ammoStack);
-            var potionId = potion == null ? null : BuiltInRegistries.POTION.getKey(potion);
-            if (potionId != null) {
-                availablePotionIds.add(potionId);
-            }
-        }
-
-        if (hasSpectralArrow) {
+        if (ammoSummary.specialArrowCounts().containsKey(SPECTRAL_ARROW_ID)
+                || shouldPreserveUnavailableCurrentSelection(currentSelection, preserveCurrentUnavailableSelection, ShotModeKind.SPECIAL, SPECTRAL_ARROW_ID)) {
             selections.add(new ModeSelection(ShotModeKind.SPECIAL, SPECTRAL_ARROW_ID));
         }
 
         for (var potion : BuiltInRegistries.POTION) {
             var potionId = BuiltInRegistries.POTION.getKey(potion);
-            if (potionId != null && availablePotionIds.contains(potionId)) {
+            if (potionId != null && (ammoSummary.specialArrowCounts().containsKey(potionId)
+                    || shouldPreserveUnavailableCurrentSelection(currentSelection, preserveCurrentUnavailableSelection, ShotModeKind.SPECIAL, potionId))) {
                 selections.add(new ModeSelection(ShotModeKind.SPECIAL, potionId));
             }
         }
@@ -918,20 +949,12 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return selections;
     }
 
-    private static List<ModeSelection> collectModArrowSelections(Player player) {
+    private static List<ModeSelection> collectModArrowSelections(
+            AmmoInventorySummary ammoSummary,
+            ModeSelection currentSelection,
+            boolean preserveCurrentUnavailableSelection
+    ) {
         var selections = new ArrayList<ModeSelection>();
-        var availableItemIds = new HashSet<ResourceLocation>();
-
-        for (var ammoStack : collectCandidateAmmoStacks(player)) {
-            if (ammoStack.isEmpty() || !(ammoStack.getItem() instanceof ArrowItem arrowItem) || VANILLA_ARROW_ITEMS.contains(arrowItem)) {
-                continue;
-            }
-
-            var itemId = BuiltInRegistries.ITEM.getKey(arrowItem);
-            if (itemId != null) {
-                availableItemIds.add(itemId);
-            }
-        }
 
         for (var item : BuiltInRegistries.ITEM) {
             if (!(item instanceof ArrowItem) || VANILLA_ARROW_ITEMS.contains(item)) {
@@ -939,7 +962,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             }
 
             var itemId = BuiltInRegistries.ITEM.getKey(item);
-            if (itemId != null && availableItemIds.contains(itemId)) {
+            if (itemId != null && (ammoSummary.modArrowCounts().containsKey(itemId)
+                    || shouldPreserveUnavailableCurrentSelection(currentSelection, preserveCurrentUnavailableSelection, ShotModeKind.MOD, itemId))) {
                 selections.add(new ModeSelection(ShotModeKind.MOD, itemId));
             }
         }
@@ -947,16 +971,116 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return selections;
     }
 
+    private static boolean shouldPreserveUnavailableCurrentSelection(
+            ModeSelection currentSelection,
+            boolean preserveCurrentUnavailableSelection,
+            ShotModeKind kind,
+            ResourceLocation selectionId
+    ) {
+        return preserveCurrentUnavailableSelection
+                && currentSelection.kind() == kind
+                && selectionId.equals(currentSelection.id());
+    }
+
+    private static AmmoInventorySummary summarizeAmmoInventory(Player player) {
+        int normalArrowCount = 0;
+        var specialArrowCounts = new LinkedHashMap<ResourceLocation, Integer>();
+        var modArrowCounts = new LinkedHashMap<ResourceLocation, Integer>();
+
+        for (var ammoStack : collectCandidateAmmoStacks(player)) {
+            if (ammoStack.isEmpty()) {
+                continue;
+            }
+
+            if (ammoStack.is(Items.ARROW)) {
+                normalArrowCount += ammoStack.getCount();
+                continue;
+            }
+
+            if (ammoStack.is(Items.SPECTRAL_ARROW)) {
+                specialArrowCounts.merge(SPECTRAL_ARROW_ID, ammoStack.getCount(), Integer::sum);
+                continue;
+            }
+
+            if (ammoStack.is(Items.TIPPED_ARROW)) {
+                var potion = PotionContentsHelper.getPotion(ammoStack);
+                var potionId = potion == null ? null : BuiltInRegistries.POTION.getKey(potion);
+                if (potionId != null) {
+                    specialArrowCounts.merge(potionId, ammoStack.getCount(), Integer::sum);
+                }
+                continue;
+            }
+
+            if (ammoStack.getItem() instanceof ArrowItem arrowItem && !VANILLA_ARROW_ITEMS.contains(arrowItem)) {
+                var itemId = BuiltInRegistries.ITEM.getKey(arrowItem);
+                if (itemId != null) {
+                    modArrowCounts.merge(itemId, ammoStack.getCount(), Integer::sum);
+                }
+            }
+        }
+
+        return new AmmoInventorySummary(normalArrowCount, Map.copyOf(specialArrowCounts), Map.copyOf(modArrowCounts));
+    }
+
     private static List<ItemStack> collectCandidateAmmoStacks(Player player) {
-        var stacks = new ArrayList<ItemStack>(2 + player.getInventory().items.size());
+        var stacks = new ArrayList<ItemStack>(1 + player.getInventory().items.size());
         stacks.add(player.getOffhandItem());
-        stacks.add(player.getMainHandItem());
         stacks.addAll(player.getInventory().items);
         return stacks;
     }
 
     private static boolean sameSelection(ModeSelection left, ModeSelection right) {
         return left.kind() == right.kind() && Objects.equals(left.id(), right.id());
+    }
+
+    private static ModeSelectionView createSelectionView(
+            ItemStack stack,
+            ModeSelection selection,
+            ModeSelection currentSelection,
+            AmmoInventorySummary ammoSummary
+    ) {
+        var isCurrentSelection = sameSelection(selection, currentSelection);
+        if (selection.kind() == ShotModeKind.MAGIC) {
+            var resolvedMode = ElementalBowModeManager.getResolvedDefinition(selection.id());
+            var spellIcon = resolvedMode != null ? resolvedMode.spell().getSpellIconResource() : null;
+            var levelText = resolvedMode != null ? Integer.toString(resolvedMode.resolveSpellLevel(stack)) : "?";
+            var badgeColor = resolvedMode != null ? resolvedMode.color() : 0xFFFFFF;
+            return new ModeSelectionView(
+                    selection.toKey(),
+                    resolveSelectionDisplayName(stack, selection),
+                    SelectionIconKind.SPELL,
+                    ItemStack.EMPTY,
+                    spellIcon,
+                    levelText,
+                    badgeColor,
+                    isCurrentSelection
+            );
+        }
+
+        int count = switch (selection.kind()) {
+            case NORMAL -> ammoSummary.normalArrowCount();
+            case SPECIAL -> selection.id() == null ? 0 : ammoSummary.specialArrowCounts().getOrDefault(selection.id(), 0);
+            case MOD -> selection.id() == null ? 0 : ammoSummary.modArrowCounts().getOrDefault(selection.id(), 0);
+            case MAGIC -> 0;
+        };
+        var badgeText = selection.kind() == ShotModeKind.NORMAL && hasInfinity(stack)
+                ? "∞"
+                : formatSelectionCount(count);
+        int badgeColor = isCurrentSelection && count <= 0 ? 0xFF5555 : 0xFFFFFF;
+        return new ModeSelectionView(
+                selection.toKey(),
+                resolveSelectionDisplayName(stack, selection),
+                SelectionIconKind.ITEM,
+                createRepresentativeAmmo(selection),
+                null,
+                badgeText,
+                badgeColor,
+                isCurrentSelection
+        );
+    }
+
+    private static String formatSelectionCount(int count) {
+        return count >= 1000 ? (count / 1000) + "k" : Integer.toString(Math.max(count, 0));
     }
 
     private static void setModeSelection(ItemStack stack, ModeSelection selection) {
@@ -997,39 +1121,39 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private Component getModeDisplayName(ItemStack stack) {
-        return resolveSelectionDisplayName(normalizeModeState(stack));
+        return resolveSelectionDisplayName(stack, normalizeModeState(stack));
     }
 
-    private static Component resolveSelectionDisplayName(ModeSelection selection) {
-        var baseName = Component.translatable(selection.kind().translationKey());
-        if (selection.kind() == ShotModeKind.NORMAL || selection.id() == null) {
-            return baseName;
-        }
-
-        if (selection.kind() == ShotModeKind.MAGIC) {
-            return Component.translatable(
-                    "item.apprenticecodex.elemental_bow.mode.selected",
-                    baseName,
-                    resolveSchoolDisplayName(selection.id())
-            );
-        }
-
-        return Component.translatable(
-                "item.apprenticecodex.elemental_bow.mode.selected",
-                baseName,
-                resolveAmmoDisplayName(selection)
-        );
+    private static Component resolveSelectionDisplayName(ItemStack stack, ModeSelection selection) {
+        return switch (selection.kind()) {
+            case NORMAL, SPECIAL, MOD -> resolveAmmoDisplayName(selection).copy();
+            case MAGIC -> resolveMagicDisplayName(stack, selection.id());
+        };
     }
 
-    private static Component resolveAmmoDisplayName(ModeSelection selection) {
-        if (selection.id() == null) {
+    private static Component resolveMagicDisplayName(ItemStack stack, @Nullable ResourceLocation selectionId) {
+        if (selectionId == null) {
             return Component.literal("?");
         }
 
+        var resolvedMode = ElementalBowModeManager.getResolvedDefinition(selectionId);
+        if (resolvedMode == null) {
+            return Component.literal(selectionId.toString());
+        }
+
+        var textColor = resolvedMode.color();
+        var spellLevel = resolvedMode.resolveSpellLevel(stack);
+        return resolvedMode.spell().getDisplayName(null).copy()
+                .withStyle(style -> style.withColor(textColor))
+                .append(Component.literal(" " + spellLevel).withStyle(style -> style.withColor(textColor)));
+    }
+
+    private static Component resolveAmmoDisplayName(ModeSelection selection) {
         return switch (selection.kind()) {
-            case SPECIAL -> resolveSpecialAmmoDisplayName(selection.id());
-            case MOD -> resolveModArrowDisplayName(selection.id());
-            case NORMAL, MAGIC -> Component.literal(selection.id().toString());
+            case NORMAL -> new ItemStack(Items.ARROW).getHoverName();
+            case SPECIAL -> selection.id() == null ? Component.literal("?") : resolveSpecialAmmoDisplayName(selection.id());
+            case MOD -> selection.id() == null ? Component.literal("?") : resolveModArrowDisplayName(selection.id());
+            case MAGIC -> Component.literal(selection.id() == null ? "?" : selection.id().toString());
         };
     }
 
@@ -1079,6 +1203,36 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     public record DisplayedSpellProfile(AbstractSpell spell, int spellLevel) {
     }
 
+    public enum SelectionIconKind {
+        ITEM,
+        SPELL
+    }
+
+    public record ModeSelectionKey(String shotMode, @Nullable ResourceLocation selectionId) {
+    }
+
+    public record ModeSelectionView(
+            ModeSelectionKey selection,
+            Component displayName,
+            SelectionIconKind iconKind,
+            ItemStack iconStack,
+            @Nullable ResourceLocation spellIcon,
+            @Nullable String badgeText,
+            int badgeColor,
+            boolean currentSelection
+    ) {
+        public ModeSelectionView {
+            iconStack = iconStack.copy();
+        }
+    }
+
+    private record AmmoInventorySummary(
+            int normalArrowCount,
+            Map<ResourceLocation, Integer> specialArrowCounts,
+            Map<ResourceLocation, Integer> modArrowCounts
+    ) {
+    }
+
     @Nullable
     private static CompoundTag getCustomDataTag(ItemStack stack) {
         var customData = stack.get(DataComponents.CUSTOM_DATA);
@@ -1102,25 +1256,19 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private enum ShotModeKind {
-        NORMAL("normal", "item.apprenticecodex.elemental_bow.mode.normal"),
-        SPECIAL("special", "item.apprenticecodex.elemental_bow.mode.special"),
-        MOD("mod", "item.apprenticecodex.elemental_bow.mode.mod"),
-        MAGIC("magic", "item.apprenticecodex.elemental_bow.mode.magic");
+        NORMAL("normal"),
+        SPECIAL("special"),
+        MOD("mod"),
+        MAGIC("magic");
 
         private final String serializedName;
-        private final String translationKey;
 
-        ShotModeKind(String serializedName, String translationKey) {
+        ShotModeKind(String serializedName) {
             this.serializedName = serializedName;
-            this.translationKey = translationKey;
         }
 
         public String serializedName() {
             return serializedName;
-        }
-
-        public String translationKey() {
-            return translationKey;
         }
 
         @Nullable
@@ -1137,6 +1285,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private record ModeSelection(ShotModeKind kind, @Nullable ResourceLocation id) {
         private static ModeSelection normal() {
             return new ModeSelection(ShotModeKind.NORMAL, null);
+        }
+
+        private ModeSelectionKey toKey() {
+            return new ModeSelectionKey(kind.serializedName(), id);
         }
     }
 }
