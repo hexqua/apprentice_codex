@@ -57,6 +57,8 @@ import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEnti
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
+import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
@@ -126,6 +128,10 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -3986,6 +3992,58 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_vanilla_menu_test");
+            var shelfPos = new BlockPos(0, 1, 0);
+            var absoluteShelfPos = castPersonalShelf(helper, player, shelfPos, false, Direction.NORTH);
+            var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
+            var personalInventory = Capabilities.getPersonalInventory(player)
+                    .orElseThrow(() -> new IllegalStateException("Missing personal inventory for Personal Shelf GameTest"));
+
+            personalInventory.getHandler().setStackInSlot(0, new ItemStack(Items.DIAMOND));
+            for (var slot = 1; slot < 54; ++slot) {
+                personalInventory.getHandler().setStackInSlot(slot, new ItemStack(Items.STONE, 64));
+            }
+            player.getInventory().setItem(0, new ItemStack(Items.DIRT));
+
+            helper.assertTrue(player.openMenu(shelf).isPresent(), "Personal Shelf should open a menu for its owner");
+            helper.assertTrue(player.containerMenu instanceof ChestMenu chestMenu && chestMenu.getRowCount() == 6,
+                    "Personal Shelf should expose a vanilla six-row chest menu");
+            var chestMenu = (ChestMenu) player.containerMenu;
+            helper.assertTrue(chestMenu.getSlot(0).getItem().is(Items.DIAMOND),
+                    "Personal Shelf chest menu should read from the opener's personal inventory");
+
+            var quickMoved = chestMenu.quickMoveStack(player, 81);
+            helper.assertTrue(quickMoved.isEmpty(),
+                    "Full Personal Shelf quick move should fail cleanly instead of looping");
+            helper.assertTrue(player.getInventory().getItem(0).is(Items.DIRT),
+                    "Failed Personal Shelf quick move should leave the player's stack in place");
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 60)
+    public static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
+        var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_expire_close_test");
+        var shelfPos = new BlockPos(0, 1, 0);
+        var absoluteShelfPos = castPersonalShelf(helper, player, shelfPos, false, Direction.NORTH);
+        var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
+
+        helper.runAtTickTime(1, () -> {
+            helper.assertTrue(player.openMenu(shelf).isPresent(), "Personal Shelf should open before the expiration check");
+            helper.assertTrue(player.containerMenu instanceof ChestMenu,
+                    "Personal Shelf should still be using ChestMenu during the expiration check");
+            shelf.setLifeData(1, 8.0);
+        });
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(player.containerMenu == player.inventoryMenu,
+                    "Expired Personal Shelf should close the opened menu");
+            helper.assertBlockNotPresent(BlockRegistry.PERSONAL_SHELF_CHEST.get(), shelfPos);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
@@ -4520,6 +4578,41 @@ public final class ApprenticeCodexGameTestScenarios {
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
+    }
+
+    private static FakePlayer createPersonalShelfPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        // owner lookup と openers の close 対象探索が server 側の player list / level lookup を使うため、
+        // Personal Shelf の GameTest では FakePlayer もワールドへ参加させる。
+        helper.getLevel().addFreshEntity(player);
+        return player;
+    }
+
+    private static BlockPos castPersonalShelf(GameTestHelper helper, FakePlayer player, BlockPos shelfPos, boolean exportMode, Direction exportFacing) {
+        var spell = (PersonalShelf) SpellRegistry.PERSONAL_SHELF.get();
+        var castData = new PersonalShelf.PersonalShelfCastData();
+        var absoluteShelfPos = helper.absolutePos(shelfPos);
+        var tag = new CompoundTag();
+        tag.putInt("PositionX", absoluteShelfPos.getX());
+        tag.putInt("PositionY", absoluteShelfPos.getY());
+        tag.putInt("PositionZ", absoluteShelfPos.getZ());
+        tag.putBoolean("ExportMode", exportMode);
+        tag.putInt("ExportFacing", exportFacing.get3DDataValue());
+        castData.deserializeNBT(tag);
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.setAdditionalCastData(castData);
+        spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+        return absoluteShelfPos;
+    }
+
+    private static PersonalShelfChestBlockEntity getPersonalShelfBlockEntity(GameTestHelper helper, BlockPos absoluteShelfPos) {
+        var blockEntity = helper.getLevel().getBlockEntity(absoluteShelfPos);
+        helper.assertTrue(blockEntity instanceof PersonalShelfChestBlockEntity,
+                "Expected Personal Shelf block entity but found " + blockEntity);
+        return (PersonalShelfChestBlockEntity) blockEntity;
     }
 
     private static void castCompanionTrunk(GameTestHelper helper, FakePlayer player, int spellLevel) {

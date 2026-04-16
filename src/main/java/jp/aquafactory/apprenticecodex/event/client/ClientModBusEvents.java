@@ -69,7 +69,6 @@ import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileRendere
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutRenderer;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockRenderer;
-import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfScreen;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamRenderer;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryRenderer;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeRenderer;
@@ -160,7 +159,6 @@ public final class ClientModBusEvents {
         event.register(MenuRegistry.SPELL_DISPENSER.get(), SpellDispenserScreen::new);
         event.register(MenuRegistry.ATELIER_STATION.get(), AtelierStationScreen::new);
         event.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new);
-        event.register(MenuRegistry.PERSONAL_SHELF.get(), PersonalShelfScreen::new);
     }
 
     private static void onReloadListeners(RegisterClientReloadListenersEvent event) {
