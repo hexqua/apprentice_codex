@@ -71,17 +71,18 @@ public class PersonalShelfMenu extends AbstractContainerMenu {
 
         var inventorySize = PersonalInventory.MAX_SIZE;
         var playerEnd = slots.size();
+        boolean moved;
 
         if (slotIndex < inventorySize){
             // パーソナルシェルフ→プレイヤー.
-            if (moveItemStackTo(stack, inventorySize, playerEnd, true)){
-                return ItemStack.EMPTY;
-            }
+            moved = moveItemStackTo(stack, inventorySize, playerEnd, true);
         } else {
-            // プレイヤー→パーソナルシェルフ.
-            if (moveItemStackTo(stack, 0, inventorySize, false)){
-                return ItemStack.EMPTY;
-            }
+            // 移動失敗時に空を返さないと、shift-click 側が同じスタックで再試行し続けて停止する。
+            moved = moveItemStackTo(stack, 0, inventorySize, false);
+        }
+
+        if (!moved) {
+            return ItemStack.EMPTY;
         }
 
         if (stack.isEmpty()){
@@ -90,6 +91,7 @@ public class PersonalShelfMenu extends AbstractContainerMenu {
             slot.setChanged();
         }
 
+        slot.onTake(player, stack);
         return copy;
     }
 
