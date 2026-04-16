@@ -14,7 +14,9 @@ import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -36,23 +38,86 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.constant.DataTickets;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.function.Consumer;
 
-public class ElementalBow extends BowItem implements IPresetSpellContainer, ArcaneAnvilImbueBlockItem {
+public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem {
     public static final int READY_DRAW_TICKS = 22;
+    private static final String MAIN_CONTROLLER = "main";
+    private static final String RELEASE_ANIMATION = "release";
     private static final String MODE_TAG = "ElementalBowMode";
     private static final ItemStack ENCHANTMENT_PROBE_STACK = new ItemStack(Items.BOW);
     private static final float MANA_SAFE_MARGIN = 0.001F;
     private static final float PARTICLE_SIZE = 0.12F;
     private static final int PARTICLE_WHITEN_TICKS = 2;
     private static final int OVERHEAT_WARNING_INTERVAL_TICKS = 10;
+    private static final float DRAW_ANIMATION_SOURCE_SECONDS = 0.32F;
+    private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation ANIM_DRAW = RawAnimation.begin().thenPlayAndHold("draw");
+    private static final RawAnimation ANIM_RELEASE = RawAnimation.begin().thenPlay("release");
+
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ElementalBow() {
         super(new Properties().durability(384));
+        GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private ElementalBowRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new ElementalBowRenderer();
+                }
+
+                return renderer;
+            }
+        });
+    }
+
+    @Override
+    public boolean isPerspectiveAware() {
+        return true;
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(
+                new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
+                    var stack = state.getData(DataTickets.ITEMSTACK);
+                    var perspective = state.getData(DataTickets.ITEM_RENDER_PERSPECTIVE);
+                    if (ElementalBowClientRenderState.shouldPlayDrawAnimation(stack, perspective)) {
+                        state.setAnimation(ANIM_DRAW);
+                        state.getController().setAnimationSpeed(resolveDrawAnimationSpeed(stack));
+                    } else {
+                        state.setAnimation(ANIM_IDLE);
+                        state.getController().setAnimationSpeed(1.0D);
+                    }
+                    return PlayState.CONTINUE;
+                }).triggerableAnim(RELEASE_ANIMATION, ANIM_RELEASE)
+        );
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
     }
 
     public static boolean isElementalSpell(@Nullable AbstractSpell spell) {
@@ -241,13 +306,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
 
         var mode = normalizeModeState(stack);
         if (mode == null) {
-            var projectile = player.getProjectile(stack);
-            if (!projectile.isEmpty() || !hasInfinity(stack) || player.getAbilities().instabuild) {
-                super.releaseUsing(stack, level, livingEntity, timeLeft);
-                return;
-            }
-
-            releaseVanillaInfinityShot(stack, level, player, timeLeft);
+            releaseVanillaShot(stack, level, player, timeLeft);
             return;
         }
 
@@ -274,19 +333,38 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
         );
     }
 
-    private void releaseVanillaInfinityShot(ItemStack stack, Level level, Player player, int timeLeft) {
+    private void releaseVanillaShot(ItemStack stack, Level level, Player player, int timeLeft) {
+        var ammoSource = resolveAmmoSource(player, stack);
+        var hasAmmo = ammoSource != null && !ammoSource.isEmpty();
+        var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
         var drawDuration = getUseDuration(stack) - timeLeft;
-        drawDuration = ForgeEventFactory.onArrowLoose(stack, level, player, drawDuration, true);
+        drawDuration = ForgeEventFactory.onArrowLoose(stack, level, player, drawDuration, hasAmmo || canFireWithoutAmmo);
         if (drawDuration < 0) {
             return;
         }
 
+        if (!hasAmmo && !canFireWithoutAmmo) {
+            return;
+        }
+
+        var ammoStack = hasAmmo ? ammoSource : new ItemStack(Items.ARROW);
+        var infiniteAmmo = player.getAbilities().instabuild
+                || ammoStack.getItem() instanceof ArrowItem arrowItem && arrowItem.isInfinite(ammoStack, stack, player)
+                || (!hasAmmo && hasInfinity(stack));
         var power = getPowerForTime(drawDuration);
         if (power < 0.1F) {
             return;
         }
 
-        fireVanillaArrow(level, player, stack, new ItemStack(Items.ARROW), power, true);
+        if (level.isClientSide) {
+            return;
+        }
+
+        fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
+        if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
+            consumeAmmo(player, ammoSource);
+        }
+        triggerReleaseAnimation(player, stack);
     }
 
     private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ResolvedDefinition mode) {
@@ -354,6 +432,7 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
             }
         }
 
+        triggerReleaseAnimation(player, stack);
         level.playSound(
                 null,
                 player.getX(),
@@ -588,6 +667,23 @@ public class ElementalBow extends BowItem implements IPresetSpellContainer, Arca
 
     private static boolean hasInfinity(ItemStack stack) {
         return stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+    }
+
+    public static double resolveDrawAnimationSpeed(@Nullable ItemStack stack) {
+        return DRAW_ANIMATION_SOURCE_SECONDS / resolveDrawDurationSeconds(stack);
+    }
+
+    private static float resolveDrawDurationSeconds(@Nullable ItemStack stack) {
+        return READY_DRAW_TICKS / 20.0F;
+    }
+
+    private void triggerReleaseAnimation(Player player, ItemStack stack) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+
+        var instanceId = GeoItem.getOrAssignId(stack, serverPlayer.serverLevel());
+        triggerAnim(serverPlayer, instanceId, MAIN_CONTROLLER, RELEASE_ANIMATION);
     }
 
     @Nullable
