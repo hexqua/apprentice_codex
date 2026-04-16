@@ -21,6 +21,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -64,12 +65,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         var capability = player.getCapability(Capabilities.PERSONAL_INVENTORY);
         if (capability.isPresent()) {
             var shelf = capability.orElseThrow(IllegalStateException::new);
-            var level = player.level();
-            if (!level.isClientSide) {
-                onOpenedBy(player, level);
-            }
-
-            return new PersonalShelfMenu(windowId, inventory, shelf.getHandler(), getBlockPos());
+            return ChestMenu.sixRows(windowId, inventory, new PersonalShelfContainer(this, shelf.getHandler()));
         }
 
         return null;
@@ -206,7 +202,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
                 continue;
             }
 
-            if (serverPlayer.containerMenu instanceof PersonalShelfMenu menu && menu.getPos().equals(worldPosition)) {
+            if (serverPlayer.containerMenu != serverPlayer.inventoryMenu) {
                 serverPlayer.closeContainer();
             }
         }
