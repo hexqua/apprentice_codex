@@ -4,7 +4,7 @@ import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInven
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 final class PersonalShelfContainer implements Container {

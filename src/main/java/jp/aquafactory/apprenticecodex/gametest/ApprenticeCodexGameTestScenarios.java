@@ -3998,7 +3998,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var shelfPos = new BlockPos(0, 1, 0);
             var absoluteShelfPos = castPersonalShelf(helper, player, shelfPos, false, Direction.NORTH);
             var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
-            var personalInventory = Capabilities.getPersonalInventory(player)
+            var personalInventory = jp.aquafactory.apprenticecodex.capability.Capabilities.getPersonalInventory(player)
                     .orElseThrow(() -> new IllegalStateException("Missing personal inventory for Personal Shelf GameTest"));
 
             personalInventory.getHandler().setStackInSlot(0, new ItemStack(Items.DIAMOND));
@@ -4601,7 +4601,7 @@ public final class ApprenticeCodexGameTestScenarios {
         tag.putInt("PositionZ", absoluteShelfPos.getZ());
         tag.putBoolean("ExportMode", exportMode);
         tag.putInt("ExportFacing", exportFacing.get3DDataValue());
-        castData.deserializeNBT(tag);
+        castData.deserializeNBT(helper.getLevel().registryAccess(), tag);
         var magicData = MagicData.getPlayerMagicData(player);
         magicData.setAdditionalCastData(castData);
         spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
