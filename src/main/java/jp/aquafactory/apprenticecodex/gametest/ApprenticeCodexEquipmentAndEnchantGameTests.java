@@ -220,8 +220,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowCyclesModesWhenSneakUsed(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowCyclesModesWhenSneakUsed(helper);
+    public static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowBuildsSelectionViewsFromHeldAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(helper);
     }
 
     @GameTest(template = TEMPLATE)
