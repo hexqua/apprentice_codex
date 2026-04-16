@@ -1,0 +1,22 @@
+{
+  "values": [
+    {
+      "enchantment_bonuses": [
+        {
+          "enchantment": "minecraft:flame",
+          "flat_bonus": 2
+        }
+      ],
+      "school": "irons_spellbooks:fire",
+      "spell": "irons_spellbooks:fire_arrow"
+    },
+    {
+      "school": "irons_spellbooks:ender",
+      "spell": "irons_spellbooks:magic_arrow"
+    },
+    {
+      "school": "irons_spellbooks:nature",
+      "spell": "irons_spellbooks:poison_arrow"
+    }
+  ]
+}

@@ -53,6 +53,9 @@
   "item.apprenticecodex.explorers_cane": "Explorer's Cane",
   "item.apprenticecodex.spellcasters_flask": "Spellcaster's Flask",
   "item.apprenticecodex.alchemists_flask": "Alchemist's Flask",
+  "item.apprenticecodex.elemental_bow": "Elemental Bow",
+  "item.apprenticecodex.elemental_bow.mode": "Current attunement school: %s",
+  "item.apprenticecodex.elemental_bow.mode.none": "None",
 
   "item.apprenticecodex.apprentice_mage_scarf": "Apprentice Mage's Scarf",
   "item.apprenticecodex.apprentice_mage_torso": "Apprentice Mage's Robe",
@@ -93,6 +96,7 @@
   "item.apprenticecodex.crystal_bladed_staff.desc": "This staff prioritizes shield usage.",
   "item.apprenticecodex.isekai_travel_guidebook.desc": "\"Welcome to the Minecraft world!\"",
   "item.apprenticecodex.stealth_rune_armor.desc": "This armor dose not prevent invisibility effects.",
+  "item.apprenticecodex.elemental_bow.desc": "This bow can change its attunement school when used while sneaking.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
   "item.apprenticecodex.basic_spellcaster_round.desc": "Ammo for instant casting spells",
   "item.apprenticecodex.arcane_spellcaster_round.desc": "Ammo for slightly complex instant casting spells",
@@ -462,6 +466,11 @@
   "ui.apprenticecodex.extract.no_flask": "Require Alchemist's Flask in your hand",
   "ui.apprenticecodex.extract.empty_flask": "Alchemist's Flask is empty!",
   "ui.apprenticecodex.extract.effect_use": "%s to use",
+
+  "ui.apprenticecodex.elemental_bow.mode_switched": "Switched Elemental Bow's circuit mode : %s",
+  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "The magitech circuit is overheating, increasing mana cost to %s!",
+  "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "The magitech circuit is overheating, pushing mana cost to %s, and your current mana is not enough!",
+  "ui.apprenticecodex.elemental_bow.cooling_complete": "The %s circuit has finished cooling...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",
