@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.elementalbow;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,6 +88,7 @@ public final class ElementalBowOverheatManager {
             schoolTag.putInt(CHAIN_DEPTH_TAG, nextChainDepth);
             schoolTag.remove(PENDING_COOLDOWN_TICKS_TAG);
         }
+        syncToClientIfNeeded(player);
     }
 
     public static OverheatState getState(@NotNull Player player, @Nullable ResourceLocation schoolId) {
@@ -127,6 +129,7 @@ public final class ElementalBowOverheatManager {
         if (rootTag.isEmpty()) {
             player.getPersistentData().remove(ROOT_TAG);
         }
+        syncToClientIfNeeded(player);
     }
 
     public static void clearPendingCooldown(@NotNull Player player, @Nullable ResourceLocation schoolId) {
@@ -189,6 +192,50 @@ public final class ElementalBowOverheatManager {
 
     public static void clearObservedSchools(@NotNull Player player) {
         player.getPersistentData().remove(OBSERVED_ROOT_TAG);
+    }
+
+    public static @NotNull CompoundTag createSyncTag(@NotNull Player player) {
+        var syncTag = new CompoundTag();
+        var rootTag = getRootTag(player, false);
+        if (rootTag == null) {
+            return syncTag;
+        }
+
+        long gameTime = player.level().getGameTime();
+        for (var schoolKey : List.copyOf(rootTag.getAllKeys())) {
+            var schoolId = ResourceLocation.tryParse(schoolKey);
+            if (schoolId == null) {
+                rootTag.remove(schoolKey);
+                continue;
+            }
+
+            var schoolTag = rootTag.getCompound(schoolKey);
+            var expireGameTime = schoolTag.getLong(EXPIRE_GAME_TIME_TAG);
+            var chainDepth = Math.max(0, schoolTag.getInt(CHAIN_DEPTH_TAG));
+            if (chainDepth == 0 || expireGameTime <= gameTime) {
+                rootTag.remove(schoolKey);
+                continue;
+            }
+
+            var syncedSchoolTag = new CompoundTag();
+            syncedSchoolTag.putLong(EXPIRE_GAME_TIME_TAG, expireGameTime);
+            syncedSchoolTag.putInt(CHAIN_DEPTH_TAG, chainDepth);
+            syncTag.put(schoolKey, syncedSchoolTag);
+        }
+
+        if (rootTag.isEmpty()) {
+            player.getPersistentData().remove(ROOT_TAG);
+        }
+        return syncTag;
+    }
+
+    public static void applySyncedState(@NotNull Player player, @Nullable CompoundTag syncedRootTag) {
+        if (syncedRootTag == null || syncedRootTag.isEmpty()) {
+            player.getPersistentData().remove(ROOT_TAG);
+            return;
+        }
+
+        player.getPersistentData().put(ROOT_TAG, syncedRootTag.copy());
     }
 
     @Nullable
@@ -266,6 +313,13 @@ public final class ElementalBowOverheatManager {
         }
 
         player.getPersistentData().remove(OBSERVED_ROOT_TAG);
+    }
+
+    private static void syncToClientIfNeeded(Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            // player persistentData は自動同期されないため、描画用の overheat 状態は明示的に client へ送る。
+            ElementalBowOverheatSync.syncToClient(serverPlayer);
+        }
     }
 
     public record OverheatState(int chainDepth, long expireGameTime) {

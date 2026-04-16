@@ -108,7 +108,6 @@
 			}
 		},
 		"release": {
-			"loop": "hold_on_last_frame",
 			"animation_length": 0.18,
 			"bones": {
 				"upper_arm": {

@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPack
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -23,7 +24,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "10";
+    private static final String PROTOCOL_VERSION = "12";
 
     private Networks() {
     }
@@ -83,6 +84,11 @@ public final class Networks {
                 SyncRemoteEyeStatePacket.TYPE,
                 SyncRemoteEyeStatePacket.STREAM_CODEC,
                 SyncRemoteEyeStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncElementalBowOverheatPacket.TYPE,
+                SyncElementalBowOverheatPacket.STREAM_CODEC,
+                SyncElementalBowOverheatPacket::handle
         );
         registrar.playToClient(
                 SyncTamersPocketCountPacket.TYPE,
