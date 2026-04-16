@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -155,7 +156,15 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     @Override
     public final void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return;
+        }
+
+        if (repairPresetSpellContainerStateIfNeeded(itemStack)) {
+            return;
+        }
+
+        if (ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
@@ -165,6 +174,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             spellContainer.addSpellAtIndex(configuredSpell.get(), configuredSpellLevel, 0, true);
         }
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
+    }
+
+    public final boolean repairPresetSpellContainerStateIfNeeded(ItemStack itemStack) {
+        if (itemStack == null || itemStack.isEmpty()) {
+            return false;
+        }
+
+        if (PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, false, false, this::canImbueSpell)) {
+            return true;
+        }
+
+        return normalizeLegacyOverriddenSpellContainerIfNeeded(itemStack);
     }
 
     @Override
@@ -268,8 +289,30 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (spellData != null && canImbueSpell(spellData)) {
             // Arcane Anvil で差し替えた呪文まで固定すると Workbench 抽出不能になるため、preset 以外は removable に戻す。
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
+            PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
+        } else {
+            PresetSpellContainerStateHelper.clearRememberedState(stack);
         }
         ISpellContainer.set(stack, normalized.toImmutable());
+    }
+
+    private boolean normalizeLegacyOverriddenSpellContainerIfNeeded(ItemStack stack) {
+        var spellData = getPrimarySpellData(stack);
+        if (spellData == null
+                || spellData.canRemove()
+                || !canImbueSpell(spellData)
+                || matchesConfiguredPresetSpell(spellData)) {
+            return false;
+        }
+
+        var normalized = ISpellContainer.create(1, false, false).mutableCopy();
+        if (!normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false)) {
+            return false;
+        }
+
+        ISpellContainer.set(stack, normalized.toImmutable());
+        PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
+        return true;
     }
 
     @Override
@@ -295,6 +338,14 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
         var spellData = spellContainer.getSpellAtIndex(0);
         return spellData == SpellData.EMPTY ? null : spellData;
+    }
+
+    private boolean matchesConfiguredPresetSpell(@Nullable SpellData spellData) {
+        return spellData != null
+                && startsWithPresetSpell
+                && configuredSpell != null
+                && configuredSpell.get().equals(spellData.getSpell())
+                && configuredSpellLevel == spellData.getLevel();
     }
 
     @Nullable

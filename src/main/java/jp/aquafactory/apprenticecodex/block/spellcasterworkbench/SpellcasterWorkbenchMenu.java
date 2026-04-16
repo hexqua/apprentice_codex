@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
@@ -16,6 +17,7 @@ import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerPlayer;
@@ -684,6 +686,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         var inputStack = container.getItem(sourceSlotIndex);
+        repairExtractablePresetSpellContainerIfNeeded(inputStack);
         if (!ISpellContainer.isSpellContainer(inputStack)) {
             return null;
         }
@@ -736,8 +739,33 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
         // 初期化済みアイテムから spell_container を消すと既定呪文が再生成され得るため、空コンテナを保持する。
         ISpellContainer.set(extractionContext.inputStack(), mutable.toImmutable());
+        rememberClearedPresetSpellState(extractionContext.inputStack());
         container.setChanged();
         return true;
+    }
+
+    private static void rememberClearedPresetSpellState(ItemStack stack) {
+        var item = stack.getItem();
+        if (item instanceof AbstractSpellGunItem
+                || item instanceof AbstractSwingMagicItem
+                || item instanceof AbstractImbueShieldItem) {
+            PresetSpellContainerStateHelper.rememberCleared(stack);
+        }
+    }
+
+    private static void repairExtractablePresetSpellContainerIfNeeded(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        var item = stack.getItem();
+        if (item instanceof AbstractSpellGunItem spellGunItem) {
+            spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
+        } else if (item instanceof AbstractRightClickMagicWeaponItem magicWeaponItem) {
+            magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
+        } else if (item instanceof AbstractImbueShieldItem imbueShieldItem) {
+            imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);
+        }
     }
 
     private @Nullable SpellExtractionContext getSpellExtractionContext(int sourceSlotIndex) {
@@ -746,6 +774,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         var inputStack = container.getItem(sourceSlotIndex);
+        repairExtractablePresetSpellContainerIfNeeded(inputStack);
         if (!ISpellContainer.isSpellContainer(inputStack)) {
             return null;
         }

@@ -37,6 +37,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
@@ -82,6 +83,7 @@ import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
 import net.minecraft.core.RegistryAccess;
@@ -2370,6 +2372,150 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield imbued spell should be removable");
             helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
                     "Reflectcast Shield imbued spell should remain extractable in Spellcaster Workbench");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
+            var stack = createInitializedPresetStack(item);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
+
+            var restored = roundTripItemStack(stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
+            var spellContainer = ISpellContainer.get(restored);
+            helper.assertTrue(spellContainer != null, "Gold Spellcaster Gun save/load spell container is null");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Gold Spellcaster Gun imbued spell should remain removable after save/load");
+            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
+                    "Gold Spellcaster Gun imbued spell should remain extractable after save/load");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void ironSwingcastStaffImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
+            var stack = createInitializedPresetStack(item);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+
+            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
+
+            var restored = roundTripItemStack(stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
+            var spellContainer = ISpellContainer.get(restored);
+            helper.assertTrue(spellContainer != null, "Iron Swingcast Staff save/load spell container is null");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Iron Swingcast Staff imbued spell should remain removable after save/load");
+            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
+                    "Iron Swingcast Staff imbued spell should remain extractable after save/load");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void copperSwingcastStaffPresetEquivalentSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSwingMagicItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
+            var stack = createInitializedPresetStack(item);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get();
+
+            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
+
+            var restored = roundTripItemStack(stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
+            var spellContainer = ISpellContainer.get(restored);
+            helper.assertTrue(spellContainer != null, "Copper Swingcast Staff preset-equivalent save/load spell container is null");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Copper Swingcast Staff preset-equivalent imbued spell should remain removable after save/load");
+            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
+                    "Copper Swingcast Staff preset-equivalent imbued spell should remain extractable after save/load");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractImbueShieldItem) ItemRegistry.REFLECTCAST_SHIELD.get();
+            var stack = createInitializedPresetStack(item);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
+
+            var restored = roundTripItemStack(stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
+            var spellContainer = ISpellContainer.get(restored);
+            helper.assertTrue(spellContainer != null, "Reflectcast Shield save/load spell container is null");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Reflectcast Shield imbued spell should remain removable after save/load");
+            helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
+                    "Reflectcast Shield imbued spell should remain extractable after save/load");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
+            var stack = createInitializedPresetStack(item);
+
+            applyPresetSpellExtraction(helper, stack);
+
+            var restored = roundTripItemStack(stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
+            assertClearedSpellContainer(helper, restored, "Iron Spellcaster Gun should stay cleared after save/load");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void ironSwingcastStaffExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
+            var stack = createInitializedPresetStack(item);
+
+            applyPresetSpellExtraction(helper, stack);
+
+            var restored = roundTripItemStack(stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
+            assertClearedSpellContainer(helper, restored, "Iron Swingcast Staff should stay cleared after save/load");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
+            var stack = createInitializedPresetStack(item);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            applyLegacyLockedReplacement(helper, stack, replacementSpell, 1);
+
+            var restored = roundTripItemStack(stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
+            var spellContainer = ISpellContainer.get(restored);
+            helper.assertTrue(spellContainer != null, "Gold Spellcaster Gun recovered spell container is null");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Gold Spellcaster Gun legacy locked replacement should be recovered after save/load");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void ironSwingcastStaffLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
+            var stack = createInitializedPresetStack(item);
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            applyLegacyLockedReplacement(helper, stack, replacementSpell, 1);
+
+            var restored = roundTripItemStack(stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
+            var spellContainer = ISpellContainer.get(restored);
+            helper.assertTrue(spellContainer != null, "Iron Swingcast Staff recovered spell container is null");
+            assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
+                    "Iron Swingcast Staff legacy locked replacement should be recovered after save/load");
         });
     }
 
@@ -5768,6 +5914,58 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Failed to prepare unlocked spell data before restricted imbue normalization test");
         ISpellContainer.set(stack, mutable.toImmutable());
         item.normalizeImbuedSpellContainer(stack);
+    }
+
+    private static void applyPresetSpellExtraction(GameTestHelper helper, ItemStack stack) {
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, "Missing spell container before preset extraction test");
+
+        var mutable = spellContainer.mutableCopy();
+        if (mutable.getSpellAtIndex(0) != SpellData.EMPTY) {
+            helper.assertTrue(mutable.removeSpellAtIndex(0),
+                    "Failed to clear existing spell before preset extraction test");
+        }
+        ISpellContainer.set(stack, mutable.toImmutable());
+        PresetSpellContainerStateHelper.rememberCleared(stack);
+    }
+
+    private static void applyLegacyLockedReplacement(GameTestHelper helper, ItemStack stack, AbstractSpell spell, int spellLevel) {
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, "Missing spell container before legacy replacement test");
+
+        var mutable = spellContainer.mutableCopy();
+        if (mutable.getSpellAtIndex(0) != SpellData.EMPTY) {
+            helper.assertTrue(mutable.removeSpellAtIndex(0),
+                    "Failed to clear existing spell before legacy replacement test");
+        }
+        helper.assertTrue(mutable.addSpellAtIndex(spell, spellLevel, 0, true),
+                "Failed to prepare legacy locked replacement spell");
+        ISpellContainer.set(stack, mutable.toImmutable());
+        PresetSpellContainerStateHelper.clearRememberedState(stack);
+    }
+
+    private static ItemStack roundTripItemStack(ItemStack stack) {
+        return ItemStack.of(stack.save(new CompoundTag()));
+    }
+
+    private static void repairPresetSpellContainerStateIfNeeded(ItemStack stack) {
+        var item = stack.getItem();
+        if (item instanceof AbstractSpellGunItem spellGunItem) {
+            spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
+        } else if (item instanceof AbstractRightClickMagicWeaponItem magicWeaponItem) {
+            magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
+        } else if (item instanceof AbstractImbueShieldItem imbueShieldItem) {
+            imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);
+        }
+    }
+
+    private static void assertClearedSpellContainer(GameTestHelper helper, ItemStack stack, String message) {
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, message + ": spell container is null");
+        helper.assertTrue(spellContainer.getActiveSpellCount() <= 0,
+                message + ": expected no active spells but got " + spellContainer.getActiveSpellCount());
+        helper.assertTrue(spellContainer.getSpellAtIndex(0) == SpellData.EMPTY,
+                message + ": slot 0 unexpectedly contains " + spellContainer.getSpellAtIndex(0).getSpell().getSpellResource());
     }
 
     private static CraftingContainer createCraftingContainer(ItemStack... stacks) {
