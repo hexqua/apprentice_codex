@@ -469,8 +469,8 @@
   "ui.apprenticecodex.extract.effect_use": "%s として使用する",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "エレメンタルボウの回路を%sに設定",
-  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "魔導回路がオーバーヒート中のため、消費マナが%sに増加している！",
-  "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "魔導回路のオーバーヒートによって消費マナが%sになっており、今のマナでは足りない！",
+  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
+  "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "オーバーヒートで消費マナが%sに増加していて今のマナでは足りない！",
   "ui.apprenticecodex.elemental_bow.cooling_complete": "%sの魔導回路の冷却が完了した...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
