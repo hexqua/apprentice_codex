@@ -12,8 +12,6 @@ import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
-import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
-import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -61,8 +59,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private static final String MODE_TAG = "ElementalBowMode";
     private static final ItemStack ENCHANTMENT_PROBE_STACK = new ItemStack(Items.BOW);
     private static final float MANA_SAFE_MARGIN = 0.001F;
-    private static final float PARTICLE_SIZE = 0.12F;
-    private static final int PARTICLE_WHITEN_TICKS = 2;
     private static final int OVERHEAT_WARNING_INTERVAL_TICKS = 10;
     private static final float DRAW_ANIMATION_SOURCE_SECONDS = 0.32F;
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
@@ -290,11 +286,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         if (!player.getAbilities().instabuild && (drawDuration == 1 || drawDuration % OVERHEAT_WARNING_INTERVAL_TICKS == 0)) {
             displayOverheatManaWarning(player, stack, mode);
         }
-        if (drawDuration % 2 != 0) {
-            return;
-        }
-
-        spawnChargeParticles(serverLevel, entity, mode);
     }
 
     @Override
@@ -518,43 +509,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 1.0F / (player.getRandom().nextFloat() * 0.4F + 1.2F) + power * 0.5F
         );
         player.awardStat(Stats.ITEM_USED.get(this));
-    }
-
-    private void spawnChargeParticles(ServerLevel level, LivingEntity entity, ResolvedDefinition mode) {
-        var color = mode.color();
-        var red = ((color >> 16) & 0xFF) / 255.0F;
-        var green = ((color >> 8) & 0xFF) / 255.0F;
-        var blue = (color & 0xFF) / 255.0F;
-        var look = entity.getLookAngle();
-        var side = look.cross(new net.minecraft.world.phys.Vec3(0.0D, 1.0D, 0.0D));
-        if (side.lengthSqr() < 0.0001D) {
-            side = new net.minecraft.world.phys.Vec3(1.0D, 0.0D, 0.0D);
-        }
-        side = side.normalize().scale(0.16D);
-        var base = entity.getEyePosition().add(look.scale(0.45D)).add(0.0D, -0.18D, 0.0D);
-
-        level.sendParticles(
-                new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), PARTICLE_SIZE, red, green, blue, PARTICLE_WHITEN_TICKS),
-                base.x + side.x,
-                base.y + side.y,
-                base.z + side.z,
-                1,
-                0.01D,
-                0.01D,
-                0.01D,
-                0.0D
-        );
-        level.sendParticles(
-                new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), PARTICLE_SIZE, red, green, blue, PARTICLE_WHITEN_TICKS),
-                base.x - side.x,
-                base.y - side.y,
-                base.z - side.z,
-                1,
-                0.01D,
-                0.01D,
-                0.01D,
-                0.0D
-        );
     }
 
     @Nullable
