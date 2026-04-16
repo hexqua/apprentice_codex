@@ -68,7 +68,7 @@ public class PersonalShelfChestBlock extends BaseEntityBlock {
 
         var blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof PersonalShelfChestBlockEntity shelf && player instanceof ServerPlayer server) {
-            server.openMenu(shelf, buffer -> buffer.writeBlockPos(pos));
+            server.openMenu(shelf);
             return InteractionResult.CONSUME;
         }
 
