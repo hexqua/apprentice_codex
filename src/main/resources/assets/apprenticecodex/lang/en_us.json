@@ -468,8 +468,8 @@
   "ui.apprenticecodex.extract.effect_use": "%s to use",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched Elemental Bow's circuit mode : %s",
-  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "The magitech circuit is overheating, increasing mana cost to %s!",
-  "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "The magitech circuit is overheating, pushing mana cost to %s, and your current mana is not enough!",
+  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
+  "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "Overheating has increased mana cost to %s, and you don't have enough mana!",
   "ui.apprenticecodex.elemental_bow.cooling_complete": "The %s circuit has finished cooling...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
