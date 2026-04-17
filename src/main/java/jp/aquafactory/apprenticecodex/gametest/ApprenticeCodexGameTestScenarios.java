@@ -3983,7 +3983,23 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
+    public static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            setElementalBowShotSelection(stack, "arrow", null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow arrow-only mode should start drawing with Infinity even without arrows: " + result.getResult());
+            helper.assertTrue(player.isUsingItem(), "Elemental Bow arrow-only mode should enter use state for Infinity draw");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
@@ -4000,8 +4016,10 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow special mode should consume the selected arrow even with Infinity");
 
             var secondUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(secondUse.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Elemental Bow special mode should fail after the selected arrow runs out: " + secondUse.getResult());
+            helper.assertTrue(secondUse.getResult().consumesAction(),
+                    "Elemental Bow special mode should start drawing again with Infinity after the selected arrow runs out: " + secondUse.getResult());
+            helper.assertTrue(player.isUsingItem(),
+                    "Elemental Bow special mode should enter use state again while keeping its empty selection");
             assertElementalBowSelection(helper, stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"),
                     "Elemental Bow special mode should keep the selected arrow after ammo loss");
         });

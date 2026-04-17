@@ -314,7 +314,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             ModeSelection selection
     ) {
         var ammoSource = resolveAmmoSource(player, stack, selection);
-        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var canFireWithoutAmmo = canFireTrackedArrowWithoutAmmo(player, stack);
         if (ammoSource == null && !canFireWithoutAmmo) {
             return InteractionResultHolder.fail(stack);
         }
@@ -418,7 +418,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private void releaseTrackedArrowShot(ItemStack stack, Level level, Player player, int timeLeft, ModeSelection selection) {
         var ammoSource = resolveAmmoSource(player, stack, selection);
         var hasAmmo = ammoSource != null && !ammoSource.isEmpty();
-        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var canFireWithoutAmmo = canFireTrackedArrowWithoutAmmo(player, stack);
         var drawDuration = getUseDuration(stack) - timeLeft;
         drawDuration = ForgeEventFactory.onArrowLoose(stack, level, player, drawDuration, hasAmmo || canFireWithoutAmmo);
         if (drawDuration < 0) {
@@ -884,6 +884,12 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private static boolean hasInfinity(ItemStack stack) {
         return stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+    }
+
+    private static boolean canFireTrackedArrowWithoutAmmo(Player player, ItemStack stack) {
+        // tracked arrow モードは UI 露出条件を在庫依存のまま維持しつつ、
+        // Infinity が付いていれば選択済みの矢種だけ無弾発射を許可する。
+        return player.getAbilities().instabuild || hasInfinity(stack);
     }
 
     public static double resolveDrawAnimationSpeed() {

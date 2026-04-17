@@ -250,8 +250,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(helper);
+    public static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowInfinityAllowsArrowModeDrawWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(helper);
     }
 
     @GameTest(template = TEMPLATE)
