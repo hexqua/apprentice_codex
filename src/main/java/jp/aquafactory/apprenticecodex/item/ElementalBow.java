@@ -194,21 +194,13 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return;
         }
 
-        var notificationStack = isHeldElementalBow(player.getMainHandItem()) ? player.getMainHandItem() : player.getOffhandItem();
-        if (stack != notificationStack) {
+        // 1プレイヤーにつき1回だけ走らせるという意図でガードはつける.
+        var trackingStack = isHeldElementalBow(player.getMainHandItem()) ? player.getMainHandItem() : player.getOffhandItem();
+        if (stack != trackingStack) {
             return;
         }
 
-        for (var cooledSchoolId : ElementalBowOverheatManager.collectCooledSchoolsWhileHolding(player)) {
-            player.displayClientMessage(
-                    Component.translatable(
-                                    "ui.apprenticecodex.elemental_bow.cooling_complete",
-                                    resolveSchoolDisplayName(cooledSchoolId)
-                            )
-                            .withStyle(ChatFormatting.AQUA),
-                    true
-            );
-        }
+        ElementalBowOverheatManager.refreshObservedSchoolsWhileHolding(player);
     }
 
     @Override
@@ -817,11 +809,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private static int formatDisplayedOverheatManaCost(float manaCost) {
         return (int) Math.ceil(manaCost - MANA_SAFE_MARGIN);
-    }
-
-    private static Component resolveSchoolDisplayName(ResourceLocation schoolId) {
-        var mode = ElementalBowModeManager.getResolvedDefinition(schoolId);
-        return mode != null ? mode.schoolType().getDisplayName() : Component.literal(schoolId.toString());
     }
 
     private static boolean hasInfinity(ItemStack stack) {

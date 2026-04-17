@@ -28,7 +28,7 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
     private static final float WARNING_CORE_ALPHA_MULTIPLIER = 0.42F;
     private static final float WARNING_CORE_EXTRA_SCALE = 0.02F;
     private ElementalBowClientRenderState.OrbRenderState orbState =
-            new ElementalBowClientRenderState.OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
+            new ElementalBowClientRenderState.OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
     private boolean orbGlowPassActive = false;
     private float orbGlowPassScale = 1.0F;
 
@@ -69,7 +69,7 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
                 this.orbState.green(),
                 this.orbState.blue(),
                 this.orbState.alpha(),
-                1.0F
+                this.orbState.baseScale()
         );
 
         if (this.orbState.warningAlpha() > 0.0F) {
@@ -206,7 +206,7 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
     @Override
     public void doPostRenderCleanup() {
         super.doPostRenderCleanup();
-        this.orbState = new ElementalBowClientRenderState.OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
+        this.orbState = new ElementalBowClientRenderState.OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
         this.orbGlowPassActive = false;
         this.orbGlowPassScale = 1.0F;
     }

@@ -95,7 +95,7 @@
   "item.apprenticecodex.crystal_bladed_staff.desc": "この杖は盾を優先的に使用できる。",
   "item.apprenticecodex.isekai_travel_guidebook.desc": "『ようこそMinecraftの世界へ！』",
   "item.apprenticecodex.stealth_rune_armor.desc": "この防具は透明化の効果を阻害しない。",
-  "item.apprenticecodex.elemental_bow.desc": "この弓を持った状態でスニークを始めると射撃モード選択UIが開く。",
+  "item.apprenticecodex.elemental_bow.desc": "スニークをすることでモード切り替えが可能",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
   "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",
   "item.apprenticecodex.arcane_spellcaster_round.desc": "やや複雑な即時詠唱魔法用の実包",
@@ -467,10 +467,9 @@
   "ui.apprenticecodex.extract.empty_flask": "錬金術師のフラスコの中身がない！",
   "ui.apprenticecodex.extract.effect_use": "%s として使用する",
 
-  "ui.apprenticecodex.elemental_bow.mode_switched": "エレメンタルボウの射撃モードを%sに設定",
+  "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "オーバーヒートで消費マナが%sに増加していて今のマナでは足りない！",
-  "ui.apprenticecodex.elemental_bow.cooling_complete": "%sの魔導回路の冷却が完了した...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
