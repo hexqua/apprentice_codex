@@ -2793,16 +2793,12 @@ public final class ApprenticeCodexGameTestScenarios {
     @GameTest(template = TEMPLATE)
     public static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var registryAccess = helper.getLevel().registryAccess();
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            assertExactEnchantmentSurfaces(
+            assertReferenceItemEnchantmentsWithRequiredExtras(
                     helper,
                     stack,
-                    expectedElementalBowPrimaryEnchantments(registryAccess),
-                    expectedElementalBowSupportedEnchantments(registryAccess),
-                    expectedElementalBowDefinitionEnchantments(registryAccess),
-                    expectedElementalBowBookEnchantments(registryAccess),
-                    expectedElementalBowSupportedEnchantments(registryAccess),
+                    new ItemStack(Items.BOW),
+                    requiredElementalBowExtraEnchantments(),
                     "Elemental Bow"
             );
         });
@@ -5242,6 +5238,46 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
+    private static void assertReferenceItemEnchantmentsWithRequiredExtras(
+            GameTestHelper helper,
+            ItemStack stack,
+            ItemStack referenceStack,
+            Set<ResourceLocation> requiredExtraEnchantments,
+            String itemName
+    ) {
+        var registryAccess = helper.getLevel().registryAccess();
+        var expectedPrimaryEnchantments = expectedReferencePrimaryEnchantments(registryAccess, referenceStack, requiredExtraEnchantments);
+        var expectedSupportedEnchantments = expectedReferenceSupportedEnchantments(registryAccess, referenceStack, requiredExtraEnchantments);
+        var expectedDefinitionEnchantments = expectedReferenceDefinitionEnchantments(registryAccess, referenceStack, requiredExtraEnchantments);
+        var expectedBookEnchantments = expectedReferenceBookEnchantments(registryAccess, referenceStack, requiredExtraEnchantments);
+
+        assertExactEnchantmentSurfaces(
+                helper,
+                stack,
+                expectedPrimaryEnchantments,
+                expectedSupportedEnchantments,
+                expectedDefinitionEnchantments,
+                expectedBookEnchantments,
+                expectedSupportedEnchantments,
+                itemName
+        );
+
+        var enchantmentLookup = registryAccess.lookupOrThrow(Registries.ENCHANTMENT);
+        for (var enchantmentId : requiredExtraEnchantments) {
+            assertSingleEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, enchantmentId)),
+                    true,
+                    true,
+                    true,
+                    true,
+                    stack.getItem() instanceof NonDamageableAnvilMergeItem ? Boolean.TRUE : null,
+                    itemName + " required extra enchantment"
+            );
+        }
+    }
+
     private static void assertSingleEnchantmentSurfaces(
             GameTestHelper helper,
             ItemStack stack,
@@ -5315,6 +5351,64 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    private static Set<ResourceLocation> expectedReferencePrimaryEnchantments(
+            RegistryAccess registryAccess,
+            ItemStack referenceStack,
+            Set<ResourceLocation> requiredExtraEnchantments
+    ) {
+        return expectedReferenceEnchantments(
+                registryAccess,
+                requiredExtraEnchantments,
+                enchantment -> referenceStack.getItem().isPrimaryItemFor(referenceStack, enchantment)
+        );
+    }
+
+    private static Set<ResourceLocation> expectedReferenceSupportedEnchantments(
+            RegistryAccess registryAccess,
+            ItemStack referenceStack,
+            Set<ResourceLocation> requiredExtraEnchantments
+    ) {
+        return expectedReferenceEnchantments(
+                registryAccess,
+                requiredExtraEnchantments,
+                enchantment -> referenceStack.getItem().supportsEnchantment(referenceStack, enchantment)
+        );
+    }
+
+    private static Set<ResourceLocation> expectedReferenceDefinitionEnchantments(
+            RegistryAccess registryAccess,
+            ItemStack referenceStack,
+            Set<ResourceLocation> requiredExtraEnchantments
+    ) {
+        return expectedReferenceEnchantments(
+                registryAccess,
+                requiredExtraEnchantments,
+                enchantment -> enchantment.value().canEnchant(referenceStack)
+        );
+    }
+
+    private static Set<ResourceLocation> expectedReferenceBookEnchantments(
+            RegistryAccess registryAccess,
+            ItemStack referenceStack,
+            Set<ResourceLocation> requiredExtraEnchantments
+    ) {
+        return expectedReferenceEnchantments(
+                registryAccess,
+                requiredExtraEnchantments,
+                enchantment -> referenceStack.getItem().isBookEnchantable(referenceStack, createEnchantedBook(enchantment))
+        );
+    }
+
+    private static Set<ResourceLocation> expectedReferenceEnchantments(
+            RegistryAccess registryAccess,
+            Set<ResourceLocation> requiredExtraEnchantments,
+            Predicate<net.minecraft.core.Holder<Enchantment>> predicate
+    ) {
+        var expectedEnchantments = collectAllowedEnchantments(registryAccess, predicate);
+        expectedEnchantments.addAll(requiredExtraEnchantments);
+        return expectedEnchantments;
+    }
+
     private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
@@ -5339,60 +5433,12 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedElementalBowPrimaryEnchantments(RegistryAccess registryAccess) {
-        var bowStack = new ItemStack(Items.BOW);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> Items.BOW.isPrimaryItemFor(bowStack, enchantment)
-        );
-        expectedEnchantments.addAll(registryIdSet(
+    private static Set<ResourceLocation> requiredElementalBowExtraEnchantments() {
+        return registryIdSet(
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM,
                 Enchantments.PLUNDER
-        ));
-        return expectedEnchantments;
-    }
-
-    private static Set<ResourceLocation> expectedElementalBowSupportedEnchantments(RegistryAccess registryAccess) {
-        var bowStack = new ItemStack(Items.BOW);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> Items.BOW.supportsEnchantment(bowStack, enchantment)
         );
-        expectedEnchantments.addAll(registryIdSet(
-                Enchantments.TRANSCENDENCE,
-                Enchantments.WISDOM,
-                Enchantments.PLUNDER
-        ));
-        return expectedEnchantments;
-    }
-
-    private static Set<ResourceLocation> expectedElementalBowDefinitionEnchantments(RegistryAccess registryAccess) {
-        var bowStack = new ItemStack(Items.BOW);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(bowStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                Enchantments.TRANSCENDENCE,
-                Enchantments.WISDOM,
-                Enchantments.PLUNDER
-        ));
-        return expectedEnchantments;
-    }
-
-    private static Set<ResourceLocation> expectedElementalBowBookEnchantments(RegistryAccess registryAccess) {
-        var bowStack = new ItemStack(Items.BOW);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> Items.BOW.isBookEnchantable(bowStack, createEnchantedBook(enchantment))
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                Enchantments.TRANSCENDENCE,
-                Enchantments.WISDOM,
-                Enchantments.PLUNDER
-        ));
-        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedFlaskEnchantments() {
