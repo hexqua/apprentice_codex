@@ -80,6 +80,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get()
         );
+
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumMagicCapableWeaponTag = tag(MALUM_MAGIC_CAPABLE_WEAPON);
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
@@ -93,6 +94,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var vanillaWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_WEAPON);
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
+                ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get()
         );
         // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。

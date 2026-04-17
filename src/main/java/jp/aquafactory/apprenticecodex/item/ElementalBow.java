@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
@@ -87,7 +88,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ElementalBow() {
-        super(new Properties().durability(384));
+        super(new Properties().durability(1561));
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -252,21 +253,30 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        return Items.BOW.supportsEnchantment(ENCHANTMENT_PROBE_STACK, enchantment);
+        return Items.BOW.supportsEnchantment(ENCHANTMENT_PROBE_STACK, enchantment)
+                || isSupportedAdditionalElementalBowEnchantment(enchantment);
     }
 
     @Override
     public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        return Items.BOW.isPrimaryItemFor(ENCHANTMENT_PROBE_STACK, enchantment);
+        return Items.BOW.isPrimaryItemFor(ENCHANTMENT_PROBE_STACK, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
     public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
-        return Items.BOW.isBookEnchantable(ENCHANTMENT_PROBE_STACK, book);
+        if (Items.BOW.isBookEnchantable(ENCHANTMENT_PROBE_STACK, book)) {
+            return true;
+        }
+
+        return bookContainsOnlySupportedAdditionalElementalBowEnchantments(book);
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
+        return 10;
+    }
+
+    @Override
     public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, CastSource castSource) {
         // Elemental Bow の属性ショットは overheat と tooltip を独自管理しているため、
         // 剣 Imbue 用倍率まで掛けると実時間表示と調整意図の両方がずれる。
@@ -1287,6 +1297,18 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             throw new IllegalStateException("Selection id is required for " + selection.kind().serializedName() + " mode");
         }
         return selection.id();
+    }
+
+    private static boolean isSupportedAdditionalElementalBowEnchantment(Holder<Enchantment> enchantment) {
+        return enchantment.is(Enchantments.TRANSCENDENCE)
+                || enchantment.is(Enchantments.WISDOM)
+                || enchantment.is(Enchantments.PLUNDER);
+    }
+
+    private static boolean bookContainsOnlySupportedAdditionalElementalBowEnchantments(ItemStack book) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
+        return !enchantments.isEmpty()
+                && enchantments.keySet().stream().allMatch(ElementalBow::isSupportedAdditionalElementalBowEnchantment);
     }
 
     private record SpellCastProfile(AbstractSpell spell, int spellLevel) {

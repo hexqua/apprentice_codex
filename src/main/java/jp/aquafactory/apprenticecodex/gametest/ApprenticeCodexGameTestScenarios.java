@@ -2322,6 +2322,8 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()),
                     "Ender Grimoire should remain upgradeable via explicit whitelist entry");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.ELEMENTAL_BOW.get()),
+                    "Elemental Bow should remain upgradeable via explicit whitelist entry");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get()),
                     "AbstractOffhandMagicItem descendants should be upgradeable");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.PHOTON_SIPHON.get()),
@@ -5339,18 +5341,30 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static Set<ResourceLocation> expectedElementalBowPrimaryEnchantments(RegistryAccess registryAccess) {
         var bowStack = new ItemStack(Items.BOW);
-        return collectAllowedEnchantments(
+        var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
                 enchantment -> Items.BOW.isPrimaryItemFor(bowStack, enchantment)
         );
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER
+        ));
+        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedElementalBowSupportedEnchantments(RegistryAccess registryAccess) {
         var bowStack = new ItemStack(Items.BOW);
-        return collectAllowedEnchantments(
+        var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
                 enchantment -> Items.BOW.supportsEnchantment(bowStack, enchantment)
         );
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER
+        ));
+        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedElementalBowDefinitionEnchantments(RegistryAccess registryAccess) {
@@ -5363,10 +5377,16 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static Set<ResourceLocation> expectedElementalBowBookEnchantments(RegistryAccess registryAccess) {
         var bowStack = new ItemStack(Items.BOW);
-        return collectAllowedEnchantments(
+        var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
                 enchantment -> Items.BOW.isBookEnchantable(bowStack, createEnchantedBook(enchantment))
         );
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER
+        ));
+        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedFlaskEnchantments() {

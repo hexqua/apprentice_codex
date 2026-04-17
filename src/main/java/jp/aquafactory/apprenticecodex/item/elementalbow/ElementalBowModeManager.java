@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -164,6 +165,12 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
 
         public int resolveSpellLevel(ItemStack stack) {
             var spellLevel = 1 + getEnchantmentLevel(stack, Enchantments.POWER.location());
+            // Elemental Bow の属性ショットは preset spell level を tooltip / UI / 実詠唱で共有しているため、
+            // 汎用イベント加算ではなくここで POWER 相当の基礎レベルとして先に合算する。
+            spellLevel += jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
+                    stack,
+                    jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE
+            );
             for (var bonus : enchantmentBonuses) {
                 var enchantmentLevel = getEnchantmentLevel(stack, bonus.enchantmentId());
                 if (enchantmentLevel <= 0) {
