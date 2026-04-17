@@ -3507,42 +3507,31 @@ public final class ApprenticeCodexGameTestScenarios {
     @GameTest(template = TEMPLATE)
     public static void pastelStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
-
-            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
-                    true, true, true, true, null, "Pastel Staff fortune rule");
-            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
-                    true, true, true, true, null, "Pastel Staff silk touch rule");
-            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE),
-                    false, false, false, false, null, "Pastel Staff should keep rejecting transcendence");
-            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
-                    false, false, false, false, null, "Pastel Staff should keep rejecting wisdom");
+            assertRequiredExtraEnchantments(
+                    helper,
+                    stack,
+                    requiredPastelStaffExtraEnchantments(),
+                    null,
+                    "Pastel Staff required extra enchantment"
+            );
+            assertRejectedExtraEnchantments(
+                    helper,
+                    stack,
+                    rejectedPastelStaffExtraEnchantments(),
+                    null,
+                    "Pastel Staff should keep rejecting"
+            );
 
             if (ModList.get().isLoaded(MALUM_MOD_ID)) {
                 helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
                         "Pastel Staff is missing malum:magic_capable_weapon");
-                assertSingleEnchantmentSurfaces(
+                assertRequiredExtraEnchantments(
                         helper,
                         stack,
-                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)),
-                        true,
-                        true,
-                        true,
-                        true,
+                        requiredMalumMagicCapableWeaponEnchantments(),
                         null,
-                        "Pastel Staff haunted rule"
-                );
-                assertSingleEnchantmentSurfaces(
-                        helper,
-                        stack,
-                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)),
-                        true,
-                        true,
-                        true,
-                        true,
-                        null,
-                        "Pastel Staff animated rule"
+                        "Pastel Staff malum extra enchantment"
                 );
             }
         });
@@ -3551,18 +3540,22 @@ public final class ApprenticeCodexGameTestScenarios {
     @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffKeepsItsDedicatedEnchantingRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var stack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
             var item = (CrystalBladedStaff) stack.getItem();
-
-            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE),
-                    false, false, false, false, false, "Crystal Bladed Staff should keep rejecting fortune");
-            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH),
-                    false, false, false, false, false, "Crystal Bladed Staff should keep rejecting silk touch");
-            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE),
-                    true, true, true, true, true, "Crystal Bladed Staff transcendence rule");
-            assertSingleEnchantmentSurfaces(helper, stack, enchantmentLookup.getOrThrow(Enchantments.WISDOM),
-                    true, true, true, true, true, "Crystal Bladed Staff wisdom rule");
+            assertRequiredExtraEnchantments(
+                    helper,
+                    stack,
+                    requiredCrystalBladedStaffExtraEnchantments(),
+                    true,
+                    "Crystal Bladed Staff required extra enchantment"
+            );
+            assertRejectedExtraEnchantments(
+                    helper,
+                    stack,
+                    rejectedCrystalBladedStaffExtraEnchantments(),
+                    false,
+                    "Crystal Bladed Staff should keep rejecting"
+            );
 
             helper.assertTrue(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Crystal Bladed Staff should keep accepting diamonds as its repair material");
@@ -3570,27 +3563,12 @@ public final class ApprenticeCodexGameTestScenarios {
             if (ModList.get().isLoaded(MALUM_MOD_ID)) {
                 helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
                         "Crystal Bladed Staff is missing malum:magic_capable_weapon");
-                assertSingleEnchantmentSurfaces(
+                assertRequiredExtraEnchantments(
                         helper,
                         stack,
-                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)),
+                        requiredMalumMagicCapableWeaponEnchantments(),
                         true,
-                        true,
-                        true,
-                        true,
-                        true,
-                        "Crystal Bladed Staff haunted rule"
-                );
-                assertSingleEnchantmentSurfaces(
-                        helper,
-                        stack,
-                        enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)),
-                        true,
-                        true,
-                        true,
-                        true,
-                        true,
-                        "Crystal Bladed Staff animated rule"
+                        "Crystal Bladed Staff malum extra enchantment"
                 );
             }
         });
@@ -5278,6 +5256,53 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
+    private static void assertRequiredExtraEnchantments(
+            GameTestHelper helper,
+            ItemStack stack,
+            Set<ResourceLocation> requiredEnchantments,
+            @Nullable Boolean expectedAnvil,
+            String message
+    ) {
+        assertExtraEnchantments(helper, stack, requiredEnchantments, true, true, true, true, expectedAnvil, message);
+    }
+
+    private static void assertRejectedExtraEnchantments(
+            GameTestHelper helper,
+            ItemStack stack,
+            Set<ResourceLocation> rejectedEnchantments,
+            @Nullable Boolean expectedAnvil,
+            String message
+    ) {
+        assertExtraEnchantments(helper, stack, rejectedEnchantments, false, false, false, false, expectedAnvil, message);
+    }
+
+    private static void assertExtraEnchantments(
+            GameTestHelper helper,
+            ItemStack stack,
+            Set<ResourceLocation> enchantmentIds,
+            boolean expectedPrimary,
+            boolean expectedSupported,
+            boolean expectedDefinitionSupport,
+            boolean expectedBook,
+            @Nullable Boolean expectedAnvil,
+            String message
+    ) {
+        var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        for (var enchantmentId : enchantmentIds) {
+            assertSingleEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, enchantmentId)),
+                    expectedPrimary,
+                    expectedSupported,
+                    expectedDefinitionSupport,
+                    expectedBook,
+                    expectedAnvil,
+                    message
+            );
+        }
+    }
+
     private static void assertSingleEnchantmentSurfaces(
             GameTestHelper helper,
             ItemStack stack,
@@ -5439,6 +5464,38 @@ public final class ApprenticeCodexGameTestScenarios {
                 Enchantments.WISDOM,
                 Enchantments.PLUNDER
         );
+    }
+
+    private static Set<ResourceLocation> requiredPastelStaffExtraEnchantments() {
+        return registryIdSet(
+                net.minecraft.world.item.enchantment.Enchantments.FORTUNE,
+                net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
+        );
+    }
+
+    private static Set<ResourceLocation> rejectedPastelStaffExtraEnchantments() {
+        return registryIdSet(
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM
+        );
+    }
+
+    private static Set<ResourceLocation> requiredCrystalBladedStaffExtraEnchantments() {
+        return registryIdSet(
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM
+        );
+    }
+
+    private static Set<ResourceLocation> rejectedCrystalBladedStaffExtraEnchantments() {
+        return registryIdSet(
+                net.minecraft.world.item.enchantment.Enchantments.FORTUNE,
+                net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
+        );
+    }
+
+    private static Set<ResourceLocation> requiredMalumMagicCapableWeaponEnchantments() {
+        return Set.of(MALUM_HAUNTED, MALUM_ANIMATED);
     }
 
     private static Set<ResourceLocation> expectedFlaskEnchantments() {
