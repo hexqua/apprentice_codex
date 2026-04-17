@@ -272,6 +272,12 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     @Override
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
+        return repair.is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                || super.isValidRepairItem(toRepair, repair);
+    }
+
+    @Override
     public int getEnchantmentValue(@NotNull ItemStack stack) {
         return 10;
     }
