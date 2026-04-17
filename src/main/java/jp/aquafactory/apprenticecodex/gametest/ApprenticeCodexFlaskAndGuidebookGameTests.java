@@ -60,6 +60,21 @@ public final class ApprenticeCodexFlaskAndGuidebookGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskSmithingConvertsSupportedStoredItemsAndRemovesGuzzle(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskSmithingConvertsSupportedStoredItemsAndRemovesGuzzle(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskTippedArrowRecipeConsumesOneDoseAndRejectsSimpleElixir(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskTippedArrowRecipeConsumesOneDoseAndRejectsSimpleElixir(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskTippedArrowCraftAwardsAdvancement(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskTippedArrowCraftAwardsAdvancement(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void extractPreCastUsesFirstFilledFlaskAcrossHands(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.extractPreCastUsesFirstFilledFlaskAcrossHands(helper);
     }

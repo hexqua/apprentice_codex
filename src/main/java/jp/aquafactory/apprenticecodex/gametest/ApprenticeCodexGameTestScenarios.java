@@ -457,6 +457,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcasters_flask_extract"),
                     RecipeRegistry.SPELLCASTERS_FLASK_EXTRACT_SERIALIZER.get(), null);
             assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask"),
+                    RecipeRegistry.ALCHEMISTS_FLASK_SMITHING_SERIALIZER.get(), net.minecraft.world.item.crafting.RecipeType.SMITHING);
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask_tipped_arrow"),
+                    RecipeRegistry.ALCHEMISTS_FLASK_TIPPED_ARROW_SERIALIZER.get(), net.minecraft.world.item.crafting.RecipeType.CRAFTING);
+            assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "irons_guide_book_repair"),
                     RecipeRegistry.IRONS_GUIDE_BOOK_REPAIR_SERIALIZER.get(), null);
             assertRecipeLoaded(helper, recipeManager,
@@ -714,6 +720,197 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask extract recipe left dose count behind: " + SpellcastersFlask.getStoredDoseCount(remainingFlask));
             helper.assertTrue(SpellcastersFlask.getStoredItem(remainingFlask).isEmpty(),
                     "Alchemist's Flask extract recipe left StoredItem behind");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskSmithingConvertsSupportedStoredItemsAndRemovesGuzzle(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipe = (jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe) helper.getLevel()
+                    .getRecipeManager()
+                    .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask"))
+                    .orElseThrow();
+
+            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var spellcastersFlask = new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get());
+            if (EnchantmentRegistry.GUZZLE.isPresent()) {
+                spellcastersFlask.enchant(EnchantmentRegistry.GUZZLE.get(), 2);
+            }
+            if (EnchantmentRegistry.LARGE_MUG.isPresent()) {
+                spellcastersFlask.enchant(EnchantmentRegistry.LARGE_MUG.get(), 1);
+            }
+            if (EnchantmentRegistry.RED_ENERGY.isPresent()) {
+                spellcastersFlask.enchant(EnchantmentRegistry.RED_ENERGY.get(), 1);
+            }
+            if (EnchantmentRegistry.GLOW_ENERGY.isPresent()) {
+                spellcastersFlask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), 1);
+            }
+            var filledSpellcastersFlask = SpellcastersFlask.copyWithAddedDoses(spellcastersFlask, normalPotion, 2);
+            var smithingContainer = new net.minecraft.world.SimpleContainer(
+                    new ItemStack(Items.EMERALD),
+                    filledSpellcastersFlask,
+                    new ItemStack(Items.GUNPOWDER)
+            );
+
+            helper.assertTrue(recipe.matches(smithingContainer, helper.getLevel()),
+                    "Alchemist's Flask smithing recipe should accept a filled Spellcaster's Flask");
+
+            var convertedFlask = recipe.assemble(smithingContainer, helper.getLevel().registryAccess());
+            helper.assertTrue(convertedFlask.is(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                    "Alchemist's Flask smithing recipe returned the wrong result item");
+            helper.assertTrue(ISpellContainer.isSpellContainer(convertedFlask),
+                    "Alchemist's Flask smithing recipe should preserve the preset spell container");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(convertedFlask) == 2,
+                    "Alchemist's Flask smithing recipe should preserve stored dose count");
+
+            var convertedStoredItem = SpellcastersFlask.getStoredItem(convertedFlask);
+            helper.assertTrue(convertedStoredItem.is(Items.SPLASH_POTION),
+                    "Filled Spellcaster's Flask should convert a regular potion into a splash potion");
+            helper.assertTrue(PotionUtils.getPotion(convertedStoredItem) == PotionUtils.getPotion(normalPotion),
+                    "Converted Alchemist's Flask should keep the original potion type");
+
+            var convertedEnchantments = EnchantmentHelper.getEnchantments(convertedFlask);
+            helper.assertTrue(!EnchantmentRegistry.GUZZLE.isPresent()
+                            || !convertedEnchantments.containsKey(EnchantmentRegistry.GUZZLE.get()),
+                    "Alchemist's Flask smithing recipe should drop only Guzzle");
+            helper.assertTrue(!EnchantmentRegistry.LARGE_MUG.isPresent()
+                            || convertedEnchantments.getOrDefault(EnchantmentRegistry.LARGE_MUG.get(), 0) == 1,
+                    "Alchemist's Flask smithing recipe should keep Large Mug");
+            helper.assertTrue(!EnchantmentRegistry.RED_ENERGY.isPresent()
+                            || convertedEnchantments.getOrDefault(EnchantmentRegistry.RED_ENERGY.get(), 0) == 1,
+                    "Alchemist's Flask smithing recipe should keep Red Energy");
+            helper.assertTrue(!EnchantmentRegistry.GLOW_ENERGY.isPresent()
+                            || convertedEnchantments.getOrDefault(EnchantmentRegistry.GLOW_ENERGY.get(), 0) == 1,
+                    "Alchemist's Flask smithing recipe should keep Glow Energy");
+
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+            var simpleElixirContainer = new net.minecraft.world.SimpleContainer(
+                    new ItemStack(Items.EMERALD),
+                    SpellcastersFlask.copyWithAddedDoses(new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()), simpleElixir, 1),
+                    new ItemStack(Items.GUNPOWDER)
+            );
+            helper.assertTrue(recipe.matches(simpleElixirContainer, helper.getLevel()),
+                    "Alchemist's Flask smithing recipe should accept Simple Elixir");
+            var simpleElixirResult = recipe.assemble(simpleElixirContainer, helper.getLevel().registryAccess());
+            helper.assertTrue(ItemStack.isSameItemSameTags(SpellcastersFlask.getStoredItem(simpleElixirResult), simpleElixir),
+                    "Alchemist's Flask smithing recipe should keep Simple Elixir unchanged");
+
+            var fireAle = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_ALE.get());
+            var fireAleContainer = new net.minecraft.world.SimpleContainer(
+                    new ItemStack(Items.EMERALD),
+                    SpellcastersFlask.copyWithAddedDoses(new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()), fireAle, 1),
+                    new ItemStack(Items.GUNPOWDER)
+            );
+            helper.assertTrue(!recipe.matches(fireAleContainer, helper.getLevel()),
+                    "Alchemist's Flask smithing recipe should reject unsupported stored items such as Fire Ale");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskTippedArrowRecipeConsumesOneDoseAndRejectsSimpleElixir(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.AlchemistsFlaskTippedArrowRecipe) helper.getLevel()
+                    .getRecipeManager()
+                    .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask_tipped_arrow"))
+                    .orElseThrow();
+
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var splashFlask = createFilledAlchemistsFlask(splashPotion, 2, 1);
+            var splashContainer = createCraftingContainer(
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    splashFlask,
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW)
+            );
+
+            helper.assertTrue(recipe.matches(splashContainer, helper.getLevel()),
+                    "Alchemist's Flask tipped arrow recipe should accept a splash potion flask");
+
+            var splashResult = recipe.assemble(splashContainer, helper.getLevel().registryAccess());
+            var splashRemainingFlask = recipe.getRemainingItems(splashContainer).get(4);
+
+            helper.assertTrue(splashResult.is(Items.TIPPED_ARROW) && splashResult.getCount() == 8,
+                    "Alchemist's Flask tipped arrow recipe should return eight tipped arrows");
+            helper.assertTrue(PotionUtils.getPotion(splashResult) == PotionUtils.getPotion(splashPotion),
+                    "Alchemist's Flask tipped arrow recipe should keep the stored splash potion");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(splashRemainingFlask) == 1,
+                    "Alchemist's Flask tipped arrow recipe should consume exactly one dose");
+
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var lingeringFlask = createFilledAlchemistsFlask(lingeringPotion, 1, 0);
+            var lingeringContainer = createCraftingContainer(
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    lingeringFlask,
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW)
+            );
+
+            helper.assertTrue(recipe.matches(lingeringContainer, helper.getLevel()),
+                    "Alchemist's Flask tipped arrow recipe should accept a lingering potion flask");
+            var lingeringResult = recipe.assemble(lingeringContainer, helper.getLevel().registryAccess());
+            var lingeringRemainingFlask = recipe.getRemainingItems(lingeringContainer).get(4);
+
+            helper.assertTrue(PotionUtils.getPotion(lingeringResult) == PotionUtils.getPotion(lingeringPotion),
+                    "Alchemist's Flask tipped arrow recipe should keep the stored lingering potion");
+            helper.assertTrue(lingeringRemainingFlask.is(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                    "Alchemist's Flask tipped arrow recipe should return the flask");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(lingeringRemainingFlask) == 0,
+                    "Alchemist's Flask tipped arrow recipe should empty the flask after the last dose");
+            helper.assertTrue(SpellcastersFlask.getStoredItem(lingeringRemainingFlask).isEmpty(),
+                    "Alchemist's Flask tipped arrow recipe should clear StoredItem after the last dose");
+
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+            var simpleElixirContainer = createCraftingContainer(
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    createFilledAlchemistsFlask(simpleElixir, 1, 0),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW)
+            );
+            helper.assertTrue(!recipe.matches(simpleElixirContainer, helper.getLevel()),
+                    "Alchemist's Flask tipped arrow recipe should reject Simple Elixir");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskTippedArrowCraftAwardsAdvancement(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), PotionRegistry.INTELLIGENCE.get());
+            var craftingContainer = createCraftingContainer(
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    createFilledAlchemistsFlask(splashPotion, 1, 0),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW)
+            );
+            var craftedStack = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW, 8), PotionRegistry.INTELLIGENCE.get());
+            var advancement = helper.getLevel().getServer().getAdvancements().getAdvancement(
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_codex/craft_tipped_arrow_by_flask")
+            );
+
+            helper.assertTrue(advancement != null, "Missing advancement for flask tipped arrow crafting");
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.event.AlchemistsFlaskAdvancementEvent.shouldAward(craftedStack, craftingContainer),
+                    "Crafting tipped arrows with Alchemist's Flask should satisfy the advancement award conditions"
+            );
         });
     }
 

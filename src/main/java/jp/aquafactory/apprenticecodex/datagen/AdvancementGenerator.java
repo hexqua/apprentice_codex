@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
+import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.advancements.FrameType;
@@ -16,7 +18,9 @@ import net.minecraft.advancements.critereon.RecipeCraftedTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.ForgeAdvancementProvider;
 import org.jetbrains.annotations.NotNull;
@@ -477,6 +481,33 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_spellcasters_flask", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLCASTERS_FLASK.getId()))
                 .save(saver, advancementId("craft_spellcasters_flask"), existingFileHelper);
+
+        var alchemistsFlask = Advancement.Builder.advancement()
+                .parent(flask)
+                .display(ItemRegistry.ALCHEMISTS_FLASK.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemists_flask.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemists_flask.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("has_alchemists_flask", InventoryChangeTrigger.TriggerInstance.hasItems(ItemRegistry.ALCHEMISTS_FLASK.get()))
+                .save(saver, advancementId("craft_alchemists_flask"), existingFileHelper);
+
+        var intelligenceArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), PotionRegistry.INTELLIGENCE.get());
+        Advancement.Builder.advancement()
+                .parent(alchemistsFlask)
+                .display(intelligenceArrow,
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_tipped_arrow_by_flask.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_tipped_arrow_by_flask.description"),
+                        null,
+                        FrameType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion(AdvancementTools.CRAFT_TIPPED_ARROW_BY_FLASK_CRITERION, new ImpossibleTrigger.TriggerInstance())
+                .save(saver, advancementId("craft_tipped_arrow_by_flask"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(flask)
