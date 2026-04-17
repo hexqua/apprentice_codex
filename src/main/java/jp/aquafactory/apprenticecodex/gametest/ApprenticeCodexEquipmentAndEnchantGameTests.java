@@ -125,6 +125,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowInventoryOverlayReflectsCurrentSelection(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowInventoryOverlayReflectsCurrentSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(helper);
     }

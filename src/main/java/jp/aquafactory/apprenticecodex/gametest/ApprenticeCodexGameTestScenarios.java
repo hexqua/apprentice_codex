@@ -2868,6 +2868,55 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowInventoryOverlayReflectsCurrentSelection(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            helper.assertTrue(ElementalBow.getInventoryOverlayView(stack) == null,
+                    "Elemental Bow normal mode should not expose an inventory overlay");
+
+            var spectralArrowId = ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow");
+            setElementalBowShotSelection(stack, "special", spectralArrowId);
+            var spectralOverlay = ElementalBow.getInventoryOverlayView(stack);
+            helper.assertTrue(spectralOverlay != null,
+                    "Elemental Bow spectral selection should expose an inventory overlay");
+            if (spectralOverlay != null) {
+                helper.assertTrue(spectralOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
+                        "Elemental Bow spectral selection should render as an item overlay");
+                helper.assertTrue(spectralOverlay.iconStack().is(Items.SPECTRAL_ARROW),
+                        "Elemental Bow spectral selection should render the spectral arrow icon");
+            }
+
+            var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING.value());
+            var healingId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(healingArrow));
+            helper.assertTrue(healingId != null,
+                    "Elemental Bow overlay test could not resolve the healing arrow potion id");
+            if (healingId != null) {
+                setElementalBowShotSelection(stack, "special", healingId);
+                var tippedOverlay = ElementalBow.getInventoryOverlayView(stack);
+                helper.assertTrue(tippedOverlay != null,
+                        "Elemental Bow tipped arrow selection should expose an inventory overlay");
+                if (tippedOverlay != null) {
+                    helper.assertTrue(tippedOverlay.iconStack().is(Items.TIPPED_ARROW),
+                            "Elemental Bow tipped arrow selection should render a tipped arrow icon");
+                    helper.assertTrue(PotionContentsHelper.getPotion(tippedOverlay.iconStack()) == net.minecraft.world.item.alchemy.Potions.HEALING.value(),
+                            "Elemental Bow tipped arrow overlay should keep the selected potion");
+                }
+            }
+
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            var fireOverlay = ElementalBow.getInventoryOverlayView(stack);
+            helper.assertTrue(fireOverlay != null,
+                    "Elemental Bow magic selection should expose an inventory overlay");
+            if (fireOverlay != null) {
+                helper.assertTrue(fireOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
+                        "Elemental Bow magic selection should render as an item overlay");
+                helper.assertTrue(fireOverlay.iconStack().is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
+                        "Elemental Bow Fire mode should render the Fire rune icon");
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
