@@ -110,6 +110,7 @@ import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.PoiTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -2935,6 +2936,85 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowSelectionViewExposesOverheatOverlayState(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_overheat_overlay_test");
+        var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+        setElementalBowMode(stack, "fire");
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+        helper.runAtTickTime(1, () -> {
+            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireView != null, "Elemental Bow overheat overlay test should expose the Fire magic selection");
+            if (fireView != null) {
+                helper.assertFalse(fireView.overheatActive(),
+                        "Elemental Bow Fire selection should not be overheated before any cast");
+                helper.assertTrue(fireView.overheatFillRatio() == 0.0F,
+                        "Elemental Bow Fire selection should start with an empty overheat overlay");
+            }
+
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    40
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.NATURE_RESOURCE,
+                    20
+            );
+
+            var overheatedFireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(overheatedFireView != null && overheatedFireView.overheatActive(),
+                    "Elemental Bow Fire selection should report active overheat immediately after cast");
+            if (overheatedFireView != null) {
+                helper.assertTrue(overheatedFireView.overheatFillRatio() == 1.0F,
+                        "Elemental Bow Fire selection should start with a full overheat overlay: " + overheatedFireView.overheatFillRatio());
+            }
+        });
+
+        helper.runAtTickTime(11, () -> {
+            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireView != null && fireView.overheatActive(),
+                    "Elemental Bow Fire selection should still be overheated mid-cooldown");
+            if (fireView != null) {
+                helper.assertTrue(Mth.equal(fireView.overheatFillRatio(), 0.75F),
+                        "Elemental Bow Fire selection should decay based on its own cooldown: " + fireView.overheatFillRatio());
+            }
+
+            var natureView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.NATURE_RESOURCE);
+            helper.assertTrue(natureView != null && natureView.overheatActive(),
+                    "Elemental Bow Nature selection should track its own overheat independently");
+            if (natureView != null) {
+                helper.assertTrue(Mth.equal(natureView.overheatFillRatio(), 0.5F),
+                        "Elemental Bow Nature selection should show its shorter cooldown independently: " + natureView.overheatFillRatio());
+            }
+
+            var enderView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.ENDER_RESOURCE);
+            helper.assertTrue(enderView != null, "Elemental Bow overheat overlay test should expose the Ender magic selection");
+            if (enderView != null) {
+                helper.assertFalse(enderView.overheatActive(),
+                        "Elemental Bow Ender selection should stay inactive when untouched");
+                helper.assertTrue(enderView.overheatFillRatio() == 0.0F,
+                        "Elemental Bow Ender selection should not show an overheat overlay");
+            }
+        });
+
+        helper.runAtTickTime(42, () -> {
+            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireView != null, "Elemental Bow Fire selection should remain in the selection list after cooldown");
+            if (fireView != null) {
+                helper.assertFalse(fireView.overheatActive(),
+                        "Elemental Bow Fire selection should clear overheat after cooldown expires");
+                helper.assertTrue(fireView.overheatFillRatio() == 0.0F,
+                        "Elemental Bow Fire selection overlay should be empty after cooldown expires");
+            }
+        });
+
+        helper.succeedOnTickWhen(43, () -> {
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
@@ -5410,6 +5490,20 @@ public final class ApprenticeCodexGameTestScenarios {
         return view.selection().selectionId() == null
                 ? view.selection().shotMode()
                 : view.selection().shotMode() + ":" + view.selection().selectionId();
+    }
+
+    @Nullable
+    private static ElementalBow.ModeSelectionView findElementalBowSelectionView(
+            ServerPlayer player,
+            ItemStack stack,
+            String shotMode,
+            @Nullable ResourceLocation selectionId
+    ) {
+        return ElementalBow.getAvailableSelectionViews(player, stack).stream()
+                .filter(view -> shotMode.equals(view.selection().shotMode())
+                        && Objects.equals(selectionId, view.selection().selectionId()))
+                .findFirst()
+                .orElse(null);
     }
 
     private static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {

@@ -1073,6 +1073,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             var spellIcon = resolvedMode != null ? resolvedMode.spell().getSpellIconResource() : null;
             var levelText = resolvedMode != null ? Integer.toString(resolvedMode.resolveSpellLevel(stack)) : "?";
             var badgeColor = resolvedMode != null ? resolvedMode.color() : 0xFFFFFF;
+            var overheatActive = resolvedMode != null && ElementalBowOverheatManager.getState(player, resolvedMode.schoolId()).active();
+            var overheatFillRatio = resolvedMode != null
+                    ? ElementalBowOverheatManager.getCooldownOverlayRatio(player, resolvedMode.schoolId())
+                    : 0.0F;
             return new ModeSelectionView(
                     selection.toKey(),
                     resolveSelectionDisplayName(stack, selection),
@@ -1081,7 +1085,9 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                     spellIcon,
                     levelText,
                     badgeColor,
-                    isCurrentSelection
+                    isCurrentSelection,
+                    overheatActive,
+                    overheatFillRatio
             );
         }
 
@@ -1094,7 +1100,9 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                     null,
                     null,
                     0xFFFFFF,
-                    isCurrentSelection
+                    isCurrentSelection,
+                    false,
+                    0.0F
             );
         }
 
@@ -1119,7 +1127,9 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 null,
                 badgeText,
                 badgeColor,
-                isCurrentSelection
+                isCurrentSelection,
+                false,
+                0.0F
         );
     }
 
@@ -1311,10 +1321,13 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             @Nullable ResourceLocation spellIcon,
             @Nullable String badgeText,
             int badgeColor,
-            boolean currentSelection
+            boolean currentSelection,
+            boolean overheatActive,
+            float overheatFillRatio
     ) {
         public ModeSelectionView {
             iconStack = iconStack.copy();
+            overheatFillRatio = Math.max(0.0F, Math.min(1.0F, overheatFillRatio));
         }
     }
 

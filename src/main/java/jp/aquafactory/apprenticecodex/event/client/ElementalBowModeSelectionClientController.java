@@ -34,6 +34,7 @@ public final class ElementalBowModeSelectionClientController {
     private static final int SLOT_BORDER_COLOR = 0xFF6D7175;
     private static final int SLOT_SELECTED_BORDER_COLOR = 0xFFFFD95C;
     private static final int LABEL_COLOR = 0xFFFFFF;
+    private static final int OVERHEAT_OVERLAY_COLOR = 0x80FFFFFF;
 
     @Nullable
     private static ActiveSelectionState activeState;
@@ -287,6 +288,7 @@ public final class ElementalBowModeSelectionClientController {
             if (view.spellIcon() != null) {
                 guiGraphics.blit(view.spellIcon(), itemX, itemY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
             }
+            renderSpellOverheatOverlay(guiGraphics, itemX, itemY, view);
         } else {
             guiGraphics.renderItem(view.iconStack(), itemX, itemY);
         }
@@ -313,6 +315,17 @@ public final class ElementalBowModeSelectionClientController {
             guiGraphics.pose().popPose();
             guiGraphics.flush();
         }
+    }
+
+    private static void renderSpellOverheatOverlay(GuiGraphics guiGraphics, int itemX, int itemY, ElementalBow.ModeSelectionView view) {
+        if (!view.overheatActive() || view.overheatFillRatio() <= 0.0F) {
+            return;
+        }
+
+        // バニラのクールダウン表示に寄せて、回復待ちの残量を半透明白で下から覆う。
+        int overlayHeight = Math.max(1, Math.round(ICON_SIZE * view.overheatFillRatio()));
+        int overlayTop = itemY + ICON_SIZE - overlayHeight;
+        guiGraphics.fill(itemX, overlayTop, itemX + ICON_SIZE, itemY + ICON_SIZE, OVERHEAT_OVERLAY_COLOR);
     }
 
     private static void renderSlotBorder(GuiGraphics guiGraphics, int rowX, int rowY, int column, int borderColor) {
