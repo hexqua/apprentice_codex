@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.enchantment;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
@@ -38,6 +39,7 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedSpellContainerMagicItem(Item item) {
         return isSupportedOffhandMagicItem(item)
                 || isSupportedSpellGunItem(item)
+                || item instanceof ElementalBow
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask
                 || isSupportedSpellContainerArmorItem(item);
@@ -49,6 +51,7 @@ final class MagicItemEnchantmentTargeting {
 
     static boolean isSupportedWisdomEnchantingItem(Item item) {
         return item instanceof AbstractSpellGunItem
+                || item instanceof ElementalBow
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask
                 || item instanceof EnchantressRobeItem
@@ -58,11 +61,13 @@ final class MagicItemEnchantmentTargeting {
 
     static boolean isSupportedHeldWisdomMagicItem(Item item) {
         return item instanceof AbstractSpellGunItem
+                || item instanceof ElementalBow
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask;
     }
 
     static boolean isSupportedLootingMagicItem(Item item) {
-        return item instanceof AbstractSpellGunItem;
+        return item instanceof AbstractSpellGunItem
+                || item instanceof ElementalBow;
     }
 }

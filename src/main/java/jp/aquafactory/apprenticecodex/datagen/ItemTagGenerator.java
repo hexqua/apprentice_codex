@@ -54,9 +54,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get()
         );
+
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
+
+        // 自前の抽象クラスを継承しないアイテムは後の自動収集から漏れるのでここで直接指定する.
         ironsUpgradeWhitelist.add(
-                ItemRegistry.ENDER_GRIMOIRE.get()
+                ItemRegistry.ENDER_GRIMOIRE.get(),
+                ItemRegistry.ELEMENTAL_BOW.get()
         );
 
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
