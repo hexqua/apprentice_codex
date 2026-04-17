@@ -2,11 +2,13 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
@@ -23,7 +25,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "10";
+    private static final String PROTOCOL_VERSION = "13";
 
     private Networks() {
     }
@@ -38,6 +40,11 @@ public final class Networks {
                 ClientBlockTargetCastPacket.TYPE,
                 ClientBlockTargetCastPacket.STREAM_CODEC,
                 ClientBlockTargetCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientConfirmElementalBowModePacket.TYPE,
+                ClientConfirmElementalBowModePacket.STREAM_CODEC,
+                ClientConfirmElementalBowModePacket::handle
         );
         registrar.playToServer(
                 ClientSwingMagicAttackPacket.TYPE,
@@ -83,6 +90,11 @@ public final class Networks {
                 SyncRemoteEyeStatePacket.TYPE,
                 SyncRemoteEyeStatePacket.STREAM_CODEC,
                 SyncRemoteEyeStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncElementalBowOverheatPacket.TYPE,
+                SyncElementalBowOverheatPacket.STREAM_CODEC,
+                SyncElementalBowOverheatPacket::handle
         );
         registrar.playToClient(
                 SyncTamersPocketCountPacket.TYPE,

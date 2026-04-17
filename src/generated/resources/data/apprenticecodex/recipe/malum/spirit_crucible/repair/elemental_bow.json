@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "type": "malum:spirit_repair",
+  "durabilityPercentage": 0.5,
+  "repairMaterial": {
+    "count": 1,
+    "item": "irons_spellbooks:arcane_ingot"
+  },
+  "spirits": [
+    {
+      "type": "malum:arcane",
+      "count": 8
+    },
+    {
+      "type": "malum:earth",
+      "count": 8
+    }
+  ],
+  "validItems": [
+    "apprenticecodex:elemental_bow"
+  ]
+}

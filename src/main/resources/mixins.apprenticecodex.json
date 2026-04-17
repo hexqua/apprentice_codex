@@ -36,7 +36,9 @@
     "MouseHandlerMixin",
     "MinecraftMixin",
     "EntityMixin",
-    "QuickCastPacketAccessor"
+    "GuiGraphicsElementalBowOverlayMixin",
+    "QuickCastPacketAccessor",
+    "TooltipsUtilsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

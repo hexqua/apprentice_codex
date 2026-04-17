@@ -3,11 +3,12 @@ package jp.aquafactory.apprenticecodex.item.elementalbow;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class ElementalBowOverheatManager {
@@ -16,6 +17,7 @@ public final class ElementalBowOverheatManager {
     private static final String EXPIRE_GAME_TIME_TAG = "ExpireGameTime";
     private static final String CHAIN_DEPTH_TAG = "ChainDepth";
     private static final String PENDING_COOLDOWN_TICKS_TAG = "PendingCooldownTicks";
+    private static final String LAST_APPLIED_COOLDOWN_TICKS_TAG = "LastAppliedCooldownTicks";
     private static final float EXTRA_MANA_LINEAR_MULTIPLIER = 0.20F;
     private static final float EXTRA_MANA_QUADRATIC_MULTIPLIER = 0.08F;
 
@@ -85,8 +87,34 @@ public final class ElementalBowOverheatManager {
         if (schoolTag != null) {
             schoolTag.putLong(EXPIRE_GAME_TIME_TAG, player.level().getGameTime() + cooldownTicks);
             schoolTag.putInt(CHAIN_DEPTH_TAG, nextChainDepth);
+            schoolTag.putInt(LAST_APPLIED_COOLDOWN_TICKS_TAG, cooldownTicks);
             schoolTag.remove(PENDING_COOLDOWN_TICKS_TAG);
         }
+        syncToClientIfNeeded(player);
+    }
+
+    public static float getCooldownOverlayRatio(@NotNull Player player, @Nullable ResourceLocation schoolId) {
+        if (schoolId == null) {
+            return 0.0F;
+        }
+
+        var state = getState(player, schoolId);
+        if (!state.active()) {
+            return 0.0F;
+        }
+
+        var schoolTag = getSchoolTag(player, schoolId, false);
+        if (schoolTag == null) {
+            return 0.0F;
+        }
+
+        var totalCooldownTicks = Math.max(0, schoolTag.getInt(LAST_APPLIED_COOLDOWN_TICKS_TAG));
+        if (totalCooldownTicks == 0) {
+            return 0.0F;
+        }
+
+        var remainingTicks = state.expireGameTime() - player.level().getGameTime();
+        return Mth.clamp((float) remainingTicks / (float) totalCooldownTicks, 0.0F, 1.0F);
     }
 
     public static OverheatState getState(@NotNull Player player, @Nullable ResourceLocation schoolId) {
@@ -127,6 +155,7 @@ public final class ElementalBowOverheatManager {
         if (rootTag.isEmpty()) {
             player.getPersistentData().remove(ROOT_TAG);
         }
+        syncToClientIfNeeded(player);
     }
 
     public static void clearPendingCooldown(@NotNull Player player, @Nullable ResourceLocation schoolId) {
@@ -143,8 +172,7 @@ public final class ElementalBowOverheatManager {
         pruneSchoolTag(player, schoolId, schoolTag);
     }
 
-    public static @NotNull List<ResourceLocation> collectCooledSchoolsWhileHolding(@NotNull Player player) {
-        var cooledSchools = new ArrayList<ResourceLocation>();
+    public static void refreshObservedSchoolsWhileHolding(@NotNull Player player) {
         var observedRootTag = getObservedRootTag(player, false);
         if (observedRootTag != null) {
             for (var schoolKey : List.copyOf(observedRootTag.getAllKeys())) {
@@ -155,7 +183,6 @@ public final class ElementalBowOverheatManager {
                 }
 
                 if (!getState(player, schoolId).active()) {
-                    cooledSchools.add(schoolId);
                     observedRootTag.remove(schoolKey);
                 }
             }
@@ -164,7 +191,7 @@ public final class ElementalBowOverheatManager {
 
         var rootTag = getRootTag(player, false);
         if (rootTag == null) {
-            return cooledSchools;
+            return;
         }
 
         var refreshedObservedRootTag = getObservedRootTag(player, true);
@@ -184,11 +211,55 @@ public final class ElementalBowOverheatManager {
         if (refreshedObservedRootTag != null) {
             pruneObservedRootTag(player, refreshedObservedRootTag);
         }
-        return cooledSchools;
     }
 
     public static void clearObservedSchools(@NotNull Player player) {
         player.getPersistentData().remove(OBSERVED_ROOT_TAG);
+    }
+
+    public static @NotNull CompoundTag createSyncTag(@NotNull Player player) {
+        var syncTag = new CompoundTag();
+        var rootTag = getRootTag(player, false);
+        if (rootTag == null) {
+            return syncTag;
+        }
+
+        long gameTime = player.level().getGameTime();
+        for (var schoolKey : List.copyOf(rootTag.getAllKeys())) {
+            var schoolId = ResourceLocation.tryParse(schoolKey);
+            if (schoolId == null) {
+                rootTag.remove(schoolKey);
+                continue;
+            }
+
+            var schoolTag = rootTag.getCompound(schoolKey);
+            var expireGameTime = schoolTag.getLong(EXPIRE_GAME_TIME_TAG);
+            var chainDepth = Math.max(0, schoolTag.getInt(CHAIN_DEPTH_TAG));
+            if (chainDepth == 0 || expireGameTime <= gameTime) {
+                rootTag.remove(schoolKey);
+                continue;
+            }
+
+            var syncedSchoolTag = new CompoundTag();
+            syncedSchoolTag.putLong(EXPIRE_GAME_TIME_TAG, expireGameTime);
+            syncedSchoolTag.putInt(CHAIN_DEPTH_TAG, chainDepth);
+            syncedSchoolTag.putInt(LAST_APPLIED_COOLDOWN_TICKS_TAG, Math.max(0, schoolTag.getInt(LAST_APPLIED_COOLDOWN_TICKS_TAG)));
+            syncTag.put(schoolKey, syncedSchoolTag);
+        }
+
+        if (rootTag.isEmpty()) {
+            player.getPersistentData().remove(ROOT_TAG);
+        }
+        return syncTag;
+    }
+
+    public static void applySyncedState(@NotNull Player player, @Nullable CompoundTag syncedRootTag) {
+        if (syncedRootTag == null || syncedRootTag.isEmpty()) {
+            player.getPersistentData().remove(ROOT_TAG);
+            return;
+        }
+
+        player.getPersistentData().put(ROOT_TAG, syncedRootTag.copy());
     }
 
     @Nullable
@@ -266,6 +337,13 @@ public final class ElementalBowOverheatManager {
         }
 
         player.getPersistentData().remove(OBSERVED_ROOT_TAG);
+    }
+
+    private static void syncToClientIfNeeded(Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            // player persistentData は自動同期されないため、描画用の overheat 状態は明示的に client へ送る。
+            ElementalBowOverheatSync.syncToClient(serverPlayer);
+        }
     }
 
     public record OverheatState(int chainDepth, long expireGameTime) {

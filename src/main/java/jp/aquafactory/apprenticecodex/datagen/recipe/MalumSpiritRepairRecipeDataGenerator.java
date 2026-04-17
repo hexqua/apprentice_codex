@@ -19,6 +19,7 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
     private static final String RECIPE_TYPE = MALUM_MOD_ID + ":spirit_repair";
     private static final String RECIPE_DIRECTORY = "recipe/malum/spirit_crucible/repair";
     private static final String ARCANE_SPIRIT = MALUM_MOD_ID + ":arcane";
+    private static final String EARTH_SPIRIT = MALUM_MOD_ID + ":earth";
     private static final String INFERNAL_SPIRIT = MALUM_MOD_ID + ":infernal";
     private static final String SACRED_SPIRIT = MALUM_MOD_ID + ":sacred";
 
@@ -68,6 +69,17 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
                         1,
                         List.of(spirit(ARCANE_SPIRIT, 8))
+                ),
+                recipe(
+                        "elemental_bow",
+                        0.5F,
+                        List.of(jp.aquafactory.apprenticecodex.registry.ItemRegistry.ELEMENTAL_BOW.get()),
+                        io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
+                        1,
+                        List.of(
+                                spirit(ARCANE_SPIRIT, 8),
+                                spirit(EARTH_SPIRIT, 8)
+                        )
                 )
         );
 

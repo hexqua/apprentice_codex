@@ -62,6 +62,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> FLASK_ENCHANTABLE = Enchantments.FLASK_ENCHANTABLE;
     private static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = Enchantments.TRANSCENDENCE_ENCHANTABLE;
     private static final TagKey<Item> WISDOM_ENCHANTABLE = Enchantments.WISDOM_ENCHANTABLE;
+    private static final TagKey<Item> PLUNDER_ENCHANTABLE = Enchantments.PLUNDER_ENCHANTABLE;
 
     public ItemTagGenerator(
             PackOutput output,
@@ -80,6 +81,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get()
         );
+
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumMagicCapableWeaponTag = tag(MALUM_MAGIC_CAPABLE_WEAPON);
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
@@ -87,12 +89,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
         var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
+        var plunderEnchantableTag = tag(PLUNDER_ENCHANTABLE);
         var vanillaSwordEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SWORD);
         var vanillaFireAspectEnchantableTag = tag(MINECRAFT_ENCHANTABLE_FIRE_ASPECT);
         var vanillaSharpWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SHARP_WEAPON);
         var vanillaWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_WEAPON);
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
+                ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get()
         );
         // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。
@@ -208,6 +212,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         // Elemental Bow は bow tag に参加させ、バニラ弓と同じ enchantment JSON 面を使う。
         tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.ELEMENTAL_BOW.get());
+        // Elemental Bow は 1.21.1 でも Wisdom / Transcendence / Plunder を個別許可したいが、
+        // spell_gun_enchantable に混ぜると Attunement まで通ってしまうため専用タグ側へ明示追加する。
+        transcendenceEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
+        wisdomEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
+        plunderEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(ItemRegistry.ELEMENTAL_BOW.get());
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         malumMagicCapableWeaponTag.add(

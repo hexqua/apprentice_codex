@@ -120,8 +120,18 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowCyclesModesWhenSneakUsed(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowCyclesModesWhenSneakUsed(helper);
+    public static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowBuildsSelectionViewsFromHeldAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowInventoryOverlayReflectsCurrentSelection(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowInventoryOverlayReflectsCurrentSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -137,6 +147,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowInfinityAllowsVanillaDrawWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowMagicModeIgnoresInfinityWithoutAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowNonMagicModesHideDerivedSpellPresentation(helper);
     }
 
     @GameTest(template = TEMPLATE)

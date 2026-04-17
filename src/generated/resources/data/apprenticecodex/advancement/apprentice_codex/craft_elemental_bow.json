@@ -1,0 +1,29 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_elemental_bow": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:elemental_bow"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_elemental_bow.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:elemental_bow"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_elemental_bow.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_elemental_bow"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
