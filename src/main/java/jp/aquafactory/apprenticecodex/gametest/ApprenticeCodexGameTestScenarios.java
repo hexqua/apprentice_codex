@@ -2559,6 +2559,8 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()),
                     "Ender Grimoire should remain upgradeable via explicit whitelist entry");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.ELEMENTAL_BOW.get()),
+                    "Elemental Bow should remain upgradeable via explicit whitelist entry");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get()),
                     "AbstractOffhandMagicItem descendants should be upgradeable");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.PHOTON_SIPHON.get()),
@@ -3214,6 +3216,56 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var state = Blocks.DIAMOND_ORE.defaultBlockState();
+
+            var mainhandPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "elemental_bow_mainhand_held_enchant_test"));
+            var mainhandBow = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            mainhandBow.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            mainhandBow.enchant(EnchantmentRegistry.PLUNDER.get(), 2);
+            mainhandPlayer.setItemInHand(InteractionHand.MAIN_HAND, mainhandBow);
+
+            var mainhandExperience = new BlockEvent.BreakEvent(level, new BlockPos(3, 2, 0), state, mainhandPlayer);
+            mainhandExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(mainhandExperience);
+            helper.assertTrue(mainhandExperience.getExpToDrop() == 4,
+                    "Elemental Bow mainhand Wisdom should increase block experience from 3 to 4 but got " + mainhandExperience.getExpToDrop());
+
+            var mainhandLootingEvent = new net.minecraftforge.event.entity.living.LootingLevelEvent(
+                    helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 1)),
+                    mainhandPlayer.damageSources().playerAttack(mainhandPlayer),
+                    0
+            );
+            jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent.onLootingLevel(mainhandLootingEvent);
+            helper.assertTrue(mainhandLootingEvent.getLootingLevel() == 2,
+                    "Elemental Bow mainhand Plunder should set looting level to 2 but got " + mainhandLootingEvent.getLootingLevel());
+
+            var offhandPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "elemental_bow_offhand_held_enchant_test"));
+            var offhandBow = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            offhandBow.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            offhandBow.enchant(EnchantmentRegistry.PLUNDER.get(), 3);
+            offhandPlayer.setItemInHand(InteractionHand.OFF_HAND, offhandBow);
+
+            var offhandExperience = new BlockEvent.BreakEvent(level, new BlockPos(4, 2, 0), state, offhandPlayer);
+            offhandExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(offhandExperience);
+            helper.assertTrue(offhandExperience.getExpToDrop() == 4,
+                    "Elemental Bow offhand Wisdom should increase block experience from 3 to 4 but got " + offhandExperience.getExpToDrop());
+
+            var offhandLootingEvent = new net.minecraftforge.event.entity.living.LootingLevelEvent(
+                    helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 1)),
+                    offhandPlayer.damageSources().playerAttack(offhandPlayer),
+                    0
+            );
+            jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent.onLootingLevel(offhandLootingEvent);
+            helper.assertTrue(offhandLootingEvent.getLootingLevel() == 3,
+                    "Elemental Bow offhand Plunder should set looting level to 3 but got " + offhandLootingEvent.getLootingLevel());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
@@ -3749,6 +3801,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
             var stack = new ItemStack(item);
             stack.enchant(Enchantments.POWER_ARROWS, 2);
+            stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
             stack.enchant(Enchantments.FLAMING_ARROWS, 1);
 
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
@@ -3757,8 +3810,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(fireProfile != null, "Elemental Bow should expose a displayed spell profile in Fire mode");
             helper.assertTrue(fireProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
                     "Elemental Bow Fire mode should resolve Fire Arrow");
-            helper.assertTrue(fireProfile.spellLevel() == 5,
-                    "Elemental Bow Fire mode should apply POWER II + FLAME I to level 5 but got " + fireProfile.spellLevel());
+            helper.assertTrue(fireProfile.spellLevel() == 6,
+                    "Elemental Bow Fire mode should apply POWER II + TRANSCENDENCE I + FLAME I to level 6 but got " + fireProfile.spellLevel());
             var fireContainer = ISpellContainer.get(stack);
             helper.assertTrue(fireContainer != null, "Elemental Bow Fire mode should keep a synced spell container");
             helper.assertTrue(fireContainer != null && !fireContainer.isSpellWheel(),
@@ -3768,9 +3821,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     fireContainer,
                     0,
                     io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
-                    5,
+                    6,
                     true,
-                    "Elemental Bow Fire mode container should reflect POWER and FLAME"
+                    "Elemental Bow Fire mode container should reflect POWER, TRANSCENDENCE and FLAME"
             );
 
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.ENDER_RESOURCE.toString());
@@ -3779,8 +3832,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(enderProfile != null, "Elemental Bow should expose a displayed spell profile in Ender mode");
             helper.assertTrue(enderProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
                     "Elemental Bow Ender mode should resolve Magic Arrow");
-            helper.assertTrue(enderProfile.spellLevel() == 3,
-                    "Elemental Bow Ender mode should apply only POWER II to level 3 but got " + enderProfile.spellLevel());
+            helper.assertTrue(enderProfile.spellLevel() == 4,
+                    "Elemental Bow Ender mode should apply POWER II + TRANSCENDENCE I to level 4 but got " + enderProfile.spellLevel());
             var enderContainer = ISpellContainer.get(stack);
             helper.assertTrue(enderContainer != null, "Elemental Bow Ender mode should keep a synced spell container");
             helper.assertTrue(enderContainer != null && !enderContainer.isSpellWheel(),
@@ -3790,9 +3843,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     enderContainer,
                     0,
                     io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
-                    3,
+                    4,
                     true,
-                    "Elemental Bow Ender mode container should ignore FLAME"
+                    "Elemental Bow Ender mode container should ignore FLAME but keep TRANSCENDENCE"
             );
 
             stack.getOrCreateTag().remove("ElementalBowMode");
@@ -5760,18 +5813,30 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static Set<ResourceLocation> expectedElementalBowEnchantments() {
         var bowStack = new ItemStack(Items.BOW);
-        return collectAllowedEnchantments(
+        var expectedEnchantments = collectAllowedEnchantments(
                 bowStack,
                 enchantment -> Items.BOW.canApplyAtEnchantingTable(bowStack, enchantment)
         );
+        expectedEnchantments.addAll(registryIdSet(
+                EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.PLUNDER
+        ));
+        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedElementalBowBookEnchantments() {
         var bowStack = new ItemStack(Items.BOW);
-        return collectAllowedEnchantments(
+        var expectedEnchantments = collectAllowedEnchantments(
                 bowStack,
                 enchantment -> Items.BOW.isBookEnchantable(bowStack, createEnchantedBook(enchantment))
         );
+        expectedEnchantments.addAll(registryIdSet(
+                EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.PLUNDER
+        ));
+        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedFlaskEnchantments() {

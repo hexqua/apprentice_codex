@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -38,6 +39,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
@@ -83,7 +85,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ElementalBow() {
-        super(new Properties().durability(384));
+        super(new Properties().durability(1561));
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -249,12 +251,19 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return Items.BOW.canApplyAtEnchantingTable(ENCHANTMENT_PROBE_STACK, enchantment);
+        return Items.BOW.canApplyAtEnchantingTable(ENCHANTMENT_PROBE_STACK, enchantment)
+                || isSupportedAdditionalElementalBowEnchantment(enchantment);
     }
 
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return Items.BOW.isBookEnchantable(ENCHANTMENT_PROBE_STACK, book);
+        return Items.BOW.isBookEnchantable(ENCHANTMENT_PROBE_STACK, book)
+                || bookContainsOnlySupportedAdditionalElementalBowEnchantments(book);
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return 10;
     }
 
     @Override
@@ -1294,6 +1303,18 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             throw new IllegalStateException("Selection id is required for " + selection.kind().serializedName() + " mode");
         }
         return selection.id();
+    }
+
+    private static boolean isSupportedAdditionalElementalBowEnchantment(Enchantment enchantment) {
+        return (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
+                || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
+                || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get());
+    }
+
+    private static boolean bookContainsOnlySupportedAdditionalElementalBowEnchantments(ItemStack book) {
+        var enchantments = EnchantmentHelper.getEnchantments(book);
+        return !enchantments.isEmpty()
+                && enchantments.keySet().stream().allMatch(ElementalBow::isSupportedAdditionalElementalBowEnchantment);
     }
 
     private record SpellCastProfile(AbstractSpell spell, int spellLevel) {

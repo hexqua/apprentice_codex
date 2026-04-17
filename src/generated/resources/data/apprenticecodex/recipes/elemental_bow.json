@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "pattern": [
+    " AS",
+    "DMS",
+    " AS"
+  ],
+  "result": {
+    "item": "apprenticecodex:elemental_bow"
+  },
+  "show_notification": true
+}

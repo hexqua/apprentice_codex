@@ -386,6 +386,20 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("craft_reflectcast_shield", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.REFLECTCAST_SHIELD.getId()))
                 .save(saver, advancementId("craft_reflectcast_shield"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.ELEMENTAL_BOW.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_elemental_bow.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_elemental_bow.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_elemental_bow", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ELEMENTAL_BOW.getId()))
+                .save(saver, advancementId("craft_elemental_bow"), existingFileHelper);
+
+
         var ironSwing = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.IRON_SWINGCAST_STAFF.get(),
