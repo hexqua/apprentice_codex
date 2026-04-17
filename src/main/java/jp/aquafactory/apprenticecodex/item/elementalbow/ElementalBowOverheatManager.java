@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.elementalbow;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +17,7 @@ public final class ElementalBowOverheatManager {
     private static final String EXPIRE_GAME_TIME_TAG = "ExpireGameTime";
     private static final String CHAIN_DEPTH_TAG = "ChainDepth";
     private static final String PENDING_COOLDOWN_TICKS_TAG = "PendingCooldownTicks";
+    private static final String LAST_APPLIED_COOLDOWN_TICKS_TAG = "LastAppliedCooldownTicks";
     private static final float EXTRA_MANA_LINEAR_MULTIPLIER = 0.20F;
     private static final float EXTRA_MANA_QUADRATIC_MULTIPLIER = 0.08F;
 
@@ -85,9 +87,34 @@ public final class ElementalBowOverheatManager {
         if (schoolTag != null) {
             schoolTag.putLong(EXPIRE_GAME_TIME_TAG, player.level().getGameTime() + cooldownTicks);
             schoolTag.putInt(CHAIN_DEPTH_TAG, nextChainDepth);
+            schoolTag.putInt(LAST_APPLIED_COOLDOWN_TICKS_TAG, cooldownTicks);
             schoolTag.remove(PENDING_COOLDOWN_TICKS_TAG);
         }
         syncToClientIfNeeded(player);
+    }
+
+    public static float getCooldownOverlayRatio(@NotNull Player player, @Nullable ResourceLocation schoolId) {
+        if (schoolId == null) {
+            return 0.0F;
+        }
+
+        var state = getState(player, schoolId);
+        if (!state.active()) {
+            return 0.0F;
+        }
+
+        var schoolTag = getSchoolTag(player, schoolId, false);
+        if (schoolTag == null) {
+            return 0.0F;
+        }
+
+        var totalCooldownTicks = Math.max(0, schoolTag.getInt(LAST_APPLIED_COOLDOWN_TICKS_TAG));
+        if (totalCooldownTicks == 0) {
+            return 0.0F;
+        }
+
+        var remainingTicks = state.expireGameTime() - player.level().getGameTime();
+        return Mth.clamp((float) remainingTicks / (float) totalCooldownTicks, 0.0F, 1.0F);
     }
 
     public static OverheatState getState(@NotNull Player player, @Nullable ResourceLocation schoolId) {
@@ -216,6 +243,7 @@ public final class ElementalBowOverheatManager {
             var syncedSchoolTag = new CompoundTag();
             syncedSchoolTag.putLong(EXPIRE_GAME_TIME_TAG, expireGameTime);
             syncedSchoolTag.putInt(CHAIN_DEPTH_TAG, chainDepth);
+            syncedSchoolTag.putInt(LAST_APPLIED_COOLDOWN_TICKS_TAG, Math.max(0, schoolTag.getInt(LAST_APPLIED_COOLDOWN_TICKS_TAG)));
             syncTag.put(schoolKey, syncedSchoolTag);
         }
 
