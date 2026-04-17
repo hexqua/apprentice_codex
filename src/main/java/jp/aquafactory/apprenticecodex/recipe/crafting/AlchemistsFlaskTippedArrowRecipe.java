@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -66,7 +67,11 @@ public final class AlchemistsFlaskTippedArrowRecipe extends CustomRecipe {
         return RecipeRegistry.ALCHEMISTS_FLASK_TIPPED_ARROW_SERIALIZER.get();
     }
 
-    private static Match findMatch(CraftingContainer container) {
+    public static boolean matchesContainer(Container container) {
+        return findMatch(container) != null;
+    }
+
+    private static Match findMatch(Container container) {
         if (container.getContainerSize() < 9) {
             return null;
         }

@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_alchemists_flask",
+  "criteria": {
+    "craft_tipped_arrow_by_flask": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_tipped_arrow_by_flask.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "minecraft:tipped_arrow",
+      "nbt": "{Potion:\"apprenticecodex:intelligence\"}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_tipped_arrow_by_flask.title"
+    }
+  },
+  "requirements": [
+    [
+      "craft_tipped_arrow_by_flask"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

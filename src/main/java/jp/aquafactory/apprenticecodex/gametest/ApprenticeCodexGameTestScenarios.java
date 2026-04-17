@@ -887,6 +887,34 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskTippedArrowCraftAwardsAdvancement(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), PotionRegistry.INTELLIGENCE.get());
+            var craftingContainer = createCraftingContainer(
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    createFilledAlchemistsFlask(splashPotion, 1, 0),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW),
+                    new ItemStack(Items.ARROW)
+            );
+            var craftedStack = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW, 8), PotionRegistry.INTELLIGENCE.get());
+            var advancement = helper.getLevel().getServer().getAdvancements().getAdvancement(
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_codex/craft_tipped_arrow_by_flask")
+            );
+
+            helper.assertTrue(advancement != null, "Missing advancement for flask tipped arrow crafting");
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.event.AlchemistsFlaskAdvancementEvent.shouldAward(craftedStack, craftingContainer),
+                    "Crafting tipped arrows with Alchemist's Flask should satisfy the advancement award conditions"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void extractPreCastUsesFirstFilledFlaskAcrossHands(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = (jp.aquafactory.apprenticecodex.spell.extract.Extract) SpellRegistry.EXTRACT.get();
