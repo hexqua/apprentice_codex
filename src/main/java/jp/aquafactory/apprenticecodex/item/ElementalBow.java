@@ -62,7 +62,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem {
+public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
+        WeaponImbueCooldownPolicyItem {
     public static final int READY_DRAW_TICKS = 22;
     private static final String MAIN_CONTROLLER = "main";
     private static final String RELEASE_ANIMATION = "release";
@@ -254,6 +255,15 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
         return Items.BOW.isBookEnchantable(ENCHANTMENT_PROBE_STACK, book);
+    }
+
+    @Override
+    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, CastSource castSource) {
+        // Elemental Bow の属性ショットは overheat と tooltip を独自管理しているため、
+        // 剣 Imbue 用倍率まで掛けると実時間表示と調整意図の両方がずれる。
+        return castSource == CastSource.SWORD
+                && getConfiguredSchoolId(stack) != null
+                && isElementalSpell(spell);
     }
 
     @Override

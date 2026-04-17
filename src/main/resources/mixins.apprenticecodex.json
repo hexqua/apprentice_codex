@@ -36,7 +36,8 @@
     "MinecraftMixin",
     "EntityMixin",
     "GuiGraphicsElementalBowOverlayMixin",
-    "QuickCastPacketAccessor"
+    "QuickCastPacketAccessor",
+    "TooltipsUtilsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

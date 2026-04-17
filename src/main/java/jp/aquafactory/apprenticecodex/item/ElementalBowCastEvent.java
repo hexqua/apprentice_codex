@@ -32,7 +32,12 @@ public final class ElementalBowCastEvent {
 
         // bow の持ち替えで踏み倒せると調整意図が崩れるため、overheat は player+school 単位で持つ。
         // cooldown event では値だけ退避し、実際の overheat 更新は発射成功後に bow 本体で確定する。
-        ElementalBowOverheatManager.storePendingCooldown(player, ElementalBow.getConfiguredSchoolId(castingItem), event.getEffectiveCooldown());
+        // Elemental Bow は剣 Imbue 用倍率を表示/実時間の両方から外したいので、退避値も helper 基準へ寄せる。
+        ElementalBowOverheatManager.storePendingCooldown(
+                player,
+                ElementalBow.getConfiguredSchoolId(castingItem),
+                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(event.getSpell(), player, event.getCastSource(), castingItem)
+        );
         event.setEffectiveCooldown(0);
     }
 }
