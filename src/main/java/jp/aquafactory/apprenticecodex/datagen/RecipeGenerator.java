@@ -622,6 +622,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(recipeWriter, ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.getId());
 
         saveMalumSpiritRepairRecipes(recipeWriter);
+        saveAlchemistsFlaskSmithingRecipe(recipeWriter);
         saveSpellbookCarryoverSmithingRecipe(recipeWriter);
 
     }
@@ -708,6 +709,26 @@ public final class RecipeGenerator extends RecipeProvider {
         ));
     }
 
+    private void saveAlchemistsFlaskSmithingRecipe(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        var recipeId = ItemRegistry.ALCHEMISTS_FLASK.getId();
+        var advancement = Advancement.Builder.recipeAdvancement()
+                .parent(RecipeBuilder.ROOT_RECIPE_ADVANCEMENT)
+                .addCriterion(getHasName(ItemRegistry.SPELLCASTERS_FLASK.get()), has(ItemRegistry.SPELLCASTERS_FLASK.get()))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .requirements(RequirementsStrategy.OR);
+
+        recipeWriter.accept(new AlchemistsFlaskSmithingFinishedRecipe(
+                recipeId,
+                Ingredient.of(Items.EMERALD),
+                Ingredient.of(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                Ingredient.of(Items.GUNPOWDER),
+                ItemRegistry.ALCHEMISTS_FLASK.get(),
+                advancement,
+                recipeId.withPrefix("recipes/" + RecipeCategory.COMBAT.getFolderName() + "/")
+        ));
+    }
+
     private void saveSpellbookCarryoverSmithingRecipe(@NotNull Consumer<FinishedRecipe> recipeWriter) {
         var recipeId = ItemRegistry.SPELLSTAINED_RUNIC_TABLET.getId();
         var advancement = Advancement.Builder.recipeAdvancement()
@@ -757,6 +778,47 @@ public final class RecipeGenerator extends RecipeProvider {
         @Override
         public @NotNull RecipeSerializer<?> getType() {
             return RecipeRegistry.SPELLBOOK_CARRYOVER_SMITHING_SERIALIZER.get();
+        }
+
+        @Override
+        public JsonObject serializeAdvancement() {
+            return advancement.serializeToJson();
+        }
+
+        @Override
+        public ResourceLocation getAdvancementId() {
+            return advancementId;
+        }
+    }
+
+    private record AlchemistsFlaskSmithingFinishedRecipe(
+            ResourceLocation id,
+            Ingredient template,
+            Ingredient base,
+            Ingredient addition,
+            Item result,
+            Advancement.Builder advancement,
+            ResourceLocation advancementId
+    ) implements FinishedRecipe {
+        @Override
+        public @NotNull ResourceLocation getId() {
+            return id;
+        }
+
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            json.add("template", template.toJson());
+            json.add("base", base.toJson());
+            json.add("addition", addition.toJson());
+
+            var resultJson = new JsonObject();
+            resultJson.addProperty("item", ForgeRegistries.ITEMS.getKey(result).toString());
+            json.add("result", resultJson);
+        }
+
+        @Override
+        public @NotNull RecipeSerializer<?> getType() {
+            return RecipeRegistry.ALCHEMISTS_FLASK_SMITHING_SERIALIZER.get();
         }
 
         @Override

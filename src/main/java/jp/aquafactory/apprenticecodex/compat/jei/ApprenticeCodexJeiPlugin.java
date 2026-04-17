@@ -80,6 +80,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe.class,
                 new SpellbookCarryoverSmithingJeiExtension()
         );
+        registration.getSmithingCategory().addExtension(
+                jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe.class,
+                new AlchemistsFlaskSmithingJeiExtension()
+        );
     }
 
     @Override
@@ -202,7 +206,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipes(
                 RecipeTypes.SMITHING,
                 recipeManager.getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMITHING).stream()
-                        .filter(jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe.class::isInstance)
+                        .filter(recipe -> recipe instanceof jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe
+                                || recipe instanceof jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe)
                         .map(SmithingRecipe.class::cast)
                         .toList()
         );
