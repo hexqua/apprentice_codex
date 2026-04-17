@@ -118,7 +118,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                     var perspective = state.getData(DataTickets.ITEM_RENDER_PERSPECTIVE);
                     if (ElementalBowClientRenderState.shouldPlayDrawAnimation(stack, perspective)) {
                         state.setAnimation(ANIM_DRAW);
-                        state.getController().setAnimationSpeed(resolveDrawAnimationSpeed(stack));
+                        state.getController().setAnimationSpeed(resolveDrawAnimationSpeed());
                     } else {
                         state.setAnimation(ANIM_IDLE);
                         state.getController().setAnimationSpeed(1.0D);
@@ -213,7 +213,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     @Override
     public void onUseTick(@NotNull Level level, @NotNull LivingEntity entity, @NotNull ItemStack stack, int remainingUseDuration) {
-        if (!(level instanceof ServerLevel serverLevel)) {
+        if (!(level instanceof ServerLevel)) {
             return;
         }
 
@@ -313,7 +313,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return InteractionResultHolder.fail(stack);
         }
 
-        var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, ammoSource != null || canFireWithoutAmmo);
+        var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, true);
         if (nockResult != null) {
             return nockResult;
         }
@@ -341,10 +341,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return InteractionResultHolder.fail(stack);
         }
 
-        var profile = resolveSpellProfile(stack, mode);
-        if (profile == null) {
-            return InteractionResultHolder.fail(stack);
-        }
+        var profile = createSpellCastProfile(stack, mode);
 
         var requiredMana = profile.spell().getManaCost(profile.spellLevel());
         if (!player.getAbilities().instabuild) {
@@ -366,7 +363,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             }
         }
 
-        var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, ammoSource != null || canFireWithoutAmmo);
+        var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, true);
         if (nockResult != null) {
             return nockResult;
         }
@@ -407,7 +404,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            consumeAmmo(player, ammoSource);
+            consumeAmmo(ammoSource);
         }
         triggerReleaseAnimation(player, stack);
     }
@@ -441,7 +438,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            consumeAmmo(player, ammoSource);
+            consumeAmmo(ammoSource);
         }
         triggerReleaseAnimation(player, stack);
     }
@@ -462,10 +459,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return;
         }
 
-        var profile = resolveSpellProfile(stack, mode);
-        if (profile == null) {
-            return;
-        }
+        var profile = createSpellCastProfile(stack, mode);
 
         if (!player.getAbilities().instabuild) {
             if (ammoSource == null) {
@@ -507,7 +501,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (ammoSource != null) {
-                consumeAmmo(player, ammoSource);
+                consumeAmmo(ammoSource);
             }
         }
 
@@ -587,9 +581,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     @Nullable
     private SpellCastProfile resolveSpellProfile(ItemStack stack, @Nullable ResolvedDefinition mode) {
-        if (mode == null) {
-            return null;
-        }
+        return mode == null ? null : createSpellCastProfile(stack, mode);
+    }
+
+    private SpellCastProfile createSpellCastProfile(ItemStack stack, ResolvedDefinition mode) {
         return new SpellCastProfile(mode.spell(), mode.resolveSpellLevel(stack));
     }
 
@@ -599,10 +594,11 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return null;
         }
 
-        var profile = elementalBow.resolveSpellProfile(stack, elementalBow.resolveConfiguredMagicMode(stack));
-        if (profile == null) {
+        var mode = elementalBow.resolveConfiguredMagicMode(stack);
+        if (mode == null) {
             return null;
         }
+        var profile = elementalBow.createSpellCastProfile(stack, mode);
         return new DisplayedSpellProfile(profile.spell(), profile.spellLevel());
     }
 
@@ -636,7 +632,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         var currentSelection = normalizeModeState(stack);
         var ammoSummary = summarizeAmmoInventory(player);
-        var selections = buildAvailableSelections(currentSelection, ammoSummary, true);
+        var selections = buildAvailableSelections(currentSelection, ammoSummary);
         var views = new ArrayList<ModeSelectionView>(selections.size());
         for (var selection : selections) {
             views.add(createSelectionView(stack, selection, currentSelection, ammoSummary));
@@ -687,7 +683,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private static boolean isSelectableMode(Player player, ItemStack stack, ModeSelection requestedSelection) {
         var currentSelection = normalizeModeState(stack);
-        for (var selectable : buildAvailableSelections(currentSelection, summarizeAmmoInventory(player), true)) {
+        for (var selectable : buildAvailableSelections(currentSelection, summarizeAmmoInventory(player))) {
             if (sameSelection(selectable, requestedSelection)) {
                 return true;
             }
@@ -775,7 +771,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return null;
     }
 
-    private void consumeAmmo(Player player, ItemStack ammoStack) {
+    private void consumeAmmo(ItemStack ammoStack) {
         ammoStack.shrink(1);
     }
 
@@ -784,10 +780,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private void displayOverheatManaWarning(Player player, ItemStack stack, ResolvedDefinition mode) {
-        var profile = resolveSpellProfile(stack, mode);
-        if (profile == null) {
-            return;
-        }
+        var profile = createSpellCastProfile(stack, mode);
 
         var extraMana = getAdditionalManaCost(player, mode, profile);
         if (extraMana <= MANA_SAFE_MARGIN) {
@@ -835,11 +828,11 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return getEnchantmentLevel(stack, Enchantments.INFINITY.location()) > 0;
     }
 
-    public static double resolveDrawAnimationSpeed(@Nullable ItemStack stack) {
-        return DRAW_ANIMATION_SOURCE_SECONDS / resolveDrawDurationSeconds(stack);
+    public static double resolveDrawAnimationSpeed() {
+        return DRAW_ANIMATION_SOURCE_SECONDS / resolveDrawDurationSeconds();
     }
 
-    private static float resolveDrawDurationSeconds(@Nullable ItemStack stack) {
+    private static float resolveDrawDurationSeconds() {
         return READY_DRAW_TICKS / 20.0F;
     }
 
@@ -912,36 +905,28 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return new ModeSelection(storedShotMode, selectionId);
     }
 
-    private static List<ModeSelection> buildAvailableSelections(
-            ModeSelection currentSelection,
-            AmmoInventorySummary ammoSummary,
-            boolean preserveCurrentUnavailableSelection
-    ) {
+    private static List<ModeSelection> buildAvailableSelections(ModeSelection currentSelection, AmmoInventorySummary ammoSummary) {
         var selections = new ArrayList<ModeSelection>();
         selections.add(ModeSelection.normal());
-        selections.addAll(collectSpecialArrowSelections(ammoSummary, currentSelection, preserveCurrentUnavailableSelection));
-        selections.addAll(collectModArrowSelections(ammoSummary, currentSelection, preserveCurrentUnavailableSelection));
+        selections.addAll(collectSpecialArrowSelections(ammoSummary, currentSelection));
+        selections.addAll(collectModArrowSelections(ammoSummary, currentSelection));
         for (var resolvedDefinition : ElementalBowModeManager.getResolvedDefinitions()) {
             selections.add(new ModeSelection(ShotModeKind.MAGIC, resolvedDefinition.schoolId()));
         }
         return selections;
     }
 
-    private static List<ModeSelection> collectSpecialArrowSelections(
-            AmmoInventorySummary ammoSummary,
-            ModeSelection currentSelection,
-            boolean preserveCurrentUnavailableSelection
-    ) {
+    private static List<ModeSelection> collectSpecialArrowSelections(AmmoInventorySummary ammoSummary, ModeSelection currentSelection) {
         var selections = new ArrayList<ModeSelection>();
         if (ammoSummary.specialArrowCounts().containsKey(SPECTRAL_ARROW_ID)
-                || shouldPreserveUnavailableCurrentSelection(currentSelection, preserveCurrentUnavailableSelection, ShotModeKind.SPECIAL, SPECTRAL_ARROW_ID)) {
+                || shouldPreserveUnavailableCurrentSelection(currentSelection, ShotModeKind.SPECIAL, SPECTRAL_ARROW_ID)) {
             selections.add(new ModeSelection(ShotModeKind.SPECIAL, SPECTRAL_ARROW_ID));
         }
 
         for (var potion : BuiltInRegistries.POTION) {
             var potionId = BuiltInRegistries.POTION.getKey(potion);
             if (potionId != null && (ammoSummary.specialArrowCounts().containsKey(potionId)
-                    || shouldPreserveUnavailableCurrentSelection(currentSelection, preserveCurrentUnavailableSelection, ShotModeKind.SPECIAL, potionId))) {
+                    || shouldPreserveUnavailableCurrentSelection(currentSelection, ShotModeKind.SPECIAL, potionId))) {
                 selections.add(new ModeSelection(ShotModeKind.SPECIAL, potionId));
             }
         }
@@ -949,11 +934,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return selections;
     }
 
-    private static List<ModeSelection> collectModArrowSelections(
-            AmmoInventorySummary ammoSummary,
-            ModeSelection currentSelection,
-            boolean preserveCurrentUnavailableSelection
-    ) {
+    private static List<ModeSelection> collectModArrowSelections(AmmoInventorySummary ammoSummary, ModeSelection currentSelection) {
         var selections = new ArrayList<ModeSelection>();
 
         for (var item : BuiltInRegistries.ITEM) {
@@ -963,7 +944,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
             var itemId = BuiltInRegistries.ITEM.getKey(item);
             if (itemId != null && (ammoSummary.modArrowCounts().containsKey(itemId)
-                    || shouldPreserveUnavailableCurrentSelection(currentSelection, preserveCurrentUnavailableSelection, ShotModeKind.MOD, itemId))) {
+                    || shouldPreserveUnavailableCurrentSelection(currentSelection, ShotModeKind.MOD, itemId))) {
                 selections.add(new ModeSelection(ShotModeKind.MOD, itemId));
             }
         }
@@ -973,12 +954,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private static boolean shouldPreserveUnavailableCurrentSelection(
             ModeSelection currentSelection,
-            boolean preserveCurrentUnavailableSelection,
             ShotModeKind kind,
             ResourceLocation selectionId
     ) {
-        return preserveCurrentUnavailableSelection
-                && currentSelection.kind() == kind
+        return currentSelection.kind() == kind
                 && selectionId.equals(currentSelection.id());
     }
 
@@ -1057,12 +1036,14 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             );
         }
 
-        int count = switch (selection.kind()) {
-            case NORMAL -> ammoSummary.normalArrowCount();
-            case SPECIAL -> selection.id() == null ? 0 : ammoSummary.specialArrowCounts().getOrDefault(selection.id(), 0);
-            case MOD -> selection.id() == null ? 0 : ammoSummary.modArrowCounts().getOrDefault(selection.id(), 0);
-            case MAGIC -> 0;
-        };
+        int count;
+        if (selection.kind() == ShotModeKind.NORMAL) {
+            count = ammoSummary.normalArrowCount();
+        } else if (selection.kind() == ShotModeKind.SPECIAL) {
+            count = selection.id() == null ? 0 : ammoSummary.specialArrowCounts().getOrDefault(selection.id(), 0);
+        } else {
+            count = selection.id() == null ? 0 : ammoSummary.modArrowCounts().getOrDefault(selection.id(), 0);
+        }
         var badgeText = selection.kind() == ShotModeKind.NORMAL && hasInfinity(stack)
                 ? "∞"
                 : formatSelectionCount(count);
@@ -1087,16 +1068,18 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         switch (selection.kind()) {
             case NORMAL -> clearAllModeTags(stack);
             case SPECIAL, MOD -> {
+                var selectionId = requireSelectionId(selection);
                 CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
                     tag.putString(SHOT_MODE_TAG, selection.kind().serializedName());
-                    tag.putString(AMMO_SELECTION_TAG, selection.id().toString());
+                    tag.putString(AMMO_SELECTION_TAG, selectionId.toString());
                 });
                 clearStoredValue(stack, MODE_TAG);
             }
             case MAGIC -> {
+                var selectionId = requireSelectionId(selection);
                 CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
                     tag.putString(SHOT_MODE_TAG, selection.kind().serializedName());
-                    tag.putString(MODE_TAG, selection.id().toString());
+                    tag.putString(MODE_TAG, selectionId.toString());
                 });
                 clearStoredValue(stack, AMMO_SELECTION_TAG);
             }
@@ -1149,12 +1132,16 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private static Component resolveAmmoDisplayName(ModeSelection selection) {
-        return switch (selection.kind()) {
-            case NORMAL -> new ItemStack(Items.ARROW).getHoverName();
-            case SPECIAL -> selection.id() == null ? Component.literal("?") : resolveSpecialAmmoDisplayName(selection.id());
-            case MOD -> selection.id() == null ? Component.literal("?") : resolveModArrowDisplayName(selection.id());
-            case MAGIC -> Component.literal(selection.id() == null ? "?" : selection.id().toString());
-        };
+        if (selection.kind() == ShotModeKind.NORMAL) {
+            return new ItemStack(Items.ARROW).getHoverName();
+        }
+        if (selection.kind() == ShotModeKind.SPECIAL) {
+            return selection.id() == null ? Component.literal("?") : resolveSpecialAmmoDisplayName(selection.id());
+        }
+        if (selection.kind() == ShotModeKind.MOD) {
+            return selection.id() == null ? Component.literal("?") : resolveModArrowDisplayName(selection.id());
+        }
+        throw new IllegalStateException("Magic selection should be rendered by resolveMagicDisplayName");
     }
 
     private static Component resolveSpecialAmmoDisplayName(ResourceLocation selectionId) {
@@ -1195,6 +1182,13 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         return new ItemStack(Items.ARROW);
+    }
+
+    private static ResourceLocation requireSelectionId(ModeSelection selection) {
+        if (selection.id() == null) {
+            throw new IllegalStateException("Selection id is required for " + selection.kind().serializedName() + " mode");
+        }
+        return selection.id();
     }
 
     private record SpellCastProfile(AbstractSpell spell, int spellLevel) {
