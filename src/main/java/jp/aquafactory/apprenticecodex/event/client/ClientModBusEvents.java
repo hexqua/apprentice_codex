@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteMana
 import jp.aquafactory.apprenticecodex.renderer.item.CopperSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
@@ -206,6 +207,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
+            private ElementalBowRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new ElementalBowRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.ELEMENTAL_BOW.get());
         event.registerItem(new IClientItemExtensions() {
             private IlluminateStellarStaffRenderer renderer;
 

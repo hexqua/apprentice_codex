@@ -10,13 +10,16 @@ import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
     private static final String ORB_FOCUS_BONE = "orb_focus";
@@ -27,6 +30,7 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
     private static final float WARNING_RIM_ALPHA_MULTIPLIER = 0.95F;
     private static final float WARNING_CORE_ALPHA_MULTIPLIER = 0.42F;
     private static final float WARNING_CORE_EXTRA_SCALE = 0.02F;
+
     private ElementalBowClientRenderState.OrbRenderState orbState =
             new ElementalBowClientRenderState.OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
     private boolean orbGlowPassActive = false;
@@ -39,9 +43,8 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
     @Override
     public void preRender(PoseStack poseStack, ElementalBow animatable, BakedGeoModel model, MultiBufferSource bufferSource,
                           VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                          float red, float green, float blue, float alpha) {
-        super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay,
-                red, green, blue, alpha);
+                          int colour) {
+        super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
 
         if (!isReRender) {
             this.orbState = ElementalBowClientRenderState.resolveOrbState(this.currentItemStack, this.renderPerspective, partialTick);
@@ -51,9 +54,8 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
     @Override
     public void postRender(PoseStack poseStack, ElementalBow animatable, BakedGeoModel model, MultiBufferSource bufferSource,
                            VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                           float red, float green, float blue, float alpha) {
-        super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay,
-                red, green, blue, alpha);
+                           int colour) {
+        super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
 
         if (isReRender || !this.orbState.visible()) {
             return;
@@ -65,10 +67,7 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
                 model,
                 bufferSource,
                 partialTick,
-                this.orbState.red(),
-                this.orbState.green(),
-                this.orbState.blue(),
-                this.orbState.alpha(),
+                makeColor(this.orbState.red(), this.orbState.green(), this.orbState.blue(), this.orbState.alpha()),
                 this.orbState.baseScale()
         );
 
@@ -80,10 +79,7 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
                     model,
                     bufferSource,
                     partialTick,
-                    1.0F,
-                    0.0F,
-                    0.0F,
-                    this.orbState.warningAlpha() * WARNING_RIM_ALPHA_MULTIPLIER,
+                    makeColor(1.0F, 0.0F, 0.0F, this.orbState.warningAlpha() * WARNING_RIM_ALPHA_MULTIPLIER),
                     this.orbState.warningScale()
             );
             renderOrbPass(
@@ -92,10 +88,7 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
                     model,
                     bufferSource,
                     partialTick,
-                    1.0F,
-                    0.0F,
-                    0.0F,
-                    this.orbState.warningAlpha() * WARNING_CORE_ALPHA_MULTIPLIER,
+                    makeColor(1.0F, 0.0F, 0.0F, this.orbState.warningAlpha() * WARNING_CORE_ALPHA_MULTIPLIER),
                     1.0F + this.orbState.warningPulse() * WARNING_CORE_EXTRA_SCALE
             );
         }
@@ -104,7 +97,7 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
     @Override
     public void renderRecursively(PoseStack poseStack, ElementalBow animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         if (isBoneOrChildOf(bone, ORB_FOCUS_BONE)) {
             if (!this.orbGlowPassActive) {
                 return;
@@ -112,30 +105,28 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
 
             renderScaledOrbRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
-    private static boolean isBoneOrChildOf(GeoBone bone, String rootBoneName) {
-        for (GeoBone current = bone; current != null; current = current.getParent()) {
-            if (rootBoneName.equals(current.getName())) {
-                return true;
-            }
-        }
-
-        return false;
+    @Override
+    public void doPostRenderCleanup() {
+        super.doPostRenderCleanup();
+        this.orbState = new ElementalBowClientRenderState.OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
+        this.orbGlowPassActive = false;
+        this.orbGlowPassScale = 1.0F;
     }
 
     private void renderOrbPass(PoseStack poseStack, ElementalBow animatable, BakedGeoModel model, MultiBufferSource bufferSource,
-                               float partialTick, float red, float green, float blue, float alpha, float scale) {
-        if (alpha <= 0.0F) {
+                               float partialTick, int colour, float scale) {
+        if (((colour >>> 24) & 0xFF) <= 0) {
             return;
         }
 
@@ -149,14 +140,11 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
                     bufferSource,
                     animatable,
                     ORB_RENDER_TYPE,
-                    bufferSource.getBuffer(ORB_RENDER_TYPE),
+                    getFoilAwareBuffer(bufferSource, ORB_RENDER_TYPE),
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.orbGlowPassActive = false;
@@ -166,24 +154,24 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
 
     private void renderScaledOrbRecursively(PoseStack poseStack, ElementalBow animatable, GeoBone bone, RenderType renderType,
                                             MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                            int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                            int packedLight, int packedOverlay, int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
 
         if (this.orbGlowPassScale != 1.0F) {
-            RenderUtils.translateToPivotPoint(poseStack, bone);
+            RenderUtil.translateToPivotPoint(poseStack, bone);
             poseStack.scale(this.orbGlowPassScale, this.orbGlowPassScale, this.orbGlowPassScale);
-            RenderUtils.translateAwayFromPivotPoint(poseStack, bone);
+            RenderUtil.translateAwayFromPivotPoint(poseStack, bone);
         }
 
-        renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, colour);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -195,19 +183,35 @@ public class ElementalBowRenderer extends GeoItemRenderer<ElementalBow> {
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
 
-    @Override
-    public void doPostRenderCleanup() {
-        super.doPostRenderCleanup();
-        this.orbState = new ElementalBowClientRenderState.OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
-        this.orbGlowPassActive = false;
-        this.orbGlowPassScale = 1.0F;
+    private VertexConsumer getFoilAwareBuffer(MultiBufferSource bufferSource, RenderType renderType) {
+        return ItemRenderer.getFoilBufferDirect(
+                bufferSource,
+                renderType,
+                this.renderPerspective == ItemDisplayContext.GUI,
+                this.currentItemStack != null && this.currentItemStack.hasFoil()
+        );
+    }
+
+    private static boolean isBoneOrChildOf(GeoBone bone, String rootBoneName) {
+        for (GeoBone current = bone; current != null; current = current.getParent()) {
+            if (rootBoneName.equals(current.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static int makeColor(float red, float green, float blue, float alpha) {
+        var safeAlpha = Math.round(Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F);
+        var safeRed = Math.round(Mth.clamp(red, 0.0F, 1.0F) * 255.0F);
+        var safeGreen = Math.round(Mth.clamp(green, 0.0F, 1.0F) * 255.0F);
+        var safeBlue = Math.round(Mth.clamp(blue, 0.0F, 1.0F) * 255.0F);
+        return (safeAlpha << 24) | (safeRed << 16) | (safeGreen << 8) | safeBlue;
     }
 }

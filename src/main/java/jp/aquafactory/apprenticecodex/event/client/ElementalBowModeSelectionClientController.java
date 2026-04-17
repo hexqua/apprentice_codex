@@ -83,11 +83,11 @@ public final class ElementalBowModeSelectionClientController {
         }
 
         event.setCanceled(true);
-        if (event.getScrollDelta() == 0.0D || activeState.views().size() <= 1) {
+        if (event.getScrollDeltaY() == 0.0D || activeState.views().size() <= 1) {
             return;
         }
 
-        var direction = event.getScrollDelta() > 0.0D ? -1 : 1;
+        var direction = event.getScrollDeltaY() > 0.0D ? -1 : 1;
         moveSelection(direction);
     }
 

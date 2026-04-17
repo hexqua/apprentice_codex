@@ -11,15 +11,15 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ElementalBowClientRenderState {
     private static final float OVERHEAT_PULSE_PERIOD_TICKS = 18.0F;
     private static final float OVERHEAT_PULSE_ATTACK_PORTION = 0.18F;
@@ -152,18 +152,14 @@ public final class ElementalBowClientRenderState {
             return HIDDEN_CAST_BAR;
         }
 
-        float drawDuration = stack.getUseDuration() - player.getUseItemRemainingTicks();
+        float drawDuration = stack.getUseDuration(player) - player.getUseItemRemainingTicks();
         float completion = Mth.clamp(drawDuration / ElementalBow.READY_DRAW_TICKS, 0.0F, 1.0F);
         float remainingTicks = Math.max(0.0F, ElementalBow.READY_DRAW_TICKS - drawDuration);
         return new CastBarRenderState(true, completion, remainingTicks);
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         var minecraft = Minecraft.getInstance();
         var level = minecraft.level;
         var player = minecraft.player;
@@ -239,7 +235,7 @@ public final class ElementalBowClientRenderState {
     }
 
     private static boolean matchesRenderingStack(ItemStack expectedHandStack, ItemStack renderingStack) {
-        return !expectedHandStack.isEmpty() && ItemStack.isSameItemSameTags(expectedHandStack, renderingStack);
+        return !expectedHandStack.isEmpty() && ItemStack.isSameItemSameComponents(expectedHandStack, renderingStack);
     }
 
     @Nullable
@@ -391,7 +387,7 @@ public final class ElementalBowClientRenderState {
         }
 
         private boolean matches(ItemStack stack) {
-            return !trackedStack.isEmpty() && ItemStack.isSameItemSameTags(trackedStack, stack);
+            return !trackedStack.isEmpty() && ItemStack.isSameItemSameComponents(trackedStack, stack);
         }
 
         private boolean drawing() {

@@ -9,17 +9,13 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_elemental_bow.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:elemental_bow",
-      "nbt": "{Damage:0}"
+      "count": 1,
+      "id": "apprenticecodex:elemental_bow"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_elemental_bow.title"
     }

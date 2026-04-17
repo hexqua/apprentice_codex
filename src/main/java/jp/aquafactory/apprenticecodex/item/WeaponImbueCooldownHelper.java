@@ -23,7 +23,7 @@ public final class WeaponImbueCooldownHelper {
             return MagicManager.getEffectiveSpellCooldown(spell, player, castSource);
         }
 
-        var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION.get());
+        var playerCooldownModifier = player.getAttributeValue(AttributeRegistry.COOLDOWN_REDUCTION);
         return (int) (spell.getSpellCooldown() * (2 - Utils.softCapFormula(playerCooldownModifier)));
     }
 

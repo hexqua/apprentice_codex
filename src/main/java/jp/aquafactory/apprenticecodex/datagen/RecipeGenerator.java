@@ -225,7 +225,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('D', Items.DIAMOND)
                 .define('S', Items.STRING)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ILLUMINATE_STELLAR_STAFF.get())
                 .pattern(" YS")

@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -3229,17 +3230,16 @@ public final class ApprenticeCodexGameTestScenarios {
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
             var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-            var cooldownAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get());
+            var cooldownAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION);
             helper.assertTrue(cooldownAttribute != null, "Elemental Bow cooldown helper test could not resolve cooldown attribute");
             cooldownAttribute.addPermanentModifier(new AttributeModifier(
-                    UUID.fromString("24565bf4-5900-4a8f-8e05-a9f4a0db3dd7"),
-                    "apprenticecodex.elemental_bow.cooldown_helper_test",
+                    ResourceLocation.fromNamespaceAndPath("apprenticecodex", "elemental_bow_cooldown_helper_test"),
                     0.35D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ));
 
             var expectedCooldown = (int) (fireArrow.getSpellCooldown() * (2 - Utils.softCapFormula(
-                    player.getAttributeValue(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get())
+                    player.getAttributeValue(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION)
             )));
             var helperCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     fireArrow,

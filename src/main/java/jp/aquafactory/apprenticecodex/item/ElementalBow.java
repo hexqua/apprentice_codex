@@ -8,17 +8,14 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
-import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -46,17 +43,16 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.EventHooks;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
@@ -65,7 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
         WeaponImbueCooldownPolicyItem {
@@ -92,20 +87,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         GeoItem.registerSyncedAnimatable(this);
     }
 
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private ElementalBowRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new ElementalBowRenderer();
-                }
-
-                return renderer;
-            }
-        });
+    public boolean hasCustomRendering() {
+        return true;
     }
 
     @Override
@@ -407,8 +390,9 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         var ammoStack = hasAmmo ? ammoSource : new ItemStack(Items.ARROW);
         var infiniteAmmo = player.getAbilities().instabuild
+                || hasInfinity(stack)
                 || ammoStack.getItem() instanceof ArrowItem arrowItem && arrowItem.isInfinite(ammoStack, stack, player)
-                || (!hasAmmo && hasInfinity(stack));
+                || !hasAmmo;
         var power = getPowerForTime(drawDuration);
         if (power < 0.1F) {
             return;
@@ -441,6 +425,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         var ammoStack = hasAmmo ? ammoSource : createRepresentativeAmmo(selection);
         var infiniteAmmo = player.getAbilities().instabuild
+                || selection.kind() == ShotModeKind.ARROW && hasInfinity(stack)
                 || ammoStack.getItem() instanceof ArrowItem arrowItem
                 && arrowItem.isInfinite(ammoStack, stack, player);
         var power = getPowerForTime(drawDuration);
@@ -1154,6 +1139,13 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return false;
         }
 
+        if (selection.kind() == ShotModeKind.ARROW) {
+            return player.getAbilities().instabuild
+                    || hasInfinity(bowStack)
+                    || representativeAmmo.getItem() instanceof ArrowItem arrowItem
+                    && arrowItem.isInfinite(representativeAmmo, bowStack, player);
+        }
+
         return representativeAmmo.getItem() instanceof ArrowItem arrowItem
                 && arrowItem.isInfinite(representativeAmmo, bowStack, player);
     }
@@ -1306,9 +1298,9 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private static boolean isSupportedAdditionalElementalBowEnchantment(Holder<Enchantment> enchantment) {
-        return enchantment.is(Enchantments.TRANSCENDENCE)
-                || enchantment.is(Enchantments.WISDOM)
-                || enchantment.is(Enchantments.PLUNDER);
+        return enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE)
+                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)
+                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.PLUNDER);
     }
 
     private static boolean bookContainsOnlySupportedAdditionalElementalBowEnchantments(ItemStack book) {

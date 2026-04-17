@@ -5,13 +5,13 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ElementalBowClientRenderState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ElementalBowCastBarHudRenderEvent {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/gui/icons.png");
@@ -24,8 +24,8 @@ public final class ElementalBowCastBarHudRenderEvent {
     }
 
     @SubscribeEvent
-    public static void onRenderGuiOverlay(RenderGuiOverlayEvent.Post event) {
-        if (event.getOverlay() != VanillaGuiOverlay.CROSSHAIR.type()) {
+    public static void onRenderGuiLayer(RenderGuiLayerEvent.Post event) {
+        if (!VanillaGuiLayers.CROSSHAIR.equals(event.getName())) {
             return;
         }
 
@@ -40,8 +40,8 @@ public final class ElementalBowCastBarHudRenderEvent {
         }
 
         var guiGraphics = event.getGuiGraphics();
-        int screenWidth = event.getWindow().getGuiScaledWidth();
-        int screenHeight = event.getWindow().getGuiScaledHeight();
+        int screenWidth = minecraft.getWindow().getGuiScaledWidth();
+        int screenHeight = minecraft.getWindow().getGuiScaledHeight();
         int barX = screenWidth / 2 - IMAGE_WIDTH / 2;
         int barY = screenHeight / 2 + screenHeight / 8;
         int completionWidth = (int) (COMPLETION_BAR_WIDTH * castBarState.completionPercent() + (IMAGE_WIDTH - COMPLETION_BAR_WIDTH) / 2.0F);

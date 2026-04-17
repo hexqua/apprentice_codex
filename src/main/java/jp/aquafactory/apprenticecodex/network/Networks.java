@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;

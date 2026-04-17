@@ -21,7 +21,7 @@
     " AS"
   ],
   "result": {
-    "item": "apprenticecodex:elemental_bow"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:elemental_bow"
+  }
 }
