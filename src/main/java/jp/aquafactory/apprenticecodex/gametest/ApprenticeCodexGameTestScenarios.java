@@ -3139,6 +3139,59 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_helper_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowMode(stack, "fire");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var cooldownAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get());
+            helper.assertTrue(cooldownAttribute != null, "Elemental Bow cooldown helper test could not resolve cooldown attribute");
+            cooldownAttribute.addPermanentModifier(new AttributeModifier(
+                    UUID.fromString("24565bf4-5900-4a8f-8e05-a9f4a0db3dd7"),
+                    "apprenticecodex.elemental_bow.cooldown_helper_test",
+                    0.35D,
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            ));
+
+            var expectedCooldown = (int) (fireArrow.getSpellCooldown() * (2 - Utils.softCapFormula(
+                    player.getAttributeValue(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get())
+            )));
+            var helperCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    fireArrow,
+                    player,
+                    CastSource.SWORD,
+                    stack
+            );
+            helper.assertTrue(helperCooldown == expectedCooldown,
+                    "Elemental Bow cooldown helper should keep player cooldown reduction but ignore sword multiplier: "
+                            + helperCooldown + " / expected " + expectedCooldown);
+
+            var vanillaCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                    fireArrow,
+                    player,
+                    CastSource.SWORD
+            );
+            var fallbackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    fireArrow,
+                    player,
+                    CastSource.SWORD,
+                    ItemStack.EMPTY
+            );
+            helper.assertTrue(fallbackCooldown == vanillaCooldown,
+                    "Non-opt-in cooldown helper path should match Iron's default cooldown calculation");
+
+            var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue();
+            if (swordCooldownMultiplier != 1.0F) {
+                helper.assertTrue(helperCooldown != vanillaCooldown,
+                        "Elemental Bow cooldown helper should diverge from the sword multiplier path when the config multiplier is not 1");
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
@@ -3151,10 +3204,29 @@ public final class ApprenticeCodexGameTestScenarios {
             magicData.setPlayerCastingItem(stack.copy());
 
             var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-            var cooldownEvent = new SpellCooldownAddedEvent.Pre(160, fireArrow, player, CastSource.SWORD);
+            var expectedStoredCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    fireArrow,
+                    player,
+                    CastSource.SWORD,
+                    stack
+            );
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
+                    fireArrow,
+                    player,
+                    CastSource.SWORD
+            );
             jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
                     "Elemental Bow should suppress elemental arrow cooldowns but got " + cooldownEvent.getEffectiveCooldown());
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    ) == expectedStoredCooldown,
+                    "Elemental Bow should store the helper cooldown for overheat timing"
+            );
 
             var controlEvent = new SpellCooldownAddedEvent.Pre(
                     160,
