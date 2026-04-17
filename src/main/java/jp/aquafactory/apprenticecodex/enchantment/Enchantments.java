@@ -41,6 +41,7 @@ public final class Enchantments {
     public static final TagKey<Item> FLASK_ENCHANTABLE = itemTag("flask_enchantable");
     public static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = itemTag("transcendence_enchantable");
     public static final TagKey<Item> WISDOM_ENCHANTABLE = itemTag("wisdom_enchantable");
+    public static final TagKey<Item> PLUNDER_ENCHANTABLE = itemTag("plunder_enchantable");
     public static final TagKey<Enchantment> EXCLUSIVE_REFLUX_RESERVOIR = enchantmentTag("exclusive_set/reflux_reservoir");
     public static final TagKey<Enchantment> EXCLUSIVE_ALACRITY_TENSE = enchantmentTag("exclusive_set/alacrity_tense");
     public static final TagKey<Enchantment> EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE =
@@ -99,6 +100,7 @@ public final class Enchantments {
         var flaskItems = itemLookup.getOrThrow(FLASK_ENCHANTABLE);
         var transcendenceItems = itemLookup.getOrThrow(TRANSCENDENCE_ENCHANTABLE);
         var wisdomItems = itemLookup.getOrThrow(WISDOM_ENCHANTABLE);
+        var plunderItems = itemLookup.getOrThrow(PLUNDER_ENCHANTABLE);
 
         register(
                 context,
@@ -248,8 +250,8 @@ public final class Enchantments {
                 PLUNDER,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        spellGunItems,
-                                        spellGunItems,
+                                        plunderItems,
+                                        plunderItems,
                                         2,
                                         3,
                                         Enchantment.dynamicCost(15, 9),

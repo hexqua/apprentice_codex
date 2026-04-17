@@ -5369,10 +5369,16 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static Set<ResourceLocation> expectedElementalBowDefinitionEnchantments(RegistryAccess registryAccess) {
         var bowStack = new ItemStack(Items.BOW);
-        return collectAllowedEnchantments(
+        var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(bowStack)
         );
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.TRANSCENDENCE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER
+        ));
+        return expectedEnchantments;
     }
 
     private static Set<ResourceLocation> expectedElementalBowBookEnchantments(RegistryAccess registryAccess) {
