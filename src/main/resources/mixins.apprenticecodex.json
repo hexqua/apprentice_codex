@@ -35,6 +35,7 @@
     "MouseHandlerMixin",
     "MinecraftMixin",
     "EntityMixin",
+    "GuiGraphicsElementalBowOverlayMixin",
     "QuickCastPacketAccessor"
   ],
   "injectors": {

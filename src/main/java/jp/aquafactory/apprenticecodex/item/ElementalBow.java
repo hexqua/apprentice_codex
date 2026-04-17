@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
@@ -610,6 +611,37 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return mode != null ? mode.schoolId() : null;
     }
 
+    @Nullable
+    public static InventoryOverlayView getInventoryOverlayView(ItemStack stack) {
+        if (!(stack.getItem() instanceof ElementalBow)) {
+            return null;
+        }
+
+        var selection = normalizeModeState(stack);
+        if (selection.kind() == ShotModeKind.NORMAL) {
+            return null;
+        }
+
+        if (selection.kind() == ShotModeKind.MAGIC) {
+            var resolvedMode = ElementalBowModeManager.getResolvedDefinition(selection.id());
+            if (resolvedMode == null) {
+                return null;
+            }
+
+            return new InventoryOverlayView(
+                    SelectionIconKind.ITEM,
+                    SchoolAffinityRegistry.createIconStack(resolvedMode.schoolType()),
+                    resolvedMode.spell().getSpellIconResource()
+            );
+        }
+
+        return new InventoryOverlayView(
+                SelectionIconKind.ITEM,
+                createRepresentativeAmmo(selection),
+                null
+        );
+    }
+
     public static Component createInsufficientManaMessage(AbstractSpell spell, @Nullable Player caster) {
         return Component.translatable("ui.irons_spellbooks.cast_error_mana", spell.getDisplayName(caster))
                 .withStyle(ChatFormatting.RED);
@@ -1196,6 +1228,16 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     public enum SelectionIconKind {
         ITEM,
         SPELL
+    }
+
+    public record InventoryOverlayView(
+            SelectionIconKind iconKind,
+            ItemStack iconStack,
+            @Nullable ResourceLocation spellIcon
+    ) {
+        public InventoryOverlayView {
+            iconStack = iconStack.copy();
+        }
     }
 
     public record ModeSelectionKey(String shotMode, @Nullable ResourceLocation selectionId) {
