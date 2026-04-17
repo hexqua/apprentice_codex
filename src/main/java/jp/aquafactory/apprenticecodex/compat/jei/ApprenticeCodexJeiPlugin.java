@@ -31,6 +31,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.SmithingRecipe;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStreamReader;
@@ -198,6 +199,14 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH,
                 recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
                         .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                        .toList()
+        );
+        registration.addRecipes(
+                RecipeTypes.SMITHING,
+                recipeManager.getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMITHING).stream()
+                        .filter(recipe -> recipe instanceof jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe
+                                || recipe instanceof jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe)
+                        .map(SmithingRecipe.class::cast)
                         .toList()
         );
     }

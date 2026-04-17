@@ -500,6 +500,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
 
         Advancement.Builder.advancement()
                 .parent(flask)
+                .display(ItemRegistry.ALCHEMISTS_FLASK.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemists_flask.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemists_flask.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("has_alchemists_flask", InventoryChangeTrigger.TriggerInstance.hasItems(ItemRegistry.ALCHEMISTS_FLASK.get()))
+                .save(saver, advancementId("craft_alchemists_flask"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(flask)
                 .display(ItemRegistry.ATELIER_STATION.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_atelier_station.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description"),

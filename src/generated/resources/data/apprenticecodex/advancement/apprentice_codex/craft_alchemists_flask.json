@@ -1,0 +1,39 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_spellcasters_flask",
+  "criteria": {
+    "has_alchemists_flask": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "apprenticecodex:alchemists_flask"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_alchemists_flask.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:alchemists_flask",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[{id:\"apprenticecodex:extract\",index:0,level:1,locked:1b}],maxSpells:1,mustEquip:0b,spellWheel:0b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_alchemists_flask.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_alchemists_flask"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

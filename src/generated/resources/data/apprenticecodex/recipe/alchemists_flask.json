@@ -1,0 +1,15 @@
+{
+  "type": "apprenticecodex:alchemists_flask_smithing",
+  "addition": {
+    "item": "minecraft:gunpowder"
+  },
+  "base": {
+    "item": "apprenticecodex:spellcasters_flask"
+  },
+  "result": {
+    "item": "apprenticecodex:alchemists_flask"
+  },
+  "template": {
+    "item": "minecraft:emerald"
+  }
+}
