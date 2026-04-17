@@ -1,0 +1,29 @@
+{
+  "type": "malum:spirit_repair",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "durabilityPercentage": 0.5,
+  "inputs": [
+    "apprenticecodex:elemental_bow"
+  ],
+  "itemIdRegex": "",
+  "modIdRegex": "",
+  "repairMaterial": {
+    "count": 1,
+    "item": "irons_spellbooks:arcane_ingot"
+  },
+  "spirits": [
+    {
+      "type": "arcane",
+      "count": 8
+    },
+    {
+      "type": "earth",
+      "count": 8
+    }
+  ]
+}

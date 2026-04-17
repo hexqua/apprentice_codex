@@ -670,6 +670,19 @@ public final class RecipeGenerator extends RecipeProvider {
                 0.5f,
                 List.of(new MalumSpiritCost("arcane", 8))
         );
+
+        saveMalumSpiritRepairRecipe(
+                recipeWriter,
+                "elemental_bow",
+                List.of(ItemRegistry.ELEMENTAL_BOW.get()),
+                io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
+                1,
+                0.5f,
+                List.of(
+                        new MalumSpiritCost("arcane", 8),
+                        new MalumSpiritCost("earth", 8)
+                )
+        );
     }
 
     private void saveMalumSpiritRepairRecipe(
