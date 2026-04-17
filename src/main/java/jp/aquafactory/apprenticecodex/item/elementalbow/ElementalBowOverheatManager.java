@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class ElementalBowOverheatManager {
@@ -146,8 +145,7 @@ public final class ElementalBowOverheatManager {
         pruneSchoolTag(player, schoolId, schoolTag);
     }
 
-    public static @NotNull List<ResourceLocation> collectCooledSchoolsWhileHolding(@NotNull Player player) {
-        var cooledSchools = new ArrayList<ResourceLocation>();
+    public static void refreshObservedSchoolsWhileHolding(@NotNull Player player) {
         var observedRootTag = getObservedRootTag(player, false);
         if (observedRootTag != null) {
             for (var schoolKey : List.copyOf(observedRootTag.getAllKeys())) {
@@ -158,7 +156,6 @@ public final class ElementalBowOverheatManager {
                 }
 
                 if (!getState(player, schoolId).active()) {
-                    cooledSchools.add(schoolId);
                     observedRootTag.remove(schoolKey);
                 }
             }
@@ -167,7 +164,7 @@ public final class ElementalBowOverheatManager {
 
         var rootTag = getRootTag(player, false);
         if (rootTag == null) {
-            return cooledSchools;
+            return;
         }
 
         var refreshedObservedRootTag = getObservedRootTag(player, true);
@@ -187,7 +184,6 @@ public final class ElementalBowOverheatManager {
         if (refreshedObservedRootTag != null) {
             pruneObservedRootTag(player, refreshedObservedRootTag);
         }
-        return cooledSchools;
     }
 
     public static void clearObservedSchools(@NotNull Player player) {

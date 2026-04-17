@@ -25,6 +25,7 @@ public final class ElementalBowClientRenderState {
     private static final float OVERHEAT_PULSE_ATTACK_PORTION = 0.18F;
     private static final float OVERHEAT_BASE_ALPHA_MIN = 0.60F;
     private static final float OVERHEAT_BASE_ALPHA_MAX = 0.76F;
+    private static final float OVERHEAT_BASE_SCALE = 0.88F;
     private static final float OVERHEAT_WARNING_MIN_ALPHA = 0.14F;
     private static final float OVERHEAT_WARNING_MAX_ALPHA = 0.70F;
     private static final float OVERHEAT_WARNING_MIN_SCALE = 1.01F;
@@ -36,7 +37,7 @@ public final class ElementalBowClientRenderState {
     private static final RandomSource RANDOM = RandomSource.create();
     private static final OrbRotationState NO_ROTATION = new OrbRotationState(false, 0.0F, 0.0F, 0.0F);
     private static final OrbRenderState HIDDEN =
-            new OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
+            new OrbRenderState(false, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F);
     private static final CastBarRenderState HIDDEN_CAST_BAR = new CastBarRenderState(false, 0.0F, 0.0F);
 
     static {
@@ -80,6 +81,7 @@ public final class ElementalBowClientRenderState {
 
         var color = mode.color();
         var alpha = 1.0F;
+        var baseScale = 1.0F;
         var warningAlpha = 0.0F;
         var warningPulse = 0.0F;
         var warningScale = 1.0F;
@@ -91,6 +93,7 @@ public final class ElementalBowClientRenderState {
             if (state.active()) {
                 warningPulse = resolveOverheatWarningPulse(partialTick);
                 alpha = Mth.lerp(warningPulse, OVERHEAT_BASE_ALPHA_MAX, OVERHEAT_BASE_ALPHA_MIN);
+                baseScale = OVERHEAT_BASE_SCALE;
                 warningAlpha = Mth.lerp(warningPulse, OVERHEAT_WARNING_MIN_ALPHA, OVERHEAT_WARNING_MAX_ALPHA);
                 warningScale = Mth.lerp(warningPulse, OVERHEAT_WARNING_MIN_SCALE, OVERHEAT_WARNING_MAX_SCALE);
             }
@@ -102,6 +105,7 @@ public final class ElementalBowClientRenderState {
                 ((color >> 8) & 0xFF) / 255.0F,
                 (color & 0xFF) / 255.0F,
                 alpha,
+                baseScale,
                 warningAlpha,
                 warningPulse,
                 warningScale,
@@ -268,6 +272,7 @@ public final class ElementalBowClientRenderState {
             float green,
             float blue,
             float alpha,
+            float baseScale,
             float warningAlpha,
             float warningPulse,
             float warningScale,
