@@ -2841,6 +2841,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     .toList();
             var expectedSelections = new ArrayList<String>();
             expectedSelections.add("normal");
+            expectedSelections.add("arrow");
             expectedSelections.add("special:minecraft:spectral_arrow");
             for (var potionId : expectedPotionOrder) {
                 expectedSelections.add("special:" + potionId);
@@ -2850,8 +2851,14 @@ public final class ApprenticeCodexGameTestScenarios {
             expectedSelections.add("magic:" + SchoolRegistry.NATURE_RESOURCE);
             helper.assertTrue(actualSelections.equals(expectedSelections),
                     "Elemental Bow selection view order mismatch: expected=" + expectedSelections + ", actual=" + actualSelections);
-            helper.assertTrue("∞".equals(views.get(0).badgeText()),
-                    "Elemental Bow normal selection should show infinity while Infinity is enchanted: " + views.get(0).badgeText());
+            helper.assertTrue(views.get(0).iconStack().is(Items.BOW),
+                    "Elemental Bow vanilla mode selection should render as a bow icon");
+            helper.assertTrue(views.get(0).badgeText() == null,
+                    "Elemental Bow vanilla mode selection should not show an ammo badge");
+            helper.assertTrue(views.get(1).iconStack().is(Items.ARROW),
+                    "Elemental Bow arrow-only selection should render as an arrow icon");
+            helper.assertTrue("∞".equals(views.get(1).badgeText()),
+                    "Elemental Bow arrow-only selection should show infinity while Infinity is enchanted: " + views.get(1).badgeText());
 
             var fireView = views.stream()
                     .filter(view -> "magic".equals(view.selection().shotMode()) && SchoolRegistry.FIRE_RESOURCE.equals(view.selection().selectionId()))
@@ -2873,6 +2880,17 @@ public final class ApprenticeCodexGameTestScenarios {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             helper.assertTrue(ElementalBow.getInventoryOverlayView(stack) == null,
                     "Elemental Bow normal mode should not expose an inventory overlay");
+
+            setElementalBowShotSelection(stack, "arrow", null);
+            var arrowOverlay = ElementalBow.getInventoryOverlayView(stack);
+            helper.assertTrue(arrowOverlay != null,
+                    "Elemental Bow arrow-only selection should expose an inventory overlay");
+            if (arrowOverlay != null) {
+                helper.assertTrue(arrowOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
+                        "Elemental Bow arrow-only selection should render as an item overlay");
+                helper.assertTrue(arrowOverlay.iconStack().is(Items.ARROW),
+                        "Elemental Bow arrow-only selection should render the arrow icon");
+            }
 
             var spectralArrowId = ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow");
             setElementalBowShotSelection(stack, "special", spectralArrowId);
@@ -3069,6 +3087,54 @@ public final class ApprenticeCodexGameTestScenarios {
                             "special".equals(view.selection().shotMode())
                                     && ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow").equals(view.selection().selectionId())),
                     "Elemental Bow should drop the empty special selection after another mode is chosen");
+            var arrowView = normalViews.stream()
+                    .filter(view -> "arrow".equals(view.selection().shotMode()))
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(arrowView != null, "Elemental Bow should always expose the arrow-only selection");
+            if (arrowView != null) {
+                helper.assertTrue("0".equals(arrowView.badgeText()),
+                        "Elemental Bow arrow-only selection should show 0 ammo while empty");
+                helper.assertTrue(arrowView.badgeColor() == 0xFF5555,
+                        "Elemental Bow arrow-only selection should render empty ammo in red even while another mode is selected");
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_special_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow vanilla mode should start drawing with only special arrows available: " + result.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                    "Elemental Bow vanilla mode should consume the special arrow that vanilla resolution selected");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_only_mode_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(stack, "arrow", null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow arrow-only mode should fail when only special arrows are available: " + result.getResult());
+            helper.assertFalse(player.isUsingItem(), "Elemental Bow arrow-only mode should not enter use state without normal arrows");
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
+                    "Elemental Bow arrow-only mode should not consume special arrows");
+            assertElementalBowSelection(helper, stack, "arrow", null,
+                    "Elemental Bow arrow-only mode should keep its selection while empty");
         });
     }
 
