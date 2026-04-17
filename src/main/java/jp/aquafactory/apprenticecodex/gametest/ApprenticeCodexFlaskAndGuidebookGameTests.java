@@ -70,6 +70,11 @@ public final class ApprenticeCodexFlaskAndGuidebookGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskTippedArrowCraftAwardsAdvancement(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskTippedArrowCraftAwardsAdvancement(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void extractPreCastUsesFirstFilledFlaskAcrossHands(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.extractPreCastUsesFirstFilledFlaskAcrossHands(helper);
     }

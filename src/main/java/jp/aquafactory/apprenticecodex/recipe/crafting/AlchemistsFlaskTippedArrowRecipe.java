@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -13,6 +14,8 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+
+import java.util.function.IntFunction;
 
 public final class AlchemistsFlaskTippedArrowRecipe extends CustomRecipe {
     private static final int REQUIRED_ARROW_COUNT = 8;
@@ -64,12 +67,24 @@ public final class AlchemistsFlaskTippedArrowRecipe extends CustomRecipe {
         return RecipeRegistry.ALCHEMISTS_FLASK_TIPPED_ARROW_SERIALIZER.get();
     }
 
+    public static boolean matchesContainer(Container container) {
+        return findMatch(container) != null;
+    }
+
     public static boolean matchesInput(CraftingInput input) {
         return findMatch(input) != null;
     }
 
     private static Match findMatch(CraftingInput input) {
-        if (input.size() < 9) {
+        return findMatch(input.size(), input::getItem);
+    }
+
+    private static Match findMatch(Container container) {
+        return findMatch(container.getContainerSize(), container::getItem);
+    }
+
+    private static Match findMatch(int size, IntFunction<ItemStack> stackAt) {
+        if (size < 9) {
             return null;
         }
 
@@ -77,8 +92,8 @@ public final class AlchemistsFlaskTippedArrowRecipe extends CustomRecipe {
         int flaskSlot = -1;
         int arrowCount = 0;
 
-        for (int i = 0; i < input.size(); ++i) {
-            var stack = input.getItem(i);
+        for (int i = 0; i < size; ++i) {
+            var stack = stackAt.apply(i);
             if (stack.isEmpty()) {
                 continue;
             }
