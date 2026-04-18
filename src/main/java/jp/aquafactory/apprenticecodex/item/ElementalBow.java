@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
@@ -295,7 +296,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private InteractionResultHolder<ItemStack> useNormalArrowMode(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
-        var ammoSource = resolveVanillaAmmoSource(player, stack);
+        var ammoSource = resolveBowModeAmmoSource(player, stack);
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
         if (ammoSource == null && !canFireWithoutAmmo) {
             return InteractionResultHolder.fail(stack);
@@ -386,7 +387,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private void releaseVanillaShot(ItemStack stack, Level level, Player player, int timeLeft) {
-        var ammoSource = resolveVanillaAmmoSource(player, stack);
+        var ammoSource = resolveBowModeAmmoSource(player, stack);
         var hasAmmo = ammoSource != null && !ammoSource.stack().isEmpty();
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
         var drawDuration = getUseDuration(stack) - timeLeft;
@@ -417,6 +418,31 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             ammoSource.consume();
         }
         triggerReleaseAnimation(player, stack);
+    }
+
+    @Nullable
+    private AmmoSource resolveBowModeAmmoSource(Player player, ItemStack bowStack) {
+        if (!SpellcasterQuiverBowAmmoResolver.hasSupportedQuiverAmmo(player, bowStack)) {
+            return resolveVanillaAmmoSource(player, bowStack);
+        }
+
+        var ammoSource = SpellcasterQuiverBowAmmoResolver.resolveBowAmmo(player, bowStack);
+        return ammoSource == null ? null : new AmmoSource() {
+            @Override
+            public ItemStack stack() {
+                return ammoSource.stack();
+            }
+
+            @Override
+            public boolean consume() {
+                return ammoSource.consume();
+            }
+
+            @Override
+            public boolean isInfinite(ItemStack bowStack, Player player) {
+                return ammoSource.isInfinite(bowStack, player);
+            }
+        };
     }
 
     private void releaseTrackedArrowShot(ItemStack stack, Level level, Player player, int timeLeft, ModeSelection selection) {
