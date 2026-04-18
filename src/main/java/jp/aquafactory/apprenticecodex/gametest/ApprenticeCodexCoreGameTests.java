@@ -88,4 +88,14 @@ public final class ApprenticeCodexCoreGameTests {
     public static void catacombsLootIncludesScarletThirstBonusDrop(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.catacombsLootIncludesScarletThirstBonusDrop(helper);
     }
+
+    @GameTest(template = TEMPLATE)
+    public static void nonLootableApprenticeSpellsAreExcludedFromDefaultSpellFilter(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.nonLootableApprenticeSpellsAreExcludedFromDefaultSpellFilter(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void genericMagicTreasureLootDoesNotGenerateBlockedApprenticeScrolls(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.genericMagicTreasureLootDoesNotGenerateBlockedApprenticeScrolls(helper);
+    }
 }

@@ -61,6 +61,11 @@ public class Extract extends AbstractSpell {
     }
 
     @Override
+    public boolean allowLooting() {
+        return false;
+    }
+
+    @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(Component.translatable("ui.apprenticecodex.extract.amplify_level", getAmplify(spellLevel, caster)));
     }
