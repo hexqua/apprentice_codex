@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_magic_cloth": {
+    "has_arcane_ingot": {
       "conditions": {
         "items": [
           {
             "items": [
-              "irons_spellbooks:magic_cloth"
+              "irons_spellbooks:arcane_ingot"
             ]
           }
         ]
@@ -15,20 +15,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:spellcaster_ammo_pouch"
+        "recipe": "apprenticecodex:spellcaster_quiver"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_magic_cloth",
+      "has_arcane_ingot",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:spellcaster_ammo_pouch"
+      "apprenticecodex:spellcaster_quiver"
     ]
   },
   "sends_telemetry_event": false
