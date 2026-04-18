@@ -150,6 +150,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowInfinityAllowsArrowModeDrawWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowVanillaModeInfinityDoesNotConsumeNormalArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowVanillaModeInfinityDoesNotConsumeNormalArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowArrowModeInfinityDoesNotConsumeNormalArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowArrowModeInfinityDoesNotConsumeNormalArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(helper);
     }

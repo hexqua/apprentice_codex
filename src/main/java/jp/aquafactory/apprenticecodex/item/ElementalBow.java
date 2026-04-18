@@ -27,6 +27,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -64,7 +65,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
@@ -90,10 +90,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     public ElementalBow() {
         super(new Properties().durability(1561));
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    public boolean hasCustomRendering() {
-        return true;
     }
 
     @Override
@@ -289,6 +285,19 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         );
     }
 
+    @Nullable
+    @SuppressWarnings("DataFlowIssue")
+    private static InteractionResultHolder<ItemStack> fireArrowNockHook(
+            ItemStack stack,
+            Level level,
+            Player player,
+            InteractionHand usedHand
+    ) {
+        // NeoForge 21.1.219 の EventHooks#onArrowNock は戻り値を non-null 扱いしているが、
+        // 実装は ArrowNockEvent#getAction() をそのまま返しており、未設定時は null になる。
+        return EventHooks.onArrowNock(stack, level, player, usedHand, true);
+    }
+
     private InteractionResultHolder<ItemStack> useNormalArrowMode(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
         var ammoSource = resolveBowModeAmmoSource(player, stack);
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
@@ -296,7 +305,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return InteractionResultHolder.fail(stack);
         }
 
-        var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, true);
+        var nockResult = fireArrowNockHook(stack, level, player, usedHand);
         if (nockResult != null) {
             return nockResult;
         }
@@ -313,12 +322,12 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             ModeSelection selection
     ) {
         var ammoSource = resolveAmmoSource(player, stack, selection);
-        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var canFireWithoutAmmo = canFireTrackedArrowWithoutAmmo(player, stack, selection);
         if (ammoSource == null && !canFireWithoutAmmo) {
             return InteractionResultHolder.fail(stack);
         }
 
-        var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, true);
+        var nockResult = fireArrowNockHook(stack, level, player, usedHand);
         if (nockResult != null) {
             return nockResult;
         }
@@ -368,7 +377,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             }
         }
 
-        var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, true);
+        var nockResult = fireArrowNockHook(stack, level, player, usedHand);
         if (nockResult != null) {
             return nockResult;
         }
@@ -396,8 +405,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         var ammoStack = hasAmmo ? ammoSource.stack() : new ItemStack(Items.ARROW);
         var infiniteAmmo = player.getAbilities().instabuild
-                || hasAmmo && ammoSource.isInfinite(stack, player)
-                || (!hasAmmo && hasInfinity(stack));
+                || isInfinityNormalArrowShot(stack, ammoStack)
+                || hasAmmo && ammoSource.isInfinite(stack, player);
         var power = getPowerForTime(drawDuration);
         if (power < 0.1F) {
             return;
@@ -428,8 +437,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             }
 
             @Override
-            public boolean consume() {
-                return ammoSource.consume();
+            public void consume() {
+                ammoSource.consume();
             }
 
             @Override
@@ -442,7 +451,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private void releaseTrackedArrowShot(ItemStack stack, Level level, Player player, int timeLeft, ModeSelection selection) {
         var ammoSource = resolveAmmoSource(player, stack, selection);
         var hasAmmo = ammoSource != null && !ammoSource.stack().isEmpty();
-        var canFireWithoutAmmo = player.getAbilities().instabuild || selection.kind() == ShotModeKind.ARROW && hasInfinity(stack);
+        var canFireWithoutAmmo = canFireTrackedArrowWithoutAmmo(player, stack, selection);
         var drawDuration = stack.getUseDuration(player) - timeLeft;
         drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, hasAmmo || canFireWithoutAmmo);
         if (drawDuration < 0) {
@@ -455,8 +464,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         var ammoStack = hasAmmo ? ammoSource.stack() : createRepresentativeAmmo(selection);
         var infiniteAmmo = player.getAbilities().instabuild
-                || hasAmmo && ammoSource.isInfinite(stack, player)
-                || !hasAmmo && selection.kind() == ShotModeKind.ARROW && hasInfinity(stack);
+                || isInfinityNormalArrowShot(stack, ammoStack)
+                || hasAmmo && ammoSource.isInfinite(stack, player);
         var power = getPowerForTime(drawDuration);
         if (power < 0.1F) {
             return;
@@ -866,8 +875,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         var potion = PotionContentsHelper.getPotion(ammoStack);
-        var potionId = potion == null ? null : BuiltInRegistries.POTION.getKey(potion);
-        return potionId != null && selectionId.equals(potionId);
+        return potion != null && selectionId.equals(BuiltInRegistries.POTION.getKey(potion));
     }
 
     private static boolean matchesModAmmo(ItemStack ammoStack, ResourceLocation selectionId) {
@@ -922,6 +930,14 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private static boolean hasInfinity(ItemStack stack) {
         return getEnchantmentLevel(stack, Enchantments.INFINITY.location()) > 0;
+    }
+
+    private static boolean canFireTrackedArrowWithoutAmmo(Player player, ItemStack stack, ModeSelection selection) {
+        return player.getAbilities().instabuild || selection.kind() == ShotModeKind.ARROW && hasInfinity(stack);
+    }
+
+    private static boolean isInfinityNormalArrowShot(ItemStack bowStack, ItemStack ammoStack) {
+        return hasInfinity(bowStack) && ammoStack.is(Items.ARROW);
     }
 
     public static double resolveDrawAnimationSpeed() {
@@ -1046,8 +1062,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             }
 
             var itemId = BuiltInRegistries.ITEM.getKey(item);
-            if (itemId != null && (ammoSummary.modArrowCounts().containsKey(itemId)
-                    || shouldPreserveUnavailableCurrentSelection(currentSelection, ShotModeKind.MOD, itemId))) {
+            if (ammoSummary.modArrowCounts().containsKey(itemId)
+                    || shouldPreserveUnavailableCurrentSelection(currentSelection, ShotModeKind.MOD, itemId)) {
                 selections.add(new ModeSelection(ShotModeKind.MOD, itemId));
             }
         }
@@ -1101,18 +1117,15 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         if (ammoStack.is(Items.TIPPED_ARROW)) {
             var potion = PotionContentsHelper.getPotion(ammoStack);
-            var potionId = potion == null ? null : BuiltInRegistries.POTION.getKey(potion);
-            if (potionId != null) {
-                specialArrowCounts.merge(potionId, count, Integer::sum);
+            if (potion != null) {
+                specialArrowCounts.merge(BuiltInRegistries.POTION.getKey(potion), count, Integer::sum);
             }
             return 0;
         }
 
         if (ammoStack.getItem() instanceof ArrowItem arrowItem && !VANILLA_ARROW_ITEMS.contains(arrowItem)) {
             var itemId = BuiltInRegistries.ITEM.getKey(arrowItem);
-            if (itemId != null) {
-                modArrowCounts.merge(itemId, count, Integer::sum);
-            }
+            modArrowCounts.merge(itemId, count, Integer::sum);
         }
         return 0;
     }
@@ -1414,7 +1427,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     ) {
         public ModeSelectionView {
             iconStack = iconStack.copy();
-            overheatFillRatio = Math.max(0.0F, Math.min(1.0F, overheatFillRatio));
+            overheatFillRatio = Mth.clamp(overheatFillRatio, 0.0F, 1.0F);
         }
     }
 
@@ -1450,7 +1463,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private interface AmmoSource {
         ItemStack stack();
 
-        boolean consume();
+        void consume();
 
         default boolean isInfinite(ItemStack bowStack, Player player) {
             return stack().getItem() instanceof ArrowItem arrowItem && arrowItem.isInfinite(stack(), bowStack, player);
@@ -1459,16 +1472,15 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private record LooseAmmoSource(ItemStack stack) implements AmmoSource {
         @Override
-        public boolean consume() {
+        public void consume() {
             stack.shrink(1);
-            return true;
         }
     }
 
     private record StoredAmmoSource(ItemStack stack, BooleanSupplier consumer) implements AmmoSource {
         @Override
-        public boolean consume() {
-            return consumer.getAsBoolean();
+        public void consume() {
+            consumer.getAsBoolean();
         }
     }
 
