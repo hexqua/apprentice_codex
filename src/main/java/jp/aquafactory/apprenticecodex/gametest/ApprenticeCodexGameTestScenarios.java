@@ -5597,6 +5597,146 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void vanillaBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_quiver_priority_test");
+            var bowStack = new ItemStack(Items.BOW);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 5));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Vanilla Bow should start drawing when Spellcaster Quiver provides arrows: " + result.getResult());
+
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 4,
+                    "Vanilla Bow should consume the Spellcaster Quiver arrow before loose inventory arrows");
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Vanilla Bow should leave loose inventory arrows untouched while the quiver has arrows");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void vanillaBowPrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_held_special_test");
+            var bowStack = new ItemStack(Items.BOW);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 1));
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 5));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Vanilla Bow should start drawing when only the held special arrow should be selected: " + result.getResult());
+
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Vanilla Bow should consume the held special arrow before Spellcaster Quiver normal arrows");
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 5,
+                    "Vanilla Bow should leave Spellcaster Quiver normal arrows untouched when a held special arrow was chosen");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void vanillaBowPrefersNormalArrowOverMoreNumerousQuiverSpecialArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_normal_priority_test");
+            var bowStack = new ItemStack(Items.BOW);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 1));
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 8));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Vanilla Bow should start drawing when normal arrows exist outside the quiver: " + result.getResult());
+
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
+            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                    "Vanilla Bow should consume the lone normal arrow before more numerous Spellcaster Quiver special arrows");
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 8,
+                    "Vanilla Bow should not consume Spellcaster Quiver special arrows while a normal arrow existed");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void vanillaBowInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_infinity_quiver_test");
+            var bowStack = new ItemStack(Items.BOW);
+            bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 8));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Vanilla Bow should start drawing with Infinity and only Spellcaster Quiver special arrows: " + result.getResult());
+
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 8,
+                    "Vanilla Bow Infinity fallback should stop at normal arrow mode and leave Spellcaster Quiver special arrows untouched");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowVanillaModePrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_held_special_quiver_test");
+            var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 1));
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 5));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow vanilla mode should start drawing when a held special arrow exists: " + result.getResult());
+
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Elemental Bow vanilla mode should consume the held special arrow before Spellcaster Quiver normal arrows");
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 5,
+                    "Elemental Bow vanilla mode should leave Spellcaster Quiver normal arrows untouched when a held special arrow was chosen");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowVanillaModeInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_quiver_test");
+            var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 8));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow vanilla mode should start drawing with Infinity and only Spellcaster Quiver special arrows: " + result.getResult());
+
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 8,
+                    "Elemental Bow vanilla mode Infinity fallback should leave Spellcaster Quiver special arrows untouched");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellcasterQuiverSlowdownHelperTracksEquippedBowUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_slowdown_test");
