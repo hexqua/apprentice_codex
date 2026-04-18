@@ -2332,6 +2332,34 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void nonLootableApprenticeSpellsAreExcludedFromDefaultSpellFilter(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockedSpells = getNonLootableApprenticeSpells();
+            var defaultSpellFilter = new io.redspace.ironsspellbooks.loot.SpellFilter();
+            var applicableSpells = defaultSpellFilter.getApplicableSpells();
+
+            for (var blockedSpell : blockedSpells) {
+                var spellId = blockedSpell.getSpellResource();
+                helper.assertTrue(!blockedSpell.allowLooting(),
+                        "Non-lootable apprentice spell unexpectedly allows loot generation: " + spellId);
+                helper.assertFalse(applicableSpells.contains(blockedSpell),
+                        "Default loot spell filter still contains blocked apprentice spell: " + spellId);
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void genericMagicTreasureLootDoesNotGenerateBlockedApprenticeScrolls(GameTestHelper helper) {
+        helper.succeedIf(() -> assertLootTableNeverGeneratesBlockedSpells(
+                helper,
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/generic_magic_treasure"),
+                createChestLootParams(helper),
+                512,
+                getNonLootableApprenticeSpells()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void isekaiTravelGuidebookStartsWithTwoFixedSpellsAndNoAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
@@ -6757,6 +6785,16 @@ public final class ApprenticeCodexGameTestScenarios {
                 .create(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/random_applicable_enchantment"));
     }
 
+    private static List<AbstractSpell> getNonLootableApprenticeSpells() {
+        return List.of(
+                SpellRegistry.EXTRACT.get(),
+                SpellRegistry.UNITE_LUNA.get(),
+                SpellRegistry.ILLUMINATE_STELLAR.get(),
+                SpellRegistry.MANIFESTATION_GRIMOIRE.get(),
+                SpellRegistry.MANA_SLASH.get()
+        );
+    }
+
     private static void assertLootTableGeneratesAllItems(
             GameTestHelper helper,
             ResourceLocation lootTableId,
@@ -6793,6 +6831,39 @@ public final class ApprenticeCodexGameTestScenarios {
                         + expectedItems.stream().map(BuiltInRegistries.ITEM::getKey).toList());
     }
 
+    private static void assertLootTableNeverGeneratesBlockedSpells(
+            GameTestHelper helper,
+            ResourceLocation lootTableId,
+            LootParams lootParams,
+            int attempts,
+            List<AbstractSpell> blockedSpells
+    ) {
+        var blockedSpellIds = blockedSpells.stream()
+                .map(AbstractSpell::getSpellResource)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        var seenBlockedSpells = new LinkedHashSet<ResourceLocation>();
+        var scrollSampleCount = new AtomicInteger();
+
+        sampleLootTable(helper, lootTableId, lootParams, attempts, stack -> {
+            var spell = getScrollSpell(stack);
+            if (spell == null) {
+                return;
+            }
+
+            scrollSampleCount.incrementAndGet();
+            var spellId = spell.getSpellResource();
+            if (spellId != null && blockedSpellIds.contains(spellId)) {
+                seenBlockedSpells.add(spellId);
+            }
+        });
+
+        helper.assertTrue(scrollSampleCount.get() > 0,
+                "Loot table " + lootTableId + " did not generate any spell scrolls within " + attempts + " attempts");
+        helper.assertTrue(seenBlockedSpells.isEmpty(),
+                "Loot table " + lootTableId + " generated blocked apprentice scrolls: " + seenBlockedSpells);
+    }
+
     private static void sampleLootTable(
             GameTestHelper helper,
             ResourceLocation lootTableId,
@@ -6819,6 +6890,24 @@ public final class ApprenticeCodexGameTestScenarios {
         var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, stack);
         return stack;
+    }
+
+    private static @Nullable AbstractSpell getScrollSpell(ItemStack stack) {
+        if (!stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())) {
+            return null;
+        }
+
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null) {
+            return null;
+        }
+
+        var spellData = spellContainer.getSpellAtIndex(0);
+        if (spellData == SpellData.EMPTY) {
+            return null;
+        }
+
+        return spellData.getSpell();
     }
 
     private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
