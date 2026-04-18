@@ -70,7 +70,7 @@ import java.util.function.Predicate;
 
 public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
         WeaponImbueCooldownPolicyItem {
-    public static final int READY_DRAW_TICKS = 22;
+    public static final int READY_DRAW_TICKS = 20;
     private static final String MAIN_CONTROLLER = "main";
     private static final String RELEASE_ANIMATION = "release";
     private static final String MODE_TAG = "ElementalBowMode";
