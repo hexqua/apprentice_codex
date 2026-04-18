@@ -40,6 +40,11 @@ public class ManifestationGrimoire extends AbstractSpell {
     }
 
     @Override
+    public boolean allowLooting() {
+        return false;
+    }
+
+    @Override
     public ResourceLocation getSpellResource() {
         return spellId;
     }
