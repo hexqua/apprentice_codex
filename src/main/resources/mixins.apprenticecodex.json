@@ -8,6 +8,7 @@
   "mixins": [
     "AbstractFurnaceBlockEntityMixin",
     "ArcaneAnvilMenuMixin",
+    "BowItemSpellcasterQuiverMixin",
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
     "FluidStackMixin",
@@ -33,6 +34,7 @@
     "ClientInputEventsMixin",
     "ClientSpellCastHelperMixin",
     "KeyboardHandlerMixin",
+    "LocalPlayerSpellcasterQuiverMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",
     "EntityMixin",

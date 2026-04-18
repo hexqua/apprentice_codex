@@ -29,6 +29,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
     private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
+    private static final TagKey<Item> CURIOS_BACK = createTag("curios", "back");
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
     private static final TagKey<Item> CURIOS_HEAD = createTag("curios", "head");
     private static final TagKey<Item> CURIOS_NECKLACE = createTag("curios", "necklace");
@@ -316,6 +317,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(),
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get()
         );
+        tag(CURIOS_BACK).add(ItemRegistry.SPELLCASTER_QUIVER.get());
         tag(CURIOS_NECKLACE).add(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
         tag(CURIOS_HEAD).add(
                 ItemRegistry.ASHEN_CIRCLET.get(),
@@ -340,6 +342,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get()
+        );
+        tag(TagRegistry.Items.SPELLCASTER_QUIVER_STORABLE).add(
+                net.minecraft.world.item.Items.ARROW,
+                net.minecraft.world.item.Items.SPECTRAL_ARROW,
+                net.minecraft.world.item.Items.TIPPED_ARROW
         );
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
                 ItemRegistry.ENCHANTED_CIRCLET.get()

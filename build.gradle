@@ -261,6 +261,7 @@ def validateItemModelLoaders = tasks.register('validateItemModelLoaders') {
     def modelFiles = layout.projectDirectory.dir('src/main/resources/assets/apprenticecodex/models/item').asFileTree.matching {
         include '**/*.json'
     }
+    def projectDirPath = layout.projectDirectory.asFile.toPath()
     inputs.files(modelFiles)
 
     doLast {
@@ -271,7 +272,7 @@ def validateItemModelLoaders = tasks.register('validateItemModelLoaders') {
         if (!invalidModels.isEmpty()) {
             throw new GradleException(
                     "旧 forge loader が残っている item model があります:\n" +
-                            invalidModels.collect { "- ${project.relativePath(it)}" }.join('\n')
+                            invalidModels.collect { "- ${projectDirPath.relativize(it.toPath())}" }.join('\n')
             )
         }
     }

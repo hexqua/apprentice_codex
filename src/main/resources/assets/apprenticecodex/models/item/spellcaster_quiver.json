@@ -1,0 +1,56 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "base": {
+    "parent": "apprenticecodex:item/spellcaster_quiver_3d"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_quiver"
+      }
+    },
+    "ground": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_quiver"
+      }
+    },
+    "fixed": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_quiver"
+      }
+    },
+    "head": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_quiver"
+      }
+    },
+    "firstperson_lefthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_quiver"
+      }
+    },
+    "firstperson_righthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_quiver"
+      }
+    },
+    "thirdperson_lefthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_quiver"
+      }
+    },
+    "thirdperson_righthand": {
+      "parent": "minecraft:item/generated",
+      "textures": {
+        "layer0": "apprenticecodex:item/spellcaster_quiver"
+      }
+    }
+  }
+}
