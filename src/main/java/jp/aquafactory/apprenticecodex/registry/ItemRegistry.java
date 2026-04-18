@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.isekaitravelguidebook.IsekaiTravelGuidebook;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.DiamondSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
@@ -161,6 +162,8 @@ public final class ItemRegistry {
             ITEMS.register("protection_spell_supporter", ProtectionSpellSupporter::new);
     public static final RegistryObject<Item> SPELLCASTER_AMMO_POUCH =
             ITEMS.register("spellcaster_ammo_pouch", SpellcasterAmmoPouch::new);
+    public static final RegistryObject<Item> SPELLCASTER_QUIVER =
+            ITEMS.register("spellcaster_quiver", SpellcasterQuiver::new);
     public static final RegistryObject<Item> ABSORPTION_AMPLIFY_AMULET =
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
     public static final RegistryObject<Item> ASHEN_CIRCLET =

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "C": {
+      "tag": "forge:chests"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "I I",
+    "ACA",
+    " A "
+  ],
+  "result": {
+    "item": "apprenticecodex:spellcaster_quiver"
+  },
+  "show_notification": true
+}

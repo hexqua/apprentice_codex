@@ -37,6 +37,7 @@
   "item.apprenticecodex.protection_spell_supporter": "Protection Spell Supporter",
   "item.apprenticecodex.absorption_amplify_amulet": "Amulet of Absorption Amplify",
   "item.apprenticecodex.spellcaster_ammo_pouch": "Spellcaster Ammo Pouch",
+  "item.apprenticecodex.spellcaster_quiver": "Spellcaster Quiver",
   "item.apprenticecodex.ashen_circlet": "Ashen Circlet",
   "item.apprenticecodex.enchanted_circlet": "Enchanted Circlet",
   "item.apprenticecodex.ender_grimoire": "Ender Grimoire",
@@ -121,6 +122,10 @@
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_2": "Automatically stores ammo items.",
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_3": "Can store and automatically use cartridges even without equipping.",
   "item.apprenticecodex.spellcaster_ammo_pouch.stored_amount": "Stored: %s / %s",
+  "item.apprenticecodex.spellcaster_quiver.desc_1": "Drawing certain bows no longer slows you down.",
+  "item.apprenticecodex.spellcaster_quiver.desc_2": "Also automatically stores picked-up arrows.",
+  "item.apprenticecodex.spellcaster_quiver.desc_3": "Can store arrows even without equipping, and certain bows can use them automatically.",
+  "item.apprenticecodex.spellcaster_quiver.stored_amount": "Stored: %s / %s",
 
   "item.apprenticecodex.swingcast.common.desc": "This staff casts its imbued spell with each full swing.",
   "item.apprenticecodex.flask_system.kind": "Kind: %s",

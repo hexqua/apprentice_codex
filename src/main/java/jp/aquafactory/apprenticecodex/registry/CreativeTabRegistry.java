@@ -100,6 +100,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
         output.accept(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get());
         output.accept(ItemRegistry.SPELLCASTER_AMMO_POUCH.get());
+        output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());
         output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
         output.accept(ItemRegistry.ASHEN_CIRCLET.get());
         output.accept(ItemRegistry.ENCHANTED_CIRCLET.get());

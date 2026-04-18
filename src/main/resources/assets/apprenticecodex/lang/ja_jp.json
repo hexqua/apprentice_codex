@@ -37,6 +37,7 @@
   "item.apprenticecodex.protection_spell_supporter": "保護術式補助具",
   "item.apprenticecodex.absorption_amplify_amulet": "衝撃吸収増強のネックレス",
   "item.apprenticecodex.spellcaster_ammo_pouch": "詠唱者の弾薬ポーチ",
+  "item.apprenticecodex.spellcaster_quiver": "詠唱者の矢筒",
   "item.apprenticecodex.ashen_circlet": "灰のサークレット",
   "item.apprenticecodex.enchanted_circlet": "呪紋のサークレット",
   "item.apprenticecodex.ender_grimoire": "エンダーグリモア",
@@ -121,6 +122,10 @@
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_2": "また、弾薬アイテムを自動で収納する。",
   "item.apprenticecodex.spellcaster_ammo_pouch.desc_3": "装備をしていなくても弾薬を収納/自動使用することは可能。",
   "item.apprenticecodex.spellcaster_ammo_pouch.stored_amount": "収納数: %s / %s",
+  "item.apprenticecodex.spellcaster_quiver.desc_1": "一部の弓を引き絞っても移動速度が低下しなくなる。",
+  "item.apprenticecodex.spellcaster_quiver.desc_2": "また、拾った矢を自動で収納する。",
+  "item.apprenticecodex.spellcaster_quiver.desc_3": "装備をしていなくても矢を収納することは可能で、特定の弓は自動使用も可能。",
+  "item.apprenticecodex.spellcaster_quiver.stored_amount": "収納数: %s / %s",
 
   "item.apprenticecodex.swingcast.common.desc": "この杖は攻撃時に注入した魔法を放つ。",
   "item.apprenticecodex.flask_system.kind": "中身: %s",

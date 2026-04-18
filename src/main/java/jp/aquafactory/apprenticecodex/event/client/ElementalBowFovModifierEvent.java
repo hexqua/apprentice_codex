@@ -1,0 +1,42 @@
+package jp.aquafactory.apprenticecodex.event.client;
+
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.BowItem;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ComputeFovModifierEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+public final class ElementalBowFovModifierEvent {
+    private ElementalBowFovModifierEvent() {
+    }
+
+    @SubscribeEvent
+    public static void onComputeFovModifier(ComputeFovModifierEvent event) {
+        var player = event.getPlayer();
+        if (!player.isUsingItem() || !(player.getUseItem().getItem() instanceof ElementalBow)) {
+            return;
+        }
+
+        // 1.20.1 の弓 FOV 縮小は BowItem 継承ではなく Items.BOW 固定判定なので、
+        // ElementalBow 側でバニラ弓と同じ補正式を client event で補う。
+        float adjustedFovModifier = event.getFovModifier() * resolveBowDrawFovModifier(player.getTicksUsingItem());
+        float fovEffectScale = Minecraft.getInstance().options.fovEffectScale().get().floatValue();
+        event.setNewFovModifier(Mth.lerp(fovEffectScale, 1.0F, adjustedFovModifier));
+    }
+
+    private static float resolveBowDrawFovModifier(int ticksUsingItem) {
+        float progress = (float) ticksUsingItem / BowItem.MAX_DRAW_DURATION;
+        if (progress > 1.0F) {
+            progress = 1.0F;
+        } else {
+            progress *= progress;
+        }
+
+        return 1.0F - progress * 0.15F;
+    }
+}
