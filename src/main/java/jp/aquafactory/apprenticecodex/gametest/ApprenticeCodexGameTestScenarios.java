@@ -3675,6 +3675,67 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var registryAccess = helper.getLevel().registryAccess();
+            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_draw_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(infinity, 1);
+            setElementalBowShotSelection(stack, "arrow", null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow arrow-only mode should start drawing with Infinity even without arrows: " + result.getResult());
+            helper.assertTrue(player.isUsingItem(), "Elemental Bow arrow-only mode should enter use state for Infinity draw");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowVanillaModeInfinityDoesNotConsumeNormalArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var registryAccess = helper.getLevel().registryAccess();
+            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_infinity_preserve_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(infinity, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow vanilla mode should start drawing with Infinity while normal arrows exist: " + result.getResult());
+
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow vanilla mode should not consume normal arrows while Infinity is enchanted");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowArrowModeInfinityDoesNotConsumeNormalArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var registryAccess = helper.getLevel().registryAccess();
+            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_preserve_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(infinity, 1);
+            setElementalBowShotSelection(stack, "arrow", null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow arrow-only mode should start drawing with Infinity while normal arrows exist: " + result.getResult());
+
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow arrow-only mode should not consume normal arrows while Infinity is enchanted");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
