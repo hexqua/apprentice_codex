@@ -32,6 +32,7 @@
     "ClientInputEventsMixin",
     "ClientSpellCastHelperMixin",
     "KeyboardHandlerMixin",
+    "LocalPlayerSpellcasterQuiverMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",
     "EntityMixin",
