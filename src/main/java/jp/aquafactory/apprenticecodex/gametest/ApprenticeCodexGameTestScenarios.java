@@ -854,6 +854,21 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(Enchantments.getLevel(convertedFlask, Enchantments.GLOW_ENERGY) == 1,
                     "Alchemist's Flask smithing recipe should keep Glow Energy");
 
+            var emptyFlaskInput = new net.minecraft.world.item.crafting.SmithingRecipeInput(
+                    new ItemStack(Items.EMERALD),
+                    new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    new ItemStack(Items.GUNPOWDER)
+            );
+            helper.assertTrue(recipe.matches(emptyFlaskInput, helper.getLevel()),
+                    "Alchemist's Flask smithing recipe should accept an empty Spellcaster's Flask");
+            var emptyFlaskResult = recipe.assemble(emptyFlaskInput, registryAccess);
+            helper.assertTrue(emptyFlaskResult.is(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                    "Alchemist's Flask smithing recipe should still create an empty Alchemist's Flask");
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(emptyFlaskResult) == 0,
+                    "Empty Spellcaster's Flask conversion should keep the result empty");
+            helper.assertTrue(SpellcastersFlask.getStoredItem(emptyFlaskResult).isEmpty(),
+                    "Empty Spellcaster's Flask conversion should not leave a stored item behind");
+
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
             var simpleElixirInput = new net.minecraft.world.item.crafting.SmithingRecipeInput(
                     new ItemStack(Items.EMERALD),
@@ -959,26 +974,27 @@ public final class ApprenticeCodexGameTestScenarios {
     @GameTest(template = TEMPLATE)
     public static void alchemistsFlaskTippedArrowCraftAwardsAdvancement(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), PotionRegistry.INTELLIGENCE.get());
-            var craftingContainer = createCraftingContainer(
+            var splashPotion = PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, PotionRegistry.INTELLIGENCE.get());
+            var craftingInput = createCraftingInput(
                     new ItemStack(Items.ARROW),
                     new ItemStack(Items.ARROW),
                     new ItemStack(Items.ARROW),
                     new ItemStack(Items.ARROW),
-                    createFilledAlchemistsFlask(splashPotion, 1, 0),
+                    createFilledAlchemistsFlask(helper.getLevel().registryAccess(), splashPotion, 1, 0),
                     new ItemStack(Items.ARROW),
                     new ItemStack(Items.ARROW),
                     new ItemStack(Items.ARROW),
                     new ItemStack(Items.ARROW)
             );
-            var craftedStack = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW, 8), PotionRegistry.INTELLIGENCE.get());
-            var advancement = helper.getLevel().getServer().getAdvancements().getAdvancement(
+            var craftedStack = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, PotionRegistry.INTELLIGENCE.get());
+            craftedStack.setCount(8);
+            var advancement = helper.getLevel().getServer().getAdvancements().get(
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_codex/craft_tipped_arrow_by_flask")
             );
 
             helper.assertTrue(advancement != null, "Missing advancement for flask tipped arrow crafting");
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.event.AlchemistsFlaskAdvancementEvent.shouldAward(craftedStack, craftingContainer),
+                    jp.aquafactory.apprenticecodex.event.AlchemistsFlaskAdvancementEvent.shouldAward(craftedStack, craftingInput),
                     "Crafting tipped arrows with Alchemist's Flask should satisfy the advancement award conditions"
             );
         });
@@ -1080,8 +1096,14 @@ public final class ApprenticeCodexGameTestScenarios {
             var storedPotion = PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
             var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
             var enchantmentLookup = registryAccess.lookupOrThrow(Registries.ENCHANTMENT);
-            enchantmentLookup.get(Enchantments.RED_ENERGY).ifPresent(enchantment -> flask.enchant(enchantment, 1));
-            enchantmentLookup.get(Enchantments.GLOW_ENERGY).ifPresent(enchantment -> flask.enchant(enchantment, 1));
+            var redEnergy = enchantmentLookup.get(Enchantments.RED_ENERGY).orElse(null);
+            if (redEnergy != null) {
+                flask.enchant(redEnergy, 1);
+            }
+            var glowEnergy = enchantmentLookup.get(Enchantments.GLOW_ENERGY).orElse(null);
+            if (glowEnergy != null) {
+                flask.enchant(glowEnergy, 1);
+            }
             flask = SpellcastersFlask.copyWithAddedDoses(flask, storedPotion, 1);
 
             var thrownPotion = jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.createExtractedPotionForThrow(flask, 1);

@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:spellcasters_flask"
-            ]
+            "items": "apprenticecodex:spellcasters_flask"
           }
         ]
       },
@@ -30,6 +28,5 @@
     "recipes": [
       "apprenticecodex:alchemists_flask"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

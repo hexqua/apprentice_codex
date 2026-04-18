@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -39,5 +40,9 @@ public final class AlchemistsFlaskAdvancementEvent {
 
     public static boolean shouldAward(ItemStack craftedStack, Container container) {
         return craftedStack.is(Items.TIPPED_ARROW) && AlchemistsFlaskTippedArrowRecipe.matchesContainer(container);
+    }
+
+    public static boolean shouldAward(ItemStack craftedStack, CraftingInput input) {
+        return craftedStack.is(Items.TIPPED_ARROW) && AlchemistsFlaskTippedArrowRecipe.matchesInput(input);
     }
 }

@@ -6,17 +6,19 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_tipped_arrow_by_flask.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "minecraft:tipped_arrow",
-      "nbt": "{Potion:\"apprenticecodex:intelligence\"}"
+      "components": {
+        "minecraft:potion_contents": {
+          "potion": "apprenticecodex:intelligence"
+        }
+      },
+      "count": 1,
+      "id": "minecraft:tipped_arrow"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_tipped_arrow_by_flask.title"
     }

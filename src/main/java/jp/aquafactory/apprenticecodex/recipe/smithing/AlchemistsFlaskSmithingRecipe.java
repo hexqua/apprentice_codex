@@ -136,7 +136,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
     private static ItemStack convertStoredItem(ItemStack baseStack) {
         var storedItem = AbstractPotionFlaskItem.getStoredItem(baseStack);
         if (storedItem.isEmpty()) {
-            return null;
+            return ItemStack.EMPTY;
         }
 
         if (storedItem.is(Items.POTION)) {

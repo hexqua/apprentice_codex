@@ -7,7 +7,23 @@
     "item": "apprenticecodex:spellcasters_flask"
   },
   "result": {
-    "item": "apprenticecodex:alchemists_flask"
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [
+          {
+            "id": "apprenticecodex:extract",
+            "index": 0,
+            "level": 1,
+            "locked": true
+          }
+        ],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": false
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:alchemists_flask"
   },
   "template": {
     "item": "minecraft:emerald"

@@ -508,7 +508,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemists_flask.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemists_flask.description"),
                         null,
-                        FrameType.TASK,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)
@@ -522,11 +522,14 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_tipped_arrow_by_flask.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_tipped_arrow_by_flask.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)
-                .addCriterion(AdvancementTools.CRAFT_TIPPED_ARROW_BY_FLASK_CRITERION, new ImpossibleTrigger.TriggerInstance())
+                .addCriterion(
+                        AdvancementTools.CRAFT_TIPPED_ARROW_BY_FLASK_CRITERION,
+                        CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance())
+                )
                 .save(saver, advancementId("craft_tipped_arrow_by_flask"), existingFileHelper);
 
         Advancement.Builder.advancement()
