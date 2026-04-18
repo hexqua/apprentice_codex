@@ -40,6 +40,12 @@ public class ManaSlash extends AbstractSpell {
         manaCostPerLevel = 0;
         castTime = 0;
     }
+
+    @Override
+    public boolean allowLooting() {
+        return false;
+    }
+
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
