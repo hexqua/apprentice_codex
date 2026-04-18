@@ -46,6 +46,8 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -176,6 +178,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
@@ -229,6 +232,10 @@ public final class ApprenticeCodexGameTestScenarios {
     private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("create", "contraption_controlled")
+    );
+    private static final TagKey<Item> CURIOS_BACK = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BACK)
     );
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
@@ -4444,6 +4451,1805 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spell Gun",
+                item -> item instanceof AbstractSpellGunItem,
+                ApprenticeCodexGameTestScenarios::expectedSpellGunEnchantments
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var expectedBookEnchantments = allRegisteredEnchantmentIds();
+            var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
+            helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
+
+            for (var stack : stacks) {
+                // 1.20.1 の offhand 系は isBookEnchantable を個別制限していないため、
+                // 本判定だけは広く通る。Malum 側は main hand 前提で soul_hunter_weapon を使うため、
+                // 実際に固定したい付与面はエンチャント台と独自金床側の offhand 非対応面。
+                assertExactEnchantmentSurfaces(
+                        helper,
+                        stack,
+                        expectedOffhandEnchantments(stack),
+                        expectedBookEnchantments,
+                        expectedOffhandEnchantments(stack),
+                        "Offhand Magic Item " + ForgeRegistries.ITEMS.getKey(stack.getItem())
+                );
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantedCircletEnchantments(stack),
+                    allRegisteredEnchantmentIds(),
+                    expectedEnchantedCircletEnchantments(stack),
+                    "Enchanted Circlet"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) stack.getItem();
+            var slotContext = new top.theillusivec4.curios.api.SlotContext(
+                    CuriosSlotConstants.HEAD,
+                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
+                    0,
+                    false,
+                    true
+            );
+
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    -0.10D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet attack damage penalty regression"
+            );
+
+            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
+            stack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
+            stack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
+            stack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+            stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null, "Enchanted Circlet imbued school could not be resolved");
+
+            var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(resolvedSpellPower != null,
+                    "Enchanted Circlet could not resolve spell power attribute for Attunement: " + imbuedSchool.getId());
+
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
+                    0.02D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Alacrity regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get(),
+                    0.05D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Reflux regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                    20.0D,
+                    AttributeModifier.Operation.ADDITION,
+                    "Enchanted Circlet Reservoir regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
+                    0.02D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Surge regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    resolvedSpellPower,
+                    0.04D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Attunement regression"
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    stack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
+                    0.05D,
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    "Enchanted Circlet Tense regression"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            helper.assertTrue(new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Enchanted Circlet should be extractable in Spellcaster Workbench");
+            helper.assertFalse(new ItemStack(ItemRegistry.ASHEN_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Ashen Circlet should remain non-extractable in Spellcaster Workbench");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantedCircletWisdomMatchesArmorRate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "enchanted_circlet_wisdom_test"));
+            var baseExperience = 20;
+
+            var withoutCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 0)), player, baseExperience);
+            MinecraftForge.EVENT_BUS.post(withoutCirclet);
+            helper.assertTrue(withoutCirclet.getDroppedExperience() == baseExperience,
+                    "Wisdom baseline should stay unchanged without enchanted circlet");
+
+            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+
+            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for wisdom test"));
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
+
+            var withCirclet = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0)), player, baseExperience);
+            MinecraftForge.EVENT_BUS.post(withCirclet);
+            helper.assertTrue(withCirclet.getDroppedExperience() == 21,
+                    "Enchanted Circlet Wisdom should match armor rate (+5% at level 1) but got " + withCirclet.getDroppedExperience());
+
+            var roundedUp = new LivingExperienceDropEvent(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0)), player, 1);
+            MinecraftForge.EVENT_BUS.post(roundedUp);
+            helper.assertTrue(roundedUp.getDroppedExperience() == 2,
+                    "Wisdom should round enemy experience up from 1 to 2 at +5% but got " + roundedUp.getDroppedExperience());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void wisdomAppliesToBlockBreakExperienceAndRoundsUp(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var state = Blocks.DIAMOND_ORE.defaultBlockState();
+
+            var baselinePlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_baseline_test"));
+            var baselineExperience = new BlockEvent.BreakEvent(level, new BlockPos(0, 2, 0), state, baselinePlayer);
+            baselineExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(baselineExperience);
+            helper.assertTrue(baselineExperience.getExpToDrop() == 3,
+                    "Block experience should stay unchanged without Wisdom but got " + baselineExperience.getExpToDrop());
+
+            var curioPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_curio_test"));
+            var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+
+            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(curioPlayer)
+                    .orElseThrow(() -> new IllegalStateException("Missing curios inventory for block wisdom test"));
+            curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
+
+            var roundedCurioExperience = new BlockEvent.BreakEvent(level, new BlockPos(1, 2, 0), state, curioPlayer);
+            roundedCurioExperience.setExpToDrop(1);
+            WisdomExperienceDropEvent.onBlockBreak(roundedCurioExperience);
+            helper.assertTrue(roundedCurioExperience.getExpToDrop() == 2,
+                    "Curio Wisdom should round block experience up from 1 to 2 at +5% but got " + roundedCurioExperience.getExpToDrop());
+
+            var heldPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "wisdom_block_break_held_test"));
+            var spellGunStack = new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get());
+            spellGunStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            heldPlayer.setItemInHand(InteractionHand.MAIN_HAND, spellGunStack);
+
+            var heldExperience = new BlockEvent.BreakEvent(level, new BlockPos(2, 2, 0), state, heldPlayer);
+            heldExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(heldExperience);
+            helper.assertTrue(heldExperience.getExpToDrop() == 4,
+                    "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getExpToDrop());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var state = Blocks.DIAMOND_ORE.defaultBlockState();
+
+            var mainhandPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "elemental_bow_mainhand_held_enchant_test"));
+            var mainhandBow = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            mainhandBow.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            mainhandBow.enchant(EnchantmentRegistry.PLUNDER.get(), 2);
+            mainhandPlayer.setItemInHand(InteractionHand.MAIN_HAND, mainhandBow);
+
+            var mainhandExperience = new BlockEvent.BreakEvent(level, new BlockPos(3, 2, 0), state, mainhandPlayer);
+            mainhandExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(mainhandExperience);
+            helper.assertTrue(mainhandExperience.getExpToDrop() == 4,
+                    "Elemental Bow mainhand Wisdom should increase block experience from 3 to 4 but got " + mainhandExperience.getExpToDrop());
+
+            var mainhandLootingEvent = new net.minecraftforge.event.entity.living.LootingLevelEvent(
+                    helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 1)),
+                    mainhandPlayer.damageSources().playerAttack(mainhandPlayer),
+                    0
+            );
+            jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent.onLootingLevel(mainhandLootingEvent);
+            helper.assertTrue(mainhandLootingEvent.getLootingLevel() == 2,
+                    "Elemental Bow mainhand Plunder should set looting level to 2 but got " + mainhandLootingEvent.getLootingLevel());
+
+            var offhandPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "elemental_bow_offhand_held_enchant_test"));
+            var offhandBow = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            offhandBow.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            offhandBow.enchant(EnchantmentRegistry.PLUNDER.get(), 3);
+            offhandPlayer.setItemInHand(InteractionHand.OFF_HAND, offhandBow);
+
+            var offhandExperience = new BlockEvent.BreakEvent(level, new BlockPos(4, 2, 0), state, offhandPlayer);
+            offhandExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(offhandExperience);
+            helper.assertTrue(offhandExperience.getExpToDrop() == 4,
+                    "Elemental Bow offhand Wisdom should increase block experience from 3 to 4 but got " + offhandExperience.getExpToDrop());
+
+            var offhandLootingEvent = new net.minecraftforge.event.entity.living.LootingLevelEvent(
+                    helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 1)),
+                    offhandPlayer.damageSources().playerAttack(offhandPlayer),
+                    0
+            );
+            jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent.onLootingLevel(offhandLootingEvent);
+            helper.assertTrue(offhandLootingEvent.getLootingLevel() == 3,
+                    "Elemental Bow offhand Plunder should set looting level to 3 but got " + offhandLootingEvent.getLootingLevel());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
+            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var touchDigSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get();
+            var spectralHammerSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPECTRAL_HAMMER_SPELL.get();
+
+            var touchDigManaEvent = new SpellOnCastEvent(
+                    player,
+                    CraftsmansDelightSpellSupport.TOUCH_DIG_SPELL_ID,
+                    1,
+                    15,
+                    touchDigSpell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            CraftsmansDelightManaCostDiscountEvent.onSpellCast(touchDigManaEvent);
+            helper.assertTrue(touchDigManaEvent.getManaCost() == 8,
+                    "CraftsmansDelight should halve Touch Dig mana to 8 but got " + touchDigManaEvent.getManaCost());
+            var expectedTouchDigBaseCooldown = Math.max(1, touchDigSpell.getSpellCooldown() / 3);
+            helper.assertTrue(CraftsmansDelight.applyCooldownDiscount(touchDigSpell.getSpellCooldown(), player) == expectedTouchDigBaseCooldown,
+                    "CraftsmansDelight should reduce Touch Dig base cooldown to one third before player modifiers");
+
+            var touchDigCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    10,
+                    touchDigSpell,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(touchDigCooldownEvent);
+            helper.assertTrue(touchDigCooldownEvent.getEffectiveCooldown()
+                            == CraftsmansDelight.getReducedEffectiveCooldown(touchDigSpell, player, CastSource.SPELLBOOK),
+                    "CraftsmansDelight should route Touch Dig cooldown through the reduced cooldown helper");
+
+            var spectralHammerManaEvent = new SpellOnCastEvent(
+                    player,
+                    CraftsmansDelightSpellSupport.SPECTRAL_HAMMER_SPELL_ID,
+                    1,
+                    15,
+                    spectralHammerSpell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            CraftsmansDelightManaCostDiscountEvent.onSpellCast(spectralHammerManaEvent);
+            helper.assertTrue(spectralHammerManaEvent.getManaCost() == 8,
+                    "CraftsmansDelight should halve Spectral Hammer mana to 8 but got " + spectralHammerManaEvent.getManaCost());
+            var expectedSpectralHammerBaseCooldown = Math.max(1, spectralHammerSpell.getSpellCooldown() / 3);
+            helper.assertTrue(CraftsmansDelight.applyCooldownDiscount(spectralHammerSpell.getSpellCooldown(), player) == expectedSpectralHammerBaseCooldown,
+                    "CraftsmansDelight should reduce Spectral Hammer base cooldown to one third before player modifiers");
+
+            var spectralHammerCooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    40,
+                    spectralHammerSpell,
+                    player,
+                    CastSource.SPELLBOOK
+            );
+            CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(spectralHammerCooldownEvent);
+            helper.assertTrue(spectralHammerCooldownEvent.getEffectiveCooldown()
+                            == CraftsmansDelight.getReducedEffectiveCooldown(spectralHammerSpell, player, CastSource.SPELLBOOK),
+                    "CraftsmansDelight should route Spectral Hammer cooldown through the reduced cooldown helper");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = new TouchDigSpell();
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_range_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            var targetPos = helper.absolutePos(new BlockPos(0, 3, 12));
+
+            helper.assertTrue(magicData != null, "Touch Dig range test could not resolve player mana data");
+            player.setYRot(0.0f);
+            player.setXRot(0.0f);
+            helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
+
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Touch Dig should keep the default 8 block range without CraftsmansDelight");
+
+            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Touch Dig should reach a target 12 blocks away when CraftsmansDelight is equipped");
+            helper.assertTrue(spell.getUniqueInfo(1, player).stream().anyMatch(component -> component.getString().contains("16")),
+                    "Touch Dig unique info should display 16 block range while CraftsmansDelight is equipped");
+
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+            helper.assertTrue(helper.getLevel().getBlockState(targetPos).isAir(),
+                    "Touch Dig should destroy the targeted block inside the extended range");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_ring_enchant_merge_test");
+            var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
+            heldTool.enchant(Enchantments.BLOCK_FORTUNE, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
+
+            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(Enchantments.BLOCK_FORTUNE, 3);
+            equipCraftsmansDelight(player, ringStack);
+
+            var mergedFortuneTool = CraftsmansDelight.createTouchDigTool(player);
+            helper.assertTrue(mergedFortuneTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 3,
+                    "Touch Dig should prefer the higher Fortune level from the ring");
+
+            ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
+            equipCraftsmansDelight(player, ringStack);
+
+            var mergedSilkTool = CraftsmansDelight.createTouchDigTool(player);
+            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
+                    "Touch Dig should inherit Silk Touch from the ring");
+            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 0,
+                    "Touch Dig should drop Fortune when Silk Touch is present");
+
+            var blockPos = helper.absolutePos(new BlockPos(0, 2, 1));
+            helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
+            invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
+
+            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(blockPos).inflate(1.5D));
+            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
+                    "Touch Dig with ring Silk Touch should drop stone");
+            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
+                    "Touch Dig with ring Silk Touch should not drop cobblestone");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_bare_hand_ring_enchant_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
+            equipCraftsmansDelight(player, ringStack);
+
+            var synthesizedTool = CraftsmansDelight.createTouchDigTool(player);
+            helper.assertFalse(synthesizedTool.isEmpty(),
+                    "Touch Dig should synthesize a mining tool when the caster is bare-handed but the ring has mining enchantments");
+            helper.assertTrue(synthesizedTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
+                    "Touch Dig should copy Silk Touch onto the synthesized bare-hand tool");
+
+            var blockPos = helper.absolutePos(new BlockPos(0, 2, 2));
+            helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
+            invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
+
+            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(blockPos).inflate(1.5D));
+            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
+                    "Bare-hand Touch Dig with ring Silk Touch should drop stone");
+            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
+                    "Bare-hand Touch Dig with ring Silk Touch should not drop cobblestone");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spectral_hammer_ring_enchant_test");
+            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
+            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
+            equipCraftsmansDelight(player, ringStack);
+
+            var targetPos = helper.absolutePos(new BlockPos(0, 2, 2));
+            helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
+
+            var hammer = new SpectralHammer(
+                    helper.getLevel(),
+                    player,
+                    new BlockHitResult(Vec3.atCenterOf(targetPos), Direction.NORTH, targetPos, false),
+                    0,
+                    1
+            );
+            var hammerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 1)));
+            hammer.setPos(hammerPos.x, hammerPos.y, hammerPos.z);
+            helper.getLevel().addFreshEntity(hammer);
+
+            for (var tick = 0; tick < 20 && !hammer.isRemoved(); tick++) {
+                hammer.tick();
+            }
+
+            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(targetPos).inflate(2.0D));
+            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
+                    "Spectral Hammer with ring Silk Touch should drop stone");
+            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
+                    "Spectral Hammer with ring Silk Touch should not drop cobblestone");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Right Click Magic Weapon",
+                // 1.21.1申し送り事項:
+                // 1.20.1 では StaffItem にしていない武器でも、1.21.1 側では StaffItem 化する場合がある。
+                // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
+                // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
+                item -> item instanceof AbstractRightClickMagicWeaponItem,
+                ApprenticeCodexGameTestScenarios::expectedRightClickMagicWeaponEnchantments
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            var expectedEnchantments = expectedElementalBowEnchantments();
+            var expectedBookEnchantments = expectedElementalBowBookEnchantments();
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedEnchantments,
+                    expectedBookEnchantments,
+                    expectedEnchantments,
+                    "Elemental Bow"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            var healingArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var regenerationArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var healingId = ForgeRegistries.POTIONS.getKey(PotionUtils.getPotion(healingArrow));
+            var regenerationId = ForgeRegistries.POTIONS.getKey(PotionUtils.getPotion(regenerationArrow));
+            helper.assertTrue(healingId != null && regenerationId != null,
+                    "Elemental Bow selection view test could not resolve tipped arrow potion ids");
+            var availablePotionIds = new LinkedHashSet<ResourceLocation>();
+            if (healingId != null) {
+                availablePotionIds.add(healingId);
+            }
+            if (regenerationId != null) {
+                availablePotionIds.add(regenerationId);
+            }
+            var expectedPotionOrder = ForgeRegistries.POTIONS.getValues().stream()
+                    .map(ForgeRegistries.POTIONS::getKey)
+                    .filter(id -> id != null && availablePotionIds.contains(id))
+                    .toList();
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+            player.getInventory().setItem(2, healingArrow);
+            player.getInventory().setItem(3, regenerationArrow);
+
+            var views = ElementalBow.getAvailableSelectionViews(player, stack);
+            var actualSelections = views.stream()
+                    .map(ApprenticeCodexGameTestScenarios::describeElementalBowSelectionView)
+                    .toList();
+            var expectedSelections = new ArrayList<String>();
+            expectedSelections.add("normal");
+            expectedSelections.add("arrow");
+            expectedSelections.add("special:minecraft:spectral_arrow");
+            for (var potionId : expectedPotionOrder) {
+                expectedSelections.add("special:" + potionId);
+            }
+            expectedSelections.add("magic:" + SchoolRegistry.FIRE_RESOURCE);
+            expectedSelections.add("magic:" + SchoolRegistry.ENDER_RESOURCE);
+            expectedSelections.add("magic:" + SchoolRegistry.NATURE_RESOURCE);
+            helper.assertTrue(actualSelections.equals(expectedSelections),
+                    "Elemental Bow selection view order mismatch: expected=" + expectedSelections + ", actual=" + actualSelections);
+            helper.assertTrue(views.get(0).iconStack().is(Items.BOW),
+                    "Elemental Bow vanilla mode selection should render as a bow icon");
+            helper.assertTrue(views.get(0).badgeText() == null,
+                    "Elemental Bow vanilla mode selection should not show an ammo badge");
+            helper.assertTrue(views.get(1).iconStack().is(Items.ARROW),
+                    "Elemental Bow arrow-only selection should render as an arrow icon");
+            helper.assertTrue("\u221e".equals(views.get(1).badgeText()),
+                    "Elemental Bow arrow-only selection should show infinity while Infinity is enchanted: " + views.get(1).badgeText());
+
+            var fireView = views.stream()
+                    .filter(view -> "magic".equals(view.selection().shotMode()) && SchoolRegistry.FIRE_RESOURCE.equals(view.selection().selectionId()))
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(fireView != null, "Elemental Bow selection view should include Fire magic");
+            if (fireView != null) {
+                helper.assertTrue(fireView.iconKind() == ElementalBow.SelectionIconKind.SPELL,
+                        "Elemental Bow magic selection should render as a spell icon");
+                helper.assertTrue(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get().getSpellIconResource().equals(fireView.spellIcon()),
+                        "Elemental Bow Fire magic selection should use the Fire Arrow spell icon");
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowInventoryOverlayReflectsCurrentSelection(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            helper.assertTrue(ElementalBow.getInventoryOverlayView(stack) == null,
+                    "Elemental Bow normal mode should not expose an inventory overlay");
+
+            setElementalBowShotSelection(stack, "arrow", null);
+            var arrowOverlay = ElementalBow.getInventoryOverlayView(stack);
+            helper.assertTrue(arrowOverlay != null,
+                    "Elemental Bow arrow-only selection should expose an inventory overlay");
+            if (arrowOverlay != null) {
+                helper.assertTrue(arrowOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
+                        "Elemental Bow arrow-only selection should render as an item overlay");
+                helper.assertTrue(arrowOverlay.iconStack().is(Items.ARROW),
+                        "Elemental Bow arrow-only selection should render the arrow icon");
+            }
+
+            var spectralArrowId = ResourceLocation.tryParse("minecraft:spectral_arrow");
+            setElementalBowShotSelection(stack, "special", spectralArrowId);
+            var spectralOverlay = ElementalBow.getInventoryOverlayView(stack);
+            helper.assertTrue(spectralOverlay != null,
+                    "Elemental Bow spectral selection should expose an inventory overlay");
+            if (spectralOverlay != null) {
+                helper.assertTrue(spectralOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
+                        "Elemental Bow spectral selection should render as an item overlay");
+                helper.assertTrue(spectralOverlay.iconStack().is(Items.SPECTRAL_ARROW),
+                        "Elemental Bow spectral selection should render the spectral arrow icon");
+            }
+
+            var healingArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var healingId = ForgeRegistries.POTIONS.getKey(PotionUtils.getPotion(healingArrow));
+            helper.assertTrue(healingId != null,
+                    "Elemental Bow overlay test could not resolve the healing arrow potion id");
+            if (healingId != null) {
+                setElementalBowShotSelection(stack, "special", healingId);
+                var tippedOverlay = ElementalBow.getInventoryOverlayView(stack);
+                helper.assertTrue(tippedOverlay != null,
+                        "Elemental Bow tipped arrow selection should expose an inventory overlay");
+                if (tippedOverlay != null) {
+                    helper.assertTrue(tippedOverlay.iconStack().is(Items.TIPPED_ARROW),
+                            "Elemental Bow tipped arrow selection should render a tipped arrow icon");
+                    helper.assertTrue(PotionUtils.getPotion(tippedOverlay.iconStack()) == net.minecraft.world.item.alchemy.Potions.HEALING,
+                            "Elemental Bow tipped arrow overlay should keep the selected potion");
+                }
+            }
+
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            var fireOverlay = ElementalBow.getInventoryOverlayView(stack);
+            helper.assertTrue(fireOverlay != null,
+                    "Elemental Bow magic selection should expose an inventory overlay");
+            if (fireOverlay != null) {
+                helper.assertTrue(fireOverlay.iconKind() == ElementalBow.SelectionIconKind.ITEM,
+                        "Elemental Bow magic selection should render as an item overlay");
+                helper.assertTrue(fireOverlay.iconStack().is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
+                        "Elemental Bow Fire mode should render the Fire rune icon");
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void elementalBowSelectionViewExposesOverheatOverlayState(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_overheat_overlay_test");
+        var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+        stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+        helper.runAtTickTime(1, () -> {
+            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireView != null, "Elemental Bow overheat overlay test should expose the Fire magic selection");
+            if (fireView != null) {
+                helper.assertFalse(fireView.overheatActive(),
+                        "Elemental Bow Fire selection should not be overheated before any cast");
+                helper.assertTrue(fireView.overheatFillRatio() == 0.0F,
+                        "Elemental Bow Fire selection should start with an empty overheat overlay");
+            }
+
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    40
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.NATURE_RESOURCE,
+                    20
+            );
+
+            var overheatedFireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(overheatedFireView != null && overheatedFireView.overheatActive(),
+                    "Elemental Bow Fire selection should report active overheat immediately after cast");
+            if (overheatedFireView != null) {
+                helper.assertTrue(overheatedFireView.overheatFillRatio() == 1.0F,
+                        "Elemental Bow Fire selection should start with a full overheat overlay: " + overheatedFireView.overheatFillRatio());
+            }
+        });
+
+        helper.runAtTickTime(11, () -> {
+            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireView != null && fireView.overheatActive(),
+                    "Elemental Bow Fire selection should still be overheated mid-cooldown");
+            if (fireView != null) {
+                helper.assertTrue(Mth.equal(fireView.overheatFillRatio(), 0.75F),
+                        "Elemental Bow Fire selection should decay based on its own cooldown: " + fireView.overheatFillRatio());
+            }
+
+            var natureView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.NATURE_RESOURCE);
+            helper.assertTrue(natureView != null && natureView.overheatActive(),
+                    "Elemental Bow Nature selection should track its own overheat independently");
+            if (natureView != null) {
+                helper.assertTrue(Mth.equal(natureView.overheatFillRatio(), 0.5F),
+                        "Elemental Bow Nature selection should show its shorter cooldown independently: " + natureView.overheatFillRatio());
+            }
+
+            var enderView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.ENDER_RESOURCE);
+            helper.assertTrue(enderView != null, "Elemental Bow overheat overlay test should expose the Ender magic selection");
+            if (enderView != null) {
+                helper.assertFalse(enderView.overheatActive(),
+                        "Elemental Bow Ender selection should stay inactive when untouched");
+                helper.assertTrue(enderView.overheatFillRatio() == 0.0F,
+                        "Elemental Bow Ender selection should not show an overheat overlay");
+            }
+        });
+
+        helper.runAtTickTime(42, () -> {
+            var fireView = findElementalBowSelectionView(player, stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireView != null, "Elemental Bow Fire selection should remain in the selection list after cooldown");
+            if (fireView != null) {
+                helper.assertFalse(fireView.overheatActive(),
+                        "Elemental Bow Fire selection should clear overheat after cooldown expires");
+                helper.assertTrue(fireView.overheatFillRatio() == 0.0F,
+                        "Elemental Bow Fire selection overlay should be empty after cooldown expires");
+            }
+        });
+
+        helper.succeedOnTickWhen(43, () -> {
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
+
+            var selectedViews = ElementalBow.getAvailableSelectionViews(player, stack);
+            var spectralView = selectedViews.stream()
+                    .filter(view -> "special".equals(view.selection().shotMode())
+                            && ResourceLocation.tryParse("minecraft:spectral_arrow").equals(view.selection().selectionId()))
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(spectralView != null, "Elemental Bow should keep the empty current special selection in the UI");
+            if (spectralView != null) {
+                helper.assertTrue("0".equals(spectralView.badgeText()),
+                        "Elemental Bow empty current special selection should show 0 ammo");
+                helper.assertTrue(spectralView.badgeColor() == 0xFF5555,
+                        "Elemental Bow empty current special selection should render its ammo count in red");
+            }
+
+            setElementalBowShotSelection(stack, "normal", null);
+            var normalViews = ElementalBow.getAvailableSelectionViews(player, stack);
+            helper.assertTrue(normalViews.stream().noneMatch(view ->
+                            "special".equals(view.selection().shotMode())
+                                    && ResourceLocation.tryParse("minecraft:spectral_arrow").equals(view.selection().selectionId())),
+                    "Elemental Bow should drop the empty special selection after another mode is chosen");
+            var arrowView = normalViews.stream()
+                    .filter(view -> "arrow".equals(view.selection().shotMode()))
+                    .findFirst()
+                    .orElse(null);
+            helper.assertTrue(arrowView != null, "Elemental Bow should always expose the arrow-only selection");
+            if (arrowView != null) {
+                helper.assertTrue("0".equals(arrowView.badgeText()),
+                        "Elemental Bow arrow-only selection should show 0 ammo while empty");
+                helper.assertTrue(arrowView.badgeColor() == 0xFF5555,
+                        "Elemental Bow arrow-only selection should render empty ammo in red even while another mode is selected");
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow mana gate test could not resolve player mana data");
+            magicData.setMana(0.0F);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow should fail to start drawing when mana is insufficient: " + result.getResult());
+            helper.assertFalse(player.isUsingItem(), "Elemental Bow should not enter use state without enough mana");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
+
+            item.initializeSpellContainer(stack);
+
+            assertElementalBowSelection(helper, stack, null, null,
+                    "Elemental Bow should clear unresolved legacy mode values back to normal mode");
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should remove its spell container after falling back to normal mode");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            item.initializeSpellContainer(stack);
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Elemental Bow should expose a spell container outside NONE mode");
+            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
+                    "Elemental Bow should keep its derived spell out of the spell wheel");
+            assertSpellData(
+                    helper,
+                    spellContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    1,
+                    true,
+                    "Elemental Bow should sync Fire mode into a locked spell container"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            stack.enchant(Enchantments.POWER_ARROWS, 2);
+            stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
+            stack.enchant(Enchantments.FLAMING_ARROWS, 1);
+
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            item.initializeSpellContainer(stack);
+            var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(fireProfile != null, "Elemental Bow should expose a displayed spell profile in Fire mode");
+            helper.assertTrue(fireProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    "Elemental Bow Fire mode should resolve Fire Arrow");
+            helper.assertTrue(fireProfile.spellLevel() == 6,
+                    "Elemental Bow Fire mode should apply POWER II + TRANSCENDENCE I + FLAME I to level 6 but got " + fireProfile.spellLevel());
+            var fireContainer = ISpellContainer.get(stack);
+            helper.assertTrue(fireContainer != null, "Elemental Bow Fire mode should keep a synced spell container");
+            helper.assertTrue(fireContainer != null && !fireContainer.isSpellWheel(),
+                    "Elemental Bow Fire mode container should stay hidden from the spell wheel");
+            assertSpellData(
+                    helper,
+                    fireContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    6,
+                    true,
+                    "Elemental Bow Fire mode container should reflect POWER, TRANSCENDENCE and FLAME"
+            );
+
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.ENDER_RESOURCE.toString());
+            item.initializeSpellContainer(stack);
+            var enderProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(enderProfile != null, "Elemental Bow should expose a displayed spell profile in Ender mode");
+            helper.assertTrue(enderProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                    "Elemental Bow Ender mode should resolve Magic Arrow");
+            helper.assertTrue(enderProfile.spellLevel() == 4,
+                    "Elemental Bow Ender mode should apply POWER II + TRANSCENDENCE I to level 4 but got " + enderProfile.spellLevel());
+            var enderContainer = ISpellContainer.get(stack);
+            helper.assertTrue(enderContainer != null, "Elemental Bow Ender mode should keep a synced spell container");
+            helper.assertTrue(enderContainer != null && !enderContainer.isSpellWheel(),
+                    "Elemental Bow Ender mode container should stay hidden from the spell wheel");
+            assertSpellData(
+                    helper,
+                    enderContainer,
+                    0,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                    4,
+                    true,
+                    "Elemental Bow Ender mode container should ignore FLAME but keep TRANSCENDENCE"
+            );
+
+            stack.getOrCreateTag().remove("ElementalBowMode");
+            item.initializeSpellContainer(stack);
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should remove its spell container in NONE mode");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_spell_wheel_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            ((ElementalBow) stack.getItem()).initializeSpellContainer(stack);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var mainhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+            helper.assertTrue(mainhandSelections.isEmpty(),
+                    "Elemental Bow should not add its derived spell to the mainhand spell wheel: " + mainhandSelections);
+            helper.assertTrue(selectionManager.getSelection() == null,
+                    "Elemental Bow should not create a selected spell from its derived container");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    "Elemental Bow should reject Arcane Anvil spell imbuing regardless of scroll spell"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var message = ElementalBow.createInsufficientManaMessage(
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    null
+            );
+            assertTranslatableKey(
+                    helper,
+                    message,
+                    "ui.irons_spellbooks.cast_error_mana",
+                    "Elemental Bow mana error should use Iron's cast_error_mana key"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow partial release test could not resolve player mana data");
+            magicData.setMana(250.0F);
+            var initialMana = magicData.getMana();
+
+            var useResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(useResult.getResult().consumesAction(),
+                    "Elemental Bow should start drawing when mana and ammo are available: " + useResult.getResult());
+
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 21);
+            helper.assertTrue(stack.getDamageValue() == 0, "Elemental Bow should not lose durability before full draw");
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow should not consume arrows before full draw");
+            helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
+                    "Elemental Bow should not consume mana before full draw: " + magicData.getMana());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow should start vanilla draw with Infinity even without arrows: " + result.getResult());
+            helper.assertTrue(player.isUsingItem(), "Elemental Bow should enter use state for Infinity vanilla draw");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_special_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow vanilla mode should start drawing with only special arrows available: " + result.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
+            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                    "Elemental Bow vanilla mode should consume the special arrow that vanilla resolution selected");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_only_mode_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(stack, "arrow", null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow arrow-only mode should fail when only special arrows are available: " + result.getResult());
+            helper.assertFalse(player.isUsingItem(), "Elemental Bow arrow-only mode should not enter use state without normal arrows");
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
+                    "Elemental Bow arrow-only mode should not consume special arrows");
+            assertElementalBowSelection(helper, stack, "arrow", null,
+                    "Elemental Bow arrow-only mode should keep its selection while empty");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            setElementalBowShotSelection(stack, "arrow", null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow arrow-only mode should start drawing with Infinity even without arrows: " + result.getResult());
+            helper.assertTrue(player.isUsingItem(), "Elemental Bow arrow-only mode should enter use state for Infinity draw");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+
+            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(firstUse.getResult().consumesAction(),
+                    "Elemental Bow special mode should start drawing while the selected arrow exists: " + firstUse.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
+            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                    "Elemental Bow special mode should consume the selected arrow even with Infinity");
+
+            var secondUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(secondUse.getResult().consumesAction(),
+                    "Elemental Bow special mode should start drawing again with Infinity after the selected arrow runs out: " + secondUse.getResult());
+            helper.assertTrue(player.isUsingItem(),
+                    "Elemental Bow special mode should enter use state again while keeping its empty selection");
+            assertElementalBowSelection(helper, stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"),
+                    "Elemental Bow special mode should keep the selected arrow after ammo loss");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_infinity_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow magic mode should fail to start without ammo even with Infinity: " + result.getResult());
+            helper.assertFalse(player.isUsingItem(), "Elemental Bow magic mode should not enter use state without ammo");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            helper.assertTrue(quiverStack.is(CURIOS_BACK),
+                    "Spellcaster Quiver should be tagged for the Curios back slot");
+
+            var firstInsert = SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 300));
+            var secondInsert = SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 300));
+            helper.assertTrue(firstInsert == 300, "Spellcaster Quiver should store the full first stack");
+            helper.assertTrue(secondInsert == 212,
+                    "Spellcaster Quiver should stop at 512 arrows but inserted " + secondInsert);
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 512,
+                    "Spellcaster Quiver should cap total storage at 512");
+
+            var removalOrderQuiver = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(removalOrderQuiver, new ItemStack(Items.ARROW, 32));
+            SpellcasterQuiver.store(removalOrderQuiver, new ItemStack(Items.SPECTRAL_ARROW, 7));
+            var removed = SpellcasterQuiver.removeOneStack(removalOrderQuiver);
+            helper.assertTrue(removed.is(Items.SPECTRAL_ARROW) && removed.getCount() == 7,
+                    "Spellcaster Quiver should remove the smallest stored arrow stack first");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_pickup_test");
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var itemEntity = new ItemEntity(helper.getLevel(), player.getX(), player.getY(), player.getZ(), new ItemStack(Items.ARROW, 12));
+            SpellcasterQuiverPickupEvent.onEntityItemPickup(new EntityItemPickupEvent(player, itemEntity));
+
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 12,
+                    "Equipped Spellcaster Quiver should auto-store picked up arrows");
+            helper.assertTrue(itemEntity.isRemoved(),
+                    "Spellcaster Quiver pickup handling should finish the ItemEntity when all arrows were stored");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_priority_test");
+            var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(bowStack, "arrow", null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 5));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow should start drawing when only the equipped Spellcaster Quiver provides arrows");
+
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration() - 20);
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 4,
+                    "Elemental Bow should consume the equipped Spellcaster Quiver arrow first");
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow should leave loose inventory arrows untouched while the quiver has arrows");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_selection_test");
+            var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 3));
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.SPECTRAL_ARROW, 2));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var normalView = findElementalBowSelectionView(player, bowStack, "arrow", null);
+            helper.assertTrue(normalView != null, "Elemental Bow should expose normal arrow selection");
+            helper.assertTrue(normalView != null && "3".equals(normalView.badgeText()),
+                    "Elemental Bow selection badge should count normal arrows stored in Spellcaster Quiver");
+
+            var view = findElementalBowSelectionView(player, bowStack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
+            helper.assertTrue(view != null, "Elemental Bow should expose spectral arrow selection from Spellcaster Quiver contents");
+            helper.assertTrue(view != null && "2".equals(view.badgeText()),
+                    "Elemental Bow selection badge should count Spellcaster Quiver arrows");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterQuiverSlowdownHelperTracksEquippedBowUse(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_slowdown_test");
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var bowStack = new ItemStack(Items.BOW);
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 1));
+
+            bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(SpellcasterQuiver.shouldIgnoreBowSlowdown(player),
+                    "Spellcaster Quiver slowdown helper should activate while a bow is being drawn");
+
+            player.stopUsingItem();
+            helper.assertFalse(SpellcasterQuiver.shouldIgnoreBowSlowdown(player),
+                    "Spellcaster Quiver slowdown helper should stop once bow use ends");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
+            var stack = new ItemStack(item);
+            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
+
+            item.initializeSpellContainer(stack);
+
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Elemental Bow should not expose a spell container outside magic mode");
+            helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack) == null,
+                    "Elemental Bow should not expose a displayed spell profile outside magic mode");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_helper_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var cooldownAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get());
+            helper.assertTrue(cooldownAttribute != null, "Elemental Bow cooldown helper test could not resolve cooldown attribute");
+            cooldownAttribute.addPermanentModifier(new AttributeModifier(
+                    UUID.fromString("24565bf4-5900-4a8f-8e05-a9f4a0db3dd7"),
+                    "apprenticecodex.elemental_bow.cooldown_helper_test",
+                    0.35D,
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            ));
+
+            var expectedCooldown = (int) (fireArrow.getSpellCooldown() * (2 - Utils.softCapFormula(
+                    player.getAttributeValue(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get())
+            )));
+            var helperCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    fireArrow,
+                    player,
+                    CastSource.SWORD,
+                    stack
+            );
+            helper.assertTrue(helperCooldown == expectedCooldown,
+                    "Elemental Bow cooldown helper should keep player cooldown reduction but ignore sword multiplier: "
+                            + helperCooldown + " / expected " + expectedCooldown);
+
+            var vanillaCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                    fireArrow,
+                    player,
+                    CastSource.SWORD
+            );
+            var fallbackCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    fireArrow,
+                    player,
+                    CastSource.SWORD,
+                    ItemStack.EMPTY
+            );
+            helper.assertTrue(fallbackCooldown == vanillaCooldown,
+                    "Non-opt-in cooldown helper path should match Iron's default cooldown calculation");
+
+            var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue();
+            if (swordCooldownMultiplier != 1.0F) {
+                helper.assertTrue(helperCooldown != vanillaCooldown,
+                        "Elemental Bow cooldown helper should diverge from the sword multiplier path when the config multiplier is not 1");
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow cooldown test could not resolve player mana data");
+            magicData.setPlayerCastingItem(stack.copy());
+
+            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var expectedStoredCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    fireArrow,
+                    player,
+                    CastSource.SWORD,
+                    stack
+            );
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
+                    fireArrow,
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
+                    "Elemental Bow should suppress elemental arrow cooldowns but got " + cooldownEvent.getEffectiveCooldown());
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    ) == expectedStoredCooldown,
+                    "Elemental Bow should store the helper cooldown for overheat timing"
+            );
+
+            var controlEvent = new SpellCooldownAddedEvent.Pre(
+                    160,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get(),
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(controlEvent);
+            helper.assertTrue(controlEvent.getEffectiveCooldown() == 160,
+                    "Elemental Bow cooldown suppression should not affect unrelated spells");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow overheat mana test could not resolve player mana data");
+
+            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var baseMana = fireArrow.getManaCost(1);
+            magicData.setMana(300.0F);
+            var initialMana = magicData.getMana();
+
+            var firstUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(firstUseResult.getResult().consumesAction(),
+                    "Elemental Bow should start the first elemental draw: " + firstUseResult.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            var manaAfterFirstShot = magicData.getMana();
+            helper.assertTrue(Math.abs(manaAfterFirstShot - (initialMana - baseMana)) < 1.0e-3F,
+                    "Elemental Bow first overheatable shot should consume only base mana: " + manaAfterFirstShot);
+
+            var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    baseMana
+            );
+            helper.assertTrue(extraMana > 0.0F, "Elemental Bow should enter overheat after the first elemental shot");
+
+            var secondUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(secondUseResult.getResult().consumesAction(),
+                    "Elemental Bow should still allow a second overheated draw: " + secondUseResult.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            var manaAfterSecondShot = magicData.getMana();
+            helper.assertTrue(Math.abs(manaAfterSecondShot - (manaAfterFirstShot - baseMana - extraMana)) < 1.0e-3F,
+                    "Elemental Bow second overheated shot consumed the wrong mana: " + manaAfterSecondShot);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_school_test");
+            var fireStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            fireStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+
+            var natureStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            natureStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.NATURE_RESOURCE.toString());
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow school overheat test could not resolve player mana data");
+
+            magicData.setPlayerCastingItem(fireStack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+
+            magicData.setPlayerCastingItem(natureStack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            120,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.NATURE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.NATURE_RESOURCE,
+                            0
+                    )
+            );
+
+            var fireState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireState.active() && fireState.chainDepth() == 1,
+                    "Elemental Bow fire overheat should stay isolated at depth 1: " + fireState);
+
+            var natureState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.NATURE_RESOURCE);
+            helper.assertTrue(natureState.active() && natureState.chainDepth() == 1,
+                    "Elemental Bow nature overheat should stay isolated at depth 1: " + natureState);
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                            player,
+                            SchoolRegistry.ENDER_RESOURCE,
+                            10.0F
+                    ) == 0.0F,
+                    "Elemental Bow should not leak overheat into untouched schools"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_refresh_test");
+        var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+        stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+        var magicData = MagicData.getPlayerMagicData(player);
+        var firstExpire = new java.util.concurrent.atomic.AtomicLong();
+
+        helper.assertTrue(magicData != null, "Elemental Bow overheat refresh test could not resolve player mana data");
+
+        helper.runAtTickTime(1, () -> {
+            magicData.setPlayerCastingItem(stack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+            firstExpire.set(jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE).expireGameTime());
+        });
+
+        helper.runAtTickTime(40, () -> {
+            magicData.setPlayerCastingItem(stack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+
+            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(state.active(), "Elemental Bow repeated cast should keep fire overheat active");
+            helper.assertTrue(state.chainDepth() == 2, "Elemental Bow repeated cast should raise overheat chain depth to 2: " + state.chainDepth());
+            helper.assertTrue(state.expireGameTime() > firstExpire.get(),
+                    "Elemental Bow repeated cast should refresh overheat expiry but got " + state.expireGameTime() + " <= " + firstExpire.get());
+            helper.assertTrue(state.expireGameTime() - helper.getLevel().getGameTime() == 160,
+                    "Elemental Bow repeated cast should reset overheat duration from the latest cast");
+        });
+
+        helper.succeedOnTickWhen(41, () -> {
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedReflectcastShieldEnchantments(stack),
+                    "Reflectcast Shield"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Spellcasters Flask",
+                item -> item.getClass() == SpellcastersFlask.class,
+                expectedFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertCategoryEnchantments(
+                helper,
+                "Alchemists Flask",
+                item -> item.getClass() == AlchemistsFlask.class,
+                expectedAlchemistsFlaskEnchantments()
+        ));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ALACRITY, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.REFLUX, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RESERVOIR, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SURGE, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ATTUNEMENT, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.TENSE, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.WISDOM, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.PLUNDER, false, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.TRANSCENDENCE, true, true, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GUZZLE, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.LARGE_MUG, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RED_ENERGY, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GLOW_ENERGY, false, false, true);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var function = EnchantRandomlyFunction.randomApplicableEnchantment().build();
+            var seenApprenticeEnchantments = new LinkedHashSet<ResourceLocation>();
+
+            for (long seed = 0L; seed < 4096L; ++seed) {
+                var result = function.apply(new ItemStack(Items.BOOK), createEmptyLootContext(helper, seed));
+                var enchantments = EnchantmentHelper.getEnchantments(result);
+                helper.assertTrue(result.is(Items.ENCHANTED_BOOK),
+                        "Random applicable enchantment loot should convert books into enchanted books");
+                helper.assertTrue(enchantments.size() == 1,
+                        "Random applicable enchantment loot should apply exactly one enchantment: " + enchantments);
+
+                for (var enchantment : enchantments.keySet()) {
+                    var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                    if (enchantmentId == null || !ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
+                        continue;
+                    }
+
+                    helper.assertFalse(ApprenticeEnchantmentAvailability.isFlaskExclusiveEnchantment(enchantment),
+                            "Random applicable enchantment loot included flask enchantment: " + enchantmentId + " at seed " + seed);
+                    seenApprenticeEnchantments.add(enchantmentId);
+                }
+            }
+
+            var expectedEnchantments = expectedRandomBookLootEnchantments();
+            helper.assertTrue(seenApprenticeEnchantments.containsAll(expectedEnchantments),
+                    "Random applicable enchantment loot lost apprentice enchantments: "
+                            + describeEnchantmentDifference(expectedEnchantments, seenApprenticeEnchantments));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertCategoryEnchantments(
+                    helper,
+                    "Enchantress Robe",
+                    item -> item instanceof EnchantressRobeItem,
+                    ApprenticeCodexGameTestScenarios::expectedEnchantressRobeEnchantments
+            );
+            assertCategoryEnchantments(
+                    helper,
+                    "Stealth Rune Armor",
+                    item -> item instanceof StealthRuneArmorItem,
+                    ApprenticeCodexGameTestScenarios::expectedStealthRuneArmorEnchantments
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var lightningSpellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get();
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_HAT.get(),
+                    ArmorItem.Type.CHESTPLATE, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get(),
+                    ArmorItem.Type.LEGGINGS, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
+                    ArmorItem.Type.BOOTS, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_BOOTS.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
+                helper.assertTrue(Math.abs(maxManaBonus - EnchantressRobeStats.MAX_MANA_BONUS_PER_PIECE) < 1.0e-9D,
+                        "Enchantress Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
+                helper.assertTrue(Math.abs(spellPowerBonus - 0.10D) < 1.0e-9D,
+                        "Enchantress Robe " + armorType + " spell power regression: " + describeModifiers(modifiers));
+
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
+                        "Enchantress Robe " + armorType + " imbue surface regression: hasImbueSlot="
+                                + item.hasImbueSlot() + " stack=" + stack);
+
+                var lightningSpellPowerBonus = sumModifierAmount(
+                        modifiers.get(lightningSpellPowerAttribute),
+                        AttributeModifier.Operation.MULTIPLY_BASE
+                );
+                helper.assertTrue(Math.abs(lightningSpellPowerBonus) < 1.0e-9D,
+                        "Enchantress Robe " + armorType + " should not gain school spell power before imbue: "
+                                + describeModifiers(modifiers));
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void enchantressRobeChestplateAddsImbuedSchoolSpellPowerWithoutChangingGlobalSpellPower(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+            ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Enchantress Robe chestplate test could not resolve imbued school");
+            var imbuedSpellPowerAttribute =
+                    jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(imbuedSpellPowerAttribute != null,
+                    "Enchantress Robe chestplate test could not resolve school spell power attribute");
+
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.CHEST, stack);
+            var globalSpellPowerBonus = sumModifierAmount(
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            );
+            helper.assertTrue(Math.abs(globalSpellPowerBonus - 0.10D) < 1.0e-9D,
+                    "Enchantress Robe chestplate should keep +0.10 spell power after imbue: " + describeModifiers(modifiers));
+
+            var imbuedSchoolSpellPowerBonus = sumModifierAmount(
+                    modifiers.get(imbuedSpellPowerAttribute),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            );
+            helper.assertTrue(Math.abs(imbuedSchoolSpellPowerBonus - 0.05D) < 1.0e-9D,
+                    "Enchantress Robe chestplate should add +0.05 imbued school spell power: " + describeModifiers(modifiers));
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            var item = stack.getItem();
+            var expectedVanillaEnchantments = Set.of(
+                    ResourceLocation.withDefaultNamespace("fortune"),
+                    ResourceLocation.withDefaultNamespace("knockback"),
+                    ResourceLocation.withDefaultNamespace("looting"),
+                    ResourceLocation.withDefaultNamespace("silk_touch")
+            );
+
+            var actualAllowedVanillaEnchantments = collectAllowedEnchantments(
+                    stack,
+                    enchantment -> {
+                        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                        return enchantmentId != null
+                                && VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                                && item.canApplyAtEnchantingTable(stack, enchantment);
+                    }
+            );
+            helper.assertTrue(actualAllowedVanillaEnchantments.equals(expectedVanillaEnchantments),
+                    "Pastel Staff allowed vanilla enchantments changed: "
+                            + describeEnchantmentDifference(expectedVanillaEnchantments, actualAllowedVanillaEnchantments));
+
+            // Iron's StaffItem 側の広い互換性は 1.21.1 で揺れやすいため固定せず、
+            // この mod が明示したバニラ武器許可と耐久系拒否だけを回帰監視する。
+            for (var enchantment : getRegisteredEnchantments()) {
+                var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+                if (enchantmentId == null) {
+                    continue;
+                }
+
+                var expectedVanillaAllowed = VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())
+                        && expectedVanillaEnchantments.contains(enchantmentId);
+                if (VANILLA_NAMESPACE.equals(enchantmentId.getNamespace())) {
+                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment) == expectedVanillaAllowed,
+                            "Pastel Staff vanilla enchanting-table rule changed for " + enchantmentId
+                                    + ": expected " + expectedVanillaAllowed);
+                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedVanillaAllowed,
+                            "Pastel Staff vanilla book rule changed for " + enchantmentId
+                                    + ": expected " + expectedVanillaAllowed);
+                }
+
+                if (isDurabilityTargetEnchantment(enchantment)) {
+                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should keep rejecting durability-target enchantments at the enchanting table: "
+                                    + enchantmentId);
+                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should keep rejecting durability-target enchantments from books: "
+                                    + enchantmentId);
+                }
+
+                if (MALUM_HAUNTED.equals(enchantmentId)) {
+                    helper.assertTrue(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should allow malum:haunted at the enchanting table");
+                    helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should allow malum:haunted from books");
+                }
+
+                if (MALUM_ANIMATED.equals(enchantmentId)) {
+                    helper.assertFalse(item.canApplyAtEnchantingTable(stack, enchantment),
+                            "Pastel Staff should keep rejecting malum:animated at the enchanting table");
+                    helper.assertFalse(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                            "Pastel Staff should keep rejecting malum:animated from books");
+                }
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var haunted = MalumHauntedCompat.getHauntedEnchantment();
+            helper.assertTrue(haunted != null, "malum:haunted is not registered");
+
+            var pastelStaff = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
+            pastelStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(pastelStaff),
+                    "Pastel Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(pastelStaff) > 0.0D,
+                    "Pastel Staff should resolve a positive Haunted magic damage bonus");
+
+            var crystalBladedStaff = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+            crystalBladedStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(crystalBladedStaff),
+                    "Crystal Bladed Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(crystalBladedStaff) > 0.0D,
+                    "Crystal Bladed Staff should resolve a positive Haunted magic damage bonus");
+
+            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())),
+                    "Spellgun should stay outside Haunted support");
+            helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())),
+                    "Reflectcast Shield should stay outside Haunted support");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malumHauntedBonusUsesDedicatedDamageType(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var source = MalumHauntedCompat.createHauntedBonusDamageSource(attacker);
+            helper.assertTrue(source.is(DamageTypes.HAUNTED_BONUS),
+                    "Haunted bonus should use apprenticecodex:haunted_bonus");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.MAGIC_DAMAGE),
+                    "Haunted bonus should stay on the magic damage tag path");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.FORGE_IS_MAGIC),
+                    "Haunted bonus should stay on the forge:is_magic path for Lodestone magic_proficiency");
+            helper.assertTrue(source.is(DamageTypeTagGenerator.BYPASSES_IFRAME),
+                    "Haunted bonus should bypass cooldown-based I-Frame checks");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void magicDamageTagActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(LODESTONE_MOD_ID)) {
+                return;
+            }
+
+            var magicProficiency = ForgeRegistries.ATTRIBUTES.getValue(LODESTONE_MAGIC_PROFICIENCY);
+            helper.assertTrue(magicProficiency != null, "lodestone:magic_proficiency is not registered");
+
+            var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            var proficiencyInstance = attacker.getAttribute(magicProficiency);
+            helper.assertTrue(proficiencyInstance != null, "Attacker is missing lodestone:magic_proficiency");
+
+            var baselineTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(1, 2, 0));
+            var amplifiedTarget = helper.spawn(net.minecraft.world.entity.EntityType.SHEEP, new BlockPos(2, 2, 0));
+            var baseDamage = 4.0F;
+
+            var baselineHealth = baselineTarget.getHealth();
+            helper.assertTrue(baselineTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
+                    "Baseline haunted bonus damage should apply");
+            var baselineTaken = baselineHealth - baselineTarget.getHealth();
+            helper.assertTrue(Math.abs(baselineTaken - baseDamage) < 1.0e-4F,
+                    "Baseline haunted bonus damage should stay unscaled at proficiency 1.0, actual=" + baselineTaken);
+
+            proficiencyInstance.setBaseValue(1.5D);
+            var amplifiedHealth = amplifiedTarget.getHealth();
+            helper.assertTrue(amplifiedTarget.hurt(MalumHauntedCompat.createHauntedBonusDamageSource(attacker), baseDamage),
+                    "Amplified haunted bonus damage should apply");
+            var amplifiedTaken = amplifiedHealth - amplifiedTarget.getHealth();
+            helper.assertTrue(Math.abs(amplifiedTaken - 6.0F) < 1.0e-4F,
+                    "Amplified haunted bonus damage should scale to 6.0 at proficiency 1.5, actual=" + amplifiedTaken);
+            helper.assertTrue(amplifiedTaken > baselineTaken,
+                    "Amplified haunted bonus damage should exceed baseline damage");
+        });
+    }
     public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
@@ -5296,13 +7102,14 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static void equipCraftsmansDelight(FakePlayer player, ItemStack ringStack) {
+    private static void equipCurio(FakePlayer player, String slotId, ItemStack stack) {
         var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
-                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for CraftsmansDelight test"));
-        var ringHandler = curiosInventory.getStacksHandler(io.redspace.ironsspellbooks.compat.Curios.RING_SLOT)
-                .orElseThrow(() -> new IllegalStateException("Missing ring slot handler for CraftsmansDelight test"));
-        ringHandler.getStacks().setStackInSlot(0, ringStack.copy());
-        ringHandler.update();
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for curio equip test"));
+        curiosInventory.setEquippedCurio(slotId, 0, stack);
+    }
+
+    private static void equipCraftsmansDelight(FakePlayer player, ItemStack ringStack) {
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, ringStack);
     }
 
     private static ItemStack getEquippedCraftsmansDelight(FakePlayer player) {

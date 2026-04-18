@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
@@ -61,6 +62,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
         WeaponImbueCooldownPolicyItem {
@@ -285,9 +289,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private InteractionResultHolder<ItemStack> useNormalArrowMode(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
-        var projectile = player.getProjectile(stack);
-        if (!projectile.isEmpty() || !hasInfinity(stack) || player.getAbilities().instabuild) {
-            return super.use(level, player, usedHand);
+        var ammoSource = resolveVanillaAmmoSource(player, stack);
+        var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
+        if (ammoSource == null && !canFireWithoutAmmo) {
+            return InteractionResultHolder.fail(stack);
         }
 
         var nockResult = EventHooks.onArrowNock(stack, level, player, usedHand, true);
@@ -376,7 +381,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private void releaseVanillaShot(ItemStack stack, Level level, Player player, int timeLeft) {
         var ammoSource = resolveVanillaAmmoSource(player, stack);
-        var hasAmmo = ammoSource != null && !ammoSource.isEmpty();
+        var hasAmmo = ammoSource != null && !ammoSource.stack().isEmpty();
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasInfinity(stack);
         var drawDuration = stack.getUseDuration(player) - timeLeft;
         drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, hasAmmo || canFireWithoutAmmo);
@@ -388,11 +393,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return;
         }
 
-        var ammoStack = hasAmmo ? ammoSource : new ItemStack(Items.ARROW);
+        var ammoStack = hasAmmo ? ammoSource.stack() : new ItemStack(Items.ARROW);
         var infiniteAmmo = player.getAbilities().instabuild
-                || hasInfinity(stack)
-                || ammoStack.getItem() instanceof ArrowItem arrowItem && arrowItem.isInfinite(ammoStack, stack, player)
-                || !hasAmmo;
+                || hasAmmo && ammoSource.isInfinite(stack, player)
+                || (!hasAmmo && hasInfinity(stack));
         var power = getPowerForTime(drawDuration);
         if (power < 0.1F) {
             return;
@@ -404,15 +408,15 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            consumeAmmo(ammoSource);
+            ammoSource.consume();
         }
         triggerReleaseAnimation(player, stack);
     }
 
     private void releaseTrackedArrowShot(ItemStack stack, Level level, Player player, int timeLeft, ModeSelection selection) {
         var ammoSource = resolveAmmoSource(player, stack, selection);
-        var hasAmmo = ammoSource != null && !ammoSource.isEmpty();
-        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var hasAmmo = ammoSource != null && !ammoSource.stack().isEmpty();
+        var canFireWithoutAmmo = player.getAbilities().instabuild || selection.kind() == ShotModeKind.ARROW && hasInfinity(stack);
         var drawDuration = stack.getUseDuration(player) - timeLeft;
         drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, hasAmmo || canFireWithoutAmmo);
         if (drawDuration < 0) {
@@ -423,11 +427,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return;
         }
 
-        var ammoStack = hasAmmo ? ammoSource : createRepresentativeAmmo(selection);
+        var ammoStack = hasAmmo ? ammoSource.stack() : createRepresentativeAmmo(selection);
         var infiniteAmmo = player.getAbilities().instabuild
-                || selection.kind() == ShotModeKind.ARROW && hasInfinity(stack)
-                || ammoStack.getItem() instanceof ArrowItem arrowItem
-                && arrowItem.isInfinite(ammoStack, stack, player);
+                || hasAmmo && ammoSource.isInfinite(stack, player);
+                || !hasAmmo && selection.kind() == ShotModeKind.ARROW && hasInfinity(stack);
         var power = getPowerForTime(drawDuration);
         if (power < 0.1F) {
             return;
@@ -439,7 +442,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         fireVanillaArrow(level, player, stack, ammoStack, power, infiniteAmmo);
         if (!player.getAbilities().instabuild && hasAmmo && !infiniteAmmo) {
-            consumeAmmo(ammoSource);
+            ammoSource.consume();
         }
         triggerReleaseAnimation(player, stack);
     }
@@ -502,7 +505,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (ammoSource != null) {
-                consumeAmmo(ammoSource);
+                ammoSource.consume();
             }
         }
 
@@ -740,7 +743,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     @Nullable
-    private ItemStack resolveAmmoSource(Player player, ItemStack bowStack, ModeSelection selection) {
+    private AmmoSource resolveAmmoSource(Player player, ItemStack bowStack, ModeSelection selection) {
         return switch (selection.kind()) {
             case NORMAL, MAGIC -> resolveVanillaAmmoSource(player, bowStack);
             case ARROW -> resolveNormalArrowAmmoSource(player);
@@ -750,27 +753,40 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     @Nullable
-    private ItemStack resolveVanillaAmmoSource(Player player, ItemStack bowStack) {
-        // 外部矢筒系は格納仕様/API が mod ごとに揺れやすいため、現時点ではまず vanilla の矢取得面を固定する。
-        // Supplementaries / Relics の個別連携は、1 本消費経路を安全に確定できた時点で別差分に分離する。
+    private AmmoSource resolveVanillaAmmoSource(Player player, ItemStack bowStack) {
+        var quiverSource = resolveQuiverAmmoSource(player, ammoStack -> ammoStack.getItem() instanceof ArrowItem);
+        if (quiverSource != null) {
+            return quiverSource;
+        }
+
         var projectile = player.getProjectile(bowStack);
-        return projectile.isEmpty() ? null : projectile;
+        return projectile.isEmpty() ? null : new LooseAmmoSource(projectile);
     }
 
     @Nullable
-    private ItemStack resolveNormalArrowAmmoSource(Player player) {
+    private AmmoSource resolveNormalArrowAmmoSource(Player player) {
+        var quiverSource = resolveQuiverAmmoSource(player, ammoStack -> ammoStack.is(Items.ARROW));
+        if (quiverSource != null) {
+            return quiverSource;
+        }
+
         for (var ammoStack : collectCandidateAmmoStacks(player)) {
             if (ammoStack.is(Items.ARROW)) {
-                return ammoStack;
+                return new LooseAmmoSource(ammoStack);
             }
         }
         return null;
     }
 
     @Nullable
-    private ItemStack resolveSpecialAmmoSource(Player player, @Nullable ResourceLocation selectionId) {
+    private AmmoSource resolveSpecialAmmoSource(Player player, @Nullable ResourceLocation selectionId) {
         if (selectionId == null) {
             return null;
+        }
+
+        var quiverSource = resolveQuiverAmmoSource(player, ammoStack -> matchesSpecialAmmo(ammoStack, selectionId));
+        if (quiverSource != null) {
+            return quiverSource;
         }
 
         for (var ammoStack : collectCandidateAmmoStacks(player)) {
@@ -778,30 +794,22 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 continue;
             }
 
-            if (SPECTRAL_ARROW_ID.equals(selectionId)) {
-                if (ammoStack.is(Items.SPECTRAL_ARROW)) {
-                    return ammoStack;
-                }
-                continue;
-            }
-
-            if (!ammoStack.is(Items.TIPPED_ARROW)) {
-                continue;
-            }
-
-            var potion = PotionContentsHelper.getPotion(ammoStack);
-            var potionId = potion == null ? null : BuiltInRegistries.POTION.getKey(potion);
-            if (selectionId.equals(potionId)) {
-                return ammoStack;
+            if (matchesSpecialAmmo(ammoStack, selectionId)) {
+                return new LooseAmmoSource(ammoStack);
             }
         }
         return null;
     }
 
     @Nullable
-    private ItemStack resolveModAmmoSource(Player player, @Nullable ResourceLocation selectionId) {
+    private AmmoSource resolveModAmmoSource(Player player, @Nullable ResourceLocation selectionId) {
         if (selectionId == null) {
             return null;
+        }
+
+        var quiverSource = resolveQuiverAmmoSource(player, ammoStack -> matchesModAmmo(ammoStack, selectionId));
+        if (quiverSource != null) {
+            return quiverSource;
         }
 
         for (var ammoStack : collectCandidateAmmoStacks(player)) {
@@ -809,17 +817,37 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 continue;
             }
 
-            var item = ammoStack.getItem();
-            var itemId = BuiltInRegistries.ITEM.getKey(item);
-            if (item instanceof ArrowItem && !VANILLA_ARROW_ITEMS.contains(item) && selectionId.equals(itemId)) {
-                return ammoStack;
+            if (matchesModAmmo(ammoStack, selectionId)) {
+                return new LooseAmmoSource(ammoStack);
             }
         }
         return null;
     }
 
-    private void consumeAmmo(ItemStack ammoStack) {
-        ammoStack.shrink(1);
+    @Nullable
+    private AmmoSource resolveQuiverAmmoSource(Player player, Predicate<ItemStack> predicate) {
+        var quiverAmmo = SpellcasterQuiver.findAccessibleArrow(player, predicate);
+        return quiverAmmo == null ? null : new StoredAmmoSource(quiverAmmo, () -> SpellcasterQuiver.consumeAccessibleArrow(player, predicate));
+    }
+
+    private static boolean matchesSpecialAmmo(ItemStack ammoStack, ResourceLocation selectionId) {
+        if (SPECTRAL_ARROW_ID.equals(selectionId)) {
+            return ammoStack.is(Items.SPECTRAL_ARROW);
+        }
+
+        if (!ammoStack.is(Items.TIPPED_ARROW)) {
+            return false;
+        }
+
+        var potion = PotionUtils.getPotion(ammoStack);
+        var potionId = ForgeRegistries.POTIONS.getKey(potion);
+        return potion != Potions.EMPTY && selectionId.equals(potionId);
+    }
+
+    private static boolean matchesModAmmo(ItemStack ammoStack, ResourceLocation selectionId) {
+        var item = ammoStack.getItem();
+        var itemId = ForgeRegistries.ITEMS.getKey(item);
+        return item instanceof ArrowItem && !VANILLA_ARROW_ITEMS.contains(item) && selectionId.equals(itemId);
     }
 
     private float getAdditionalManaCost(Player player, ResolvedDefinition mode, SpellCastProfile profile) {
@@ -1015,39 +1043,52 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         var specialArrowCounts = new LinkedHashMap<ResourceLocation, Integer>();
         var modArrowCounts = new LinkedHashMap<ResourceLocation, Integer>();
 
+        var quiverNormalArrowCount = new int[1];
+        SpellcasterQuiver.forEachAccessibleArrow(player, (ammoStack, count) ->
+                quiverNormalArrowCount[0] += accumulateAmmoCount(ammoStack, count, specialArrowCounts, modArrowCounts));
+        normalArrowCount += quiverNormalArrowCount[0];
         for (var ammoStack : collectCandidateAmmoStacks(player)) {
-            if (ammoStack.isEmpty()) {
-                continue;
-            }
-
-            if (ammoStack.is(Items.ARROW)) {
-                normalArrowCount += ammoStack.getCount();
-                continue;
-            }
-
-            if (ammoStack.is(Items.SPECTRAL_ARROW)) {
-                specialArrowCounts.merge(SPECTRAL_ARROW_ID, ammoStack.getCount(), Integer::sum);
-                continue;
-            }
-
-            if (ammoStack.is(Items.TIPPED_ARROW)) {
-                var potion = PotionContentsHelper.getPotion(ammoStack);
-                var potionId = potion == null ? null : BuiltInRegistries.POTION.getKey(potion);
-                if (potionId != null) {
-                    specialArrowCounts.merge(potionId, ammoStack.getCount(), Integer::sum);
-                }
-                continue;
-            }
-
-            if (ammoStack.getItem() instanceof ArrowItem arrowItem && !VANILLA_ARROW_ITEMS.contains(arrowItem)) {
-                var itemId = BuiltInRegistries.ITEM.getKey(arrowItem);
-                if (itemId != null) {
-                    modArrowCounts.merge(itemId, ammoStack.getCount(), Integer::sum);
-                }
-            }
+            normalArrowCount += accumulateAmmoCount(ammoStack, ammoStack.getCount(), specialArrowCounts, modArrowCounts);
         }
 
         return new AmmoInventorySummary(normalArrowCount, Map.copyOf(specialArrowCounts), Map.copyOf(modArrowCounts));
+    }
+
+    private static int accumulateAmmoCount(
+            ItemStack ammoStack,
+            int count,
+            Map<ResourceLocation, Integer> specialArrowCounts,
+            Map<ResourceLocation, Integer> modArrowCounts
+    ) {
+        if (ammoStack.isEmpty() || count <= 0) {
+            return 0;
+        }
+
+        if (ammoStack.is(Items.ARROW)) {
+            return count;
+        }
+
+        if (ammoStack.is(Items.SPECTRAL_ARROW)) {
+            specialArrowCounts.merge(SPECTRAL_ARROW_ID, count, Integer::sum);
+            return 0;
+        }
+
+        if (ammoStack.is(Items.TIPPED_ARROW)) {
+            var potion = PotionUtils.getPotion(ammoStack);
+            var potionId = ForgeRegistries.POTIONS.getKey(potion);
+            if (potion != Potions.EMPTY && potionId != null) {
+                specialArrowCounts.merge(potionId, count, Integer::sum);
+            }
+            return 0;
+        }
+
+        if (ammoStack.getItem() instanceof ArrowItem arrowItem && !VANILLA_ARROW_ITEMS.contains(arrowItem)) {
+            var itemId = ForgeRegistries.ITEMS.getKey(arrowItem);
+            if (itemId != null) {
+                modArrowCounts.merge(itemId, count, Integer::sum);
+            }
+        }
+        return 0;
     }
 
     private static List<ItemStack> collectCandidateAmmoStacks(Player player) {
@@ -1378,6 +1419,31 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         return 0;
+    }
+
+    private interface AmmoSource {
+        ItemStack stack();
+
+        boolean consume();
+
+        default boolean isInfinite(ItemStack bowStack, Player player) {
+            return stack().getItem() instanceof ArrowItem arrowItem && arrowItem.isInfinite(stack(), bowStack, player);
+        }
+    }
+
+    private record LooseAmmoSource(ItemStack stack) implements AmmoSource {
+        @Override
+        public boolean consume() {
+            stack.shrink(1);
+            return true;
+        }
+    }
+
+    private record StoredAmmoSource(ItemStack stack, BooleanSupplier consumer) implements AmmoSource {
+        @Override
+        public boolean consume() {
+            return consumer.getAsBoolean();
+        }
     }
 
     private enum ShotModeKind {

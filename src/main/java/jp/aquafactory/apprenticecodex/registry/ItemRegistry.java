@@ -24,6 +24,7 @@ import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.isekaitravelguidebook.IsekaiTravelGuidebook;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -173,6 +174,8 @@ public final class ItemRegistry {
             ITEMS.register("protection_spell_supporter", ProtectionSpellSupporter::new);
     public static final DeferredHolder<Item, Item> SPELLCASTER_AMMO_POUCH =
             ITEMS.register("spellcaster_ammo_pouch", SpellcasterAmmoPouch::new);
+    public static final DeferredHolder<Item, Item> SPELLCASTER_QUIVER =
+            ITEMS.register("spellcaster_quiver", SpellcasterQuiver::new);
     public static final DeferredHolder<Item, Item> ABSORPTION_AMPLIFY_AMULET =
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
     public static final DeferredHolder<Item, Item> ASHEN_CIRCLET =
