@@ -5,19 +5,20 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class BetterCombatOffhandSpellSelectionRefreshEvent {
     @Nullable
     private static OffhandSnapshot lastOffhandSnapshot;
@@ -27,10 +28,7 @@ public final class BetterCombatOffhandSpellSelectionRefreshEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
+    public static void onClientTick(ClientTickEvent.Post event) {
         if (!ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
             clearState();
             return;
@@ -74,10 +72,11 @@ public final class BetterCombatOffhandSpellSelectionRefreshEvent {
             @Nullable CompoundTag tag
     ) {
         private static OffhandSnapshot capture(ItemStack stack) {
+            var customData = stack.get(DataComponents.CUSTOM_DATA);
             return new OffhandSnapshot(
                     stack.getItem(),
                     stack.getCount(),
-                    stack.hasTag() ? stack.getTag() != null ? stack.getTag().copy() : null : null
+                    customData == null ? null : customData.copyTag()
             );
         }
     }
