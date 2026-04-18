@@ -13,9 +13,10 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.ForgeEventFactory;
+import net.neoforged.neoforge.event.EventHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -35,7 +36,7 @@ public abstract class BowItemSpellcasterQuiverMixin {
 
         var ammoSource = SpellcasterQuiverBowAmmoResolver.resolveBowAmmo(player, bowStack);
         var hasAmmo = ammoSource != null;
-        var nockResult = ForgeEventFactory.onArrowNock(bowStack, level, player, hand, hasAmmo);
+        var nockResult = EventHooks.onArrowNock(bowStack, level, player, hand, hasAmmo);
         if (nockResult != null) {
             cir.setReturnValue(nockResult);
             return;
@@ -58,9 +59,9 @@ public abstract class BowItemSpellcasterQuiverMixin {
 
         var ammoSource = SpellcasterQuiverBowAmmoResolver.resolveBowAmmo(player, bowStack);
         var canFireWithoutAmmo = player.getAbilities().instabuild
-                || bowStack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
-        var drawDuration = bowStack.getUseDuration() - timeLeft;
-        drawDuration = ForgeEventFactory.onArrowLoose(bowStack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
+                || getEnchantmentLevel(bowStack, Enchantments.INFINITY) > 0;
+        var drawDuration = bowStack.getUseDuration(player) - timeLeft;
+        drawDuration = EventHooks.onArrowLoose(bowStack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
         if (drawDuration < 0) {
             ci.cancel();
             return;
@@ -84,28 +85,14 @@ public abstract class BowItemSpellcasterQuiverMixin {
         var bowItem = (BowItem) (Object) this;
         if (!level.isClientSide) {
             var arrowItem = (ArrowItem) (ammoStack.getItem() instanceof ArrowItem ? ammoStack.getItem() : Items.ARROW);
-            var arrow = arrowItem.createArrow(level, ammoStack, player);
-            arrow = bowItem.customArrow(arrow);
+            var arrow = arrowItem.createArrow(level, ammoStack, player, bowStack);
+            arrow = bowItem.customArrow(arrow, ammoStack, bowStack);
             arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, power * 3.0F, 1.0F);
             if (power == 1.0F) {
                 arrow.setCritArrow(true);
             }
 
-            var powerLevel = bowStack.getEnchantmentLevel(Enchantments.POWER_ARROWS);
-            if (powerLevel > 0) {
-                arrow.setBaseDamage(arrow.getBaseDamage() + (double) powerLevel * 0.5D + 0.5D);
-            }
-
-            var punchLevel = bowStack.getEnchantmentLevel(Enchantments.PUNCH_ARROWS);
-            if (punchLevel > 0) {
-                arrow.setKnockback(punchLevel);
-            }
-
-            if (bowStack.getEnchantmentLevel(Enchantments.FLAMING_ARROWS) > 0) {
-                arrow.setSecondsOnFire(100);
-            }
-
-            bowStack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
+            bowStack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
             if (infiniteAmmo || player.getAbilities().instabuild && (ammoStack.is(Items.SPECTRAL_ARROW) || ammoStack.is(Items.TIPPED_ARROW))) {
                 arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
             }
@@ -121,5 +108,19 @@ public abstract class BowItemSpellcasterQuiverMixin {
 
         player.awardStat(Stats.ITEM_USED.get(bowItem));
         ci.cancel();
+    }
+
+    private static int getEnchantmentLevel(ItemStack stack, net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> enchantmentKey) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        if (enchantments.isEmpty()) {
+            return 0;
+        }
+
+        for (var holder : enchantments.keySet()) {
+            if (holder.is(enchantmentKey)) {
+                return enchantments.getLevel(holder);
+            }
+        }
+        return 0;
     }
 }

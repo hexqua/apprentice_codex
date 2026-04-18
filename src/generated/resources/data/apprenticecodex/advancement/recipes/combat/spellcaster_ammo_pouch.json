@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:magic_cloth"
-            ]
+            "items": "irons_spellbooks:magic_cloth"
           }
         ]
       },
@@ -22,8 +20,8 @@
   },
   "requirements": [
     [
-      "has_magic_cloth",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_magic_cloth"
     ]
   ],
   "rewards": {

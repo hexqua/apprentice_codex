@@ -5,12 +5,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SpellcasterQuiverPickupEvent {
     private static final String OWNER_TAG = "Owner";
 
@@ -18,9 +19,9 @@ public final class SpellcasterQuiverPickupEvent {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void onEntityItemPickup(EntityItemPickupEvent event) {
-        var player = event.getEntity();
-        var itemEntity = event.getItem();
+    public static void onEntityItemPickup(ItemEntityPickupEvent.Pre event) {
+        var player = event.getPlayer();
+        var itemEntity = event.getItemEntity();
         var entityStack = itemEntity.getItem();
         if (!SpellcasterQuiver.isEquippedBy(player) || !SpellcasterQuiver.accepts(entityStack)) {
             return;
@@ -36,26 +37,13 @@ public final class SpellcasterQuiverPickupEvent {
             return;
         }
 
-        // 矢筒へ入った分はここで拾得処理を完結させ、満杯時も残数を欠損させない。
-        if (!entityStack.isEmpty()) {
-            player.getInventory().add(entityStack);
-        }
-
-        pickedUpCount = pickedUpStack.getCount() - entityStack.getCount();
-        if (pickedUpCount <= 0) {
-            return;
-        }
-
-        pickedUpStack.setCount(pickedUpCount);
-        net.minecraftforge.event.ForgeEventFactory.firePlayerItemPickupEvent(player, itemEntity, pickedUpStack);
         player.take(itemEntity, pickedUpCount);
         if (entityStack.isEmpty()) {
             itemEntity.discard();
-            entityStack.setCount(pickedUpCount);
+            event.setCanPickup(TriState.FALSE);
         }
+        pickedUpStack.setCount(pickedUpCount);
         player.awardStat(Stats.ITEM_PICKED_UP.get(pickedUpStack.getItem()), pickedUpCount);
-        player.onItemPickup(itemEntity);
-        event.setCanceled(true);
     }
 
     private static boolean canBePickedUpBy(ItemEntity itemEntity, Player player) {

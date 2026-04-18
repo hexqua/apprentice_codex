@@ -6,6 +6,9 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -23,7 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -38,6 +41,8 @@ import java.util.function.Predicate;
 public class SpellcasterQuiver extends Item implements ICurioItem {
     private static final int MAX_STORED_ITEMS = 512;
     private static final int BAR_COLOR = 0xA8792A;
+    private static final net.minecraft.core.HolderLookup.Provider SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String STORAGE_TAG = "SpellcasterQuiver";
     private static final String CONTENTS_TAG = "Contents";
     private static final String STACK_TAG = "Stack";
@@ -51,22 +56,23 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
-            tooltips.add(Component.empty());
-            tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.empty());
+            result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_1"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_2"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ")
+            result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc_3"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         }
 
-        return tooltips;
+        return result;
     }
 
     @Override
@@ -75,8 +81,8 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> lines, TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> lines, TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
 
         var storedItemCount = getStoredItemCount(stack);
         lines.add(Component.translatable(
@@ -333,7 +339,7 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
 
         var contents = readContents(quiverStack);
         for (var entry : contents) {
-            if (!ItemStack.isSameItemSameTags(entry.displayStack, stack)) {
+            if (!ItemStack.isSameItemSameComponents(entry.displayStack, stack)) {
                 continue;
             }
 
@@ -401,7 +407,17 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
     }
 
     private static List<StoredEntry> readContents(ItemStack quiverStack) {
-        var storageTag = quiverStack.getTagElement(STORAGE_TAG);
+        var customData = quiverStack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return new ArrayList<>();
+        }
+
+        var rootTag = customData.copyTag();
+        if (!rootTag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)) {
+            return new ArrayList<>();
+        }
+
+        var storageTag = rootTag.getCompound(STORAGE_TAG);
         if (storageTag == null || !storageTag.contains(CONTENTS_TAG, Tag.TAG_LIST)) {
             return new ArrayList<>();
         }
@@ -414,7 +430,7 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
             }
 
             var stackTag = compoundTag.getCompound(STACK_TAG);
-            var storedStack = ItemStack.of(stackTag);
+            var storedStack = ItemStack.parseOptional(SERIALIZATION_LOOKUP, stackTag);
             var storedCount = compoundTag.getInt(COUNT_TAG);
             if (storedStack.isEmpty() || storedCount <= 0) {
                 continue;
@@ -427,7 +443,7 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
 
     private static void writeContents(ItemStack quiverStack, List<StoredEntry> contents) {
         if (contents.isEmpty()) {
-            quiverStack.removeTagKey(STORAGE_TAG);
+            removeStorageTag(quiverStack);
             return;
         }
 
@@ -438,17 +454,25 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
             }
 
             var compoundTag = new CompoundTag();
-            compoundTag.put(STACK_TAG, entry.displayStack.copyWithCount(1).save(new CompoundTag()));
+            compoundTag.put(STACK_TAG, entry.displayStack.copyWithCount(1).saveOptional(SERIALIZATION_LOOKUP));
             compoundTag.putInt(COUNT_TAG, entry.count);
             contentsTag.add(compoundTag);
         }
 
         if (contentsTag.isEmpty()) {
-            quiverStack.removeTagKey(STORAGE_TAG);
+            removeStorageTag(quiverStack);
             return;
         }
 
-        quiverStack.getOrCreateTagElement(STORAGE_TAG).put(CONTENTS_TAG, contentsTag);
+        CustomData.update(DataComponents.CUSTOM_DATA, quiverStack, tag -> {
+            var storageTag = new CompoundTag();
+            storageTag.put(CONTENTS_TAG, contentsTag);
+            tag.put(STORAGE_TAG, storageTag);
+        });
+    }
+
+    private static void removeStorageTag(ItemStack quiverStack) {
+        CustomData.update(DataComponents.CUSTOM_DATA, quiverStack, tag -> tag.remove(STORAGE_TAG));
     }
 
     private static int findRemovalCandidateDisplayIndex(List<StoredEntry> displayEntries) {

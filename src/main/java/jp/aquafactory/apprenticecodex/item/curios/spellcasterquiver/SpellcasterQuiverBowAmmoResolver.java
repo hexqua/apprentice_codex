@@ -1,18 +1,20 @@
 package jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
@@ -145,7 +147,24 @@ public final class SpellcasterQuiverBowAmmoResolver {
     }
 
     private static boolean hasInfinity(ItemStack bowStack) {
-        return bowStack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+        return getEnchantmentLevel(bowStack, Enchantments.INFINITY) > 0;
+    }
+
+    private static int getEnchantmentLevel(
+            ItemStack stack,
+            net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> enchantmentKey
+    ) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        if (enchantments.isEmpty()) {
+            return 0;
+        }
+
+        for (var holder : enchantments.keySet()) {
+            if (holder.is(enchantmentKey)) {
+                return enchantments.getLevel(holder);
+            }
+        }
+        return 0;
     }
 
     public interface AmmoSource {
@@ -184,14 +203,15 @@ public final class SpellcasterQuiverBowAmmoResolver {
         }
     }
 
-    private record AmmoTypeKey(Item item, @Nullable CompoundTag tag) {
+    private record AmmoTypeKey(Item item, @Nullable DataComponentPatch componentsPatch) {
         private static AmmoTypeKey of(ItemStack stack) {
-            return new AmmoTypeKey(stack.getItem(), stack.getTag() == null ? null : stack.getTag().copy());
+            var patch = stack.getComponentsPatch();
+            return new AmmoTypeKey(stack.getItem(), patch.isEmpty() ? null : patch);
         }
 
         private boolean matches(ItemStack stack) {
             return item == stack.getItem()
-                    && (tag == null ? stack.getTag() == null : tag.equals(stack.getTag()));
+                    && Objects.equals(componentsPatch, stack.getComponentsPatch().isEmpty() ? null : stack.getComponentsPatch());
         }
     }
 

@@ -455,7 +455,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         var ammoStack = hasAmmo ? ammoSource.stack() : createRepresentativeAmmo(selection);
         var infiniteAmmo = player.getAbilities().instabuild
-                || hasAmmo && ammoSource.isInfinite(stack, player);
+                || hasAmmo && ammoSource.isInfinite(stack, player)
                 || !hasAmmo && selection.kind() == ShotModeKind.ARROW && hasInfinity(stack);
         var power = getPowerForTime(drawDuration);
         if (power < 0.1F) {
@@ -865,14 +865,14 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return false;
         }
 
-        var potion = PotionUtils.getPotion(ammoStack);
-        var potionId = ForgeRegistries.POTIONS.getKey(potion);
-        return potion != Potions.EMPTY && selectionId.equals(potionId);
+        var potion = PotionContentsHelper.getPotion(ammoStack);
+        var potionId = potion == null ? null : BuiltInRegistries.POTION.getKey(potion);
+        return potionId != null && selectionId.equals(potionId);
     }
 
     private static boolean matchesModAmmo(ItemStack ammoStack, ResourceLocation selectionId) {
         var item = ammoStack.getItem();
-        var itemId = ForgeRegistries.ITEMS.getKey(item);
+        var itemId = BuiltInRegistries.ITEM.getKey(item);
         return item instanceof ArrowItem && !VANILLA_ARROW_ITEMS.contains(item) && selectionId.equals(itemId);
     }
 
@@ -1100,16 +1100,16 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         if (ammoStack.is(Items.TIPPED_ARROW)) {
-            var potion = PotionUtils.getPotion(ammoStack);
-            var potionId = ForgeRegistries.POTIONS.getKey(potion);
-            if (potion != Potions.EMPTY && potionId != null) {
+            var potion = PotionContentsHelper.getPotion(ammoStack);
+            var potionId = potion == null ? null : BuiltInRegistries.POTION.getKey(potion);
+            if (potionId != null) {
                 specialArrowCounts.merge(potionId, count, Integer::sum);
             }
             return 0;
         }
 
         if (ammoStack.getItem() instanceof ArrowItem arrowItem && !VANILLA_ARROW_ITEMS.contains(arrowItem)) {
-            var itemId = ForgeRegistries.ITEMS.getKey(arrowItem);
+            var itemId = BuiltInRegistries.ITEM.getKey(arrowItem);
             if (itemId != null) {
                 modArrowCounts.merge(itemId, count, Integer::sum);
             }
