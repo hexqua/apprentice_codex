@@ -31,6 +31,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.SmithingRecipe;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStreamReader;
@@ -74,6 +75,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.getSmithingCategory().addExtension(
                 jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe.class,
                 new SpellbookCarryoverSmithingJeiExtension()
+        );
+        registration.getSmithingCategory().addExtension(
+                jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe.class,
+                new AlchemistsFlaskSmithingJeiExtension()
         );
     }
 
@@ -198,6 +203,13 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH,
                 recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
                         .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                        .toList()
+        );
+        registration.addRecipes(
+                RecipeTypes.SMITHING,
+                recipeManager.getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMITHING).stream()
+                        .filter(recipe -> recipe.value() instanceof jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe
+                                || recipe.value() instanceof jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe)
                         .toList()
         );
     }

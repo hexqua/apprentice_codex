@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
@@ -186,6 +187,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.COPPER_SPELL_BOOK.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.COPPER_SPELL_BOOK.get()))
                 .save(explorersCodexOutput, ItemRegistry.EXPLORERS_CODEX.getId());
 
+        saveAlchemistsFlaskSmithingRecipe(recipeOutput);
         saveSpellbookCarryoverSmithingRecipe(recipeOutput);
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())
@@ -608,6 +610,32 @@ public final class RecipeGenerator extends RecipeProvider {
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
                 .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.getId());
+    }
+
+    private void saveAlchemistsFlaskSmithingRecipe(@NotNull RecipeOutput recipeOutput) {
+        var recipeId = ItemRegistry.ALCHEMISTS_FLASK.getId();
+        var defaultResult = ItemRegistry.ALCHEMISTS_FLASK.get().getDefaultInstance();
+
+        var advancement = recipeOutput.advancement()
+                .addCriterion(
+                        getHasName(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                        has(ItemRegistry.SPELLCASTERS_FLASK.get())
+                )
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+                .rewards(AdvancementRewards.Builder.recipe(recipeId))
+                .requirements(AdvancementRequirements.Strategy.OR)
+                .build(recipeId.withPrefix("recipes/" + RecipeCategory.COMBAT.getFolderName() + "/"));
+
+        recipeOutput.accept(
+                recipeId,
+                new AlchemistsFlaskSmithingRecipe(
+                        Ingredient.of(Items.EMERALD),
+                        Ingredient.of(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                        Ingredient.of(Items.GUNPOWDER),
+                        defaultResult
+                ),
+                advancement
+        );
     }
 
     private void saveSpellbookCarryoverSmithingRecipe(@NotNull RecipeOutput recipeOutput) {
