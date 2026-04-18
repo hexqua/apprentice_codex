@@ -4125,7 +4125,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(useResult.getResult().consumesAction(),
                     "Elemental Bow should start drawing when mana and ammo are available: " + useResult.getResult());
 
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 21);
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 19);
             helper.assertTrue(stack.getDamageValue() == 0, "Elemental Bow should not lose durability before full draw");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
                     "Elemental Bow should not consume arrows before full draw");
