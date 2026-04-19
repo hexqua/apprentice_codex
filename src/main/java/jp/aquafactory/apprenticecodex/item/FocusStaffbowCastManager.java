@@ -4,7 +4,9 @@ import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.casting.CancelCastPacket;
@@ -16,11 +18,13 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
-import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
-import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public final class FocusStaffbowCastManager {
-    private static final int MINIMUM_SPECIAL_CAST_TICKS = 40;
     private static final UUID OVERCHARGE_SPELL_POWER_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
     private static final String OVERCHARGE_SPELL_POWER_MODIFIER_NAME = "apprenticecodex.focus_staffbow.overcharge";
 
@@ -42,19 +45,50 @@ public final class FocusStaffbowCastManager {
             return false;
         }
 
-        return handleResolvedInput(serverPlayer, resolveSelection(serverPlayer, -1), stack, null);
+        return handleResolvedInput(serverPlayer, resolveSelection(serverPlayer), stack);
     }
 
-    public static void handleClientPacketInput(ServerPlayer player, int quickCastSlot, ResourceLocation spellId, BlockTargetData targetData) {
-        var selection = resolveSelection(player, quickCastSlot);
-        if (selection == null || selection.spellData == SpellData.EMPTY) {
+    public static void releasePendingCast(net.minecraft.world.entity.player.Player player, ItemStack stack, int drawDuration) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
-        if (!selection.spellData.getSpell().getSpellResource().equals(spellId)) {
+        if (!(stack.getItem() instanceof FocusStaffbow)) {
             return;
         }
 
-        handleResolvedInput(player, selection, player.getMainHandItem(), targetData);
+        var codexSpellData = Capabilities.getSpellDataOrNull(serverPlayer);
+        if (codexSpellData == null) {
+            return;
+        }
+
+        var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+        if (!state.isActive()) {
+            return;
+        }
+
+        var spell = SpellRegistry.getSpell(state.spellId);
+        if (spell == null || spell == SpellRegistry.none()) {
+            resetPendingState(serverPlayer, true);
+            return;
+        }
+
+        var currentGameTime = serverPlayer.level().getGameTime();
+        var totalCastTicks = Math.max(state.getElapsedTicks(currentGameTime), Math.max(0, drawDuration));
+        if (totalCastTicks < state.requiredCastTicks) {
+            ApprenticeCodex.LOGGER.info(
+                    "FocusStaffbow charge cancelled: player={}, spell={}, startedGameTime={}, currentGameTime={}, totalCastTicks={}, requiredCastTicks={}",
+                    serverPlayer.getGameProfile().getName(),
+                    spell.getSpellId(),
+                    state.startedGameTime,
+                    currentGameTime,
+                    totalCastTicks,
+                    state.requiredCastTicks
+            );
+            resetPendingState(serverPlayer, true);
+            return;
+        }
+
+        confirmCast(serverPlayer, stack, spell, state, codexSpellData, totalCastTicks, currentGameTime);
     }
 
     public static void tick(ServerPlayer player) {
@@ -88,15 +122,14 @@ public final class FocusStaffbowCastManager {
             return;
         }
 
-        var spellId = state.spellId;
         spellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
         if (syncClientCancel) {
-            PacketDistributor.sendToPlayer(player, new OnCastFinishedPacket(player.getUUID(), spellId, true));
+            Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
         }
     }
 
     private static boolean handleResolvedInput(ServerPlayer player, @Nullable SpellSelectionManager.SelectionOption selection,
-                                               ItemStack focusStaffbowStack, @Nullable BlockTargetData targetData) {
+                                               ItemStack focusStaffbowStack) {
         if (selection == null || selection.spellData == SpellData.EMPTY) {
             return false;
         }
@@ -119,30 +152,17 @@ public final class FocusStaffbowCastManager {
 
         if (spell.getCastType() == CastType.CONTINUOUS) {
             resetPendingState(player, true);
-            return withPendingTarget(player, spell, targetData, () ->
-                    spell.attemptInitiateCast(focusStaffbowStack, spellLevel, player.level(), player, castSource, true, castingSlot)
-            );
+            return spell.attemptInitiateCast(focusStaffbowStack, spellLevel, player.level(), player, castSource, true, castingSlot);
         }
 
         var codexSpellData = Capabilities.getSpellDataOrNull(player);
         if (codexSpellData == null) {
             return false;
         }
+
         var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
         if (state.isActive()) {
-            if (state.matches(spell, spellLevel, castSource, castingSlot)) {
-                if (!state.isReady(player.level().getGameTime())) {
-                    return true;
-                }
-
-                return withPendingTarget(player, spell, targetData, () ->
-                        confirmCast(player, focusStaffbowStack, spell, spellLevel, castSource, castingSlot, codexSpellData, state)
-                );
-            }
-
-            var previousSpellId = state.spellId;
-            codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
-            PacketDistributor.sendToPlayer(player, new OnCastFinishedPacket(player.getUUID(), previousSpellId, true));
+            return true;
         }
 
         beginPendingCast(player, spell, spellLevel, castSource, castingSlot, codexSpellData);
@@ -150,10 +170,10 @@ public final class FocusStaffbowCastManager {
     }
 
     private static void beginPendingCast(ServerPlayer player, AbstractSpell spell, int spellLevel,
-                                         io.redspace.ironsspellbooks.api.spells.CastSource castSource, String castingSlot,
+                                         CastSource castSource, String castingSlot,
                                          jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
         var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
-        var requiredCastTicks = Math.max(MINIMUM_SPECIAL_CAST_TICKS, originalEffectiveCastTicks);
+        var requiredCastTicks = FocusStaffbowChargeLogic.normalizeRequiredCastTicks(originalEffectiveCastTicks);
         var schoolType = spell.getSchoolType();
         var globalSpellPowerAttribute = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
         var schoolSpellPowerAttribute = schoolType == null ? 1.0D : schoolType.getPowerFor(player);
@@ -172,7 +192,7 @@ public final class FocusStaffbowCastManager {
                 schoolFinalSpellPowerAttribute
         );
 
-        // 1回目入力では通常の cast state を使わず、疑似的に HUD だけ詠唱状態へ入れて auto-cast を防ぐ。
+        // 通常の cast state を使うと auto-cast へ入るため、special charge は専用 state と HUD 同期だけで管理する。
         codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, state -> state.start(
                 spell,
                 spellLevel,
@@ -183,24 +203,23 @@ public final class FocusStaffbowCastManager {
                 player.level().dimension().location().toString(),
                 player.getInventory().selected
         ));
-        PacketDistributor.sendToPlayer(player, new UpdateCastingStatePacket(
-                spell.getSpellId(),
-                spellLevel,
-                requiredCastTicks,
-                castSource,
-                castingSlot
-        ));
+        Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(createPendingStateData(
+                spell,
+                player.level().getGameTime(),
+                requiredCastTicks
+        )));
     }
 
-    private static boolean confirmCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell, int spellLevel,
-                                       io.redspace.ironsspellbooks.api.spells.CastSource castSource, String castingSlot,
+    private static boolean confirmCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell,
+                                       FocusStaffbowCastState state,
                                        jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData,
-                                       jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState state) {
-        var currentGameTime = player.level().getGameTime();
-        var elapsedTicks = state.getElapsedTicks(currentGameTime);
-        var overchargeTicks = state.getOverchargeTicks(currentGameTime);
-        var rawMultiplier = 0.5D + overchargeTicks / (double) state.requiredCastTicks;
-        var finalMultiplier = Math.max(1.0D, rawMultiplier);
+                                       long totalCastTicks, long currentGameTime) {
+        var spellLevel = state.spellLevel;
+        var castSource = resolveCastSource(state.castSource);
+        var castingSlot = state.castingSlot;
+        var configuredMaxMultiplier = ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier();
+        var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(totalCastTicks, state.requiredCastTicks);
+        var finalMultiplier = FocusStaffbowChargeLogic.clampChargeMultiplier(rawMultiplier, configuredMaxMultiplier);
         var schoolType = spell.getSchoolType();
         var globalSpellPowerAttribute = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
         var schoolSpellPowerAttribute = schoolType == null ? 1.0D : schoolType.getPowerFor(player);
@@ -208,16 +227,16 @@ public final class FocusStaffbowCastManager {
         var chargedSchoolFinalSpellPowerAttribute = schoolFinalSpellPowerAttribute * finalMultiplier;
 
         ApprenticeCodex.LOGGER.info(
-                "FocusStaffbow charge confirm: player={}, spell={}, school={}, startedGameTime={}, currentGameTime={}, elapsedTicks={}, requiredCastTicks={}, overchargeTicks={}, formula='max(1.0, 0.5 + overchargeTicks / requiredCastTicks)', rawMultiplier={}, appliedMultiplier={}",
+                "FocusStaffbow charge confirm: player={}, spell={}, school={}, startedGameTime={}, currentGameTime={}, totalCastTicks={}, requiredCastTicks={}, formula='clamp(totalCastTicks / requiredCastTicks, 1.0, maxChargeMultiplier)', rawMultiplier={}, configuredMaxMultiplier={}, appliedMultiplier={}",
                 player.getGameProfile().getName(),
                 spell.getSpellId(),
                 schoolType == null ? "none" : schoolType.getId(),
                 state.startedGameTime,
                 currentGameTime,
-                elapsedTicks,
+                totalCastTicks,
                 state.requiredCastTicks,
-                overchargeTicks,
                 rawMultiplier,
+                configuredMaxMultiplier,
                 finalMultiplier
         );
         ApprenticeCodex.LOGGER.info(
@@ -232,6 +251,7 @@ public final class FocusStaffbowCastManager {
         );
 
         codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
+        Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
 
         var magicData = MagicData.getPlayerMagicData(player);
         var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
@@ -281,9 +301,11 @@ public final class FocusStaffbowCastManager {
         }
     }
 
-    private static boolean shouldCancelPendingState(ServerPlayer player,
-                                                    jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState state) {
+    private static boolean shouldCancelPendingState(ServerPlayer player, FocusStaffbowCastState state) {
         if (!(player.getMainHandItem().getItem() instanceof FocusStaffbow)) {
+            return true;
+        }
+        if (!player.isUsingItem() || player.getUsedItemHand() != InteractionHand.MAIN_HAND) {
             return true;
         }
         if (player.getInventory().selected != state.selectedHotbarSlot) {
@@ -303,23 +325,25 @@ public final class FocusStaffbowCastManager {
         return magicData.isCasting();
     }
 
-    private static @Nullable SpellSelectionManager.SelectionOption resolveSelection(ServerPlayer player, int quickCastSlot) {
-        var selectionManager = new SpellSelectionManager(player);
-        return quickCastSlot >= 0 ? selectionManager.getSpellSlot(quickCastSlot) : selectionManager.getSelection();
+    private static CastSource resolveCastSource(String castSourceName) {
+        try {
+            return CastSource.valueOf(castSourceName);
+        } catch (IllegalArgumentException ignored) {
+            return CastSource.NONE;
+        }
     }
 
-    private static boolean withPendingTarget(ServerPlayer player, AbstractSpell spell, @Nullable BlockTargetData targetData,
-                                             java.util.function.BooleanSupplier action) {
-        if (targetData == null || !targetData.hasTarget()) {
-            return action.getAsBoolean();
-        }
+    private static CompoundTag createPendingStateData(AbstractSpell spell, long startedGameTime, int requiredCastTicks) {
+        var data = new CompoundTag();
+        data.putString("spellId", spell.getSpellId());
+        data.putLong("startedGameTime", startedGameTime);
+        data.putInt("requiredCastTicks", requiredCastTicks);
+        data.putDouble("maxChargeMultiplier", ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier());
+        return data;
+    }
 
-        BlockTargetingHelper.setPendingServerTarget(player, spell.getSpellResource(), targetData);
-        try {
-            return action.getAsBoolean();
-        } finally {
-            BlockTargetingHelper.clearPendingServerTarget(player);
-        }
+    private static @Nullable SpellSelectionManager.SelectionOption resolveSelection(ServerPlayer player) {
+        return new SpellSelectionManager(player).getSelection();
     }
 
     private static void removeOverchargeModifier(@Nullable AttributeInstance spellPowerAttribute) {

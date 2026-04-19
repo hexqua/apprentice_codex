@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
-import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbowClientCastState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -19,13 +19,18 @@ public final class FocusStaffbowClientEvents {
     @SubscribeEvent
     public static void onScreenOpening(ScreenEvent.Opening event) {
         var player = Minecraft.getInstance().player;
-        if (player == null || !ClientMagicData.isCasting()) {
+        if (player == null || event.getNewScreen() == null) {
             return;
         }
-        if (!(player.getMainHandItem().getItem() instanceof FocusStaffbow)) {
+        if (!FocusStaffbowClientCastState.hasPendingCast(player)) {
             return;
         }
 
         Networks.sendToServer(new ClientFocusStaffbowCancelPacket());
+    }
+
+    @SubscribeEvent
+    public static void onClientLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        FocusStaffbowClientCastState.clear();
     }
 }
