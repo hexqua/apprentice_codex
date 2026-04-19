@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 public final class FocusStaffbowChargeLogic {
     public static final int MINIMUM_SPECIAL_CAST_TICKS = 40;

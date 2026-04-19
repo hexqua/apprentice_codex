@@ -1,6 +1,7 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 import io.redspace.ironsspellbooks.api.util.Utils;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
