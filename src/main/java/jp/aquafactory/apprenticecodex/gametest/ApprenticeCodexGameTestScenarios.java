@@ -4316,6 +4316,112 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get(), 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        MagicData.getPlayerMagicData(player).setMana(300.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow continuous test should start casting but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow continuous test could not resolve spell data capability");
+            helper.assertTrue(spellData != null
+                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
+                    "Focus Staffbow continuous test should store a CONTINUOUS cast state");
+            helper.assertTrue(magicData.isCasting(),
+                    "Focus Staffbow continuous test should keep Iron's casting state active after start");
+            helper.assertTrue(player.isUsingItem(),
+                    "Focus Staffbow continuous test should keep the player in use state while held");
+        });
+        helper.runAtTickTime(95, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow continuous duration test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
+                    "Focus Staffbow continuous cast should stay active past the spell's normal duration cap");
+            helper.assertTrue(magicData.isCasting(),
+                    "Focus Staffbow continuous cast should keep Iron's casting state active past the normal duration cap");
+            helper.assertTrue(magicData.getCastDurationRemaining() < 10,
+                    "Focus Staffbow continuous cast should have passed Iron's normal remaining-duration stop window: " + magicData.getCastDurationRemaining());
+        });
+        helper.runAtTickTime(96, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration() - 95
+                )
+        );
+        helper.succeedWhen(() -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow continuous release test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
+                    "Focus Staffbow continuous cast state should clear after releasing the button");
+            helper.assertFalse(magicData.isCasting(),
+                    "Focus Staffbow continuous release should clear Iron's casting state");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_mana_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get(), 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        MagicData.getPlayerMagicData(player).setMana(15.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow continuous mana test should start casting but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow continuous mana test could not resolve spell data capability");
+            helper.assertTrue(spellData != null
+                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
+                    "Focus Staffbow continuous mana test should start with a CONTINUOUS cast state");
+            helper.assertTrue(magicData.isCasting(),
+                    "Focus Staffbow continuous mana test should still be casting immediately after start");
+        });
+        helper.succeedWhen(() -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow continuous mana stop test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
+                    "Focus Staffbow continuous cast should stop once it cannot pay the next tick's mana cost");
+            helper.assertFalse(magicData.isCasting(),
+                    "Focus Staffbow continuous mana stop should clear Iron's casting state");
+            helper.assertTrue(magicData.getMana() >= 0.0F,
+                    "Focus Staffbow continuous mana stop should not drive mana below zero: " + magicData.getMana());
+            helper.assertTrue(magicData.getMana() <= 15.0F,
+                    "Focus Staffbow continuous mana stop consumed an unexpected amount of mana: " + magicData.getMana());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");

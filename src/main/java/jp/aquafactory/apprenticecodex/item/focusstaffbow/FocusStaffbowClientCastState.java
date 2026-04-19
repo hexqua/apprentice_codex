@@ -14,9 +14,11 @@ import java.util.Locale;
 public final class FocusStaffbowClientCastState {
     private static final CastBarRenderState HIDDEN_CAST_BAR = new CastBarRenderState(false, 0.0F, "");
 
+    private static String castMode = "";
     private static String spellId = "";
     private static long startedGameTime;
     private static int requiredCastTicks;
+    private static int chargeUpdateIntervalTicks = 1;
     private static double maxChargeMultiplier = 1.0D;
 
     private FocusStaffbowClientCastState() {
@@ -28,9 +30,13 @@ public final class FocusStaffbowClientCastState {
             return;
         }
 
+        castMode = data.contains("castMode") ? data.getString("castMode") : "";
         spellId = data.getString("spellId");
         startedGameTime = data.getLong("startedGameTime");
         requiredCastTicks = data.getInt("requiredCastTicks");
+        chargeUpdateIntervalTicks = data.contains("chargeUpdateIntervalTicks")
+                ? Math.max(1, data.getInt("chargeUpdateIntervalTicks"))
+                : 1;
         maxChargeMultiplier = data.contains("maxChargeMultiplier") ? data.getDouble("maxChargeMultiplier") : 1.0D;
         if (spellId.isEmpty() || requiredCastTicks <= 0) {
             clear();
@@ -38,9 +44,11 @@ public final class FocusStaffbowClientCastState {
     }
 
     public static void clear() {
+        castMode = "";
         spellId = "";
         startedGameTime = 0L;
         requiredCastTicks = 0;
+        chargeUpdateIntervalTicks = 1;
         maxChargeMultiplier = 1.0D;
     }
 
@@ -61,9 +69,16 @@ public final class FocusStaffbowClientCastState {
             return new CastBarRenderState(true, completion, remainingLabel);
         }
 
-        var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(elapsedTicks, requiredCastTicks);
+        long displayElapsedTicks = isContinuous()
+                ? FocusStaffbowChargeLogic.sampleElapsedTicks(elapsedTicks, chargeUpdateIntervalTicks)
+                : elapsedTicks;
+        var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(displayElapsedTicks, requiredCastTicks);
         var appliedMultiplier = FocusStaffbowChargeLogic.clampChargeMultiplier(rawMultiplier, maxChargeMultiplier);
         return new CastBarRenderState(true, 1.0F, String.format(Locale.ROOT, "x%.1f", appliedMultiplier));
+    }
+
+    private static boolean isContinuous() {
+        return "continuous".equals(castMode);
     }
 
     private static boolean isActiveFor(@Nullable LocalPlayer player) {

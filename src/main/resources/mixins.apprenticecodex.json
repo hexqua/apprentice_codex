@@ -23,6 +23,7 @@
     "PotionContentsMixin",
     "LivingEntitySpectralWingMixin",
     "ItemCostMixin",
+    "MagicManagerMixin",
     "MerchantMenuMixin",
     "PotionFluidTypeMixin",
     "SinglePoolElementAccessor",
