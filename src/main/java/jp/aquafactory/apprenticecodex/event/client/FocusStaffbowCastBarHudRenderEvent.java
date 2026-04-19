@@ -36,7 +36,10 @@ public final class FocusStaffbowCastBarHudRenderEvent {
                 event.getWindow().getGuiScaledWidth(),
                 event.getWindow().getGuiScaledHeight(),
                 castBarState.completionPercent(),
-                castBarState.labelText()
+                castBarState.primaryLabelText(),
+                castBarState.primaryLabelColor(),
+                castBarState.secondaryLabelText(),
+                castBarState.secondaryLabelColor()
         );
     }
 }

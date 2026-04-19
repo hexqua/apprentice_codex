@@ -4132,6 +4132,11 @@ public final class ApprenticeCodexGameTestScenarios {
 
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Focus Staffbow offhand selection test could not resolve player mana data");
+            if (magicData != null) {
+                magicData.setMana(100.0F);
+            }
 
             var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
             var selection = selectionManager.getSelection();
@@ -4177,7 +4182,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.MINIMUM_SPECIAL_CAST_TICKS
+                        bowStack.getUseDuration() - jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get().getEffectiveCastTime(1, player)
                 )
         );
         helper.succeedWhen(() -> {
@@ -4220,7 +4225,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - (jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.MINIMUM_SPECIAL_CAST_TICKS - 1)
+                        bowStack.getUseDuration() - (jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get().getEffectiveCastTime(1, player) - 1)
                 )
         );
         helper.succeedWhen(() -> {
@@ -4340,6 +4345,251 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous mana stop should not drive mana below zero: " + magicData.getMana());
             helper.assertTrue(magicData.getMana() <= 15.0F,
                     "Focus Staffbow continuous mana stop consumed an unexpected amount of mana: " + magicData.getMana());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowInstantImmediateReleaseConsumesBaseMana(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_instant_base_mana_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Focus Staffbow instant base mana test could not resolve player mana data");
+        var baseManaCost = spell.getManaCost(1);
+        magicData.setMana(baseManaCost + 40.0F);
+        var initialMana = magicData.getMana();
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow instant test should start charging immediately but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration()
+                )
+        );
+        helper.succeedWhen(() -> {
+            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - baseManaCost)) < 1.0e-4F,
+                    "Focus Staffbow instant immediate release should only consume base mana: " + magicData.getMana());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowShortLongReleaseStaysAtBaseMultiplier(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_short_long_base_mana_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Focus Staffbow short LONG base mana test could not resolve player mana data");
+        var baseManaCost = spell.getManaCost(1);
+        magicData.setMana(baseManaCost + 60.0F);
+        var initialMana = magicData.getMana();
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow short LONG test should enter pending charge but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow short LONG test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).chargeBaselineTicks
+                            == jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.MINIMUM_OVERCHARGE_BASELINE_TICKS,
+                    "Focus Staffbow short LONG test should clamp the overcharge baseline to one second");
+        });
+        helper.runAtTickTime(3, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration() - spell.getEffectiveCastTime(1, player)
+                )
+        );
+        helper.succeedWhen(() -> {
+            helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - baseManaCost)) < 1.0e-4F,
+                    "Focus Staffbow short LONG release should stay at base mana within the first second: " + magicData.getMana());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_base_mana_gate_test");
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Focus Staffbow mana gate test could not resolve player mana data");
+            magicData.setMana(spell.getManaCost(1) - 1.0F);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow should still fail immediately when base mana is insufficient but got " + result.getResult());
+            helper.assertFalse(player.isUsingItem(),
+                    "Focus Staffbow should not enter use state when even base mana is missing");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowOverchargeLoanConsumesRecoveredMana(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_repay_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Focus Staffbow loan test could not resolve player mana data");
+        var baseManaCost = spell.getManaCost(1);
+        magicData.setMana(baseManaCost);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow loan test should start charging but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow loan test lost spell data capability before release");
+            helper.assertTrue(spellData != null
+                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).requiredCastTicks == 0,
+                    "Focus Staffbow loan test should treat INSTANT spells as zero required cast ticks");
+        });
+        helper.runAtTickTime(3, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration() - 120
+                )
+        );
+        helper.runAtTickTime(4, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow loan test lost spell data capability after cast");
+            var loanState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
+            helper.assertTrue(loanState.remainingLoanMana >= 119.0F,
+                    "Focus Staffbow loan test should create roughly eight base-cost worth of debt at x3 but got "
+                            + loanState.remainingLoanMana);
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Focus Staffbow loan test should leave current mana at zero after borrowed cast: " + magicData.getMana());
+            magicData.setMana(10.0F);
+            jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager.tickLoanRepayment(player);
+            helper.assertTrue(loanState.remainingLoanMana >= 109.0F && loanState.remainingLoanMana <= 111.0F,
+                    "Focus Staffbow loan repay test should consume recovered mana into the debt first but got "
+                            + loanState.remainingLoanMana);
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Focus Staffbow loan repay test should keep displayed mana at zero while debt remains: " + magicData.getMana());
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_overcharge_test");
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Focus Staffbow creative overcharge test could not resolve player mana data");
+        magicData.setMana(17.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow creative overcharge test should start charging but got " + result.getResult());
+        });
+        helper.runAtTickTime(3, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration() - 120
+                )
+        );
+        helper.runAtTickTime(4, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow creative overcharge test lost spell data capability");
+            var loanState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
+            helper.assertFalse(loanState.hasOutstandingLoan(),
+                    "Focus Staffbow creative overcharge test should not create loan mana");
+            helper.assertTrue(Math.abs(magicData.getMana() - 17.0F) < 1.0e-4F,
+                    "Focus Staffbow creative overcharge test should leave mana unchanged but got " + magicData.getMana());
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowBlocksUseWhileLoanRemains(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_block_test");
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow loan block test could not resolve spell data capability");
+            if (spellData != null) {
+                spellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE, state -> state.addLoan(7.0F));
+            }
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow should reject new casts while borrowed mana remains but got " + result.getResult());
+            helper.assertFalse(player.isUsingItem(),
+                    "Focus Staffbow should not remain in use state while a loan blocks casting");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createLoanBlockedMessage(5.1F);
+            assertTranslatableKey(
+                    helper,
+                    message,
+                    "ui.apprenticecodex.focus_staffbow.loan_mana",
+                    "Focus Staffbow loan block message should use the dedicated translation key"
+            );
         });
     }
 

@@ -18,6 +18,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
     public String castingSlot = "";
     public long startedGameTime;
     public int requiredCastTicks;
+    public int chargeBaselineTicks;
     public String dimensionId = "";
     public int selectedHotbarSlot = -1;
     public String mode = Mode.NONE.name();
@@ -26,31 +27,32 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
     public boolean preCastStarted;
 
     public boolean isActive() {
-        return !spellId.isEmpty() && requiredCastTicks > 0;
+        return !spellId.isEmpty() && getMode() != Mode.NONE && requiredCastTicks >= 0;
     }
 
     public void startPending(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
-                             int requiredCastTicks, String dimensionId, int selectedHotbarSlot) {
+                             int requiredCastTicks, int chargeBaselineTicks, String dimensionId, int selectedHotbarSlot) {
         startInternal(spell, spellLevel, castSource, castingSlot, startedGameTime, requiredCastTicks,
-                dimensionId, selectedHotbarSlot, Mode.PENDING, 1);
+                chargeBaselineTicks, dimensionId, selectedHotbarSlot, Mode.PENDING, 1);
     }
 
     public void startContinuous(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
                                 int requiredCastTicks, String dimensionId, int selectedHotbarSlot, int chargeUpdateIntervalTicks) {
         startInternal(spell, spellLevel, castSource, castingSlot, startedGameTime, requiredCastTicks,
-                dimensionId, selectedHotbarSlot, Mode.CONTINUOUS, chargeUpdateIntervalTicks);
+                requiredCastTicks, dimensionId, selectedHotbarSlot, Mode.CONTINUOUS, chargeUpdateIntervalTicks);
         this.preCastStarted = true;
     }
 
     private void startInternal(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
-                               int requiredCastTicks, String dimensionId, int selectedHotbarSlot,
+                               int requiredCastTicks, int chargeBaselineTicks, String dimensionId, int selectedHotbarSlot,
                                Mode mode, int chargeUpdateIntervalTicks) {
         this.spellId = spell.getSpellId();
         this.spellLevel = spellLevel;
         this.castSource = castSource.name();
         this.castingSlot = castingSlot;
         this.startedGameTime = startedGameTime;
-        this.requiredCastTicks = requiredCastTicks;
+        this.requiredCastTicks = Math.max(0, requiredCastTicks);
+        this.chargeBaselineTicks = Math.max(0, chargeBaselineTicks);
         this.dimensionId = dimensionId;
         this.selectedHotbarSlot = selectedHotbarSlot;
         this.mode = mode.name();
@@ -105,6 +107,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         castingSlot = "";
         startedGameTime = 0L;
         requiredCastTicks = 0;
+        chargeBaselineTicks = 0;
         dimensionId = "";
         selectedHotbarSlot = -1;
         mode = Mode.NONE.name();
@@ -122,6 +125,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         tag.putString("castingSlot", castingSlot);
         tag.putLong("startedGameTime", startedGameTime);
         tag.putInt("requiredCastTicks", requiredCastTicks);
+        tag.putInt("chargeBaselineTicks", chargeBaselineTicks);
         tag.putString("dimensionId", dimensionId);
         tag.putInt("selectedHotbarSlot", selectedHotbarSlot);
         tag.putString("mode", mode);
@@ -139,6 +143,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         castingSlot = tag.contains("castingSlot") ? tag.getString("castingSlot") : "";
         startedGameTime = tag.getLong("startedGameTime");
         requiredCastTicks = tag.getInt("requiredCastTicks");
+        chargeBaselineTicks = tag.contains("chargeBaselineTicks") ? Math.max(0, tag.getInt("chargeBaselineTicks")) : requiredCastTicks;
         dimensionId = tag.getString("dimensionId");
         selectedHotbarSlot = tag.contains("selectedHotbarSlot") ? tag.getInt("selectedHotbarSlot") : -1;
         mode = tag.contains("mode") ? tag.getString("mode") : Mode.NONE.name();

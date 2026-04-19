@@ -33,6 +33,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.util.Mth;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -116,6 +117,13 @@ public final class FocusStaffbow extends CastingItem
 
         player.startUsingItem(usedHand);
         return InteractionResultHolder.consume(stack);
+    }
+
+    public static Component createLoanBlockedMessage(float remainingLoanMana) {
+        return Component.translatable(
+                "ui.apprenticecodex.focus_staffbow.loan_mana",
+                Mth.ceil(Math.max(0.0F, remainingLoanMana))
+        ).withStyle(ChatFormatting.RED);
     }
 
     @Override

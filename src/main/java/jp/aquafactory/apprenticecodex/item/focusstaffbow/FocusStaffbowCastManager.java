@@ -14,12 +14,11 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.network.casting.OnCastStartedPacket;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
@@ -67,6 +66,47 @@ public final class FocusStaffbowCastManager {
         return codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous();
     }
 
+    public static boolean hasOutstandingLoan(net.minecraft.world.entity.player.Player player) {
+        var codexSpellData = Capabilities.getSpellDataOrNull(player);
+        return codexSpellData != null
+                && codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE).hasOutstandingLoan();
+    }
+
+    public static float getOutstandingLoanMana(net.minecraft.world.entity.player.Player player) {
+        var codexSpellData = Capabilities.getSpellDataOrNull(player);
+        if (codexSpellData == null) {
+            return 0.0F;
+        }
+
+        return codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE).remainingLoanMana;
+    }
+
+    public static void tickLoanRepayment(ServerPlayer player) {
+        var codexSpellData = Capabilities.getSpellDataOrNull(player);
+        if (codexSpellData == null) {
+            return;
+        }
+
+        var loanState = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
+        if (!loanState.hasOutstandingLoan()) {
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || magicData.getMana() <= 0.0F) {
+            return;
+        }
+
+        var repaidMana = Math.min(magicData.getMana(), loanState.remainingLoanMana);
+        if (repaidMana <= 0.0F) {
+            return;
+        }
+
+        magicData.setMana(Math.max(0.0F, magicData.getMana() - repaidMana));
+        codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE, state -> state.repay(repaidMana));
+        syncManaToClient(player, magicData);
+    }
+
     public static void releasePendingCast(net.minecraft.world.entity.player.Player player, ItemStack stack, int drawDuration) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
@@ -94,15 +134,6 @@ public final class FocusStaffbowCastManager {
         var currentGameTime = serverPlayer.level().getGameTime();
         var totalCastTicks = Math.max(state.getElapsedTicks(currentGameTime), Math.max(0, drawDuration));
         if (totalCastTicks < state.requiredCastTicks) {
-            ApprenticeCodex.LOGGER.info(
-                    "FocusStaffbow charge cancelled: player={}, spell={}, startedGameTime={}, currentGameTime={}, totalCastTicks={}, requiredCastTicks={}",
-                    serverPlayer.getGameProfile().getName(),
-                    spell.getSpellId(),
-                    state.startedGameTime,
-                    currentGameTime,
-                    totalCastTicks,
-                    state.requiredCastTicks
-            );
             clearPendingCastState(serverPlayer, state, true);
             return;
         }
@@ -228,6 +259,9 @@ public final class FocusStaffbowCastManager {
         if (codexSpellData == null) {
             return false;
         }
+        if (denyIfLoanOutstanding(player, codexSpellData)) {
+            return false;
+        }
 
         var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
         if (state.isActive()) {
@@ -250,7 +284,7 @@ public final class FocusStaffbowCastManager {
                                             jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
         var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
         var requiredCastTicks = FocusStaffbowChargeLogic.normalizePendingRequiredCastTicks(originalEffectiveCastTicks);
-        logChargeSetup(player, spell, spellLevel, originalEffectiveCastTicks, requiredCastTicks);
+        var chargeBaselineTicks = FocusStaffbowChargeLogic.normalizePendingChargeBaselineTicks(originalEffectiveCastTicks);
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
@@ -271,6 +305,7 @@ public final class FocusStaffbowCastManager {
                 castingSlot,
                 player.level().getGameTime(),
                 requiredCastTicks,
+                chargeBaselineTicks,
                 player.level().dimension().location().toString(),
                 player.getInventory().selected
         ));
@@ -283,6 +318,8 @@ public final class FocusStaffbowCastManager {
                 spell,
                 player.level().getGameTime(),
                 requiredCastTicks,
+                chargeBaselineTicks,
+                spell.getManaCost(spellLevel),
                 FocusStaffbowCastState.Mode.PENDING,
                 1
         )));
@@ -302,7 +339,6 @@ public final class FocusStaffbowCastManager {
                                                jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
         var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
         var requiredCastTicks = FocusStaffbowChargeLogic.normalizeContinuousRequiredCastTicks(originalEffectiveCastTicks);
-        logChargeSetup(player, spell, spellLevel, originalEffectiveCastTicks, requiredCastTicks);
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
@@ -337,6 +373,8 @@ public final class FocusStaffbowCastManager {
                 spell,
                 player.level().getGameTime(),
                 requiredCastTicks,
+                requiredCastTicks,
+                spell.getManaCost(spellLevel),
                 FocusStaffbowCastState.Mode.CONTINUOUS,
                 FocusStaffbowChargeLogic.CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS
         )));
@@ -366,10 +404,11 @@ public final class FocusStaffbowCastManager {
         var spellLevel = state.spellLevel;
         var castSource = resolveCastSource(state.castSource);
         var castingSlot = state.castingSlot;
-        var configuredMaxMultiplier = ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier();
-        var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(totalCastTicks, state.requiredCastTicks);
-        var finalMultiplier = FocusStaffbowChargeLogic.clampChargeMultiplier(rawMultiplier, configuredMaxMultiplier);
-        logChargeConfirm(player, spell, state, totalCastTicks, currentGameTime, rawMultiplier, finalMultiplier);
+        var finalMultiplier = FocusStaffbowChargeLogic.computePendingChargeMultiplier(totalCastTicks, state.chargeBaselineTicks);
+        var shouldConsumeScaledMana = castSource.consumesMana() && !player.getAbilities().instabuild;
+        var plannedManaCost = shouldConsumeScaledMana
+                ? FocusStaffbowChargeLogic.computeScaledManaCost(spell.getManaCost(spellLevel), finalMultiplier)
+                : 0;
 
         codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
         Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
@@ -397,7 +436,17 @@ public final class FocusStaffbowCastManager {
 
         spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
         spellPowerAttribute.addTransientModifier(modifier);
+        var borrowedMana = shouldConsumeScaledMana
+                ? Math.max(0.0F, plannedManaCost - magicData.getMana())
+                : 0.0F;
+        var castCompleted = false;
         try {
+            if (borrowedMana > 0.0F) {
+                magicData.addMana(borrowedMana);
+            }
+            if (plannedManaCost > 0) {
+                FocusStaffbowManaCostOverrideEvent.reserveManaCostOverride(player, plannedManaCost);
+            }
             magicData.initiateCast(spell, spellLevel, 0, castSource, castingSlot);
             magicData.setPlayerCastingItem(focusStaffbowStack);
             syncPendingMagicDataSimulation(
@@ -413,8 +462,21 @@ public final class FocusStaffbowCastManager {
             PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new OnCastStartedPacket(player.getUUID(), spell.getSpellId(), spellLevel));
             spell.castSpell(player.level(), spellLevel, player, castSource, true);
             spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
+            castCompleted = true;
             return true;
         } finally {
+            FocusStaffbowManaCostOverrideEvent.clearManaCostOverride(player);
+            if (borrowedMana > 0.0F) {
+                if (castCompleted) {
+                    codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE, loanState -> loanState.addLoan(borrowedMana));
+                } else {
+                    magicData.setMana(Math.max(0.0F, magicData.getMana() - borrowedMana));
+                    syncManaToClient(player, magicData);
+                }
+            }
+            if (castCompleted && plannedManaCost > 0) {
+                syncManaToClient(player, magicData);
+            }
             removeOverchargeModifier(spellPowerAttribute);
         }
     }
@@ -592,6 +654,19 @@ public final class FocusStaffbowCastManager {
                 : !state.spellId.equals(magicData.getCastingSpellId()) && magicData.getSyncedData().isCasting();
     }
 
+    private static boolean denyIfLoanOutstanding(ServerPlayer player,
+                                                 jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
+        var loanState = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
+        if (!loanState.hasOutstandingLoan()) {
+            return false;
+        }
+
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                FocusStaffbow.createLoanBlockedMessage(loanState.remainingLoanMana)
+        ));
+        return true;
+    }
+
     private static boolean validateCastStart(ServerPlayer player, AbstractSpell spell, int spellLevel,
                                              CastSource castSource, MagicData magicData) {
         var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
@@ -634,7 +709,7 @@ public final class FocusStaffbowCastManager {
         var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(sampledTicks, state.requiredCastTicks);
         var finalMultiplier = FocusStaffbowChargeLogic.clampChargeMultiplier(
                 rawMultiplier,
-                ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier()
+                FocusStaffbowChargeLogic.MAX_CONTINUOUS_CHARGE_MULTIPLIER
         );
         var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (spellPowerAttribute != null) {
@@ -659,61 +734,6 @@ public final class FocusStaffbowCastManager {
         }
     }
 
-    private static void logChargeSetup(ServerPlayer player, AbstractSpell spell, int spellLevel,
-                                       int originalEffectiveCastTicks, int requiredCastTicks) {
-        var schoolType = spell.getSchoolType();
-        var globalSpellPowerAttribute = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
-        var schoolSpellPowerAttribute = schoolType == null ? 1.0D : schoolType.getPowerFor(player);
-        var schoolFinalSpellPowerAttribute = globalSpellPowerAttribute * schoolSpellPowerAttribute;
-
-        ApprenticeCodex.LOGGER.info(
-                "FocusStaffbow charge setup: player={}, spell={}, spellLevel={}, school={}, castType={}, originalEffectiveCastTicks={}, normalizedRequiredCastTicks={}, globalSpellPowerAttribute={}, schoolSpellPowerAttribute={}, schoolFinalSpellPowerAttribute={}",
-                player.getGameProfile().getName(),
-                spell.getSpellId(),
-                spellLevel,
-                schoolType == null ? "none" : schoolType.getId(),
-                spell.getCastType(),
-                originalEffectiveCastTicks,
-                requiredCastTicks,
-                globalSpellPowerAttribute,
-                schoolSpellPowerAttribute,
-                schoolFinalSpellPowerAttribute
-        );
-    }
-
-    private static void logChargeConfirm(ServerPlayer player, AbstractSpell spell, FocusStaffbowCastState state,
-                                         long totalCastTicks, long currentGameTime, double rawMultiplier, double finalMultiplier) {
-        var schoolType = spell.getSchoolType();
-        var globalSpellPowerAttribute = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
-        var schoolSpellPowerAttribute = schoolType == null ? 1.0D : schoolType.getPowerFor(player);
-        var schoolFinalSpellPowerAttribute = globalSpellPowerAttribute * schoolSpellPowerAttribute;
-        var chargedSchoolFinalSpellPowerAttribute = schoolFinalSpellPowerAttribute * finalMultiplier;
-
-        ApprenticeCodex.LOGGER.info(
-                "FocusStaffbow charge confirm: player={}, spell={}, school={}, startedGameTime={}, currentGameTime={}, totalCastTicks={}, requiredCastTicks={}, formula='clamp(totalCastTicks / requiredCastTicks, 1.0, maxChargeMultiplier)', rawMultiplier={}, configuredMaxMultiplier={}, appliedMultiplier={}",
-                player.getGameProfile().getName(),
-                spell.getSpellId(),
-                schoolType == null ? "none" : schoolType.getId(),
-                state.startedGameTime,
-                currentGameTime,
-                totalCastTicks,
-                state.requiredCastTicks,
-                rawMultiplier,
-                ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier(),
-                finalMultiplier
-        );
-        ApprenticeCodex.LOGGER.info(
-                "FocusStaffbow charge power: player={}, spell={}, school={}, globalSpellPowerAttribute={}, schoolSpellPowerAttribute={}, schoolFinalSpellPowerAttribute={}, chargedSchoolFinalSpellPowerAttribute={}",
-                player.getGameProfile().getName(),
-                spell.getSpellId(),
-                schoolType == null ? "none" : schoolType.getId(),
-                globalSpellPowerAttribute,
-                schoolSpellPowerAttribute,
-                schoolFinalSpellPowerAttribute,
-                chargedSchoolFinalSpellPowerAttribute
-        );
-    }
-
     private static CastSource resolveCastSource(String castSourceName) {
         try {
             return CastSource.valueOf(castSourceName);
@@ -723,14 +743,16 @@ public final class FocusStaffbowCastManager {
     }
 
     private static CompoundTag createCastStateData(AbstractSpell spell, long startedGameTime, int requiredCastTicks,
+                                                   int chargeBaselineTicks, int baseManaCost,
                                                    FocusStaffbowCastState.Mode mode, int chargeUpdateIntervalTicks) {
         var data = new CompoundTag();
         data.putString("castMode", mode.name().toLowerCase(java.util.Locale.ROOT));
         data.putString("spellId", spell.getSpellId());
         data.putLong("startedGameTime", startedGameTime);
         data.putInt("requiredCastTicks", requiredCastTicks);
+        data.putInt("chargeBaselineTicks", Math.max(0, chargeBaselineTicks));
+        data.putInt("baseManaCost", Math.max(0, baseManaCost));
         data.putInt("chargeUpdateIntervalTicks", Math.max(1, chargeUpdateIntervalTicks));
-        data.putDouble("maxChargeMultiplier", ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier());
         return data;
     }
 
@@ -804,5 +826,9 @@ public final class FocusStaffbowCastManager {
         if (summonEntity instanceof SummonWeaponEntity summonWeaponEntity) {
             summonWeaponEntity.releaseWeapon();
         }
+    }
+
+    private static void syncManaToClient(ServerPlayer player, MagicData magicData) {
+        PacketDistributor.sendToPlayer(player, new SyncManaPacket(magicData));
     }
 }

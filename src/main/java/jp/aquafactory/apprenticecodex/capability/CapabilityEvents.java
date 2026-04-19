@@ -3,6 +3,10 @@ package jp.aquafactory.apprenticecodex.capability;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellDataProvider;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowLoanState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookDataProvider;
 import jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventoryProvider;
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventoryProvider;
@@ -51,14 +55,15 @@ public class CapabilityEvents {
                         newSpellData -> {
                             newSpellData.loadAll(oldSpellData.saveAll());
                             if (event.isWasDeath()) {
-                                newSpellData.edit(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE, state -> state.reset());
+                                newSpellData.edit(CodexSpellStateTypeRegister.ABSORPTION_AMPLIFY_AMULET_STATE, AbsorptionAmplifyAmuletState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.COMPANION_TRUNK_STATE, state -> {
                                     state.active = false;
                                     state.maxHealth = 0.0;
                                     state.setTrunkUuid(null);
                                 });
-                                newSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, state -> state.reset());
-                                newSpellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> state.reset());
+                                newSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
+                                newSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE, FocusStaffbowLoanState::reset);
+                                newSpellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, RemoteEyeState::reset);
                             }
                         }
                 )
