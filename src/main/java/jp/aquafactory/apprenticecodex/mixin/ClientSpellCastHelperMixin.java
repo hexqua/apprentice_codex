@@ -10,6 +10,8 @@ import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPresentationState;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldClientEffectState;
@@ -64,8 +66,16 @@ public abstract class ClientSpellCastHelperMixin {
             return;
         }
 
+        var pendingFocusStaffbowPresentation =
+                FocusStaffbowClientPresentationState.consumePending(castingEntityId, spellId);
         if (apprentice_codex$shouldSuppressCastStartAnimation(player, castingStack, spell)) {
-            spell.onClientPreCast(player.level(), spellLevel, player, apprentice_codex$resolveCastingHand(castingSlot), null);
+            apprentice_codex$runClientPreCast(
+                    spell,
+                    spellLevel,
+                    player,
+                    apprentice_codex$resolveCastingHand(castingSlot),
+                    pendingFocusStaffbowPresentation
+            );
             ci.cancel();
             return;
         }
@@ -74,10 +84,18 @@ public abstract class ClientSpellCastHelperMixin {
             return;
         }
 
-        animationOverrideItem.getCastStartAnimation(castingStack, spell, spellLevel)
-                .getForPlayer()
-                .ifPresent(resourceLocation -> AnimationHelper.animatePlayerStart(player, resourceLocation));
-        spell.onClientPreCast(player.level(), spellLevel, player, apprentice_codex$resolveCastingHand(castingSlot), null);
+        if (!pendingFocusStaffbowPresentation) {
+            animationOverrideItem.getCastStartAnimation(castingStack, spell, spellLevel)
+                    .getForPlayer()
+                    .ifPresent(resourceLocation -> AnimationHelper.animatePlayerStart(player, resourceLocation));
+        }
+        apprentice_codex$runClientPreCast(
+                spell,
+                spellLevel,
+                player,
+                apprentice_codex$resolveCastingHand(castingSlot),
+                pendingFocusStaffbowPresentation
+        );
         ci.cancel();
     }
 
@@ -105,6 +123,10 @@ public abstract class ClientSpellCastHelperMixin {
             return spell.getCastFinishAnimation();
         }
 
+        if (animationOverrideItem.shouldOverrideCastFinishAnimation(castingStack, spell)) {
+            return animationOverrideItem.getCastFinishAnimation(castingStack, spell, cancelled);
+        }
+
         return apprentice_codex$shouldSuppressCastFinishAnimation(player, castingStack, spell)
                 ? AnimationHolder.pass()
                 : spell.getCastFinishAnimation();
@@ -125,6 +147,25 @@ public abstract class ClientSpellCastHelperMixin {
     )
     private static void handleClientBoundOnCastFinishedReturn(UUID castingEntityId, String spellId, boolean cancelled, CallbackInfo ci) {
         ClientSwingcastStaffCastContext.clearFinished(castingEntityId, spellId);
+        FocusStaffbowClientPresentationState.clear(castingEntityId);
+    }
+
+    @Unique
+    private static void apprentice_codex$runClientPreCast(
+            AbstractSpell spell,
+            int spellLevel,
+            net.minecraft.world.entity.player.Player player,
+            InteractionHand hand,
+            boolean suppressFocusStaffbowStartSound
+    ) {
+        if (!suppressFocusStaffbowStartSound) {
+            spell.onClientPreCast(player.level(), spellLevel, player, hand, null);
+            return;
+        }
+
+        FocusStaffbowStartSoundContext.runSuppressed(player.getUUID(), () ->
+                spell.onClientPreCast(player.level(), spellLevel, player, hand, null)
+        );
     }
 
     @Unique
@@ -166,6 +207,7 @@ public abstract class ClientSpellCastHelperMixin {
 
         return apprentice_codex$shouldSuppressCastStartAnimation(player, stack, spell)
                 || animationOverrideItem.shouldOverrideCastStartAnimation(stack, spell)
+                || animationOverrideItem.shouldOverrideCastFinishAnimation(stack, spell)
                 || apprentice_codex$shouldSuppressCastFinishAnimation(player, stack, spell);
     }
 

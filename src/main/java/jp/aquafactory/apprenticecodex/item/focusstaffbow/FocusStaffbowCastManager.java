@@ -22,6 +22,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -123,9 +124,19 @@ public final class FocusStaffbowCastManager {
             return;
         }
 
+        var mainHandStack = player.getMainHandItem();
         spellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
         if (syncClientCancel) {
             Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
+            Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
+                    player.getUUID(),
+                    state.spellId,
+                    SyncFocusStaffbowPresentationPacket.PresentationAction.CANCEL_PENDING
+            ));
+        }
+
+        if (mainHandStack.getItem() instanceof FocusStaffbow focusStaffbow) {
+            focusStaffbow.triggerIdleAnimation(player, mainHandStack);
         }
     }
 
@@ -209,6 +220,14 @@ public final class FocusStaffbowCastManager {
                 player.level().getGameTime(),
                 requiredCastTicks
         )));
+        Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
+                player.getUUID(),
+                spell.getSpellId(),
+                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING
+        ));
+        if (player.getMainHandItem().getItem() instanceof FocusStaffbow focusStaffbow) {
+            focusStaffbow.triggerChargeAnimation(player, player.getMainHandItem());
+        }
     }
 
     private static boolean confirmCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell,
@@ -264,12 +283,14 @@ public final class FocusStaffbowCastManager {
         if (!castResult.isSuccess()
                 || !spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
                 || MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(player, spell.getSpellId(), spellLevel, spell.getSchoolType(), castSource))) {
+            cancelPendingPresentation(player, focusStaffbowStack, spell.getSpellId());
             PacketDistributor.sendToPlayer(player, new OnCastFinishedPacket(player.getUUID(), spell.getSpellId(), true));
             return false;
         }
 
         var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (spellPowerAttribute == null) {
+            cancelPendingPresentation(player, focusStaffbowStack, spell.getSpellId());
             PacketDistributor.sendToPlayer(player, new OnCastFinishedPacket(player.getUUID(), spell.getSpellId(), true));
             return false;
         }
@@ -290,7 +311,9 @@ public final class FocusStaffbowCastManager {
         try {
             magicData.initiateCast(spell, spellLevel, 0, castSource, castingSlot);
             magicData.setPlayerCastingItem(focusStaffbowStack);
-            spell.onServerPreCast(player.level(), spellLevel, player, magicData);
+            FocusStaffbowStartSoundContext.runSuppressed(player.getUUID(), () ->
+                    spell.onServerPreCast(player.level(), spellLevel, player, magicData)
+            );
             PacketDistributor.sendToPlayer(player, new UpdateCastingStatePacket(spell.getSpellId(), spellLevel, 0, castSource, castingSlot));
             PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new OnCastStartedPacket(player.getUUID(), spell.getSpellId(), spellLevel));
             spell.onServerCastTick(player.level(), spellLevel, player, magicData);
@@ -345,6 +368,17 @@ public final class FocusStaffbowCastManager {
 
     private static @Nullable SpellSelectionManager.SelectionOption resolveSelection(ServerPlayer player) {
         return new SpellSelectionManager(player).getSelection();
+    }
+
+    private static void cancelPendingPresentation(ServerPlayer player, ItemStack focusStaffbowStack, String spellId) {
+        Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
+                player.getUUID(),
+                spellId,
+                SyncFocusStaffbowPresentationPacket.PresentationAction.CANCEL_PENDING
+        ));
+        if (focusStaffbowStack.getItem() instanceof FocusStaffbow focusStaffbow) {
+            focusStaffbow.triggerIdleAnimation(player, focusStaffbowStack);
+        }
     }
 
     private static void removeOverchargeModifier(@Nullable AttributeInstance spellPowerAttribute) {

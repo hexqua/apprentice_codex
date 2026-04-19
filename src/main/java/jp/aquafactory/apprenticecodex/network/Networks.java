@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -107,6 +108,11 @@ public final class Networks {
                 SyncFocusStaffbowCastStatePacket.TYPE,
                 SyncFocusStaffbowCastStatePacket.STREAM_CODEC,
                 SyncFocusStaffbowCastStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncFocusStaffbowPresentationPacket.TYPE,
+                SyncFocusStaffbowPresentationPacket.STREAM_CODEC,
+                SyncFocusStaffbowPresentationPacket::handle
         );
         registrar.playToClient(
                 SyncTamersPocketCountPacket.TYPE,

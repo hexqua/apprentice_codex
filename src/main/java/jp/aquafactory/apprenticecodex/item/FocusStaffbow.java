@@ -1,5 +1,8 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -7,12 +10,16 @@ import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -24,9 +31,12 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
@@ -37,7 +47,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public final class FocusStaffbow extends CastingItem implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem {
+public final class FocusStaffbow extends CastingItem
+        implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem {
     private static final int MAX_USE_DURATION = 72000;
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
@@ -52,8 +63,20 @@ public final class FocusStaffbow extends CastingItem implements GeoItem, NonDama
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
-    private static final String MAIN_CONTROLLER = "main";
-    private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("core_idle");
+    private static final String BASE_CONTROLLER = "base";
+    private static final String OVERLAY_CONTROLLER = "overlay";
+    private static final String OVERLAY_IDLE_ANIMATION = "overlay_idle";
+    private static final String CHARGE_RIGHT_ANIMATION = "charge_right";
+    private static final String CHARGE_LEFT_ANIMATION = "charge_left";
+    private static final String RELEASE_RIGHT_ANIMATION = "release_right";
+    private static final String RELEASE_LEFT_ANIMATION = "release_left";
+    private static final double CHARGING_CORE_IDLE_SPEED = 2.0D;
+    private static final RawAnimation ANIM_CORE_IDLE = RawAnimation.begin().thenLoop("core_idle");
+    private static final RawAnimation ANIM_OVERLAY_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation ANIM_CHARGE_RIGHT = RawAnimation.begin().thenPlayAndHold("charge_right");
+    private static final RawAnimation ANIM_CHARGE_LEFT = RawAnimation.begin().thenPlayAndHold("charge_left");
+    private static final RawAnimation ANIM_RELEASE_RIGHT = RawAnimation.begin().thenPlay("release_right");
+    private static final RawAnimation ANIM_RELEASE_LEFT = RawAnimation.begin().thenPlay("release_left");
     private static final int ENCHANTMENT_VALUE = 20;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -67,7 +90,13 @@ public final class FocusStaffbow extends CastingItem implements GeoItem, NonDama
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
         if (usedHand != InteractionHand.MAIN_HAND) {
-            return InteractionResultHolder.pass(stack);
+            if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                        Component.translatable("ui.apprenticecodex.focus_staffbow.deny_offhand")
+                                .withStyle(ChatFormatting.RED)
+                ));
+            }
+            return InteractionResultHolder.fail(stack);
         }
 
         var selection = new SpellSelectionManager(player).getSelection();
@@ -95,6 +124,9 @@ public final class FocusStaffbow extends CastingItem implements GeoItem, NonDama
         }
 
         var handled = FocusStaffbowCastManager.handleSelectedSpellInput(player, stack);
+        if (handled && player instanceof ServerPlayer serverPlayer) {
+            triggerChargeAnimation(serverPlayer, stack);
+        }
         return handled
                 ? InteractionResultHolder.sidedSuccess(stack, false)
                 : InteractionResultHolder.fail(stack);
@@ -111,7 +143,7 @@ public final class FocusStaffbow extends CastingItem implements GeoItem, NonDama
 
     @Override
     public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
-        return UseAnim.BOW;
+        return UseAnim.NONE;
     }
 
     @Override
@@ -193,16 +225,79 @@ public final class FocusStaffbow extends CastingItem implements GeoItem, NonDama
     }
 
     @Override
+    public boolean isPerspectiveAware() {
+        return true;
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
-        controllerRegistrar.add(new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
-            state.setAnimation(ANIM_IDLE);
+        controllerRegistrar.add(new AnimationController<>(this, BASE_CONTROLLER, 0, state -> {
+            var stack = state.getData(DataTickets.ITEMSTACK);
+            var perspective = state.getData(DataTickets.ITEM_RENDER_PERSPECTIVE);
+            state.setAnimation(ANIM_CORE_IDLE);
+            state.getController().setAnimationSpeed(
+                    FocusStaffbowClientRenderState.shouldAccelerateCoreIdle(stack, perspective)
+                            ? CHARGING_CORE_IDLE_SPEED
+                            : 1.0D
+            );
             return PlayState.CONTINUE;
         }));
+        controllerRegistrar.add(new AnimationController<>(this, OVERLAY_CONTROLLER, 0, state -> {
+            state.setAnimation(ANIM_OVERLAY_IDLE);
+            state.getController().setAnimationSpeed(1.0D);
+            return PlayState.CONTINUE;
+        }).triggerableAnim(OVERLAY_IDLE_ANIMATION, ANIM_OVERLAY_IDLE)
+                .triggerableAnim(CHARGE_RIGHT_ANIMATION, ANIM_CHARGE_RIGHT)
+                .triggerableAnim(CHARGE_LEFT_ANIMATION, ANIM_CHARGE_LEFT)
+                .triggerableAnim(RELEASE_RIGHT_ANIMATION, ANIM_RELEASE_RIGHT)
+                .triggerableAnim(RELEASE_LEFT_ANIMATION, ANIM_RELEASE_LEFT));
     }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    @Override
+    public boolean shouldOverrideCastStartAnimation(ItemStack stack, AbstractSpell spell) {
+        return spell != null;
+    }
+
+    @Override
+    public AnimationHolder getCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel) {
+        return SpellAnimations.BOW_CHARGE_ANIMATION;
+    }
+
+    @Override
+    public boolean shouldOverrideCastFinishAnimation(ItemStack stack, AbstractSpell spell) {
+        return spell != null;
+    }
+
+    @Override
+    public AnimationHolder getCastFinishAnimation(ItemStack stack, AbstractSpell spell, boolean cancelled) {
+        return AnimationHolder.none();
+    }
+
+    @Override
+    public boolean shouldSuppressCastFinishAnimation(ItemStack stack, AbstractSpell spell) {
+        return false;
+    }
+
+    public void triggerChargeAnimation(ServerPlayer serverPlayer, ItemStack stack) {
+        triggerOverlayAnimation(serverPlayer, stack, resolveChargeAnimation(serverPlayer));
+    }
+
+    public void triggerIdleAnimation(ServerPlayer serverPlayer, ItemStack stack) {
+        triggerOverlayAnimation(serverPlayer, stack, OVERLAY_IDLE_ANIMATION);
+    }
+
+    public void triggerCastCompletionAnimation(ServerPlayer serverPlayer, ItemStack stack, boolean cancelled) {
+        if (cancelled) {
+            triggerIdleAnimation(serverPlayer, stack);
+            return;
+        }
+
+        triggerOverlayAnimation(serverPlayer, stack, resolveReleaseAnimation(serverPlayer));
     }
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
@@ -211,5 +306,18 @@ public final class FocusStaffbow extends CastingItem implements GeoItem, NonDama
 
     private static boolean isMalumSpiritPlunder(ItemStack stack, ResourceLocation enchantmentId) {
         return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON);
+    }
+
+    private void triggerOverlayAnimation(ServerPlayer serverPlayer, ItemStack stack, String animationName) {
+        var instanceId = GeoItem.getOrAssignId(stack, serverPlayer.serverLevel());
+        triggerAnim(serverPlayer, instanceId, OVERLAY_CONTROLLER, animationName);
+    }
+
+    private static String resolveChargeAnimation(Player player) {
+        return player.getMainArm() == HumanoidArm.LEFT ? CHARGE_LEFT_ANIMATION : CHARGE_RIGHT_ANIMATION;
+    }
+
+    private static String resolveReleaseAnimation(Player player) {
+        return player.getMainArm() == HumanoidArm.LEFT ? RELEASE_LEFT_ANIMATION : RELEASE_RIGHT_ANIMATION;
     }
 }

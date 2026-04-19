@@ -4131,6 +4131,47 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowRejectsOffhandUse(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_reject_test");
+            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            player.setItemInHand(InteractionHand.OFF_HAND, stack);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_SWORD));
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow should fail immediately when used from offhand but got " + result.getResult());
+            helper.assertFalse(player.isUsingItem(),
+                    "Focus Staffbow should not enter use state when offhand use is rejected");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowAllowsMainhandUseWithOffhandSelection(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_selection_test");
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+
+            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var selection = selectionManager.getSelection();
+            helper.assertTrue(selection != null
+                            && io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND.equals(selection.slot),
+                    "Focus Staffbow offhand selection test should resolve offhand spell selection but got " + selection);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() != net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow mainhand use should remain available even when selected spell slot is offhand but got "
+                            + result.getResult());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_helper_test");

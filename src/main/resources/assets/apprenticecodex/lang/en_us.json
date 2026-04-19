@@ -475,6 +475,7 @@
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "Overheating has increased mana cost to %s, and you don't have enough mana!",
+  "ui.apprenticecodex.focus_staffbow.deny_offhand": "Cannot be used with offhand",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",
