@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.item.FocusStaffbowCastManager;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
