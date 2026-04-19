@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -10,8 +11,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ICastData;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.network.casting.CancelCastPacket;
-import io.redspace.ironsspellbooks.network.casting.OnCastFinishedPacket;
+import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.network.casting.OnCastStartedPacket;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
@@ -20,13 +20,13 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
-import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -54,6 +54,19 @@ public final class FocusStaffbowCastManager {
         return handleResolvedInput(serverPlayer, resolveSelection(serverPlayer), stack);
     }
 
+    public static boolean hasActiveContinuousCast(net.minecraft.world.entity.player.Player player) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return false;
+        }
+
+        var codexSpellData = Capabilities.getSpellDataOrNull(serverPlayer);
+        if (codexSpellData == null) {
+            return false;
+        }
+
+        return codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous();
+    }
+
     public static void releasePendingCast(net.minecraft.world.entity.player.Player player, ItemStack stack, int drawDuration) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
@@ -68,13 +81,13 @@ public final class FocusStaffbowCastManager {
         }
 
         var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
-        if (!state.isActive()) {
+        if (!state.isPending()) {
             return;
         }
 
         var spell = SpellRegistry.getSpell(state.spellId);
         if (spell == null || spell == SpellRegistry.none()) {
-            resetPendingState(serverPlayer, true);
+            clearFocusStaffbowState(serverPlayer, true, true);
             return;
         }
 
@@ -90,32 +103,56 @@ public final class FocusStaffbowCastManager {
                     totalCastTicks,
                     state.requiredCastTicks
             );
-            resetPendingState(serverPlayer, true);
+            clearPendingCastState(serverPlayer, state, true);
             return;
         }
 
-        confirmCast(serverPlayer, stack, spell, state, codexSpellData, totalCastTicks, currentGameTime);
+        confirmPendingCast(serverPlayer, stack, spell, state, codexSpellData, totalCastTicks, currentGameTime);
+    }
+
+    public static void releaseContinuousCast(net.minecraft.world.entity.player.Player player, ItemStack stack) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        if (!(stack.getItem() instanceof FocusStaffbow)) {
+            return;
+        }
+
+        var codexSpellData = Capabilities.getSpellDataOrNull(serverPlayer);
+        if (codexSpellData == null) {
+            return;
+        }
+
+        var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+        if (state.isContinuous()) {
+            stopContinuousCast(serverPlayer, state, true, true, true);
+        }
     }
 
     public static void tick(ServerPlayer player) {
-        var spellData = Capabilities.getSpellDataOrNull(player);
-        if (spellData == null) {
+        var codexSpellData = Capabilities.getSpellDataOrNull(player);
+        if (codexSpellData == null) {
             return;
         }
 
-        var state = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+        var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
         if (!state.isActive()) {
             return;
         }
 
         var spell = SpellRegistry.getSpell(state.spellId);
         if (spell == null || spell == SpellRegistry.none()) {
-            resetPendingState(player, true);
+            clearFocusStaffbowState(player, true, true);
             return;
         }
 
-        if (shouldCancelPendingState(player, state)) {
-            resetPendingState(player, true);
+        if (state.isContinuous()) {
+            tickContinuousCast(player, state, spell);
+            return;
+        }
+
+        if (shouldCancelFocusStaffbowState(player, state)) {
+            clearPendingCastState(player, state, true);
             return;
         }
 
@@ -137,38 +174,32 @@ public final class FocusStaffbowCastManager {
     }
 
     public static void cancelPendingCast(ServerPlayer player) {
-        resetPendingState(player, true);
+        clearFocusStaffbowState(player, true, true);
     }
 
     public static void resetPendingState(ServerPlayer player, boolean syncClientCancel) {
-        var spellData = Capabilities.getSpellDataOrNull(player);
-        if (spellData == null) {
-            return;
+        clearFocusStaffbowState(player, false, syncClientCancel);
+    }
+
+    public static boolean shouldBypassMagicManager(MagicData magicData) {
+        if (!(magicData.getPlayerCastingItem().getItem() instanceof FocusStaffbow)) {
+            return false;
         }
 
-        var state = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
-        if (!state.isActive()) {
-            return;
+        var serverPlayer = ((MagicDataAccessor) magicData).apprenticecodex$getServerPlayer();
+        if (serverPlayer == null) {
+            return false;
         }
 
-        var mainHandStack = player.getMainHandItem();
-        var magicData = MagicData.getPlayerMagicData(player);
-        cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
-        magicData.resetAdditionalCastData();
-        clearPendingMagicDataSimulation(magicData);
-        spellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
-        if (syncClientCancel) {
-            Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
-            Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
-                    player.getUUID(),
-                    state.spellId,
-                    SyncFocusStaffbowPresentationPacket.PresentationAction.CANCEL_PENDING
-            ));
+        var codexSpellData = Capabilities.getSpellDataOrNull(serverPlayer);
+        if (codexSpellData == null) {
+            return false;
         }
 
-        if (mainHandStack.getItem() instanceof FocusStaffbow focusStaffbow) {
-            focusStaffbow.triggerIdleAnimation(player, mainHandStack);
-        }
+        var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+        return state.isContinuous()
+                && magicData.getSyncedData().isCasting()
+                && state.spellId.equals(magicData.getCastingSpellId());
     }
 
     private static boolean handleResolvedInput(ServerPlayer player, @Nullable SpellSelectionManager.SelectionOption selection,
@@ -187,15 +218,10 @@ public final class FocusStaffbowCastManager {
         var magicData = MagicData.getPlayerMagicData(player);
 
         if (magicData.isCasting() && !magicData.getCastingSpellId().equals(spell.getSpellId())) {
-            CancelCastPacket.cancelCast(player, magicData.getCastType() != CastType.LONG);
+            stopFocusStaffbowOrVanillaCast(player, magicData);
         }
         if (magicData.isCasting()) {
             return false;
-        }
-
-        if (spell.getCastType() == CastType.CONTINUOUS) {
-            resetPendingState(player, true);
-            return spell.attemptInitiateCast(focusStaffbowStack, spellLevel, player.level(), player, castSource, true, castingSlot);
         }
 
         var codexSpellData = Capabilities.getSpellDataOrNull(player);
@@ -209,7 +235,11 @@ public final class FocusStaffbowCastManager {
                 return true;
             }
 
-            resetPendingState(player, true);
+            clearFocusStaffbowState(player, true, true);
+        }
+
+        if (spell.getCastType() == CastType.CONTINUOUS) {
+            return beginContinuousCast(player, focusStaffbowStack, spell, spellLevel, castSource, castingSlot, codexSpellData);
         }
 
         return beginPendingCast(player, focusStaffbowStack, spell, spellLevel, castSource, castingSlot, codexSpellData);
@@ -219,34 +249,11 @@ public final class FocusStaffbowCastManager {
                                             CastSource castSource, String castingSlot,
                                             jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
         var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
-        var requiredCastTicks = FocusStaffbowChargeLogic.normalizeRequiredCastTicks(originalEffectiveCastTicks);
-        var schoolType = spell.getSchoolType();
-        var globalSpellPowerAttribute = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
-        var schoolSpellPowerAttribute = schoolType == null ? 1.0D : schoolType.getPowerFor(player);
-        var schoolFinalSpellPowerAttribute = globalSpellPowerAttribute * schoolSpellPowerAttribute;
-
-        ApprenticeCodex.LOGGER.info(
-                "FocusStaffbow charge setup: player={}, spell={}, school={}, castType={}, originalEffectiveCastTicks={}, normalizedRequiredCastTicks={}, globalSpellPowerAttribute={}, schoolSpellPowerAttribute={}, schoolFinalSpellPowerAttribute={}",
-                player.getGameProfile().getName(),
-                spell.getSpellId(),
-                schoolType == null ? "none" : schoolType.getId(),
-                spell.getCastType(),
-                originalEffectiveCastTicks,
-                requiredCastTicks,
-                globalSpellPowerAttribute,
-                schoolSpellPowerAttribute,
-                schoolFinalSpellPowerAttribute
-        );
+        var requiredCastTicks = FocusStaffbowChargeLogic.normalizePendingRequiredCastTicks(originalEffectiveCastTicks);
+        logChargeSetup(player, spell, spellLevel, originalEffectiveCastTicks, requiredCastTicks);
 
         var magicData = MagicData.getPlayerMagicData(player);
-        var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
-        if (castResult.message != null) {
-            player.connection.send(new ClientboundSetActionBarTextPacket(castResult.message));
-        }
-
-        if (!castResult.isSuccess()
-                || !spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
-                || MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(player, spell.getSpellId(), spellLevel, spell.getSchoolType(), castSource))) {
+        if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
             magicData.resetAdditionalCastData();
             clearPendingMagicDataSimulation(magicData);
             return false;
@@ -256,8 +263,8 @@ public final class FocusStaffbowCastManager {
             player.stopUsingItem();
         }
 
-        // 通常の cast state を使うと auto-cast へ入るため、special charge は専用 state と HUD 同期だけで管理する。
-        codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, state -> state.start(
+        // 通常の cast state を使うと auto-cast へ入るため、LONG/INSTANT 用は専用 state と HUD 同期だけで管理する。
+        codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, state -> state.startPending(
                 spell,
                 spellLevel,
                 castSource,
@@ -272,10 +279,12 @@ public final class FocusStaffbowCastManager {
                 spell.onServerPreCast(player.level(), spellLevel, player, magicData)
         );
         codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::markPreCastStarted);
-        Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(createPendingStateData(
+        Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(createCastStateData(
                 spell,
                 player.level().getGameTime(),
-                requiredCastTicks
+                requiredCastTicks,
+                FocusStaffbowCastState.Mode.PENDING,
+                1
         )));
         Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
                 player.getUUID(),
@@ -288,45 +297,79 @@ public final class FocusStaffbowCastManager {
         return true;
     }
 
-    private static boolean confirmCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell,
-                                       FocusStaffbowCastState state,
-                                       jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData,
-                                       long totalCastTicks, long currentGameTime) {
+    private static boolean beginContinuousCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell, int spellLevel,
+                                               CastSource castSource, String castingSlot,
+                                               jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
+        var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
+        var requiredCastTicks = FocusStaffbowChargeLogic.normalizeContinuousRequiredCastTicks(originalEffectiveCastTicks);
+        logChargeSetup(player, spell, spellLevel, originalEffectiveCastTicks, requiredCastTicks);
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
+            magicData.resetAdditionalCastData();
+            clearPendingMagicDataSimulation(magicData);
+            return false;
+        }
+
+        if (player.isUsingItem()) {
+            player.stopUsingItem();
+        }
+
+        magicData.initiateCast(spell, spellLevel, requiredCastTicks, castSource, castingSlot);
+        magicData.setPlayerCastingItem(focusStaffbowStack);
+        codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, state -> state.startContinuous(
+                spell,
+                spellLevel,
+                castSource,
+                castingSlot,
+                player.level().getGameTime(),
+                requiredCastTicks,
+                player.level().dimension().location().toString(),
+                player.getInventory().selected,
+                FocusStaffbowChargeLogic.CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS
+        ));
+        syncContinuousMagicDataSimulation(magicData, spell, spellLevel, castSource, requiredCastTicks, 0L, focusStaffbowStack);
+        updateContinuousChargeModifier(player, spell, spellLevel, codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE), 0L);
+        FocusStaffbowStartSoundContext.runSuppressed(player.getUUID(), () ->
+                spell.onServerPreCast(player.level(), spellLevel, player, magicData)
+        );
+        Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(createCastStateData(
+                spell,
+                player.level().getGameTime(),
+                requiredCastTicks,
+                FocusStaffbowCastState.Mode.CONTINUOUS,
+                FocusStaffbowChargeLogic.CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS
+        )));
+        Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
+                player.getUUID(),
+                spell.getSpellId(),
+                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING
+        ));
+        PacketDistributor.sendToPlayer(player, new UpdateCastingStatePacket(
+                spell.getSpellId(),
+                spellLevel,
+                requiredCastTicks,
+                castSource,
+                castingSlot
+        ));
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new OnCastStartedPacket(player.getUUID(), spell.getSpellId(), spellLevel));
+        if (player.getMainHandItem().getItem() instanceof FocusStaffbow focusStaffbow) {
+            focusStaffbow.triggerChargeAnimation(player, player.getMainHandItem());
+        }
+        return true;
+    }
+
+    private static boolean confirmPendingCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell,
+                                              FocusStaffbowCastState state,
+                                              jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData,
+                                              long totalCastTicks, long currentGameTime) {
         var spellLevel = state.spellLevel;
         var castSource = resolveCastSource(state.castSource);
         var castingSlot = state.castingSlot;
         var configuredMaxMultiplier = ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier();
         var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(totalCastTicks, state.requiredCastTicks);
         var finalMultiplier = FocusStaffbowChargeLogic.clampChargeMultiplier(rawMultiplier, configuredMaxMultiplier);
-        var schoolType = spell.getSchoolType();
-        var globalSpellPowerAttribute = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
-        var schoolSpellPowerAttribute = schoolType == null ? 1.0D : schoolType.getPowerFor(player);
-        var schoolFinalSpellPowerAttribute = globalSpellPowerAttribute * schoolSpellPowerAttribute;
-        var chargedSchoolFinalSpellPowerAttribute = schoolFinalSpellPowerAttribute * finalMultiplier;
-
-        ApprenticeCodex.LOGGER.info(
-                "FocusStaffbow charge confirm: player={}, spell={}, school={}, startedGameTime={}, currentGameTime={}, totalCastTicks={}, requiredCastTicks={}, formula='clamp(totalCastTicks / requiredCastTicks, 1.0, maxChargeMultiplier)', rawMultiplier={}, configuredMaxMultiplier={}, appliedMultiplier={}",
-                player.getGameProfile().getName(),
-                spell.getSpellId(),
-                schoolType == null ? "none" : schoolType.getId(),
-                state.startedGameTime,
-                currentGameTime,
-                totalCastTicks,
-                state.requiredCastTicks,
-                rawMultiplier,
-                configuredMaxMultiplier,
-                finalMultiplier
-        );
-        ApprenticeCodex.LOGGER.info(
-                "FocusStaffbow charge power: player={}, spell={}, school={}, globalSpellPowerAttribute={}, schoolSpellPowerAttribute={}, schoolFinalSpellPowerAttribute={}, chargedSchoolFinalSpellPowerAttribute={}",
-                player.getGameProfile().getName(),
-                spell.getSpellId(),
-                schoolType == null ? "none" : schoolType.getId(),
-                globalSpellPowerAttribute,
-                schoolSpellPowerAttribute,
-                schoolFinalSpellPowerAttribute,
-                chargedSchoolFinalSpellPowerAttribute
-        );
+        logChargeConfirm(player, spell, state, totalCastTicks, currentGameTime, rawMultiplier, finalMultiplier);
 
         codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
         Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
@@ -338,7 +381,6 @@ public final class FocusStaffbowCastManager {
             magicData.resetAdditionalCastData();
             clearPendingMagicDataSimulation(magicData);
             cancelPendingPresentation(player, focusStaffbowStack, spell.getSpellId());
-            PacketDistributor.sendToPlayer(player, new OnCastFinishedPacket(player.getUUID(), spell.getSpellId(), true));
             return false;
         }
 
@@ -377,7 +419,154 @@ public final class FocusStaffbowCastManager {
         }
     }
 
-    private static boolean shouldCancelPendingState(ServerPlayer player, FocusStaffbowCastState state) {
+    private static void tickContinuousCast(ServerPlayer player, FocusStaffbowCastState state, AbstractSpell spell) {
+        if (shouldCancelFocusStaffbowState(player, state)) {
+            stopContinuousCast(player, state, true, true, true);
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (!magicData.getSyncedData().isCasting() || !state.spellId.equals(magicData.getCastingSpellId())) {
+            clearContinuousCastState(player, state, true);
+            return;
+        }
+
+        var currentGameTime = player.level().getGameTime();
+        var totalHeldTicks = state.getElapsedTicks(currentGameTime);
+        var castSource = resolveCastSource(state.castSource);
+        var currentManaCost = spell.getManaCost(state.spellLevel);
+
+        if (castSource.consumesMana() && magicData.getMana() < currentManaCost) {
+            stopContinuousCast(player, state, true, true, true);
+            return;
+        }
+
+        syncContinuousMagicDataSimulation(
+                magicData,
+                spell,
+                state.spellLevel,
+                castSource,
+                state.requiredCastTicks,
+                totalHeldTicks,
+                player.getMainHandItem()
+        );
+        updateContinuousChargeModifier(player, spell, state.spellLevel, state, totalHeldTicks);
+
+        if (FocusStaffbowChargeLogic.shouldTriggerContinuousCast(totalHeldTicks, state.requiredCastTicks)) {
+            if (castSource.consumesMana() && magicData.getMana() < currentManaCost) {
+                stopContinuousCast(player, state, true, true, true);
+                return;
+            }
+
+            spell.castSpell(player.level(), state.spellLevel, player, castSource, false);
+            syncContinuousMagicDataSimulation(
+                    magicData,
+                    spell,
+                    state.spellLevel,
+                    castSource,
+                    state.requiredCastTicks,
+                    totalHeldTicks,
+                    player.getMainHandItem()
+            );
+        }
+
+        spell.onServerCastTick(player.level(), state.spellLevel, player, magicData);
+        if (!magicData.getSyncedData().isCasting()) {
+            clearContinuousCastState(player, state, true);
+        }
+    }
+
+    private static void stopContinuousCast(ServerPlayer player, FocusStaffbowCastState state, boolean triggerCooldown,
+                                           boolean callServerCastComplete, boolean syncClientCancel) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        removeOverchargeModifier(player.getAttribute(AttributeRegistry.SPELL_POWER.get()));
+
+        if (callServerCastComplete && magicData.getSyncedData().isCasting() && state.spellId.equals(magicData.getCastingSpellId())) {
+            var spell = SpellRegistry.getSpell(state.spellId);
+            if (spell != null && spell != SpellRegistry.none()) {
+                if (triggerCooldown) {
+                    MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, resolveCastSource(state.castSource));
+                }
+                spell.onServerCastComplete(player.level(), state.spellLevel, player, magicData, true);
+            } else {
+                magicData.resetCastingState();
+            }
+        } else {
+            magicData.resetAdditionalCastData();
+            clearPendingMagicDataSimulation(magicData);
+            magicData.resetCastingState();
+        }
+
+        clearContinuousCastState(player, state, syncClientCancel);
+    }
+
+    private static void clearFocusStaffbowState(ServerPlayer player, boolean triggerCooldown, boolean syncClientCancel) {
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            return;
+        }
+
+        var state = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+        if (!state.isActive()) {
+            return;
+        }
+
+        if (state.isContinuous()) {
+            stopContinuousCast(player, state, triggerCooldown, true, syncClientCancel);
+            return;
+        }
+
+        clearPendingCastState(player, state, syncClientCancel);
+    }
+
+    private static void clearPendingCastState(ServerPlayer player, FocusStaffbowCastState state, boolean syncClientCancel) {
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            return;
+        }
+
+        var mainHandStack = player.getMainHandItem();
+        var magicData = MagicData.getPlayerMagicData(player);
+        cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
+        magicData.resetAdditionalCastData();
+        clearPendingMagicDataSimulation(magicData);
+        spellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
+        if (syncClientCancel) {
+            Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
+            Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
+                    player.getUUID(),
+                    state.spellId,
+                    SyncFocusStaffbowPresentationPacket.PresentationAction.CANCEL_PENDING
+            ));
+        }
+
+        if (mainHandStack.getItem() instanceof FocusStaffbow focusStaffbow) {
+            focusStaffbow.triggerIdleAnimation(player, mainHandStack);
+        }
+    }
+
+    private static void clearContinuousCastState(ServerPlayer player, FocusStaffbowCastState state, boolean syncClientCancel) {
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            return;
+        }
+
+        spellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
+        if (syncClientCancel) {
+            Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
+            Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
+                    player.getUUID(),
+                    state.spellId,
+                    SyncFocusStaffbowPresentationPacket.PresentationAction.CANCEL_PENDING
+            ));
+        }
+
+        if (player.getMainHandItem().getItem() instanceof FocusStaffbow focusStaffbow) {
+            focusStaffbow.triggerIdleAnimation(player, player.getMainHandItem());
+        }
+    }
+
+    private static boolean shouldCancelFocusStaffbowState(ServerPlayer player, FocusStaffbowCastState state) {
         if (!(player.getMainHandItem().getItem() instanceof FocusStaffbow)) {
             return true;
         }
@@ -398,7 +587,131 @@ public final class FocusStaffbowCastManager {
         }
 
         var magicData = MagicData.getPlayerMagicData(player);
-        return magicData.isCasting();
+        return state.isPending()
+                ? magicData.isCasting()
+                : !state.spellId.equals(magicData.getCastingSpellId()) && magicData.getSyncedData().isCasting();
+    }
+
+    private static boolean validateCastStart(ServerPlayer player, AbstractSpell spell, int spellLevel,
+                                             CastSource castSource, MagicData magicData) {
+        var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
+        if (castResult.message != null) {
+            player.connection.send(new ClientboundSetActionBarTextPacket(castResult.message));
+        }
+
+        return castResult.isSuccess()
+                && spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
+                && !MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(player, spell.getSpellId(), spellLevel, spell.getSchoolType(), castSource));
+    }
+
+    private static void stopFocusStaffbowOrVanillaCast(ServerPlayer player, MagicData magicData) {
+        if (magicData.getPlayerCastingItem().getItem() instanceof FocusStaffbow) {
+            clearFocusStaffbowState(player, magicData.getCastType() == CastType.CONTINUOUS, true);
+            return;
+        }
+
+        var spell = magicData.getCastingSpell().getSpell();
+        if (spell != null && spell != SpellRegistry.none()) {
+            if (magicData.getCastType() != CastType.LONG) {
+                MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, magicData.getCastSource());
+            }
+            if (magicData.getCastSource() == CastSource.SCROLL && magicData.getCastType() == CastType.CONTINUOUS) {
+                Scroll.attemptRemoveScrollAfterCast(player);
+            }
+            spell.onServerCastComplete(player.level(), magicData.getCastingSpellLevel(), player, magicData, true);
+        }
+    }
+
+    private static void updateContinuousChargeModifier(ServerPlayer player, AbstractSpell spell, int spellLevel,
+                                                       FocusStaffbowCastState state, long totalHeldTicks) {
+        var sampledTicks = totalHeldTicks < state.requiredCastTicks
+                ? Math.max(0L, totalHeldTicks)
+                : FocusStaffbowChargeLogic.sampleElapsedTicks(totalHeldTicks, state.chargeUpdateIntervalTicks);
+        if (state.lastChargeSampledTicks == sampledTicks) {
+            return;
+        }
+
+        var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(sampledTicks, state.requiredCastTicks);
+        var finalMultiplier = FocusStaffbowChargeLogic.clampChargeMultiplier(
+                rawMultiplier,
+                ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier()
+        );
+        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
+        if (spellPowerAttribute != null) {
+            spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
+            if (finalMultiplier > 1.0D) {
+                spellPowerAttribute.addTransientModifier(new AttributeModifier(
+                        OVERCHARGE_SPELL_POWER_MODIFIER_ID,
+                        OVERCHARGE_SPELL_POWER_MODIFIER_NAME,
+                        finalMultiplier - 1.0D,
+                        AttributeModifier.Operation.MULTIPLY_TOTAL
+                ));
+            }
+        }
+
+        var codexSpellData = Capabilities.getSpellDataOrNull(player);
+        if (codexSpellData != null) {
+            codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, currentState -> {
+                if (currentState.isContinuous() && currentState.matches(spell, spellLevel, resolveCastSource(state.castSource), state.castingSlot)) {
+                    currentState.lastChargeSampledTicks = sampledTicks;
+                }
+            });
+        }
+    }
+
+    private static void logChargeSetup(ServerPlayer player, AbstractSpell spell, int spellLevel,
+                                       int originalEffectiveCastTicks, int requiredCastTicks) {
+        var schoolType = spell.getSchoolType();
+        var globalSpellPowerAttribute = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
+        var schoolSpellPowerAttribute = schoolType == null ? 1.0D : schoolType.getPowerFor(player);
+        var schoolFinalSpellPowerAttribute = globalSpellPowerAttribute * schoolSpellPowerAttribute;
+
+        ApprenticeCodex.LOGGER.info(
+                "FocusStaffbow charge setup: player={}, spell={}, spellLevel={}, school={}, castType={}, originalEffectiveCastTicks={}, normalizedRequiredCastTicks={}, globalSpellPowerAttribute={}, schoolSpellPowerAttribute={}, schoolFinalSpellPowerAttribute={}",
+                player.getGameProfile().getName(),
+                spell.getSpellId(),
+                spellLevel,
+                schoolType == null ? "none" : schoolType.getId(),
+                spell.getCastType(),
+                originalEffectiveCastTicks,
+                requiredCastTicks,
+                globalSpellPowerAttribute,
+                schoolSpellPowerAttribute,
+                schoolFinalSpellPowerAttribute
+        );
+    }
+
+    private static void logChargeConfirm(ServerPlayer player, AbstractSpell spell, FocusStaffbowCastState state,
+                                         long totalCastTicks, long currentGameTime, double rawMultiplier, double finalMultiplier) {
+        var schoolType = spell.getSchoolType();
+        var globalSpellPowerAttribute = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
+        var schoolSpellPowerAttribute = schoolType == null ? 1.0D : schoolType.getPowerFor(player);
+        var schoolFinalSpellPowerAttribute = globalSpellPowerAttribute * schoolSpellPowerAttribute;
+        var chargedSchoolFinalSpellPowerAttribute = schoolFinalSpellPowerAttribute * finalMultiplier;
+
+        ApprenticeCodex.LOGGER.info(
+                "FocusStaffbow charge confirm: player={}, spell={}, school={}, startedGameTime={}, currentGameTime={}, totalCastTicks={}, requiredCastTicks={}, formula='clamp(totalCastTicks / requiredCastTicks, 1.0, maxChargeMultiplier)', rawMultiplier={}, configuredMaxMultiplier={}, appliedMultiplier={}",
+                player.getGameProfile().getName(),
+                spell.getSpellId(),
+                schoolType == null ? "none" : schoolType.getId(),
+                state.startedGameTime,
+                currentGameTime,
+                totalCastTicks,
+                state.requiredCastTicks,
+                rawMultiplier,
+                ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier(),
+                finalMultiplier
+        );
+        ApprenticeCodex.LOGGER.info(
+                "FocusStaffbow charge power: player={}, spell={}, school={}, globalSpellPowerAttribute={}, schoolSpellPowerAttribute={}, schoolFinalSpellPowerAttribute={}, chargedSchoolFinalSpellPowerAttribute={}",
+                player.getGameProfile().getName(),
+                spell.getSpellId(),
+                schoolType == null ? "none" : schoolType.getId(),
+                globalSpellPowerAttribute,
+                schoolSpellPowerAttribute,
+                schoolFinalSpellPowerAttribute,
+                chargedSchoolFinalSpellPowerAttribute
+        );
     }
 
     private static CastSource resolveCastSource(String castSourceName) {
@@ -409,11 +722,14 @@ public final class FocusStaffbowCastManager {
         }
     }
 
-    private static CompoundTag createPendingStateData(AbstractSpell spell, long startedGameTime, int requiredCastTicks) {
+    private static CompoundTag createCastStateData(AbstractSpell spell, long startedGameTime, int requiredCastTicks,
+                                                   FocusStaffbowCastState.Mode mode, int chargeUpdateIntervalTicks) {
         var data = new CompoundTag();
+        data.putString("castMode", mode.name().toLowerCase(java.util.Locale.ROOT));
         data.putString("spellId", spell.getSpellId());
         data.putLong("startedGameTime", startedGameTime);
         data.putInt("requiredCastTicks", requiredCastTicks);
+        data.putInt("chargeUpdateIntervalTicks", Math.max(1, chargeUpdateIntervalTicks));
         data.putDouble("maxChargeMultiplier", ApprenticeCodexServerConfig.focusStaffbowMaxChargeMultiplier());
         return data;
     }
@@ -446,6 +762,20 @@ public final class FocusStaffbowCastManager {
         accessor.apprenticecodex$setCastingSpellLevel(spellLevel);
         accessor.apprenticecodex$setCastDuration(requiredCastTicks);
         accessor.apprenticecodex$setCastDurationRemaining(Math.max(0, requiredCastTicks - (int) Math.max(0L, elapsedTicks)));
+        accessor.apprenticecodex$setCastSource(castSource);
+        accessor.apprenticecodex$setCastType(spell.getCastType());
+        magicData.setPlayerCastingItem(castingItem);
+    }
+
+    private static void syncContinuousMagicDataSimulation(MagicData magicData, AbstractSpell spell, int spellLevel,
+                                                          CastSource castSource, int requiredCastTicks, long elapsedTicks,
+                                                          ItemStack castingItem) {
+        var accessor = (MagicDataAccessor) magicData;
+        accessor.apprenticecodex$setCastingSpellLevel(spellLevel);
+        accessor.apprenticecodex$setCastDuration(requiredCastTicks);
+        accessor.apprenticecodex$setCastDurationRemaining(
+                FocusStaffbowChargeLogic.computeContinuousCastDurationRemaining(elapsedTicks, requiredCastTicks)
+        );
         accessor.apprenticecodex$setCastSource(castSource);
         accessor.apprenticecodex$setCastType(spell.getCastType());
         magicData.setPlayerCastingItem(castingItem);

@@ -6,6 +6,12 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.ICodexSpellState
 import net.minecraft.nbt.CompoundTag;
 
 public final class FocusStaffbowCastState implements ICodexSpellState {
+    public enum Mode {
+        NONE,
+        PENDING,
+        CONTINUOUS
+    }
+
     public String spellId = "";
     public int spellLevel;
     public String castSource = CastSource.NONE.name();
@@ -14,14 +20,31 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
     public int requiredCastTicks;
     public String dimensionId = "";
     public int selectedHotbarSlot = -1;
+    public String mode = Mode.NONE.name();
+    public int chargeUpdateIntervalTicks = 1;
+    public long lastChargeSampledTicks = Long.MIN_VALUE;
     public boolean preCastStarted;
 
     public boolean isActive() {
         return !spellId.isEmpty() && requiredCastTicks > 0;
     }
 
-    public void start(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
-                      int requiredCastTicks, String dimensionId, int selectedHotbarSlot) {
+    public void startPending(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
+                             int requiredCastTicks, String dimensionId, int selectedHotbarSlot) {
+        startInternal(spell, spellLevel, castSource, castingSlot, startedGameTime, requiredCastTicks,
+                dimensionId, selectedHotbarSlot, Mode.PENDING, 1);
+    }
+
+    public void startContinuous(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
+                                int requiredCastTicks, String dimensionId, int selectedHotbarSlot, int chargeUpdateIntervalTicks) {
+        startInternal(spell, spellLevel, castSource, castingSlot, startedGameTime, requiredCastTicks,
+                dimensionId, selectedHotbarSlot, Mode.CONTINUOUS, chargeUpdateIntervalTicks);
+        this.preCastStarted = true;
+    }
+
+    private void startInternal(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
+                               int requiredCastTicks, String dimensionId, int selectedHotbarSlot,
+                               Mode mode, int chargeUpdateIntervalTicks) {
         this.spellId = spell.getSpellId();
         this.spellLevel = spellLevel;
         this.castSource = castSource.name();
@@ -30,6 +53,9 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         this.requiredCastTicks = requiredCastTicks;
         this.dimensionId = dimensionId;
         this.selectedHotbarSlot = selectedHotbarSlot;
+        this.mode = mode.name();
+        this.chargeUpdateIntervalTicks = Math.max(1, chargeUpdateIntervalTicks);
+        this.lastChargeSampledTicks = Long.MIN_VALUE;
         this.preCastStarted = false;
     }
 
@@ -42,6 +68,22 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
                 && this.spellLevel == spellLevel
                 && this.castSource.equals(castSource.name())
                 && this.castingSlot.equals(castingSlot);
+    }
+
+    public Mode getMode() {
+        try {
+            return Mode.valueOf(mode);
+        } catch (IllegalArgumentException ignored) {
+            return Mode.NONE;
+        }
+    }
+
+    public boolean isPending() {
+        return isActive() && getMode() == Mode.PENDING;
+    }
+
+    public boolean isContinuous() {
+        return isActive() && getMode() == Mode.CONTINUOUS;
     }
 
     public boolean isReady(long gameTime) {
@@ -65,6 +107,9 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         requiredCastTicks = 0;
         dimensionId = "";
         selectedHotbarSlot = -1;
+        mode = Mode.NONE.name();
+        chargeUpdateIntervalTicks = 1;
+        lastChargeSampledTicks = Long.MIN_VALUE;
         preCastStarted = false;
     }
 
@@ -79,6 +124,9 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         tag.putInt("requiredCastTicks", requiredCastTicks);
         tag.putString("dimensionId", dimensionId);
         tag.putInt("selectedHotbarSlot", selectedHotbarSlot);
+        tag.putString("mode", mode);
+        tag.putInt("chargeUpdateIntervalTicks", chargeUpdateIntervalTicks);
+        tag.putLong("lastChargeSampledTicks", lastChargeSampledTicks);
         tag.putBoolean("preCastStarted", preCastStarted);
         return tag;
     }
@@ -93,6 +141,9 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         requiredCastTicks = tag.getInt("requiredCastTicks");
         dimensionId = tag.getString("dimensionId");
         selectedHotbarSlot = tag.contains("selectedHotbarSlot") ? tag.getInt("selectedHotbarSlot") : -1;
+        mode = tag.contains("mode") ? tag.getString("mode") : Mode.NONE.name();
+        chargeUpdateIntervalTicks = tag.contains("chargeUpdateIntervalTicks") ? Math.max(1, tag.getInt("chargeUpdateIntervalTicks")) : 1;
+        lastChargeSampledTicks = tag.contains("lastChargeSampledTicks") ? tag.getLong("lastChargeSampledTicks") : Long.MIN_VALUE;
         preCastStarted = tag.getBoolean("preCastStarted");
     }
 }

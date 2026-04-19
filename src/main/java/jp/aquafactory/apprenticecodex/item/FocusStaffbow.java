@@ -104,37 +104,28 @@ public final class FocusStaffbow extends CastingItem
             return InteractionResultHolder.pass(stack);
         }
 
-        if (selection.spellData.getSpell().getCastType() != io.redspace.ironsspellbooks.api.spells.CastType.CONTINUOUS) {
-            if (level.isClientSide) {
-                player.startUsingItem(usedHand);
-                return InteractionResultHolder.consume(stack);
-            }
-
-            var handled = FocusStaffbowCastManager.handleSelectedSpellInput(player, stack);
-            if (!handled) {
-                return InteractionResultHolder.fail(stack);
-            }
-
+        if (level.isClientSide) {
             player.startUsingItem(usedHand);
             return InteractionResultHolder.consume(stack);
         }
 
-        if (level.isClientSide) {
-            return InteractionResultHolder.consume(stack);
+        var handled = FocusStaffbowCastManager.handleSelectedSpellInput(player, stack);
+        if (!handled) {
+            return InteractionResultHolder.fail(stack);
         }
 
-        var handled = FocusStaffbowCastManager.handleSelectedSpellInput(player, stack);
-        if (handled && player instanceof ServerPlayer serverPlayer) {
-            triggerChargeAnimation(serverPlayer, stack);
-        }
-        return handled
-                ? InteractionResultHolder.sidedSuccess(stack, false)
-                : InteractionResultHolder.fail(stack);
+        player.startUsingItem(usedHand);
+        return InteractionResultHolder.consume(stack);
     }
 
     @Override
     public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity, int timeLeft) {
         if (!(livingEntity instanceof Player player) || level.isClientSide) {
+            return;
+        }
+
+        if (FocusStaffbowCastManager.hasActiveContinuousCast(player)) {
+            FocusStaffbowCastManager.releaseContinuousCast(player, stack);
             return;
         }
 

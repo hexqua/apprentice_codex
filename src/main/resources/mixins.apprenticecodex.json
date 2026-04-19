@@ -21,6 +21,7 @@
     "LivingEntityPhalanxGuardMixin",
     "LivingEntitySpectralWingMixin",
     "MagicDataAccessor",
+    "MagicManagerMixin",
     "MerchantMenuMixin",
     "MerchantOfferMixin",
     "PotionFluidTypeMixin",
