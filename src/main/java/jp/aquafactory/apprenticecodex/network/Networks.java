@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -62,6 +63,13 @@ public final class Networks {
                 SyncFocusStaffbowCastStatePacket::encode,
                 SyncFocusStaffbowCastStatePacket::decode,
                 SyncFocusStaffbowCastStatePacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncFocusStaffbowPresentationPacket.class,
+                SyncFocusStaffbowPresentationPacket::encode,
+                SyncFocusStaffbowPresentationPacket::decode,
+                SyncFocusStaffbowPresentationPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
