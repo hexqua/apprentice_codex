@@ -19,6 +19,7 @@ public final class FocusStaffbowCastEvents {
         }
 
         FocusStaffbowCastManager.tick(serverPlayer);
+        FocusStaffbowCastManager.tickLoanRepayment(serverPlayer);
     }
 
     @SubscribeEvent

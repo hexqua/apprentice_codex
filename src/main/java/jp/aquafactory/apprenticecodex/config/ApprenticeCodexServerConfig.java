@@ -96,10 +96,6 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
     }
 
-    public static double focusStaffbowMaxChargeMultiplier() {
-        return ITEMS_CONFIG.focusStaffbowMaxChargeMultiplier();
-    }
-
     public static boolean showIsekaiTravelGuidebookTooltip() {
         return ITEMS_CONFIG.showIsekaiTravelGuidebookTooltip();
     }

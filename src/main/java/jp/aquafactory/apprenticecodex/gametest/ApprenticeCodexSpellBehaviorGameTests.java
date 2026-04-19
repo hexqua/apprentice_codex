@@ -10,6 +10,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    private static final String HEALING_BLOOM_ISOLATED_BATCH = "apprenticecodex.healing_bloom_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -44,7 +45,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.healingBloomRootLossUsesDeathState(helper);
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
     public static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(helper);
     }

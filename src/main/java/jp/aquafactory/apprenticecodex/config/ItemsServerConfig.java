@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
@@ -15,7 +14,6 @@ final class ItemsServerConfig {
     private final ScarletThirstServerConfig scarletThirstConfig;
     private final CraftsmansDelightServerConfig craftsmansDelightConfig;
     private final PastelStaffServerConfig pastelStaffConfig;
-    private final FocusStaffbowServerConfig focusStaffbowConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
 
     private ItemsServerConfig(
@@ -24,7 +22,6 @@ final class ItemsServerConfig {
             ScarletThirstServerConfig scarletThirstConfig,
             CraftsmansDelightServerConfig craftsmansDelightConfig,
             PastelStaffServerConfig pastelStaffConfig,
-            FocusStaffbowServerConfig focusStaffbowConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
@@ -32,7 +29,6 @@ final class ItemsServerConfig {
         this.scarletThirstConfig = scarletThirstConfig;
         this.craftsmansDelightConfig = craftsmansDelightConfig;
         this.pastelStaffConfig = pastelStaffConfig;
-        this.focusStaffbowConfig = focusStaffbowConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
     }
 
@@ -43,7 +39,6 @@ final class ItemsServerConfig {
         var scarletThirstConfig = ScarletThirstServerConfig.define(builder);
         var craftsmansDelightConfig = CraftsmansDelightServerConfig.define(builder);
         var pastelStaffConfig = PastelStaffServerConfig.define(builder);
-        var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         builder.pop();
 
@@ -53,7 +48,6 @@ final class ItemsServerConfig {
                 scarletThirstConfig,
                 craftsmansDelightConfig,
                 pastelStaffConfig,
-                focusStaffbowConfig,
                 isekaiTravelGuidebookConfig
         );
     }
@@ -104,10 +98,6 @@ final class ItemsServerConfig {
 
     double pastelStaffAmplifyTintedMagicMultiplier() {
         return pastelStaffConfig.amplifyTintedMagicMultiplier();
-    }
-
-    double focusStaffbowMaxChargeMultiplier() {
-        return focusStaffbowConfig.maxChargeMultiplier();
     }
 
     boolean showIsekaiTravelGuidebookTooltip() {

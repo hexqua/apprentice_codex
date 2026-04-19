@@ -215,6 +215,71 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowRejectsOffhandUse(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowRejectsOffhandUse(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowAllowsMainhandUseWithOffhandSelection(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowAllowsMainhandUseWithOffhandSelection(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowShowsLongSummonWeaponDuringPendingCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowContinuousCastStaysActivePastSpellDuration(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowContinuousCastStopsWhenManaRunsOut(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowInstantImmediateReleaseConsumesBaseMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowInstantImmediateReleaseConsumesBaseMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowShortLongReleaseStaysAtBaseMultiplier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowShortLongReleaseStaysAtBaseMultiplier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowOverchargeLoanConsumesRecoveredMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowOverchargeLoanConsumesRecoveredMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowBlocksUseWhileLoanRemains(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowBlocksUseWhileLoanRemains(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowLoanMessageUsesExpectedTranslationKey(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.reflectcastShieldKeepsExpectedEnchantmentSurfaces(helper);
     }

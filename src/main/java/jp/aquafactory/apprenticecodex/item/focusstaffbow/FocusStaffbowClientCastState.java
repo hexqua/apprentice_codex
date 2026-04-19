@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
@@ -12,14 +13,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Locale;
 
 public final class FocusStaffbowClientCastState {
-    private static final CastBarRenderState HIDDEN_CAST_BAR = new CastBarRenderState(false, 0.0F, "");
+    private static final int LABEL_COLOR_CYAN = 0x55FFFF;
+    private static final int LABEL_COLOR_RED = 0xFF5555;
+    private static final float MANA_UI_SAFE_MARGIN = 0.001F;
+    private static final CastBarRenderState HIDDEN_CAST_BAR = new CastBarRenderState(false, 0.0F, "", "", 0xFFFFFF, 0xFFFFFF);
 
     private static String castMode = "";
     private static String spellId = "";
     private static long startedGameTime;
     private static int requiredCastTicks;
+    private static int chargeBaselineTicks;
     private static int chargeUpdateIntervalTicks = 1;
-    private static double maxChargeMultiplier = 1.0D;
+    private static int baseManaCost;
 
     private FocusStaffbowClientCastState() {
     }
@@ -33,12 +38,15 @@ public final class FocusStaffbowClientCastState {
         castMode = data.contains("castMode") ? data.getString("castMode") : "";
         spellId = data.getString("spellId");
         startedGameTime = data.getLong("startedGameTime");
-        requiredCastTicks = data.getInt("requiredCastTicks");
+        requiredCastTicks = Math.max(0, data.getInt("requiredCastTicks"));
+        chargeBaselineTicks = data.contains("chargeBaselineTicks")
+                ? Math.max(0, data.getInt("chargeBaselineTicks"))
+                : requiredCastTicks;
         chargeUpdateIntervalTicks = data.contains("chargeUpdateIntervalTicks")
                 ? Math.max(1, data.getInt("chargeUpdateIntervalTicks"))
                 : 1;
-        maxChargeMultiplier = data.contains("maxChargeMultiplier") ? data.getDouble("maxChargeMultiplier") : 1.0D;
-        if (spellId.isEmpty() || requiredCastTicks <= 0) {
+        baseManaCost = data.contains("baseManaCost") ? Math.max(0, data.getInt("baseManaCost")) : 0;
+        if (spellId.isEmpty()) {
             clear();
         }
     }
@@ -48,8 +56,9 @@ public final class FocusStaffbowClientCastState {
         spellId = "";
         startedGameTime = 0L;
         requiredCastTicks = 0;
+        chargeBaselineTicks = 0;
         chargeUpdateIntervalTicks = 1;
-        maxChargeMultiplier = 1.0D;
+        baseManaCost = 0;
     }
 
     public static boolean hasPendingCast(@Nullable LocalPlayer player) {
@@ -63,18 +72,55 @@ public final class FocusStaffbowClientCastState {
         }
 
         long elapsedTicks = Math.max(0L, player.level().getGameTime() - startedGameTime);
-        if (elapsedTicks < requiredCastTicks) {
+        if (requiredCastTicks > 0 && elapsedTicks < requiredCastTicks) {
             float completion = Mth.clamp(elapsedTicks / (float) requiredCastTicks, 0.0F, 1.0F);
             var remainingLabel = Utils.timeFromTicks(Math.max(0.0F, requiredCastTicks - elapsedTicks), 1);
-            return new CastBarRenderState(true, completion, remainingLabel);
+            return new CastBarRenderState(true, completion, remainingLabel, "", 0xFFFFFF, 0xFFFFFF);
         }
 
         long displayElapsedTicks = isContinuous()
                 ? FocusStaffbowChargeLogic.sampleElapsedTicks(elapsedTicks, chargeUpdateIntervalTicks)
                 : elapsedTicks;
-        var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(displayElapsedTicks, requiredCastTicks);
-        var appliedMultiplier = FocusStaffbowChargeLogic.clampChargeMultiplier(rawMultiplier, maxChargeMultiplier);
-        return new CastBarRenderState(true, 1.0F, String.format(Locale.ROOT, "x%.1f", appliedMultiplier));
+        var appliedMultiplier = isContinuous()
+                ? FocusStaffbowChargeLogic.clampChargeMultiplier(
+                        FocusStaffbowChargeLogic.computeRawChargeMultiplier(displayElapsedTicks, Math.max(1, requiredCastTicks)),
+                        FocusStaffbowChargeLogic.MAX_CONTINUOUS_CHARGE_MULTIPLIER
+                )
+                : FocusStaffbowChargeLogic.computePendingChargeMultiplier(displayElapsedTicks, chargeBaselineTicks);
+        if (isContinuous()) {
+            return new CastBarRenderState(
+                    true,
+                    1.0F,
+                    String.format(Locale.ROOT, "x%.1f", appliedMultiplier),
+                    "",
+                    0xFFFFFF,
+                    0xFFFFFF
+            );
+        }
+
+        var plannedManaCost = resolveDisplayedManaCost(player, appliedMultiplier);
+        var currentMana = resolveCurrentMana(player);
+        var manaLabelColor = plannedManaCost > currentMana + MANA_UI_SAFE_MARGIN ? LABEL_COLOR_RED : LABEL_COLOR_CYAN;
+        return new CastBarRenderState(
+                true,
+                1.0F,
+                String.format(Locale.ROOT, "x%.1f", appliedMultiplier),
+                String.format(Locale.ROOT, " (%d)", plannedManaCost),
+                0xFFFFFF,
+                manaLabelColor
+        );
+    }
+
+    private static int resolveDisplayedManaCost(LocalPlayer player, double appliedMultiplier) {
+        if (player.getAbilities().instabuild) {
+            return 0;
+        }
+
+        return FocusStaffbowChargeLogic.computeScaledManaCost(baseManaCost, appliedMultiplier);
+    }
+
+    private static float resolveCurrentMana(LocalPlayer player) {
+        return Math.max(0, ClientMagicData.getPlayerMana());
     }
 
     private static boolean isContinuous() {
@@ -84,7 +130,6 @@ public final class FocusStaffbowClientCastState {
     private static boolean isActiveFor(@Nullable LocalPlayer player) {
         return player != null
                 && !spellId.isEmpty()
-                && requiredCastTicks > 0
                 && player.isAlive()
                 && !player.isSpectator()
                 && player.isUsingItem()
@@ -96,7 +141,10 @@ public final class FocusStaffbowClientCastState {
     public record CastBarRenderState(
             boolean visible,
             float completionPercent,
-            String labelText
+            String primaryLabelText,
+            String secondaryLabelText,
+            int primaryLabelColor,
+            int secondaryLabelColor
     ) {
     }
 }
