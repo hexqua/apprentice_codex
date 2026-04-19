@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
@@ -13,6 +12,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -28,7 +28,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "14";
+    private static final String PROTOCOL_VERSION = "16";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -51,17 +51,17 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
-                ClientFocusStaffbowCastPacket.class,
-                ClientFocusStaffbowCastPacket::encode,
-                ClientFocusStaffbowCastPacket::decode,
-                ClientFocusStaffbowCastPacket::handle
-        );
-        CHANNEL.registerMessage(
-                nextPacketId++,
                 ClientFocusStaffbowCancelPacket.class,
                 ClientFocusStaffbowCancelPacket::encode,
                 ClientFocusStaffbowCancelPacket::decode,
                 ClientFocusStaffbowCancelPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncFocusStaffbowCastStatePacket.class,
+                SyncFocusStaffbowCastStatePacket::encode,
+                SyncFocusStaffbowCastStatePacket::decode,
+                SyncFocusStaffbowCastStatePacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

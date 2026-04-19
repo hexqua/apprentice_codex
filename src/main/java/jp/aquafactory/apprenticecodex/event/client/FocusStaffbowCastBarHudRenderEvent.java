@@ -1,8 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
-import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ElementalBowClientRenderState;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbowClientCastState;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
@@ -11,8 +10,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
-public final class ElementalBowCastBarHudRenderEvent {
-    private ElementalBowCastBarHudRenderEvent() {
+public final class FocusStaffbowCastBarHudRenderEvent {
+    private FocusStaffbowCastBarHudRenderEvent() {
     }
 
     @SubscribeEvent
@@ -26,19 +25,18 @@ public final class ElementalBowCastBarHudRenderEvent {
             return;
         }
 
-        var castBarState = ElementalBowClientRenderState.resolveCastBarState();
+        var castBarState = FocusStaffbowClientCastState.resolveCastBarState(minecraft.player);
         if (!castBarState.visible()) {
             return;
         }
 
-        var remainingTime = Utils.timeFromTicks(castBarState.remainingTicks(), 1);
         CastBarHudRenderer.render(
                 event.getGuiGraphics(),
                 minecraft.font,
                 event.getWindow().getGuiScaledWidth(),
                 event.getWindow().getGuiScaledHeight(),
                 castBarState.completionPercent(),
-                remainingTime
+                castBarState.labelText()
         );
     }
 }

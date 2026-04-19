@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.casting.CastPacket;
 import io.redspace.ironsspellbooks.network.casting.QuickCastPacket;
@@ -8,10 +7,9 @@ import io.redspace.ironsspellbooks.player.ClientInputEvents;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
-import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbowClientCastState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCastPacket;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
@@ -33,12 +31,12 @@ public abstract class ClientInputEventsMixin {
                     ordinal = 0
             )
     )
-    private static void redirectCastPacket(Object packet) {
-        if (packet instanceof CastPacket && (apprentice_codex$trySendFocusStaffbowCast(-1) || apprentice_codex$trySendSelectedSpellCast())) {
+    private static void redirectCastPacket(Object message) {
+        if (message instanceof CastPacket && (apprentice_codex$shouldBlockFocusStaffbowShortcut() || apprentice_codex$trySendSelectedSpellCast())) {
             return;
         }
 
-        PacketDistributor.sendToServer(packet);
+        PacketDistributor.sendToServer(message);
     }
 
     @Redirect(
@@ -49,14 +47,14 @@ public abstract class ClientInputEventsMixin {
                     ordinal = 1
             )
     )
-    private static void redirectQuickCastPacket(Object packet) {
-        if (packet instanceof QuickCastPacket quickCastPacket
-                && (apprentice_codex$trySendFocusStaffbowCast(((QuickCastPacketAccessor) quickCastPacket).apprenticecodex$getSlot())
+    private static void redirectQuickCastPacket(Object message) {
+        if (message instanceof QuickCastPacket quickCastPacket
+                && (apprentice_codex$shouldBlockFocusStaffbowShortcut()
                 || apprentice_codex$trySendTargetedQuickCast(quickCastPacket))) {
             return;
         }
 
-        PacketDistributor.sendToServer(packet);
+        PacketDistributor.sendToServer(message);
     }
 
     @Unique
@@ -83,26 +81,9 @@ public abstract class ClientInputEventsMixin {
     }
 
     @Unique
-    private static boolean apprentice_codex$trySendFocusStaffbowCast(int quickCastSlot) {
-        var selectionManager = ClientMagicData.getSpellSelectionManager();
+    private static boolean apprentice_codex$shouldBlockFocusStaffbowShortcut() {
         var player = Minecraft.getInstance().player;
-        if (selectionManager == null || player == null || !(player.getMainHandItem().getItem() instanceof FocusStaffbow)) {
-            return false;
-        }
-
-        var spellData = quickCastSlot >= 0 ? selectionManager.getSpellData(quickCastSlot) : selectionManager.getSelectedSpellData();
-        if (spellData == SpellData.EMPTY || spellData.getSpell().getCastType() == CastType.CONTINUOUS) {
-            return false;
-        }
-
-        var spell = spellData.getSpell();
-        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        var targetData = apprentice_codex$captureTargetData(spellData, player, spellLevel);
-        if (targetData.hasTarget()) {
-            ClientPlacementPreviewManager.rememberPendingTarget(spell.getSpellResource(), targetData);
-        }
-        Networks.sendToServer(new ClientFocusStaffbowCastPacket(quickCastSlot, spell.getSpellResource(), targetData));
-        return true;
+        return player != null && FocusStaffbowClientCastState.hasPendingCast(player);
     }
 
     @Unique

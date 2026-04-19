@@ -12,11 +12,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -35,6 +37,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public final class FocusStaffbow extends CastingItem implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem {
+    private static final int MAX_USE_DURATION = 72000;
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
@@ -71,6 +74,21 @@ public final class FocusStaffbow extends CastingItem implements GeoItem, NonDama
             return InteractionResultHolder.pass(stack);
         }
 
+        if (selection.spellData.getSpell().getCastType() != io.redspace.ironsspellbooks.api.spells.CastType.CONTINUOUS) {
+            if (level.isClientSide) {
+                player.startUsingItem(usedHand);
+                return InteractionResultHolder.consume(stack);
+            }
+
+            var handled = FocusStaffbowCastManager.handleSelectedSpellInput(player, stack);
+            if (!handled) {
+                return InteractionResultHolder.fail(stack);
+            }
+
+            player.startUsingItem(usedHand);
+            return InteractionResultHolder.consume(stack);
+        }
+
         if (level.isClientSide) {
             return InteractionResultHolder.consume(stack);
         }
@@ -79,6 +97,25 @@ public final class FocusStaffbow extends CastingItem implements GeoItem, NonDama
         return handled
                 ? InteractionResultHolder.sidedSuccess(stack, false)
                 : InteractionResultHolder.fail(stack);
+    }
+
+    @Override
+    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity, int timeLeft) {
+        if (!(livingEntity instanceof Player player) || level.isClientSide) {
+            return;
+        }
+
+        FocusStaffbowCastManager.releasePendingCast(player, stack, getUseDuration(stack) - timeLeft);
+    }
+
+    @Override
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
+        return UseAnim.BOW;
+    }
+
+    @Override
+    public int getUseDuration(@NotNull ItemStack stack) {
+        return MAX_USE_DURATION;
     }
 
     @Override
