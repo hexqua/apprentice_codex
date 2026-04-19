@@ -16,6 +16,7 @@ public final class FocusStaffbowClientCastState {
     private static final int LABEL_COLOR_CYAN = 0x55FFFF;
     private static final int LABEL_COLOR_RED = 0xFF5555;
     private static final float MANA_UI_SAFE_MARGIN = 0.001F;
+    private static final long STALE_VISIBLE_STATE_TICKS = 20L;
     private static final CastBarRenderState HIDDEN_CAST_BAR = new CastBarRenderState(false, 0.0F, "", "", 0xFFFFFF, 0xFFFFFF);
 
     private static String castMode = "";
@@ -25,6 +26,9 @@ public final class FocusStaffbowClientCastState {
     private static int chargeBaselineTicks;
     private static int chargeUpdateIntervalTicks = 1;
     private static int baseManaCost;
+    private static boolean hasSyncedCastState;
+    private static boolean hasConfirmedActiveUseState;
+    private static long lastVisibleGameTime;
 
     private FocusStaffbowClientCastState() {
     }
@@ -46,6 +50,9 @@ public final class FocusStaffbowClientCastState {
                 ? Math.max(1, data.getInt("chargeUpdateIntervalTicks"))
                 : 1;
         baseManaCost = data.contains("baseManaCost") ? Math.max(0, data.getInt("baseManaCost")) : 0;
+        hasSyncedCastState = true;
+        hasConfirmedActiveUseState = false;
+        lastVisibleGameTime = 0L;
         if (spellId.isEmpty()) {
             clear();
         }
@@ -59,6 +66,9 @@ public final class FocusStaffbowClientCastState {
         chargeBaselineTicks = 0;
         chargeUpdateIntervalTicks = 1;
         baseManaCost = 0;
+        hasSyncedCastState = false;
+        hasConfirmedActiveUseState = false;
+        lastVisibleGameTime = 0L;
     }
 
     public static boolean hasPendingCast(@Nullable LocalPlayer player) {
@@ -66,12 +76,30 @@ public final class FocusStaffbowClientCastState {
     }
 
     public static CastBarRenderState resolveCastBarState(@Nullable LocalPlayer player) {
-        if (!isActiveFor(player)) {
+        if (shouldClearImmediately(player)) {
+            clear();
+            return HIDDEN_CAST_BAR;
+        }
+        if (!canRenderFor(player)) {
+            return HIDDEN_CAST_BAR;
+        }
+        if (player == null) {
+            return HIDDEN_CAST_BAR;
+        }
+
+        var currentGameTime = player.level().getGameTime();
+        var activelyUsing = isActivelyUsingFocusStaffbow(player);
+        if (activelyUsing) {
+            hasConfirmedActiveUseState = true;
+            lastVisibleGameTime = currentGameTime;
+        } else if (hasConfirmedActiveUseState && !isWithinVisibleGrace(currentGameTime)) {
             clear();
             return HIDDEN_CAST_BAR;
         }
 
-        long elapsedTicks = Math.max(0L, player.level().getGameTime() - startedGameTime);
+        // ワールド生成直後は use 状態同期より cast state 同期が先に届くことがあるため、
+        // 初回表示は main hand に FocusStaffbow を持っている限り許可し、1フレームで捨てない。
+        long elapsedTicks = Math.max(0L, currentGameTime - startedGameTime);
         if (requiredCastTicks > 0 && elapsedTicks < requiredCastTicks) {
             float completion = Mth.clamp(elapsedTicks / (float) requiredCastTicks, 0.0F, 1.0F);
             var remainingLabel = Utils.timeFromTicks(Math.max(0.0F, requiredCastTicks - elapsedTicks), 1);
@@ -127,15 +155,30 @@ public final class FocusStaffbowClientCastState {
         return "continuous".equals(castMode);
     }
 
-    private static boolean isActiveFor(@Nullable LocalPlayer player) {
-        return player != null
-                && !spellId.isEmpty()
-                && player.isAlive()
-                && !player.isSpectator()
-                && player.isUsingItem()
+    private static boolean shouldClearImmediately(@Nullable LocalPlayer player) {
+        return !hasCastState()
+                || player == null
+                || !player.isAlive()
+                || player.isSpectator()
+                || !(player.getMainHandItem().getItem() instanceof FocusStaffbow);
+    }
+
+    private static boolean canRenderFor(LocalPlayer player) {
+        return hasCastState() && player.getMainHandItem().getItem() instanceof FocusStaffbow;
+    }
+
+    private static boolean isActivelyUsingFocusStaffbow(LocalPlayer player) {
+        return player.isUsingItem()
                 && player.getUsedItemHand() == InteractionHand.MAIN_HAND
-                && ItemStack.isSameItemSameTags(player.getUseItem(), player.getMainHandItem())
-                && player.getMainHandItem().getItem() instanceof FocusStaffbow;
+                && ItemStack.isSameItemSameTags(player.getUseItem(), player.getMainHandItem());
+    }
+
+    private static boolean isWithinVisibleGrace(long currentGameTime) {
+        return currentGameTime - lastVisibleGameTime <= STALE_VISIBLE_STATE_TICKS;
+    }
+
+    private static boolean hasCastState() {
+        return hasSyncedCastState && !spellId.isEmpty();
     }
 
     public record CastBarRenderState(
