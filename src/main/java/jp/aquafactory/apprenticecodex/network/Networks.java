@@ -4,6 +4,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
@@ -26,7 +28,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "13";
+    private static final String PROTOCOL_VERSION = "14";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -46,6 +48,20 @@ public final class Networks {
                 ClientBlockTargetCastPacket::encode,
                 ClientBlockTargetCastPacket::decode,
                 ClientBlockTargetCastPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientFocusStaffbowCastPacket.class,
+                ClientFocusStaffbowCastPacket::encode,
+                ClientFocusStaffbowCastPacket::decode,
+                ClientFocusStaffbowCastPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientFocusStaffbowCancelPacket.class,
+                ClientFocusStaffbowCancelPacket::encode,
+                ClientFocusStaffbowCancelPacket::decode,
+                ClientFocusStaffbowCancelPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
