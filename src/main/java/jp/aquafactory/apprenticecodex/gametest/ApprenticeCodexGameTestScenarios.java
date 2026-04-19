@@ -4146,6 +4146,98 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_summon_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get(), 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow should enter pending cast for LONG summon spells but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow pending summon test could not resolve spell data capability");
+            helper.assertTrue(spellData != null
+                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
+                    "Focus Staffbow should keep a pending cast state while charging");
+            helper.assertTrue(getOwnedSummonWeapons(helper, player, jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity.class).size() == 1,
+                    "Focus Staffbow should expose the summon weapon during pending charge");
+            helper.assertTrue(player.isUsingItem(), "Focus Staffbow should still be in use while the summon weapon is pending");
+        });
+        helper.runAtTickTime(3, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration() - jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.MINIMUM_SPECIAL_CAST_TICKS
+                )
+        );
+        helper.succeedWhen(() -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow pending summon test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
+                    "Focus Staffbow pending state should clear after the charged cast completes");
+            helper.assertTrue(magicData.getAdditionalCastData() == null,
+                    "Focus Staffbow charged cast should clear simulated additional cast data after completion");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get(), 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow cancel test should start a pending cast but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () ->
+                helper.assertTrue(
+                        getOwnedSummonWeapons(helper, player, jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity.class).size() == 1,
+                        "Focus Staffbow cancel test should spawn the summon weapon during pending charge"
+                )
+        );
+        helper.runAtTickTime(3, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration() - (jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.MINIMUM_SPECIAL_CAST_TICKS - 1)
+                )
+        );
+        helper.succeedWhen(() -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow cancel test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
+                    "Focus Staffbow should clear the pending state when released before the required charge");
+            helper.assertTrue(getOwnedSummonWeapons(helper, player, jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity.class).isEmpty(),
+                    "Focus Staffbow should remove the simulated summon weapon when the charge is cancelled");
+            helper.assertTrue(magicData.getAdditionalCastData() == null,
+                    "Focus Staffbow should clear simulated additional cast data when the charge is cancelled");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
@@ -6032,6 +6124,21 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
 
+    private static <T extends jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity> List<T> getOwnedSummonWeapons(
+            GameTestHelper helper,
+            FakePlayer owner,
+            Class<T> weaponType
+    ) {
+        return helper.getLevel().getEntitiesOfClass(
+                weaponType,
+                new AABB(owner.position(), owner.position()).inflate(32.0),
+                weapon -> {
+                    var summonOwner = weapon.getOwner();
+                    return summonOwner != null && owner.getUUID().equals(summonOwner.getUUID());
+                }
+        );
+    }
+
     private static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "companion_trunk_test"));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
@@ -7125,6 +7232,20 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Failed to prepare unlocked spell data before restricted imbue normalization test");
         ISpellContainer.set(stack, mutable.toImmutable());
         item.normalizeImbuedSpellContainer(stack);
+    }
+
+    private static void setSingleUnlockedSpell(GameTestHelper helper, ItemStack stack, AbstractSpell spell, int spellLevel) {
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, "Missing spell container before Focus Staffbow spell setup");
+
+        var mutable = spellContainer.mutableCopy();
+        if (mutable.getSpellAtIndex(0) != SpellData.EMPTY) {
+            helper.assertTrue(mutable.removeSpellAtIndex(0),
+                    "Failed to clear existing spell before Focus Staffbow spell setup");
+        }
+        helper.assertTrue(mutable.addSpellAtIndex(spell, spellLevel, 0, false),
+                "Failed to prepare Focus Staffbow spell setup");
+        ISpellContainer.set(stack, mutable.toImmutable());
     }
 
     private static void applyPresetSpellExtraction(GameTestHelper helper, ItemStack stack) {

@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.ICastData;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.casting.CancelCastPacket;
 import io.redspace.ironsspellbooks.network.casting.OnCastFinishedPacket;
@@ -20,9 +21,12 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -104,9 +108,32 @@ public final class FocusStaffbowCastManager {
             return;
         }
 
+        var spell = SpellRegistry.getSpell(state.spellId);
+        if (spell == null || spell == SpellRegistry.none()) {
+            resetPendingState(player, true);
+            return;
+        }
+
         if (shouldCancelPendingState(player, state)) {
             resetPendingState(player, true);
+            return;
         }
+
+        if (!state.preCastStarted) {
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        syncPendingMagicDataSimulation(
+                magicData,
+                spell,
+                state.spellLevel,
+                resolveCastSource(state.castSource),
+                state.requiredCastTicks,
+                state.getElapsedTicks(player.level().getGameTime()),
+                player.getMainHandItem()
+        );
+        spell.onServerCastTick(player.level(), state.spellLevel, player, magicData);
     }
 
     public static void cancelPendingCast(ServerPlayer player) {
@@ -125,6 +152,10 @@ public final class FocusStaffbowCastManager {
         }
 
         var mainHandStack = player.getMainHandItem();
+        var magicData = MagicData.getPlayerMagicData(player);
+        cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
+        magicData.resetAdditionalCastData();
+        clearPendingMagicDataSimulation(magicData);
         spellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
         if (syncClientCancel) {
             Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
@@ -174,16 +205,19 @@ public final class FocusStaffbowCastManager {
 
         var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
         if (state.isActive()) {
-            return true;
+            if (state.matches(spell, spellLevel, castSource, castingSlot)) {
+                return true;
+            }
+
+            resetPendingState(player, true);
         }
 
-        beginPendingCast(player, spell, spellLevel, castSource, castingSlot, codexSpellData);
-        return true;
+        return beginPendingCast(player, focusStaffbowStack, spell, spellLevel, castSource, castingSlot, codexSpellData);
     }
 
-    private static void beginPendingCast(ServerPlayer player, AbstractSpell spell, int spellLevel,
-                                         CastSource castSource, String castingSlot,
-                                         jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
+    private static boolean beginPendingCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell, int spellLevel,
+                                            CastSource castSource, String castingSlot,
+                                            jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
         var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
         var requiredCastTicks = FocusStaffbowChargeLogic.normalizeRequiredCastTicks(originalEffectiveCastTicks);
         var schoolType = spell.getSchoolType();
@@ -204,6 +238,24 @@ public final class FocusStaffbowCastManager {
                 schoolFinalSpellPowerAttribute
         );
 
+        var magicData = MagicData.getPlayerMagicData(player);
+        var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
+        if (castResult.message != null) {
+            player.connection.send(new ClientboundSetActionBarTextPacket(castResult.message));
+        }
+
+        if (!castResult.isSuccess()
+                || !spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
+                || MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(player, spell.getSpellId(), spellLevel, spell.getSchoolType(), castSource))) {
+            magicData.resetAdditionalCastData();
+            clearPendingMagicDataSimulation(magicData);
+            return false;
+        }
+
+        if (player.isUsingItem()) {
+            player.stopUsingItem();
+        }
+
         // 通常の cast state を使うと auto-cast へ入るため、special charge は専用 state と HUD 同期だけで管理する。
         codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, state -> state.start(
                 spell,
@@ -215,6 +267,11 @@ public final class FocusStaffbowCastManager {
                 player.level().dimension().location().toString(),
                 player.getInventory().selected
         ));
+        syncPendingMagicDataSimulation(magicData, spell, spellLevel, castSource, requiredCastTicks, 0L, focusStaffbowStack);
+        FocusStaffbowStartSoundContext.runSuppressed(player.getUUID(), () ->
+                spell.onServerPreCast(player.level(), spellLevel, player, magicData)
+        );
+        codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::markPreCastStarted);
         Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(createPendingStateData(
                 spell,
                 player.level().getGameTime(),
@@ -228,6 +285,7 @@ public final class FocusStaffbowCastManager {
         if (player.getMainHandItem().getItem() instanceof FocusStaffbow focusStaffbow) {
             focusStaffbow.triggerChargeAnimation(player, player.getMainHandItem());
         }
+        return true;
     }
 
     private static boolean confirmCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell,
@@ -274,22 +332,11 @@ public final class FocusStaffbowCastManager {
         Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
 
         var magicData = MagicData.getPlayerMagicData(player);
-        var castResult = spell.canBeCastedBy(spellLevel, castSource, magicData, player);
-        if (castResult.message != null) {
-            player.connection.send(new ClientboundSetActionBarTextPacket(castResult.message));
-        }
-
-        magicData.resetAdditionalCastData();
-        if (!castResult.isSuccess()
-                || !spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
-                || MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(player, spell.getSpellId(), spellLevel, spell.getSchoolType(), castSource))) {
-            cancelPendingPresentation(player, focusStaffbowStack, spell.getSpellId());
-            PacketDistributor.sendToPlayer(player, new OnCastFinishedPacket(player.getUUID(), spell.getSpellId(), true));
-            return false;
-        }
-
         var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (spellPowerAttribute == null) {
+            cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
+            magicData.resetAdditionalCastData();
+            clearPendingMagicDataSimulation(magicData);
             cancelPendingPresentation(player, focusStaffbowStack, spell.getSpellId());
             PacketDistributor.sendToPlayer(player, new OnCastFinishedPacket(player.getUUID(), spell.getSpellId(), true));
             return false;
@@ -311,12 +358,17 @@ public final class FocusStaffbowCastManager {
         try {
             magicData.initiateCast(spell, spellLevel, 0, castSource, castingSlot);
             magicData.setPlayerCastingItem(focusStaffbowStack);
-            FocusStaffbowStartSoundContext.runSuppressed(player.getUUID(), () ->
-                    spell.onServerPreCast(player.level(), spellLevel, player, magicData)
+            syncPendingMagicDataSimulation(
+                    magicData,
+                    spell,
+                    spellLevel,
+                    castSource,
+                    state.requiredCastTicks,
+                    totalCastTicks,
+                    focusStaffbowStack
             );
             PacketDistributor.sendToPlayer(player, new UpdateCastingStatePacket(spell.getSpellId(), spellLevel, 0, castSource, castingSlot));
             PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new OnCastStartedPacket(player.getUUID(), spell.getSpellId(), spellLevel));
-            spell.onServerCastTick(player.level(), spellLevel, player, magicData);
             spell.castSpell(player.level(), spellLevel, player, castSource, true);
             spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
             return true;
@@ -384,6 +436,43 @@ public final class FocusStaffbowCastManager {
     private static void removeOverchargeModifier(@Nullable AttributeInstance spellPowerAttribute) {
         if (spellPowerAttribute != null) {
             spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
+        }
+    }
+
+    private static void syncPendingMagicDataSimulation(MagicData magicData, AbstractSpell spell, int spellLevel,
+                                                       CastSource castSource, int requiredCastTicks, long elapsedTicks,
+                                                       ItemStack castingItem) {
+        var accessor = (MagicDataAccessor) magicData;
+        accessor.apprenticecodex$setCastingSpellLevel(spellLevel);
+        accessor.apprenticecodex$setCastDuration(requiredCastTicks);
+        accessor.apprenticecodex$setCastDurationRemaining(Math.max(0, requiredCastTicks - (int) Math.max(0L, elapsedTicks)));
+        accessor.apprenticecodex$setCastSource(castSource);
+        accessor.apprenticecodex$setCastType(spell.getCastType());
+        magicData.setPlayerCastingItem(castingItem);
+    }
+
+    private static void clearPendingMagicDataSimulation(MagicData magicData) {
+        var accessor = (MagicDataAccessor) magicData;
+        accessor.apprenticecodex$setCastingSpellLevel(0);
+        accessor.apprenticecodex$setCastDuration(0);
+        accessor.apprenticecodex$setCastDurationRemaining(0);
+        accessor.apprenticecodex$setCastSource(CastSource.NONE);
+        accessor.apprenticecodex$setCastType(CastType.NONE);
+        magicData.setPlayerCastingItem(ItemStack.EMPTY);
+    }
+
+    private static void cleanupPendingSpellArtifacts(ServerPlayer player, @Nullable ICastData castData) {
+        if (!(player.level() instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
+            return;
+        }
+        if (!(castData instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData summonCastData)) {
+            return;
+        }
+
+        // pending 中断では onServerCastComplete を呼べないため、pre-cast で出した summon だけはここで明示的に片付ける。
+        var summonEntity = summonCastData.getEntity(serverLevel);
+        if (summonEntity instanceof SummonWeaponEntity summonWeaponEntity) {
+            summonWeaponEntity.releaseWeapon();
         }
     }
 }

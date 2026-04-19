@@ -14,6 +14,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
     public int requiredCastTicks;
     public String dimensionId = "";
     public int selectedHotbarSlot = -1;
+    public boolean preCastStarted;
 
     public boolean isActive() {
         return !spellId.isEmpty() && requiredCastTicks > 0;
@@ -29,6 +30,11 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         this.requiredCastTicks = requiredCastTicks;
         this.dimensionId = dimensionId;
         this.selectedHotbarSlot = selectedHotbarSlot;
+        this.preCastStarted = false;
+    }
+
+    public void markPreCastStarted() {
+        preCastStarted = true;
     }
 
     public boolean matches(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot) {
@@ -59,6 +65,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         requiredCastTicks = 0;
         dimensionId = "";
         selectedHotbarSlot = -1;
+        preCastStarted = false;
     }
 
     @Override
@@ -72,6 +79,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         tag.putInt("requiredCastTicks", requiredCastTicks);
         tag.putString("dimensionId", dimensionId);
         tag.putInt("selectedHotbarSlot", selectedHotbarSlot);
+        tag.putBoolean("preCastStarted", preCastStarted);
         return tag;
     }
 
@@ -85,5 +93,6 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         requiredCastTicks = tag.getInt("requiredCastTicks");
         dimensionId = tag.getString("dimensionId");
         selectedHotbarSlot = tag.contains("selectedHotbarSlot") ? tag.getInt("selectedHotbarSlot") : -1;
+        preCastStarted = tag.getBoolean("preCastStarted");
     }
 }
