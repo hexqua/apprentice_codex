@@ -42,6 +42,7 @@ public final class CapabilityEvents {
                     state.maxHealth = 0.0;
                     state.setTrunkUuid(null);
                 });
+                newSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, state -> state.reset());
                 newSpellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, state -> state.reset());
             }
         }

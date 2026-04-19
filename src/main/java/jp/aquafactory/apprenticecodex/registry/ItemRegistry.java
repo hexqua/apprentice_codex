@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.AtelierStationItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
@@ -222,6 +223,8 @@ public final class ItemRegistry {
             ITEMS.register("grimoire_manifest", GrimoireManifest::new);
     public static final DeferredHolder<Item, Item> PASTEL_STAFF =
             ITEMS.register("pastel_staff", PastelStaff::new);
+    public static final DeferredHolder<Item, Item> FOCUS_STAFFBOW =
+            ITEMS.register("focus_staffbow", FocusStaffbow::new);
     public static final DeferredHolder<Item, Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> IRON_SWINGCAST_STAFF =

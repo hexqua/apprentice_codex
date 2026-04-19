@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.network;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
@@ -25,7 +27,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "13";
+    private static final String PROTOCOL_VERSION = "14";
 
     private Networks() {
     }
@@ -40,6 +42,16 @@ public final class Networks {
                 ClientBlockTargetCastPacket.TYPE,
                 ClientBlockTargetCastPacket.STREAM_CODEC,
                 ClientBlockTargetCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientFocusStaffbowCastPacket.TYPE,
+                ClientFocusStaffbowCastPacket.STREAM_CODEC,
+                ClientFocusStaffbowCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientFocusStaffbowCancelPacket.TYPE,
+                ClientFocusStaffbowCancelPacket.STREAM_CODEC,
+                ClientFocusStaffbowCancelPacket::handle
         );
         registrar.playToServer(
                 ClientConfirmElementalBowModePacket.TYPE,
