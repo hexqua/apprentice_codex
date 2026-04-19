@@ -17,6 +17,7 @@
     "ItemNameMixin",
     "ItemEntityAccessor",
     "ItemCombinerMenuAccessor",
+    "MagicDataAccessor",
     "LivingEntityAccessor",
     "LivingEntityPhalanxGuardMixin",
     "PotionContentsMixin",
