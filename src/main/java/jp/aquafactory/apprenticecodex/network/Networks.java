@@ -28,7 +28,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "16";
+    private static final String PROTOCOL_VERSION = "17";
 
     private Networks() {
     }
@@ -108,6 +108,11 @@ public final class Networks {
                 SyncFocusStaffbowCastStatePacket.TYPE,
                 SyncFocusStaffbowCastStatePacket.STREAM_CODEC,
                 SyncFocusStaffbowCastStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncFocusStaffbowLoanPacket.TYPE,
+                SyncFocusStaffbowLoanPacket.STREAM_CODEC,
+                SyncFocusStaffbowLoanPacket::handle
         );
         registrar.playToClient(
                 SyncFocusStaffbowPresentationPacket.TYPE,

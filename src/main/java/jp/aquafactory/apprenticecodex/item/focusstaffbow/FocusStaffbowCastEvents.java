@@ -30,9 +30,24 @@ public final class FocusStaffbowCastEvents {
     }
 
     @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            FocusStaffbowLoanSync.syncToClient(serverPlayer);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            FocusStaffbowLoanSync.syncToClient(serverPlayer);
+        }
+    }
+
+    @SubscribeEvent
     public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
             FocusStaffbowCastManager.resetPendingState(serverPlayer, true);
+            FocusStaffbowLoanSync.syncToClient(serverPlayer);
         }
     }
 }

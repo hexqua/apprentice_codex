@@ -39,6 +39,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
@@ -238,6 +239,8 @@ public final class ApprenticeCodexGameTestScenarios {
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BACK)
     );
     private static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
+    private static final UUID CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
+            UUID.fromString("04a46352-a09b-44fb-b504-92ab5f69f969");
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
     private static final ResourceLocation MALUM_HAUNTED =
@@ -4037,6 +4040,30 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_focus_staffbow_slowdown_test");
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.startUsingItem(InteractionHand.MAIN_HAND);
+
+            helper.assertTrue(FocusStaffbow.isBowDrawUse(player),
+                    "Focus Staffbow draw helper should activate while the item is being held");
+            helper.assertTrue(SpellcasterQuiver.shouldIgnoreBowSlowdown(player),
+                    "Spellcaster Quiver slowdown helper should activate while Focus Staffbow is being drawn");
+
+            player.stopUsingItem();
+            helper.assertFalse(FocusStaffbow.isBowDrawUse(player),
+                    "Focus Staffbow draw helper should stop once use ends");
+            helper.assertFalse(SpellcasterQuiver.shouldIgnoreBowSlowdown(player),
+                    "Spellcaster Quiver slowdown helper should stop once Focus Staffbow use ends");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
@@ -4763,6 +4790,32 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowRejectsUseWhileSpellCooldownRemains(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_cooldown_block_test");
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            MagicData.getPlayerMagicData(player).setMana(200.0F);
+            var selection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
+            helper.assertTrue(selection != null, "Focus Staffbow cooldown test could not resolve the selected spell");
+            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, selection.getCastSource());
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow should reject use while the selected spell is on cooldown but got " + result.getResult());
+            helper.assertFalse(player.isUsingItem(),
+                    "Focus Staffbow should not enter use state while spell cooldown blocks casting");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createLoanBlockedMessage(5.1F);
@@ -5248,6 +5301,52 @@ public final class ApprenticeCodexGameTestScenarios {
                     .sum();
             helper.assertTrue(Math.abs(actualAmount - 0.15D) < 1.0e-9D,
                     "LongStride movement speed bonus regression: expected 0.15 but got " + actualAmount);
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "dynamic_casting_movespeed_rebalance_test");
+            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
+            var castingMoveSpeed = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get());
+            helper.assertTrue(castingMoveSpeed != null,
+                    "Dynamic casting mobility test could not resolve the CASTING_MOVESPEED attribute");
+
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(effect, 200, 0));
+            helper.assertTrue(castingMoveSpeed != null, "Dynamic casting mobility test lost CASTING_MOVESPEED after addEffect");
+            assertCastingMoveSpeedModifierAmount(
+                    helper,
+                    castingMoveSpeed,
+                    null,
+                    0.8D,
+                    "Dynamic casting mobility effect should initially fill the full cancellation headroom"
+            );
+
+            castingMoveSpeed.addTransientModifier(new AttributeModifier(
+                    CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID,
+                    "apprenticecodex.casting_movespeed.dynamic_test",
+                    0.5D,
+                    AttributeModifier.Operation.ADDITION
+            ));
+            effect.applyEffectTick(player, 0);
+            assertCastingMoveSpeedModifierAmount(
+                    helper,
+                    castingMoveSpeed,
+                    CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID,
+                    0.3D,
+                    "Dynamic casting mobility effect should shrink after an external casting move speed bonus is added"
+            );
+
+            castingMoveSpeed.removeModifier(CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID);
+            effect.applyEffectTick(player, 0);
+            assertCastingMoveSpeedModifierAmount(
+                    helper,
+                    castingMoveSpeed,
+                    null,
+                    0.8D,
+                    "Dynamic casting mobility effect should recover once the external casting move speed bonus is removed"
+            );
         });
     }
 
@@ -7404,6 +7503,23 @@ public final class ApprenticeCodexGameTestScenarios {
         var actualAmount = CastingMoveSpeedAdjustment.computeAvailableBonus(externalBonus);
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected " + expectedAmount + " but got " + actualAmount + " for external bonus " + externalBonus);
+    }
+
+    private static void assertCastingMoveSpeedModifierAmount(
+            GameTestHelper helper,
+            net.minecraft.world.entity.ai.attributes.AttributeInstance attributeInstance,
+            @org.jetbrains.annotations.Nullable UUID excludedModifierId,
+            double expectedAmount,
+            String message
+    ) {
+        var actualAmount = attributeInstance.getModifiers().stream()
+                .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.ADDITION)
+                .filter(modifier -> excludedModifierId == null || !excludedModifierId.equals(modifier.getId()))
+                .mapToDouble(AttributeModifier::getAmount)
+                .sum();
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected " + expectedAmount + " but got " + actualAmount
+                        + " modifiers=" + attributeInstance.getModifiers());
     }
 
     private static void assertMainhandUpgradeBridge(

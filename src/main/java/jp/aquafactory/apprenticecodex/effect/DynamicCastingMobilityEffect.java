@@ -102,11 +102,8 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
             return;
         }
 
-        // Iron's Spellbooks 本体の最終式は維持し、この mod 側は外部加算で残る headroom だけを使う。
-        var externalBonus = Math.max(
-                0.0D,
-                attributeInstance.getValue() - attributeInstance.getAttribute().value().getDefaultValue()
-        );
+        // 毎 tick 現在値から積み直し、後付け/解除された外部 modifier に次 tick で追従する。
+        var externalBonus = computeExternalCastingMoveSpeedBonus(attributeInstance);
         var totalTargetBonus = activeEffects.values().stream()
                 .mapToDouble(ActiveEffect::targetBonus)
                 .sum();
@@ -129,6 +126,13 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
         for (var modifierId : MANAGED_MODIFIER_IDS) {
             attributeInstance.removeModifier(modifierId);
         }
+    }
+
+    private static double computeExternalCastingMoveSpeedBonus(AttributeInstance attributeInstance) {
+        return Math.max(
+                0.0D,
+                attributeInstance.getValue() - attributeInstance.getAttribute().value().getDefaultValue()
+        );
     }
 
     private static LinkedHashMap<ResourceLocation, ActiveEffect> collectActiveEffects(
