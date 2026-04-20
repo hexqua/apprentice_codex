@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.item.focusstaffbow;
+                                                           package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -337,8 +337,10 @@ public final class FocusStaffbowCastManager {
     private static boolean beginContinuousCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell, int spellLevel,
                                                CastSource castSource, String castingSlot,
                                                jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
-        var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
-        var requiredCastTicks = FocusStaffbowChargeLogic.normalizeContinuousRequiredCastTicks(originalEffectiveCastTicks);
+        // CONTINUOUS は詠唱時間短縮 Attribute が逆効果になるため、
+        // FocusStaffbow 側では spell 本来の castTime だけを標準詠唱可能時間として扱う。
+        var standardCastTicks = Math.max(spell.getCastTime(spellLevel), 0);
+        var requiredCastTicks = FocusStaffbowChargeLogic.normalizeContinuousRequiredCastTicks(standardCastTicks);
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
@@ -496,7 +498,8 @@ public final class FocusStaffbowCastManager {
         var currentGameTime = player.level().getGameTime();
         var totalHeldTicks = state.getElapsedTicks(currentGameTime);
         var castSource = resolveCastSource(state.castSource);
-        var currentManaCost = spell.getManaCost(state.spellLevel);
+        var currentChargeMultiplier = resolveContinuousChargeMultiplier(totalHeldTicks);
+        var currentManaCost = resolveContinuousManaCost(player, spell, state, castSource, currentChargeMultiplier);
 
         if (castSource.consumesMana() && magicData.getMana() < currentManaCost) {
             stopContinuousCast(player, state, true, true, true);
@@ -520,7 +523,14 @@ public final class FocusStaffbowCastManager {
                 return;
             }
 
-            spell.castSpell(player.level(), state.spellLevel, player, castSource, false);
+            try {
+                if (currentManaCost > 0) {
+                    FocusStaffbowManaCostOverrideEvent.reserveManaCostOverride(player, currentManaCost);
+                }
+                spell.castSpell(player.level(), state.spellLevel, player, castSource, false);
+            } finally {
+                FocusStaffbowManaCostOverrideEvent.clearManaCostOverride(player);
+            }
             syncContinuousMagicDataSimulation(
                     magicData,
                     spell,
@@ -699,18 +709,12 @@ public final class FocusStaffbowCastManager {
 
     private static void updateContinuousChargeModifier(ServerPlayer player, AbstractSpell spell, int spellLevel,
                                                        FocusStaffbowCastState state, long totalHeldTicks) {
-        var sampledTicks = totalHeldTicks < state.requiredCastTicks
-                ? Math.max(0L, totalHeldTicks)
-                : FocusStaffbowChargeLogic.sampleElapsedTicks(totalHeldTicks, state.chargeUpdateIntervalTicks);
+        var sampledTicks = Math.max(0L, totalHeldTicks);
         if (state.lastChargeSampledTicks == sampledTicks) {
             return;
         }
 
-        var rawMultiplier = FocusStaffbowChargeLogic.computeRawChargeMultiplier(sampledTicks, state.requiredCastTicks);
-        var finalMultiplier = FocusStaffbowChargeLogic.clampChargeMultiplier(
-                rawMultiplier,
-                FocusStaffbowChargeLogic.MAX_CONTINUOUS_CHARGE_MULTIPLIER
-        );
+        var finalMultiplier = FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(sampledTicks);
         var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (spellPowerAttribute != null) {
             spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
@@ -732,6 +736,19 @@ public final class FocusStaffbowCastManager {
                 }
             });
         }
+    }
+
+    private static double resolveContinuousChargeMultiplier(long totalHeldTicks) {
+        return FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(totalHeldTicks);
+    }
+
+    private static int resolveContinuousManaCost(ServerPlayer player, AbstractSpell spell, FocusStaffbowCastState state,
+                                                 CastSource castSource, double chargeMultiplier) {
+        if (!castSource.consumesMana() || player.getAbilities().instabuild) {
+            return 0;
+        }
+
+        return FocusStaffbowChargeLogic.computeScaledManaCost(spell.getManaCost(state.spellLevel), chargeMultiplier);
     }
 
     private static CastSource resolveCastSource(String castSourceName) {
