@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientLoanState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPresentationState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
@@ -33,6 +34,7 @@ public final class FocusStaffbowClientEvents {
     @SubscribeEvent
     public static void onClientLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         FocusStaffbowClientCastState.clear();
+        FocusStaffbowClientLoanState.clear();
         FocusStaffbowClientPresentationState.clearAll();
     }
 }

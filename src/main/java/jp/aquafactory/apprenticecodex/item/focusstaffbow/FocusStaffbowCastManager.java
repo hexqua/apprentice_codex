@@ -105,6 +105,7 @@ public final class FocusStaffbowCastManager {
         magicData.setMana(Math.max(0.0F, magicData.getMana() - repaidMana));
         codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE, state -> state.repay(repaidMana));
         syncManaToClient(player, magicData);
+        FocusStaffbowLoanSync.syncToClient(player);
     }
 
     public static void releasePendingCast(net.minecraft.world.entity.player.Player player, ItemStack stack, int drawDuration) {
@@ -471,6 +472,7 @@ public final class FocusStaffbowCastManager {
             if (borrowedMana > 0.0F) {
                 if (castCompleted) {
                     codexSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE, loanState -> loanState.addLoan(borrowedMana));
+                    FocusStaffbowLoanSync.syncToClient(player);
                 } else {
                     magicData.setMana(Math.max(0.0F, magicData.getMana() - borrowedMana));
                     syncManaToClient(player, magicData);

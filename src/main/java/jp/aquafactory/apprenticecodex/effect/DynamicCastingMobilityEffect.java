@@ -8,6 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -34,18 +35,18 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(LivingEntity entity, int amplifier) {
+    public void applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
         syncCastingMoveSpeedModifiers(entity, entity.getAttributes(), null, null);
     }
 
     @Override
-    public void addAttributeModifiers(LivingEntity livingEntity, AttributeMap attributeMap, int amplifier) {
+    public void addAttributeModifiers(@NotNull LivingEntity livingEntity, @NotNull AttributeMap attributeMap, int amplifier) {
         super.addAttributeModifiers(livingEntity, attributeMap, amplifier);
         syncCastingMoveSpeedModifiers(livingEntity, attributeMap, new ActiveEffect(this, amplifier), null);
     }
 
     @Override
-    public void removeAttributeModifiers(LivingEntity livingEntity, AttributeMap attributeMap, int amplifier) {
+    public void removeAttributeModifiers(@NotNull LivingEntity livingEntity, @NotNull AttributeMap attributeMap, int amplifier) {
         super.removeAttributeModifiers(livingEntity, attributeMap, amplifier);
         syncCastingMoveSpeedModifiers(livingEntity, attributeMap, null, castingMoveSpeedModifierUuid);
     }
@@ -89,11 +90,8 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
             return;
         }
 
-        // Iron's Spellbooks 本体の最終式は維持し、この mod 側は外部加算で残る headroom だけを使う。
-        var externalBonus = Math.max(
-                0.0D,
-                attributeInstance.getValue() - attributeInstance.getAttribute().getDefaultValue()
-        );
+        // 毎 tick 現在値から積み直し、後付け/解除された外部 modifier に次 tick で追従する。
+        var externalBonus = computeExternalCastingMoveSpeedBonus(attributeInstance);
         var totalTargetBonus = activeEffects.values().stream()
                 .mapToDouble(ActiveEffect::targetBonus)
                 .sum();
@@ -116,6 +114,13 @@ public abstract class DynamicCastingMobilityEffect extends MobEffect {
         for (var modifierUuid : MANAGED_MODIFIER_UUIDS) {
             attributeInstance.removeModifier(modifierUuid);
         }
+    }
+
+    private static double computeExternalCastingMoveSpeedBonus(AttributeInstance attributeInstance) {
+        return Math.max(
+                0.0D,
+                attributeInstance.getValue() - attributeInstance.getAttribute().getDefaultValue()
+        );
     }
 
     private static LinkedHashMap<UUID, ActiveEffect> collectActiveEffects(

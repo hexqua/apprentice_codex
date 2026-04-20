@@ -8,8 +8,10 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientLoanState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import net.minecraft.ChatFormatting;
@@ -36,6 +38,7 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.util.Mth;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -51,6 +54,7 @@ import java.util.function.Consumer;
 public final class FocusStaffbow extends CastingItem
         implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem {
     private static final int MAX_USE_DURATION = 72000;
+    private static final float CLIENT_MANA_SAFE_MARGIN = 0.001F;
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
@@ -106,6 +110,9 @@ public final class FocusStaffbow extends CastingItem
         }
 
         if (level.isClientSide) {
+            if (!canStartClientUse(player, selection.spellData)) {
+                return InteractionResultHolder.fail(stack);
+            }
             player.startUsingItem(usedHand);
             return InteractionResultHolder.consume(stack);
         }
@@ -124,6 +131,19 @@ public final class FocusStaffbow extends CastingItem
                 "ui.apprenticecodex.focus_staffbow.loan_mana",
                 Mth.ceil(Math.max(0.0F, remainingLoanMana))
         ).withStyle(ChatFormatting.RED);
+    }
+
+    public static boolean isBowDrawUse(@Nullable LivingEntity entity) {
+        if (entity == null || !entity.isUsingItem()) {
+            return false;
+        }
+
+        if (entity.getUsedItemHand() != InteractionHand.MAIN_HAND) {
+            return false;
+        }
+
+        var useItem = entity.getUseItem();
+        return !useItem.isEmpty() && useItem.getItem() instanceof FocusStaffbow;
     }
 
     @Override
@@ -305,6 +325,27 @@ public final class FocusStaffbow extends CastingItem
 
     private static boolean isMalumSpiritPlunder(ItemStack stack, ResourceLocation enchantmentId) {
         return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON);
+    }
+
+    private static boolean canStartClientUse(Player player, SpellData spellData) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == SpellRegistry.none()) {
+            return false;
+        }
+        if (FocusStaffbowClientLoanState.hasOutstandingLoan()) {
+            return false;
+        }
+
+        var spell = spellData.getSpell();
+        var cooldown = ClientMagicData.getCooldowns().getSpellCooldowns().get(spell.getSpellId());
+        if (cooldown != null && cooldown.getCooldownRemaining() > 0.0F) {
+            return false;
+        }
+        if (player.getAbilities().instabuild) {
+            return true;
+        }
+
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        return ClientMagicData.getPlayerMana() + CLIENT_MANA_SAFE_MARGIN >= spell.getManaCost(spellLevel);
     }
 
     private void triggerOverlayAnimation(ServerPlayer serverPlayer, ItemStack stack, String animationName) {
