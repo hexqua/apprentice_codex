@@ -237,6 +237,7 @@ public final class ApprenticeCodexGameTestScenarios {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BACK)
     );
+    private static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
     private static final ResourceLocation MALUM_HAUNTED =
@@ -4327,11 +4328,12 @@ public final class ApprenticeCodexGameTestScenarios {
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
-        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get(), 1);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
-        MagicData.getPlayerMagicData(player).setMana(300.0F);
+        MagicData.getPlayerMagicData(player).setMana(10000.0F);
 
         helper.runAtTickTime(1, () -> {
             var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -4350,9 +4352,17 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(player.isUsingItem(),
                     "Focus Staffbow continuous test should keep the player in use state while held");
         });
-        helper.runAtTickTime(95, () -> {
+        helper.runAtTickTime(3, () -> {
+            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
+            helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous multiplier test could not resolve spell power attribute");
+            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+            helper.assertTrue(modifier != null && modifier.getAmount() > 0.0D,
+                    "Focus Staffbow continuous multiplier should start rising immediately after cast start");
+        });
+        helper.runAtTickTime(101, () -> {
             var spellData = Capabilities.getSpellDataOrNull(player);
             var magicData = MagicData.getPlayerMagicData(player);
+            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
             helper.assertTrue(spellData != null, "Focus Staffbow continuous duration test lost spell data capability");
             helper.assertTrue(spellData != null
                             && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
@@ -4361,13 +4371,46 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous cast should keep Iron's casting state active past the normal duration cap");
             helper.assertTrue(magicData.getCastDurationRemaining() < 10,
                     "Focus Staffbow continuous cast should have passed Iron's normal remaining-duration stop window: " + magicData.getCastDurationRemaining());
+            helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous midpoint test could not resolve spell power attribute");
+            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+            var expectedMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
+                    continuousState.getElapsedTicks(player.level().getGameTime())
+            );
+            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+            var actualAmount = modifier == null ? 0.0D : modifier.getAmount();
+            helper.assertTrue(Math.abs(actualAmount - (expectedMultiplier - 1.0D)) < 1.0e-9D,
+                    "Focus Staffbow continuous multiplier should match the fixed early-stage curve: " + actualAmount);
+            helper.assertTrue(Math.abs(expectedMultiplier - 1.5D) < 1.0e-9D,
+                    "Focus Staffbow continuous multiplier should reach 1.5x after 100 ticks: " + expectedMultiplier);
         });
-        helper.runAtTickTime(96, () ->
+        helper.runAtTickTime(251, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
+            helper.assertTrue(spellData != null, "Focus Staffbow continuous cap test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
+                    "Focus Staffbow continuous cast should remain active after reaching the 2x cap");
+            helper.assertTrue(magicData.isCasting(),
+                    "Focus Staffbow continuous cast should keep running after reaching the 2x cap while mana remains");
+            helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous cap test could not resolve spell power attribute");
+            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+            var expectedMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
+                    continuousState.getElapsedTicks(player.level().getGameTime())
+            );
+            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+            var actualAmount = modifier == null ? 0.0D : modifier.getAmount();
+            helper.assertTrue(Math.abs(expectedMultiplier - 2.0D) < 1.0e-9D,
+                    "Focus Staffbow continuous multiplier should cap at 2.0x after 250 ticks: " + expectedMultiplier);
+            helper.assertTrue(Math.abs(actualAmount - 1.0D) < 1.0e-9D,
+                    "Focus Staffbow continuous spell power bonus should stop at +100%: " + actualAmount);
+        });
+        helper.runAtTickTime(252, () ->
                 bowStack.getItem().releaseUsing(
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - 95
+                        bowStack.getUseDuration() - 251
                 )
         );
         helper.succeedWhen(() -> {
@@ -4423,6 +4466,67 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous mana stop should not drive mana below zero: " + magicData.getMana());
             helper.assertTrue(magicData.getMana() <= 15.0F,
                     "Focus Staffbow continuous mana stop consumed an unexpected amount of mana: " + magicData.getMana());
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_standard_time_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
+        setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        MagicData.getPlayerMagicData(player).setMana(300.0F);
+
+        var castTimeReductionAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get());
+        helper.assertTrue(castTimeReductionAttribute != null,
+                "Focus Staffbow continuous standard time test could not resolve cast time reduction attribute");
+        if (castTimeReductionAttribute != null) {
+            castTimeReductionAttribute.addPermanentModifier(new AttributeModifier(
+                    UUID.fromString("6cc24610-4701-4af1-a197-f1403c48f2fb"),
+                    "apprenticecodex.focus_staffbow.continuous_standard_time_test",
+                    0.75D,
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            ));
+        }
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow continuous standard time test should start casting but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow continuous standard time test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
+                    "Focus Staffbow continuous standard time test should store a CONTINUOUS cast state");
+            var continuousState = spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+            helper.assertTrue(continuousState.requiredCastTicks == spell.getCastTime(1),
+                    "Focus Staffbow continuous standard time should ignore cast-time attributes and use the spell's base castTime");
+            helper.assertTrue(magicData.getCastDuration() == spell.getCastTime(1),
+                    "Focus Staffbow continuous standard time should sync Iron's cast duration with the base castTime");
+        });
+        helper.runAtTickTime(3, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration() - 2
+                )
+        );
+        helper.succeedWhen(() -> {
+            var spellData = Capabilities.getSpellDataOrNull(player);
+            helper.assertTrue(spellData != null, "Focus Staffbow continuous standard time release test lost spell data capability");
+            helper.assertTrue(spellData != null
+                            && !spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isActive(),
+                    "Focus Staffbow continuous standard time test should clear after release");
         });
     }
 

@@ -4,7 +4,10 @@ public final class FocusStaffbowChargeLogic {
     public static final int MINIMUM_OVERCHARGE_BASELINE_TICKS = 20;
     public static final int CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS = 10;
     public static final double MAX_PENDING_CHARGE_MULTIPLIER = 3.0D;
-    public static final double MAX_CONTINUOUS_CHARGE_MULTIPLIER = 3.0D;
+    public static final double MAX_CONTINUOUS_CHARGE_MULTIPLIER = 2.0D;
+    public static final int CONTINUOUS_STAGE_ONE_TICKS = 100;
+    public static final int CONTINUOUS_STAGE_TWO_TICKS = 150;
+    public static final int CONTINUOUS_MAX_CHARGE_TICKS = CONTINUOUS_STAGE_ONE_TICKS + CONTINUOUS_STAGE_TWO_TICKS;
 
     private FocusStaffbowChargeLogic() {
     }
@@ -19,14 +22,6 @@ public final class FocusStaffbowChargeLogic {
 
     public static int normalizeContinuousRequiredCastTicks(int effectiveCastTicks) {
         return Math.max(1, effectiveCastTicks);
-    }
-
-    public static double computeRawChargeMultiplier(long totalCastTicks, int requiredCastTicks) {
-        if (requiredCastTicks <= 0) {
-            return 1.0D;
-        }
-
-        return Math.max(0L, totalCastTicks) / (double) requiredCastTicks;
     }
 
     public static double clampChargeMultiplier(double rawMultiplier, double maxChargeMultiplier) {
@@ -55,6 +50,26 @@ public final class FocusStaffbowChargeLogic {
                 MAX_PENDING_CHARGE_MULTIPLIER,
                 2.0D + secondStageOverchargeTicks / (double) (normalizedBaselineTicks * 3L)
         );
+    }
+
+    public static double computeContinuousChargeMultiplier(long totalCastTicks) {
+        var normalizedCastTicks = Math.max(0L, totalCastTicks);
+        if (normalizedCastTicks <= CONTINUOUS_STAGE_ONE_TICKS) {
+            return clampChargeMultiplier(
+                    1.0D + normalizedCastTicks / (double) (CONTINUOUS_STAGE_ONE_TICKS * 2L),
+                    MAX_CONTINUOUS_CHARGE_MULTIPLIER
+            );
+        }
+
+        var secondStageTicks = normalizedCastTicks - CONTINUOUS_STAGE_ONE_TICKS;
+        return clampChargeMultiplier(
+                1.5D + secondStageTicks / (double) (CONTINUOUS_STAGE_TWO_TICKS * 2L),
+                MAX_CONTINUOUS_CHARGE_MULTIPLIER
+        );
+    }
+
+    public static float computeContinuousChargeProgress(long totalCastTicks) {
+        return (float) Math.min(1.0D, Math.max(0.0D, Math.max(0L, totalCastTicks) / (double) CONTINUOUS_MAX_CHARGE_TICKS));
     }
 
     public static int computeScaledManaCost(int baseManaCost, double chargeMultiplier) {

@@ -24,7 +24,6 @@ public final class FocusStaffbowClientCastState {
     private static long startedGameTime;
     private static int requiredCastTicks;
     private static int chargeBaselineTicks;
-    private static int chargeUpdateIntervalTicks = 1;
     private static int baseManaCost;
     private static boolean hasSyncedCastState;
     private static boolean hasConfirmedActiveUseState;
@@ -46,9 +45,9 @@ public final class FocusStaffbowClientCastState {
         chargeBaselineTicks = data.contains("chargeBaselineTicks")
                 ? Math.max(0, data.getInt("chargeBaselineTicks"))
                 : requiredCastTicks;
-        chargeUpdateIntervalTicks = data.contains("chargeUpdateIntervalTicks")
-                ? Math.max(1, data.getInt("chargeUpdateIntervalTicks"))
-                : 1;
+        if (data.contains("chargeUpdateIntervalTicks")) {
+            data.getInt("chargeUpdateIntervalTicks");
+        }
         baseManaCost = data.contains("baseManaCost") ? Math.max(0, data.getInt("baseManaCost")) : 0;
         hasSyncedCastState = true;
         hasConfirmedActiveUseState = false;
@@ -64,7 +63,6 @@ public final class FocusStaffbowClientCastState {
         startedGameTime = 0L;
         requiredCastTicks = 0;
         chargeBaselineTicks = 0;
-        chargeUpdateIntervalTicks = 1;
         baseManaCost = 0;
         hasSyncedCastState = false;
         hasConfirmedActiveUseState = false;
@@ -100,31 +98,25 @@ public final class FocusStaffbowClientCastState {
         // ワールド生成直後は use 状態同期より cast state 同期が先に届くことがあるため、
         // 初回表示は main hand に FocusStaffbow を持っている限り許可し、1フレームで捨てない。
         long elapsedTicks = Math.max(0L, currentGameTime - startedGameTime);
-        if (requiredCastTicks > 0 && elapsedTicks < requiredCastTicks) {
-            float completion = Mth.clamp(elapsedTicks / (float) requiredCastTicks, 0.0F, 1.0F);
-            var remainingLabel = Utils.timeFromTicks(Math.max(0.0F, requiredCastTicks - elapsedTicks), 1);
-            return new CastBarRenderState(true, completion, remainingLabel, "", 0xFFFFFF, 0xFFFFFF);
-        }
-
-        long displayElapsedTicks = isContinuous()
-                ? FocusStaffbowChargeLogic.sampleElapsedTicks(elapsedTicks, chargeUpdateIntervalTicks)
-                : elapsedTicks;
-        var appliedMultiplier = isContinuous()
-                ? FocusStaffbowChargeLogic.clampChargeMultiplier(
-                        FocusStaffbowChargeLogic.computeRawChargeMultiplier(displayElapsedTicks, Math.max(1, requiredCastTicks)),
-                        FocusStaffbowChargeLogic.MAX_CONTINUOUS_CHARGE_MULTIPLIER
-                )
-                : FocusStaffbowChargeLogic.computePendingChargeMultiplier(displayElapsedTicks, chargeBaselineTicks);
         if (isContinuous()) {
+            var appliedMultiplier = FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(elapsedTicks);
             return new CastBarRenderState(
                     true,
-                    1.0F,
+                    FocusStaffbowChargeLogic.computeContinuousChargeProgress(elapsedTicks),
                     String.format(Locale.ROOT, "x%.1f", appliedMultiplier),
                     "",
                     0xFFFFFF,
                     0xFFFFFF
             );
         }
+
+        if (requiredCastTicks > 0 && elapsedTicks < requiredCastTicks) {
+            float completion = Mth.clamp(elapsedTicks / (float) requiredCastTicks, 0.0F, 1.0F);
+            var remainingLabel = Utils.timeFromTicks(Math.max(0.0F, requiredCastTicks - elapsedTicks), 1);
+            return new CastBarRenderState(true, completion, remainingLabel, "", 0xFFFFFF, 0xFFFFFF);
+        }
+
+        var appliedMultiplier = FocusStaffbowChargeLogic.computePendingChargeMultiplier(elapsedTicks, chargeBaselineTicks);
 
         var plannedManaCost = resolveDisplayedManaCost(player, appliedMultiplier);
         var currentMana = resolveCurrentMana(player);
