@@ -4941,18 +4941,41 @@ public final class ApprenticeCodexGameTestScenarios {
     public static void focusStaffbowAcceptsInfinityEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var item = (FocusStaffbow) stack.getItem();
             helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.INFINITY_ARROWS),
                     "Focus Staffbow should accept Infinity at the enchanting table");
             helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(Enchantments.INFINITY_ARROWS)),
                     "Focus Staffbow should accept Infinity from enchanted books");
-            helper.assertTrue(((FocusStaffbow) stack.getItem()).isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
+            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
                     "Focus Staffbow should allow Infinity through anvil merges");
             helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
                     "Focus Staffbow should reject Transcendence at the enchanting table");
             helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.TRANSCENDENCE.get())),
                     "Focus Staffbow should reject Transcendence from enchanted books");
-            helper.assertFalse(((FocusStaffbow) stack.getItem()).isAnvilMergeEnchantmentAllowed(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
+            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
                     "Focus Staffbow should reject Transcendence through anvil merges");
+
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var haunted = MalumHauntedCompat.getHauntedEnchantment();
+            helper.assertTrue(haunted != null, "malum:haunted is not registered");
+            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, haunted),
+                    "Focus Staffbow should allow malum:haunted at the enchanting table");
+            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(haunted)),
+                    "Focus Staffbow should allow malum:haunted from enchanted books");
+            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, haunted),
+                    "Focus Staffbow should allow malum:haunted through anvil merges");
+
+            var animated = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_ANIMATED);
+            helper.assertTrue(animated != null, "malum:animated is not registered");
+            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, animated),
+                    "Focus Staffbow should keep rejecting malum:animated at the enchanting table");
+            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(animated)),
+                    "Focus Staffbow should keep rejecting malum:animated from enchanted books");
+            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, animated),
+                    "Focus Staffbow should keep rejecting malum:animated through anvil merges");
         });
     }
 
@@ -5993,6 +6016,13 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Crystal Bladed Staff should be a supported Haunted main hand item");
             helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(crystalBladedStaff) > 0.0D,
                     "Crystal Bladed Staff should resolve a positive Haunted magic damage bonus");
+
+            var focusStaffbow = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            focusStaffbow.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(focusStaffbow),
+                    "Focus Staffbow should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(focusStaffbow) > 0.0D,
+                    "Focus Staffbow should resolve a positive Haunted magic damage bonus");
 
             helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())),
                     "Spellgun should stay outside Haunted support");
