@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class TreasureDivination extends AbstractSpell {
-    private static final int SEARCH_INTERVAL_TICKS = 40;
+    private static final int SEARCH_INTERVAL_TICKS = 20;
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
     private static final int MAX_SEARCH_RANGE = 32;
     private static final int MAX_DETECTABLE_TARGET_COUNT = 64;
@@ -44,14 +44,14 @@ public class TreasureDivination extends AbstractSpell {
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(60)
+            .setCooldownSeconds(30)
             .build();
 
     public TreasureDivination() {
-        baseSpellPower = 600;
-        spellPowerPerLevel = 600;
-        baseManaCost = 30;
-        manaCostPerLevel = 10;
+        baseSpellPower = 400;
+        spellPowerPerLevel = 400;
+        baseManaCost = 20;
+        manaCostPerLevel = 0;
         castTime = 20 * 30;
     }
 
