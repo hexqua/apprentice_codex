@@ -130,6 +130,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void comfortBerriesProvideManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.comfortBerriesProvideManaRegenerationAndExpectedFoodValues(helper);
     }
@@ -167,6 +172,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.focusStaffbowContinuousCastStaysActivePastSpellDuration(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -290,6 +300,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowHeldWisdomAndPlunderWorkInBothHands(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.craftsmansDelightAppliesToExternalSpellManaAndCooldown(helper);
     }
@@ -334,6 +349,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.elementalBowInventoryOverlayReflectsCurrentSelection(helper);
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void elementalBowSelectionViewExposesOverheatOverlayState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSelectionViewExposesOverheatOverlayState(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(helper);
@@ -345,6 +365,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSynchronizesSpellContainerToCurrentMode(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowBlocksArcaneAnvilImbueViaSpellValidator(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowManaErrorUsesIronsSpellbooksTranslationKey(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowDoesNotConsumeResourcesBeforeFullDraw(helper);
     }
@@ -352,6 +402,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowInfinityAllowsVanillaDrawWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -367,6 +427,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowMagicModeIgnoresInfinityWithoutAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcasterQuiverUsesBackSlotAndCapsStoredArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.equippedSpellcasterQuiverAutoStoresPickedUpArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -400,13 +480,43 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcasterQuiverSlowdownHelperTracksEquippedBowUse(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcasterQuiverSlowdownHelperTracksEquippedBowUse(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowNonMagicModesHideDerivedSpellPresentation(helper);
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowSuppressesElementalArrowCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowConsumesAdditionalManaWhileOverheated(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowOverheatTracksSchoolsSeparately(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowOverheatRefreshesDurationAfterRepeatedCast(helper);
     }
 
     @GameTest(template = TEMPLATE)

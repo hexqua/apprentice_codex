@@ -10,7 +10,6 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
-    private static final String HEALING_BLOOM_ISOLATED_BATCH = "apprenticecodex.healing_bloom_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -25,6 +24,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.senseEvilUsesSameCubeForSpawnersAndEntities(helper);
     }
 
+    @GameTest(template = TEMPLATE)
     public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.healingBloomLightHasReducedLevelAndNoOutline(helper);
     }
@@ -44,7 +44,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.healingBloomRootLossUsesDeathState(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
+    @GameTest(template = TEMPLATE)
     public static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(helper);
     }
@@ -82,6 +82,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 60)
     public static void archerMultipleAllBowRemovalEndsRecastAndStartsCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.archerMultipleAllBowRemovalEndsRecastAndStartsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 60)
+    public static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.personalShelfExpireClosesOpenedChestMenu(helper);
     }
 
     @GameTest(template = TEMPLATE)
