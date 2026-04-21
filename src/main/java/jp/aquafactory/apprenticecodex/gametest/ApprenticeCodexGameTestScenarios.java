@@ -3203,7 +3203,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING.value());
@@ -3326,7 +3326,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void elementalBowSelectionViewExposesOverheatOverlayState(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_overheat_overlay_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_overheat_overlay_test");
         var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
         setElementalBowMode(stack, "fire");
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -3404,7 +3404,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowMode(stack, "fire");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -3422,7 +3422,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowMode(stack, "fire");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -3449,7 +3449,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -3464,7 +3464,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_draw_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_draw_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             setElementalBowShotSelection(stack, "arrow", null);
@@ -3480,7 +3480,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_infinity_preserve_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_infinity_preserve_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -3499,7 +3499,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_preserve_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_preserve_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             setElementalBowShotSelection(stack, "arrow", null);
@@ -3519,7 +3519,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             setElementalBowShotSelection(stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"));
@@ -3544,7 +3544,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_infinity_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_infinity_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
@@ -3580,7 +3580,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_pickup_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_pickup_test");
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
             equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
 
@@ -3595,7 +3595,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_priority_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_priority_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowShotSelection(bowStack, "arrow", null);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
@@ -3618,7 +3618,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_selection_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_selection_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
 
@@ -3640,7 +3640,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void vanillaBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_quiver_priority_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_quiver_priority_test");
             var bowStack = new ItemStack(Items.BOW);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
@@ -3662,7 +3662,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void vanillaBowPrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_held_special_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_held_special_test");
             var bowStack = new ItemStack(Items.BOW);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 1));
@@ -3684,7 +3684,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void vanillaBowPrefersNormalArrowOverMoreNumerousQuiverSpecialArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_normal_priority_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_normal_priority_test");
             var bowStack = new ItemStack(Items.BOW);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW, 1));
@@ -3708,7 +3708,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_infinity_quiver_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_infinity_quiver_test");
             var bowStack = new ItemStack(Items.BOW);
             bowStack.enchant(infinity, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
@@ -3728,7 +3728,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowVanillaModePrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_held_special_quiver_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_held_special_quiver_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 1));
@@ -3752,7 +3752,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_quiver_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_quiver_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             bowStack.enchant(infinity, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
@@ -3772,7 +3772,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void spellcasterQuiverSlowdownHelperTracksEquippedBowUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_slowdown_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_slowdown_test");
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
             equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
 
@@ -3791,7 +3791,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_focus_staffbow_slowdown_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_focus_staffbow_slowdown_test");
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
             equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
 
@@ -3827,7 +3827,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             setElementalBowShotSelection(stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"));
@@ -3867,7 +3867,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_special_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_special_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
@@ -3882,7 +3882,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_only_mode_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_only_mode_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowShotSelection(stack, "arrow", null);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -3900,7 +3900,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void focusStaffbowRejectsOffhandUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_reject_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_reject_test");
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             player.setItemInHand(InteractionHand.OFF_HAND, stack);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_SWORD));
@@ -3914,7 +3914,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void focusStaffbowAllowsMainhandUseWithOffhandSelection(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_selection_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_selection_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -3942,7 +3942,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_summon_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_summon_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -3993,7 +3993,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4041,7 +4041,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_helper_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_helper_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowMode(stack, "fire");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -4090,7 +4090,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4198,7 +4198,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4217,7 +4217,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_mana_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4260,7 +4260,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_standard_time_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_standard_time_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4319,7 +4319,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowInstantImmediateReleaseConsumesBaseMana(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_instant_base_mana_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_instant_base_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4357,7 +4357,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowShortLongReleaseStaysAtBaseMultiplier(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_short_long_base_mana_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_short_long_base_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4404,7 +4404,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_base_mana_gate_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_base_mana_gate_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4427,7 +4427,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowOverchargeLoanConsumesRecoveredMana(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_repay_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_repay_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4485,7 +4485,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_overcharge_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_overcharge_test");
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
@@ -4526,7 +4526,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void focusStaffbowBlocksUseWhileLoanRemains(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_block_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_block_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4551,7 +4551,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void focusStaffbowRejectsUseWhileSpellCooldownRemains(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_cooldown_block_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_cooldown_block_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4597,7 +4597,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void focusStaffbowFallsBackToSpecialArrowWhenNormalArrowIsMissing(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4628,7 +4628,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
     }
     static void focusStaffbowSynthesisAllowsArrowlessCasting(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_synthesis_test");
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_synthesis_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         bowStack.enchant(
                 helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SYNTHESIS),
@@ -4663,7 +4663,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_quiver_priority_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_quiver_priority_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4768,7 +4768,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowMode(stack, "fire");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -5190,7 +5190,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "long_stride_base_bonus_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "long_stride_base_bonus_test");
             var movementSpeed = player.getAttribute(Attributes.MOVEMENT_SPEED);
             helper.assertTrue(movementSpeed != null, "LongStride base bonus test could not resolve movement speed attribute");
 
@@ -5207,7 +5207,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "dynamic_casting_movespeed_rebalance_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dynamic_casting_movespeed_rebalance_test");
             var effectHolder = EffectRegistry.LONG_STRIDE_MOBILITY;
             var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.value();
             var castingMoveSpeed = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED);
@@ -5620,8 +5620,8 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
-            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             var touchDigSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get();
             var spectralHammerSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPECTRAL_HAMMER_SPELL.get();
 
@@ -5683,7 +5683,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var spell = new TouchDigSpell();
             var playerPos = new BlockPos(0, 12, 0);
             prepareElevatedStonePlatform(helper, playerPos);
-            var player = createCraftsmansDelightPlayer(helper, playerPos, "touch_dig_range_test");
+            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_range_test");
             var magicData = MagicData.getPlayerMagicData(player);
             var targetPos = helper.absolutePos(new BlockPos(0, 23, 0));
 
@@ -5697,7 +5697,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Touch Dig should keep the default 8 block range without CraftsmansDelight");
 
-            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             var uniqueInfo = spell.getUniqueInfo(1, player).stream()
                     .map(Component::getString)
                     .collect(Collectors.joining(", "));
@@ -5719,12 +5719,12 @@ public final class ApprenticeCodexGameTestScenarios {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var fortune = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE);
             var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_ring_enchant_merge_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_ring_enchant_merge_test");
             var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
             heldTool.enchant(fortune, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
 
-            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             setCraftsmansDelightEnchantments(player, enchantments -> enchantments.set(fortune, 3));
 
             var mergedFortuneTool = CraftsmansDelight.createTouchDigTool(player);
@@ -5772,12 +5772,12 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_bare_hand_ring_enchant_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_bare_hand_ring_enchant_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
             var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
             ringStack.enchant(silkTouch, 1);
-            equipCraftsmansDelight(player, ringStack);
+            equipRingCurio(player, ringStack);
 
             var synthesizedTool = CraftsmansDelight.createTouchDigTool(player);
             helper.assertFalse(synthesizedTool.isEmpty(),
@@ -5803,8 +5803,8 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spectral_hammer_ring_enchant_test");
-            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spectral_hammer_ring_enchant_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             setCraftsmansDelightEnchantments(player, enchantments -> enchantments.set(silkTouch, 1));
 
             var targetPos = helper.absolutePos(new BlockPos(0, 2, 2));
@@ -6167,7 +6167,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static FakePlayer createCraftsmansDelightPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    private static FakePlayer createEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -6200,7 +6200,7 @@ public final class ApprenticeCodexGameTestScenarios {
         curiosInventory.setEquippedCurio(slotId, 0, stack);
     }
 
-    private static void equipCraftsmansDelight(FakePlayer player, ItemStack ringStack) {
+    private static void equipRingCurio(FakePlayer player, ItemStack ringStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, ringStack);
     }
 
