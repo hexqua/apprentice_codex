@@ -13,6 +13,9 @@ out
 *.iml
 .idea
 
+# idea上でも一部は除外しない.
+!.idea/inspectionProfiles/Project_Default.xml
+
 # gradle
 build
 .gradle
