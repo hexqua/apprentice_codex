@@ -162,7 +162,7 @@ public final class FocusStaffbowClientCastState {
     private static boolean isActivelyUsingFocusStaffbow(LocalPlayer player) {
         return player.isUsingItem()
                 && player.getUsedItemHand() == InteractionHand.MAIN_HAND
-                && ItemStack.isSameItemSameTags(player.getUseItem(), player.getMainHandItem());
+                && ItemStack.isSameItemSameComponents(player.getUseItem(), player.getMainHandItem());
     }
 
     private static boolean isWithinVisibleGrace(long currentGameTime) {

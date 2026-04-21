@@ -35,8 +35,8 @@ public final class ElementalBowCastBarHudRenderEvent {
         CastBarHudRenderer.render(
                 event.getGuiGraphics(),
                 minecraft.font,
-                event.getWindow().getGuiScaledWidth(),
-                event.getWindow().getGuiScaledHeight(),
+                minecraft.getWindow().getGuiScaledWidth(),
+                minecraft.getWindow().getGuiScaledHeight(),
                 castBarState.completionPercent(),
                 remainingTime
         );

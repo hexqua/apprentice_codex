@@ -1,22 +1,36 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
+public final class SyncFocusStaffbowCastStatePacket implements CustomPacketPayload {
+    public static final Type<SyncFocusStaffbowCastStatePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_focus_staffbow_cast_state"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncFocusStaffbowCastStatePacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncFocusStaffbowCastStatePacket::decode);
 
-public class SyncFocusStaffbowCastStatePacket {
     private final CompoundTag data;
 
     public SyncFocusStaffbowCastStatePacket(@Nullable CompoundTag data) {
         this.data = data == null ? new CompoundTag() : data.copy();
+    }
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
     public static void encode(SyncFocusStaffbowCastStatePacket packet, FriendlyByteBuf buffer) {
@@ -27,12 +41,12 @@ public class SyncFocusStaffbowCastStatePacket {
         return new SyncFocusStaffbowCastStatePacket(buffer.readNbt());
     }
 
-    public static void handle(SyncFocusStaffbowCastStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(SyncFocusStaffbowCastStatePacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     @OnlyIn(Dist.CLIENT)

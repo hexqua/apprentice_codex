@@ -2,10 +2,11 @@ package jp.aquafactory.apprenticecodex.item.ammo;
 
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public final class BowCastAmmoResolver {
     }
 
     private static boolean hasInfinity(ItemStack stack) {
-        return stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+        return getEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.INFINITY.location()) > 0;
     }
 
     private static SpellcasterQuiverBowAmmoResolver.LooseAmmoSource createLooseAmmoSource(Player player, ItemStack ammoStack) {
@@ -100,5 +101,21 @@ public final class BowCastAmmoResolver {
         stacks.add(player.getOffhandItem());
         stacks.addAll(player.getInventory().items);
         return stacks;
+    }
+
+    private static int getEnchantmentLevel(ItemStack stack, ResourceLocation enchantmentId) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        if (enchantments.isEmpty()) {
+            return 0;
+        }
+
+        for (var enchantment : enchantments.keySet()) {
+            var enchantmentKey = enchantment.unwrapKey().orElse(null);
+            if (enchantmentKey != null && enchantmentId.equals(enchantmentKey.location())) {
+                return enchantments.getLevel(enchantment);
+            }
+        }
+
+        return 0;
     }
 }

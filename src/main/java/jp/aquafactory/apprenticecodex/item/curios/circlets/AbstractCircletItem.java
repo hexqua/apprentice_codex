@@ -22,7 +22,6 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
-import java.util.UUID;
 
 public abstract class AbstractCircletItem extends Item implements ICurioItem, IPresetSpellContainer {
     private final AttributeContainer[] circletAttributes;
@@ -77,21 +76,6 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
         return builder.build();
     }
 
-    @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
-            SlotContext slotContext,
-            UUID uuid,
-            ItemStack stack
-    ) {
-        // 1.21.1 Curios は UUID 経路で属性を引く呼び出しが残っているため、
-        // ResourceLocation 側の実装へ寄せて head 用補正が欠落しないようにする。
-        return getAttributeModifiers(
-                slotContext,
-                ResourceLocation.withDefaultNamespace(uuid.toString()),
-                stack
-        );
-    }
-
     protected void addAdditionalHeadModifiers(
             ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder,
             SlotContext slotContext,
@@ -106,7 +90,7 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         initializeSpellContainer(stack);
         super.appendHoverText(stack, context, lines, flag);
     }

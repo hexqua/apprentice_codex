@@ -7,13 +7,13 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPres
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class FocusStaffbowClientEvents {
     private FocusStaffbowClientEvents() {
     }

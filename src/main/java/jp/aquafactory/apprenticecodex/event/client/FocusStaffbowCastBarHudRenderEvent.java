@@ -3,20 +3,20 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class FocusStaffbowCastBarHudRenderEvent {
     private FocusStaffbowCastBarHudRenderEvent() {
     }
 
     @SubscribeEvent
-    public static void onRenderGuiOverlay(RenderGuiOverlayEvent.Post event) {
-        if (event.getOverlay() != VanillaGuiOverlay.CROSSHAIR.type()) {
+    public static void onRenderGuiLayer(RenderGuiLayerEvent.Post event) {
+        if (!VanillaGuiLayers.CROSSHAIR.equals(event.getName())) {
             return;
         }
 
@@ -33,8 +33,8 @@ public final class FocusStaffbowCastBarHudRenderEvent {
         CastBarHudRenderer.render(
                 event.getGuiGraphics(),
                 minecraft.font,
-                event.getWindow().getGuiScaledWidth(),
-                event.getWindow().getGuiScaledHeight(),
+                minecraft.getWindow().getGuiScaledWidth(),
+                minecraft.getWindow().getGuiScaledHeight(),
                 castBarState.completionPercent(),
                 castBarState.primaryLabelText(),
                 castBarState.primaryLabelColor(),

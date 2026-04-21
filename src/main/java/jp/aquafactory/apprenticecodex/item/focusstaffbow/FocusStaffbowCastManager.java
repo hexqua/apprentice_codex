@@ -15,7 +15,6 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.network.casting.OnCastStartedPacket;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
@@ -29,19 +28,21 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentati
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 public final class FocusStaffbowCastManager {
-    private static final UUID OVERCHARGE_SPELL_POWER_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
-    private static final String OVERCHARGE_SPELL_POWER_MODIFIER_NAME = "apprenticecodex.focus_staffbow.overcharge";
+    private static final ResourceLocation OVERCHARGE_SPELL_POWER_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
+            "apprenticecodex",
+            "focus_staffbow_overcharge"
+    );
 
     private FocusStaffbowCastManager() {
     }
@@ -435,7 +436,7 @@ public final class FocusStaffbowCastManager {
         Networks.sendToPlayer(player, new SyncFocusStaffbowCastStatePacket(null));
 
         var magicData = MagicData.getPlayerMagicData(player);
-        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
+        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER);
         if (spellPowerAttribute == null) {
             cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
             magicData.resetAdditionalCastData();
@@ -458,9 +459,8 @@ public final class FocusStaffbowCastManager {
 
         var modifier = new AttributeModifier(
                 OVERCHARGE_SPELL_POWER_MODIFIER_ID,
-                OVERCHARGE_SPELL_POWER_MODIFIER_NAME,
                 finalMultiplier - 1.0D,
-                AttributeModifier.Operation.MULTIPLY_TOTAL
+                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
         );
 
         spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
@@ -579,7 +579,7 @@ public final class FocusStaffbowCastManager {
     private static void stopContinuousCast(ServerPlayer player, FocusStaffbowCastState state, boolean triggerCooldown,
                                            boolean callServerCastComplete, boolean syncClientCancel) {
         var magicData = MagicData.getPlayerMagicData(player);
-        removeOverchargeModifier(player.getAttribute(AttributeRegistry.SPELL_POWER.get()));
+        removeOverchargeModifier(player.getAttribute(AttributeRegistry.SPELL_POWER));
 
         if (callServerCastComplete && magicData.getSyncedData().isCasting() && state.spellId.equals(magicData.getCastingSpellId())) {
             var spell = SpellRegistry.getSpell(state.spellId);
@@ -718,9 +718,18 @@ public final class FocusStaffbowCastManager {
             player.connection.send(new ClientboundSetActionBarTextPacket(castResult.message));
         }
 
-        return castResult.isSuccess()
-                && spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)
-                && !MinecraftForge.EVENT_BUS.post(new SpellPreCastEvent(player, spell.getSpellId(), spellLevel, spell.getSchoolType(), castSource));
+        if (!castResult.isSuccess() || !spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)) {
+            return false;
+        }
+
+        var preCastEvent = NeoForge.EVENT_BUS.post(new SpellPreCastEvent(
+                player,
+                spell.getSpellId(),
+                spellLevel,
+                spell.getSchoolType(),
+                castSource
+        ));
+        return !preCastEvent.isCanceled();
     }
 
     private static void stopFocusStaffbowOrVanillaCast(ServerPlayer player, MagicData magicData) {
@@ -749,15 +758,14 @@ public final class FocusStaffbowCastManager {
         }
 
         var finalMultiplier = FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(sampledTicks);
-        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
+        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER);
         if (spellPowerAttribute != null) {
             spellPowerAttribute.removeModifier(OVERCHARGE_SPELL_POWER_MODIFIER_ID);
             if (finalMultiplier > 1.0D) {
                 spellPowerAttribute.addTransientModifier(new AttributeModifier(
                         OVERCHARGE_SPELL_POWER_MODIFIER_ID,
-                        OVERCHARGE_SPELL_POWER_MODIFIER_NAME,
                         finalMultiplier - 1.0D,
-                        AttributeModifier.Operation.MULTIPLY_TOTAL
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                 ));
             }
         }

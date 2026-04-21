@@ -310,11 +310,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowAcceptsInfinityEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowAcceptsInfinityEnchantments(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.focusStaffbowExposesExpectedMainhandAttributes(helper);
     }

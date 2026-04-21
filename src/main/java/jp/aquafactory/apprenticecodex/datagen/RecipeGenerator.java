@@ -248,7 +248,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('D', io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get())
                 .define('S', Items.STRING)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ILLUMINATE_STELLAR_STAFF.get())
                 .pattern(" YS")

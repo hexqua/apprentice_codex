@@ -3,20 +3,36 @@ package jp.aquafactory.apprenticecodex.network.packet;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPresentationState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
-public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId, PresentationAction action) {
+public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId, PresentationAction action)
+        implements CustomPacketPayload {
+    public static final Type<SyncFocusStaffbowPresentationPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_focus_staffbow_presentation"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncFocusStaffbowPresentationPacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncFocusStaffbowPresentationPacket::decode);
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
     public static void encode(SyncFocusStaffbowPresentationPacket packet, FriendlyByteBuf buffer) {
         buffer.writeUUID(packet.entityId);
         buffer.writeUtf(packet.spellId);
@@ -31,12 +47,12 @@ public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId,
         );
     }
 
-    public static void handle(SyncFocusStaffbowPresentationPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(SyncFocusStaffbowPresentationPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     public enum PresentationAction {

@@ -1,5 +1,6 @@
 {
   "values": [
+    "apprenticecodex:focus_staffbow",
     "apprenticecodex:iron_spellcaster_gun",
     "apprenticecodex:copper_spellcaster_gun",
     "apprenticecodex:gold_spellcaster_gun",
@@ -14,7 +15,6 @@
     "apprenticecodex:unite_luna_staff",
     "apprenticecodex:pastel_staff",
     "apprenticecodex:crystal_bladed_staff",
-    "apprenticecodex:reflectcast_shield",
-    "apprenticecodex:focus_staffbow"
+    "apprenticecodex:reflectcast_shield"
   ]
 }

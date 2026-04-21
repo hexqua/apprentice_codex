@@ -31,7 +31,7 @@ public final class FocusStaffbowClientRenderState {
             return false;
         }
 
-        if (!ItemStack.isSameItemSameTags(player.getMainHandItem(), renderingStack)) {
+        if (!ItemStack.isSameItemSameComponents(player.getMainHandItem(), renderingStack)) {
             return false;
         }
 

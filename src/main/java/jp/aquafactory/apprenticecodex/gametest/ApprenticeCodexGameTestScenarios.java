@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHel
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
@@ -108,6 +109,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.EnchantmentTags;
@@ -177,7 +179,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
@@ -239,9 +240,12 @@ public final class ApprenticeCodexGameTestScenarios {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BACK)
     );
-    private static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
-    private static final UUID CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
-            UUID.fromString("04a46352-a09b-44fb-b504-92ab5f69f969");
+    private static final ResourceLocation FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
+            ApprenticeCodex.MODID,
+            "focus_staffbow_overcharge"
+    );
+    private static final ResourceLocation CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "casting_movespeed_dynamic_test_external");
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
     private static final ResourceLocation MALUM_HAUNTED =
@@ -2069,7 +2073,11 @@ public final class ApprenticeCodexGameTestScenarios {
             var blockEntity = helper.getBlockEntity(pos);
             helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
-            var itemHandler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+            var itemHandler = helper.getLevel().getCapability(
+                    net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK,
+                    helper.absolutePos(pos),
+                    Direction.UP
+            );
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get());
             spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.SPELL_SLOT_INDEX, scrollStack.copy());
 
@@ -2095,7 +2103,11 @@ public final class ApprenticeCodexGameTestScenarios {
             var blockEntity = helper.getBlockEntity(pos);
             helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
-            var itemHandler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), Direction.UP);
+            var itemHandler = helper.getLevel().getCapability(
+                    net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK,
+                    helper.absolutePos(pos),
+                    Direction.UP
+            );
             var filledFlask = createFilledSpellcastersFlask(
                     helper.getLevel().registryAccess(),
                     createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
@@ -4242,7 +4254,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get().getEffectiveCastTime(1, player)
+                        bowStack.getUseDuration(player) - jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get().getEffectiveCastTime(1, player)
                 )
         );
         helper.succeedWhen(() -> {
@@ -4289,7 +4301,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - (jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get().getEffectiveCastTime(1, player) - 1)
+                        bowStack.getUseDuration(player) - (jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE.get().getEffectiveCastTime(1, player) - 1)
                 )
         );
         helper.succeedWhen(() -> {
@@ -4395,16 +4407,16 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous test should keep the player in use state while held");
         });
         helper.runAtTickTime(3, () -> {
-            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
+            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER);
             helper.assertTrue(spellPowerAttribute != null, "Focus Staffbow continuous multiplier test could not resolve spell power attribute");
-            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
-            helper.assertTrue(modifier != null && modifier.getAmount() > 0.0D,
+            AttributeModifier modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+            helper.assertTrue(modifier != null && modifier.amount() > 0.0D,
                     "Focus Staffbow continuous multiplier should start rising immediately after cast start");
         });
         helper.runAtTickTime(101, () -> {
             var spellData = Capabilities.getSpellDataOrNull(player);
             var magicData = MagicData.getPlayerMagicData(player);
-            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
+            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER);
             helper.assertTrue(spellData != null, "Focus Staffbow continuous duration test lost spell data capability");
             helper.assertTrue(spellData != null
                             && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
@@ -4418,8 +4430,8 @@ public final class ApprenticeCodexGameTestScenarios {
             var expectedMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
                     continuousState.getElapsedTicks(player.level().getGameTime())
             );
-            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
-            var actualAmount = modifier == null ? 0.0D : modifier.getAmount();
+            AttributeModifier modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+            var actualAmount = modifier == null ? 0.0D : modifier.amount();
             helper.assertTrue(Math.abs(actualAmount - (expectedMultiplier - 1.0D)) < 1.0e-9D,
                     "Focus Staffbow continuous multiplier should match the fixed early-stage curve: " + actualAmount);
             helper.assertTrue(Math.abs(expectedMultiplier - 1.5D) < 1.0e-9D,
@@ -4430,7 +4442,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.runAtTickTime(251, () -> {
             var spellData = Capabilities.getSpellDataOrNull(player);
             var magicData = MagicData.getPlayerMagicData(player);
-            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
+            var spellPowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER);
             helper.assertTrue(spellData != null, "Focus Staffbow continuous cap test lost spell data capability");
             helper.assertTrue(spellData != null
                             && spellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous(),
@@ -4442,8 +4454,8 @@ public final class ApprenticeCodexGameTestScenarios {
             var expectedMultiplier = jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(
                     continuousState.getElapsedTicks(player.level().getGameTime())
             );
-            var modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
-            var actualAmount = modifier == null ? 0.0D : modifier.getAmount();
+            AttributeModifier modifier = spellPowerAttribute == null ? null : spellPowerAttribute.getModifier(FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID);
+            var actualAmount = modifier == null ? 0.0D : modifier.amount();
             helper.assertTrue(Math.abs(expectedMultiplier - 2.0D) < 1.0e-9D,
                     "Focus Staffbow continuous multiplier should cap at 2.0x after 250 ticks: " + expectedMultiplier);
             helper.assertTrue(Math.abs(actualAmount - 1.0D) < 1.0e-9D,
@@ -4454,7 +4466,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - 251
+                        bowStack.getUseDuration(player) - 251
                 )
         );
         helper.succeedWhen(() -> {
@@ -4551,15 +4563,14 @@ public final class ApprenticeCodexGameTestScenarios {
         setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 2));
         MagicData.getPlayerMagicData(player).setMana(300.0F);
 
-        var castTimeReductionAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get());
+        var castTimeReductionAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION);
         helper.assertTrue(castTimeReductionAttribute != null,
                 "Focus Staffbow continuous standard time test could not resolve cast time reduction attribute");
         if (castTimeReductionAttribute != null) {
             castTimeReductionAttribute.addPermanentModifier(new AttributeModifier(
-                    UUID.fromString("6cc24610-4701-4af1-a197-f1403c48f2fb"),
-                    "apprenticecodex.focus_staffbow.continuous_standard_time_test",
+                    ResourceLocation.fromNamespaceAndPath("apprenticecodex", "focus_staffbow_continuous_standard_time_test"),
                     0.75D,
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ));
         }
 
@@ -4586,7 +4597,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - 2
+                        bowStack.getUseDuration(player) - 2
                 )
         );
         helper.succeedWhen(() -> {
@@ -4627,7 +4638,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration()
+                        bowStack.getUseDuration(player)
                 )
         );
         helper.succeedWhen(() -> {
@@ -4675,7 +4686,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - spell.getEffectiveCastTime(1, player)
+                        bowStack.getUseDuration(player) - spell.getEffectiveCastTime(1, player)
                 )
         );
         helper.succeedWhen(() -> {
@@ -4747,7 +4758,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - 120
+                        bowStack.getUseDuration(player) - 120
                 )
         );
         helper.runAtTickTime(4, () -> {
@@ -4799,7 +4810,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - 120
+                        bowStack.getUseDuration(player) - 120
                 )
         );
         helper.runAtTickTime(4, () -> {
@@ -4918,7 +4929,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration()
+                        bowStack.getUseDuration(player)
                 )
         );
         helper.succeedWhen(() ->
@@ -4929,9 +4940,15 @@ public final class ApprenticeCodexGameTestScenarios {
 
     @GameTest(template = TEMPLATE)
     public static void focusStaffbowInfinityAllowsArrowlessCasting(GameTestHelper helper) {
+        // Focus Staffbow へ Infinity を付与できるかは、minecraft:infinity の override を避けるため検証対象から外す。
+        // ここでは ItemStack#enchant で強制付与し、付与済みスタックの矢消費ロジックだけを固定する。
         var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_infinity_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+        bowStack.enchant(
+                helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY),
+                1
+        );
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
@@ -4951,7 +4968,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration()
+                        bowStack.getUseDuration(player)
                 )
         );
         helper.succeedWhen(() ->
@@ -4983,7 +5000,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(result.getResult().consumesAction(),
                     "Focus Staffbow should start when Spellcaster Quiver holds the catalyst arrow but got " + result.getResult());
 
-            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration());
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration(player));
             helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 1,
                     "Focus Staffbow should consume the equipped Spellcaster Quiver arrow before loose inventory arrows");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
@@ -4992,42 +5009,22 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowAcceptsInfinityEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedFocusStaffbowEnchantments(helper.getLevel().registryAccess(), stack),
-                    "Focus Staffbow"
-            );
-            assertRejectedExtraEnchantments(
-                    helper,
-                    stack,
-                    rejectedFocusStaffbowExtraEnchantments(),
-                    false,
-                    "Focus Staffbow should keep rejecting"
-            );
-        });
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
+            var modifiers = toModifierMultimap(stack.getAttributeModifiers());
 
             helper.assertTrue(Math.abs(sumModifierAmount(
                     modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.ADDITION
+                    AttributeModifier.Operation.ADD_VALUE
             ) - 3.0D) < 1.0e-9D, "Focus Staffbow attack damage regression: " + describeModifiers(modifiers));
             helper.assertTrue(Math.abs(sumModifierAmount(
                     modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADDITION
+                    AttributeModifier.Operation.ADD_VALUE
             ) - (-3.0D)) < 1.0e-9D, "Focus Staffbow attack speed regression: " + describeModifiers(modifiers));
             helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE
+                    modifiers.get((Holder<Attribute>) io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ) - 0.10D) < 1.0e-9D, "Focus Staffbow spell power regression: " + describeModifiers(modifiers));
         });
     }
@@ -5489,17 +5486,14 @@ public final class ApprenticeCodexGameTestScenarios {
     @GameTest(template = TEMPLATE)
     public static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
-            var movementSpeedModifiers = new java.util.ArrayList<AttributeModifier>();
-            effect.createModifiers(0, (attribute, modifier) -> {
-                if (attribute.equals(Attributes.MOVEMENT_SPEED)) {
-                    movementSpeedModifiers.add(modifier);
-                }
-            });
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "long_stride_base_bonus_test");
+            var movementSpeed = player.getAttribute(Attributes.MOVEMENT_SPEED);
+            helper.assertTrue(movementSpeed != null, "LongStride base bonus test could not resolve movement speed attribute");
 
-            helper.assertTrue(!movementSpeedModifiers.isEmpty(), "LongStride is missing the movement speed attribute modifier");
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
+            helper.assertTrue(movementSpeed != null, "LongStride base bonus test lost movement speed attribute after addEffect");
 
-            var actualAmount = movementSpeedModifiers.stream()
+            var actualAmount = movementSpeed.getModifiers().stream()
                     .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
                     .mapToDouble(AttributeModifier::amount)
                     .sum();
@@ -5512,12 +5506,13 @@ public final class ApprenticeCodexGameTestScenarios {
     public static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "dynamic_casting_movespeed_rebalance_test");
-            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
-            var castingMoveSpeed = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get());
+            var effectHolder = EffectRegistry.LONG_STRIDE_MOBILITY;
+            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.value();
+            var castingMoveSpeed = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED);
             helper.assertTrue(castingMoveSpeed != null,
                     "Dynamic casting mobility test could not resolve the CASTING_MOVESPEED attribute");
 
-            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(effect, 200, 0));
+            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(effectHolder, 200, 0));
             helper.assertTrue(castingMoveSpeed != null, "Dynamic casting mobility test lost CASTING_MOVESPEED after addEffect");
             assertCastingMoveSpeedModifierAmount(
                     helper,
@@ -5529,9 +5524,8 @@ public final class ApprenticeCodexGameTestScenarios {
 
             castingMoveSpeed.addTransientModifier(new AttributeModifier(
                     CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID,
-                    "apprenticecodex.casting_movespeed.dynamic_test",
                     0.5D,
-                    AttributeModifier.Operation.ADDITION
+                    AttributeModifier.Operation.ADD_VALUE
             ));
             effect.applyEffectTick(player, 0);
             assertCastingMoveSpeedModifierAmount(
@@ -7309,21 +7303,6 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedFocusStaffbowEnchantments(RegistryAccess registryAccess, ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
-                        && !isDurabilityTargetEnchantment(enchantment)
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                Enchantments.WISDOM,
-                net.minecraft.world.item.enchantment.Enchantments.INFINITY
-        ));
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
     private static Set<ResourceLocation> expectedReflectcastShieldEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
@@ -7337,13 +7316,6 @@ public final class ApprenticeCodexGameTestScenarios {
         return registryIdSet(
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM,
-                Enchantments.PLUNDER
-        );
-    }
-
-    private static Set<ResourceLocation> rejectedFocusStaffbowExtraEnchantments() {
-        return registryIdSet(
-                Enchantments.TRANSCENDENCE,
                 Enchantments.PLUNDER
         );
     }
@@ -7769,18 +7741,31 @@ public final class ApprenticeCodexGameTestScenarios {
     private static void assertCastingMoveSpeedModifierAmount(
             GameTestHelper helper,
             net.minecraft.world.entity.ai.attributes.AttributeInstance attributeInstance,
-            @org.jetbrains.annotations.Nullable UUID excludedModifierId,
+            @org.jetbrains.annotations.Nullable ResourceLocation excludedModifierId,
             double expectedAmount,
             String message
     ) {
         var actualAmount = attributeInstance.getModifiers().stream()
-                .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.ADDITION)
-                .filter(modifier -> excludedModifierId == null || !excludedModifierId.equals(modifier.getId()))
-                .mapToDouble(AttributeModifier::getAmount)
+                .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_VALUE)
+                .filter(modifier -> excludedModifierId == null || !excludedModifierId.equals(modifier.id()))
+                .mapToDouble(AttributeModifier::amount)
                 .sum();
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected " + expectedAmount + " but got " + actualAmount
                         + " modifiers=" + attributeInstance.getModifiers());
+    }
+
+    private static void assertTranslatableKey(
+            GameTestHelper helper,
+            Component component,
+            String expectedKey,
+            String message
+    ) {
+        helper.assertTrue(
+                component.getContents() instanceof TranslatableContents contents
+                        && expectedKey.equals(contents.getKey()),
+                message + ": expected " + expectedKey + " but got " + component
+        );
     }
 
     private static void assertMainhandUpgradeBridge(

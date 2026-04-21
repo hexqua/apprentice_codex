@@ -1,14 +1,12 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
-import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
@@ -17,58 +15,62 @@ import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientLoanState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
-import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.TagKey;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
-import net.minecraft.util.Mth;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Consumer;
 
 public final class FocusStaffbow extends CastingItem
         implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem {
     private static final int MAX_USE_DURATION = 72000;
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.001F;
     private static final Set<ResourceLocation> ALLOWED_EXTRA_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
-            ResourceLocation.fromNamespaceAndPath("minecraft", "infinity")
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
     );
-    private static final ItemStack STAFF_LIKE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
+    private static final Set<ResourceLocation> EXCLUDED_EXTRA_ENCHANTMENTS = Set.of(
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder"),
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence")
+    );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
-    private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("3c83fe4d-4081-47d3-8fb5-0a0fce4fd887");
+    private static final ResourceLocation SPELL_POWER_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
+            "apprenticecodex",
+            "focus_staffbow_mainhand_spell_power"
+    );
     private static final String BASE_CONTROLLER = "base";
     private static final String OVERLAY_CONTROLLER = "overlay";
     private static final String OVERLAY_IDLE_ANIMATION = "overlay_idle";
@@ -89,7 +91,7 @@ public final class FocusStaffbow extends CastingItem
     private static final double SPELL_POWER_BONUS = 0.1D;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
+    private final ItemAttributeModifiers mainhandModifiers = buildMainhandModifiers();
 
     public FocusStaffbow() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
@@ -167,7 +169,7 @@ public final class FocusStaffbow extends CastingItem
             return;
         }
 
-        FocusStaffbowCastManager.releasePendingCast(player, stack, getUseDuration(stack) - timeLeft);
+        FocusStaffbowCastManager.releasePendingCast(player, stack, stack.getUseDuration(livingEntity) - timeLeft);
     }
 
     @Override
@@ -176,17 +178,13 @@ public final class FocusStaffbow extends CastingItem
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         return MAX_USE_DURATION;
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot == EquipmentSlot.MAINHAND) {
-            return mainhandModifiers;
-        }
-
-        return super.getAttributeModifiers(slot, stack);
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
+        return mainhandModifiers;
     }
 
     @Override
@@ -195,67 +193,52 @@ public final class FocusStaffbow extends CastingItem
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return ENCHANTMENT_VALUE;
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
+        if (enchantmentId == null || EXCLUDED_EXTRA_ENCHANTMENTS.contains(enchantmentId)) {
             return false;
         }
-
         if (isDurabilityTargetEnchantment(enchantment)) {
             return false;
         }
-
-        if (isStaffLikeBaseEnchantment(enchantment)) {
+        if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
-
         if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)
                 || MalumCompatibility.isSpiritPlunderSupported(stack, enchantmentId)) {
             return true;
         }
-
         return ALLOWED_EXTRA_ENCHANTMENTS.contains(enchantmentId);
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
+    }
+
+    @Override
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         if (!super.isBookEnchantable(stack, book)) {
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }
 
         return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
-        return canApplyAtEnchantingTable(stack, enchantment);
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private FocusStaffbowRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new FocusStaffbowRenderer();
-                }
-
-                return renderer;
-            }
-        });
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
+        return supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -334,12 +317,8 @@ public final class FocusStaffbow extends CastingItem
         triggerOverlayAnimation(serverPlayer, stack, resolveReleaseAnimation(serverPlayer));
     }
 
-    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
-    }
-
-    private static boolean isStaffLikeBaseEnchantment(Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(STAFF_LIKE_ENCHANTMENT_PROBE_STACK);
+    private static boolean isDurabilityTargetEnchantment(Holder<Enchantment> enchantment) {
+        return enchantment.value().canEnchant(DURABILITY_ENCHANTMENT_PROBE_STACK);
     }
 
     private static boolean canStartClientUse(Player player, ItemStack stack, SpellData spellData) {
@@ -366,34 +345,34 @@ public final class FocusStaffbow extends CastingItem
         return ClientMagicData.getPlayerMana() + CLIENT_MANA_SAFE_MARGIN >= spell.getManaCost(spellLevel);
     }
 
-    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.put(
-                Attributes.ATTACK_DAMAGE,
+    private static ItemAttributeModifiers buildMainhandModifiers() {
+        var builder = ItemAttributeModifiers.builder();
+        builder.add(
+                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_DAMAGE_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_DAMAGE_ID,
                         ATTACK_DAMAGE_BONUS,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
-        builder.put(
-                Attributes.ATTACK_SPEED,
+        builder.add(
+                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_SPEED_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_SPEED_ID,
                         ATTACK_SPEED_BONUS,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
-        builder.put(
-                AttributeRegistry.SPELL_POWER.get(),
+        builder.add(
+                AttributeRegistry.SPELL_POWER,
                 new AttributeModifier(
                         SPELL_POWER_MODIFIER_ID,
-                        "apprenticecodex.focus_staffbow.mainhand.spell_power",
                         SPELL_POWER_BONUS,
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
         return builder.build();
     }
@@ -412,13 +391,29 @@ public final class FocusStaffbow extends CastingItem
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
-                                @NotNull TooltipFlag flag) {
-        if (stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context,
+                                @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        if (getEnchantmentLevel(stack, Enchantments.INFINITY.location()) > 0) {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_infinity").withStyle(ChatFormatting.GRAY));
         } else {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow").withStyle(ChatFormatting.GRAY));
         }
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
+    }
+
+    private static int getEnchantmentLevel(ItemStack stack, ResourceLocation enchantmentId) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        if (enchantments.isEmpty()) {
+            return 0;
+        }
+
+        for (var enchantment : enchantments.keySet()) {
+            var enchantmentKey = enchantment.unwrapKey().orElse(null);
+            if (enchantmentKey != null && enchantmentId.equals(enchantmentKey.location())) {
+                return enchantments.getLevel(enchantment);
+            }
+        }
+
+        return 0;
     }
 }
