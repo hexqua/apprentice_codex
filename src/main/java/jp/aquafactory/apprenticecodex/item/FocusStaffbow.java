@@ -1,9 +1,12 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.CastingItem;
@@ -17,6 +20,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRend
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -24,18 +28,17 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.util.Mth;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -50,7 +53,9 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class FocusStaffbow extends CastingItem
@@ -65,11 +70,11 @@ public final class FocusStaffbow extends CastingItem
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
     );
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
+    private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("3c83fe4d-4081-47d3-8fb5-0a0fce4fd887");
     private static final String BASE_CONTROLLER = "base";
     private static final String OVERLAY_CONTROLLER = "overlay";
     private static final String OVERLAY_IDLE_ANIMATION = "overlay_idle";
@@ -85,8 +90,12 @@ public final class FocusStaffbow extends CastingItem
     private static final RawAnimation ANIM_RELEASE_RIGHT = RawAnimation.begin().thenPlay("release_right");
     private static final RawAnimation ANIM_RELEASE_LEFT = RawAnimation.begin().thenPlay("release_left");
     private static final int ENCHANTMENT_VALUE = 20;
+    private static final double ATTACK_DAMAGE_BONUS = 3.0D;
+    private static final double ATTACK_SPEED_BONUS = -3.0D;
+    private static final double SPELL_POWER_BONUS = 0.1D;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
 
     public FocusStaffbow() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
@@ -175,6 +184,15 @@ public final class FocusStaffbow extends CastingItem
     @Override
     public int getUseDuration(@NotNull ItemStack stack) {
         return MAX_USE_DURATION;
+    }
+
+    @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        if (slot == EquipmentSlot.MAINHAND) {
+            return mainhandModifiers;
+        }
+
+        return super.getAttributeModifiers(slot, stack);
     }
 
     @Override
@@ -359,6 +377,38 @@ public final class FocusStaffbow extends CastingItem
         return ClientMagicData.getPlayerMana() + CLIENT_MANA_SAFE_MARGIN >= spell.getManaCost(spellLevel);
     }
 
+    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        builder.put(
+                Attributes.ATTACK_DAMAGE,
+                new AttributeModifier(
+                        Item.BASE_ATTACK_DAMAGE_UUID,
+                        "Weapon modifier",
+                        ATTACK_DAMAGE_BONUS,
+                        AttributeModifier.Operation.ADDITION
+                )
+        );
+        builder.put(
+                Attributes.ATTACK_SPEED,
+                new AttributeModifier(
+                        Item.BASE_ATTACK_SPEED_UUID,
+                        "Weapon modifier",
+                        ATTACK_SPEED_BONUS,
+                        AttributeModifier.Operation.ADDITION
+                )
+        );
+        builder.put(
+                AttributeRegistry.SPELL_POWER.get(),
+                new AttributeModifier(
+                        SPELL_POWER_MODIFIER_ID,
+                        "apprenticecodex.focus_staffbow.mainhand.spell_power",
+                        SPELL_POWER_BONUS,
+                        AttributeModifier.Operation.MULTIPLY_BASE
+                )
+        );
+        return builder.build();
+    }
+
     private void triggerOverlayAnimation(ServerPlayer serverPlayer, ItemStack stack, String animationName) {
         var instanceId = GeoItem.getOrAssignId(stack, serverPlayer.serverLevel());
         triggerAnim(serverPlayer, instanceId, OVERLAY_CONTROLLER, animationName);
@@ -370,5 +420,16 @@ public final class FocusStaffbow extends CastingItem
 
     private static String resolveReleaseAnimation(Player player) {
         return player.getMainArm() == HumanoidArm.LEFT ? RELEASE_LEFT_ANIMATION : RELEASE_RIGHT_ANIMATION;
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+                                @NotNull TooltipFlag flag) {
+        if (stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0) {
+            lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_infinity").withStyle(ChatFormatting.GRAY));
+        } else {
+            lines.add(Component.translatable(getDescriptionId() + ".require_arrow").withStyle(ChatFormatting.GRAY));
+        }
+        super.appendHoverText(stack, level, lines, flag);
     }
 }

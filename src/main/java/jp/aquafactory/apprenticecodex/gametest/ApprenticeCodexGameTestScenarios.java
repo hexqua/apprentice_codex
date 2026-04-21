@@ -4945,6 +4945,33 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should accept Infinity from enchanted books");
             helper.assertTrue(((FocusStaffbow) stack.getItem()).isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
                     "Focus Staffbow should allow Infinity through anvil merges");
+            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
+                    "Focus Staffbow should reject Transcendence at the enchanting table");
+            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.TRANSCENDENCE.get())),
+                    "Focus Staffbow should reject Transcendence from enchanted books");
+            helper.assertFalse(((FocusStaffbow) stack.getItem()).isAnvilMergeEnchantmentAllowed(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
+                    "Focus Staffbow should reject Transcendence through anvil merges");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
+
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                    modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
+                    AttributeModifier.Operation.ADDITION
+            ) - 3.0D) < 1.0e-9D, "Focus Staffbow attack damage regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                    modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED),
+                    AttributeModifier.Operation.ADDITION
+            ) - (-3.0D)) < 1.0e-9D, "Focus Staffbow attack speed regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            ) - 0.10D) < 1.0e-9D, "Focus Staffbow spell power regression: " + describeModifiers(modifiers));
         });
     }
 
