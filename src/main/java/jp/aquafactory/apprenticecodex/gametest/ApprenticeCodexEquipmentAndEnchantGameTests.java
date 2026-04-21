@@ -225,6 +225,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowRejectsUseWithoutArrowCatalyst(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.focusStaffbowShowsLongSummonWeaponDuringPendingCast(helper);
     }
@@ -275,8 +280,38 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowRejectsUseWhileSpellCooldownRemains(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowRejectsUseWhileSpellCooldownRemains(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.focusStaffbowLoanMessageUsesExpectedTranslationKey(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowFallsBackToSpecialArrowWhenNormalArrowIsMissing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowFallsBackToSpecialArrowWhenNormalArrowIsMissing(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowInfinityAllowsArrowlessCasting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowInfinityAllowsArrowlessCasting(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowAcceptsInfinityEnchantments(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowAcceptsInfinityEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)

@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
@@ -273,16 +274,23 @@ public final class FocusStaffbowCastManager {
             clearFocusStaffbowState(player, true, true);
         }
 
-        if (spell.getCastType() == CastType.CONTINUOUS) {
-            return beginContinuousCast(player, focusStaffbowStack, spell, spellLevel, castSource, castingSlot, codexSpellData);
+        var ammoRoute = BowCastAmmoResolver.resolveFocusStaffbowAmmoRoute(player, focusStaffbowStack);
+        if (ammoRoute == BowCastAmmoResolver.FocusStaffbowAmmoRoute.NONE) {
+            showInsufficientArrowMessage(player);
+            return false;
         }
 
-        return beginPendingCast(player, focusStaffbowStack, spell, spellLevel, castSource, castingSlot, codexSpellData);
+        if (spell.getCastType() == CastType.CONTINUOUS) {
+            return beginContinuousCast(player, focusStaffbowStack, spell, spellLevel, castSource, castingSlot, codexSpellData, ammoRoute);
+        }
+
+        return beginPendingCast(player, focusStaffbowStack, spell, spellLevel, castSource, castingSlot, codexSpellData, ammoRoute);
     }
 
     private static boolean beginPendingCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell, int spellLevel,
                                             CastSource castSource, String castingSlot,
-                                            jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
+                                            jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData,
+                                            BowCastAmmoResolver.FocusStaffbowAmmoRoute ammoRoute) {
         var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
         var requiredCastTicks = FocusStaffbowChargeLogic.normalizePendingRequiredCastTicks(originalEffectiveCastTicks);
         var chargeBaselineTicks = FocusStaffbowChargeLogic.normalizePendingChargeBaselineTicks(originalEffectiveCastTicks);
@@ -308,7 +316,8 @@ public final class FocusStaffbowCastManager {
                 requiredCastTicks,
                 chargeBaselineTicks,
                 player.level().dimension().location().toString(),
-                player.getInventory().selected
+                player.getInventory().selected,
+                ammoRoute
         ));
         syncPendingMagicDataSimulation(magicData, spell, spellLevel, castSource, requiredCastTicks, 0L, focusStaffbowStack);
         FocusStaffbowStartSoundContext.runSuppressed(player.getUUID(), () ->
@@ -337,7 +346,8 @@ public final class FocusStaffbowCastManager {
 
     private static boolean beginContinuousCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell, int spellLevel,
                                                CastSource castSource, String castingSlot,
-                                               jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
+                                               jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData,
+                                               BowCastAmmoResolver.FocusStaffbowAmmoRoute ammoRoute) {
         // CONTINUOUS は詠唱時間短縮 Attribute が逆効果になるため、
         // FocusStaffbow 側では spell 本来の castTime だけを標準詠唱可能時間として扱う。
         var standardCastTicks = Math.max(spell.getCastTime(spellLevel), 0);
@@ -345,6 +355,12 @@ public final class FocusStaffbowCastManager {
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (!validateCastStart(player, spell, spellLevel, castSource, magicData)) {
+            magicData.resetAdditionalCastData();
+            clearPendingMagicDataSimulation(magicData);
+            return false;
+        }
+        if (!BowCastAmmoResolver.consumeFocusStaffbowAmmo(player, ammoRoute)) {
+            showInsufficientArrowMessage(player);
             magicData.resetAdditionalCastData();
             clearPendingMagicDataSimulation(magicData);
             return false;
@@ -365,7 +381,8 @@ public final class FocusStaffbowCastManager {
                 requiredCastTicks,
                 player.level().dimension().location().toString(),
                 player.getInventory().selected,
-                FocusStaffbowChargeLogic.CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS
+                FocusStaffbowChargeLogic.CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS,
+                ammoRoute
         ));
         syncContinuousMagicDataSimulation(magicData, spell, spellLevel, castSource, requiredCastTicks, 0L, focusStaffbowStack);
         updateContinuousChargeModifier(player, spell, spellLevel, codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE), 0L);
@@ -408,6 +425,7 @@ public final class FocusStaffbowCastManager {
         var castSource = resolveCastSource(state.castSource);
         var castingSlot = state.castingSlot;
         var finalMultiplier = FocusStaffbowChargeLogic.computePendingChargeMultiplier(totalCastTicks, state.chargeBaselineTicks);
+        var ammoRoute = state.getAmmoRoute();
         var shouldConsumeScaledMana = castSource.consumesMana() && !player.getAbilities().instabuild;
         var plannedManaCost = shouldConsumeScaledMana
                 ? FocusStaffbowChargeLogic.computeScaledManaCost(spell.getManaCost(spellLevel), finalMultiplier)
@@ -428,6 +446,14 @@ public final class FocusStaffbowCastManager {
 
         if (player.isUsingItem()) {
             player.stopUsingItem();
+        }
+        if (!BowCastAmmoResolver.consumeFocusStaffbowAmmo(player, ammoRoute)) {
+            cleanupPendingSpellArtifacts(player, magicData.getAdditionalCastData());
+            magicData.resetAdditionalCastData();
+            clearPendingMagicDataSimulation(magicData);
+            cancelPendingPresentation(player, focusStaffbowStack, spell.getSpellId());
+            showInsufficientArrowMessage(player);
+            return false;
         }
 
         var modifier = new AttributeModifier(
@@ -677,6 +703,12 @@ public final class FocusStaffbowCastManager {
                 FocusStaffbow.createLoanBlockedMessage(loanState.remainingLoanMana)
         ));
         return true;
+    }
+
+    private static void showInsufficientArrowMessage(ServerPlayer player) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(
+                FocusStaffbow.createInsufficientArrowMessage()
+        ));
     }
 
     private static boolean validateCastStart(ServerPlayer player, AbstractSpell spell, int spellLevel,

@@ -478,6 +478,7 @@
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "オーバーヒートで消費マナが%sに増加していて今のマナでは足りない！",
   "ui.apprenticecodex.focus_staffbow.deny_offhand": "利き手でないと使えない！",
   "ui.apprenticecodex.focus_staffbow.loan_mana": "杖にマナを吸われていて詠唱できない...(残り%dマナ)",
+  "ui.apprenticecodex.focus_staffbow.insufficient_arrow": "詠唱の触媒に使う矢が無い！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
