@@ -60,7 +60,8 @@ public final class FocusStaffbow extends CastingItem
     private static final int MAX_USE_DURATION = 72000;
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.001F;
     private static final Set<ResourceLocation> ALLOWED_EXTRA_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom")
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "synthesis")
     );
     private static final Set<ResourceLocation> EXCLUDED_EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "plunder"),
@@ -393,8 +394,8 @@ public final class FocusStaffbow extends CastingItem
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context,
                                 @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        if (getEnchantmentLevel(stack, Enchantments.INFINITY.location()) > 0) {
-            lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_infinity").withStyle(ChatFormatting.GRAY));
+        if (getEnchantmentLevel(stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.SYNTHESIS.location()) > 0) {
+            lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_synthesis").withStyle(ChatFormatting.GRAY));
         } else {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow").withStyle(ChatFormatting.GRAY));
         }

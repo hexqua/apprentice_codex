@@ -58,7 +58,8 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.GUZZLE,
                         Enchantments.LARGE_MUG,
                         Enchantments.RED_ENERGY,
-                        Enchantments.GLOW_ENERGY
+                        Enchantments.GLOW_ENERGY,
+                        Enchantments.SYNTHESIS
                 );
 
         tag(EnchantmentTags.TRADEABLE)
@@ -72,7 +73,8 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.TRANSCENDENCE,
                         Enchantments.WISDOM,
                         Enchantments.PLUNDER
-                );
+                )
+                .remove(Enchantments.SYNTHESIS);
 
         tag(EnchantmentTags.ON_RANDOM_LOOT)
                 .add(
@@ -85,6 +87,7 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.TRANSCENDENCE,
                         Enchantments.WISDOM,
                         Enchantments.PLUNDER
-                );
+                )
+                .remove(Enchantments.SYNTHESIS);
     }
 }

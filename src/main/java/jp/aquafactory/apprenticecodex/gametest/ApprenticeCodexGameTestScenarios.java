@@ -4939,14 +4939,11 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowInfinityAllowsArrowlessCasting(GameTestHelper helper) {
-        // Focus Staffbow へ Infinity を付与できるかは、minecraft:infinity の override を避けるため検証対象から外す。
-        // ここでは ItemStack#enchant で強制付与し、付与済みスタックの矢消費ロジックだけを固定する。
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_infinity_test");
+    public static void focusStaffbowSynthesisAllowsArrowlessCasting(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_synthesis_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         bowStack.enchant(
-                helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                        .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY),
+                helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SYNTHESIS),
                 1
         );
         var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
@@ -4961,7 +4958,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.runAtTickTime(1, () -> {
             var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow should start without arrows when Infinity is enchanted but got " + result.getResult());
+                    "Focus Staffbow should start without arrows when Synthesis is enchanted but got " + result.getResult());
         });
         helper.runAtTickTime(2, () ->
                 bowStack.getItem().releaseUsing(
@@ -4973,7 +4970,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
         helper.succeedWhen(() ->
                 helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
-                        "Focus Staffbow Infinity path should not require or consume a catalyst arrow")
+                        "Focus Staffbow Synthesis path should not require or consume a catalyst arrow")
         );
     }
 
@@ -5005,6 +5002,65 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should consume the equipped Spellcaster Quiver arrow before loose inventory arrows");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
                     "Focus Staffbow should leave loose inventory arrows untouched while the quiver still has arrows");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var synthesis = enchantmentLookup.getOrThrow(Enchantments.SYNTHESIS);
+            var infinity = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var transcendence = enchantmentLookup.getOrThrow(Enchantments.TRANSCENDENCE);
+            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var item = (FocusStaffbow) stack.getItem();
+
+            helper.assertTrue(stack.getItem().supportsEnchantment(stack, synthesis),
+                    "Focus Staffbow should accept Synthesis at the enchanting table");
+            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(synthesis)),
+                    "Focus Staffbow should accept Synthesis from enchanted books");
+            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, synthesis),
+                    "Focus Staffbow should allow Synthesis through anvil merges");
+
+            helper.assertFalse(stack.getItem().supportsEnchantment(stack, infinity),
+                    "Focus Staffbow should reject Infinity at the enchanting table");
+            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(infinity)),
+                    "Focus Staffbow should reject Infinity from enchanted books");
+            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, infinity),
+                    "Focus Staffbow should reject Infinity through anvil merges");
+
+            helper.assertFalse(stack.getItem().supportsEnchantment(stack, transcendence),
+                    "Focus Staffbow should reject Transcendence at the enchanting table");
+            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(transcendence)),
+                    "Focus Staffbow should reject Transcendence from enchanted books");
+            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, transcendence),
+                    "Focus Staffbow should reject Transcendence through anvil merges");
+
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var haunted = enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)).orElse(null);
+            helper.assertTrue(haunted != null, "Missing malum:haunted enchantment");
+            if (haunted != null) {
+                helper.assertTrue(stack.getItem().supportsEnchantment(stack, haunted),
+                        "Focus Staffbow should allow malum:haunted at the enchanting table");
+                helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(haunted)),
+                        "Focus Staffbow should allow malum:haunted from enchanted books");
+                helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, haunted),
+                        "Focus Staffbow should allow malum:haunted through anvil merges");
+            }
+
+            var animated = enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)).orElse(null);
+            helper.assertTrue(animated != null, "Missing malum:animated enchantment");
+            if (animated != null) {
+                helper.assertFalse(stack.getItem().supportsEnchantment(stack, animated),
+                        "Focus Staffbow should keep rejecting malum:animated at the enchanting table");
+                helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(animated)),
+                        "Focus Staffbow should keep rejecting malum:animated from enchanted books");
+                helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, animated),
+                        "Focus Staffbow should keep rejecting malum:animated through anvil merges");
+            }
         });
     }
 
@@ -5129,6 +5185,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertApprenticeEnchantmentFlags(helper, Enchantments.LARGE_MUG, false, true, false, false);
             assertApprenticeEnchantmentFlags(helper, Enchantments.RED_ENERGY, false, true, false, false);
             assertApprenticeEnchantmentFlags(helper, Enchantments.GLOW_ENERGY, false, true, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.SYNTHESIS, false, true, false, false);
         });
     }
 
@@ -5137,7 +5194,8 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var function = EnchantRandomlyFunction.randomApplicableEnchantment(helper.getLevel().registryAccess()).build();
             var seenApprenticeEnchantments = new LinkedHashSet<ResourceLocation>();
-            var flaskEnchantments = expectedFlaskEnchantments();
+            var excludedEnchantments = new LinkedHashSet<>(expectedFlaskEnchantments());
+            excludedEnchantments.add(Enchantments.SYNTHESIS.location());
 
             for (long seed = 0L; seed < 4096L; ++seed) {
                 var result = function.apply(new ItemStack(Items.BOOK), createEmptyLootContext(helper, seed));
@@ -5153,8 +5211,8 @@ public final class ApprenticeCodexGameTestScenarios {
                         continue;
                     }
 
-                    helper.assertFalse(flaskEnchantments.contains(enchantmentId),
-                            "Random applicable enchantment loot included flask enchantment: " + enchantmentId + " at seed " + seed);
+                    helper.assertFalse(excludedEnchantments.contains(enchantmentId),
+                            "Random applicable enchantment loot included excluded enchantment: " + enchantmentId + " at seed " + seed);
                     seenApprenticeEnchantments.add(enchantmentId);
                 }
             }
@@ -8444,7 +8502,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 Enchantments.GUZZLE,
                 Enchantments.LARGE_MUG,
                 Enchantments.RED_ENERGY,
-                Enchantments.GLOW_ENERGY
+                Enchantments.GLOW_ENERGY,
+                Enchantments.SYNTHESIS
         );
     }
 

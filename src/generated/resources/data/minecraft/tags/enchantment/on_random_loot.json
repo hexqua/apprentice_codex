@@ -1,4 +1,7 @@
 {
+  "remove": [
+    "apprenticecodex:synthesis"
+  ],
   "values": [
     "apprenticecodex:reflux",
     "apprenticecodex:reservoir",
