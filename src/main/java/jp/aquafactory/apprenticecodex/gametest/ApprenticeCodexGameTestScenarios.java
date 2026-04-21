@@ -99,7 +99,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -196,7 +195,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public final class ApprenticeCodexGameTestScenarios {
-    private static final String TEMPLATE = "gametest/basic_floor";
     private static final String CREATE_GAMETEST_HOOKS_CLASS =
             "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
     private static final String VANILLA_NAMESPACE = "minecraft";
@@ -230,9 +228,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private ApprenticeCodexGameTestScenarios() {
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void registriesAndDynamicContentAreRegistered(GameTestHelper helper) {
+    static void registriesAndDynamicContentAreRegistered(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertForgeRegistryEntries(helper, "item", net.minecraftforge.registries.ForgeRegistries.ITEMS, ItemRegistry.ITEMS.getEntries());
             assertForgeRegistryEntries(helper, "block", net.minecraftforge.registries.ForgeRegistries.BLOCKS, BlockRegistry.BLOCKS.getEntries());
@@ -302,9 +298,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
+    static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var unknownMarker = new SearchBeaconState.StructureMarker(
                     helper.getLevel().dimension().location(),
@@ -351,9 +345,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 400)
-    public static void villagerCanClaimApprenticeDeskAsErrandMageJobSite(GameTestHelper helper) {
+    static void villagerCanClaimApprenticeDeskAsErrandMageJobSite(GameTestHelper helper) {
         var deskPos = new BlockPos(1, 1, 0);
         var absoluteDeskPos = helper.absolutePos(deskPos);
         helper.setBlock(deskPos, BlockRegistry.APPRENTICE_DESK.get());
@@ -374,9 +366,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Villager claimed unexpected job site: " + jobSite);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void errandMageVillageHouseIsAddedToVanillaVillagePools(GameTestHelper helper) {
+    static void errandMageVillageHouseIsAddedToVanillaVillagePools(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var templatePoolRegistry = helper.getLevel().registryAccess().registryOrThrow(Registries.TEMPLATE_POOL);
 
@@ -422,9 +412,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
+    static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var damagedCrown = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
             damagedCrown.setDamageValue(2);
@@ -456,9 +444,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Tagged scroll should satisfy the errand mage ink trade even when the saved cost stack has tags");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void customRecipeDataIsLoaded(GameTestHelper helper) {
+    static void customRecipeDataIsLoaded(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipeManager = helper.getLevel().getRecipeManager();
 
@@ -509,9 +495,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "No Spellcaster Workbench recipes were loaded");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskRejectsSplashAndLingeringPotions(GameTestHelper helper) {
+    static void spellcastersFlaskRejectsSplashAndLingeringPotions(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
             var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION),
@@ -532,9 +516,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spellcaster's Flask stored a lingering potion through copyWithAddedDoses");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskDrinkingLastDoseClearsStoredItem(GameTestHelper helper) {
+    static void spellcastersFlaskDrinkingLastDoseClearsStoredItem(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var flask = createFilledSpellcastersFlask(
                     PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION),
@@ -555,9 +537,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Drinking the flask did not apply the stored potion effect");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskDrinkingGlowEnergyTradesDurationForAmplifier(GameTestHelper helper) {
+    static void spellcastersFlaskDrinkingGlowEnergyTradesDurationForAmplifier(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var storedPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
             var originalEffect = PotionUtils.getMobEffects(storedPotion).get(0);
@@ -575,9 +555,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Glow Energy should reduce drunk flask duration by 1 / (1 + level)");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskBatchExtractionClearsStoredItemAtZero(GameTestHelper helper) {
+    static void spellcastersFlaskBatchExtractionClearsStoredItemAtZero(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var flask = createFilledSpellcastersFlask(
                     createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
@@ -595,9 +573,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Batch extraction left StoredItem behind");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskExtractRecipeClearsStoredItemWhenEmpty(GameTestHelper helper) {
+    static void spellcastersFlaskExtractRecipeClearsStoredItemWhenEmpty(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe) helper.getLevel()
                     .getRecipeManager()
@@ -627,9 +603,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spellcaster's Flask extract recipe left StoredItem behind");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskStartsWithExtractAndNoSpellWheel(GameTestHelper helper) {
+    static void alchemistsFlaskStartsWithExtractAndNoSpellWheel(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
             var stack = new ItemStack(item);
@@ -653,9 +627,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(!spellData.canRemove(), "Alchemist's Flask preset spell should stay locked by default");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskAllowsInstantLongAndContinuousImbues(GameTestHelper helper) {
+    static void alchemistsFlaskAllowsInstantLongAndContinuousImbues(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
             helper.assertTrue(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
@@ -666,9 +638,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask should allow continuous spell imbuing");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(GameTestHelper helper) {
+    static void alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var emptyFlask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
@@ -688,9 +658,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask rejected a Simple Elixir");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskUsesDoubleCapacityAndExtractRecipeSupportsSplashPotion(GameTestHelper helper) {
+    static void alchemistsFlaskUsesDoubleCapacityAndExtractRecipeSupportsSplashPotion(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION),
                     io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
@@ -734,9 +702,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask extract recipe left StoredItem behind");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskSmithingConvertsSupportedStoredItemsAndRemovesGuzzle(GameTestHelper helper) {
+    static void alchemistsFlaskSmithingConvertsSupportedStoredItemsAndRemovesGuzzle(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipe = (jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe) helper.getLevel()
                     .getRecipeManager()
@@ -817,9 +783,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask smithing recipe should reject unsupported stored items such as Fire Ale");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskTippedArrowRecipeConsumesOneDoseAndRejectsSimpleElixir(GameTestHelper helper) {
+    static void alchemistsFlaskTippedArrowRecipeConsumesOneDoseAndRejectsSimpleElixir(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.AlchemistsFlaskTippedArrowRecipe) helper.getLevel()
                     .getRecipeManager()
@@ -897,9 +861,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask tipped arrow recipe should reject Simple Elixir");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskTippedArrowCraftAwardsAdvancement(GameTestHelper helper) {
+    static void alchemistsFlaskTippedArrowCraftAwardsAdvancement(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), PotionRegistry.INTELLIGENCE.get());
             var craftingContainer = createCraftingContainer(
@@ -925,9 +887,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void extractPreCastUsesFirstFilledFlaskAcrossHands(GameTestHelper helper) {
+    static void extractPreCastUsesFirstFilledFlaskAcrossHands(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = (jp.aquafactory.apprenticecodex.spell.extract.Extract) SpellRegistry.EXTRACT.get();
             var player = createExtractPlayer(helper, new BlockPos(0, 2, 0), "extract_precast_hand_test");
@@ -959,9 +919,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Extract selected the wrong stored item from the offhand flask");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void extractPreCastFailsWithoutFilledAlchemistsFlask(GameTestHelper helper) {
+    static void extractPreCastFailsWithoutFilledAlchemistsFlask(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = SpellRegistry.EXTRACT.get();
             var player = createExtractPlayer(helper, new BlockPos(0, 2, 0), "extract_precast_fail_test");
@@ -975,9 +933,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Extract should fail when the only Alchemist's Flask is empty");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void extractCastConsumesDoseAndSpawnsExpectedPotionProjectile(GameTestHelper helper) {
+    static void extractCastConsumesDoseAndSpawnsExpectedPotionProjectile(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = (jp.aquafactory.apprenticecodex.spell.extract.Extract) SpellRegistry.EXTRACT.get();
             var player = createExtractPlayer(helper, new BlockPos(0, 2, 0), "extract_cast_projectile_test");
@@ -1012,9 +968,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Extract should consume exactly one offhand dose after a successful cast");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void extractThrownPotionRespectsGlowRedEnergyAndAmplify(GameTestHelper helper) {
+    static void extractThrownPotionRespectsGlowRedEnergyAndAmplify(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var storedPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
             var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
@@ -1038,9 +992,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Extract should keep spell-side amplify while Glow Energy halves the Red Energy adjusted duration");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
+    static void spellDispenserValidatorAcceptsSingleMagicMissileScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
 
@@ -1050,9 +1002,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator resolved the wrong spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorAcceptsNonIronsNamespaceScroll(GameTestHelper helper) {
+    static void spellDispenserValidatorAcceptsNonIronsNamespaceScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.MAGE_LIGHT.get());
 
@@ -1062,9 +1012,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator resolved the wrong non-Iron's spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorAcceptsLongScroll(GameTestHelper helper) {
+    static void spellDispenserValidatorAcceptsLongScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.COMPOUND_PHIAL.get());
 
@@ -1074,9 +1022,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator resolved the wrong LONG spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
+    static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.ASSIST_WINGS.get());
 
@@ -1086,9 +1032,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator returned the wrong failure reason for denylisted scroll: " + validation.failureReason());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
+    static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.LONG_STRIDE.get());
 
@@ -1098,9 +1042,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator returned the wrong failure reason for profile-less CONTINUOUS scroll: " + validation.failureReason());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorAcceptsProfiledContinuousScroll(GameTestHelper helper) {
+    static void spellDispenserValidatorAcceptsProfiledContinuousScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get());
 
@@ -1110,9 +1052,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator resolved the wrong profiled CONTINUOUS spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorRejectsRecastScroll(GameTestHelper helper) {
+    static void spellDispenserValidatorRejectsRecastScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.HIGANBANA.get());
 
@@ -1122,9 +1062,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator returned the wrong failure reason for recast scroll: " + validation.failureReason());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserValidatorRejectsNonScrollSpellContainer(GameTestHelper helper) {
+    static void spellDispenserValidatorRejectsNonScrollSpellContainer(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var nonScrollStack = createInitializedPresetStack(ItemRegistry.GRIMOIRE_MANIFEST.get());
 
@@ -1135,9 +1073,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator returned the wrong failure reason for non-scroll spell container: " + validation.failureReason());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCastHelperCleansUpProxy(GameTestHelper helper) {
+    static void spellDispenserCastHelperCleansUpProxy(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
@@ -1158,9 +1094,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after Magic Missile cast");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCastHelperAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
+    static void spellDispenserCastHelperAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
@@ -1179,9 +1113,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser owner-optional cast left proxy state behind");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
+    static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
@@ -1207,9 +1139,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(!projectiles.isEmpty(), "Spell Dispenser LONG cast completed without spawning a Compound Phial projectile");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCastHelperStopsContinuousCastAtDurationCap(GameTestHelper helper) {
+    static void spellDispenserCastHelperStopsContinuousCastAtDurationCap(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
@@ -1245,9 +1175,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser proxy caster was left behind after CONTINUOUS cast");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserContinuousBreathBindsProjectileToTrackedAnchor(GameTestHelper helper) {
+    static void spellDispenserContinuousBreathBindsProjectileToTrackedAnchor(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
@@ -1283,9 +1211,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser tracked anchor was left behind after Fire Breath cleanup");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserBlockEntityStopsContinuousCastWhenSignalTurnsOff(GameTestHelper helper) {
+    static void spellDispenserBlockEntityStopsContinuousCastWhenSignalTurnsOff(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
         var pos = new BlockPos(0, 1, 0);
         helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
@@ -1327,9 +1253,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserBlockEntityDoesNotRestartContinuousCastWhileSignalStaysOn(GameTestHelper helper) {
+    static void spellDispenserBlockEntityDoesNotRestartContinuousCastWhileSignalStaysOn(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
         var pos = new BlockPos(0, 1, 0);
         helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
@@ -1370,9 +1294,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserBlockEntityMarksContinuousResetRequirementAfterHeldCompletion(GameTestHelper helper) {
+    static void spellDispenserBlockEntityMarksContinuousResetRequirementAfterHeldCompletion(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
         var pos = new BlockPos(0, 1, 0);
         helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
@@ -1417,9 +1339,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserBlockEntityStartsAndClearsInstantCooldown(GameTestHelper helper) {
+    static void spellDispenserBlockEntityStartsAndClearsInstantCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var pos = new BlockPos(0, 1, 0);
@@ -1450,9 +1370,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(spellDispenser.isCoolingDown(), "Spell Dispenser cooldown did not expire after the expected number of ticks");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserAutomationOnlyAcceptsManaContainers(GameTestHelper helper) {
+    static void spellDispenserAutomationOnlyAcceptsManaContainers(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var itemHandler = blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).resolve().orElse(null);
@@ -1524,9 +1442,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
+    static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var pos = new BlockPos(0, 1, 0);
@@ -1553,9 +1469,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(spellDispenser.hasOwnerProfile(), "Spell Dispenser placement did not store the owner profile");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserSneakPlacementStartsAtZeroMana(GameTestHelper helper) {
+    static void spellDispenserSneakPlacementStartsAtZeroMana(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var pos = new BlockPos(0, 1, 0);
@@ -1583,9 +1497,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(spellDispenser.hasOwnerProfile(), "Spell Dispenser sneak placement did not store the owner profile");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserRefillsFromHighestManaPotionThatFits(GameTestHelper helper) {
+    static void spellDispenserRefillsFromHighestManaPotionThatFits(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var pos = new BlockPos(0, 1, 0);
@@ -1620,9 +1532,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserRefillsFromGlowEnergyFlask(GameTestHelper helper) {
+    static void spellDispenserRefillsFromGlowEnergyFlask(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var pos = new BlockPos(0, 1, 0);
@@ -1662,9 +1572,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserActivationFailsWhenManaIsInsufficient(GameTestHelper helper) {
+    static void spellDispenserActivationFailsWhenManaIsInsufficient(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var pos = new BlockPos(0, 1, 0);
             helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
@@ -1686,9 +1594,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser changed mana despite rejecting the cast");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
+    static void spellDispenserContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
             var pos = new BlockPos(0, 1, 0);
@@ -1722,9 +1628,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser mana changed unexpectedly after a mana-depleted CONTINUOUS stop");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCreateContinuousCastRequiresDisableBeforeRestart(GameTestHelper helper) {
+    static void spellDispenserCreateContinuousCastRequiresDisableBeforeRestart(GameTestHelper helper) {
         if (skipWhenCreateMissing(helper)) {
             return;
         }
@@ -1781,9 +1685,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Create-mounted Spell Dispenser left proxy state behind after stopMoving");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCreateContinuousCastStopsWhenDisabled(GameTestHelper helper) {
+    static void spellDispenserCreateContinuousCastStopsWhenDisabled(GameTestHelper helper) {
         if (skipWhenCreateMissing(helper)) {
             return;
         }
@@ -1817,9 +1719,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Create-mounted Spell Dispenser left proxy state behind after disable");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCreateInstantCastUsesCooldown(GameTestHelper helper) {
+    static void spellDispenserCreateInstantCastUsesCooldown(GameTestHelper helper) {
         if (skipWhenCreateMissing(helper)) {
             return;
         }
@@ -1862,9 +1762,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Create-mounted Spell Dispenser did not fire again after cooldown expired");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCreateAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
+    static void spellDispenserCreateAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {
         if (skipWhenCreateMissing(helper)) {
             return;
         }
@@ -1884,9 +1782,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Create-mounted Spell Dispenser owner-optional cast left proxy state behind");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCreateRefillsFromFuelStorageAndReturnsBottle(GameTestHelper helper) {
+    static void spellDispenserCreateRefillsFromFuelStorageAndReturnsBottle(GameTestHelper helper) {
         if (skipWhenCreateMissing(helper)) {
             return;
         }
@@ -1918,9 +1814,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Create-mounted Spell Dispenser did not return a glass bottle to accessible contraption storage");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCreateIgnoresProtectedFuelStorage(GameTestHelper helper) {
+    static void spellDispenserCreateIgnoresProtectedFuelStorage(GameTestHelper helper) {
         if (skipWhenCreateMissing(helper)) {
             return;
         }
@@ -1952,9 +1846,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Create-mounted Spell Dispenser consumed a potion from protected contraption storage");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserBlockEntityRejectsActivationWithoutOwnerProfile(GameTestHelper helper) {
+    static void spellDispenserBlockEntityRejectsActivationWithoutOwnerProfile(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var pos = new BlockPos(0, 1, 0);
             helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
@@ -1969,9 +1861,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(castResult.missingOwnerProfile(), "Spell Dispenser returned the wrong failure for missing owner profile");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserBlockEntityAllowsOwnerOptionalActivationWithoutOwnerProfile(GameTestHelper helper) {
+    static void spellDispenserBlockEntityAllowsOwnerOptionalActivationWithoutOwnerProfile(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var pos = new BlockPos(0, 1, 0);
             helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
@@ -1987,9 +1877,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertNoSpellDispenserProxy(helper, pos, scrollStack, "Spell Dispenser block entity owner-optional cast left proxy state behind");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserSidedAutomationProtectsScrollSlot(GameTestHelper helper) {
+    static void spellDispenserSidedAutomationProtectsScrollSlot(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var itemHandler = blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).resolve().orElse(null);
@@ -2009,9 +1897,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser sided automation extracted the protected scroll slot");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserSidedAutomationExtractsOnlyEmptyContainers(GameTestHelper helper) {
+    static void spellDispenserSidedAutomationExtractsOnlyEmptyContainers(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var itemHandler = blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).resolve().orElse(null);
@@ -2035,9 +1921,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser sided automation failed to extract a glass bottle");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserMountedMenuKeepsContraptionInventoryAccessible(GameTestHelper helper) {
+    static void spellDispenserMountedMenuKeepsContraptionInventoryAccessible(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "spell_dispenser_mounted_menu_test"));
             var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
@@ -2069,9 +1953,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser mounted client menu did not retain the synced owner name");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserMountedMenuTreatsOwnerOptionalSpellAsReadyWithoutOwnerProfile(GameTestHelper helper) {
+    static void spellDispenserMountedMenuTreatsOwnerOptionalSpellAsReadyWithoutOwnerProfile(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "spell_dispenser_owner_optional_menu_test"));
             var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
@@ -2082,18 +1964,14 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser mounted menu still required an owner for an owner-optional spell");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserIsTaggedForContraptionControls(GameTestHelper helper) {
+    static void spellDispenserIsTaggedForContraptionControls(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spellDispenserStack = new ItemStack(ItemRegistry.SPELL_DISPENSER.get());
             helper.assertTrue(spellDispenserStack.is(CREATE_CONTRAPTION_CONTROLLED),
                     "Spell Dispenser is missing create:contraption_controlled and cannot be selected by Contraption Controls");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserOwnerProfileCanBeReadFromSavedTag(GameTestHelper helper) {
+    static void spellDispenserOwnerProfileCanBeReadFromSavedTag(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var ownerProfile = createSpellDispenserOwnerProfile("spell_dispenser_owner_tag_test");
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
@@ -2107,9 +1985,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser owner name helper returned the wrong value");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserOwnerProfilePersistsThroughNbt(GameTestHelper helper) {
+    static void spellDispenserOwnerProfilePersistsThroughNbt(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var ownerProfile = createSpellDispenserOwnerProfile("spell_dispenser_owner_save_test");
             var original = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
@@ -2125,9 +2001,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser owner name changed during NBT round-trip");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCastHelperSupportsDiagonalVectorFacing(GameTestHelper helper) {
+    static void spellDispenserCastHelperSupportsDiagonalVectorFacing(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var castPos = new BlockPos(0, 1, 0);
@@ -2154,9 +2028,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser diagonal vector cast did not preserve the intended diagonal quadrant: " + motion);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellDispenserCastHelperSupportsSpectralHammer(GameTestHelper helper) {
+    static void spellDispenserCastHelperSupportsSpectralHammer(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var relativeCastPos = new BlockPos(0, 1, 0);
@@ -2185,9 +2057,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(true, "Spectral Hammer ticked without crashing");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void serverBlocksAndEntitiesCanBeInstantiated(GameTestHelper helper) {
+    static void serverBlocksAndEntitiesCanBeInstantiated(GameTestHelper helper) {
         helper.succeedIf(() -> {
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 0), BlockRegistry.MAGE_LIGHT_TORCH.get(), BlockEntityRegistry.MAGE_LIGHT_TORCH.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 0), BlockRegistry.PERSONAL_SHELF_CHEST.get(), BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
@@ -2204,9 +2074,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void creativeTabSpellsStayGroupedBySchool(GameTestHelper helper) {
+    static void creativeTabSpellsStayGroupedBySchool(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var apprenticeEnabledSpells = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells().stream()
                     .filter(ApprenticeCodexGameTestScenarios::isApprenticeSpell)
@@ -2237,12 +2105,12 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
+    static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var caster = createSenseEvilPlayer(helper, new BlockPos(0, 2, 0), "sense_evil_horizontal_cube_test");
+            var casterPos = new BlockPos(0, 14, 0);
+            prepareWideSearchIsolationArea(helper, casterPos);
+            var caster = createSenseEvilPlayer(helper, casterPos, "sense_evil_horizontal_cube_test");
             var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
             var range = getSenseEvilRange(spell, caster, 1);
             var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
@@ -2254,34 +2122,33 @@ public final class ApprenticeCodexGameTestScenarios {
                     "SenseEvil should detect undead in the added X direction cube band");
         });
     }
+    static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var casterPos = new BlockPos(0, 14, 0);
+        prepareWideSearchIsolationArea(helper, casterPos);
+        var caster = createSenseEvilPlayer(helper, casterPos, "sense_evil_spawner_cube_test");
+        var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
+        var range = getSenseEvilRange(spell, caster, 1);
+        var diagonalOffset = Mth.floor(range * 0.75);
 
-    @GameTest(template = TEMPLATE)
-    public static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = helper.getLevel();
-            var caster = createSenseEvilPlayer(helper, new BlockPos(0, 2, 0), "sense_evil_spawner_cube_test");
-            var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
-            var range = getSenseEvilRange(spell, caster, 1);
-            var diagonalOffset = Mth.floor(range * 0.75);
+        helper.assertTrue(Math.sqrt(2.0 * diagonalOffset * diagonalOffset) > range,
+                "Diagonal test offset must stay outside the old spherical spawner range");
 
-            helper.assertTrue(Math.sqrt(2.0 * diagonalOffset * diagonalOffset) > range,
-                    "Diagonal test offset must stay outside the old spherical spawner range");
+        var zombieCenter = caster.getBoundingBox().getCenter().add(diagonalOffset, 0.0, diagonalOffset);
+        var zombie = spawnPositionedZombie(level, zombieCenter);
+        var spawnerPos = caster.blockPosition().offset(diagonalOffset, 0, diagonalOffset);
+        placeZombieSpawner(level, spawnerPos);
 
-            var zombieCenter = caster.getBoundingBox().getCenter().add(diagonalOffset, 0.0, diagonalOffset);
-            var zombie = spawnPositionedZombie(level, zombieCenter);
-            var spawnerPos = caster.blockPosition().offset(diagonalOffset, 0, diagonalOffset);
-            placeZombieSpawner(level, spawnerPos);
-
+        helper.runAtTickTime(5, () -> {
             var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
-            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
+            assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(BlockPos.containing(zombie.getBoundingBox().getCenter())), 0.25,
                     "SenseEvil should still detect entities at the shared diagonal cube offset");
             assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(spawnerPos), 0.25,
                     "SenseEvil should detect spawners at the same diagonal cube offset as entities");
+            helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void apprenticeCurioBonusLootTableContainsAllThreeItems(GameTestHelper helper) {
+    static void apprenticeCurioBonusLootTableContainsAllThreeItems(GameTestHelper helper) {
         helper.succeedIf(() -> assertLootTableGeneratesAllItems(
                 helper,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/basic_curios_bonus"),
@@ -2294,9 +2161,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void genericLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
+    static void genericLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
                 helper,
                 ResourceLocation.withDefaultNamespace("chests/simple_dungeon"),
@@ -2309,9 +2174,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void ironsStructureLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
+    static void ironsStructureLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
                 helper,
                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/generic_magic_treasure"),
@@ -2324,9 +2187,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void catacombsLootIncludesScarletThirstBonusDrop(GameTestHelper helper) {
+    static void catacombsLootIncludesScarletThirstBonusDrop(GameTestHelper helper) {
         helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
                 helper,
                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/coffin_loot"),
@@ -2335,9 +2196,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 List.of(ItemRegistry.SCARLET_THIRST.get())
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void nonLootableApprenticeSpellsAreExcludedFromDefaultSpellFilter(GameTestHelper helper) {
+    static void nonLootableApprenticeSpellsAreExcludedFromDefaultSpellFilter(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var blockedSpells = getNonLootableApprenticeSpells();
             var defaultSpellFilter = new io.redspace.ironsspellbooks.loot.SpellFilter();
@@ -2352,9 +2211,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void genericMagicTreasureLootDoesNotGenerateBlockedApprenticeScrolls(GameTestHelper helper) {
+    static void genericMagicTreasureLootDoesNotGenerateBlockedApprenticeScrolls(GameTestHelper helper) {
         helper.succeedIf(() -> assertLootTableNeverGeneratesBlockedSpells(
                 helper,
                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/generic_magic_treasure"),
@@ -2363,9 +2220,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 getNonLootableApprenticeSpells()
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void isekaiTravelGuidebookStartsWithTwoFixedSpellsAndNoAttributes(GameTestHelper helper) {
+    static void isekaiTravelGuidebookStartsWithTwoFixedSpellsAndNoAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
             var item = (io.redspace.ironsspellbooks.item.UniqueSpellBook) stack.getItem();
@@ -2403,9 +2258,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Isekai Travel Guidebook should not add spellbook attributes: " + describeModifiers(modifiers));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(GameTestHelper helper) {
+    static void explorersCodexGuidebookTransferRecipeMovesFixedSpellsAndKeepsExplorersData(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
             var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
@@ -2449,9 +2302,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertSpellData(helper, resultSpellContainer, 5, SpellRegistry.COMPANION_TRUNK.get(), 1, true, "Transferred Explorer's Codex transferred Companion Trunk mismatch");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void explorersCodexGuidebookTransferRecipeIgnoresDuplicateGuidebookSpell(GameTestHelper helper) {
+    static void explorersCodexGuidebookTransferRecipeIgnoresDuplicateGuidebookSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
             var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
@@ -2478,9 +2329,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Companion Trunk should still be transferred when Healing Bloom is already present");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void explorersCodexGuidebookTransferRecipeRejectsSpellSlotOverflow(GameTestHelper helper) {
+    static void explorersCodexGuidebookTransferRecipeRejectsSpellSlotOverflow(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
             var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
@@ -2498,9 +2347,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Overflow recipe assembly should return empty result");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
+    static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var stack = new ItemStack(item);
@@ -2536,9 +2383,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Copper Spell Amplifier + Attunement stacking regression");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void copperSwingcastStaffStartsWithBallLightningLevelOne(GameTestHelper helper) {
+    static void copperSwingcastStaffStartsWithBallLightningLevelOne(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
             var stack = new ItemStack(item);
@@ -2558,9 +2403,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Copper Swingcast Staff preset spell level mismatch: " + spellData.getLevel());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
+    static void goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
             var stack = createInitializedPresetStack(item);
@@ -2576,9 +2419,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Gold Spellcaster Gun imbued spell should remain extractable in Spellcaster Workbench");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
+    static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSwingcastStaffItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
             var stack = createInitializedPresetStack(item);
@@ -2599,9 +2440,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Copper Swingcast Staff replacement spell should remain extractable in Spellcaster Workbench");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void reflectcastShieldImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
+    static void reflectcastShieldImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractImbueShieldItem) ItemRegistry.REFLECTCAST_SHIELD.get();
             var stack = createInitializedPresetStack(item);
@@ -2617,9 +2456,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield imbued spell should remain extractable in Spellcaster Workbench");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+    static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
             var stack = createInitializedPresetStack(item);
@@ -2637,9 +2474,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Gold Spellcaster Gun imbued spell should remain extractable after save/load");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void ironSwingcastStaffImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+    static void ironSwingcastStaffImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
             var stack = createInitializedPresetStack(item);
@@ -2657,9 +2492,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Iron Swingcast Staff imbued spell should remain extractable after save/load");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void copperSwingcastStaffPresetEquivalentSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+    static void copperSwingcastStaffPresetEquivalentSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSwingMagicItem) ItemRegistry.COPPER_SWINGCAST_STAFF.get();
             var stack = createInitializedPresetStack(item);
@@ -2677,9 +2510,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Copper Swingcast Staff preset-equivalent imbued spell should remain extractable after save/load");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void reflectcastShieldImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+    static void reflectcastShieldImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractImbueShieldItem) ItemRegistry.REFLECTCAST_SHIELD.get();
             var stack = createInitializedPresetStack(item);
@@ -2697,9 +2528,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield imbued spell should remain extractable after save/load");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
+    static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
             var stack = createInitializedPresetStack(item);
@@ -2711,9 +2540,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertClearedSpellContainer(helper, restored, "Iron Spellcaster Gun should stay cleared after save/load");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void ironSwingcastStaffExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
+    static void ironSwingcastStaffExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
             var stack = createInitializedPresetStack(item);
@@ -2725,9 +2552,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertClearedSpellContainer(helper, restored, "Iron Swingcast Staff should stay cleared after save/load");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
+    static void goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
             var stack = createInitializedPresetStack(item);
@@ -2743,9 +2568,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Gold Spellcaster Gun legacy locked replacement should be recovered after save/load");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void ironSwingcastStaffLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
+    static void ironSwingcastStaffLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSwingMagicItem) ItemRegistry.IRON_SWINGCAST_STAFF.get();
             var stack = createInitializedPresetStack(item);
@@ -2761,9 +2584,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Iron Swingcast Staff legacy locked replacement should be recovered after save/load");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
+    static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var diamondItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get();
             var diamondStack = new ItemStack(diamondItem);
@@ -2790,9 +2611,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
+    static void upgradeWhitelistCoversTargetAbstractItems(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()),
                     "Ender Grimoire should remain upgradeable via explicit whitelist entry");
@@ -2818,9 +2637,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield should remain excluded from the upgrade system");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(GameTestHelper helper) {
+    static void uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (jp.aquafactory.apprenticecodex.item.UniteLunaStaff) ItemRegistry.UNITE_LUNA_STAFF.get();
             var stack = new ItemStack(item);
@@ -2851,9 +2668,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Unite Luna Staff holy spell power regression: " + describeModifiers(modifiers));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(GameTestHelper helper) {
+    static void offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get());
             var upgradeData = createUpgradeData(
@@ -2880,9 +2695,7 @@ public final class ApprenticeCodexGameTestScenarios {
                             + " modifiers=" + describeModifiers(event.getModifiers()));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
+    static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded("bettercombat")) {
                 return;
@@ -2913,9 +2726,7 @@ public final class ApprenticeCodexGameTestScenarios {
                             + spellPowerBonus + " modifiers=" + describeModifiers(amplifierEvent.getModifiers()));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
+    static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded("bettercombat")) {
                 return;
@@ -2960,9 +2771,7 @@ public final class ApprenticeCodexGameTestScenarios {
                             + rescuedAttunementBonus + " modifiers=" + describeModifiers(rescuedCopperModifiers));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void betterCombatRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
+    static void betterCombatRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded("bettercombat")) {
                 return;
@@ -3014,9 +2823,7 @@ public final class ApprenticeCodexGameTestScenarios {
                             + expectedMaxManaBonus + " but changed from " + baseMaxMana + " to " + rescuedMaxMana);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
+    static void betterCombatSpellSelectionRescueUsesPhysicalOffhandInventoryStack(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded("bettercombat")) {
                 return;
@@ -3063,9 +2870,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
+    static void castingMoveSpeedAdjustmentStopsAtNormalSpeedWithoutNegativeCorrections(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertCastingMoveSpeedAdjustment(helper, 0.0D, 0.8D, "No external bonus should keep full cancellation");
             assertCastingMoveSpeedAdjustment(helper, 0.25D, 0.55D, "Diamond-equivalent bonus should reduce shared cancellation");
@@ -3075,9 +2880,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertCastingMoveSpeedAdjustment(helper, 1.10D, 0.0D, "External overshoot should not become a negative correction");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
+    static void longStrideMobilityStillAddsBaseMovementSpeedBonus(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
             var movementSpeedModifier = effect.getAttributeModifiers().get(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);
@@ -3088,11 +2891,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "LongStride movement speed bonus regression: expected 0.15 but got " + actualAmount);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
+    static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "dynamic_casting_movespeed_rebalance_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dynamic_casting_movespeed_rebalance_test");
             var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.get();
             var castingMoveSpeed = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get());
             helper.assertTrue(castingMoveSpeed != null,
@@ -3134,9 +2935,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void comfortBerriesProvideManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
+    static void comfortBerriesProvideManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var foodProperties = ItemRegistry.COMFORT_BERRIES.get().getFoodProperties();
             helper.assertTrue(foodProperties != null, "Comfort Berries should remain edible");
@@ -3167,9 +2966,7 @@ public final class ApprenticeCodexGameTestScenarios {
                             + (effectPair == null ? "missing" : effectPair.getSecond()));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
+    static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var effect = (jp.aquafactory.apprenticecodex.effect.ManaRegeneration) EffectRegistry.MANA_REGENERATION.get();
             var manaRegenModifier = effect.getAttributeModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get());
@@ -3188,18 +2985,14 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Mana Regeneration Lv2 regression: expected 0.50 but got " + levelTwoAmount);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
+    static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertPotionEffect(helper, PotionRegistry.MEDITATION.get(), "apprenticecodex:meditation", 20 * 60 * 3, 0);
             assertPotionEffect(helper, PotionRegistry.LONG_MEDITATION.get(), "apprenticecodex:long_meditation", 20 * 60 * 8, 0);
             assertPotionEffect(helper, PotionRegistry.STRONG_MEDITATION.get(), "apprenticecodex:strong_meditation", 20 * 90, 1);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
+    static void swingcastStaffTiersExposeRequestedImbueRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var instantSpell = SpellRegistry.AUTO_MAGNET.get();
             var longSpell = SpellRegistry.ARCANE_BLAST.get();
@@ -3267,19 +3060,18 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+    static void spellGunsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
                 "Spell Gun",
+                // 1.21.1申し送り事項:
+                // enchantable / book / anvil の面は Item 定義と Forge 側フックの移植差で崩れやすい。
+                // 1.20.1 の通りに見えても、1.21.1 では spell gun 系をそのまま持ち込める前提にしないこと。
                 item -> item instanceof AbstractSpellGunItem,
                 ApprenticeCodexGameTestScenarios::expectedSpellGunEnchantments
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+    static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var expectedBookEnchantments = allRegisteredEnchantmentIds();
             var stacks = getRegisteredItemStacks(item -> item instanceof AbstractOffhandMagicItem);
@@ -3300,9 +3092,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+    static void enchantedCircletKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             assertExactEnchantmentSurfaces(
@@ -3315,9 +3105,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
+    static void enchantedCircletCurioBonusesMirrorOffhandMagicEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) stack.getItem();
@@ -3417,9 +3205,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(GameTestHelper helper) {
+    static void enchantedCircletWorkbenchExtractionTagDoesNotAffectAshenCirclet(GameTestHelper helper) {
         helper.succeedIf(() -> {
             helper.assertTrue(new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get()).is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
                     "Enchanted Circlet should be extractable in Spellcaster Workbench");
@@ -3427,9 +3213,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Ashen Circlet should remain non-extractable in Spellcaster Workbench");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void enchantedCircletWisdomMatchesArmorRate(GameTestHelper helper) {
+    static void enchantedCircletWisdomMatchesArmorRate(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "enchanted_circlet_wisdom_test"));
             var baseExperience = 20;
@@ -3457,9 +3241,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Wisdom should round enemy experience up from 1 to 2 at +5% but got " + roundedUp.getDroppedExperience());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void wisdomAppliesToBlockBreakExperienceAndRoundsUp(GameTestHelper helper) {
+    static void wisdomAppliesToBlockBreakExperienceAndRoundsUp(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var state = Blocks.DIAMOND_ORE.defaultBlockState();
@@ -3497,9 +3279,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Held Wisdom should increase block experience from 3 to 4 at +20% but got " + heldExperience.getExpToDrop());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
+    static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var state = Blocks.DIAMOND_ORE.defaultBlockState();
@@ -3547,12 +3327,10 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow offhand Plunder should set looting level to 3 but got " + offhandLootingEvent.getLootingLevel());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
+    static void craftsmansDelightAppliesToExternalSpellManaAndCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
-            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_external_spell_discount_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             var touchDigSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.TOUCH_DIG.get();
             var spectralHammerSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPECTRAL_HAMMER_SPELL.get();
 
@@ -3609,14 +3387,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     "CraftsmansDelight should route Spectral Hammer cooldown through the reduced cooldown helper");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
+    static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = new TouchDigSpell();
             var playerPos = new BlockPos(0, 12, 0);
-            prepareElevatedStonePlatform(helper, playerPos);
-            var player = createCraftsmansDelightPlayer(helper, playerPos, "touch_dig_range_test");
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_range_test");
             var magicData = MagicData.getPlayerMagicData(player);
             var targetPos = helper.absolutePos(new BlockPos(0, 23, 0));
 
@@ -3628,7 +3404,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Touch Dig should keep the default 8 block range without CraftsmansDelight");
 
-            equipCraftsmansDelight(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Touch Dig should reach a target 12 blocks away when CraftsmansDelight is equipped");
             helper.assertTrue(spell.getUniqueInfo(1, player).stream().anyMatch(component -> component.getString().contains("16")),
@@ -3639,18 +3415,18 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Touch Dig should destroy the targeted block inside the extended range");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
+    static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_ring_enchant_merge_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_ring_enchant_merge_test");
             var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
             heldTool.enchant(Enchantments.BLOCK_FORTUNE, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
 
             var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
             ringStack.enchant(Enchantments.BLOCK_FORTUNE, 3);
-            equipCraftsmansDelight(player, ringStack);
+            equipRingCurio(player, ringStack);
 
             var mergedFortuneTool = CraftsmansDelight.createTouchDigTool(player);
             helper.assertTrue(mergedFortuneTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 3,
@@ -3658,7 +3434,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
             ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
             ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipCraftsmansDelight(player, ringStack);
+            equipRingCurio(player, ringStack);
 
             var mergedSilkTool = CraftsmansDelight.createTouchDigTool(player);
             helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
@@ -3666,7 +3442,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 0,
                     "Touch Dig should drop Fortune when Silk Touch is present");
 
-            var blockPos = helper.absolutePos(new BlockPos(0, 2, 1));
+            var blockPos = helper.absolutePos(new BlockPos(0, 12, 1));
             helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
             invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
@@ -3677,16 +3453,16 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Touch Dig with ring Silk Touch should not drop cobblestone");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
+    static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_bare_hand_ring_enchant_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_bare_hand_ring_enchant_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
             var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
             ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipCraftsmansDelight(player, ringStack);
+            equipRingCurio(player, ringStack);
 
             var synthesizedTool = CraftsmansDelight.createTouchDigTool(player);
             helper.assertFalse(synthesizedTool.isEmpty(),
@@ -3694,7 +3470,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(synthesizedTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
                     "Touch Dig should copy Silk Touch onto the synthesized bare-hand tool");
 
-            var blockPos = helper.absolutePos(new BlockPos(0, 2, 2));
+            var blockPos = helper.absolutePos(new BlockPos(0, 12, 2));
             helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
             invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
@@ -3705,16 +3481,16 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Bare-hand Touch Dig with ring Silk Touch should not drop cobblestone");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
+    static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spectral_hammer_ring_enchant_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "spectral_hammer_ring_enchant_test");
             var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
             ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipCraftsmansDelight(player, ringStack);
+            equipRingCurio(player, ringStack);
 
-            var targetPos = helper.absolutePos(new BlockPos(0, 2, 2));
+            var targetPos = helper.absolutePos(new BlockPos(0, 12, 2));
             helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
 
             var hammer = new SpectralHammer(
@@ -3724,7 +3500,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     0,
                     1
             );
-            var hammerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 1)));
+            var hammerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 12, 1)));
             hammer.setPos(hammerPos.x, hammerPos.y, hammerPos.z);
             helper.getLevel().addFreshEntity(hammer);
 
@@ -3739,9 +3515,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spectral Hammer with ring Silk Touch should not drop cobblestone");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
+    static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
                 "Right Click Magic Weapon",
@@ -3753,9 +3527,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 ApprenticeCodexGameTestScenarios::expectedRightClickMagicWeaponEnchantments
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
+    static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             var expectedEnchantments = expectedElementalBowEnchantments();
@@ -3770,11 +3542,9 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
+    static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(Enchantments.INFINITY_ARROWS, 1);
             var healingArrow = PotionUtils.setPotion(new ItemStack(Items.TIPPED_ARROW), net.minecraft.world.item.alchemy.Potions.HEALING);
@@ -3838,9 +3608,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowInventoryOverlayReflectsCurrentSelection(GameTestHelper helper) {
+    static void elementalBowInventoryOverlayReflectsCurrentSelection(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             helper.assertTrue(ElementalBow.getInventoryOverlayView(stack) == null,
@@ -3898,10 +3666,8 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 80)
-    public static void elementalBowSelectionViewExposesOverheatOverlayState(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_overheat_overlay_test");
+    static void elementalBowSelectionViewExposesOverheatOverlayState(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_overheat_overlay_test");
         var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
         stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -3974,14 +3740,11 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
 
-        helper.succeedOnTickWhen(43, () -> {
-        });
+        helper.runAtTickTime(43, helper::succeed);
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
+    static void elementalBowKeepsCurrentEmptySpecialSelectionOnlyWhileSelected(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
@@ -4019,11 +3782,9 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
+    static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_mana_gate_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -4039,9 +3800,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(player.isUsingItem(), "Elemental Bow should not enter use state without enough mana");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
+    static void elementalBowFallsBackToNoneWhenLegacyModeCannotResolve(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
             var stack = new ItemStack(item);
@@ -4055,9 +3814,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow should remove its spell container after falling back to normal mode");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
+    static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
             var stack = new ItemStack(item);
@@ -4079,9 +3836,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
+    static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
             var stack = new ItemStack(item);
@@ -4089,14 +3844,23 @@ public final class ApprenticeCodexGameTestScenarios {
             stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
             stack.enchant(Enchantments.FLAMING_ARROWS, 1);
 
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
             item.initializeSpellContainer(stack);
+            helper.assertTrue(stack.getEnchantmentLevel(Enchantments.POWER_ARROWS) == 2,
+                    "Elemental Bow spell container test should preserve POWER II on the stack");
+            helper.assertTrue(stack.getEnchantmentLevel(Enchantments.FLAMING_ARROWS) == 1,
+                    "Elemental Bow spell container test should preserve FLAME I on the stack");
+            helper.assertTrue(stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()) == 1,
+                    "Elemental Bow spell container test should preserve TRANSCENDENCE I on the stack");
+            var fireMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireMode != null, "Elemental Bow Fire mode should resolve from the loaded mode definitions");
+            var expectedFireLevel = fireMode != null ? fireMode.resolveSpellLevel(stack) : 1;
             var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
             helper.assertTrue(fireProfile != null, "Elemental Bow should expose a displayed spell profile in Fire mode");
             helper.assertTrue(fireProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
                     "Elemental Bow Fire mode should resolve Fire Arrow");
-            helper.assertTrue(fireProfile.spellLevel() == 6,
-                    "Elemental Bow Fire mode should apply POWER II + TRANSCENDENCE I + FLAME I to level 6 but got " + fireProfile.spellLevel());
+            helper.assertTrue(fireProfile.spellLevel() == expectedFireLevel,
+                    "Elemental Bow Fire mode display level should stay in sync with the loaded mode resolver but got " + fireProfile.spellLevel());
             var fireContainer = ISpellContainer.get(stack);
             helper.assertTrue(fireContainer != null, "Elemental Bow Fire mode should keep a synced spell container");
             helper.assertTrue(fireContainer != null && !fireContainer.isSpellWheel(),
@@ -4106,19 +3870,22 @@ public final class ApprenticeCodexGameTestScenarios {
                     fireContainer,
                     0,
                     io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
-                    6,
+                    expectedFireLevel,
                     true,
-                    "Elemental Bow Fire mode container should reflect POWER, TRANSCENDENCE and FLAME"
+                    "Elemental Bow Fire mode container should stay in sync with the loaded mode resolver"
             );
 
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.ENDER_RESOURCE.toString());
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.ENDER_RESOURCE);
             item.initializeSpellContainer(stack);
+            var enderMode = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.getResolvedDefinition(SchoolRegistry.ENDER_RESOURCE);
+            helper.assertTrue(enderMode != null, "Elemental Bow Ender mode should resolve from the loaded mode definitions");
+            var expectedEnderLevel = enderMode != null ? enderMode.resolveSpellLevel(stack) : 1;
             var enderProfile = ElementalBow.getDisplayedSpellProfile(stack);
             helper.assertTrue(enderProfile != null, "Elemental Bow should expose a displayed spell profile in Ender mode");
             helper.assertTrue(enderProfile.spell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
                     "Elemental Bow Ender mode should resolve Magic Arrow");
-            helper.assertTrue(enderProfile.spellLevel() == 4,
-                    "Elemental Bow Ender mode should apply POWER II + TRANSCENDENCE I to level 4 but got " + enderProfile.spellLevel());
+            helper.assertTrue(enderProfile.spellLevel() == expectedEnderLevel,
+                    "Elemental Bow Ender mode display level should stay in sync with the loaded mode resolver but got " + enderProfile.spellLevel());
             var enderContainer = ISpellContainer.get(stack);
             helper.assertTrue(enderContainer != null, "Elemental Bow Ender mode should keep a synced spell container");
             helper.assertTrue(enderContainer != null && !enderContainer.isSpellWheel(),
@@ -4128,9 +3895,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     enderContainer,
                     0,
                     io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
-                    4,
+                    expectedEnderLevel,
                     true,
-                    "Elemental Bow Ender mode container should ignore FLAME but keep TRANSCENDENCE"
+                    "Elemental Bow Ender mode container should stay in sync with the loaded mode resolver"
             );
 
             stack.getOrCreateTag().remove("ElementalBowMode");
@@ -4139,11 +3906,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow should remove its spell container in NONE mode");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
+    static void elementalBowDoesNotAddDerivedSpellToMainhandSpellWheel(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_spell_wheel_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_spell_wheel_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             ((ElementalBow) stack.getItem()).initializeSpellContainer(stack);
@@ -4157,11 +3922,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow should not create a selected spell from its derived container");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowRejectsOffhandUse(GameTestHelper helper) {
+    static void focusStaffbowRejectsOffhandUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_reject_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_reject_test");
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             player.setItemInHand(InteractionHand.OFF_HAND, stack);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_SWORD));
@@ -4173,11 +3936,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should not enter use state when offhand use is rejected");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowAllowsMainhandUseWithOffhandSelection(GameTestHelper helper) {
+    static void focusStaffbowAllowsMainhandUseWithOffhandSelection(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_selection_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_offhand_selection_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4203,10 +3964,8 @@ public final class ApprenticeCodexGameTestScenarios {
                             + result.getResult());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_summon_test");
+    static void focusStaffbowShowsLongSummonWeaponDuringPendingCast(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_summon_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4256,10 +4015,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should consume exactly one catalyst arrow after the LONG cast completes");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
+    static void focusStaffbowCancelsPendingSummonWeaponBeforeRequiredCharge(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_pending_cancel_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4305,10 +4062,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should keep its catalyst arrow when the LONG cast is cancelled early");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
+    static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4414,11 +4169,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous release should clear Iron's casting state");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
+    static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4436,10 +4189,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should not enter use state without a catalyst arrow");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_standard_time_test");
+    static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_standard_time_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4498,10 +4249,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous standard time test should clear after release");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_mana_test");
+    static void focusStaffbowContinuousCastStopsWhenManaRunsOut(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4543,10 +4292,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous mana stop consumed an unexpected amount of mana: " + magicData.getMana());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowInstantImmediateReleaseConsumesBaseMana(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_instant_base_mana_test");
+    static void focusStaffbowInstantImmediateReleaseConsumesBaseMana(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_instant_base_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4583,10 +4330,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow instant cast should consume one catalyst arrow on release");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowShortLongReleaseStaysAtBaseMultiplier(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_short_long_base_mana_test");
+    static void focusStaffbowShortLongReleaseStaysAtBaseMultiplier(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_short_long_base_mana_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4631,11 +4376,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow short LONG cast should still consume only one catalyst arrow after completion");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
+    static void focusStaffbowStillRejectsCastWhenBaseManaIsInsufficient(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_base_mana_gate_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_base_mana_gate_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4657,10 +4400,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should not enter use state when even base mana is missing");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowOverchargeLoanConsumesRecoveredMana(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_repay_test");
+    static void focusStaffbowOverchargeLoanConsumesRecoveredMana(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_repay_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4717,10 +4458,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_overcharge_test");
+    static void focusStaffbowCreativeOverchargeDoesNotConsumeManaOrCreateLoan(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_creative_overcharge_test");
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
@@ -4759,11 +4498,9 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowBlocksUseWhileLoanRemains(GameTestHelper helper) {
+    static void focusStaffbowBlocksUseWhileLoanRemains(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_block_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_loan_block_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4786,11 +4523,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should not remain in use state while a loan blocks casting");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowRejectsUseWhileSpellCooldownRemains(GameTestHelper helper) {
+    static void focusStaffbowRejectsUseWhileSpellCooldownRemains(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_cooldown_block_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_cooldown_block_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4813,9 +4548,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should not enter use state while spell cooldown blocks casting");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
+    static void focusStaffbowLoanMessageUsesExpectedTranslationKey(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createLoanBlockedMessage(5.1F);
             assertTranslatableKey(
@@ -4826,9 +4559,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(GameTestHelper helper) {
+    static void focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createInsufficientArrowMessage();
             assertTranslatableKey(
@@ -4839,10 +4570,8 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowFallsBackToSpecialArrowWhenNormalArrowIsMissing(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_test");
+    static void focusStaffbowFallsBackToSpecialArrowWhenNormalArrowIsMissing(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
@@ -4872,10 +4601,8 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Focus Staffbow should consume the special arrow when normal arrows are unavailable")
         );
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowSynthesisAllowsArrowlessCasting(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_synthesis_test");
+    static void focusStaffbowSynthesisAllowsArrowlessCasting(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_synthesis_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
         bowStack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
@@ -4905,11 +4632,9 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Focus Staffbow Synthesis path should not require or consume a catalyst arrow")
         );
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
+    static void focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_quiver_priority_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_quiver_priority_test");
             var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
@@ -4936,9 +4661,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should leave loose inventory arrows untouched while the quiver still has arrows");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
+    static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var item = (FocusStaffbow) stack.getItem();
@@ -4984,9 +4707,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should keep rejecting malum:animated through anvil merges");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
+    static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
@@ -5005,9 +4726,7 @@ public final class ApprenticeCodexGameTestScenarios {
             ) - 0.10D) < 1.0e-9D, "Focus Staffbow spell power regression: " + describeModifiers(modifiers));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
+    static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
@@ -5019,9 +4738,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
+    static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var message = ElementalBow.createInsufficientManaMessage(
                     io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
@@ -5035,11 +4752,9 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
+    static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -5062,11 +4777,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow should not consume mana before full draw: " + magicData.getMana());
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
+    static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(Enchantments.INFINITY_ARROWS, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -5077,11 +4790,9 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(player.isUsingItem(), "Elemental Bow should enter use state for Infinity vanilla draw");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
+    static void elementalBowVanillaModeConsumesSpecialArrowWhenNormalArrowsAreMissing(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_special_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_special_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
@@ -5094,11 +4805,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow vanilla mode should consume the special arrow that vanilla resolution selected");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
+    static void elementalBowArrowModeRequiresNormalArrowsEvenWhenSpecialArrowsExist(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_only_mode_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_only_mode_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowShotSelection(stack, "arrow", null);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -5114,11 +4823,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow arrow-only mode should keep its selection while empty");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
+    static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(Enchantments.INFINITY_ARROWS, 1);
             setElementalBowShotSelection(stack, "arrow", null);
@@ -5130,11 +4837,9 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(player.isUsingItem(), "Elemental Bow arrow-only mode should enter use state for Infinity draw");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(GameTestHelper helper) {
+    static void elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(Enchantments.INFINITY_ARROWS, 1);
             setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
@@ -5157,11 +4862,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow special mode should keep the selected arrow after ammo loss");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
+    static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_infinity_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_infinity_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(Enchantments.INFINITY_ARROWS, 1);
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
@@ -5173,9 +4876,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(player.isUsingItem(), "Elemental Bow magic mode should not enter use state without ammo");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
+    static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
             helper.assertTrue(quiverStack.is(CURIOS_BACK),
@@ -5197,11 +4898,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spellcaster Quiver should remove the smallest stored arrow stack first");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {
+    static void equippedSpellcasterQuiverAutoStoresPickedUpArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_pickup_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_pickup_test");
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
             equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
 
@@ -5214,11 +4913,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spellcaster Quiver pickup handling should finish the ItemEntity when all arrows were stored");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
+    static void elementalBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_priority_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_priority_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowShotSelection(bowStack, "arrow", null);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
@@ -5239,11 +4936,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow should leave loose inventory arrows untouched while the quiver has arrows");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(GameTestHelper helper) {
+    static void elementalBowSelectionViewsIncludeSpellcasterQuiverArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_selection_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_quiver_selection_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
 
@@ -5263,11 +4958,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow selection badge should count Spellcaster Quiver arrows");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void vanillaBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
+    static void vanillaBowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_quiver_priority_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_quiver_priority_test");
             var bowStack = new ItemStack(Items.BOW);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
@@ -5287,11 +4980,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Vanilla Bow should leave loose inventory arrows untouched while the quiver has arrows");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void vanillaBowPrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
+    static void vanillaBowPrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_held_special_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_held_special_test");
             var bowStack = new ItemStack(Items.BOW);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 1));
@@ -5311,11 +5002,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Vanilla Bow should leave Spellcaster Quiver normal arrows untouched when a held special arrow was chosen");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void vanillaBowPrefersNormalArrowOverMoreNumerousQuiverSpecialArrows(GameTestHelper helper) {
+    static void vanillaBowPrefersNormalArrowOverMoreNumerousQuiverSpecialArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_normal_priority_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_normal_priority_test");
             var bowStack = new ItemStack(Items.BOW);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW, 1));
@@ -5335,11 +5024,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Vanilla Bow should not consume Spellcaster Quiver special arrows while a normal arrow existed");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void vanillaBowInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
+    static void vanillaBowInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_infinity_quiver_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_infinity_quiver_test");
             var bowStack = new ItemStack(Items.BOW);
             bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
@@ -5357,11 +5044,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Vanilla Bow Infinity fallback should stop at normal arrow mode and leave Spellcaster Quiver special arrows untouched");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowVanillaModePrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
+    static void elementalBowVanillaModePrefersHeldSpecialArrowOverQuiverNormalArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_held_special_quiver_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_held_special_quiver_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SPECTRAL_ARROW, 1));
@@ -5381,11 +5066,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow vanilla mode should leave Spellcaster Quiver normal arrows untouched when a held special arrow was chosen");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowVanillaModeInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
+    static void elementalBowVanillaModeInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_quiver_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_quiver_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
@@ -5403,11 +5086,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow vanilla mode Infinity fallback should leave Spellcaster Quiver special arrows untouched");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcasterQuiverSlowdownHelperTracksEquippedBowUse(GameTestHelper helper) {
+    static void spellcasterQuiverSlowdownHelperTracksEquippedBowUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_slowdown_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_slowdown_test");
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
             equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
 
@@ -5424,11 +5105,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spellcaster Quiver slowdown helper should stop once bow use ends");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(GameTestHelper helper) {
+    static void spellcasterQuiverSlowdownHelperTracksFocusStaffbowDrawUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_focus_staffbow_slowdown_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_quiver_focus_staffbow_slowdown_test");
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
             equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
 
@@ -5448,9 +5127,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spellcaster Quiver slowdown helper should stop once Focus Staffbow use ends");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
+    static void elementalBowNonMagicModesHideDerivedSpellPresentation(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
             var stack = new ItemStack(item);
@@ -5464,11 +5141,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow should not expose a displayed spell profile outside magic mode");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
+    static void elementalBowCooldownHelperIgnoresWeaponMultiplierButKeepsPlayerCooldownReduction(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_helper_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_helper_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -5517,11 +5192,9 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
+    static void elementalBowSuppressesElementalArrowCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_cooldown_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -5566,57 +5239,71 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow cooldown suppression should not affect unrelated spells");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
+    static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 2));
 
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Elemental Bow overheat mana test could not resolve player mana data");
 
-            var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-            var baseMana = fireArrow.getManaCost(1);
+            var item = (ElementalBow) stack.getItem();
+            item.initializeSpellContainer(stack);
+            var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(fireProfile != null, "Elemental Bow overheat mana test should resolve the active Fire profile");
+            var fireArrow = fireProfile != null
+                    ? fireProfile.spell()
+                    : io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var baseMana = fireProfile != null ? fireProfile.spell().getManaCost(fireProfile.spellLevel()) : fireArrow.getManaCost(1);
+
             magicData.setMana(300.0F);
             var initialMana = magicData.getMana();
 
-            var firstUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(firstUseResult.getResult().consumesAction(),
-                    "Elemental Bow should start the first elemental draw: " + firstUseResult.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
-            player.stopUsingItem();
-
-            var manaAfterFirstShot = magicData.getMana();
-            helper.assertTrue(Math.abs(manaAfterFirstShot - (initialMana - baseMana)) < 1.0e-3F,
-                    "Elemental Bow first overheatable shot should consume only base mana: " + manaAfterFirstShot);
+            magicData.setPlayerCastingItem(stack.copy());
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
+                    fireArrow,
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            fireArrow.getSpellCooldown()
+                    )
+            );
 
             var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
                     player,
                     SchoolRegistry.FIRE_RESOURCE,
                     baseMana
             );
-            helper.assertTrue(extraMana > 0.0F, "Elemental Bow should enter overheat after the first elemental shot");
+            helper.assertTrue(extraMana > 0.0F, "Elemental Bow should charge extra mana once Fire overheat is active");
 
-            var secondUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(secondUseResult.getResult().consumesAction(),
-                    "Elemental Bow should still allow a second overheated draw: " + secondUseResult.getResult());
+            var overheatedUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(overheatedUseResult.getResult().consumesAction(),
+                    "Elemental Bow should still allow a second overheated draw: " + overheatedUseResult.getResult());
             stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
             player.stopUsingItem();
 
-            var manaAfterSecondShot = magicData.getMana();
-            helper.assertTrue(Math.abs(manaAfterSecondShot - (manaAfterFirstShot - baseMana - extraMana)) < 1.0e-3F,
-                    "Elemental Bow second overheated shot consumed the wrong mana: " + manaAfterSecondShot);
+            var manaAfterOverheatedShot = magicData.getMana();
+            helper.assertTrue(Math.abs(manaAfterOverheatedShot - (initialMana - baseMana - extraMana)) < 1.0e-3F,
+                    "Elemental Bow overheated shot consumed the wrong mana: " + manaAfterOverheatedShot);
+            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(state.active() && state.chainDepth() >= 2,
+                    "Elemental Bow overheated shot should keep Fire overheat active and deepen the chain: " + state);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
+    static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_school_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_school_test");
             var fireStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             fireStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
 
@@ -5682,14 +5369,19 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 80)
-    public static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_refresh_test");
+    static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_refresh_test");
         var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-        stack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+        setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
         var magicData = MagicData.getPlayerMagicData(player);
         var firstExpire = new java.util.concurrent.atomic.AtomicLong();
+        var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+        var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                fireArrow,
+                player,
+                CastSource.SWORD,
+                stack
+        );
 
         helper.assertTrue(magicData != null, "Elemental Bow overheat refresh test could not resolve player mana data");
 
@@ -5697,8 +5389,8 @@ public final class ApprenticeCodexGameTestScenarios {
             magicData.setPlayerCastingItem(stack.copy());
             jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
-                            160,
-                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
+                            fireArrow,
                             player,
                             CastSource.SWORD
                     )
@@ -5709,7 +5401,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
                             player,
                             SchoolRegistry.FIRE_RESOURCE,
-                            0
+                            expectedCooldown
                     )
             );
             firstExpire.set(jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE).expireGameTime());
@@ -5719,8 +5411,8 @@ public final class ApprenticeCodexGameTestScenarios {
             magicData.setPlayerCastingItem(stack.copy());
             jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
                     new SpellCooldownAddedEvent.Pre(
-                            160,
-                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
+                            fireArrow,
                             player,
                             CastSource.SWORD
                     )
@@ -5731,7 +5423,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
                             player,
                             SchoolRegistry.FIRE_RESOURCE,
-                            0
+                            expectedCooldown
                     )
             );
 
@@ -5740,16 +5432,13 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(state.chainDepth() == 2, "Elemental Bow repeated cast should raise overheat chain depth to 2: " + state.chainDepth());
             helper.assertTrue(state.expireGameTime() > firstExpire.get(),
                     "Elemental Bow repeated cast should refresh overheat expiry but got " + state.expireGameTime() + " <= " + firstExpire.get());
-            helper.assertTrue(state.expireGameTime() - helper.getLevel().getGameTime() == 160,
+            helper.assertTrue(state.expireGameTime() - helper.getLevel().getGameTime() == expectedCooldown,
                     "Elemental Bow repeated cast should reset overheat duration from the latest cast");
         });
 
-        helper.succeedOnTickWhen(41, () -> {
-        });
+        helper.runAtTickTime(41, helper::succeed);
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+    static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
@@ -5762,9 +5451,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+    static void spellcastersFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
                 "Spellcasters Flask",
@@ -5772,9 +5459,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 expectedFlaskEnchantments()
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+    static void alchemistsFlaskKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
                 "Alchemists Flask",
@@ -5782,10 +5467,11 @@ public final class ApprenticeCodexGameTestScenarios {
                 expectedAlchemistsFlaskEnchantments()
         ));
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
+    static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            // 1.21.1申し送り事項:
+            // treasure / tradeable / discoverable は定義形式の変更で見落としやすい。
+            // フラグだけ移したつもりでも司書取引や戦利品生成がズレるので、移植時は個別に再検証すること。
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.ALACRITY, false, true, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.REFLUX, false, true, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RESERVOIR, false, true, true);
@@ -5802,10 +5488,11 @@ public final class ApprenticeCodexGameTestScenarios {
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNTHESIS, false, false, true);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
+    static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            // 1.21.1申し送り事項:
+            // 本棚由来の抽選可否は enchanting table 可否だけでは追えず、book/anvil 側の定義差分でも崩れる。
+            // Flask 系除外は「今も本から引けないか」を seed 探索込みで見直し、そのまま移植前提にしない。
             var function = EnchantRandomlyFunction.randomApplicableEnchantment().build();
             var seenApprenticeEnchantments = new LinkedHashSet<ResourceLocation>();
 
@@ -5835,9 +5522,7 @@ public final class ApprenticeCodexGameTestScenarios {
                             + describeEnchantmentDifference(expectedEnchantments, seenApprenticeEnchantments));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+    static void magicArmorKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertCategoryEnchantments(
                     helper,
@@ -5853,9 +5538,7 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
+    static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
             var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
@@ -5896,9 +5579,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void enchantressRobeChestplateAddsImbuedSchoolSpellPowerWithoutChangingGlobalSpellPower(GameTestHelper helper) {
+    static void enchantressRobeChestplateAddsImbuedSchoolSpellPowerWithoutChangingGlobalSpellPower(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get();
             var stack = new ItemStack(item);
@@ -5929,9 +5610,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Enchantress Robe chestplate should add +0.05 imbued school spell power: " + describeModifiers(modifiers));
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
+    static void pastelStaffKeepsItsLocalEnchantingRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
             var item = stack.getItem();
@@ -5999,9 +5678,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
+    static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
                 return;
@@ -6037,9 +5714,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield should stay outside Haunted support");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void malumHauntedBonusUsesDedicatedDamageType(GameTestHelper helper) {
+    static void malumHauntedBonusUsesDedicatedDamageType(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var attacker = helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE, new BlockPos(0, 2, 0));
             var source = MalumHauntedCompat.createHauntedBonusDamageSource(attacker);
@@ -6053,9 +5728,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Haunted bonus should bypass cooldown-based I-Frame checks");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void magicDamageTagActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
+    static void magicDamageTagActuallyScalesWithLodestoneMagicProficiency(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded(LODESTONE_MOD_ID)) {
                 return;
@@ -6090,8 +5763,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Amplified haunted bonus damage should exceed baseline damage");
         });
     }
-
-    public static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
+    static void healingBloomLightHasReducedLevelAndNoOutline(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var state = BlockRegistry.HEALING_BLOOM_LIGHT.get().defaultBlockState();
@@ -6103,9 +5775,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Healing Bloom light should now emit light level 11");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomLightSelfCleansWithoutBloom(GameTestHelper helper) {
+    static void healingBloomLightSelfCleansWithoutBloom(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var pos = new BlockPos(0, 2, 0);
@@ -6129,9 +5799,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Healing Bloom light should self-clean without a bloom");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomAcceptsOwnerDamageAndStaysSavable(GameTestHelper helper) {
+    static void healingBloomAcceptsOwnerDamageAndStaysSavable(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_owner_test"));
@@ -6143,9 +5811,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Healing Bloom should now accept damage from its owner");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomRootLossUsesDeathState(GameTestHelper helper) {
+    static void healingBloomRootLossUsesDeathState(GameTestHelper helper) {
         var level = helper.getLevel();
         var relativeAnchorPos = new BlockPos(0, 2, 0);
         var anchorPos = helper.absolutePos(relativeAnchorPos);
@@ -6169,9 +5835,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
+    static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
         var level = helper.getLevel();
         var relativeAnchorPos = new BlockPos(0, 2, 0);
         var anchorPos = helper.absolutePos(relativeAnchorPos);
@@ -6198,9 +5862,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomCanBePlacedOnSupportedSlab(GameTestHelper helper) {
+    static void healingBloomCanBePlacedOnSupportedSlab(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_slab_test");
             var anchorPos = new BlockPos(0, 2, 0);
@@ -6213,9 +5875,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Healing Bloom should now sit on top of a slab support instead of refusing the placement");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomNormalRecastFailsForSameOwner(GameTestHelper helper) {
+    static void healingBloomNormalRecastFailsForSameOwner(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_recast_same_owner_test");
             var firstAnchor = new BlockPos(0, 2, 0);
@@ -6237,9 +5897,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Healing Bloom should remain at the original anchor after a blocked recast");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomAllowsDifferentOwnersToEachHaveOne(GameTestHelper helper) {
+    static void healingBloomAllowsDifferentOwnersToEachHaveOne(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var firstOwner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_owner_a_test");
             var secondOwner = createHealingBloomPlayer(helper, new BlockPos(4, 2, 0), "healing_bloom_owner_b_test");
@@ -6257,9 +5915,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "A different owner should be able to place a separate Healing Bloom");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomMissingManagedBloomDoesNotBlockRecast(GameTestHelper helper) {
+    static void healingBloomMissingManagedBloomDoesNotBlockRecast(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_missing_state_test");
             var anchorPos = new BlockPos(0, 2, 0);
@@ -6276,9 +5932,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "A missing managed Healing Bloom should not block recasting for the same owner");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void healingBloomSneakCastReplacesOnlyOwnersPreviousBloom(GameTestHelper helper) {
+    static void healingBloomSneakCastReplacesOnlyOwnersPreviousBloom(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var firstOwner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_force_owner_a_test");
             var secondOwner = createHealingBloomPlayer(helper, new BlockPos(4, 2, 0), "healing_bloom_force_owner_b_test");
@@ -6307,11 +5961,11 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Replacing your own Healing Bloom should not affect blooms owned by other players");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void archerMultipleTimeoutWithGreaterConjurersTalismanSkipsCooldown(GameTestHelper helper) {
+    static void archerMultipleTimeoutWithGreaterConjurersTalismanSkipsCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 2, 0), "archer_multiple_greater_conjurer_timeout_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareSummonedEntityIsolationArea(helper, playerPos);
+            var player = createArcherMultiplePlayer(helper, playerPos, "archer_multiple_greater_conjurer_timeout_test");
             equipGreaterConjurersTalisman(player);
 
             castArcherMultiple(helper, player, 1);
@@ -6331,10 +5985,10 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Greater Conjurer's Talisman should suppress Archer Multiple cooldown when the recast ends by timeout");
         });
     }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 60)
-    public static void archerMultipleAllBowRemovalEndsRecastAndStartsCooldown(GameTestHelper helper) {
-        var player = createArcherMultiplePlayer(helper, new BlockPos(0, 2, 0), "archer_multiple_all_bows_removed_test");
+    static void archerMultipleAllBowRemovalEndsRecastAndStartsCooldown(GameTestHelper helper) {
+        var playerPos = new BlockPos(0, 12, 0);
+        prepareSummonedEntityIsolationArea(helper, playerPos);
+        var player = createArcherMultiplePlayer(helper, playerPos, "archer_multiple_all_bows_removed_test");
         var spell = SpellRegistry.ARCHER_MULTIPLE.get();
         var magicData = MagicData.getPlayerMagicData(player);
 
@@ -6354,14 +6008,16 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Archer Multiple should start its normal cooldown when every summoned bow disappears");
         });
     }
+    static void personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(GameTestHelper helper) {
+        var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_vanilla_menu_test");
+        var shelfPos = new BlockPos(0, 1, 0);
+        placeAndAssertBlockEntity(helper, shelfPos, BlockRegistry.PERSONAL_SHELF_CHEST.get(), BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
+        var absoluteShelfPos = helper.absolutePos(shelfPos);
+        var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
+        shelf.setShelfData(player, false, Direction.NORTH);
+        shelf.setLifeData(20 * 60, 10.0);
 
-    @GameTest(template = TEMPLATE)
-    public static void personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_vanilla_menu_test");
-            var shelfPos = new BlockPos(0, 1, 0);
-            var absoluteShelfPos = castPersonalShelf(helper, player, shelfPos, false, Direction.NORTH);
-            var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
+        helper.runAtTickTime(1, () -> {
             var personalInventory = player.getCapability(Capabilities.PERSONAL_INVENTORY)
                     .orElseThrow(() -> new IllegalStateException("Missing personal inventory for Personal Shelf GameTest"));
 
@@ -6383,17 +6039,15 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Full Personal Shelf quick move should fail cleanly instead of looping");
             helper.assertTrue(player.getInventory().getItem(0).is(Items.DIRT),
                     "Failed Personal Shelf quick move should leave the player's stack in place");
+            helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 60)
-    public static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
+    static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
         var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_expire_close_test");
         var shelfPos = new BlockPos(0, 1, 0);
         var absoluteShelfPos = castPersonalShelf(helper, player, shelfPos, false, Direction.NORTH);
-        var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
-
         helper.runAtTickTime(1, () -> {
+            var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
             helper.assertTrue(player.openMenu(shelf).isPresent(), "Personal Shelf should open before the expiration check");
             helper.assertTrue(player.containerMenu instanceof ChestMenu,
                     "Personal Shelf should still be using ChestMenu during the expiration check");
@@ -6406,12 +6060,10 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertBlockNotPresent(BlockRegistry.PERSONAL_SHELF_CHEST.get(), shelfPos);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
+    static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var playerPos = new BlockPos(0, 12, 0);
-            prepareElevatedStonePlatform(helper, playerPos);
+            prepareSummonedEntityIsolationArea(helper, playerPos);
             var player = createCompanionTrunkPlayer(helper, playerPos);
             castCompanionTrunk(helper, player, 1);
 
@@ -6428,12 +6080,10 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(trunk.isEmpty(), "Companion Trunk should keep its items after recall");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void companionTrunkRecastKeepsLoadedTrunkInPlaceWhenNear(GameTestHelper helper) {
+    static void companionTrunkRecastKeepsLoadedTrunkInPlaceWhenNear(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var playerPos = new BlockPos(0, 12, 0);
-            prepareElevatedStonePlatform(helper, playerPos);
+            prepareSummonedEntityIsolationArea(helper, playerPos);
             var player = createCompanionTrunkPlayer(helper, playerPos);
             castCompanionTrunk(helper, player, 1);
 
@@ -6449,9 +6099,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(trunk.isEmpty(), "Companion Trunk should stay loaded after the failed dismiss");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void companionTrunkDeathStoresItemsInChestWhenSpaceExists(GameTestHelper helper) {
+    static void companionTrunkDeathStoresItemsInChestWhenSpaceExists(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
             var trunkPos = new BlockPos(0, 2, 0);
@@ -6470,9 +6118,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Death chest should receive the Companion Trunk inventory");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void companionTrunkDeathDropsItemsWhenNoChestSpaceExists(GameTestHelper helper) {
+    static void companionTrunkDeathDropsItemsWhenNoChestSpaceExists(GameTestHelper helper) {
         var trunkPos = new BlockPos(0, 2, 0);
         for (var y = -1; y <= 1; ++y) {
             for (var x = -1; x <= 1; ++x) {
@@ -6494,9 +6140,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertItemEntityPresent(Items.EMERALD, trunkPos, 2.5);
         });
     }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 80)
-    public static void companionTrunkIgnoresFireAndRescuesFromVoid(GameTestHelper helper) {
+    static void companionTrunkIgnoresFireAndRescuesFromVoid(GameTestHelper helper) {
         var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
         var trunk = createCompanionTrunk(helper, player, new BlockPos(0, 2, 0));
         trunk.setCompanionMaxHealth(10.0f);
@@ -6518,9 +6162,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Companion Trunk should return near its owner after falling below the world");
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
+    static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var matureCropPos = new BlockPos(3, 2, 0);
         var immatureCropPos = new BlockPos(4, 2, 0);
@@ -6542,9 +6184,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void harvestMoonHarvestsFarmersDelightTomatoViaRightClick(GameTestHelper helper) {
+    static void harvestMoonHarvestsFarmersDelightTomatoViaRightClick(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var tomatoPos = new BlockPos(3, 2, 0);
 
@@ -6571,9 +6211,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void harvestMoonKeepsFarmersDelightTomatoRopeState(GameTestHelper helper) {
+    static void harvestMoonKeepsFarmersDelightTomatoRopeState(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var baseTomatoPos = new BlockPos(3, 2, 0);
         var ropeTomatoPos = baseTomatoPos.above();
@@ -6619,9 +6257,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertItemEntityPresent(tomatoItem, ropeTomatoPos, 1.5);
         helper.succeed();
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void harvestMoonHarvestsStemFruitWithoutBreakingStem(GameTestHelper helper) {
+    static void harvestMoonHarvestsStemFruitWithoutBreakingStem(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var stemPos = new BlockPos(2, 2, 1);
         var fruitPos = new BlockPos(3, 2, 1);
@@ -6638,9 +6274,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertItemEntityPresent(Items.MELON_SLICE, casterPos, 1.5);
         });
     }
-
-    @GameTest(template = TEMPLATE, timeoutTicks = 120)
-    public static void harvestMoonProcessesTargetsAcrossMultipleTicksAndKeepsBambooRoot(GameTestHelper helper) {
+    static void harvestMoonProcessesTargetsAcrossMultipleTicksAndKeepsBambooRoot(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 4, 0);
         var bambooBase = new BlockPos(4, 2, 1);
         helper.setBlock(bambooBase.below(), Blocks.DIRT);
@@ -6678,9 +6312,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertItemEntityPresent(Items.BAMBOO, casterPos, 1.5);
         });
     }
-
-    @GameTest(template = TEMPLATE)
-    public static void harvestMoonHarvestsKelpColumnBeyondInitialYSlice(GameTestHelper helper) {
+    static void harvestMoonHarvestsKelpColumnBeyondInitialYSlice(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 4, 0);
         var kelpBase = new BlockPos(3, 2, 0);
         helper.setBlock(kelpBase.below(), Blocks.DIRT);
@@ -6715,7 +6347,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static FakePlayer createCraftsmansDelightPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+    private static FakePlayer createEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
@@ -6748,7 +6380,7 @@ public final class ApprenticeCodexGameTestScenarios {
         curiosInventory.setEquippedCurio(slotId, 0, stack);
     }
 
-    private static void equipCraftsmansDelight(FakePlayer player, ItemStack ringStack) {
+    private static void equipRingCurio(FakePlayer player, ItemStack ringStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, ringStack);
     }
 
@@ -6971,7 +6603,19 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
-    private static void prepareElevatedStonePlatform(GameTestHelper helper, BlockPos centerPos) {
+    private static void prepareWideSearchIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+        prepareHighIsolationPlatform(helper, centerPos);
+    }
+
+    private static void prepareMiningSpellIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+        prepareHighIsolationPlatform(helper, centerPos);
+    }
+
+    private static void prepareSummonedEntityIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+        prepareHighIsolationPlatform(helper, centerPos);
+    }
+
+    private static void prepareHighIsolationPlatform(GameTestHelper helper, BlockPos centerPos) {
         // basic_floor は 5x3x5 と小さく、batch 近接配置の地形へ探索やレイが吸われやすい。
         // 足場を高所へ自前で作って、各テストが自分の 5x5 領域だけを参照するように固定する。
         var floorY = centerPos.getY() - 1;
