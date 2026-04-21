@@ -30,8 +30,8 @@ public final class BowCastAmmoResolver {
     }
 
     public static FocusStaffbowAmmoRoute resolveFocusStaffbowAmmoRoute(Player player, ItemStack weaponStack) {
-        if (player.getAbilities().instabuild || hasInfinity(weaponStack)) {
-            // creative と Infinity は触媒矢を消費しないため、探索せず即通す。
+        if (player.getAbilities().instabuild || hasSynthesis(weaponStack)) {
+            // creative と synthesis は触媒矢を消費しないため、探索せず即通す。
             return FocusStaffbowAmmoRoute.BYPASS;
         }
 
@@ -82,8 +82,8 @@ public final class BowCastAmmoResolver {
         return ammoSource != null && ammoSource.consume();
     }
 
-    private static boolean hasInfinity(ItemStack stack) {
-        return getEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.INFINITY.location()) > 0;
+    private static boolean hasSynthesis(ItemStack stack) {
+        return getEnchantmentLevel(stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.SYNTHESIS.location()) > 0;
     }
 
     private static SpellcasterQuiverBowAmmoResolver.LooseAmmoSource createLooseAmmoSource(Player player, ItemStack ammoStack) {

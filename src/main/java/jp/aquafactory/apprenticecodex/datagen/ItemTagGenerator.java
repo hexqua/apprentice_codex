@@ -64,6 +64,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = Enchantments.TRANSCENDENCE_ENCHANTABLE;
     private static final TagKey<Item> WISDOM_ENCHANTABLE = Enchantments.WISDOM_ENCHANTABLE;
     private static final TagKey<Item> PLUNDER_ENCHANTABLE = Enchantments.PLUNDER_ENCHANTABLE;
+    private static final TagKey<Item> SYNTHESIS_ENCHANTABLE = Enchantments.SYNTHESIS_ENCHANTABLE;
 
     public ItemTagGenerator(
             PackOutput output,
@@ -92,6 +93,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
         var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
         var plunderEnchantableTag = tag(PLUNDER_ENCHANTABLE);
+        var synthesisEnchantableTag = tag(SYNTHESIS_ENCHANTABLE);
         var vanillaSwordEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SWORD);
         var vanillaFireAspectEnchantableTag = tag(MINECRAFT_ENCHANTABLE_FIRE_ASPECT);
         var vanillaSharpWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SHARP_WEAPON);
@@ -109,6 +111,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         tomagicReversalWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         wisdomEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        synthesisEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());

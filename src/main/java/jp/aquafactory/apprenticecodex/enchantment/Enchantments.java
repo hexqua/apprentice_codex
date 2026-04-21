@@ -30,6 +30,7 @@ public final class Enchantments {
     public static final ResourceKey<Enchantment> LARGE_MUG = key("large_mug");
     public static final ResourceKey<Enchantment> RED_ENERGY = key("red_energy");
     public static final ResourceKey<Enchantment> GLOW_ENERGY = key("glow_energy");
+    public static final ResourceKey<Enchantment> SYNTHESIS = key("synthesis");
 
     public static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = itemTag("magic_item_enchantable");
     public static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = itemTag("offhand_magic_enchantable");
@@ -42,6 +43,7 @@ public final class Enchantments {
     public static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = itemTag("transcendence_enchantable");
     public static final TagKey<Item> WISDOM_ENCHANTABLE = itemTag("wisdom_enchantable");
     public static final TagKey<Item> PLUNDER_ENCHANTABLE = itemTag("plunder_enchantable");
+    public static final TagKey<Item> SYNTHESIS_ENCHANTABLE = itemTag("synthesis_enchantable");
     public static final TagKey<Enchantment> EXCLUSIVE_REFLUX_RESERVOIR = enchantmentTag("exclusive_set/reflux_reservoir");
     public static final TagKey<Enchantment> EXCLUSIVE_ALACRITY_TENSE = enchantmentTag("exclusive_set/alacrity_tense");
     public static final TagKey<Enchantment> EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE =
@@ -101,6 +103,7 @@ public final class Enchantments {
         var transcendenceItems = itemLookup.getOrThrow(TRANSCENDENCE_ENCHANTABLE);
         var wisdomItems = itemLookup.getOrThrow(WISDOM_ENCHANTABLE);
         var plunderItems = itemLookup.getOrThrow(PLUNDER_ENCHANTABLE);
+        var synthesisItems = itemLookup.getOrThrow(SYNTHESIS_ENCHANTABLE);
 
         register(
                 context,
@@ -330,6 +333,23 @@ public final class Enchantments {
                                 )
                         )
                         .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_RED_GLOW_ENERGY))
+        );
+
+        register(
+                context,
+                SYNTHESIS,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        synthesisItems,
+                                        synthesisItems,
+                                        1,
+                                        1,
+                                        Enchantment.dynamicCost(20, 10),
+                                        Enchantment.dynamicCost(50, 10),
+                                        1,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
         );
     }
 
