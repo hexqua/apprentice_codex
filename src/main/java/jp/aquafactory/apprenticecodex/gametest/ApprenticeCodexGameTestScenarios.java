@@ -3614,13 +3614,15 @@ public final class ApprenticeCodexGameTestScenarios {
     public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = new TouchDigSpell();
-            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_range_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareElevatedStonePlatform(helper, playerPos);
+            var player = createCraftsmansDelightPlayer(helper, playerPos, "touch_dig_range_test");
             var magicData = MagicData.getPlayerMagicData(player);
-            var targetPos = helper.absolutePos(new BlockPos(0, 3, 12));
+            var targetPos = helper.absolutePos(new BlockPos(0, 23, 0));
 
             helper.assertTrue(magicData != null, "Touch Dig range test could not resolve player mana data");
             player.setYRot(0.0f);
-            player.setXRot(0.0f);
+            player.setXRot(-90.0f);
             helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
 
             helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
@@ -6371,7 +6373,9 @@ public final class ApprenticeCodexGameTestScenarios {
     @GameTest(template = TEMPLATE)
     public static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareElevatedStonePlatform(helper, playerPos);
+            var player = createCompanionTrunkPlayer(helper, playerPos);
             castCompanionTrunk(helper, player, 1);
 
             var trunk = getSingleCompanionTrunk(helper, player);
@@ -6391,7 +6395,9 @@ public final class ApprenticeCodexGameTestScenarios {
     @GameTest(template = TEMPLATE)
     public static void companionTrunkRecastKeepsLoadedTrunkInPlaceWhenNear(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createCompanionTrunkPlayer(helper, new BlockPos(0, 2, 0));
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareElevatedStonePlatform(helper, playerPos);
+            var player = createCompanionTrunkPlayer(helper, playerPos);
             castCompanionTrunk(helper, player, 1);
 
             var trunk = getSingleCompanionTrunk(helper, player);
@@ -6926,6 +6932,19 @@ public final class ApprenticeCodexGameTestScenarios {
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
+    }
+
+    private static void prepareElevatedStonePlatform(GameTestHelper helper, BlockPos centerPos) {
+        // basic_floor は 5x3x5 と小さく、batch 近接配置の地形へ探索やレイが吸われやすい。
+        // 足場を高所へ自前で作って、各テストが自分の 5x5 領域だけを参照するように固定する。
+        var floorY = centerPos.getY() - 1;
+        for (var x = -2; x <= 2; ++x) {
+            for (var z = -2; z <= 2; ++z) {
+                helper.setBlock(new BlockPos(centerPos.getX() + x, floorY, centerPos.getZ() + z), Blocks.STONE);
+                helper.setBlock(new BlockPos(centerPos.getX() + x, centerPos.getY(), centerPos.getZ() + z), Blocks.AIR);
+                helper.setBlock(new BlockPos(centerPos.getX() + x, centerPos.getY() + 1, centerPos.getZ() + z), Blocks.AIR);
+            }
+        }
     }
 
     private static FakePlayer createPersonalShelfPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
