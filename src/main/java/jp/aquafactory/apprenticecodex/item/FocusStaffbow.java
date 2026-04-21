@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientLoanState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
@@ -31,6 +32,7 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraft.network.chat.Component;
@@ -110,7 +112,7 @@ public final class FocusStaffbow extends CastingItem
         }
 
         if (level.isClientSide) {
-            if (!canStartClientUse(player, selection.spellData)) {
+            if (!canStartClientUse(player, stack, selection.spellData)) {
                 return InteractionResultHolder.fail(stack);
             }
             player.startUsingItem(usedHand);
@@ -131,6 +133,11 @@ public final class FocusStaffbow extends CastingItem
                 "ui.apprenticecodex.focus_staffbow.loan_mana",
                 Mth.ceil(Math.max(0.0F, remainingLoanMana))
         ).withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createInsufficientArrowMessage() {
+        return Component.translatable("ui.apprenticecodex.focus_staffbow.insufficient_arrow")
+                .withStyle(ChatFormatting.RED);
     }
 
     public static boolean isBowDrawUse(@Nullable LivingEntity entity) {
@@ -204,7 +211,8 @@ public final class FocusStaffbow extends CastingItem
             return true;
         }
 
-        return ALLOWED_MAGIC_ITEM_ENCHANTMENTS.contains(enchantmentId);
+        return enchantment == Enchantments.INFINITY_ARROWS
+                || ALLOWED_MAGIC_ITEM_ENCHANTMENTS.contains(enchantmentId);
     }
 
     @Override
@@ -327,7 +335,7 @@ public final class FocusStaffbow extends CastingItem
         return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON);
     }
 
-    private static boolean canStartClientUse(Player player, SpellData spellData) {
+    private static boolean canStartClientUse(Player player, ItemStack stack, SpellData spellData) {
         if (spellData == SpellData.EMPTY || spellData.getSpell() == SpellRegistry.none()) {
             return false;
         }
@@ -338,6 +346,9 @@ public final class FocusStaffbow extends CastingItem
         var spell = spellData.getSpell();
         var cooldown = ClientMagicData.getCooldowns().getSpellCooldowns().get(spell.getSpellId());
         if (cooldown != null && cooldown.getCooldownRemaining() > 0.0F) {
+            return false;
+        }
+        if (!BowCastAmmoResolver.canStartFocusStaffbowUse(player, stack)) {
             return false;
         }
         if (player.getAbilities().instabuild) {

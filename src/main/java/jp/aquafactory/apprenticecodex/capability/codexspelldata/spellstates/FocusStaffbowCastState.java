@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.ICodexSpellState;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import net.minecraft.nbt.CompoundTag;
 
 public final class FocusStaffbowCastState implements ICodexSpellState {
@@ -25,27 +26,30 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
     public int chargeUpdateIntervalTicks = 1;
     public long lastChargeSampledTicks = Long.MIN_VALUE;
     public boolean preCastStarted;
+    public String ammoRoute = BowCastAmmoResolver.FocusStaffbowAmmoRoute.NONE.name();
 
     public boolean isActive() {
         return !spellId.isEmpty() && getMode() != Mode.NONE && requiredCastTicks >= 0;
     }
 
     public void startPending(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
-                             int requiredCastTicks, int chargeBaselineTicks, String dimensionId, int selectedHotbarSlot) {
+                             int requiredCastTicks, int chargeBaselineTicks, String dimensionId, int selectedHotbarSlot,
+                             BowCastAmmoResolver.FocusStaffbowAmmoRoute ammoRoute) {
         startInternal(spell, spellLevel, castSource, castingSlot, startedGameTime, requiredCastTicks,
-                chargeBaselineTicks, dimensionId, selectedHotbarSlot, Mode.PENDING, 1);
+                chargeBaselineTicks, dimensionId, selectedHotbarSlot, Mode.PENDING, 1, ammoRoute);
     }
 
     public void startContinuous(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
-                                int requiredCastTicks, String dimensionId, int selectedHotbarSlot, int chargeUpdateIntervalTicks) {
+                                int requiredCastTicks, String dimensionId, int selectedHotbarSlot, int chargeUpdateIntervalTicks,
+                                BowCastAmmoResolver.FocusStaffbowAmmoRoute ammoRoute) {
         startInternal(spell, spellLevel, castSource, castingSlot, startedGameTime, requiredCastTicks,
-                requiredCastTicks, dimensionId, selectedHotbarSlot, Mode.CONTINUOUS, chargeUpdateIntervalTicks);
+                requiredCastTicks, dimensionId, selectedHotbarSlot, Mode.CONTINUOUS, chargeUpdateIntervalTicks, ammoRoute);
         this.preCastStarted = true;
     }
 
     private void startInternal(AbstractSpell spell, int spellLevel, CastSource castSource, String castingSlot, long startedGameTime,
                                int requiredCastTicks, int chargeBaselineTicks, String dimensionId, int selectedHotbarSlot,
-                               Mode mode, int chargeUpdateIntervalTicks) {
+                               Mode mode, int chargeUpdateIntervalTicks, BowCastAmmoResolver.FocusStaffbowAmmoRoute ammoRoute) {
         this.spellId = spell.getSpellId();
         this.spellLevel = spellLevel;
         this.castSource = castSource.name();
@@ -59,6 +63,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         this.chargeUpdateIntervalTicks = Math.max(1, chargeUpdateIntervalTicks);
         this.lastChargeSampledTicks = Long.MIN_VALUE;
         this.preCastStarted = false;
+        this.ammoRoute = ammoRoute.name();
     }
 
     public void markPreCastStarted() {
@@ -88,6 +93,14 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         return isActive() && getMode() == Mode.CONTINUOUS;
     }
 
+    public BowCastAmmoResolver.FocusStaffbowAmmoRoute getAmmoRoute() {
+        try {
+            return BowCastAmmoResolver.FocusStaffbowAmmoRoute.valueOf(ammoRoute);
+        } catch (IllegalArgumentException ignored) {
+            return BowCastAmmoResolver.FocusStaffbowAmmoRoute.NONE;
+        }
+    }
+
     public boolean isReady(long gameTime) {
         return isActive() && gameTime - startedGameTime >= requiredCastTicks;
     }
@@ -114,6 +127,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         chargeUpdateIntervalTicks = 1;
         lastChargeSampledTicks = Long.MIN_VALUE;
         preCastStarted = false;
+        ammoRoute = BowCastAmmoResolver.FocusStaffbowAmmoRoute.NONE.name();
     }
 
     @Override
@@ -132,6 +146,7 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         tag.putInt("chargeUpdateIntervalTicks", chargeUpdateIntervalTicks);
         tag.putLong("lastChargeSampledTicks", lastChargeSampledTicks);
         tag.putBoolean("preCastStarted", preCastStarted);
+        tag.putString("ammoRoute", ammoRoute);
         return tag;
     }
 
@@ -150,5 +165,8 @@ public final class FocusStaffbowCastState implements ICodexSpellState {
         chargeUpdateIntervalTicks = tag.contains("chargeUpdateIntervalTicks") ? Math.max(1, tag.getInt("chargeUpdateIntervalTicks")) : 1;
         lastChargeSampledTicks = tag.contains("lastChargeSampledTicks") ? tag.getLong("lastChargeSampledTicks") : Long.MIN_VALUE;
         preCastStarted = tag.getBoolean("preCastStarted");
+        ammoRoute = tag.contains("ammoRoute")
+                ? tag.getString("ammoRoute")
+                : BowCastAmmoResolver.FocusStaffbowAmmoRoute.NONE.name();
     }
 }

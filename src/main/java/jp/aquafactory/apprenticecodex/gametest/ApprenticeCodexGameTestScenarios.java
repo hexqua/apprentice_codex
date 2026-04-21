@@ -130,6 +130,7 @@ import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -4182,6 +4183,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Focus Staffbow offhand selection test could not resolve player mana data");
             if (magicData != null) {
@@ -4211,6 +4213,8 @@ public final class ApprenticeCodexGameTestScenarios {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+        MagicData.getPlayerMagicData(player).setMana(100.0F);
 
         helper.runAtTickTime(1, () -> {
             var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -4225,6 +4229,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should keep a pending cast state while charging");
             helper.assertTrue(getOwnedSummonWeapons(helper, player, jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity.class).size() == 1,
                     "Focus Staffbow should expose the summon weapon during pending charge");
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                    "Focus Staffbow should not consume its catalyst arrow before the LONG cast completes");
             helper.assertTrue(player.isUsingItem(), "Focus Staffbow should still be in use while the summon weapon is pending");
         });
         helper.runAtTickTime(3, () ->
@@ -4244,6 +4250,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow pending state should clear after the charged cast completes");
             helper.assertTrue(magicData.getAdditionalCastData() == null,
                     "Focus Staffbow charged cast should clear simulated additional cast data after completion");
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
+                    "Focus Staffbow should consume exactly one catalyst arrow after the LONG cast completes");
         });
     }
 
@@ -4258,6 +4266,8 @@ public final class ApprenticeCodexGameTestScenarios {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
+        MagicData.getPlayerMagicData(player).setMana(100.0F);
 
         helper.runAtTickTime(1, () -> {
             var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -4289,6 +4299,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow should remove the simulated summon weapon when the charge is cancelled");
             helper.assertTrue(magicData.getAdditionalCastData() == null,
                     "Focus Staffbow should clear simulated additional cast data when the charge is cancelled");
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                    "Focus Staffbow should keep its catalyst arrow when the LONG cast is cancelled early");
         });
     }
 
@@ -4304,6 +4316,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 2));
         MagicData.getPlayerMagicData(player).setMana(10000.0F);
 
         helper.runAtTickTime(1, () -> {
@@ -4320,6 +4333,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous test should store a CONTINUOUS cast state");
             helper.assertTrue(magicData.isCasting(),
                     "Focus Staffbow continuous test should keep Iron's casting state active after start");
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                    "Focus Staffbow continuous cast should consume one catalyst arrow as soon as casting starts");
             helper.assertTrue(player.isUsingItem(),
                     "Focus Staffbow continuous test should keep the player in use state while held");
         });
@@ -4353,6 +4368,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Focus Staffbow continuous multiplier should match the fixed early-stage curve: " + actualAmount);
             helper.assertTrue(Math.abs(expectedMultiplier - 1.5D) < 1.0e-9D,
                     "Focus Staffbow continuous multiplier should reach 1.5x after 100 ticks: " + expectedMultiplier);
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 1,
+                    "Focus Staffbow continuous cast should not keep consuming arrows while the button stays held");
         });
         helper.runAtTickTime(251, () -> {
             var spellData = Capabilities.getSpellDataOrNull(player);
@@ -4397,6 +4414,28 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowRejectsUseWithoutArrowCatalyst(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_arrow_gate_test");
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Focus Staffbow should fail immediately when no catalyst arrow is available but got " + result.getResult());
+            helper.assertFalse(player.isUsingItem(),
+                    "Focus Staffbow should not enter use state without a catalyst arrow");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void focusStaffbowContinuousCastUsesStandardCastTimeWithoutAttributeAdjustment(GameTestHelper helper) {
         var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_standard_time_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
@@ -4408,6 +4447,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 2));
         MagicData.getPlayerMagicData(player).setMana(300.0F);
 
         var castTimeReductionAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get());
@@ -4468,6 +4508,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 2));
         MagicData.getPlayerMagicData(player).setMana(15.0F);
 
         helper.runAtTickTime(1, () -> {
@@ -4513,6 +4554,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Focus Staffbow instant base mana test could not resolve player mana data");
         var baseManaCost = spell.getManaCost(1);
@@ -4535,6 +4577,8 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedWhen(() -> {
             helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - baseManaCost)) < 1.0e-4F,
                     "Focus Staffbow instant immediate release should only consume base mana: " + magicData.getMana());
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
+                    "Focus Staffbow instant cast should consume one catalyst arrow on release");
         });
     }
 
@@ -4550,6 +4594,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Focus Staffbow short LONG base mana test could not resolve player mana data");
         var baseManaCost = spell.getManaCost(1);
@@ -4580,6 +4625,8 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedWhen(() -> {
             helper.assertTrue(Math.abs(magicData.getMana() - (initialMana - baseManaCost)) < 1.0e-4F,
                     "Focus Staffbow short LONG release should stay at base mana within the first second: " + magicData.getMana());
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
+                    "Focus Staffbow short LONG cast should still consume only one catalyst arrow after completion");
         });
     }
 
@@ -4596,6 +4643,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Focus Staffbow mana gate test could not resolve player mana data");
             magicData.setMana(spell.getManaCost(1) - 1.0F);
@@ -4620,6 +4668,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
         player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Focus Staffbow loan test could not resolve player mana data");
         var baseManaCost = spell.getManaCost(1);
@@ -4654,6 +4703,8 @@ public final class ApprenticeCodexGameTestScenarios {
                             + loanState.remainingLoanMana);
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Focus Staffbow loan test should leave current mana at zero after borrowed cast: " + magicData.getMana());
+            helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
+                    "Focus Staffbow borrowed cast should still consume exactly one catalyst arrow");
             magicData.setMana(10.0F);
             jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager.tickLoanRepayment(player);
             helper.assertTrue(loanState.remainingLoanMana >= 109.0F && loanState.remainingLoanMana <= 111.0F,
@@ -4719,6 +4770,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
             var spellData = Capabilities.getSpellDataOrNull(player);
             helper.assertTrue(spellData != null, "Focus Staffbow loan block test could not resolve spell data capability");
             if (spellData != null) {
@@ -4746,6 +4798,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            setFocusStaffbowArrowCatalyst(player, new ItemStack(Items.ARROW, 1));
             MagicData.getPlayerMagicData(player).setMana(200.0F);
             var selection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
             helper.assertTrue(selection != null, "Focus Staffbow cooldown test could not resolve the selected spell");
@@ -4769,6 +4822,129 @@ public final class ApprenticeCodexGameTestScenarios {
                     "ui.apprenticecodex.focus_staffbow.loan_mana",
                     "Focus Staffbow loan block message should use the dedicated translation key"
             );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowInsufficientArrowMessageUsesExpectedTranslationKey(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var message = jp.aquafactory.apprenticecodex.item.FocusStaffbow.createInsufficientArrowMessage();
+            assertTranslatableKey(
+                    helper,
+                    message,
+                    "ui.apprenticecodex.focus_staffbow.insufficient_arrow",
+                    "Focus Staffbow insufficient arrow message should use the dedicated translation key"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowFallsBackToSpecialArrowWhenNormalArrowIsMissing(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_special_arrow_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW, 1));
+        MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow should start when only a special arrow is available but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration()
+                )
+        );
+        helper.succeedWhen(() ->
+                helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                        "Focus Staffbow should consume the special arrow when normal arrows are unavailable")
+        );
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowInfinityAllowsArrowlessCasting(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_infinity_test");
+        var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+        bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+        var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+        var amplifierStack = new ItemStack(amplifierItem);
+        amplifierItem.initializeSpellContainer(amplifierStack);
+        setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+        player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+        MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+        helper.runAtTickTime(1, () -> {
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow should start without arrows when Infinity is enchanted but got " + result.getResult());
+        });
+        helper.runAtTickTime(2, () ->
+                bowStack.getItem().releaseUsing(
+                        bowStack,
+                        helper.getLevel(),
+                        player,
+                        bowStack.getUseDuration()
+                )
+        );
+        helper.succeedWhen(() ->
+                helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
+                        "Focus Staffbow Infinity path should not require or consume a catalyst arrow")
+        );
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowConsumesSpellcasterQuiverArrowsBeforeInventory(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_quiver_priority_test");
+            var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+            MagicData.getPlayerMagicData(player).setMana(100.0F);
+
+            var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
+            SpellcasterQuiver.store(quiverStack, new ItemStack(Items.ARROW, 2));
+            equipCurio(player, CuriosSlotConstants.BACK, quiverStack);
+
+            var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Focus Staffbow should start when Spellcaster Quiver holds the catalyst arrow but got " + result.getResult());
+
+            bowStack.getItem().releaseUsing(bowStack, helper.getLevel(), player, bowStack.getUseDuration());
+            helper.assertTrue(SpellcasterQuiver.getStoredItemCount(quiverStack) == 1,
+                    "Focus Staffbow should consume the equipped Spellcaster Quiver arrow before loose inventory arrows");
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Focus Staffbow should leave loose inventory arrows untouched while the quiver still has arrows");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowAcceptsInfinityEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.INFINITY_ARROWS),
+                    "Focus Staffbow should accept Infinity at the enchanting table");
+            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(Enchantments.INFINITY_ARROWS)),
+                    "Focus Staffbow should accept Infinity from enchanted books");
+            helper.assertTrue(((FocusStaffbow) stack.getItem()).isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
+                    "Focus Staffbow should allow Infinity through anvil merges");
         });
     }
 
@@ -6475,6 +6651,25 @@ public final class ApprenticeCodexGameTestScenarios {
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
+    }
+
+    private static void setFocusStaffbowArrowCatalyst(FakePlayer player, ItemStack arrowStack) {
+        player.getInventory().setItem(1, arrowStack.copy());
+    }
+
+    private static int getFocusStaffbowArrowCount(Player player) {
+        int count = 0;
+        for (var stack : player.getInventory().items) {
+            if (stack.getItem() instanceof ArrowItem) {
+                count += stack.getCount();
+            }
+        }
+        for (var stack : player.getInventory().offhand) {
+            if (stack.getItem() instanceof ArrowItem) {
+                count += stack.getCount();
+            }
+        }
+        return count;
     }
 
     private static void equipCurio(FakePlayer player, String slotId, ItemStack stack) {
