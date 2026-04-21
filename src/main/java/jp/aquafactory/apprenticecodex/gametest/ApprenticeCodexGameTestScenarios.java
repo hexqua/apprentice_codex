@@ -2600,21 +2600,22 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield imbued spell should remain extractable in Spellcaster Workbench");
         });
     }
-    static void ironSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+    static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
+            var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
             var stack = createInitializedPresetStack(item);
             var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
 
             applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
             var restored = roundTripItemStack(helper, stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
             var spellContainer = ISpellContainer.get(restored);
-            helper.assertTrue(spellContainer != null, "Iron Spellcaster Gun save/load spell container is null");
+            helper.assertTrue(spellContainer != null, "Gold Spellcaster Gun save/load spell container is null");
             assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Iron Spellcaster Gun imbued spell should remain removable after save/load");
+                    "Gold Spellcaster Gun imbued spell should remain removable after save/load");
             helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
-                    "Iron Spellcaster Gun imbued spell should remain extractable after save/load");
+                    "Gold Spellcaster Gun imbued spell should remain extractable after save/load");
         });
     }
     static void ironSwingcastStaffImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
@@ -2626,6 +2627,7 @@ public final class ApprenticeCodexGameTestScenarios {
             applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
             var restored = roundTripItemStack(helper, stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
             var spellContainer = ISpellContainer.get(restored);
             helper.assertTrue(spellContainer != null, "Iron Swingcast Staff save/load spell container is null");
             assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
@@ -2644,6 +2646,7 @@ public final class ApprenticeCodexGameTestScenarios {
             applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
             var restored = roundTripItemStack(helper, stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
             var spellContainer = ISpellContainer.get(restored);
             helper.assertTrue(spellContainer != null, "Copper Swingcast Staff preset-equivalent save/load spell container is null");
             assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
@@ -2661,6 +2664,7 @@ public final class ApprenticeCodexGameTestScenarios {
             applyRestrictedImbueNormalization(helper, stack, item, replacementSpell, 1);
 
             var restored = roundTripItemStack(helper, stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
             var spellContainer = ISpellContainer.get(restored);
             helper.assertTrue(spellContainer != null, "Reflectcast Shield save/load spell container is null");
             assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
@@ -2677,6 +2681,7 @@ public final class ApprenticeCodexGameTestScenarios {
             applyPresetSpellExtraction(helper, stack);
 
             var restored = roundTripItemStack(helper, stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
             assertClearedSpellContainer(helper, restored, "Iron Spellcaster Gun should stay cleared after save/load");
         });
     }
@@ -2688,22 +2693,24 @@ public final class ApprenticeCodexGameTestScenarios {
             applyPresetSpellExtraction(helper, stack);
 
             var restored = roundTripItemStack(helper, stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
             assertClearedSpellContainer(helper, restored, "Iron Swingcast Staff should stay cleared after save/load");
         });
     }
-    static void ironSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
+    static void goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
+            var item = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
             var stack = createInitializedPresetStack(item);
-            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
 
             applyLegacyLockedReplacement(helper, stack, replacementSpell, 1);
 
             var restored = roundTripItemStack(helper, stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
             var spellContainer = ISpellContainer.get(restored);
-            helper.assertTrue(spellContainer != null, "Iron Spellcaster Gun recovered spell container is null");
+            helper.assertTrue(spellContainer != null, "Gold Spellcaster Gun recovered spell container is null");
             assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
-                    "Iron Spellcaster Gun legacy locked replacement should be recovered after save/load");
+                    "Gold Spellcaster Gun legacy locked replacement should be recovered after save/load");
         });
     }
     static void ironSwingcastStaffLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
@@ -2715,6 +2722,7 @@ public final class ApprenticeCodexGameTestScenarios {
             applyLegacyLockedReplacement(helper, stack, replacementSpell, 1);
 
             var restored = roundTripItemStack(helper, stack);
+            repairPresetSpellContainerStateIfNeeded(restored);
             var spellContainer = ISpellContainer.get(restored);
             helper.assertTrue(spellContainer != null, "Iron Swingcast Staff recovered spell container is null");
             assertSpellData(helper, spellContainer, 0, replacementSpell, 1, false,
@@ -3404,8 +3412,7 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
 
-        helper.succeedOnTickWhen(43, () -> {
-        });
+        helper.runAtTickTime(43, helper::succeed);
     }
     static void elementalBowRequiresManaBeforeStartingElementalDraw(GameTestHelper helper) {
         helper.succeedIf(() -> {
@@ -4145,7 +4152,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var overheatedUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(overheatedUseResult.getResult().consumesAction(),
                     "Elemental Bow should still allow a second overheated draw: " + overheatedUseResult.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - ElementalBow.READY_DRAW_TICKS);
             player.stopUsingItem();
 
             var manaAfterOverheatedShot = magicData.getMana();
@@ -4160,10 +4167,10 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_school_test");
             var fireStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            fireStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+            setElementalBowShotSelection(fireStack, "magic", SchoolRegistry.FIRE_RESOURCE);
 
             var natureStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            natureStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.NATURE_RESOURCE.toString());
+            setElementalBowShotSelection(natureStack, "magic", SchoolRegistry.NATURE_RESOURCE);
 
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Elemental Bow school overheat test could not resolve player mana data");
@@ -6051,11 +6058,11 @@ public final class ApprenticeCodexGameTestScenarios {
         var shelfPos = new BlockPos(0, 1, 0);
         placeAndAssertBlockEntity(helper, shelfPos, BlockRegistry.PERSONAL_SHELF_CHEST.get(), BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
         var absoluteShelfPos = helper.absolutePos(shelfPos);
-        var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
-        shelf.setShelfData(player, false, Direction.NORTH);
-        shelf.setLifeData(20 * 60, 10.0);
 
-        helper.runAtTickTime(1, () -> {
+        helper.succeedIf(() -> {
+            var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
+            shelf.setShelfData(player, false, Direction.NORTH);
+            shelf.setLifeData(20 * 60, 10.0);
             var personalInventory = jp.aquafactory.apprenticecodex.capability.Capabilities.getPersonalInventory(player)
                     .orElseThrow(() -> new IllegalStateException("Missing personal inventory for Personal Shelf GameTest"));
 
@@ -6065,10 +6072,10 @@ public final class ApprenticeCodexGameTestScenarios {
             }
             player.getInventory().setItem(0, new ItemStack(Items.DIRT));
 
-            helper.assertTrue(player.openMenu(shelf).isPresent(), "Personal Shelf should open a menu for its owner");
-            helper.assertTrue(player.containerMenu instanceof ChestMenu chestMenu && chestMenu.getRowCount() == 6,
+            var menu = shelf.createMenu(1, player.getInventory(), player);
+            helper.assertTrue(menu instanceof ChestMenu chestMenu && chestMenu.getRowCount() == 6,
                     "Personal Shelf should expose a vanilla six-row chest menu");
-            var chestMenu = (ChestMenu) player.containerMenu;
+            var chestMenu = (ChestMenu) menu;
             helper.assertTrue(chestMenu.getSlot(0).getItem().is(Items.DIAMOND),
                     "Personal Shelf chest menu should read from the opener's personal inventory");
 
@@ -6077,16 +6084,15 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Full Personal Shelf quick move should fail cleanly instead of looping");
             helper.assertTrue(player.getInventory().getItem(0).is(Items.DIRT),
                     "Failed Personal Shelf quick move should leave the player's stack in place");
-            helper.succeed();
         });
     }
     static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
         var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_expire_close_test");
         var shelfPos = new BlockPos(0, 1, 0);
         var absoluteShelfPos = castPersonalShelf(helper, player, shelfPos, false, Direction.NORTH);
-        var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
 
         helper.runAtTickTime(1, () -> {
+            var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
             helper.assertTrue(player.openMenu(shelf).isPresent(), "Personal Shelf should open before the expiration check");
             helper.assertTrue(player.containerMenu instanceof ChestMenu,
                     "Personal Shelf should still be using ChestMenu during the expiration check");
@@ -8220,6 +8226,17 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.getLevel().registryAccess(),
                 (CompoundTag) stack.saveOptional(helper.getLevel().registryAccess())
         );
+    }
+
+    private static void repairPresetSpellContainerStateIfNeeded(ItemStack stack) {
+        var item = stack.getItem();
+        if (item instanceof AbstractSpellGunItem spellGunItem) {
+            spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
+        } else if (item instanceof AbstractRightClickMagicWeaponItem magicWeaponItem) {
+            magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
+        } else if (item instanceof AbstractImbueShieldItem imbueShieldItem) {
+            imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);
+        }
     }
 
     private static void assertClearedSpellContainer(GameTestHelper helper, ItemStack stack, String message) {

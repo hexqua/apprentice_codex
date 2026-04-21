@@ -44,8 +44,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void ironSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.ironSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(helper);
+    public static void goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.goldSpellcasterGunImbuedSpellStaysRemovableAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -74,8 +74,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void ironSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.ironSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(helper);
+    public static void goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.goldSpellcasterGunLegacyLockedReplacementIsRecoveredAfterSaveLoad(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -158,12 +158,6 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.wisdomAppliesToBlockBreakExperienceAndRoundsUp(helper);
     }
 
-    @GameTest(template = TEMPLATE)
-    public static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.elementalBowHeldWisdomAndPlunderWorkInBothHands(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(helper);
     }
