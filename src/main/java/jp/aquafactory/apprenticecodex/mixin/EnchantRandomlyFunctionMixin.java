@@ -39,10 +39,10 @@ public abstract class EnchantRandomlyFunctionMixin {
         }
 
         // isDiscoverable を落とすとエンチャント台候補まで消えるため、
-        // loot のランダム本経路だけでフラスコ系を除外する。
+        // loot のランダム本経路だけで除外対象エンチャントを弾く。
         var availableEnchantments = BuiltInRegistries.ENCHANTMENT.stream()
                 .filter(Enchantment::isDiscoverable)
-                .filter(enchantment -> !ApprenticeEnchantmentAvailability.isFlaskExclusiveEnchantment(enchantment))
+                .filter(enchantment -> !ApprenticeEnchantmentAvailability.isExcludedFromRandomBookLoot(enchantment))
                 .toList();
         if (availableEnchantments.isEmpty()) {
             ApprenticeCodex.LOGGER.warn("Couldn't find a compatible enchantment for {}", stack);

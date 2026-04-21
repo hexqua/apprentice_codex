@@ -2,10 +2,10 @@ package jp.aquafactory.apprenticecodex.item.ammo;
 
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantments;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -29,8 +29,8 @@ public final class BowCastAmmoResolver {
     }
 
     public static FocusStaffbowAmmoRoute resolveFocusStaffbowAmmoRoute(Player player, ItemStack weaponStack) {
-        if (player.getAbilities().instabuild || hasInfinity(weaponStack)) {
-            // creative と Infinity は触媒矢を消費しないため、探索せず即通す。
+        if (player.getAbilities().instabuild || hasSynthesis(weaponStack)) {
+            // creative と synthesis は触媒矢を消費しないため、探索せず即通す。
             return FocusStaffbowAmmoRoute.BYPASS;
         }
 
@@ -81,8 +81,9 @@ public final class BowCastAmmoResolver {
         return ammoSource != null && ammoSource.consume();
     }
 
-    private static boolean hasInfinity(ItemStack stack) {
-        return stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+    private static boolean hasSynthesis(ItemStack stack) {
+        return EnchantmentRegistry.SYNTHESIS.isPresent()
+                && stack.getEnchantmentLevel(EnchantmentRegistry.SYNTHESIS.get()) > 0;
     }
 
     private static SpellcasterQuiverBowAmmoResolver.LooseAmmoSource createLooseAmmoSource(Player player, ItemStack ammoStack) {

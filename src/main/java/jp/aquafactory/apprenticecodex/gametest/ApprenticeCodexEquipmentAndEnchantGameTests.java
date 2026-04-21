@@ -225,8 +225,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowInfinityAllowsArrowlessCasting(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowInfinityAllowsArrowlessCasting(helper);
+    public static void focusStaffbowSynthesisAllowsArrowlessCasting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowSynthesisAllowsArrowlessCasting(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -235,8 +235,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowAcceptsInfinityEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.focusStaffbowAcceptsInfinityEnchantments(helper);
+    public static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowAcceptsSynthesisEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)

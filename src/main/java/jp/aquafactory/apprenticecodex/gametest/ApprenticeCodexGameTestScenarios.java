@@ -4874,10 +4874,10 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowInfinityAllowsArrowlessCasting(GameTestHelper helper) {
-        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_infinity_test");
+    public static void focusStaffbowSynthesisAllowsArrowlessCasting(GameTestHelper helper) {
+        var player = createCraftsmansDelightPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_synthesis_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-        bowStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+        bowStack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
         var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
         var amplifierStack = new ItemStack(amplifierItem);
         amplifierItem.initializeSpellContainer(amplifierStack);
@@ -4890,7 +4890,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.runAtTickTime(1, () -> {
             var result = bowStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(result.getResult().consumesAction(),
-                    "Focus Staffbow should start without arrows when Infinity is enchanted but got " + result.getResult());
+                    "Focus Staffbow should start without arrows when Synthesis is enchanted but got " + result.getResult());
         });
         helper.runAtTickTime(2, () ->
                 bowStack.getItem().releaseUsing(
@@ -4902,7 +4902,7 @@ public final class ApprenticeCodexGameTestScenarios {
         );
         helper.succeedWhen(() ->
                 helper.assertTrue(getFocusStaffbowArrowCount(player) == 0,
-                        "Focus Staffbow Infinity path should not require or consume a catalyst arrow")
+                        "Focus Staffbow Synthesis path should not require or consume a catalyst arrow")
         );
     }
 
@@ -4938,16 +4938,22 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void focusStaffbowAcceptsInfinityEnchantments(GameTestHelper helper) {
+    public static void focusStaffbowAcceptsSynthesisEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var item = (FocusStaffbow) stack.getItem();
-            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.INFINITY_ARROWS),
-                    "Focus Staffbow should accept Infinity at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(Enchantments.INFINITY_ARROWS)),
-                    "Focus Staffbow should accept Infinity from enchanted books");
-            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
-                    "Focus Staffbow should allow Infinity through anvil merges");
+            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.SYNTHESIS.get()),
+                    "Focus Staffbow should accept Synthesis at the enchanting table");
+            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.SYNTHESIS.get())),
+                    "Focus Staffbow should accept Synthesis from enchanted books");
+            helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, EnchantmentRegistry.SYNTHESIS.get()),
+                    "Focus Staffbow should allow Synthesis through anvil merges");
+            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.INFINITY_ARROWS),
+                    "Focus Staffbow should reject Infinity at the enchanting table");
+            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(Enchantments.INFINITY_ARROWS)),
+                    "Focus Staffbow should reject Infinity from enchanted books");
+            helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
+                    "Focus Staffbow should reject Infinity through anvil merges");
             helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.TRANSCENDENCE.get()),
                     "Focus Staffbow should reject Transcendence at the enchanting table");
             helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.TRANSCENDENCE.get())),
@@ -5793,6 +5799,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.LARGE_MUG, false, false, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RED_ENERGY, false, false, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GLOW_ENERGY, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNTHESIS, false, false, true);
         });
     }
 
@@ -5816,8 +5823,8 @@ public final class ApprenticeCodexGameTestScenarios {
                         continue;
                     }
 
-                    helper.assertFalse(ApprenticeEnchantmentAvailability.isFlaskExclusiveEnchantment(enchantment),
-                            "Random applicable enchantment loot included flask enchantment: " + enchantmentId + " at seed " + seed);
+                    helper.assertFalse(ApprenticeEnchantmentAvailability.isExcludedFromRandomBookLoot(enchantment),
+                            "Random applicable enchantment loot included excluded enchantment: " + enchantmentId + " at seed " + seed);
                     seenApprenticeEnchantments.add(enchantmentId);
                 }
             }

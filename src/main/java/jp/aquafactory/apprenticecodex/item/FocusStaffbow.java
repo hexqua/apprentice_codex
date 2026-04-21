@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientLoanState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientRenderState;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -36,7 +37,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -229,7 +229,7 @@ public final class FocusStaffbow extends CastingItem
             return true;
         }
 
-        return enchantment == Enchantments.INFINITY_ARROWS
+        return (EnchantmentRegistry.SYNTHESIS.isPresent() && enchantment == EnchantmentRegistry.SYNTHESIS.get())
                 || ALLOWED_MAGIC_ITEM_ENCHANTMENTS.contains(enchantmentId);
     }
 
@@ -425,8 +425,9 @@ public final class FocusStaffbow extends CastingItem
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        if (stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0) {
-            lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_infinity").withStyle(ChatFormatting.GRAY));
+        if (EnchantmentRegistry.SYNTHESIS.isPresent()
+                && stack.getEnchantmentLevel(EnchantmentRegistry.SYNTHESIS.get()) > 0) {
+            lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_synthesis").withStyle(ChatFormatting.GRAY));
         } else {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow").withStyle(ChatFormatting.GRAY));
         }

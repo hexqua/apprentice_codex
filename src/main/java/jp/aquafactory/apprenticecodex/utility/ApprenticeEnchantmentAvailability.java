@@ -15,6 +15,11 @@ public final class ApprenticeEnchantmentAvailability {
                 || matches(enchantment, EnchantmentRegistry.GLOW_ENERGY);
     }
 
+    public static boolean isExcludedFromRandomBookLoot(Enchantment enchantment) {
+        return isFlaskExclusiveEnchantment(enchantment)
+                || matches(enchantment, EnchantmentRegistry.SYNTHESIS);
+    }
+
     private static boolean matches(Enchantment enchantment, RegistryObject<Enchantment> registryObject) {
         return registryObject.isPresent() && registryObject.get() == enchantment;
     }
