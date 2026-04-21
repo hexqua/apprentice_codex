@@ -72,7 +72,7 @@
 
   "item.apprenticecodex.elemental_bow.mode": "Current firing mode: %s",
   "item.apprenticecodex.focus_staffbow.require_arrow": "Requires arrow for casting",
-  "item.apprenticecodex.focus_staffbow.require_arrow.with_infinity": "no arrow required for casting",
+  "item.apprenticecodex.focus_staffbow.require_arrow.with_synthesis": "no arrow required for casting",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift for details.",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",
@@ -332,6 +332,7 @@
   "enchantment.apprenticecodex.large_mug": "Large Mug",
   "enchantment.apprenticecodex.red_energy": "Red Energy",
   "enchantment.apprenticecodex.glow_energy": "Glow Energy",
+  "enchantment.apprenticecodex.synthesis": "Synthesis",
 
   "enchantment.apprenticecodex.reflux.desc": "Increases mana regeneration rate.",
   "enchantment.apprenticecodex.reservoir.desc": "Increases maximum mana.",
@@ -346,6 +347,7 @@
   "enchantment.apprenticecodex.large_mug.desc": "Increases capacity of flask.",
   "enchantment.apprenticecodex.red_energy.desc": "Increases duration of effects in flask.",
   "enchantment.apprenticecodex.glow_energy.desc": "Increases potency of effects in flask but reduces the duration.",
+  "enchantment.apprenticecodex.synthesis.desc": "Allows casting spells without arrows.",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and keeps firing until it runs out of shots, prioritizing your chosen target or nearby enemies.",

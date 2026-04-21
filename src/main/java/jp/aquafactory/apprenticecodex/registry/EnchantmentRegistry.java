@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.enchantment.PlunderEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.RedEnergyEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.RefluxEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.ReservoirEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.SynthesisEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.SurgeEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.TenseEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceEnchantment;
@@ -52,6 +53,8 @@ public final class EnchantmentRegistry {
             ENCHANTMENTS.register("red_energy", RedEnergyEnchantment::new);
     public static final RegistryObject<Enchantment> GLOW_ENERGY =
             ENCHANTMENTS.register("glow_energy", GlowEnergyEnchantment::new);
+    public static final RegistryObject<Enchantment> SYNTHESIS =
+            ENCHANTMENTS.register("synthesis", SynthesisEnchantment::new);
 
     public static void register(IEventBus bus) {
         ENCHANTMENTS.register(bus);

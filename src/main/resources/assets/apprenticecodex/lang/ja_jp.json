@@ -72,7 +72,7 @@
 
   "item.apprenticecodex.elemental_bow.mode": "現在の射撃モード: %s",
   "item.apprenticecodex.focus_staffbow.require_arrow": "詠唱には矢を必要とする",
-  "item.apprenticecodex.focus_staffbow.require_arrow.with_infinity": "無限の影響により、詠唱に矢を必要としない",
+  "item.apprenticecodex.focus_staffbow.require_arrow.with_synthesis": "合成の影響により、詠唱に矢を必要としない",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "シフトキーで詳細を表示",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入した魔法への特殊効果:",
@@ -175,6 +175,7 @@
   "enchantment.apprenticecodex.large_mug": "大サイズ",
   "enchantment.apprenticecodex.red_energy": "レッドエナジー",
   "enchantment.apprenticecodex.glow_energy": "グロウエナジー",
+  "enchantment.apprenticecodex.synthesis": "合成",
 
   "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
   "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",
@@ -189,6 +190,7 @@
   "enchantment.apprenticecodex.large_mug.desc": "フラスコの容量が上昇します。",
   "enchantment.apprenticecodex.red_energy.desc": "フラスコ内にあるポーションの効果時間が延長されます。",
   "enchantment.apprenticecodex.glow_energy.desc": "フラスコ内にあるポーションの効果レベルが上昇しますが、効果時間が短くなります。",
+  "enchantment.apprenticecodex.synthesis.desc": "集中詠唱を行う際に矢が不要になります。",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
