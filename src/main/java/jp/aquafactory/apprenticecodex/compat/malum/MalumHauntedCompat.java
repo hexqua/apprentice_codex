@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.resources.ResourceLocation;
@@ -52,7 +53,10 @@ public final class MalumHauntedCompat {
         }
 
         var item = stack.getItem();
-        return item instanceof PastelStaff || item instanceof AbstractRightClickMagicWeaponItem;
+        // FocusStaffbow も main hand の魔法武器として Haunted 追撃を共有する。
+        return item instanceof PastelStaff
+                || item instanceof AbstractRightClickMagicWeaponItem
+                || item instanceof FocusStaffbow;
     }
 
     public static double resolveHauntedMagicDamageBonus(ItemStack stack) {
