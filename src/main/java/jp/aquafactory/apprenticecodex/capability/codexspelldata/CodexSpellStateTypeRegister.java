@@ -6,6 +6,8 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Auto
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.CompanionTrunkState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.DemicreatorWingsState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FeatherRushState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowLoanState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ForceFieldState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.HealingBloomState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MantisLeapState;
@@ -23,6 +25,8 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<CompanionTrunkState> COMPANION_TRUNK_STATE;
     public static CodexSpellStateType<DemicreatorWingsState> DEMICREATOR_WINGS_STATE;
     public static CodexSpellStateType<FeatherRushState> FEATHER_RUSH_STATE;
+    public static CodexSpellStateType<FocusStaffbowCastState> FOCUS_STAFFBOW_CAST_STATE;
+    public static CodexSpellStateType<FocusStaffbowLoanState> FOCUS_STAFFBOW_LOAN_STATE;
     public static CodexSpellStateType<ForceFieldState> FORCE_FIELD_STATE;
     public static CodexSpellStateType<HealingBloomState> HEALING_BLOOM_STATE;
     public static CodexSpellStateType<MantisLeapState> MANTIS_LEAP_STATE;
@@ -38,6 +42,8 @@ public final class CodexSpellStateTypeRegister {
         COMPANION_TRUNK_STATE = CodexSpellStates.register("companion_trunk", CompanionTrunkState::new);
         DEMICREATOR_WINGS_STATE = CodexSpellStates.register("demicreator_wings", DemicreatorWingsState::new);
         FEATHER_RUSH_STATE = CodexSpellStates.register("feather_rush", FeatherRushState::new);
+        FOCUS_STAFFBOW_CAST_STATE = CodexSpellStates.register("focus_staffbow_cast", FocusStaffbowCastState::new);
+        FOCUS_STAFFBOW_LOAN_STATE = CodexSpellStates.register("focus_staffbow_loan", FocusStaffbowLoanState::new);
         FORCE_FIELD_STATE = CodexSpellStates.register("force_field", ForceFieldState::new);
         HEALING_BLOOM_STATE = CodexSpellStates.register("healing_bloom", HealingBloomState::new);
         MANTIS_LEAP_STATE = CodexSpellStates.register("mantis_leap", MantisLeapState::new);

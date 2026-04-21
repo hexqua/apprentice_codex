@@ -7,10 +7,12 @@ import io.redspace.ironsspellbooks.player.ClientInputEvents;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,12 +31,12 @@ public abstract class ClientInputEventsMixin {
                     ordinal = 0
             )
     )
-    private static void redirectCastPacket(Object packet) {
-        if (packet instanceof CastPacket && apprentice_codex$trySendSelectedSpellCast()) {
+    private static void redirectCastPacket(Object message) {
+        if (message instanceof CastPacket && (apprentice_codex$shouldBlockFocusStaffbowShortcut() || apprentice_codex$trySendSelectedSpellCast())) {
             return;
         }
 
-        PacketDistributor.sendToServer(packet);
+        PacketDistributor.sendToServer(message);
     }
 
     @Redirect(
@@ -45,12 +47,14 @@ public abstract class ClientInputEventsMixin {
                     ordinal = 1
             )
     )
-    private static void redirectQuickCastPacket(Object packet) {
-        if (packet instanceof QuickCastPacket quickCastPacket && apprentice_codex$trySendTargetedQuickCast(quickCastPacket)) {
+    private static void redirectQuickCastPacket(Object message) {
+        if (message instanceof QuickCastPacket quickCastPacket
+                && (apprentice_codex$shouldBlockFocusStaffbowShortcut()
+                || apprentice_codex$trySendTargetedQuickCast(quickCastPacket))) {
             return;
         }
 
-        PacketDistributor.sendToServer(packet);
+        PacketDistributor.sendToServer(message);
     }
 
     @Unique
@@ -77,6 +81,12 @@ public abstract class ClientInputEventsMixin {
     }
 
     @Unique
+    private static boolean apprentice_codex$shouldBlockFocusStaffbowShortcut() {
+        var player = Minecraft.getInstance().player;
+        return player != null && FocusStaffbowClientCastState.hasPendingCast(player);
+    }
+
+    @Unique
     private static boolean apprentice_codex$trySendTargetedCastPacket(SpellData spellData, int quickCastSlot) {
         if (spellData == SpellData.EMPTY) {
             return false;
@@ -93,14 +103,25 @@ public abstract class ClientInputEventsMixin {
         }
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        var targetData = spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell
-                ? customCaptureSpell.captureClientBlockTarget(player, spellLevel)
-                : ClientBlockTargetingHelper.captureOutlinedTarget(
-                        player,
-                        targetingSpell.getClientBlockTargetingRange(spellLevel, player)
-                );
+        var targetData = apprentice_codex$captureTargetData(spellData, player, spellLevel);
         ClientPlacementPreviewManager.rememberPendingTarget(spell.getSpellResource(), targetData);
         Networks.sendToServer(new ClientBlockTargetCastPacket(quickCastSlot, spell.getSpellResource(), targetData));
         return true;
+    }
+
+    @Unique
+    private static BlockTargetData apprentice_codex$captureTargetData(SpellData spellData, net.minecraft.world.entity.player.Player player,
+                                                                      int spellLevel) {
+        var spell = spellData.getSpell();
+        if (spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell) {
+            return customCaptureSpell.captureClientBlockTarget(player, spellLevel);
+        }
+        if (spell instanceof IClientBlockTargetingSpell targetingSpell) {
+            return ClientBlockTargetingHelper.captureOutlinedTarget(
+                    player,
+                    targetingSpell.getClientBlockTargetingRange(spellLevel, player)
+            );
+        }
+        return new BlockTargetData();
     }
 }

@@ -53,7 +53,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
-                ItemRegistry.UNITE_LUNA_STAFF.get()
+                ItemRegistry.UNITE_LUNA_STAFF.get(),
+                ItemRegistry.FOCUS_STAFFBOW.get()
         );
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
@@ -61,12 +62,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // 自前の抽象クラスを継承しないアイテムは後の自動収集から漏れるのでここで直接指定する.
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
-                ItemRegistry.ELEMENTAL_BOW.get()
+                ItemRegistry.ELEMENTAL_BOW.get(),
+                ItemRegistry.FOCUS_STAFFBOW.get()
         );
 
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
         malumSoulHunterWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.FOCUS_STAFFBOW.get(),
                 // Malum の soul_hunter_weapon 実発動判定は main hand を見るため、
                 // offhand 専用品はタグ対象から外し、main hand で攻撃成立する盾だけ明示的に残す。
                 ItemRegistry.REFLECTCAST_SHIELD.get()
@@ -74,7 +77,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         tomagicReversalWeaponTag.add(
-                ItemRegistry.PASTEL_STAFF.get()
+                ItemRegistry.PASTEL_STAFF.get(),
+                ItemRegistry.FOCUS_STAFFBOW.get()
         );
 
         // 所謂魔法武器全般を自動で登録するようにする.

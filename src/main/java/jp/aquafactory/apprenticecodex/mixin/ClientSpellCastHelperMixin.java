@@ -10,6 +10,9 @@ import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPresentationState;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldClientEffectState;
@@ -52,6 +55,8 @@ public abstract class ClientSpellCastHelperMixin {
         // 配置 preview は開始時 target を固定したいので、clientbound の cast start に合わせて初期化する。
         ClientPlacementPreviewManager.beginPreview(spell, player, spellLevel);
         var castingStack = apprentice_codex$resolveCastingStack(player, castingSlot);
+        var focusStaffbowRightClickPresentation =
+                FocusStaffbowClientPresentationState.activatePending(castingEntityId, spellId);
         ClientSwingcastStaffCastContext.tryActivate(castingEntityId, castingStack, spell);
         if (player == minecraft.player && castingStack.getItem() instanceof ReflectcastShield) {
             ReflectcastShieldClientEffectState.beginLocalSuccessFlash(
@@ -60,24 +65,57 @@ public abstract class ClientSpellCastHelperMixin {
             );
         }
 
-        if (!(castingStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
+        var animationStack = apprentice_codex$resolveCastStartAnimationStack(
+                player,
+                castingStack,
+                spell,
+                castingSlot,
+                focusStaffbowRightClickPresentation
+        );
+        if (!(animationStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
+            if (apprentice_codex$shouldHandleFocusStaffbowShortcutStart(player, castingSlot, focusStaffbowRightClickPresentation)) {
+                spell.getCastStartAnimation().getForPlayer()
+                        .ifPresent(resourceLocation -> AnimationHelper.animatePlayerStart(player, resourceLocation));
+                apprentice_codex$runClientPreCast(
+                        spell,
+                        spellLevel,
+                        player,
+                        apprentice_codex$resolveCastingHand(castingSlot),
+                        false
+                );
+                ci.cancel();
+            }
             return;
         }
 
-        if (apprentice_codex$shouldSuppressCastStartAnimation(player, castingStack, spell)) {
-            spell.onClientPreCast(player.level(), spellLevel, player, apprentice_codex$resolveCastingHand(castingSlot), null);
+        if (apprentice_codex$shouldSuppressCastStartAnimation(player, animationStack, spell)) {
+            apprentice_codex$runClientPreCast(
+                    spell,
+                    spellLevel,
+                    player,
+                    apprentice_codex$resolveClientPreCastHand(castingSlot, focusStaffbowRightClickPresentation),
+                    focusStaffbowRightClickPresentation
+            );
             ci.cancel();
             return;
         }
 
-        if (!animationOverrideItem.shouldOverrideCastStartAnimation(castingStack, spell)) {
+        if (!animationOverrideItem.shouldOverrideCastStartAnimation(animationStack, spell)) {
             return;
         }
 
-        animationOverrideItem.getCastStartAnimation(castingStack, spell, spellLevel)
-                .getForPlayer()
-                .ifPresent(resourceLocation -> AnimationHelper.animatePlayerStart(player, resourceLocation));
-        spell.onClientPreCast(player.level(), spellLevel, player, apprentice_codex$resolveCastingHand(castingSlot), null);
+        if (!focusStaffbowRightClickPresentation) {
+            animationOverrideItem.getCastStartAnimation(animationStack, spell, spellLevel)
+                    .getForPlayer()
+                    .ifPresent(resourceLocation -> AnimationHelper.animatePlayerStart(player, resourceLocation));
+        }
+        apprentice_codex$runClientPreCast(
+                spell,
+                spellLevel,
+                player,
+                apprentice_codex$resolveClientPreCastHand(castingSlot, focusStaffbowRightClickPresentation),
+                focusStaffbowRightClickPresentation
+        );
         ci.cancel();
     }
 
@@ -100,9 +138,21 @@ public abstract class ClientSpellCastHelperMixin {
             return spell.getCastFinishAnimation();
         }
 
-        var castingStack = apprentice_codex$resolveSpellAnimationStack(player, spell);
+        var castingSlot = ClientMagicData.getSyncedSpellData(player).getCastingEquipmentSlot();
+        var focusStaffbowRightClickPresentation =
+                FocusStaffbowClientPresentationState.hasActive(castingEntityId, spellId);
+        var castingStack = apprentice_codex$resolveSpellAnimationStack(
+                player,
+                spell,
+                castingSlot,
+                focusStaffbowRightClickPresentation
+        );
         if (!(castingStack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
             return spell.getCastFinishAnimation();
+        }
+
+        if (animationOverrideItem.shouldOverrideCastFinishAnimation(castingStack, spell)) {
+            return animationOverrideItem.getCastFinishAnimation(castingStack, spell, cancelled);
         }
 
         return apprentice_codex$shouldSuppressCastFinishAnimation(player, castingStack, spell)
@@ -125,6 +175,25 @@ public abstract class ClientSpellCastHelperMixin {
     )
     private static void handleClientBoundOnCastFinishedReturn(UUID castingEntityId, String spellId, boolean cancelled, CallbackInfo ci) {
         ClientSwingcastStaffCastContext.clearFinished(castingEntityId, spellId);
+        FocusStaffbowClientPresentationState.clear(castingEntityId);
+    }
+
+    @Unique
+    private static void apprentice_codex$runClientPreCast(
+            AbstractSpell spell,
+            int spellLevel,
+            net.minecraft.world.entity.player.Player player,
+            InteractionHand hand,
+            boolean suppressFocusStaffbowStartSound
+    ) {
+        if (!suppressFocusStaffbowStartSound) {
+            spell.onClientPreCast(player.level(), spellLevel, player, hand, null);
+            return;
+        }
+
+        FocusStaffbowStartSoundContext.runSuppressed(player.getUUID(), () ->
+                spell.onClientPreCast(player.level(), spellLevel, player, hand, null)
+        );
     }
 
     @Unique
@@ -144,18 +213,116 @@ public abstract class ClientSpellCastHelperMixin {
     }
 
     @Unique
-    private static ItemStack apprentice_codex$resolveSpellAnimationStack(net.minecraft.world.entity.player.Player player, AbstractSpell spell) {
+    private static InteractionHand apprentice_codex$resolveClientPreCastHand(String castingSlot,
+                                                                             boolean focusStaffbowRightClickPresentation) {
+        // FocusStaffbow 右クリック中は offhand spell でも bow 側の見た目だけを残し、腕の二重アニメを避ける。
+        return focusStaffbowRightClickPresentation ? InteractionHand.MAIN_HAND : apprentice_codex$resolveCastingHand(castingSlot);
+    }
+
+    @Unique
+    private static ItemStack apprentice_codex$resolveCastStartAnimationStack(Player player, ItemStack castingStack,
+                                                                             @Nullable AbstractSpell spell,
+                                                                             String castingSlot,
+                                                                             boolean focusStaffbowRightClickPresentation) {
+        if (focusStaffbowRightClickPresentation) {
+            var mainHand = player.getMainHandItem();
+            if (apprentice_codex$hasCastStartAnimationOverride(player, mainHand, spell)) {
+                return mainHand;
+            }
+        }
+
+        if (apprentice_codex$hasCastStartAnimationOverride(player, castingStack, spell)) {
+            return castingStack;
+        }
+        if (apprentice_codex$shouldIgnoreFocusStaffbowFallback(player, castingSlot, focusStaffbowRightClickPresentation)) {
+            return ItemStack.EMPTY;
+        }
+
+        // Curios の spellbook slot など、castingEquipmentSlot が手スロットを指さない経路では
+        // 実際の発動体を手持ちから再解決しないと start override が拾えない。
+        if (apprentice_codex$isHandCastingSlot(castingSlot)) {
+            return ItemStack.EMPTY;
+        }
+
         var mainHand = player.getMainHandItem();
-        if (apprentice_codex$hasCastAnimationOverride(player, mainHand, spell)) {
+        if (mainHand != castingStack && apprentice_codex$hasCastStartAnimationOverride(player, mainHand, spell)) {
             return mainHand;
         }
 
         var offHand = player.getOffhandItem();
-        if (apprentice_codex$hasCastAnimationOverride(player, offHand, spell)) {
+        if (offHand != castingStack && apprentice_codex$hasCastStartAnimationOverride(player, offHand, spell)) {
             return offHand;
         }
 
         return ItemStack.EMPTY;
+    }
+
+    @Unique
+    private static ItemStack apprentice_codex$resolveSpellAnimationStack(net.minecraft.world.entity.player.Player player,
+                                                                         AbstractSpell spell,
+                                                                         String castingSlot,
+                                                                         boolean focusStaffbowRightClickPresentation) {
+        if (focusStaffbowRightClickPresentation) {
+            var mainHand = player.getMainHandItem();
+            if (apprentice_codex$hasCastAnimationOverride(player, mainHand, spell)) {
+                return mainHand;
+            }
+        }
+
+        var castingStack = apprentice_codex$resolveCastingStack(player, castingSlot);
+        if (apprentice_codex$hasCastAnimationOverride(player, castingStack, spell)) {
+            return castingStack;
+        }
+        if (apprentice_codex$shouldIgnoreFocusStaffbowFallback(player, castingSlot, focusStaffbowRightClickPresentation)) {
+            return ItemStack.EMPTY;
+        }
+
+        if (apprentice_codex$isHandCastingSlot(castingSlot)) {
+            return ItemStack.EMPTY;
+        }
+
+        var mainHand = player.getMainHandItem();
+        if (mainHand != castingStack && apprentice_codex$hasCastAnimationOverride(player, mainHand, spell)) {
+            return mainHand;
+        }
+
+        var offHand = player.getOffhandItem();
+        if (offHand != castingStack && apprentice_codex$hasCastAnimationOverride(player, offHand, spell)) {
+            return offHand;
+        }
+
+        return ItemStack.EMPTY;
+    }
+
+    @Unique
+    private static boolean apprentice_codex$isHandCastingSlot(String castingSlot) {
+        return SpellSelectionManager.MAINHAND.equals(castingSlot) || SpellSelectionManager.OFFHAND.equals(castingSlot);
+    }
+
+    @Unique
+    private static boolean apprentice_codex$shouldIgnoreFocusStaffbowFallback(Player player, String castingSlot,
+                                                                              boolean focusStaffbowRightClickPresentation) {
+        return !focusStaffbowRightClickPresentation
+                && !SpellSelectionManager.MAINHAND.equals(castingSlot)
+                && player.getMainHandItem().getItem() instanceof FocusStaffbow;
+    }
+
+    @Unique
+    private static boolean apprentice_codex$shouldHandleFocusStaffbowShortcutStart(Player player, String castingSlot,
+                                                                                   boolean focusStaffbowRightClickPresentation) {
+        return !focusStaffbowRightClickPresentation
+                && !SpellSelectionManager.MAINHAND.equals(castingSlot)
+                && player.getMainHandItem().getItem() instanceof FocusStaffbow;
+    }
+
+    @Unique
+    private static boolean apprentice_codex$hasCastStartAnimationOverride(Player player, ItemStack stack, @Nullable AbstractSpell spell) {
+        if (!(stack.getItem() instanceof CastAnimationOverrideItem animationOverrideItem)) {
+            return false;
+        }
+
+        return apprentice_codex$shouldSuppressCastStartAnimation(player, stack, spell)
+                || animationOverrideItem.shouldOverrideCastStartAnimation(stack, spell);
     }
 
     @Unique
@@ -166,6 +333,7 @@ public abstract class ClientSpellCastHelperMixin {
 
         return apprentice_codex$shouldSuppressCastStartAnimation(player, stack, spell)
                 || animationOverrideItem.shouldOverrideCastStartAnimation(stack, spell)
+                || animationOverrideItem.shouldOverrideCastFinishAnimation(stack, spell)
                 || apprentice_codex$shouldSuppressCastFinishAnimation(player, stack, spell);
     }
 
