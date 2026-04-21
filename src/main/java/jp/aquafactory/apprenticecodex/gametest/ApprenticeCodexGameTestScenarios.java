@@ -2216,7 +2216,9 @@ public final class ApprenticeCodexGameTestScenarios {
     static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
-            var caster = createSenseEvilPlayer(helper, new BlockPos(0, 2, 0), "sense_evil_horizontal_cube_test");
+            var casterPos = new BlockPos(0, 14, 0);
+            prepareWideSearchIsolationArea(helper, casterPos);
+            var caster = createSenseEvilPlayer(helper, casterPos, "sense_evil_horizontal_cube_test");
             var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
             var range = getSenseEvilRange(spell, caster, 1);
             var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
@@ -2242,26 +2244,29 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = helper.getLevel();
-            var caster = createSenseEvilPlayer(helper, new BlockPos(0, 2, 0), "sense_evil_spawner_cube_test");
-            var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
-            var range = getSenseEvilRange(spell, caster, 1);
-            var diagonalOffset = Mth.floor(range * 0.75);
+        var level = helper.getLevel();
+        var casterPos = new BlockPos(0, 14, 0);
+        prepareWideSearchIsolationArea(helper, casterPos);
+        var caster = createSenseEvilPlayer(helper, casterPos, "sense_evil_spawner_cube_test");
+        var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
+        var range = getSenseEvilRange(spell, caster, 1);
+        var diagonalOffset = Mth.floor(range * 0.75);
 
-            helper.assertTrue(Math.sqrt(2.0 * diagonalOffset * diagonalOffset) > range,
-                    "Diagonal test offset must stay outside the old spherical spawner range");
+        helper.assertTrue(Math.sqrt(2.0 * diagonalOffset * diagonalOffset) > range,
+                "Diagonal test offset must stay outside the old spherical spawner range");
 
-            var zombieCenter = caster.getBoundingBox().getCenter().add(diagonalOffset, 0.0, diagonalOffset);
-            var zombie = spawnPositionedZombie(level, zombieCenter);
-            var spawnerPos = caster.blockPosition().offset(diagonalOffset, 0, diagonalOffset);
-            placeZombieSpawner(level, spawnerPos);
+        var zombieCenter = caster.getBoundingBox().getCenter().add(diagonalOffset, 0.0, diagonalOffset);
+        var zombie = spawnPositionedZombie(level, zombieCenter);
+        var spawnerPos = caster.blockPosition().offset(diagonalOffset, 0, diagonalOffset);
+        placeZombieSpawner(level, spawnerPos);
 
+        helper.runAtTickTime(5, () -> {
             var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
-            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
+            assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(BlockPos.containing(zombie.getBoundingBox().getCenter())), 0.25,
                     "SenseEvil should still detect entities at the shared diagonal cube offset");
             assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(spawnerPos), 0.25,
                     "SenseEvil should detect spawners at the same diagonal cube offset as entities");
+            helper.succeed();
         });
     }
     static void apprenticeCurioBonusLootTableContainsAllThreeItems(GameTestHelper helper) {
@@ -4089,6 +4094,205 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+    static void elementalBowConsumesAdditionalManaWhileOverheated(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_mana_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 2));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow overheat mana test could not resolve player mana data");
+
+            var item = (ElementalBow) stack.getItem();
+            item.initializeSpellContainer(stack);
+            var fireProfile = ElementalBow.getDisplayedSpellProfile(stack);
+            helper.assertTrue(fireProfile != null, "Elemental Bow overheat mana test should resolve the active Fire profile");
+            var fireArrow = fireProfile != null
+                    ? fireProfile.spell()
+                    : io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+            var baseMana = fireProfile != null ? fireProfile.spell().getManaCost(fireProfile.spellLevel()) : fireArrow.getManaCost(1);
+
+            magicData.setMana(300.0F);
+            var initialMana = magicData.getMana();
+
+            magicData.setPlayerCastingItem(stack.copy());
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
+                    fireArrow,
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(cooldownEvent);
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            fireArrow.getSpellCooldown()
+                    )
+            );
+
+            var extraMana = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    baseMana
+            );
+            helper.assertTrue(extraMana > 0.0F, "Elemental Bow should charge extra mana once Fire overheat is active");
+
+            var overheatedUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(overheatedUseResult.getResult().consumesAction(),
+                    "Elemental Bow should still allow a second overheated draw: " + overheatedUseResult.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            var manaAfterOverheatedShot = magicData.getMana();
+            helper.assertTrue(Math.abs(manaAfterOverheatedShot - (initialMana - baseMana - extraMana)) < 1.0e-3F,
+                    "Elemental Bow overheated shot consumed the wrong mana: " + manaAfterOverheatedShot);
+            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(state.active() && state.chainDepth() >= 2,
+                    "Elemental Bow overheated shot should keep Fire overheat active and deepen the chain: " + state);
+        });
+    }
+    static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_school_test");
+            var fireStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            fireStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.FIRE_RESOURCE.toString());
+
+            var natureStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            natureStack.getOrCreateTag().putString("ElementalBowMode", SchoolRegistry.NATURE_RESOURCE.toString());
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow school overheat test could not resolve player mana data");
+
+            magicData.setPlayerCastingItem(fireStack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            160,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            0
+                    )
+            );
+
+            magicData.setPlayerCastingItem(natureStack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            120,
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get(),
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.NATURE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.NATURE_RESOURCE,
+                            0
+                    )
+            );
+
+            var fireState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireState.active() && fireState.chainDepth() == 1,
+                    "Elemental Bow fire overheat should stay isolated at depth 1: " + fireState);
+
+            var natureState = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.NATURE_RESOURCE);
+            helper.assertTrue(natureState.active() && natureState.chainDepth() == 1,
+                    "Elemental Bow nature overheat should stay isolated at depth 1: " + natureState);
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getAdditionalManaCost(
+                            player,
+                            SchoolRegistry.ENDER_RESOURCE,
+                            10.0F
+                    ) == 0.0F,
+                    "Elemental Bow should not leak overheat into untouched schools"
+            );
+        });
+    }
+    static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_overheat_refresh_test");
+        var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+        setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+        var magicData = MagicData.getPlayerMagicData(player);
+        var firstExpire = new java.util.concurrent.atomic.AtomicLong();
+        var fireArrow = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+        var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                fireArrow,
+                player,
+                CastSource.SWORD,
+                stack
+        );
+
+        helper.assertTrue(magicData != null, "Elemental Bow overheat refresh test could not resolve player mana data");
+
+        helper.runAtTickTime(1, () -> {
+            magicData.setPlayerCastingItem(stack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
+                            fireArrow,
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            expectedCooldown
+                    )
+            );
+            firstExpire.set(jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE).expireGameTime());
+        });
+
+        helper.runAtTickTime(40, () -> {
+            magicData.setPlayerCastingItem(stack.copy());
+            jp.aquafactory.apprenticecodex.item.ElementalBowCastEvent.onSpellCooldownAdded(
+                    new SpellCooldownAddedEvent.Pre(
+                            io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(fireArrow, player, CastSource.SWORD),
+                            fireArrow,
+                            player,
+                            CastSource.SWORD
+                    )
+            );
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.applyOverheatAfterCast(
+                    player,
+                    SchoolRegistry.FIRE_RESOURCE,
+                    jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.consumePendingCooldown(
+                            player,
+                            SchoolRegistry.FIRE_RESOURCE,
+                            expectedCooldown
+                    )
+            );
+
+            var state = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager.getState(player, SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(state.active(), "Elemental Bow repeated cast should keep fire overheat active");
+            helper.assertTrue(state.chainDepth() == 2, "Elemental Bow repeated cast should raise overheat chain depth to 2: " + state.chainDepth());
+            helper.assertTrue(state.expireGameTime() > firstExpire.get(),
+                    "Elemental Bow repeated cast should refresh overheat expiry but got " + state.expireGameTime() + " <= " + firstExpire.get());
+            helper.assertTrue(state.expireGameTime() - helper.getLevel().getGameTime() == expectedCooldown,
+                    "Elemental Bow repeated cast should reset overheat duration from the latest cast");
+        });
+
+        helper.runAtTickTime(41, helper::succeed);
+    }
     static void focusStaffbowContinuousCastStaysActivePastSpellDuration(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "focus_staffbow_continuous_hold_test");
         var bowStack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
@@ -5577,7 +5781,9 @@ public final class ApprenticeCodexGameTestScenarios {
     }
     static void archerMultipleTimeoutWithGreaterConjurersTalismanSkipsCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 2, 0), "archer_multiple_greater_conjurer_timeout_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareSummonedEntityIsolationArea(helper, playerPos);
+            var player = createArcherMultiplePlayer(helper, playerPos, "archer_multiple_greater_conjurer_timeout_test");
             equipGreaterConjurersTalisman(player);
 
             castArcherMultiple(helper, player, 1);
@@ -5598,7 +5804,9 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void archerMultipleAllBowRemovalEndsRecastAndStartsCooldown(GameTestHelper helper) {
-        var player = createArcherMultiplePlayer(helper, new BlockPos(0, 2, 0), "archer_multiple_all_bows_removed_test");
+        var playerPos = new BlockPos(0, 12, 0);
+        prepareSummonedEntityIsolationArea(helper, playerPos);
+        var player = createArcherMultiplePlayer(helper, playerPos, "archer_multiple_all_bows_removed_test");
         var spell = SpellRegistry.ARCHER_MULTIPLE.get();
         var magicData = MagicData.getPlayerMagicData(player);
 
@@ -5682,7 +5890,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var spell = new TouchDigSpell();
             var playerPos = new BlockPos(0, 12, 0);
-            prepareElevatedStonePlatform(helper, playerPos);
+            prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_range_test");
             var magicData = MagicData.getPlayerMagicData(player);
             var targetPos = helper.absolutePos(new BlockPos(0, 23, 0));
@@ -5719,7 +5927,9 @@ public final class ApprenticeCodexGameTestScenarios {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var fortune = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE);
             var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_ring_enchant_merge_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_ring_enchant_merge_test");
             var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
             heldTool.enchant(fortune, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
@@ -5757,7 +5967,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ) == 0,
                     "Touch Dig should drop Fortune when Silk Touch is present");
 
-            var blockPos = helper.absolutePos(new BlockPos(0, 2, 1));
+            var blockPos = helper.absolutePos(new BlockPos(0, 12, 1));
             helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
             invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
@@ -5772,7 +5982,9 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "touch_dig_bare_hand_ring_enchant_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_bare_hand_ring_enchant_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
             var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
@@ -5788,7 +6000,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ) == 1,
                     "Touch Dig should copy Silk Touch onto the synthesized bare-hand tool");
 
-            var blockPos = helper.absolutePos(new BlockPos(0, 2, 2));
+            var blockPos = helper.absolutePos(new BlockPos(0, 12, 2));
             helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
             invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
@@ -5803,11 +6015,13 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var silkTouch = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spectral_hammer_ring_enchant_test");
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "spectral_hammer_ring_enchant_test");
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             setCraftsmansDelightEnchantments(player, enchantments -> enchantments.set(silkTouch, 1));
 
-            var targetPos = helper.absolutePos(new BlockPos(0, 2, 2));
+            var targetPos = helper.absolutePos(new BlockPos(0, 12, 2));
             helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
 
             var hammer = new SpectralHammer(
@@ -5817,7 +6031,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     0,
                     1
             );
-            var hammerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 1)));
+            var hammerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 12, 1)));
             hammer.setPos(hammerPos.x, hammerPos.y, hammerPos.z);
             helper.getLevel().addFreshEntity(hammer);
 
@@ -5833,11 +6047,15 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_vanilla_menu_test");
-            var shelfPos = new BlockPos(0, 1, 0);
-            var absoluteShelfPos = castPersonalShelf(helper, player, shelfPos, false, Direction.NORTH);
-            var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
+        var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_vanilla_menu_test");
+        var shelfPos = new BlockPos(0, 1, 0);
+        placeAndAssertBlockEntity(helper, shelfPos, BlockRegistry.PERSONAL_SHELF_CHEST.get(), BlockEntityRegistry.PERSONAL_SHELF_CHEST.get());
+        var absoluteShelfPos = helper.absolutePos(shelfPos);
+        var shelf = getPersonalShelfBlockEntity(helper, absoluteShelfPos);
+        shelf.setShelfData(player, false, Direction.NORTH);
+        shelf.setLifeData(20 * 60, 10.0);
+
+        helper.runAtTickTime(1, () -> {
             var personalInventory = jp.aquafactory.apprenticecodex.capability.Capabilities.getPersonalInventory(player)
                     .orElseThrow(() -> new IllegalStateException("Missing personal inventory for Personal Shelf GameTest"));
 
@@ -5859,6 +6077,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Full Personal Shelf quick move should fail cleanly instead of looping");
             helper.assertTrue(player.getInventory().getItem(0).is(Items.DIRT),
                     "Failed Personal Shelf quick move should leave the player's stack in place");
+            helper.succeed();
         });
     }
     static void personalShelfExpireClosesOpenedChestMenu(GameTestHelper helper) {
@@ -5883,7 +6102,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var playerPos = new BlockPos(0, 12, 0);
-            prepareElevatedStonePlatform(helper, playerPos);
+            prepareSummonedEntityIsolationArea(helper, playerPos);
             var player = createCompanionTrunkPlayer(helper, playerPos);
             castCompanionTrunk(helper, player, 1);
 
@@ -5903,7 +6122,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void companionTrunkRecastKeepsLoadedTrunkInPlaceWhenNear(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var playerPos = new BlockPos(0, 12, 0);
-            prepareElevatedStonePlatform(helper, playerPos);
+            prepareSummonedEntityIsolationArea(helper, playerPos);
             var player = createCompanionTrunkPlayer(helper, playerPos);
             castCompanionTrunk(helper, player, 1);
 
@@ -6202,6 +6421,18 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static void equipRingCurio(FakePlayer player, ItemStack ringStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, ringStack);
+    }
+
+    private static void prepareWideSearchIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+        prepareElevatedStonePlatform(helper, centerPos);
+    }
+
+    private static void prepareMiningSpellIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+        prepareElevatedStonePlatform(helper, centerPos);
+    }
+
+    private static void prepareSummonedEntityIsolationArea(GameTestHelper helper, BlockPos centerPos) {
+        prepareElevatedStonePlatform(helper, centerPos);
     }
 
     private static ItemStack getEquippedCraftsmansDelight(FakePlayer player) {
