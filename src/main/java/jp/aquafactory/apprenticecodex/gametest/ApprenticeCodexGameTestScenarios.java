@@ -4995,12 +4995,40 @@ public final class ApprenticeCodexGameTestScenarios {
     public static void focusStaffbowAcceptsInfinityEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
-            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, Enchantments.INFINITY_ARROWS),
-                    "Focus Staffbow should accept Infinity at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(Enchantments.INFINITY_ARROWS)),
-                    "Focus Staffbow should accept Infinity from enchanted books");
-            helper.assertTrue(((FocusStaffbow) stack.getItem()).isAnvilMergeEnchantmentAllowed(stack, Enchantments.INFINITY_ARROWS),
-                    "Focus Staffbow should allow Infinity through anvil merges");
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedFocusStaffbowEnchantments(helper.getLevel().registryAccess(), stack),
+                    "Focus Staffbow"
+            );
+            assertRejectedExtraEnchantments(
+                    helper,
+                    stack,
+                    rejectedFocusStaffbowExtraEnchantments(),
+                    false,
+                    "Focus Staffbow should keep rejecting"
+            );
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
+            var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
+
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                    modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
+                    AttributeModifier.Operation.ADDITION
+            ) - 3.0D) < 1.0e-9D, "Focus Staffbow attack damage regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                    modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED),
+                    AttributeModifier.Operation.ADDITION
+            ) - (-3.0D)) < 1.0e-9D, "Focus Staffbow attack speed regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            ) - 0.10D) < 1.0e-9D, "Focus Staffbow spell power regression: " + describeModifiers(modifiers));
         });
     }
 
@@ -7265,6 +7293,21 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    private static Set<ResourceLocation> expectedFocusStaffbowEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
+                        && !isDurabilityTargetEnchantment(enchantment)
+        );
+        expectedEnchantments.addAll(registryIdSet(
+                Enchantments.WISDOM,
+                net.minecraft.world.item.enchantment.Enchantments.INFINITY
+        ));
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
     private static Set<ResourceLocation> expectedReflectcastShieldEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
@@ -7278,6 +7321,13 @@ public final class ApprenticeCodexGameTestScenarios {
         return registryIdSet(
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM,
+                Enchantments.PLUNDER
+        );
+    }
+
+    private static Set<ResourceLocation> rejectedFocusStaffbowExtraEnchantments() {
+        return registryIdSet(
+                Enchantments.TRANSCENDENCE,
                 Enchantments.PLUNDER
         );
     }

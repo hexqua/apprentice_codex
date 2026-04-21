@@ -410,7 +410,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("craft_reflectcast_shield", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.REFLECTCAST_SHIELD.getId()))
                 .save(saver, advancementId("craft_reflectcast_shield"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var bow = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.ELEMENTAL_BOW.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_elemental_bow.title"),
@@ -423,6 +423,18 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_elemental_bow", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ELEMENTAL_BOW.getId()))
                 .save(saver, advancementId("craft_elemental_bow"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(bow)
+                .display(ItemRegistry.FOCUS_STAFFBOW.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_focus_staffbow.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_focus_staffbow.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_focus_staffbow", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.FOCUS_STAFFBOW.getId()))
+                .save(saver, advancementId("craft_focus_staffbow"), existingFileHelper);
 
         var ironSwing = Advancement.Builder.advancement()
                 .parent(root)

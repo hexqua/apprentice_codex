@@ -315,6 +315,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void focusStaffbowExposesExpectedMainhandAttributes(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.focusStaffbowExposesExpectedMainhandAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.reflectcastShieldKeepsExpectedEnchantmentSurfaces(helper);
     }
