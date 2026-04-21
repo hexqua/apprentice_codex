@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_elemental_bow",
+  "criteria": {
+    "crafted_focus_staffbow": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:focus_staffbow"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_focus_staffbow.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:focus_staffbow"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_focus_staffbow.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_focus_staffbow"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

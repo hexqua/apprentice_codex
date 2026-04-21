@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver;
 
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -27,9 +28,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.ArrayList;
@@ -81,7 +84,7 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> lines, TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
 
         var storedItemCount = getStoredItemCount(stack);
@@ -93,7 +96,7 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
     }
 
     @Override
-    public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
         var contents = readContents(stack);
         if (contents.isEmpty()) {
             return Optional.empty();
@@ -111,7 +114,7 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
     }
 
     @Override
-    public boolean overrideStackedOnOther(ItemStack quiverStack, Slot slot, ClickAction action, Player player) {
+    public boolean overrideStackedOnOther(@NotNull ItemStack quiverStack, @NotNull Slot slot, @NotNull ClickAction action, @NotNull Player player) {
         if (action != ClickAction.SECONDARY) {
             return false;
         }
@@ -150,12 +153,12 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
 
     @Override
     public boolean overrideOtherStackedOnMe(
-            ItemStack quiverStack,
-            ItemStack otherStack,
-            Slot slot,
-            ClickAction action,
-            Player player,
-            SlotAccess slotAccess
+            @NotNull ItemStack quiverStack,
+            @NotNull ItemStack otherStack,
+            @NotNull Slot slot,
+            @NotNull ClickAction action,
+            @NotNull Player player,
+            @NotNull SlotAccess slotAccess
     ) {
         if (action != ClickAction.SECONDARY) {
             return false;
@@ -188,18 +191,18 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
     }
 
     @Override
-    public boolean isBarVisible(ItemStack stack) {
+    public boolean isBarVisible(@NotNull ItemStack stack) {
         return getStoredItemCount(stack) > 0;
     }
 
     @Override
-    public int getBarWidth(ItemStack stack) {
+    public int getBarWidth(@NotNull ItemStack stack) {
         var storedItemCount = getStoredItemCount(stack);
         return Math.max(1, Math.round(13.0F * storedItemCount / (float) MAX_STORED_ITEMS));
     }
 
     @Override
-    public int getBarColor(ItemStack stack) {
+    public int getBarColor(@NotNull ItemStack stack) {
         return BAR_COLOR;
     }
 
@@ -218,7 +221,8 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
             return false;
         }
 
-        return entity.getUseItem().getItem() instanceof BowItem;
+        // FocusStaffbow は右クリック保持中の移動を弓の引き絞りとして扱い、Quiver の恩恵を共有する。
+        return entity.getUseItem().getItem() instanceof BowItem || FocusStaffbow.isBowDrawUse(entity);
     }
 
     public static int store(ItemStack quiverStack, ItemStack stack) {
@@ -375,7 +379,7 @@ public class SpellcasterQuiver extends Item implements ICurioItem {
     private static List<ItemStack> getEquippedQuivers(Player player) {
         return CuriosApi.getCuriosInventory(player)
                 .map(inventory -> inventory.findCurios(ItemRegistry.SPELLCASTER_QUIVER.get()).stream()
-                        .map(slotResult -> slotResult.stack())
+                        .map(SlotResult::stack)
                         .toList())
                 .orElse(List.of());
     }

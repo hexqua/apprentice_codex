@@ -14,5 +14,13 @@ public interface CastAnimationOverrideItem {
 
     AnimationHolder getCastStartAnimation(ItemStack stack, AbstractSpell spell, int spellLevel);
 
+    default boolean shouldOverrideCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return false;
+    }
+
+    default AnimationHolder getCastFinishAnimation(ItemStack stack, AbstractSpell spell, boolean cancelled) {
+        return spell.getCastFinishAnimation();
+    }
+
     boolean shouldSuppressCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell);
 }

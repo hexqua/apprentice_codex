@@ -6,10 +6,12 @@ import io.redspace.ironsspellbooks.network.casting.QuickCastPacket;
 import io.redspace.ironsspellbooks.player.ClientInputEvents;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -33,7 +35,7 @@ public abstract class ClientInputEventsMixin {
             )
     )
     private static void redirectCastPacket(CustomPacketPayload packet, CustomPacketPayload[] extraPackets) {
-        if (packet instanceof CastPacket && apprentice_codex$trySendSelectedSpellCast()) {
+        if (packet instanceof CastPacket && (apprentice_codex$shouldBlockFocusStaffbowShortcut() || apprentice_codex$trySendSelectedSpellCast())) {
             return;
         }
 
@@ -49,7 +51,9 @@ public abstract class ClientInputEventsMixin {
             )
     )
     private static void redirectQuickCastPacket(CustomPacketPayload packet, CustomPacketPayload[] extraPackets) {
-        if (packet instanceof QuickCastPacket quickCastPacket && apprentice_codex$trySendTargetedQuickCast(quickCastPacket)) {
+        if (packet instanceof QuickCastPacket quickCastPacket
+                && (apprentice_codex$shouldBlockFocusStaffbowShortcut()
+                || apprentice_codex$trySendTargetedQuickCast(quickCastPacket))) {
             return;
         }
 
@@ -80,6 +84,12 @@ public abstract class ClientInputEventsMixin {
     }
 
     @Unique
+    private static boolean apprentice_codex$shouldBlockFocusStaffbowShortcut() {
+        var player = Minecraft.getInstance().player;
+        return player != null && FocusStaffbowClientCastState.hasPendingCast(player);
+    }
+
+    @Unique
     private static boolean apprentice_codex$trySendTargetedCastPacket(SpellData spellData, int quickCastSlot) {
         if (spellData == SpellData.EMPTY) {
             return false;
@@ -96,14 +106,25 @@ public abstract class ClientInputEventsMixin {
         }
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        var targetData = spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell
-                ? customCaptureSpell.captureClientBlockTarget(player, spellLevel)
-                : ClientBlockTargetingHelper.captureOutlinedTarget(
-                        player,
-                        targetingSpell.getClientBlockTargetingRange(spellLevel, player)
-                );
+        var targetData = apprentice_codex$captureTargetData(spellData, player, spellLevel);
         ClientPlacementPreviewManager.rememberPendingTarget(spell.getSpellResource(), targetData);
         Networks.sendToServer(new ClientBlockTargetCastPacket(quickCastSlot, spell.getSpellResource(), targetData));
         return true;
+    }
+
+    @Unique
+    private static BlockTargetData apprentice_codex$captureTargetData(SpellData spellData, net.minecraft.world.entity.player.Player player,
+                                                                      int spellLevel) {
+        var spell = spellData.getSpell();
+        if (spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell) {
+            return customCaptureSpell.captureClientBlockTarget(player, spellLevel);
+        }
+        if (spell instanceof IClientBlockTargetingSpell targetingSpell) {
+            return ClientBlockTargetingHelper.captureOutlinedTarget(
+                    player,
+                    targetingSpell.getClientBlockTargetingRange(spellLevel, player)
+            );
+        }
+        return new BlockTargetData();
     }
 }

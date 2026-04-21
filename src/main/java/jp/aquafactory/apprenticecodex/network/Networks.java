@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.network;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
@@ -10,6 +11,9 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -25,7 +29,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "13";
+    private static final String PROTOCOL_VERSION = "17";
 
     private Networks() {
     }
@@ -40,6 +44,11 @@ public final class Networks {
                 ClientBlockTargetCastPacket.TYPE,
                 ClientBlockTargetCastPacket.STREAM_CODEC,
                 ClientBlockTargetCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientFocusStaffbowCancelPacket.TYPE,
+                ClientFocusStaffbowCancelPacket.STREAM_CODEC,
+                ClientFocusStaffbowCancelPacket::handle
         );
         registrar.playToServer(
                 ClientConfirmElementalBowModePacket.TYPE,
@@ -95,6 +104,21 @@ public final class Networks {
                 SyncElementalBowOverheatPacket.TYPE,
                 SyncElementalBowOverheatPacket.STREAM_CODEC,
                 SyncElementalBowOverheatPacket::handle
+        );
+        registrar.playToClient(
+                SyncFocusStaffbowCastStatePacket.TYPE,
+                SyncFocusStaffbowCastStatePacket.STREAM_CODEC,
+                SyncFocusStaffbowCastStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncFocusStaffbowLoanPacket.TYPE,
+                SyncFocusStaffbowLoanPacket.STREAM_CODEC,
+                SyncFocusStaffbowLoanPacket::handle
+        );
+        registrar.playToClient(
+                SyncFocusStaffbowPresentationPacket.TYPE,
+                SyncFocusStaffbowPresentationPacket.STREAM_CODEC,
+                SyncFocusStaffbowPresentationPacket::handle
         );
         registrar.playToClient(
                 SyncTamersPocketCountPacket.TYPE,

@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
@@ -800,17 +801,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     @Nullable
     private AmmoSource resolveNormalArrowAmmoSource(Player player) {
-        var quiverSource = resolveQuiverAmmoSource(player, ammoStack -> ammoStack.is(Items.ARROW));
-        if (quiverSource != null) {
-            return quiverSource;
-        }
-
-        for (var ammoStack : collectCandidateAmmoStacks(player)) {
-            if (ammoStack.is(Items.ARROW)) {
-                return new LooseAmmoSource(ammoStack);
-            }
-        }
-        return null;
+        return adaptAmmoSource(BowCastAmmoResolver.resolveElementalNormalArrowAmmo(player));
     }
 
     @Nullable
@@ -882,6 +873,30 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         var item = ammoStack.getItem();
         var itemId = BuiltInRegistries.ITEM.getKey(item);
         return item instanceof ArrowItem && !VANILLA_ARROW_ITEMS.contains(item) && selectionId.equals(itemId);
+    }
+
+    @Nullable
+    private AmmoSource adaptAmmoSource(@Nullable SpellcasterQuiverBowAmmoResolver.AmmoSource ammoSource) {
+        if (ammoSource == null) {
+            return null;
+        }
+
+        return new AmmoSource() {
+            @Override
+            public ItemStack stack() {
+                return ammoSource.stack();
+            }
+
+            @Override
+            public void consume() {
+                ammoSource.consume();
+            }
+
+            @Override
+            public boolean isInfinite(ItemStack bowStack, Player player) {
+                return ammoSource.isInfinite(bowStack, player);
+            }
+        };
     }
 
     private float getAdditionalManaCost(Player player, ResolvedDefinition mode, SpellCastProfile profile) {

@@ -80,7 +80,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
-                ItemRegistry.UNITE_LUNA_STAFF.get()
+                ItemRegistry.UNITE_LUNA_STAFF.get(),
+                ItemRegistry.FOCUS_STAFFBOW.get()
         );
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
@@ -98,8 +99,20 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
+                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
+                ItemRegistry.FOCUS_STAFFBOW.get()
         );
+        // Focus Staffbow は StaffItem 継承に依存せず Staff 相当の主手エンチャ面を持たせたいので、
+        // sword 系 tag と Malum 互換 tag、個別付与の Wisdom を明示追加する。
+        malumMagicCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        malumSoulHunterWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        wisdomEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。
         // Crystal Bladed Staff は 1.21.1 で継承階層が StaffItem 直下へ変わったため、明示列挙で維持する。
         for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
