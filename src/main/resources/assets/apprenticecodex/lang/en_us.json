@@ -494,6 +494,7 @@
   "ui.apprenticecodex.focus_staffbow.deny_offhand": "Cannot be used with offhand",
   "ui.apprenticecodex.focus_staffbow.loan_mana": "Staff is draining mana, cannot cast...(Remaining %d mana)",
   "ui.apprenticecodex.focus_staffbow.insufficient_arrow": "Need an arrow for casting spell!",
+  "ui.apprenticecodex.autocast_amulet.insufficient_mana": "%1$s requires %2$d mana to activate",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",

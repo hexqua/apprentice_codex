@@ -16,9 +16,10 @@ import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
+import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
-import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
@@ -179,6 +180,8 @@ public final class ItemRegistry {
             ITEMS.register("spellcaster_quiver", SpellcasterQuiver::new);
     public static final DeferredHolder<Item, Item> ABSORPTION_AMPLIFY_AMULET =
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
+    public static final DeferredHolder<Item, Item> AUTOCAST_AMULET =
+            ITEMS.register("autocast_amulet", AutocastAmulet::new);
     public static final DeferredHolder<Item, Item> ASHEN_CIRCLET =
             ITEMS.register("ashen_circlet", AshenCirclet::new);
     public static final DeferredHolder<Item, Item> ENCHANTED_CIRCLET =

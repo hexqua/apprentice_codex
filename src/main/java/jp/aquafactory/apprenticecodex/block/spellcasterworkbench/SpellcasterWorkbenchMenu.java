@@ -7,6 +7,8 @@ import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
@@ -700,20 +702,21 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return null;
         }
 
-        var spellData = spellContainer.getSpellAtIndex(0);
+        var extractionIndex = getSpellExtractionIndex(inputStack, spellContainer);
+        var spellData = spellContainer.getSpellAtIndex(extractionIndex);
         if (spellData == SpellData.EMPTY) {
             return null;
         }
 
         if (!isAllowedSpellExtractionItem(inputStack)) {
-            return new SpellExtractionContext(sourceSlotIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.NOT_ALLOWED);
+            return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.NOT_ALLOWED);
         }
 
-        if (!spellData.canRemove()) {
-            return new SpellExtractionContext(sourceSlotIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.DEFAULT_SPELL);
+        if (!canRemoveExtractedSpell(inputStack, spellContainer, extractionIndex, spellData)) {
+            return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.DEFAULT_SPELL);
         }
 
-        return new SpellExtractionContext(sourceSlotIndex, inputStack, spellContainer, spellData, null);
+        return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, null);
     }
 
     private int findSingleOccupiedInputSlot() {
@@ -737,7 +740,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         var mutable = extractionContext.spellContainer().mutableCopy();
-        if (!mutable.removeSpellAtIndex(0)) {
+        if (!mutable.removeSpellAtIndex(extractionContext.spellIndex())) {
             return false;
         }
 
@@ -790,30 +793,46 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return null;
         }
 
-        var spellData = spellContainer.getSpellAtIndex(0);
+        var extractionIndex = getSpellExtractionIndex(inputStack, spellContainer);
+        var spellData = spellContainer.getSpellAtIndex(extractionIndex);
         if (spellData == SpellData.EMPTY) {
             return null;
         }
 
         if (!isAllowedSpellExtractionItem(inputStack)) {
-            return new SpellExtractionContext(sourceSlotIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.NOT_ALLOWED);
+            return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.NOT_ALLOWED);
         }
 
-        if (!spellData.canRemove()) {
-            return new SpellExtractionContext(sourceSlotIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.DEFAULT_SPELL);
+        if (!canRemoveExtractedSpell(inputStack, spellContainer, extractionIndex, spellData)) {
+            return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.DEFAULT_SPELL);
         }
 
-        return new SpellExtractionContext(sourceSlotIndex, inputStack, spellContainer, spellData, null);
+        return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, null);
     }
 
     private static boolean isAllowedSpellExtractionItem(ItemStack stack) {
         var item = stack.getItem();
-        return item instanceof AbstractSpellGunItem
+        return item instanceof RestrictedSpellImbuableItem
+                || item instanceof AbstractSpellGunItem
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AbstractImbueShieldItem
                 || item instanceof AbstractOffhandMagicItem
                 || item instanceof AlchemistsFlask
                 || stack.is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE);
+    }
+
+    private static int getSpellExtractionIndex(ItemStack stack, ISpellContainer spellContainer) {
+        if (stack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem) {
+            return restrictedSpellImbuableItem.getWorkbenchSpellExtractionIndex(stack, spellContainer);
+        }
+        return 0;
+    }
+
+    private static boolean canRemoveExtractedSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
+        if (stack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem) {
+            return restrictedSpellImbuableItem.canRemoveWorkbenchSpell(stack, spellContainer, spellIndex, spellData);
+        }
+        return spellData.canRemove();
     }
 
     private boolean consumeFlaskForParticleToggle(int sourceSlotIndex) {
@@ -870,6 +889,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private record SpellExtractionContext(
             int sourceSlotIndex,
+            int spellIndex,
             ItemStack inputStack,
             ISpellContainer spellContainer,
             SpellData spellData,
