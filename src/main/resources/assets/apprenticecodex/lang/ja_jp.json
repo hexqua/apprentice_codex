@@ -134,6 +134,7 @@
   "item.apprenticecodex.spellcaster_quiver.stored_amount": "収納数: %s / %s",
   "item.apprenticecodex.autocast_amulet.desc_1": "注入した魔法を自動で詠唱する。",
   "item.apprenticecodex.autocast_amulet.desc_2": "注入できる魔法に制限がある上に、常に詠唱し続けようとする。",
+  "item.apprenticecodex.autocast_amulet.tooltip.hint": "Shiftキーで魔法の詳細を表示",
   "item.apprenticecodex.autocast_amulet.cooldown_title": "現在クールダウン中の魔法:",
   "item.apprenticecodex.autocast_amulet.cooldown_line": "- %1$s: %2$d秒",
   "item.apprenticecodex.mana_shield_charm.desc_1": "マナを消費してダメージを打ち消す。",
