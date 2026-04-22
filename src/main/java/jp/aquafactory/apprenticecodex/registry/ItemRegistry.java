@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
@@ -166,6 +167,8 @@ public final class ItemRegistry {
             ITEMS.register("spellcaster_quiver", SpellcasterQuiver::new);
     public static final RegistryObject<Item> ABSORPTION_AMPLIFY_AMULET =
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
+    public static final RegistryObject<Item> AUTOCAST_AMULET =
+            ITEMS.register("autocast_amulet", AutocastAmulet::new);
     public static final RegistryObject<Item> ASHEN_CIRCLET =
             ITEMS.register("ashen_circlet", AshenCirclet::new);
     public static final RegistryObject<Item> ENCHANTED_CIRCLET =

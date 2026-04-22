@@ -64,6 +64,51 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletCreativeCastIgnoresManaCost(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletCreativeCastIgnoresManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletLongSpellCompletesImmediately(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(helper);
     }

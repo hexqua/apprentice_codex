@@ -495,6 +495,7 @@
   "ui.apprenticecodex.focus_staffbow.deny_offhand": "利き手でないと使えない！",
   "ui.apprenticecodex.focus_staffbow.loan_mana": "杖にマナを吸われていて詠唱できない...(残り%dマナ)",
   "ui.apprenticecodex.focus_staffbow.insufficient_arrow": "詠唱の触媒に使う矢が無い！",
+  "ui.apprenticecodex.autocast_amulet.insufficient_mana": "%1$sの発動にマナが足りない！(%2$dマナ必要)",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
