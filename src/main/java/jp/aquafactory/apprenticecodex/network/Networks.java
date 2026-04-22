@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
@@ -29,7 +30,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "17";
+    private static final String PROTOCOL_VERSION = "18";
 
     private Networks() {
     }
@@ -104,6 +105,11 @@ public final class Networks {
                 SyncElementalBowOverheatPacket.TYPE,
                 SyncElementalBowOverheatPacket.STREAM_CODEC,
                 SyncElementalBowOverheatPacket::handle
+        );
+        registrar.playToClient(
+                SyncAutocastAmuletNotificationPacket.TYPE,
+                SyncAutocastAmuletNotificationPacket.STREAM_CODEC,
+                SyncAutocastAmuletNotificationPacket::handle
         );
         registrar.playToClient(
                 SyncFocusStaffbowCastStatePacket.TYPE,

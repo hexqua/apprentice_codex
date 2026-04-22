@@ -9,6 +9,8 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -37,18 +39,32 @@ public final class AutocastAmuletCastEvent {
             return;
         }
 
+        var pendingCreativeCooldown = PENDING_CREATIVE_COOLDOWNS.get(player.getUUID());
         var castingItem = magicData.getPlayerCastingItem();
-        if (!(castingItem.getItem() instanceof AutocastAmulet)) {
+        if (!(castingItem.getItem() instanceof AutocastAmulet)
+                && (pendingCreativeCooldown == null
+                || !pendingCreativeCooldown.spellId().equals(event.getSpell().getSpellId())
+                || pendingCreativeCooldown.castSource() != event.getCastSource())) {
             return;
         }
 
-        var adjustedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
-                event.getSpell(),
-                player,
-                event.getCastSource(),
-                castingItem
-        );
+        var adjustedCooldown = pendingCreativeCooldown != null
+                && pendingCreativeCooldown.spellId().equals(event.getSpell().getSpellId())
+                && pendingCreativeCooldown.castSource() == event.getCastSource()
+                ? pendingCreativeCooldown.cooldownTicks()
+                : WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                        event.getSpell(),
+                        player,
+                        event.getCastSource(),
+                        castingItem
+                );
         event.setEffectiveCooldown(adjustedCooldown);
+        syncCooldownNotification(player, event.getSpell().getSpellId(), adjustedCooldown);
+        if (pendingCreativeCooldown != null
+                && pendingCreativeCooldown.spellId().equals(event.getSpell().getSpellId())
+                && pendingCreativeCooldown.castSource() == event.getCastSource()) {
+            PENDING_CREATIVE_COOLDOWNS.remove(player.getUUID());
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -70,7 +86,16 @@ public final class AutocastAmuletCastEvent {
             return;
         }
 
-        PENDING_CREATIVE_COOLDOWNS.put(player.getUUID(), new PendingCreativeCooldown(event.getSpellId(), event.getCastSource()));
+        var spell = SpellRegistry.getSpell(event.getSpellId());
+        if (spell == null || spell == SpellRegistry.none()) {
+            return;
+        }
+
+        PENDING_CREATIVE_COOLDOWNS.put(player.getUUID(), new PendingCreativeCooldown(
+                event.getSpellId(),
+                event.getCastSource(),
+                WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, event.getCastSource(), castingItem)
+        ));
     }
 
     @SubscribeEvent
@@ -108,9 +133,20 @@ public final class AutocastAmuletCastEvent {
         }
 
         MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, pendingCooldown.castSource());
-        PENDING_CREATIVE_COOLDOWNS.remove(player.getUUID());
     }
 
-    private record PendingCreativeCooldown(String spellId, CastSource castSource) {
+    private static void syncCooldownNotification(ServerPlayer player, String spellId, int cooldownTicks) {
+        if (cooldownTicks <= 0) {
+            return;
+        }
+
+        Networks.sendToPlayer(player, new SyncAutocastAmuletNotificationPacket(
+                SyncAutocastAmuletNotificationPacket.NotificationType.COOLDOWN_CAST,
+                spellId,
+                cooldownTicks
+        ));
+    }
+
+    private record PendingCreativeCooldown(String spellId, CastSource castSource, int cooldownTicks) {
     }
 }

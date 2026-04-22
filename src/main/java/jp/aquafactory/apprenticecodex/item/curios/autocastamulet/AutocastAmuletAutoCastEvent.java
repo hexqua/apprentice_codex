@@ -11,8 +11,8 @@ import io.redspace.ironsspellbooks.network.casting.OnCastStartedPacket;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -114,7 +114,11 @@ public final class AutocastAmuletAutoCastEvent {
 
             var scaledManaCost = AutocastAmulet.getScaledManaCost(spell, spellLevel, activeSpellCount);
             if (!player.isCreative() && scaledManaCost > magicData.getMana()) {
-                displayActionBar(player, AutocastAmulet.createInsufficientManaMessage(spell, player, scaledManaCost));
+                Networks.sendToPlayer(player, new SyncAutocastAmuletNotificationPacket(
+                        SyncAutocastAmuletNotificationPacket.NotificationType.MANA_LOW,
+                        spell.getSpellId(),
+                        0
+                ));
                 scheduleRetry(slotResult.stack(), player.tickCount, index);
                 return SequenceResult.BLOCKED;
             }
@@ -122,7 +126,6 @@ public final class AutocastAmuletAutoCastEvent {
             var canCast = spell.canBeCastedBy(spellLevel, CastSource.SWORD, magicData, player);
             if (!canCast.isSuccess()) {
                 if (canCast.message != null) {
-                    displayActionBar(player, canCast.message);
                     scheduleRetry(slotResult.stack(), player.tickCount, index);
                     return SequenceResult.BLOCKED;
                 }
@@ -199,10 +202,6 @@ public final class AutocastAmuletAutoCastEvent {
 
     private static void scheduleRetry(ItemStack stack, long currentTick, int spellIndex) {
         AutocastAmulet.scheduleRetrySequence(stack, currentTick, spellIndex);
-    }
-
-    private static void displayActionBar(ServerPlayer player, Component message) {
-        player.connection.send(new ClientboundSetActionBarTextPacket(message));
     }
 
     private static List<SlotResult> getEquippedAmulets(ServerPlayer player) {

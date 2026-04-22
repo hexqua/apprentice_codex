@@ -134,6 +134,8 @@
   "item.apprenticecodex.spellcaster_quiver.stored_amount": "Stored: %s / %s",
   "item.apprenticecodex.autocast_amulet.desc_1": "Automatically casts imbued magic.",
   "item.apprenticecodex.autocast_amulet.desc_2": "Limited to certain spells, and will continuously attempt to cast.",
+  "item.apprenticecodex.autocast_amulet.cooldown_title": "Current spell cooldowns:",
+  "item.apprenticecodex.autocast_amulet.cooldown_line": "- %1$s: %2$ds",
   "item.apprenticecodex.mana_shield_charm.desc_1": "Absorbs damage by consuming mana.",
   "item.apprenticecodex.mana_shield_charm.desc_2": "Mana barrier does not benefit from armor.",
   "item.apprenticecodex.mana_shield_charm.desc_3": "Stops functioning until mana is fully recovered after depletion.",

@@ -109,6 +109,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNotificationControllerSchedulesCastAndThresholds(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerSchedulesCastAndThresholds(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNotificationControllerSkipsUnreachedThresholds(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerSkipsUnreachedThresholds(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(helper);
     }
