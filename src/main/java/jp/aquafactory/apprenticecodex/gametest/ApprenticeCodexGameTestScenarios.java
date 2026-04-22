@@ -2890,6 +2890,103 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
+    static void autocastAmuletNotificationControllerSchedulesCastAndThresholds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var spellId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
+            var icon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
+
+            controller.queueCooldownCast(100L, spellId, icon, 1300);
+
+            var active = controller.getActiveNotification();
+            helper.assertTrue(active != null, "Autocast Amulet notification controller should show the cast notification immediately");
+            if (active != null) {
+                helper.assertTrue(active.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST,
+                        "Autocast Amulet cast notification should use the CAST kind");
+                helper.assertTrue(active.displaySeconds() == 65,
+                        "Autocast Amulet cast notification should display the rounded cooldown seconds");
+                helper.assertTrue("65s".equals(active.displayText()),
+                        "Autocast Amulet cast notification text should include the seconds suffix");
+            }
+
+            var scheduled = controller.getScheduledNotifications();
+            helper.assertTrue(scheduled.size() == 3,
+                    "Autocast Amulet 65 second cooldown should schedule 60/30/10 notifications but got " + scheduled.size());
+            if (scheduled.size() == 3) {
+                helper.assertTrue(scheduled.get(0).triggerTick() == 200L && scheduled.get(0).entry().displaySeconds() == 60,
+                        "Autocast Amulet 60 second notification should trigger when 60 seconds remain");
+                helper.assertTrue(scheduled.get(1).triggerTick() == 800L && scheduled.get(1).entry().displaySeconds() == 30,
+                        "Autocast Amulet 30 second notification should trigger when 30 seconds remain");
+                helper.assertTrue(scheduled.get(2).triggerTick() == 1200L && scheduled.get(2).entry().displaySeconds() == 10,
+                        "Autocast Amulet 10 second notification should trigger when 10 seconds remain");
+            }
+        });
+    }
+    static void autocastAmuletNotificationControllerSkipsUnreachedThresholds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var spellId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge");
+            var icon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/charge.png");
+
+            controller.queueCooldownCast(0L, spellId, icon, 500);
+
+            var scheduled = controller.getScheduledNotifications();
+            helper.assertTrue(scheduled.size() == 1,
+                    "Autocast Amulet 25 second cooldown should only schedule the 10 second notification but got " + scheduled.size());
+            if (scheduled.size() == 1) {
+                helper.assertTrue(scheduled.get(0).triggerTick() == 300L,
+                        "Autocast Amulet 25 second cooldown should trigger the 10 second notification after 15 seconds");
+                helper.assertTrue(scheduled.get(0).entry().displaySeconds() == 10,
+                        "Autocast Amulet short cooldown should keep the 10 second label");
+            }
+        });
+    }
+    static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var healId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
+            var healIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
+            var chargeId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge");
+            var chargeIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/charge.png");
+            var manaLowId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "heal");
+            var manaLowIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/heal.png");
+            var delayedId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "fire_breath");
+            var delayedIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/fire_breath.png");
+
+            controller.queueCooldownCast(0L, healId, healIcon, 1300);
+            controller.queueCooldownCast(1L, chargeId, chargeIcon, 800);
+            helper.assertTrue(controller.getPendingQueueSize() == 1,
+                    "Autocast Amulet overlapping cast notifications should queue instead of drawing together");
+
+            controller.advance(30L);
+            var secondCast = controller.getActiveNotification();
+            helper.assertTrue(secondCast != null && secondCast.spellId().equals(chargeId),
+                    "Autocast Amulet queued cast notification should appear after the first cast display finishes");
+
+            controller.queueManaLow(30L, manaLowId, manaLowIcon);
+            controller.advance(60L);
+            var manaLow = controller.getActiveNotification();
+            helper.assertTrue(manaLow != null
+                            && manaLow.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.MANA_LOW
+                            && "MP!".equals(manaLow.displayText()),
+                    "Autocast Amulet mana-low notification should use the dedicated minimal overlay text");
+
+            controller.queueCooldownCast(85L, delayedId, delayedIcon, 400);
+            controller.advance(100L);
+            var stillBlockedByQueue = controller.getActiveNotification();
+            helper.assertTrue(stillBlockedByQueue != null
+                            && stillBlockedByQueue.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST
+                            && stillBlockedByQueue.spellId().equals(delayedId),
+                    "Autocast Amulet threshold notification should wait until earlier queued notifications finish");
+
+            controller.advance(130L);
+            var delayedThreshold = controller.getActiveNotification();
+            helper.assertTrue(delayedThreshold != null
+                            && delayedThreshold.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.THRESHOLD
+                            && "60s".equals(delayedThreshold.displayText()),
+                    "Autocast Amulet delayed threshold notification should keep the original 60 second label");
+        });
+    }
     static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();

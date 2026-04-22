@@ -28,6 +28,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, RestrictedSpellImbuableItem,
         SpellSlotUpgradeableItem, WeaponImbueCooldownPolicyItem {
@@ -280,6 +281,28 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
                         requiredMana
                 )
                 .withStyle(ChatFormatting.RED);
+    }
+
+    public static List<SpellData> getImbuedSpells(ItemStack stack) {
+        var spells = new ArrayList<SpellData>();
+        if (!ISpellContainer.isSpellContainer(stack)) {
+            return spells;
+        }
+
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
+            return spells;
+        }
+
+        for (var index = 0; index < spellContainer.getMaxSpellCount(); ++index) {
+            var spellData = spellContainer.getSpellAtIndex(index);
+            if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+                continue;
+            }
+
+            spells.add(spellData);
+        }
+        return spells;
     }
 
     @Override
