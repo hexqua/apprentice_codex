@@ -69,6 +69,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmCooldownRecoversAtOneHundredMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmCooldownRecoversAtOneHundredMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(helper);
     }

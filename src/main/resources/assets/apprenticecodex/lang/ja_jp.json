@@ -141,7 +141,7 @@
   "item.apprenticecodex.autocast_amulet.tooltip.cooldown_line": "- %1$s: クールダウン中(%2$d秒)",
   "item.apprenticecodex.mana_shield_charm.desc_1": "マナを消費してダメージを打ち消す。",
   "item.apprenticecodex.mana_shield_charm.desc_2": "ただし、マナの障壁は防御力の効果を受けることができない。",
-  "item.apprenticecodex.mana_shield_charm.desc_3": "マナを使い果たすとマナが全回復するまで機能を停止する。",
+  "item.apprenticecodex.mana_shield_charm.desc_3": "マナを使い果たすとマナが100まで回復するまで機能を停止する。",
 
   "item.apprenticecodex.swingcast.common.desc": "この杖は攻撃時に注入した魔法を放つ。",
   "item.apprenticecodex.flask_system.kind": "中身: %s",
