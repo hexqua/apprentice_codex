@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletClientNotificationState;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController;
 import net.minecraft.client.Minecraft;
@@ -11,7 +10,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -95,15 +93,6 @@ public final class AutocastAmuletCooldownOverlayEvent {
         RenderSystem.disableBlend();
         guiGraphics.drawString(font, text, textX, textY, applyAlpha(resolveTextColor(notification), alpha), true);
         guiGraphics.pose().popPose();
-    }
-
-    @SubscribeEvent
-    public static void onItemTooltip(ItemTooltipEvent event) {
-        if (!(event.getItemStack().getItem() instanceof AutocastAmulet)) {
-            return;
-        }
-
-        event.getToolTip().addAll(AutocastAmuletClientNotificationState.buildCooldownTooltipLines(event.getItemStack()));
     }
 
     private static int resolveTextColor(AutocastAmuletNotificationController.NotificationEntry notification) {
