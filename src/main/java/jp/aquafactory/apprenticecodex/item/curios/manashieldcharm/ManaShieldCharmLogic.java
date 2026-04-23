@@ -150,6 +150,8 @@ final class ManaShieldCharmLogic {
             DamageSource source,
             EnchantmentMode enchantmentMode
     ) {
+        // 各モードで軽減順は違っても、低マナ時に赤字で通せる不足ステップは 1 ヒット 1 回だけに揃える。
+        // 1.21.1 側ではイベント順や再計算位置が変わり得るため、処理形状ではなくこの救済意図を優先して移植判断すること。
         return switch (enchantmentMode) {
             case SHELL -> resolveShellDamage(incomingDamage, currentMana, player, source);
             case SYNCHRONIZATION -> resolveSynchronizationDamage(incomingDamage, currentMana, player, source);
@@ -158,11 +160,15 @@ final class ManaShieldCharmLogic {
     }
 
     private static DamageResolution resolveBaseDamage(float incomingDamage, float currentMana) {
-        var barrierResolution = negateDamageWithMana(incomingDamage, currentMana, MANA_PER_DAMAGE);
+        var barrierResolution = negateDamageWithMana(
+                incomingDamage,
+                HitManaBudget.forIncomingHit(currentMana),
+                MANA_PER_DAMAGE
+        );
         return new DamageResolution(
                 barrierResolution.negatedDamage(),
                 barrierResolution.remainingDamage(),
-                barrierResolution.remainingMana(),
+                barrierResolution.hitManaBudget().remainingMana(),
                 ResidualDamageProfile.VANILLA,
                 false
         );
@@ -175,11 +181,15 @@ final class ManaShieldCharmLogic {
             DamageSource source
     ) {
         var reducedDamage = applyArmorReduction(player, source, incomingDamage);
-        var barrierResolution = negateDamageWithMana(reducedDamage, currentMana, MANA_PER_DAMAGE);
+        var barrierResolution = negateDamageWithMana(
+                reducedDamage,
+                HitManaBudget.forIncomingHit(currentMana),
+                MANA_PER_DAMAGE
+        );
         return new DamageResolution(
                 barrierResolution.negatedDamage(),
                 barrierResolution.remainingDamage(),
-                barrierResolution.remainingMana(),
+                barrierResolution.hitManaBudget().remainingMana(),
                 ResidualDamageProfile.SHELL,
                 true
         );
@@ -193,22 +203,30 @@ final class ManaShieldCharmLogic {
     ) {
         var reducedDamage = applyEnchantmentProtection(player, source, incomingDamage);
         var mitigatedBySynchronization = Math.max(incomingDamage - reducedDamage, 0.0F);
-        var synchronizationCharge = consumeMitigationCost(mitigatedBySynchronization, currentMana, SYNCHRONIZATION_MANA_PER_DAMAGE);
-        if (synchronizationCharge.exhaustedDuringMitigation()) {
+        var synchronizationCharge = consumeMitigationCost(
+                mitigatedBySynchronization,
+                HitManaBudget.forIncomingHit(currentMana),
+                SYNCHRONIZATION_MANA_PER_DAMAGE
+        );
+        if (synchronizationCharge.stopBeforeBarrierStage()) {
             return new DamageResolution(
                     mitigatedBySynchronization,
                     reducedDamage,
-                    0.0F,
+                    synchronizationCharge.hitManaBudget().remainingMana(),
                     ResidualDamageProfile.SYNCHRONIZATION,
                     false
             );
         }
 
-        var barrierResolution = negateDamageWithMana(reducedDamage, synchronizationCharge.remainingMana(), MANA_PER_DAMAGE);
+        var barrierResolution = negateDamageWithMana(
+                reducedDamage,
+                synchronizationCharge.hitManaBudget(),
+                MANA_PER_DAMAGE
+        );
         return new DamageResolution(
                 mitigatedBySynchronization + barrierResolution.negatedDamage(),
                 barrierResolution.remainingDamage(),
-                barrierResolution.remainingMana(),
+                barrierResolution.hitManaBudget().remainingMana(),
                 ResidualDamageProfile.SYNCHRONIZATION,
                 false
         );
@@ -309,30 +327,46 @@ final class ManaShieldCharmLogic {
         return enchantment.isPresent() ? stack.getEnchantmentLevel(enchantment.get()) : 0;
     }
 
-    private static DamageResolution negateDamageWithMana(float incomingDamage, float currentMana, float manaPerDamage) {
+    private static BarrierResolution negateDamageWithMana(
+            float incomingDamage,
+            HitManaBudget hitManaBudget,
+            float manaPerDamage
+    ) {
         var remainingDamage = incomingDamage;
-        var remainingMana = currentMana;
+        var remainingMana = hitManaBudget.remainingMana();
         var negatedDamage = 0.0F;
+        var overdraftAvailable = hitManaBudget.overdraftAvailable();
 
-        while (remainingDamage >= DAMAGE_STEP && remainingMana >= manaPerDamage) {
-            remainingDamage -= DAMAGE_STEP;
-            remainingMana -= manaPerDamage;
-            negatedDamage += DAMAGE_STEP;
+        while (remainingDamage >= DAMAGE_STEP) {
+            if (remainingMana >= manaPerDamage) {
+                remainingDamage -= DAMAGE_STEP;
+                remainingMana -= manaPerDamage;
+                negatedDamage += DAMAGE_STEP;
+                continue;
+            }
+            if (overdraftAvailable && remainingMana > 0.0F) {
+                remainingDamage -= DAMAGE_STEP;
+                negatedDamage += DAMAGE_STEP;
+                remainingMana = 0.0F;
+                overdraftAvailable = false;
+            }
+            break;
         }
 
-        return new DamageResolution(
+        return new BarrierResolution(
                 negatedDamage,
                 Math.max(remainingDamage, 0.0F),
-                remainingMana,
-                ResidualDamageProfile.VANILLA,
-                false
+                new HitManaBudget(remainingMana, overdraftAvailable)
         );
     }
 
-    private static ManaCostResult consumeMitigationCost(float mitigatedDamage, float currentMana, float manaPerDamage) {
+    private static MitigationChargeResult consumeMitigationCost(
+            float mitigatedDamage,
+            HitManaBudget hitManaBudget,
+            float manaPerDamage
+    ) {
         var remainingDamage = mitigatedDamage;
-        var remainingMana = currentMana;
-        var exhaustedDuringMitigation = false;
+        var remainingMana = hitManaBudget.remainingMana();
 
         while (remainingDamage >= DAMAGE_STEP && remainingMana >= manaPerDamage) {
             remainingDamage -= DAMAGE_STEP;
@@ -340,10 +374,18 @@ final class ManaShieldCharmLogic {
         }
 
         if (remainingDamage >= DAMAGE_STEP) {
-            exhaustedDuringMitigation = true;
+            // Synchronization は enchant 軽減コスト段階で不足した時点で hit を burned-out 扱いにし、
+            // 後段の通常障壁まで進ませない。ここでさらに barrier 側も救済すると 1 ヒット 2 回無料になる。
+            if (hitManaBudget.overdraftAvailable() && remainingMana > 0.0F) {
+                return new MitigationChargeResult(new HitManaBudget(0.0F, false), true);
+            }
+            return new MitigationChargeResult(new HitManaBudget(0.0F, false), true);
         }
 
-        return new ManaCostResult(remainingMana, exhaustedDuringMitigation);
+        return new MitigationChargeResult(
+                new HitManaBudget(remainingMana, hitManaBudget.overdraftAvailable()),
+                false
+        );
     }
 
     private static float applyArmorReduction(ServerPlayer player, DamageSource source, float damage) {
@@ -512,7 +554,20 @@ final class ManaShieldCharmLogic {
         SYNCHRONIZATION
     }
 
-    private record ManaCostResult(float remainingMana, boolean exhaustedDuringMitigation) {
+    private record HitManaBudget(float remainingMana, boolean overdraftAvailable) {
+        private static HitManaBudget forIncomingHit(float currentMana) {
+            return new HitManaBudget(currentMana, currentMana > 0.0F);
+        }
+    }
+
+    private record BarrierResolution(
+            float negatedDamage,
+            float remainingDamage,
+            HitManaBudget hitManaBudget
+    ) {
+    }
+
+    private record MitigationChargeResult(HitManaBudget hitManaBudget, boolean stopBeforeBarrierStage) {
     }
 
     private record ArmorStats(float armor, float toughness) {
