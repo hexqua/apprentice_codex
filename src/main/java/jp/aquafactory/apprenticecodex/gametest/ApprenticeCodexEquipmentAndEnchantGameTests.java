@@ -64,6 +64,126 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmKeepsExpectedEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmCooldownRecoversAtOneHundredMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmCooldownRecoversAtOneHundredMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletCreativeCastIgnoresManaCost(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletCreativeCastIgnoresManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletLongSpellCompletesImmediately(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNotificationControllerSchedulesCastAndThresholds(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerSchedulesCastAndThresholds(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNotificationControllerSkipsUnreachedThresholds(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerSkipsUnreachedThresholds(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(helper);
     }

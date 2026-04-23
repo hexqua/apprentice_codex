@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -42,10 +43,14 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -54,10 +59,12 @@ import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
@@ -120,6 +127,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.npc.VillagerData;
@@ -140,6 +148,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -169,6 +178,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
@@ -218,6 +228,10 @@ public final class ApprenticeCodexGameTestScenarios {
     private static final TagKey<Item> CURIOS_BACK = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BACK)
+    );
+    private static final TagKey<Item> CURIOS_CHARM = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.CHARM)
     );
     private static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
     private static final UUID CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
@@ -2106,27 +2120,28 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var level = helper.getLevel();
-            var casterPos = new BlockPos(0, 14, 0);
-            prepareWideSearchIsolationArea(helper, casterPos);
-            var caster = createSenseEvilPlayer(helper, casterPos, "sense_evil_horizontal_cube_test");
-            var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
-            var range = getSenseEvilRange(spell, caster, 1);
-            var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
-            var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.5, 0.0, 0.0);
-            var zombie = spawnPositionedZombie(level, zombieCenter);
+        var level = helper.getLevel();
+        var casterPos = createRemoteIsolationOrigin(helper, new BlockPos(0, 14, 0), 768, 0);
+        prepareAbsoluteIsolationPlatform(level, casterPos);
+        var caster = createSenseEvilPlayer(level, casterPos, "sense_evil_horizontal_cube_test");
+        var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
+        var range = getSenseEvilRange(spell, caster, 1);
+        var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
+        var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.5, 0.0, 0.0);
+        var zombie = spawnPositionedZombie(level, zombieCenter);
 
+        helper.runAtTickTime(5, () -> {
             var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
             assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
                     "SenseEvil should detect undead in the added X direction cube band");
+            helper.succeed();
         });
     }
     static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
         var level = helper.getLevel();
-        var casterPos = new BlockPos(0, 14, 0);
-        prepareWideSearchIsolationArea(helper, casterPos);
-        var caster = createSenseEvilPlayer(helper, casterPos, "sense_evil_spawner_cube_test");
+        var casterPos = createRemoteIsolationOrigin(helper, new BlockPos(0, 14, 0), 768, 96);
+        prepareAbsoluteIsolationPlatform(level, casterPos);
+        var caster = createSenseEvilPlayer(level, casterPos, "sense_evil_spawner_cube_test");
         var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
         var range = getSenseEvilRange(spell, caster, 1);
         var diagonalOffset = Mth.floor(range * 0.75);
@@ -2526,6 +2541,866 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield imbued spell should remain removable after save/load");
             helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
                     "Reflectcast Shield imbued spell should remain extractable after save/load");
+        });
+    }
+    static void autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var stack = item.getDefaultInstance();
+            var spellContainer = ISpellContainer.get(stack);
+            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
+            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var necklaceTag = TagKey.create(
+                    Registries.ITEM,
+                    ResourceLocation.fromNamespaceAndPath("curios", io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT)
+            );
+
+            helper.assertTrue(spellContainer != null, "Autocast Amulet default spell container is null");
+            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
+                    "Autocast Amulet default slot count mismatch: " + (spellContainer == null ? -1 : spellContainer.getMaxSpellCount()));
+            helper.assertTrue(spellContainer != null && !spellContainer.isSpellWheel(),
+                    "Autocast Amulet should stay hidden from the spell wheel");
+            helper.assertTrue(stack.is(necklaceTag),
+                    "Autocast Amulet should be tagged as curios:necklace");
+            helper.assertTrue(item.canImbueSpell(apprenticeSpell, 1),
+                    "Autocast Amulet should allow sense_evil by default");
+            helper.assertTrue(item.canImbueSpell(ironsHeal, 1),
+                    "Autocast Amulet should allow Iron's heal by default");
+            helper.assertFalse(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
+                    "Autocast Amulet should reject non-allowlisted spells");
+            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().contains(apprenticeSpell.getSpellResource()),
+                    "Autocast Amulet allowlist should contain sense_evil");
+            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().contains(ironsHeal.getSpellResource()),
+                    "Autocast Amulet allowlist should contain Iron's heal");
+            helper.assertTrue(AutocastAmuletSpellListManager.getAllowlist().size() == 19,
+                    "Autocast Amulet default allowlist size mismatch: " + AutocastAmuletSpellListManager.getAllowlist().size());
+        });
+    }
+
+    static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            helper.assertTrue(stack.is(CURIOS_CHARM),
+                    "Mana Shield Charm should be tagged for the Curios charm slot");
+            helper.assertTrue(stack.getItem() instanceof ManaShieldCharm,
+                    "Mana Shield Charm should resolve to the dedicated curio item implementation");
+        });
+    }
+
+    static void manaShieldCharmKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> assertExactEnchantmentSurfaces(
+                helper,
+                new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()),
+                registryIdSet(
+                        EnchantmentRegistry.SHELL,
+                        EnchantmentRegistry.SYNCHRONIZATION,
+                        EnchantmentRegistry.NEUTRALIZATION
+                ),
+                "Mana Shield Charm"
+        ));
+    }
+
+    static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var shell = EnchantmentRegistry.SHELL.get();
+            var synchronization = EnchantmentRegistry.SYNCHRONIZATION.get();
+            var neutralization = EnchantmentRegistry.NEUTRALIZATION.get();
+
+            helper.assertFalse(shell.isCompatibleWith(synchronization),
+                    "Shell and Synchronization should stay mutually exclusive");
+            helper.assertFalse(shell.isCompatibleWith(neutralization),
+                    "Shell and Neutralization should stay mutually exclusive");
+            helper.assertFalse(synchronization.isCompatibleWith(neutralization),
+                    "Synchronization and Neutralization should stay mutually exclusive");
+        });
+    }
+
+    static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_full_negate_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "full negate");
+
+            var chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm full negate test could not resolve player mana data");
+            magicData.setMana(100.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 2.0F);
+            helper.assertTrue(event.isCanceled(),
+                    "Mana Shield Charm should cancel the fully absorbed LivingAttackEvent");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should keep health unchanged after fully negating damage");
+            helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 50 mana to negate 2 damage but got " + magicData.getMana());
+            helper.assertTrue(chestplate.getDamageValue() == 0,
+                    "Mana Shield Charm should not damage armor durability on a fully negated hit");
+            helper.assertFalse(getManaShieldCharmState(player).cooldownActive,
+                    "Mana Shield Charm should stay active while mana remains after a fully negated hit");
+        });
+    }
+
+    static void manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_burned_out_full_negate_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "burned out full negate");
+
+            var chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm burned-out full negate test could not resolve player mana data");
+            magicData.setMana(25.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+
+            var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(firstEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the hit even when the last full negate burns out the shield");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should keep health unchanged when the last full negate burns out the shield");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Mana Shield Charm should clamp mana to zero after the last full negate but got " + magicData.getMana());
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Mana Shield Charm should enter cooldown immediately after the last full negate burns out the shield");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Mana Shield Charm should still apply vanilla-style invulnerability time when the last full negate burns out the shield");
+            helper.assertTrue(chestplate.getDamageValue() == 0,
+                    "Mana Shield Charm should not damage armor durability when the burned-out hit is still fully negated");
+
+            var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(secondEvent.isCanceled(),
+                    "Mana Shield Charm should still cancel repeated contact damage during the burned-out full-negate i-frame");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should not leak damage during the burned-out full-negate i-frame");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Mana Shield Charm should not spend additional mana during the burned-out full-negate i-frame but got " + magicData.getMana());
+        });
+    }
+
+    static void manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "iframe");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm iframe test could not resolve player mana data");
+            magicData.setMana(100.0F);
+
+            var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(firstEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the first fully negated hit before starting its i-frame");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Mana Shield Charm should apply vanilla-style invulnerability time after a fully negated hit");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 25 mana on the first fully negated hit but got " + magicData.getMana());
+
+            var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(secondEvent.isCanceled(),
+                    "Mana Shield Charm should also cancel repeated contact damage during its vanilla-style i-frame");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should not spend additional mana during its vanilla-style i-frame but got " + magicData.getMana());
+        });
+    }
+
+    static void manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_partial_armor_test");
+            var unarmored = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_partial_plain_test");
+
+            equipCurio(armored, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            equipCurio(unarmored, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, armored, "partial armored");
+            assertManaShieldCharmEquipped(helper, unarmored, "partial unarmored");
+            armored.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
+
+            var armoredMana = MagicData.getPlayerMagicData(armored);
+            var unarmoredMana = MagicData.getPlayerMagicData(unarmored);
+            helper.assertTrue(armoredMana != null && unarmoredMana != null,
+                    "Mana Shield Charm partial reduction test could not resolve player mana data");
+            armoredMana.setMana(40.0F);
+            unarmoredMana.setMana(40.0F);
+            var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
+            var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
+
+            helper.assertTrue(Math.abs(armoredMana.getMana() - 15.0F) < 1.0e-4F,
+                    "Mana Shield Charm partial reduction should only spend one affordable mitigation step for the armored player but got " + armoredMana.getMana());
+            helper.assertTrue(Math.abs(unarmoredMana.getMana() - 15.0F) < 1.0e-4F,
+                    "Mana Shield Charm partial reduction should only spend one affordable mitigation step for the unarmored player but got " + unarmoredMana.getMana());
+            helper.assertTrue(armoredEvent.isCanceled(),
+                    "Mana Shield Charm partial reduction should cancel the original armored LivingAttackEvent");
+            helper.assertTrue(unarmoredEvent.isCanceled(),
+                    "Mana Shield Charm partial reduction should cancel the original unarmored LivingAttackEvent");
+            helper.assertFalse(getManaShieldCharmState(armored).cooldownActive,
+                    "Mana Shield Charm should stay active when mana remains after a partial hit");
+            helper.assertFalse(getManaShieldCharmState(unarmored).cooldownActive,
+                    "Mana Shield Charm should stay active when mana remains after a partial hit");
+        });
+    }
+
+    static void manaShieldCharmCooldownRecoversAtOneHundredMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_recovery_threshold_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "recovery");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm cooldown recovery test could not resolve player mana data");
+            var state = getManaShieldCharmState(player);
+            state.reset();
+            state.cooldownActive = true;
+
+            magicData.setMana(99.0F);
+            var blockedEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(state.cooldownActive,
+                    "Mana Shield Charm should stay disabled below the 100 mana recovery threshold");
+            helper.assertFalse(blockedEvent.isCanceled(),
+                    "Mana Shield Charm should not cancel the hit while cooldown remains locked below 100 mana");
+            helper.assertTrue(Math.abs(magicData.getMana() - 99.0F) < 1.0e-4F,
+                    "Mana Shield Charm should not spend mana while cooldown remains locked below 100 mana");
+
+            state.cooldownActive = true;
+            magicData.setMana(100.0F);
+            var recoveredEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+
+            helper.assertFalse(state.cooldownActive,
+                    "Mana Shield Charm should recover immediately once mana reaches 100");
+            helper.assertTrue(recoveredEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the recovered hit once the cooldown is lifted");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 25 mana after recovering at the threshold but got " + magicData.getMana());
+        });
+    }
+
+    static void manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(GameTestHelper helper) {
+        var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_armored_test");
+        var unarmored = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_shell_unarmored_test");
+        var bypassArmor = createTrackedEquipmentTestPlayer(helper, new BlockPos(6, 2, 0), "mana_shield_shell_bypass_test");
+
+        var shellCharm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+        shellCharm.enchant(EnchantmentRegistry.SHELL.get(), 1);
+        equipCurio(armored, CuriosSlotConstants.CHARM, shellCharm.copy());
+        equipCurio(unarmored, CuriosSlotConstants.CHARM, shellCharm.copy());
+        equipCurio(bypassArmor, CuriosSlotConstants.CHARM, shellCharm.copy());
+
+        var head = new ItemStack(Items.IRON_HELMET);
+        var chest = new ItemStack(Items.IRON_CHESTPLATE);
+        var legs = new ItemStack(Items.IRON_LEGGINGS);
+        var boots = new ItemStack(Items.IRON_BOOTS);
+        armored.setItemSlot(EquipmentSlot.HEAD, head);
+        armored.setItemSlot(EquipmentSlot.CHEST, chest);
+        armored.setItemSlot(EquipmentSlot.LEGS, legs);
+        armored.setItemSlot(EquipmentSlot.FEET, boots);
+
+        var bypassChest = new ItemStack(Items.IRON_CHESTPLATE);
+        bypassArmor.setItemSlot(EquipmentSlot.CHEST, bypassChest);
+
+        var armoredMana = MagicData.getPlayerMagicData(armored);
+        var unarmoredMana = MagicData.getPlayerMagicData(unarmored);
+        var bypassMana = MagicData.getPlayerMagicData(bypassArmor);
+        helper.assertTrue(armoredMana != null && unarmoredMana != null && bypassMana != null,
+                "Mana Shield Charm Shell test could not resolve player mana data");
+
+        armoredMana.setMana(50.0F);
+        unarmoredMana.setMana(50.0F);
+        bypassMana.setMana(50.0F);
+        armored.invulnerableTime = 0;
+        unarmored.invulnerableTime = 0;
+        bypassArmor.invulnerableTime = 0;
+        var armoredInitialHealth = armored.getHealth();
+        var unarmoredInitialHealth = unarmored.getHealth();
+        var bypassInitialHealth = bypassArmor.getHealth();
+        helper.runAtTickTime(1, () -> {
+            var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
+            var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
+            var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
+            var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
+            helper.assertTrue(armoredEvent.isCanceled() && unarmoredEvent.isCanceled() && bypassEvent.isCanceled(),
+                    "Mana Shield Charm Shell test should cancel all intercepted LivingAttackEvent instances");
+            helper.assertTrue(armored.getHealth() > unarmored.getHealth(),
+                    "Shell should apply armor reduction before the normal mana shoulder path"
+                            + " armoredHealth=" + armored.getHealth()
+                            + " unarmoredHealth=" + unarmored.getHealth()
+                            + " armoredMana=" + armoredMana.getMana()
+                            + " unarmoredMana=" + unarmoredMana.getMana());
+            helper.assertTrue(armoredMana.getMana() > unarmoredMana.getMana(),
+                    "Shell should reduce barrier mana consumption when armor mitigates the intercepted hit"
+                            + " armoredMana=" + armoredMana.getMana()
+                            + " unarmoredMana=" + unarmoredMana.getMana());
+            helper.assertTrue(Math.abs(unarmoredMana.getMana()) < 1.0e-4F,
+                    "Shell should still burn out the unarmored player at 50 mana");
+            helper.assertTrue(head.getDamageValue() == 1
+                            && chest.getDamageValue() == 1
+                            && legs.getDamageValue() == 1
+                            && boots.getDamageValue() == 1,
+                    "Shell should spend one durability on each equipped armor piece");
+            helper.assertTrue(Math.abs(bypassArmor.getHealth() - bypassInitialHealth) < 1.0e-4F,
+                    "Shell should not leak armor-bypass damage when base shield mana fully negates it");
+            helper.assertTrue(Math.abs(bypassMana.getMana()) < 1.0e-4F,
+                    "Shell should fall back to the normal 25 mana per damage path on armor-bypass hits");
+            helper.assertTrue(bypassChest.getDamageValue() == 0,
+                    "Shell should not damage armor durability on armor-bypass hits");
+            helper.assertTrue(armored.getHealth() < armoredInitialHealth && unarmored.getHealth() < unarmoredInitialHealth,
+                    "Shell normal damage test should leave residual health damage on both players");
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_cost_test");
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                var armorStack = switch (slot) {
+                    case HEAD -> new ItemStack(Items.IRON_HELMET);
+                    case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
+                    case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
+                    case FEET -> new ItemStack(Items.IRON_BOOTS);
+                    default -> ItemStack.EMPTY;
+                };
+                armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
+                player.setItemSlot(slot, armorStack);
+            }
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Synchronization cost test could not resolve player mana data");
+            magicData.setMana(120.0F);
+            var availableMana = magicData.getMana();
+            player.invulnerableTime = 0;
+
+            var source = helper.getLevel().damageSources().lava();
+            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
+            var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
+            var manaAfterSynchronization = Math.max(availableMana - synchronizationSteps * 30.0F, 0.0F);
+            var affordableBarrierSteps = Math.min(
+                    countWholeDamageStepsForGameTest(reducedDamage),
+                    (int) (manaAfterSynchronization / 25.0F)
+            );
+            var expectedRemainingMana = manaAfterSynchronization - affordableBarrierSteps * 25.0F;
+
+            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
+            helper.assertTrue(event.isCanceled(),
+                    "Synchronization should cancel the original LivingAttackEvent when it intercepts the hit");
+            helper.assertTrue(Math.abs(magicData.getMana() - expectedRemainingMana) < 1.0e-4F,
+                    "Synchronization should charge enchant mitigation before the normal barrier stage"
+                            + " protection=" + protection
+                            + " reducedDamage=" + reducedDamage
+                            + " expectedMana=" + expectedRemainingMana
+                            + " actualMana=" + magicData.getMana());
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive == (expectedRemainingMana <= 0.0F),
+                    "Synchronization cooldown state did not match the remaining mana expectation"
+                            + " expectedRemainingMana=" + expectedRemainingMana
+                            + " cooldown=" + getManaShieldCharmState(player).cooldownActive);
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_burnout_test");
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                var armorStack = switch (slot) {
+                    case HEAD -> new ItemStack(Items.IRON_HELMET);
+                    case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
+                    case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
+                    case FEET -> new ItemStack(Items.IRON_BOOTS);
+                    default -> ItemStack.EMPTY;
+                };
+                armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
+                player.setItemSlot(slot, armorStack);
+            }
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Synchronization burnout test could not resolve player mana data");
+            magicData.setMana(20.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var expectedArmor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+            var expectedToughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+            var source = helper.getLevel().damageSources().lava();
+            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+
+            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
+            var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
+                    CombatRules.getDamageAfterMagicAbsorb(5.0F, protection),
+                    expectedArmor,
+                    expectedToughness
+            );
+
+            helper.assertTrue(event.isCanceled(),
+                    "Synchronization burnout test should still cancel the original LivingAttackEvent");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Synchronization burnout should clamp mana to zero");
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Synchronization burnout should enter cooldown during the enchant-reduction stage");
+            helper.assertTrue(Math.abs((initialHealth - player.getHealth()) - expectedHealthLoss) < 1.0e-3F,
+                    "Synchronization burnout should stop before the normal barrier stage and leave only enchant-reduced damage"
+                            + " actualLoss=" + (initialHealth - player.getHealth())
+                            + " expectedLoss=" + expectedHealthLoss
+                            + " mana=" + magicData.getMana());
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_test");
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(EnchantmentRegistry.NEUTRALIZATION.get(), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Neutralization test could not resolve player mana data");
+            magicData.setMana(10.0F);
+            var state = getManaShieldCharmState(player);
+            state.reset();
+            state.cooldownActive = true;
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
+
+            var event = postLivingAttackEventForGameTest(player, source, 2.0F);
+
+            helper.assertTrue(event.isCanceled(),
+                    "Neutralization should cancel armor-bypass damage even while cooldown is active");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Neutralization should fully negate armor-bypass damage");
+            helper.assertTrue(Math.abs(magicData.getMana() - 60.0F) < 1.0e-4F,
+                    "Neutralization should recover mana instead of consuming it");
+            helper.assertTrue(state.cooldownActive,
+                    "Neutralization should not clear cooldown until mana reaches the normal recovery threshold");
+            helper.succeed();
+        });
+    }
+
+    static void autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var stack = item.getDefaultInstance();
+            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
+            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var mutable = ISpellContainer.create(5, false, false).mutableCopy();
+
+            helper.assertTrue(mutable.addSpellAtIndex(apprenticeSpell, 1, 0, false),
+                    "Failed to prepare allowlisted sense_evil for Autocast Amulet normalization test");
+            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1, 1, false),
+                    "Failed to prepare blocked magic_missile for Autocast Amulet normalization test");
+            helper.assertTrue(mutable.addSpellAtIndex(ironsHeal, 1, 2, false),
+                    "Failed to prepare allowlisted heal for Autocast Amulet normalization test");
+            helper.assertTrue(mutable.addSpellAtIndex(ironsGreaterHeal, 1, 3, false),
+                    "Failed to prepare allowlisted greater_heal for Autocast Amulet normalization test");
+            ISpellContainer.set(stack, mutable.toImmutable());
+
+            item.normalizeImbuedSpellContainer(stack);
+
+            var normalized = ISpellContainer.get(stack);
+            helper.assertTrue(normalized != null, "Autocast Amulet normalized spell container is null");
+            helper.assertTrue(normalized != null && normalized.getMaxSpellCount() == 3,
+                    "Autocast Amulet normalization should clamp slot count to 3 but got " + (normalized == null ? -1 : normalized.getMaxSpellCount()));
+            helper.assertTrue(normalized != null && normalized.getActiveSpellCount() == 3,
+                    "Autocast Amulet normalization should keep only 3 allowlisted spells but got " + (normalized == null ? -1 : normalized.getActiveSpellCount()));
+            assertSpellData(helper, normalized, 0, apprenticeSpell, 1, false,
+                    "Autocast Amulet normalization should preserve the first allowlisted spell");
+            assertSpellData(helper, normalized, 1, ironsHeal, 1, false,
+                    "Autocast Amulet normalization should compact later allowlisted spells");
+            assertSpellData(helper, normalized, 2, ironsGreaterHeal, 1, false,
+                    "Autocast Amulet normalization should preserve allowlisted order after filtering");
+
+            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(1) - 1.0D) < 1.0e-9D,
+                    "Autocast Amulet single-spell mana multiplier regression");
+            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(2) - 1.44D) < 1.0e-9D,
+                    "Autocast Amulet two-spell mana multiplier regression");
+            helper.assertTrue(Math.abs(AutocastAmulet.getManaMultiplier(3) - 1.96D) < 1.0e-9D,
+                    "Autocast Amulet three-spell mana multiplier regression");
+            helper.assertTrue(AutocastAmulet.getScaledManaCost(ironsHeal, 1, 3) == 59,
+                    "Autocast Amulet scaled mana cost should round heal to 59 at 3 active spells");
+        });
+    }
+    static void autocastAmuletSpellSlotUpgradeStopsAtThreeAndKeepsOrder(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
+            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
+            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    1,
+                    new SpellData(apprenticeSpell, 1)
+            );
+
+            stack = item.createSpellSlotUpgradeResult(stack, upgradeItem);
+            helper.assertFalse(stack.isEmpty(), "Autocast Amulet should accept the first lesser spell slot upgrade");
+            stack = item.createArcaneAnvilImbueResult(stack, new SpellData(ironsHeal, 1));
+            stack = item.createSpellSlotUpgradeResult(stack, upgradeItem);
+            helper.assertFalse(stack.isEmpty(), "Autocast Amulet should accept the second lesser spell slot upgrade");
+            stack = item.createArcaneAnvilImbueResult(stack, new SpellData(ironsGreaterHeal, 1));
+
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Autocast Amulet upgraded spell container is null");
+            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 3,
+                    "Autocast Amulet spell slot upgrade should stop at 3 slots");
+            assertSpellData(helper, spellContainer, 0, apprenticeSpell, 1, false,
+                    "Autocast Amulet slot upgrade should preserve the first spell");
+            assertSpellData(helper, spellContainer, 1, ironsHeal, 1, false,
+                    "Autocast Amulet slot upgrade should preserve the second spell");
+            assertSpellData(helper, spellContainer, 2, ironsGreaterHeal, 1, false,
+                    "Autocast Amulet slot upgrade should append the third spell at the tail");
+            helper.assertTrue(item.createSpellSlotUpgradeResult(stack, upgradeItem).isEmpty(),
+                    "Autocast Amulet should reject a fourth spell slot upgrade");
+        });
+    }
+    static void autocastAmuletWorkbenchExtractionUsesLastSpellAndKeepsSlotCount(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var apprenticeSpell = SpellRegistry.SENSE_EVIL.get();
+            var ironsHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var ironsGreaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    3,
+                    new SpellData(apprenticeSpell, 1),
+                    new SpellData(ironsHeal, 1),
+                    new SpellData(ironsGreaterHeal, 1)
+            );
+            var spellContainer = ISpellContainer.get(stack);
+
+            helper.assertTrue(spellContainer != null, "Autocast Amulet workbench extraction spell container is null");
+            var extractionIndex = item.getWorkbenchSpellExtractionIndex(stack, spellContainer);
+            helper.assertTrue(extractionIndex == 2,
+                    "Autocast Amulet workbench extraction should target the last filled slot but got " + extractionIndex);
+            helper.assertTrue(item.canRemoveWorkbenchSpell(stack, spellContainer, extractionIndex, spellContainer.getSpellAtIndex(extractionIndex)),
+                    "Autocast Amulet should allow removing its tail spell in Spellcaster Workbench");
+
+            var mutable = spellContainer.mutableCopy();
+            helper.assertTrue(mutable.removeSpellAtIndex(extractionIndex),
+                    "Autocast Amulet tail spell should be removable from the mutable container");
+            ISpellContainer.set(stack, mutable.toImmutable());
+            item.normalizeImbuedSpellContainer(stack);
+
+            var remaining = ISpellContainer.get(stack);
+            helper.assertTrue(remaining != null, "Autocast Amulet remaining spell container is null after extraction");
+            helper.assertTrue(remaining != null && remaining.getMaxSpellCount() == 3,
+                    "Autocast Amulet should preserve max slot count after extraction");
+            helper.assertTrue(remaining != null && remaining.getActiveSpellCount() == 2,
+                    "Autocast Amulet should keep the first two spells after tail extraction");
+            assertSpellData(helper, remaining, 0, apprenticeSpell, 1, false,
+                    "Autocast Amulet should keep the first spell after tail extraction");
+            assertSpellData(helper, remaining, 1, ironsHeal, 1, false,
+                    "Autocast Amulet should keep the second spell after tail extraction");
+            helper.assertTrue(remaining != null && remaining.getSpellAtIndex(2) == SpellData.EMPTY,
+                    "Autocast Amulet should clear only the tail spell slot after extraction");
+        });
+    }
+    static void autocastAmuletAutoCastStartsOnFirstIntervalAfterEquip(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_first_interval_test");
+
+        helper.runAtTickTime(1, () -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge")
+            );
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    1,
+                    new SpellData(spell, 1)
+            );
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.getSyncedData().learnSpell(spell, false);
+            magicData.setMana(200.0F);
+            equipNecklaceCurio(player, stack);
+
+            runAutocastAmuletServerTick(player, 19);
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Autocast Amulet should stay idle before the first 20 tick interval");
+            runAutocastAmuletServerTick(player, 20);
+            helper.assertTrue(magicData.isCasting(),
+                    "Autocast Amulet should start casting charge on the first castable interval after equip");
+            helper.assertTrue(spell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Autocast Amulet should start the imbued charge spell on the first castable interval");
+            helper.assertTrue(magicData.getCastingSpellLevel() == 1,
+                    "Autocast Amulet should cast charge at the imbued spell level");
+            helper.succeed();
+        });
+    }
+    static void autocastAmuletInsufficientManaDelaysRetryAndSkipsErroredSlotOnce(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_mana_retry_test");
+
+        helper.runAtTickTime(1, () -> {
+            var expensiveSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var fallbackSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge")
+            );
+            var expensiveCost = AutocastAmulet.getScaledManaCost(expensiveSpell, 1, 2);
+            var fallbackCost = AutocastAmulet.getScaledManaCost(fallbackSpell, 1, 2);
+            helper.assertTrue(expensiveCost > fallbackCost,
+                    "Autocast Amulet mana retry test requires the first spell to cost more mana than the fallback spell");
+
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    2,
+                    new SpellData(expensiveSpell, 1),
+                    new SpellData(fallbackSpell, 1)
+            );
+            equipNecklaceCurio(player, stack);
+            var equippedStack = getEquippedAutocastAmulet(player);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 8.0F));
+            magicData.getSyncedData().learnSpell(expensiveSpell, false);
+            magicData.getSyncedData().learnSpell(fallbackSpell, false);
+            magicData.setMana(fallbackCost);
+
+            runAutocastAmuletServerTick(player, 20);
+            helper.assertFalse(magicData.isCasting(),
+                    "Autocast Amulet should stop immediately when the first spell lacks mana");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(fallbackSpell),
+                    "Autocast Amulet should not cast the fallback spell in the blocked mana sequence");
+            helper.assertTrue(AutocastAmulet.getRetrySequenceTick(equippedStack) == 80L,
+                    "Autocast Amulet mana retry should wait exactly 60 ticks after the failed sequence");
+            helper.assertTrue(AutocastAmulet.getRetrySkipSlot(equippedStack) == 0,
+                    "Autocast Amulet mana retry should skip the errored slot once on the delayed retry");
+
+            runAutocastAmuletServerTick(player, 40);
+            helper.assertFalse(magicData.isCasting(),
+                    "Autocast Amulet should not retry again before the delayed retry sequence");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(fallbackSpell),
+                    "Autocast Amulet should not cast the fallback spell before the delayed retry sequence");
+
+            runAutocastAmuletServerTick(player, 80);
+            helper.assertTrue(magicData.isCasting(),
+                    "Autocast Amulet delayed retry should skip the errored slot and cast the fallback spell");
+            helper.assertTrue(fallbackSpell.getSpellId().equals(magicData.getCastingSpellId()),
+                    "Autocast Amulet delayed retry should cast the next spell after skipping the errored slot");
+            helper.assertTrue(magicData.getCastingSpellLevel() == 1,
+                    "Autocast Amulet delayed retry should cast charge at the imbued spell level");
+            helper.assertTrue(AutocastAmulet.getRetrySequenceTick(equippedStack) < 0L,
+                    "Autocast Amulet should clear the delayed retry state after consuming the one-shot skipped sequence");
+            helper.assertTrue(AutocastAmulet.getRetrySkipSlot(equippedStack) < 0,
+                    "Autocast Amulet should clear the skipped slot marker after the delayed retry sequence");
+            helper.succeed();
+        });
+    }
+    static void autocastAmuletCreativeCastIgnoresManaCost(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_creative_mana_test");
+
+        helper.runAtTickTime(1, () -> {
+            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    1,
+                    new SpellData(spell, 1)
+            );
+            equipNecklaceCurio(player, stack);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.getSyncedData().learnSpell(spell, false);
+            magicData.setMana(0.0F);
+            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 10.0F));
+            var healthBeforeCast = player.getHealth();
+
+            runAutocastAmuletServerTick(player, 20);
+            var cooldownInstance = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
+            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SWORD,
+                    getEquippedAutocastAmulet(player)
+            );
+            helper.assertTrue(player.getHealth() > healthBeforeCast,
+                    "Autocast Amulet creative test should still cast greater_heal with zero mana");
+            helper.assertFalse(magicData.isCasting(),
+                    "Autocast Amulet creative LONG cast should still complete immediately");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Autocast Amulet creative cast should not consume mana but got " + magicData.getMana());
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Autocast Amulet creative cast should still add spell cooldown");
+            helper.assertTrue(cooldownInstance != null && cooldownInstance.getSpellCooldown() == expectedCooldown,
+                    "Autocast Amulet creative cast should store the helper cooldown amount but got "
+                            + (cooldownInstance == null ? "null" : cooldownInstance.getSpellCooldown())
+                            + " / expected " + expectedCooldown);
+            helper.succeed();
+        });
+    }
+    static void autocastAmuletCooldownUsesHelperAmountWithoutSwordMultiplier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_cooldown_test");
+            var stack = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Autocast Amulet cooldown test could not resolve player mana data");
+            magicData.setPlayerCastingItem(stack.copy());
+
+            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    spell,
+                    player,
+                    CastSource.SWORD,
+                    stack
+            );
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
+                    spell,
+                    player,
+                    CastSource.SWORD
+            );
+            jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                    "Autocast Amulet cooldown event should use the helper cooldown amount but got "
+                            + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+
+            var swordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get().floatValue();
+            if (swordCooldownMultiplier != 1.0F) {
+                helper.assertTrue(
+                        cooldownEvent.getEffectiveCooldown() != io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                                spell,
+                                player,
+                                CastSource.SWORD
+                        ),
+                        "Autocast Amulet cooldown event should diverge from Iron's sword multiplier path when the config multiplier is not 1"
+                );
+            }
+        });
+    }
+    static void autocastAmuletLongSpellCompletesImmediately(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_long_test");
+
+        helper.runAtTickTime(1, () -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var stack = createAutocastAmuletStack(
+                    helper,
+                    1,
+                    new SpellData(spell, 1)
+            );
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.getSyncedData().learnSpell(spell, false);
+            magicData.setMana(300.0F);
+            player.setHealth(Math.max(1.0F, player.getMaxHealth() - 10.0F));
+            var healthBeforeCast = player.getHealth();
+
+            helper.assertTrue(invokeAutocastBeginCast(
+                            player,
+                            magicData,
+                            stack,
+                            new SpellData(spell, 1),
+                            1,
+                            "necklace_0",
+                            AutocastAmulet.getScaledManaCost(spell, 1, 1)
+                    ),
+                    "Autocast Amulet should start greater_heal from the auto-cast path");
+            helper.assertTrue(player.getHealth() > healthBeforeCast,
+                    "Autocast Amulet should resolve greater_heal immediately from the auto-cast path");
+            helper.assertFalse(MagicData.getPlayerMagicData(player).isCasting(),
+                    "Autocast Amulet LONG cast should complete immediately instead of leaving the player casting");
+            helper.succeed();
+        });
+    }
+    static void autocastAmuletNotificationControllerSchedulesCastAndThresholds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var spellId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
+            var icon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
+
+            controller.queueCooldownCast(100L, spellId, icon, 1300);
+
+            var active = controller.getActiveNotification();
+            helper.assertTrue(active != null, "Autocast Amulet notification controller should show the cast notification immediately");
+            if (active != null) {
+                helper.assertTrue(active.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST,
+                        "Autocast Amulet cast notification should use the CAST kind");
+                helper.assertTrue(active.displaySeconds() == 65,
+                        "Autocast Amulet cast notification should display the rounded cooldown seconds");
+                helper.assertTrue("65s".equals(active.displayText()),
+                        "Autocast Amulet cast notification text should include the seconds suffix");
+            }
+
+            var scheduled = controller.getScheduledNotifications();
+            helper.assertTrue(scheduled.size() == 3,
+                    "Autocast Amulet 65 second cooldown should schedule 60/30/10 notifications but got " + scheduled.size());
+            if (scheduled.size() == 3) {
+                helper.assertTrue(scheduled.get(0).triggerTick() == 200L && scheduled.get(0).entry().displaySeconds() == 60,
+                        "Autocast Amulet 60 second notification should trigger when 60 seconds remain");
+                helper.assertTrue(scheduled.get(1).triggerTick() == 800L && scheduled.get(1).entry().displaySeconds() == 30,
+                        "Autocast Amulet 30 second notification should trigger when 30 seconds remain");
+                helper.assertTrue(scheduled.get(2).triggerTick() == 1200L && scheduled.get(2).entry().displaySeconds() == 10,
+                        "Autocast Amulet 10 second notification should trigger when 10 seconds remain");
+            }
+        });
+    }
+    static void autocastAmuletNotificationControllerSkipsUnreachedThresholds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var spellId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge");
+            var icon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/charge.png");
+
+            controller.queueCooldownCast(0L, spellId, icon, 500);
+
+            var scheduled = controller.getScheduledNotifications();
+            helper.assertTrue(scheduled.size() == 1,
+                    "Autocast Amulet 25 second cooldown should only schedule the 10 second notification but got " + scheduled.size());
+            if (scheduled.size() == 1) {
+                helper.assertTrue(scheduled.get(0).triggerTick() == 300L,
+                        "Autocast Amulet 25 second cooldown should trigger the 10 second notification after 15 seconds");
+                helper.assertTrue(scheduled.get(0).entry().displaySeconds() == 10,
+                        "Autocast Amulet short cooldown should keep the 10 second label");
+            }
+        });
+    }
+    static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var healId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
+            var healIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
+            var chargeId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge");
+            var chargeIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/charge.png");
+            var manaLowId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "heal");
+            var manaLowIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/heal.png");
+            var delayedId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "fire_breath");
+            var delayedIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/fire_breath.png");
+
+            controller.queueCooldownCast(0L, healId, healIcon, 1300);
+            controller.queueCooldownCast(1L, chargeId, chargeIcon, 800);
+            helper.assertTrue(controller.getPendingQueueSize() == 1,
+                    "Autocast Amulet overlapping cast notifications should queue instead of drawing together");
+
+            controller.advance(30L);
+            var secondCast = controller.getActiveNotification();
+            helper.assertTrue(secondCast != null && secondCast.spellId().equals(chargeId),
+                    "Autocast Amulet queued cast notification should appear after the first cast display finishes");
+
+            controller.queueManaLow(30L, manaLowId, manaLowIcon);
+            controller.advance(60L);
+            var manaLow = controller.getActiveNotification();
+            helper.assertTrue(manaLow != null
+                            && manaLow.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.MANA_LOW
+                            && "MP!".equals(manaLow.displayText()),
+                    "Autocast Amulet mana-low notification should use the dedicated minimal overlay text");
+
+            controller.queueCooldownCast(85L, delayedId, delayedIcon, 400);
+            controller.advance(100L);
+            var stillBlockedByQueue = controller.getActiveNotification();
+            helper.assertTrue(stillBlockedByQueue != null
+                            && stillBlockedByQueue.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST
+                            && stillBlockedByQueue.spellId().equals(delayedId),
+                    "Autocast Amulet threshold notification should wait until earlier queued notifications finish");
+
+            controller.advance(130L);
+            var delayedThreshold = controller.getActiveNotification();
+            helper.assertTrue(delayedThreshold != null
+                            && delayedThreshold.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.THRESHOLD
+                            && "60s".equals(delayedThreshold.displayText()),
+                    "Autocast Amulet delayed threshold notification should keep the original 60 second label");
         });
     }
     static void ironSpellcasterGunExtractedSpellStaysClearedAfterSaveLoad(GameTestHelper helper) {
@@ -3416,7 +4291,7 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
     static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
+        helper.runAtTickTime(1, () -> {
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_ring_enchant_merge_test");
@@ -3446,15 +4321,16 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
             invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
-            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(blockPos).inflate(1.5D));
+            var drops = getFreshItemDrops(helper.getLevel(), blockPos, 1.5D);
             helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
                     "Touch Dig with ring Silk Touch should drop stone");
             helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
                     "Touch Dig with ring Silk Touch should not drop cobblestone");
+            helper.succeed();
         });
     }
     static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
-        helper.succeedIf(() -> {
+        helper.runAtTickTime(1, () -> {
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_bare_hand_ring_enchant_test");
@@ -3474,15 +4350,16 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
             invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
-            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(blockPos).inflate(1.5D));
+            var drops = getFreshItemDrops(helper.getLevel(), blockPos, 1.5D);
             helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
                     "Bare-hand Touch Dig with ring Silk Touch should drop stone");
             helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
                     "Bare-hand Touch Dig with ring Silk Touch should not drop cobblestone");
+            helper.succeed();
         });
     }
     static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
-        helper.succeedIf(() -> {
+        helper.runAtTickTime(1, () -> {
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createEquipmentTestPlayer(helper, playerPos, "spectral_hammer_ring_enchant_test");
@@ -3508,11 +4385,12 @@ public final class ApprenticeCodexGameTestScenarios {
                 hammer.tick();
             }
 
-            var drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(targetPos).inflate(2.0D));
+            var drops = getFreshItemDrops(helper.getLevel(), targetPos, 2.0D);
             helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
                     "Spectral Hammer with ring Silk Touch should drop stone");
             helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
                     "Spectral Hammer with ring Silk Touch should not drop cobblestone");
+            helper.succeed();
         });
     }
     static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
@@ -5486,6 +6364,9 @@ public final class ApprenticeCodexGameTestScenarios {
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RED_ENERGY, false, false, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.GLOW_ENERGY, false, false, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNTHESIS, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SHELL, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNCHRONIZATION, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.NEUTRALIZATION, false, false, true);
         });
     }
     static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
@@ -6355,6 +7236,14 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
+    private static FakePlayer createEquipmentTestPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
+        var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absoluteVec = Vec3.atBottomCenterOf(absolutePos);
+        player.setPos(absoluteVec.x, absoluteVec.y, absoluteVec.z);
+        return player;
+    }
+
     private static void setFocusStaffbowArrowCatalyst(FakePlayer player, ItemStack arrowStack) {
         player.getInventory().setItem(1, arrowStack.copy());
     }
@@ -6380,8 +7269,52 @@ public final class ApprenticeCodexGameTestScenarios {
         curiosInventory.setEquippedCurio(slotId, 0, stack);
     }
 
+    private static void assertManaShieldCharmEquipped(GameTestHelper helper, ServerPlayer player, String context) {
+        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Mana Shield Charm " + context + " test"));
+        helper.assertTrue(curiosInventory.isEquipped(ItemRegistry.MANA_SHIELD_CHARM.get()),
+                "Mana Shield Charm should be recognized as equipped in Curios during " + context + " test");
+        helper.assertTrue(curiosInventory.findFirstCurio(ItemRegistry.MANA_SHIELD_CHARM.get()).isPresent(),
+                "Mana Shield Charm should be discoverable via findFirstCurio during " + context + " test");
+    }
+
+    private static net.minecraftforge.event.entity.living.LivingAttackEvent postLivingAttackEventForGameTest(
+            ServerPlayer player,
+            net.minecraft.world.damagesource.DamageSource source,
+            float amount
+    ) {
+        var event = new net.minecraftforge.event.entity.living.LivingAttackEvent(player, source, amount);
+        MinecraftForge.EVENT_BUS.post(event);
+        return event;
+    }
+
     private static void equipRingCurio(FakePlayer player, ItemStack ringStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, ringStack);
+    }
+
+    private static void equipNecklaceCurio(FakePlayer player, ItemStack necklaceStack) {
+        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, necklaceStack);
+    }
+
+    private static FakePlayer createTrackedEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = createEquipmentTestPlayer(helper, pos, profileName);
+        helper.getLevel().addFreshEntity(player);
+        return player;
+    }
+
+    private static ItemStack getEquippedAutocastAmulet(FakePlayer player) {
+        return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof AutocastAmulet).stream()
+                        .findFirst()
+                        .map(top.theillusivec4.curios.api.SlotResult::stack)
+                        .orElseThrow(() -> new IllegalStateException("Missing equipped Autocast Amulet for GameTest")))
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Autocast Amulet GameTest"));
+    }
+
+    private static ManaShieldCharmState getManaShieldCharmState(Player player) {
+        return player.getCapability(Capabilities.SPELL_DATA)
+                .map(data -> data.get(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE))
+                .orElseThrow(() -> new IllegalStateException("Missing spell data for Mana Shield Charm GameTest"));
     }
 
     private static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {
@@ -6392,6 +7325,14 @@ public final class ApprenticeCodexGameTestScenarios {
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Failed to invoke Touch Dig destroy helper for GameTest", exception);
         }
+    }
+
+    private static List<ItemEntity> getFreshItemDrops(ServerLevel level, BlockPos pos, double radius) {
+        return level.getEntitiesOfClass(
+                ItemEntity.class,
+                new AABB(pos).inflate(radius),
+                itemEntity -> itemEntity.getAge() <= 1
+        );
     }
 
     private static FakePlayer createExtractPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
@@ -6441,6 +7382,15 @@ public final class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
+    private static FakePlayer createSenseEvilPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
+        var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absoluteVec = Vec3.atBottomCenterOf(absolutePos);
+        player.setPos(absoluteVec.x, absoluteVec.y, absoluteVec.z);
+        level.addFreshEntity(player);
+        return player;
+    }
+
     private static net.minecraft.world.entity.LivingEntity spawnPositionedZombie(ServerLevel level, Vec3 targetCenter) {
         forceLoadChunk(level, BlockPos.containing(targetCenter));
         var zombie = EntityType.ZOMBIE.create(level);
@@ -6464,7 +7414,10 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static void forceLoadChunk(ServerLevel level, BlockPos pos) {
-        level.getChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
+        var chunkX = SectionPos.blockToSectionCoord(pos.getX());
+        var chunkZ = SectionPos.blockToSectionCoord(pos.getZ());
+        level.setChunkForced(chunkX, chunkZ, true);
+        level.getChunk(chunkX, chunkZ);
     }
 
     private static double getSenseEvilRange(SenseEvil spell, net.minecraft.world.entity.LivingEntity caster, int spellLevel) {
@@ -6624,6 +7577,25 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.setBlock(new BlockPos(centerPos.getX() + x, floorY, centerPos.getZ() + z), Blocks.STONE);
                 helper.setBlock(new BlockPos(centerPos.getX() + x, centerPos.getY(), centerPos.getZ() + z), Blocks.AIR);
                 helper.setBlock(new BlockPos(centerPos.getX() + x, centerPos.getY() + 1, centerPos.getZ() + z), Blocks.AIR);
+            }
+        }
+    }
+
+    private static BlockPos createRemoteIsolationOrigin(GameTestHelper helper, BlockPos relativePos, int xOffset, int zOffset) {
+        return helper.absolutePos(relativePos).offset(xOffset, 0, zOffset);
+    }
+
+    private static void prepareAbsoluteIsolationPlatform(ServerLevel level, BlockPos centerPos) {
+        var floorY = centerPos.getY() - 1;
+        for (var x = -2; x <= 2; ++x) {
+            for (var z = -2; z <= 2; ++z) {
+                var floorPos = new BlockPos(centerPos.getX() + x, floorY, centerPos.getZ() + z);
+                var lowerAirPos = new BlockPos(centerPos.getX() + x, centerPos.getY(), centerPos.getZ() + z);
+                var upperAirPos = new BlockPos(centerPos.getX() + x, centerPos.getY() + 1, centerPos.getZ() + z);
+                forceLoadChunk(level, floorPos);
+                level.setBlock(floorPos, Blocks.STONE.defaultBlockState(), 3);
+                level.setBlock(lowerAirPos, Blocks.AIR.defaultBlockState(), 3);
+                level.setBlock(upperAirPos, Blocks.AIR.defaultBlockState(), 3);
             }
         }
     }
@@ -7035,6 +8007,32 @@ public final class ApprenticeCodexGameTestScenarios {
             case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
             case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
         };
+    }
+
+    private static float getEquippedAttributeTotal(Player player, Attribute attribute) {
+        var total = 0.0F;
+        for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+            var stack = player.getItemBySlot(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+
+            total += (float) stack.getAttributeModifiers(slot).get(attribute).stream()
+                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.ADDITION)
+                    .mapToDouble(AttributeModifier::getAmount)
+                    .sum();
+        }
+        return total;
+    }
+
+    private static int countWholeDamageStepsForGameTest(float damage) {
+        var remainingDamage = damage;
+        var count = 0;
+        while (remainingDamage >= 1.0F) {
+            remainingDamage -= 1.0F;
+            ++count;
+        }
+        return count;
     }
 
     private static Set<ResourceLocation> registryIdSet(RegistryObject<Enchantment>... enchantments) {
@@ -7838,6 +8836,78 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(mutable.getActiveSpellCount() == targetActiveCount,
                 "Failed to prepare overflow Explorer's Codex: expected " + targetActiveCount + " active spells but got "
                         + mutable.getActiveSpellCount());
+    }
+
+    private static ItemStack createAutocastAmuletStack(GameTestHelper helper, int spellSlotCount, SpellData... spells) {
+        var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+        var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
+        var stack = item.getDefaultInstance();
+
+        while (true) {
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Autocast Amulet setup lost its spell container");
+            if (spellContainer != null && spellContainer.getMaxSpellCount() >= spellSlotCount) {
+                break;
+            }
+
+            stack = item.createSpellSlotUpgradeResult(stack, upgradeItem);
+            helper.assertFalse(stack.isEmpty(),
+                    "Failed to prepare Autocast Amulet with " + spellSlotCount + " spell slots");
+        }
+
+        for (var spellData : spells) {
+            stack = item.createArcaneAnvilImbueResult(stack, spellData);
+            helper.assertFalse(stack.isEmpty(),
+                    "Failed to imbue Autocast Amulet with " + spellData.getSpell().getSpellResource());
+        }
+
+        return stack;
+    }
+
+    private static List<AutoMagnetFamiliarEntity> getOwnedAutoMagnetFamiliars(GameTestHelper helper, FakePlayer owner) {
+        return helper.getLevel().getEntitiesOfClass(
+                AutoMagnetFamiliarEntity.class,
+                new AABB(owner.position(), owner.position()).inflate(32.0),
+                familiar -> {
+                    var summonOwner = familiar.getOwner();
+                    return summonOwner != null && owner.getUUID().equals(summonOwner.getUUID());
+                }
+        );
+    }
+
+    private static boolean invokeAutocastBeginCast(
+            ServerPlayer player,
+            MagicData magicData,
+            ItemStack stack,
+            SpellData spellData,
+            int spellLevel,
+            String castingSlot,
+            int scaledManaCost
+    ) {
+        try {
+            var method = AutocastAmuletAutoCastEvent.class.getDeclaredMethod(
+                    "beginAutoCast",
+                    ServerPlayer.class,
+                    MagicData.class,
+                    ItemStack.class,
+                    SpellData.class,
+                    int.class,
+                    String.class,
+                    int.class
+            );
+            method.setAccessible(true);
+            return (boolean) method.invoke(null, player, magicData, stack, spellData, spellLevel, castingSlot, scaledManaCost);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to invoke Autocast Amulet auto-cast helper for GameTest", exception);
+        }
+    }
+
+    private static void runAutocastAmuletServerTick(FakePlayer player, int tickCount) {
+        player.tickCount = tickCount;
+        AutocastAmuletAutoCastEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+        jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onPlayerTick(
+                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player)
+        );
     }
 
     private static void assertSpellData(

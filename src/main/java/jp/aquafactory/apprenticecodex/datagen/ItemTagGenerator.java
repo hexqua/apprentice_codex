@@ -26,10 +26,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     }
 
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
+    private static final TagKey<Item> IRONS_IMBUE_WHITELIST = createTag("irons_spellbooks", "imbue_whitelist");
     private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
     private static final TagKey<Item> CURIOS_BACK = createTag("curios", "back");
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
+    private static final TagKey<Item> CURIOS_CHARM = createTag("curios", "charm");
     private static final TagKey<Item> CURIOS_HEAD = createTag("curios", "head");
     private static final TagKey<Item> CURIOS_NECKLACE = createTag("curios", "necklace");
     private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
@@ -56,6 +58,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get()
         );
+        // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
+        // Autocast Amulet は whitelist へ明示登録して JEI 上でも Arcane Anvil 対象として拾わせる。
+        tag(IRONS_IMBUE_WHITELIST).add(ItemRegistry.AUTOCAST_AMULET.get());
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
 
@@ -120,11 +125,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get()
         );
         tag(CURIOS_BACK).add(ItemRegistry.SPELLCASTER_QUIVER.get());
-        tag(CURIOS_NECKLACE).add(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
+        tag(CURIOS_NECKLACE).add(
+                ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get(),
+                ItemRegistry.AUTOCAST_AMULET.get()
+        );
         tag(CURIOS_HEAD).add(
                 ItemRegistry.ASHEN_CIRCLET.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
+        tag(CURIOS_CHARM).add(ItemRegistry.MANA_SHIELD_CHARM.get());
         tag(CREATE_CONTRAPTION_CONTROLLED).add(ItemRegistry.SPELL_DISPENSER.get());
 
         tag(TagRegistry.Items.SPELLCASTER_AMMO_POUCH_STORABLE).add(

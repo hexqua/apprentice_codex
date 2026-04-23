@@ -17,7 +17,10 @@ public final class ApprenticeEnchantmentAvailability {
 
     public static boolean isExcludedFromRandomBookLoot(Enchantment enchantment) {
         return isFlaskExclusiveEnchantment(enchantment)
-                || matches(enchantment, EnchantmentRegistry.SYNTHESIS);
+                || matches(enchantment, EnchantmentRegistry.SYNTHESIS)
+                || matches(enchantment, EnchantmentRegistry.SHELL)
+                || matches(enchantment, EnchantmentRegistry.SYNCHRONIZATION)
+                || matches(enchantment, EnchantmentRegistry.NEUTRALIZATION);
     }
 
     private static boolean matches(Enchantment enchantment, RegistryObject<Enchantment> registryObject) {
