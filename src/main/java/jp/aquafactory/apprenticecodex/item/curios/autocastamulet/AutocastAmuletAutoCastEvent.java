@@ -166,7 +166,14 @@ public final class AutocastAmuletAutoCastEvent {
 
         // attemptInitiateCast だとこのアイテム独自の skip / cooldown 方針と二重判定になるため、
         // ここでは Iron's 本来の詠唱状態遷移だけを最小限で再利用する。
-        if (NeoForge.EVENT_BUS.post(new SpellPreCastEvent(player, spell.getSpellId(), spellLevel, spell.getSchoolType(), CastSource.SWORD))) {
+        var preCastEvent = NeoForge.EVENT_BUS.post(new SpellPreCastEvent(
+                player,
+                spell.getSpellId(),
+                spellLevel,
+                spell.getSchoolType(),
+                CastSource.SWORD
+        ));
+        if (preCastEvent.isCanceled()) {
             return false;
         }
 

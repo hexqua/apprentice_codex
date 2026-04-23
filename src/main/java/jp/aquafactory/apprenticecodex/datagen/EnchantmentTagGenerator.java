@@ -42,10 +42,7 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.SURGE,
                         Enchantments.ATTUNEMENT,
                         Enchantments.WISDOM,
-                        Enchantments.PLUNDER,
-                        Enchantments.SHELL,
-                        Enchantments.SYNCHRONIZATION,
-                        Enchantments.NEUTRALIZATION
+                        Enchantments.PLUNDER
                 );
         tag(EnchantmentTags.TREASURE)
                 .add(Enchantments.TRANSCENDENCE);
@@ -77,10 +74,7 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                         Enchantments.ATTUNEMENT,
                         Enchantments.TRANSCENDENCE,
                         Enchantments.WISDOM,
-                        Enchantments.PLUNDER,
-                        Enchantments.SHELL,
-                        Enchantments.SYNCHRONIZATION,
-                        Enchantments.NEUTRALIZATION
+                        Enchantments.PLUNDER
                 )
                 .remove(Enchantments.SYNTHESIS);
 

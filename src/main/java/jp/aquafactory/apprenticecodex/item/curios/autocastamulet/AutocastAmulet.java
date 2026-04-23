@@ -11,8 +11,10 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownPolicyItem;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -21,6 +23,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,16 +79,17 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        tooltips.add(Component.empty());
-        tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-        tooltips.add(Component.literal(" ")
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new ArrayList<>(tooltips);
+        result.add(Component.empty());
+        result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_1"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        tooltips.add(Component.literal(" ")
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_2"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        return tooltips;
+        return result;
     }
 
     @Override
@@ -229,44 +233,42 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
     }
 
     public static void scheduleRetrySequence(ItemStack stack, long currentTick, int spellIndex) {
-        var tag = stack.getOrCreateTag();
-        tag.putLong(RETRY_SEQUENCE_TICK_TAG, currentTick + ERROR_RETRY_DELAY_TICKS);
-        tag.putInt(RETRY_SKIP_SLOT_TAG, Math.max(0, spellIndex));
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putLong(RETRY_SEQUENCE_TICK_TAG, currentTick + ERROR_RETRY_DELAY_TICKS);
+            tag.putInt(RETRY_SKIP_SLOT_TAG, Math.max(0, spellIndex));
+        });
     }
 
     public static boolean isRetrySequenceCoolingDown(ItemStack stack, long currentTick) {
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(RETRY_SEQUENCE_TICK_TAG)) {
+        var tag = getCustomDataTag(stack);
+        if (tag == null || !tag.contains(RETRY_SEQUENCE_TICK_TAG, Tag.TAG_LONG)) {
             return false;
         }
         return tag.getLong(RETRY_SEQUENCE_TICK_TAG) > currentTick;
     }
 
     public static int consumeReadyRetrySkipSlot(ItemStack stack, long currentTick) {
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(RETRY_SEQUENCE_TICK_TAG)) {
-            return -1;
-        }
+        var skipSlot = new int[]{-1};
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            if (!tag.contains(RETRY_SEQUENCE_TICK_TAG, Tag.TAG_LONG) || tag.getLong(RETRY_SEQUENCE_TICK_TAG) > currentTick) {
+                return;
+            }
 
-        if (tag.getLong(RETRY_SEQUENCE_TICK_TAG) > currentTick) {
-            return -1;
-        }
-
-        var skipSlot = tag.contains(RETRY_SKIP_SLOT_TAG) ? tag.getInt(RETRY_SKIP_SLOT_TAG) : -1;
-        tag.remove(RETRY_SEQUENCE_TICK_TAG);
-        tag.remove(RETRY_SKIP_SLOT_TAG);
-        cleanupAutocastTags(stack, tag);
-        return skipSlot;
+            skipSlot[0] = tag.contains(RETRY_SKIP_SLOT_TAG, Tag.TAG_INT) ? tag.getInt(RETRY_SKIP_SLOT_TAG) : -1;
+            tag.remove(RETRY_SEQUENCE_TICK_TAG);
+            tag.remove(RETRY_SKIP_SLOT_TAG);
+        });
+        return skipSlot[0];
     }
 
     public static long getRetrySequenceTick(ItemStack stack) {
-        var tag = stack.getTag();
-        return tag == null || !tag.contains(RETRY_SEQUENCE_TICK_TAG) ? -1L : tag.getLong(RETRY_SEQUENCE_TICK_TAG);
+        var tag = getCustomDataTag(stack);
+        return tag == null || !tag.contains(RETRY_SEQUENCE_TICK_TAG, Tag.TAG_LONG) ? -1L : tag.getLong(RETRY_SEQUENCE_TICK_TAG);
     }
 
     public static int getRetrySkipSlot(ItemStack stack) {
-        var tag = stack.getTag();
-        return tag == null || !tag.contains(RETRY_SKIP_SLOT_TAG) ? -1 : tag.getInt(RETRY_SKIP_SLOT_TAG);
+        var tag = getCustomDataTag(stack);
+        return tag == null || !tag.contains(RETRY_SKIP_SLOT_TAG, Tag.TAG_INT) ? -1 : tag.getInt(RETRY_SKIP_SLOT_TAG);
     }
 
     public static boolean isSupportedSpellSlotUpgrade(SpellSlotUpgradeItem upgradeItem) {
@@ -311,10 +313,8 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Re
         return castSource == io.redspace.ironsspellbooks.api.spells.CastSource.SWORD;
     }
 
-    private static void cleanupAutocastTags(ItemStack stack, CompoundTag tag) {
-        if (!tag.isEmpty()) {
-            return;
-        }
-        stack.setTag(null);
+    private static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? null : customData.copyTag();
     }
 }

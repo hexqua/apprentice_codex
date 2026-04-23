@@ -56,8 +56,8 @@ public final class AutocastAmuletCooldownOverlayEvent {
         var textWidth = font.width(text);
         var panelWidth = PANEL_PADDING_X * 2 + ICON_SIZE + PANEL_GAP + textWidth;
         var panelHeight = PANEL_PADDING_Y * 2 + ICON_SIZE;
-        var panelX = event.getWindow().getGuiScaledWidth() / 2 - panelWidth / 2;
-        var panelY = event.getWindow().getGuiScaledHeight() / 2 + RETICLE_OFFSET_Y;
+        var panelX = minecraft.getWindow().getGuiScaledWidth() / 2 - panelWidth / 2;
+        var panelY = minecraft.getWindow().getGuiScaledHeight() / 2 + RETICLE_OFFSET_Y;
         var iconX = panelX + PANEL_PADDING_X;
         var iconY = panelY + PANEL_PADDING_Y;
         var textX = iconX + ICON_SIZE + PANEL_GAP;

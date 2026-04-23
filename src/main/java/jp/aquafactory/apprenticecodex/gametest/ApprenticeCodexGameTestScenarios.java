@@ -84,7 +84,6 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
@@ -2737,9 +2736,9 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper,
                 new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()),
                 registryIdSet(
-                        EnchantmentRegistry.SHELL,
-                        EnchantmentRegistry.SYNCHRONIZATION,
-                        EnchantmentRegistry.NEUTRALIZATION
+                        Enchantments.SHELL,
+                        Enchantments.SYNCHRONIZATION,
+                        Enchantments.NEUTRALIZATION
                 ),
                 "Mana Shield Charm"
         ));
@@ -2747,15 +2746,16 @@ public final class ApprenticeCodexGameTestScenarios {
 
     static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var shell = EnchantmentRegistry.SHELL.get();
-            var synchronization = EnchantmentRegistry.SYNCHRONIZATION.get();
-            var neutralization = EnchantmentRegistry.NEUTRALIZATION.get();
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var shell = enchantmentLookup.getOrThrow(Enchantments.SHELL);
+            var synchronization = enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION);
+            var neutralization = enchantmentLookup.getOrThrow(Enchantments.NEUTRALIZATION);
 
-            helper.assertFalse(shell.isCompatibleWith(synchronization),
+            helper.assertFalse(Enchantment.areCompatible(shell, synchronization),
                     "Shell and Synchronization should stay mutually exclusive");
-            helper.assertFalse(shell.isCompatibleWith(neutralization),
+            helper.assertFalse(Enchantment.areCompatible(shell, neutralization),
                     "Shell and Neutralization should stay mutually exclusive");
-            helper.assertFalse(synchronization.isCompatibleWith(neutralization),
+            helper.assertFalse(Enchantment.areCompatible(synchronization, neutralization),
                     "Synchronization and Neutralization should stay mutually exclusive");
         });
     }
@@ -2924,9 +2924,10 @@ public final class ApprenticeCodexGameTestScenarios {
         var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_armored_test");
         var unarmored = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_shell_unarmored_test");
         var bypassArmor = createTrackedEquipmentTestPlayer(helper, new BlockPos(6, 2, 0), "mana_shield_shell_bypass_test");
+        var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
 
         var shellCharm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-        shellCharm.enchant(EnchantmentRegistry.SHELL.get(), 1);
+        shellCharm.enchant(enchantmentLookup.getOrThrow(Enchantments.SHELL), 1);
         equipCurio(armored, CuriosSlotConstants.CHARM, shellCharm.copy());
         equipCurio(unarmored, CuriosSlotConstants.CHARM, shellCharm.copy());
         equipCurio(bypassArmor, CuriosSlotConstants.CHARM, shellCharm.copy());
@@ -2976,7 +2977,9 @@ public final class ApprenticeCodexGameTestScenarios {
                             + " armoredMana=" + armoredMana.getMana()
                             + " unarmoredMana=" + unarmoredMana.getMana());
             helper.assertTrue(Math.abs(unarmoredMana.getMana()) < 1.0e-4F,
-                    "Shell should still burn out the unarmored player at 50 mana");
+                    "Shell should still burn out the unarmored player at 50 mana"
+                            + " armoredMana=" + armoredMana.getMana()
+                            + " unarmoredMana=" + unarmoredMana.getMana());
             helper.assertTrue(head.getDamageValue() == 1
                             && chest.getDamageValue() == 1
                             && legs.getDamageValue() == 1
@@ -2997,9 +3000,11 @@ public final class ApprenticeCodexGameTestScenarios {
     static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_cost_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
             equipCurio(player, CuriosSlotConstants.CHARM, charm);
+            var allDamageProtection = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
 
             for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
                 var armorStack = switch (slot) {
@@ -3009,7 +3014,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     case FEET -> new ItemStack(Items.IRON_BOOTS);
                     default -> ItemStack.EMPTY;
                 };
-                armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
+                armorStack.enchant(allDamageProtection, 4);
                 player.setItemSlot(slot, armorStack);
             }
 
@@ -3020,7 +3025,7 @@ public final class ApprenticeCodexGameTestScenarios {
             player.invulnerableTime = 0;
 
             var source = helper.getLevel().damageSources().lava();
-            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
             var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
             var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
             var manaAfterSynchronization = Math.max(availableMana - synchronizationSteps * 30.0F, 0.0F);
@@ -3050,9 +3055,11 @@ public final class ApprenticeCodexGameTestScenarios {
     static void manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_burnout_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
             equipCurio(player, CuriosSlotConstants.CHARM, charm);
+            var allDamageProtection = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
 
             for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
                 var armorStack = switch (slot) {
@@ -3062,7 +3069,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     case FEET -> new ItemStack(Items.IRON_BOOTS);
                     default -> ItemStack.EMPTY;
                 };
-                armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
+                armorStack.enchant(allDamageProtection, 4);
                 player.setItemSlot(slot, armorStack);
             }
 
@@ -3074,11 +3081,13 @@ public final class ApprenticeCodexGameTestScenarios {
             var expectedArmor = getEquippedAttributeTotal(player, Attributes.ARMOR);
             var expectedToughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
             var source = helper.getLevel().damageSources().lava();
-            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
 
             var event = postLivingAttackEventForGameTest(player, source, 5.0F);
             var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
+                    player,
                     CombatRules.getDamageAfterMagicAbsorb(5.0F, protection),
+                    source,
                     expectedArmor,
                     expectedToughness
             );
@@ -3101,8 +3110,9 @@ public final class ApprenticeCodexGameTestScenarios {
     static void manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_neutralization_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.NEUTRALIZATION.get(), 1);
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.NEUTRALIZATION), 1);
             equipCurio(player, CuriosSlotConstants.CHARM, charm);
 
             var magicData = MagicData.getPlayerMagicData(player);
@@ -4065,29 +4075,6 @@ public final class ApprenticeCodexGameTestScenarios {
         var event = new BlockDropsEvent(level, pos, state, null, new ArrayList<>(), breaker, tool);
         event.setDroppedExperience(droppedExperience);
         return event;
-    }
-    static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var playerPos = new BlockPos(0, 12, 0);
-            prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "spectral_hammer_ring_enchant_test");
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipRingCurio(player, ringStack);
-
-            var targetPos = helper.absolutePos(new BlockPos(0, 12, 2));
-            helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
-
-            var hammer = new SpectralHammer(
-                    helper.getLevel(),
-                    player,
-                    new BlockHitResult(Vec3.atCenterOf(targetPos), Direction.NORTH, targetPos, false),
-                    0,
-                    1
-            );
-            var hammerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 12, 1)));
-            hammer.setPos(hammerPos.x, hammerPos.y, hammerPos.z);
-            helper.getLevel().addFreshEntity(hammer);
     }
     static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> assertCategoryEnchantments(
@@ -5967,9 +5954,9 @@ public final class ApprenticeCodexGameTestScenarios {
             assertApprenticeEnchantmentFlags(helper, Enchantments.RED_ENERGY, false, true, false, false);
             assertApprenticeEnchantmentFlags(helper, Enchantments.GLOW_ENERGY, false, true, false, false);
             assertApprenticeEnchantmentFlags(helper, Enchantments.SYNTHESIS, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SHELL, false, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SYNCHRONIZATION, false, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.NEUTRALIZATION, false, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.SHELL, false, false, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.SYNCHRONIZATION, false, false, false, false);
+            assertApprenticeEnchantmentFlags(helper, Enchantments.NEUTRALIZATION, false, false, false, false);
         });
     }
     static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
@@ -7388,6 +7375,7 @@ public final class ApprenticeCodexGameTestScenarios {
         var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
         enchantmentApplier.accept(enchantments);
         EnchantmentHelper.setEnchantments(equippedRing, enchantments.toImmutable());
+    }
 
     private static void equipNecklaceCurio(FakePlayer player, ItemStack necklaceStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, necklaceStack);
@@ -7409,9 +7397,11 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static ManaShieldCharmState getManaShieldCharmState(Player player) {
-        return player.getCapability(Capabilities.SPELL_DATA)
-                .map(data -> data.get(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE))
-                .orElseThrow(() -> new IllegalStateException("Missing spell data for Mana Shield Charm GameTest"));
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            throw new IllegalStateException("Missing spell data for Mana Shield Charm GameTest");
+        }
+        return spellData.get(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE);
     }
 
     private static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {
@@ -8290,7 +8280,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return ids;
     }
 
-    private static float getEquippedAttributeTotal(Player player, Attribute attribute) {
+    private static float getEquippedAttributeTotal(Player player, Holder<Attribute> attribute) {
         var total = 0.0F;
         for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
             var stack = player.getItemBySlot(slot);
@@ -8298,9 +8288,11 @@ public final class ApprenticeCodexGameTestScenarios {
                 continue;
             }
 
-            total += (float) stack.getAttributeModifiers(slot).get(attribute).stream()
-                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.ADDITION)
-                    .mapToDouble(AttributeModifier::getAmount)
+            total += (float) stack.getAttributeModifiers().modifiers().stream()
+                    .filter(entry -> entry.slot().test(slot))
+                    .filter(entry -> entry.attribute().equals(attribute))
+                    .filter(entry -> entry.modifier().operation() == AttributeModifier.Operation.ADD_VALUE)
+                    .mapToDouble(entry -> entry.modifier().amount())
                     .sum();
         }
         return total;
@@ -8314,14 +8306,6 @@ public final class ApprenticeCodexGameTestScenarios {
             ++count;
         }
         return count;
-    }
-
-    private static Set<ResourceLocation> registryIdSet(EnchantmentRegistry.EnchantmentRef... enchantments) {
-        var ids = new LinkedHashSet<ResourceLocation>();
-        for (var enchantment : enchantments) {
-            ids.add(enchantment.location());
-        }
-        return ids;
     }
 
     private static void assertElementalBowMode(GameTestHelper helper, ItemStack stack, String expectedMode, String message) {

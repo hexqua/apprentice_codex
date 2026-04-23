@@ -40,19 +40,20 @@ public class ManaShieldCharm extends Item implements ICurioItem, NonDamageableAn
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        tooltips.add(Component.empty());
-        tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-        tooltips.add(Component.literal(" ")
+    public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+        var result = new java.util.ArrayList<>(tooltips);
+        result.add(Component.empty());
+        result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_1"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        tooltips.add(Component.literal(" ")
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_2"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        tooltips.add(Component.literal(" ")
+        result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_3"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
-        return tooltips;
+        return result;
     }
 
     @Override
@@ -86,7 +87,7 @@ public class ManaShieldCharm extends Item implements ICurioItem, NonDamageableAn
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         if (enchantments.isEmpty()) {
             return true;
         }

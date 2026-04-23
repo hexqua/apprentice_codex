@@ -5,19 +5,22 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
@@ -86,7 +89,7 @@ final class ManaShieldCharmLogic {
         }
 
         if (event.getSource().is(DamageTypeTags.BYPASSES_ARMOR)
-                && getExclusiveEnchantmentLevel(charmStack, EnchantmentRegistry.NEUTRALIZATION) > 0) {
+                && getExclusiveEnchantmentLevel(charmStack, Enchantments.NEUTRALIZATION) > 0) {
             handleNeutralization(event, player, magicData);
             return;
         }
@@ -247,7 +250,6 @@ final class ManaShieldCharmLogic {
 
     private static ItemStack getEquippedCharm(ServerPlayer player) {
         return CuriosApi.getCuriosInventory(player)
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.MANA_SHIELD_CHARM.get()))
                 .map(slotResult -> slotResult.stack().copy())
                 .orElse(ItemStack.EMPTY);
@@ -255,7 +257,6 @@ final class ManaShieldCharmLogic {
 
     private static boolean isPrimaryEquippedCurio(SlotContext slotContext) {
         return CuriosApi.getCuriosInventory(slotContext.entity())
-                .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.MANA_SHIELD_CHARM.get()))
                 .map(slotResult -> slotResult.slotContext().index() == slotContext.index()
                         && slotResult.slotContext().identifier().equals(slotContext.identifier()))
@@ -302,17 +303,17 @@ final class ManaShieldCharmLogic {
         if (source.is(DamageTypeTags.BYPASSES_ARMOR)) {
             return EnchantmentMode.NONE;
         }
-        if (getExclusiveEnchantmentLevel(charmStack, EnchantmentRegistry.SHELL) > 0) {
+        if (getExclusiveEnchantmentLevel(charmStack, Enchantments.SHELL) > 0) {
             return EnchantmentMode.SHELL;
         }
-        if (getExclusiveEnchantmentLevel(charmStack, EnchantmentRegistry.SYNCHRONIZATION) > 0) {
+        if (getExclusiveEnchantmentLevel(charmStack, Enchantments.SYNCHRONIZATION) > 0) {
             return EnchantmentMode.SYNCHRONIZATION;
         }
         return EnchantmentMode.NONE;
     }
 
-    private static int getExclusiveEnchantmentLevel(ItemStack stack, EnchantmentRegistry.EnchantmentRef enchantment) {
-        return Enchantments.getLevel(stack, enchantment.key());
+    private static int getExclusiveEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantment) {
+        return Enchantments.getLevel(stack, enchantment);
     }
 
     private static DamageResolution negateDamageWithMana(float incomingDamage, float currentMana, float manaPerDamage) {
@@ -359,7 +360,9 @@ final class ManaShieldCharmLogic {
 
         var armorStats = resolveArmorStats(player);
         return CombatRules.getDamageAfterAbsorb(
+                player,
                 damage,
+                source,
                 armorStats.armor(),
                 armorStats.toughness()
         );
@@ -373,7 +376,7 @@ final class ManaShieldCharmLogic {
             return Math.max(damage, 0.0F);
         }
 
-        var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+        var protection = EnchantmentHelper.getDamageProtection(player.serverLevel(), player, source);
         if (protection > 0) {
             return CombatRules.getDamageAfterMagicAbsorb(damage, protection);
         }
@@ -387,7 +390,7 @@ final class ManaShieldCharmLogic {
                 continue;
             }
 
-            armorStack.hurtAndBreak(1, player, brokenEntity -> brokenEntity.broadcastBreakEvent(slot));
+            armorStack.hurtAndBreak(1, player, slot);
         }
     }
 
@@ -482,11 +485,13 @@ final class ManaShieldCharmLogic {
     private static float sumAttributeModifierAmount(
             ItemStack stack,
             EquipmentSlot slot,
-            net.minecraft.world.entity.ai.attributes.Attribute attribute
+            Holder<Attribute> attribute
     ) {
-        return (float) stack.getAttributeModifiers(slot).get(attribute).stream()
-                .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.ADDITION)
-                .mapToDouble(AttributeModifier::getAmount)
+        return (float) stack.getAttributeModifiers().modifiers().stream()
+                .filter(entry -> entry.slot().test(slot))
+                .filter(entry -> entry.attribute().equals(attribute))
+                .filter(entry -> entry.modifier().operation() == AttributeModifier.Operation.ADD_VALUE)
+                .mapToDouble(entry -> entry.modifier().amount())
                 .sum();
     }
 

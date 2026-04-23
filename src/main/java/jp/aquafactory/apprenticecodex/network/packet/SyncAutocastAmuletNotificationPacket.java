@@ -15,7 +15,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-public record SyncAutocastAmuletNotificationPacket(NotificationType type, String spellId, int cooldownTicks)
+public record SyncAutocastAmuletNotificationPacket(NotificationType notificationType, String spellId, int cooldownTicks)
         implements CustomPacketPayload {
     public static final Type<SyncAutocastAmuletNotificationPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_autocast_amulet_notification"));
@@ -28,7 +28,7 @@ public record SyncAutocastAmuletNotificationPacket(NotificationType type, String
     }
 
     public static void encode(SyncAutocastAmuletNotificationPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeEnum(packet.type);
+        buffer.writeEnum(packet.notificationType);
         buffer.writeUtf(packet.spellId);
         buffer.writeVarInt(packet.cooldownTicks);
     }
@@ -70,7 +70,7 @@ public record SyncAutocastAmuletNotificationPacket(NotificationType type, String
                 return;
             }
 
-            if (packet.type == NotificationType.MANA_LOW) {
+            if (packet.notificationType == NotificationType.MANA_LOW) {
                 AutocastAmuletClientNotificationState.queueManaLow(spell.getSpellResource(), spell.getSpellIconResource());
                 return;
             }
