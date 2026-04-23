@@ -34,6 +34,7 @@
   ],
   "client": [
     "ArcaneAnvilJeiRecipeMixin",
+    "ClientPlayerEventsAutocastAmuletTooltipMixin",
     "ClientPlayerEventsFocusStaffbowMixin",
     "ClientInputEventsMixin",
     "ClientSpellCastHelperMixin",

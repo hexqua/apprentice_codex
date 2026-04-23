@@ -62,20 +62,49 @@ public final class ForceFieldDefenseEvent {
     }
 
     public static void spawnAbsorbWallEffect(LivingEntity defender, DamageSource source) {
-        var attackerEntity = source.getEntity();
-        var interceptPosition = getMeleeInterceptPosition(defender, attackerEntity);
-        var interceptNormal = getMeleeInterceptNormal(defender, attackerEntity);
+        spawnAccessoryDefenseWallEffect(defender, source, false);
+    }
+
+    public static void spawnManaShieldWallEffect(LivingEntity defender, DamageSource source, boolean failed) {
+        spawnManaShieldDefenseWallEffect(defender, source, failed);
+    }
+
+    private static void spawnAccessoryDefenseWallEffect(LivingEntity defender, DamageSource source, boolean failed) {
+        var accessoryEffect = resolveAccessoryDefenseEffect(defender, source);
         broadcastDefenseEffect(
                 defender,
-                interceptPosition,
-                interceptNormal,
-                MELEE_WALL_SIZE_SCALE,
+                accessoryEffect.position(),
+                accessoryEffect.normal(),
+                accessoryEffect.sizeScale(),
                 DEFAULT_WALL_LIFETIME_SCALE,
                 DEFAULT_RENDER_WAVE,
-                false,
+                failed,
                 true
         );
-        playAbsorbWallSound(defender, interceptPosition);
+        if (failed) {
+            playFailedBlockSound(defender, accessoryEffect.position());
+            return;
+        }
+        playAbsorbWallSound(defender, accessoryEffect.position());
+    }
+
+    private static void spawnManaShieldDefenseWallEffect(LivingEntity defender, DamageSource source, boolean failed) {
+        var manaShieldEffect = resolveManaShieldDefenseEffect(defender, source);
+        broadcastDefenseEffect(
+                defender,
+                manaShieldEffect.position(),
+                manaShieldEffect.normal(),
+                manaShieldEffect.sizeScale(),
+                DEFAULT_WALL_LIFETIME_SCALE,
+                DEFAULT_RENDER_WAVE,
+                failed,
+                false
+        );
+        if (failed) {
+            playFailedBlockSound(defender, manaShieldEffect.position());
+            return;
+        }
+        playAbsorbWallSound(defender, manaShieldEffect.position());
     }
 
     public static void interceptNearbyProjectiles(Level level, int spellLevel, LivingEntity caster, @Nullable MagicData magicData) {
@@ -536,6 +565,33 @@ public final class ForceFieldDefenseEvent {
         return defenderCenter.add(direction.normalize().scale(interceptDistance));
     }
 
+    private static AccessoryDefenseEffect resolveAccessoryDefenseEffect(LivingEntity defender, DamageSource source) {
+        var attackerEntity = source.getEntity();
+        if (isMeleeAttack(source) && isCloseRangeAttack(defender, attackerEntity)) {
+            return new AccessoryDefenseEffect(
+                    getMeleeInterceptPosition(defender, attackerEntity),
+                    getMeleeInterceptNormal(defender, attackerEntity),
+                    MELEE_WALL_SIZE_SCALE
+            );
+        }
+
+        var directEntity = source.getDirectEntity();
+        var incomingMotion = directEntity != null ? directEntity.getDeltaMovement() : null;
+        var interceptPosition = getRangedInterceptPosition(defender, attackerEntity, incomingMotion);
+        var interceptNormal = getInterceptNormal(defender, interceptPosition, attackerEntity, incomingMotion);
+        return new AccessoryDefenseEffect(interceptPosition, interceptNormal, DEFAULT_WALL_SIZE_SCALE);
+    }
+
+    private static AccessoryDefenseEffect resolveManaShieldDefenseEffect(LivingEntity defender, DamageSource source) {
+        // Mana Shield は被弾直前の近距離防御を見せたいので、飛び道具でも装飾用の遠距離配置には寄せない。
+        var interceptAnchor = source.getDirectEntity() != null ? source.getDirectEntity() : source.getEntity();
+        return new AccessoryDefenseEffect(
+                getMeleeInterceptPosition(defender, interceptAnchor),
+                getMeleeInterceptNormal(defender, interceptAnchor),
+                MELEE_WALL_SIZE_SCALE
+        );
+    }
+
     private static void onForceFieldIntercept(LivingEntity caster, ActiveForceField forceField, Vec3 position, Vec3 normal, int interceptKind) {
         onForceFieldIntercept(
                 caster,
@@ -742,6 +798,9 @@ public final class ForceFieldDefenseEvent {
     }
 
     private record ActiveForceField(MagicData magicData, int spellLevel) {
+    }
+
+    private record AccessoryDefenseEffect(Vec3 position, Vec3 normal, float sizeScale) {
     }
 }
 

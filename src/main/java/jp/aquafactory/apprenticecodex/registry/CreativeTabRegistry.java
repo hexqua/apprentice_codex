@@ -103,8 +103,10 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELLCASTER_AMMO_POUCH.get());
         output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());
         output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
+        output.accept(ItemRegistry.AUTOCAST_AMULET.get().getDefaultInstance());
         output.accept(ItemRegistry.ASHEN_CIRCLET.get());
         output.accept(ItemRegistry.ENCHANTED_CIRCLET.get());
+        output.accept(ItemRegistry.MANA_SHIELD_CHARM.get());
         output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
         output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());

@@ -3,12 +3,15 @@ package jp.aquafactory.apprenticecodex.mixin;
 import io.redspace.ironsspellbooks.gui.arcane_anvil.ArcaneAnvilMenu;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import io.redspace.ironsspellbooks.item.Scroll;
 import net.minecraft.world.inventory.ItemCombinerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -27,7 +30,8 @@ public abstract class ArcaneAnvilMenuMixin {
                 baseStack,
                 modifierStack
         )) {
-            normalizeRestrictedSpellImbueResult(itemCombinerMenu, baseStack, modifierStack);
+            apprentice_codex$normalizeRestrictedSpellImbueResult(itemCombinerMenu, baseStack, modifierStack);
+            apprentice_codex$normalizeSpellSlotUpgradeResult(itemCombinerMenu, baseStack, modifierStack);
             return;
         }
 
@@ -35,7 +39,8 @@ public abstract class ArcaneAnvilMenuMixin {
         itemCombinerMenu.apprenticecodex$getResultSlots().setItem(0, ItemStack.EMPTY);
     }
 
-    private static void normalizeRestrictedSpellImbueResult(ItemCombinerMenuAccessor itemCombinerMenu, ItemStack baseStack, ItemStack modifierStack) {
+    @Unique
+    private static void apprentice_codex$normalizeRestrictedSpellImbueResult(ItemCombinerMenuAccessor itemCombinerMenu, ItemStack baseStack, ItemStack modifierStack) {
         if (!(baseStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem)
                 || !(modifierStack.getItem() instanceof Scroll)) {
             return;
@@ -56,8 +61,21 @@ public abstract class ArcaneAnvilMenuMixin {
             return;
         }
 
-        ISpellContainer.createScrollContainer(spellData.getSpell(), spellData.getLevel(), resultStack);
-        spellImbueItem.normalizeImbuedSpellContainer(resultStack);
+        itemCombinerMenu.apprenticecodex$getResultSlots().setItem(0, spellImbueItem.createArcaneAnvilImbueResult(baseStack, spellData));
+    }
+
+    @Unique
+    private static void apprentice_codex$normalizeSpellSlotUpgradeResult(ItemCombinerMenuAccessor itemCombinerMenu, ItemStack baseStack, ItemStack modifierStack) {
+        if (!(baseStack.getItem() instanceof SpellSlotUpgradeableItem spellSlotUpgradeableItem)
+                || !(modifierStack.getItem() instanceof SpellSlotUpgradeItem spellSlotUpgradeItem)) {
+            return;
+        }
+
+        var resultStack = spellSlotUpgradeableItem.createSpellSlotUpgradeResult(baseStack, spellSlotUpgradeItem);
+        if (resultStack.isEmpty()) {
+            return;
+        }
+
         itemCombinerMenu.apprenticecodex$getResultSlots().setItem(0, resultStack);
     }
 }

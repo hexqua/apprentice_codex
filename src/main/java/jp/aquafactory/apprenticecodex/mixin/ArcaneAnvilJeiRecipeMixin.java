@@ -24,7 +24,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
     @Unique
     private static final String IMBUE_RECIPE_TYPE_NAME = "Imbue";
     @Unique
-    private static final Field ARCANE_ANVIL_JEI_RECIPE_TYPE_FIELD = findTypeField();
+    private static final Field ARCANE_ANVIL_JEI_RECIPE_TYPE_FIELD = apprentice_codex$findTypeField();
 
     @Shadow(remap = false)
     Item leftItem;
@@ -33,7 +33,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
     private void apprenticecodex$filterSpellGunImbueRecipes(
             CallbackInfoReturnable<ArcaneAnvilJeiRecipe.Tuple<List<ItemStack>, List<ItemStack>, List<ItemStack>>> cir
     ) {
-        if (!isImbueRecipe()) {
+        if (!apprentice_codex$isImbueRecipe()) {
             return;
         }
 
@@ -63,11 +63,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
                 ISpellContainer.createScrollContainer(spell, level, scrollStack);
                 rightInputs.add(scrollStack);
 
-                var imbuedStack = new ItemStack(leftItem);
-                ISpellContainer.createScrollContainer(spell, level, imbuedStack);
-                // 付与後に spell container を正規化しないと、盾の固有制約と表示がズレる。
-                spellImbueItem.normalizeImbuedSpellContainer(imbuedStack);
-                outputs.add(imbuedStack);
+                outputs.add(spellImbueItem.createArcaneAnvilImbueResult(new ItemStack(leftItem), new io.redspace.ironsspellbooks.api.spells.SpellData(spell, level)));
             }
         }
 
@@ -75,7 +71,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
     }
 
     @Unique
-    private boolean isImbueRecipe() {
+    private boolean apprentice_codex$isImbueRecipe() {
         try {
             var recipeType = ARCANE_ANVIL_JEI_RECIPE_TYPE_FIELD.get(this);
             return recipeType instanceof Enum<?> enumValue
@@ -86,7 +82,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
     }
 
     @Unique
-    private static Field findTypeField() {
+    private static Field apprentice_codex$findTypeField() {
         try {
             var field = ArcaneAnvilJeiRecipe.class.getDeclaredField("type");
             field.setAccessible(true);
