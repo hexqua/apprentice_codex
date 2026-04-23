@@ -6,12 +6,15 @@ import jp.aquafactory.apprenticecodex.enchantment.AttunementEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.GlowEnergyEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.GuzzleEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.LargeMugEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.NeutralizationEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.RedEnergyEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.RefluxEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.ReservoirEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.ShellEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.SynthesisEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.SurgeEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.SynchronizationEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.TenseEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomEnchantment;
@@ -55,6 +58,12 @@ public final class EnchantmentRegistry {
             ENCHANTMENTS.register("glow_energy", GlowEnergyEnchantment::new);
     public static final RegistryObject<Enchantment> SYNTHESIS =
             ENCHANTMENTS.register("synthesis", SynthesisEnchantment::new);
+    public static final RegistryObject<Enchantment> SHELL =
+            ENCHANTMENTS.register("shell", ShellEnchantment::new);
+    public static final RegistryObject<Enchantment> SYNCHRONIZATION =
+            ENCHANTMENTS.register("synchronization", SynchronizationEnchantment::new);
+    public static final RegistryObject<Enchantment> NEUTRALIZATION =
+            ENCHANTMENTS.register("neutralization", NeutralizationEnchantment::new);
 
     public static void register(IEventBus bus) {
         ENCHANTMENTS.register(bus);

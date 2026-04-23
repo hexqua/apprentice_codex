@@ -74,6 +74,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmKeepsExpectedEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(helper);
     }
@@ -96,6 +106,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void manaShieldCharmCooldownRecoversAtOneHundredMana(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.manaShieldCharmCooldownRecoversAtOneHundredMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)

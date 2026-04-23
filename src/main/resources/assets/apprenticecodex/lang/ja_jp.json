@@ -192,6 +192,9 @@
   "enchantment.apprenticecodex.red_energy": "レッドエナジー",
   "enchantment.apprenticecodex.glow_energy": "グロウエナジー",
   "enchantment.apprenticecodex.synthesis": "合成",
+  "enchantment.apprenticecodex.shell": "外殻",
+  "enchantment.apprenticecodex.synchronization": "同期",
+  "enchantment.apprenticecodex.neutralization": "中和",
 
   "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
   "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",
@@ -207,6 +210,9 @@
   "enchantment.apprenticecodex.red_energy.desc": "フラスコ内にあるポーションの効果時間が延長されます。",
   "enchantment.apprenticecodex.glow_energy.desc": "フラスコ内にあるポーションの効果レベルが上昇しますが、効果時間が短くなります。",
   "enchantment.apprenticecodex.synthesis.desc": "集中詠唱を行う際に矢が不要になります。",
+  "enchantment.apprenticecodex.shell.desc": "マナ障壁が装備者の防具の防御力を得ますが、被弾時に防具が損傷するようになります。",
+  "enchantment.apprenticecodex.synchronization.desc": "マナ障壁が装備者の防具のエンチャントの効果を得ますが、消費マナが増えます。",
+  "enchantment.apprenticecodex.neutralization.desc": "マナ障壁が防御力を無視する攻撃を受けた際に完全に無効化し、代わりにマナとして吸収します。",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
