@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowLoanState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookDataProvider;
 import jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventoryProvider;
@@ -63,6 +64,7 @@ public class CapabilityEvents {
                                 });
                                 newSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE, FocusStaffbowCastState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE, FocusStaffbowLoanState::reset);
+                                newSpellData.edit(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE, ManaShieldCharmState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, RemoteEyeState::reset);
                             }
                         }

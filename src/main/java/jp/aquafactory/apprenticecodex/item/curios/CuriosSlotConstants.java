@@ -6,5 +6,6 @@ public final class CuriosSlotConstants {
 
     public static final String BACK = "back";
     public static final String BELT = "belt";
+    public static final String CHARM = "charm";
     public static final String HEAD = "head";
 }

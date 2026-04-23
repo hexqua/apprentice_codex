@@ -31,6 +31,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
     private static final TagKey<Item> CURIOS_BACK = createTag("curios", "back");
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
+    private static final TagKey<Item> CURIOS_CHARM = createTag("curios", "charm");
     private static final TagKey<Item> CURIOS_HEAD = createTag("curios", "head");
     private static final TagKey<Item> CURIOS_NECKLACE = createTag("curios", "necklace");
     private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
@@ -132,6 +133,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ASHEN_CIRCLET.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
+        tag(CURIOS_CHARM).add(ItemRegistry.MANA_SHIELD_CHARM.get());
         tag(CREATE_CONTRAPTION_CONTROLLED).add(ItemRegistry.SPELL_DISPENSER.get());
 
         tag(TagRegistry.Items.SPELLCASTER_AMMO_POUCH_STORABLE).add(

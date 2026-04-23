@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Focu
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowLoanState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ForceFieldState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.HealingBloomState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MantisLeapState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
@@ -29,6 +30,7 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<FocusStaffbowLoanState> FOCUS_STAFFBOW_LOAN_STATE;
     public static CodexSpellStateType<ForceFieldState> FORCE_FIELD_STATE;
     public static CodexSpellStateType<HealingBloomState> HEALING_BLOOM_STATE;
+    public static CodexSpellStateType<ManaShieldCharmState> MANA_SHIELD_CHARM_STATE;
     public static CodexSpellStateType<MantisLeapState> MANTIS_LEAP_STATE;
     public static CodexSpellStateType<RemoteEyeState> REMOTE_EYE_STATE;
     public static CodexSpellStateType<SearchBeaconState> SEARCH_BEACON_STATE;
@@ -46,6 +48,7 @@ public final class CodexSpellStateTypeRegister {
         FOCUS_STAFFBOW_LOAN_STATE = CodexSpellStates.register("focus_staffbow_loan", FocusStaffbowLoanState::new);
         FORCE_FIELD_STATE = CodexSpellStates.register("force_field", ForceFieldState::new);
         HEALING_BLOOM_STATE = CodexSpellStates.register("healing_bloom", HealingBloomState::new);
+        MANA_SHIELD_CHARM_STATE = CodexSpellStates.register("mana_shield_charm", ManaShieldCharmState::new);
         MANTIS_LEAP_STATE = CodexSpellStates.register("mantis_leap", MantisLeapState::new);
         REMOTE_EYE_STATE = CodexSpellStates.register("remote_eye", RemoteEyeState::new);
         SEARCH_BEACON_STATE = CodexSpellStates.register("search_beacon", SearchBeaconState::new);

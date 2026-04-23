@@ -50,6 +50,7 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -58,6 +59,7 @@ import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
@@ -224,6 +226,10 @@ public final class ApprenticeCodexGameTestScenarios {
     private static final TagKey<Item> CURIOS_BACK = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BACK)
+    );
+    private static final TagKey<Item> CURIOS_CHARM = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.CHARM)
     );
     private static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
     private static final UUID CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
@@ -2568,6 +2574,177 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Autocast Amulet default allowlist size mismatch: " + AutocastAmuletSpellListManager.getAllowlist().size());
         });
     }
+
+    static void manaShieldCharmUsesCharmSlotAndAppearsInCreativeTab(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            helper.assertTrue(stack.is(CURIOS_CHARM),
+                    "Mana Shield Charm should be tagged for the Curios charm slot");
+            helper.assertTrue(stack.getItem() instanceof ManaShieldCharm,
+                    "Mana Shield Charm should resolve to the dedicated curio item implementation");
+        });
+    }
+
+    static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_full_negate_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "full negate");
+
+            var chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm full negate test could not resolve player mana data");
+            magicData.setMana(100.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 2.0F);
+            helper.assertTrue(event.isCanceled(),
+                    "Mana Shield Charm should cancel the fully absorbed LivingAttackEvent");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should keep health unchanged after fully negating damage");
+            helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 50 mana to negate 2 damage but got " + magicData.getMana());
+            helper.assertTrue(chestplate.getDamageValue() == 0,
+                    "Mana Shield Charm should not damage armor durability on a fully negated hit");
+            helper.assertFalse(getManaShieldCharmState(player).cooldownActive,
+                    "Mana Shield Charm should stay active while mana remains after a fully negated hit");
+        });
+    }
+
+    static void manaShieldCharmBurnedOutFullNegateCancelsHitAndStartsCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_burned_out_full_negate_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "burned out full negate");
+
+            var chestplate = new ItemStack(Items.DIAMOND_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm burned-out full negate test could not resolve player mana data");
+            magicData.setMana(10.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+
+            var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(firstEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the hit even when the last full negate burns out the shield");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should keep health unchanged when the last full negate burns out the shield");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Mana Shield Charm should clamp mana to zero after the last full negate but got " + magicData.getMana());
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Mana Shield Charm should enter cooldown immediately after the last full negate burns out the shield");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Mana Shield Charm should still apply vanilla-style invulnerability time when the last full negate burns out the shield");
+            helper.assertTrue(chestplate.getDamageValue() == 0,
+                    "Mana Shield Charm should not damage armor durability when the burned-out hit is still fully negated");
+
+            var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(secondEvent.isCanceled(),
+                    "Mana Shield Charm should still cancel repeated contact damage during the burned-out full-negate i-frame");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Mana Shield Charm should not leak damage during the burned-out full-negate i-frame");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Mana Shield Charm should not spend additional mana during the burned-out full-negate i-frame but got " + magicData.getMana());
+        });
+    }
+
+    static void manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "iframe");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm iframe test could not resolve player mana data");
+            magicData.setMana(100.0F);
+
+            var firstEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(firstEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the first fully negated hit before starting its i-frame");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Mana Shield Charm should apply vanilla-style invulnerability time after a fully negated hit");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 25 mana on the first fully negated hit but got " + magicData.getMana());
+
+            var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(secondEvent.isCanceled(),
+                    "Mana Shield Charm should also cancel repeated contact damage during its vanilla-style i-frame");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should not spend additional mana during its vanilla-style i-frame but got " + magicData.getMana());
+        });
+    }
+
+    static void manaShieldCharmPartialReductionEntersCooldownAndKeepsArmorMitigation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_partial_armor_test");
+            var unarmored = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_partial_plain_test");
+
+            equipCurio(armored, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            equipCurio(unarmored, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, armored, "partial armored");
+            assertManaShieldCharmEquipped(helper, unarmored, "partial unarmored");
+            armored.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
+
+            var armoredMana = MagicData.getPlayerMagicData(armored);
+            var unarmoredMana = MagicData.getPlayerMagicData(unarmored);
+            helper.assertTrue(armoredMana != null && unarmoredMana != null,
+                    "Mana Shield Charm partial reduction test could not resolve player mana data");
+            armoredMana.setMana(40.0F);
+            unarmoredMana.setMana(40.0F);
+            var armoredEvent = postLivingAttackEventForGameTest(armored, armored.damageSources().playerAttack(armored), 3.0F);
+            var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, unarmored.damageSources().playerAttack(unarmored), 3.0F);
+
+            helper.assertTrue(Math.abs(armoredMana.getMana()) < 1.0e-4F,
+                    "Mana Shield Charm partial reduction should deplete armored mana to zero but got " + armoredMana.getMana());
+            helper.assertTrue(Math.abs(unarmoredMana.getMana()) < 1.0e-4F,
+                    "Mana Shield Charm partial reduction should deplete unarmored mana to zero but got " + unarmoredMana.getMana());
+            helper.assertTrue(armoredEvent.isCanceled(),
+                    "Mana Shield Charm partial reduction should cancel the original armored LivingAttackEvent");
+            helper.assertTrue(unarmoredEvent.isCanceled(),
+                    "Mana Shield Charm partial reduction should cancel the original unarmored LivingAttackEvent");
+            helper.assertTrue(getManaShieldCharmState(armored).cooldownActive,
+                    "Mana Shield Charm should enter cooldown after overspending the last mitigation step");
+            helper.assertTrue(getManaShieldCharmState(unarmored).cooldownActive,
+                    "Mana Shield Charm should enter cooldown after overspending the last mitigation step");
+        });
+    }
+
+    static void manaShieldCharmCooldownRecoversAtOneHundredMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_recovery_threshold_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "recovery");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Mana Shield Charm cooldown recovery test could not resolve player mana data");
+            var state = getManaShieldCharmState(player);
+            state.reset();
+            state.cooldownActive = true;
+
+            magicData.setMana(99.0F);
+            var blockedEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(state.cooldownActive,
+                    "Mana Shield Charm should stay disabled below the 100 mana recovery threshold");
+            helper.assertFalse(blockedEvent.isCanceled(),
+                    "Mana Shield Charm should not cancel the hit while cooldown remains locked below 100 mana");
+            helper.assertTrue(Math.abs(magicData.getMana() - 99.0F) < 1.0e-4F,
+                    "Mana Shield Charm should not spend mana while cooldown remains locked below 100 mana");
+
+            state.cooldownActive = true;
+            magicData.setMana(100.0F);
+            var recoveredEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+
+            helper.assertFalse(state.cooldownActive,
+                    "Mana Shield Charm should recover immediately once mana reaches 100");
+            helper.assertTrue(recoveredEvent.isCanceled(),
+                    "Mana Shield Charm should cancel the recovered hit once the cooldown is lifted");
+            helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
+                    "Mana Shield Charm should spend 25 mana after recovering at the threshold but got " + magicData.getMana());
+        });
+    }
+
     static void autocastAmuletNormalizationDropsBlockedSpellsAndClampsSlots(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
@@ -6850,6 +7027,25 @@ public final class ApprenticeCodexGameTestScenarios {
         curiosInventory.setEquippedCurio(slotId, 0, stack);
     }
 
+    private static void assertManaShieldCharmEquipped(GameTestHelper helper, ServerPlayer player, String context) {
+        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Mana Shield Charm " + context + " test"));
+        helper.assertTrue(curiosInventory.isEquipped(ItemRegistry.MANA_SHIELD_CHARM.get()),
+                "Mana Shield Charm should be recognized as equipped in Curios during " + context + " test");
+        helper.assertTrue(curiosInventory.findFirstCurio(ItemRegistry.MANA_SHIELD_CHARM.get()).isPresent(),
+                "Mana Shield Charm should be discoverable via findFirstCurio during " + context + " test");
+    }
+
+    private static net.minecraftforge.event.entity.living.LivingAttackEvent postLivingAttackEventForGameTest(
+            ServerPlayer player,
+            net.minecraft.world.damagesource.DamageSource source,
+            float amount
+    ) {
+        var event = new net.minecraftforge.event.entity.living.LivingAttackEvent(player, source, amount);
+        MinecraftForge.EVENT_BUS.post(event);
+        return event;
+    }
+
     private static void equipRingCurio(FakePlayer player, ItemStack ringStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, ringStack);
     }
@@ -6871,6 +7067,12 @@ public final class ApprenticeCodexGameTestScenarios {
                         .map(top.theillusivec4.curios.api.SlotResult::stack)
                         .orElseThrow(() -> new IllegalStateException("Missing equipped Autocast Amulet for GameTest")))
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Autocast Amulet GameTest"));
+    }
+
+    private static ManaShieldCharmState getManaShieldCharmState(Player player) {
+        return player.getCapability(Capabilities.SPELL_DATA)
+                .map(data -> data.get(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE))
+                .orElseThrow(() -> new IllegalStateException("Missing spell data for Mana Shield Charm GameTest"));
     }
 
     private static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {
