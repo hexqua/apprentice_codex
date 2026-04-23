@@ -67,6 +67,7 @@ import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
+import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
@@ -2234,10 +2235,14 @@ public final class ApprenticeCodexGameTestScenarios {
         var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
         var range = getSenseEvilRange(spell, caster, 1);
         var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
-        var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.5, 0.0, 0.0);
+        // 旧横判定の外側かつ新立方体判定の内側を狙う。
+        // +0.5 だと新境界まで 0.1 程度しかなく、spawn 補正や微小移動で外れやすいので余裕を持たせる。
+        var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.3, 0.0, 0.0);
         var zombie = spawnPositionedZombie(level, zombieCenter);
 
-        helper.runAtTickTime(5, () -> {
+        // 隔離用の遠隔 chunk は server 起動直後だと entity 追加直後の観測が揺れることがあるため、
+        // 数 tick 待って着地と entity section 登録を安定させてから判定する。
+        helper.runAtTickTime(10, () -> {
             var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
             assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
                     "SenseEvil should detect undead in the added X direction cube band");
@@ -2950,16 +2955,17 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(armoredMana != null && unarmoredMana != null && bypassMana != null,
                 "Mana Shield Charm Shell test could not resolve player mana data");
 
-        armoredMana.setMana(50.0F);
-        unarmoredMana.setMana(50.0F);
-        bypassMana.setMana(50.0F);
-        armored.invulnerableTime = 0;
-        unarmored.invulnerableTime = 0;
-        bypassArmor.invulnerableTime = 0;
-        var armoredInitialHealth = armored.getHealth();
-        var unarmoredInitialHealth = unarmored.getHealth();
-        var bypassInitialHealth = bypassArmor.getHealth();
         helper.runAtTickTime(1, () -> {
+            // tracked player は 1tick 目までに自然回復が走ることがあり、先に mana を入れると burn-out 条件がぶれる。
+            armoredMana.setMana(50.0F);
+            unarmoredMana.setMana(50.0F);
+            bypassMana.setMana(50.0F);
+            armored.invulnerableTime = 0;
+            unarmored.invulnerableTime = 0;
+            bypassArmor.invulnerableTime = 0;
+            var armoredInitialHealth = armored.getHealth();
+            var unarmoredInitialHealth = unarmored.getHealth();
+            var bypassInitialHealth = bypassArmor.getHealth();
             var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
             var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
             var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
@@ -7210,6 +7216,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void harvestMoonProcessesTargetsAcrossMultipleTicksAndKeepsBambooRoot(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 4, 0);
         var bambooBase = new BlockPos(4, 2, 1);
+        var blockBudgetPerTick = getHarvestMoonBlockBudgetPerTick();
         helper.setBlock(bambooBase.below(), Blocks.DIRT);
         helper.setBlock(bambooBase, Blocks.BAMBOO);
         for (var offset = 1; offset <= 6; ++offset) {
@@ -7217,8 +7224,10 @@ public final class ApprenticeCodexGameTestScenarios {
         }
 
         var cropPositions = new ArrayList<BlockPos>();
-        for (var x = 2; x <= 9; ++x) {
-            for (var z = -4; z <= 4; ++z) {
+        // GameTest の runAtTickTime から最初の観測までに HarvestMoonJob が複数 tick 進む環境があるため、
+        // 3～4 tick 分進んでも未処理が残るだけの作物数を置いて false negative を避ける。
+        for (var x = 1; x <= 9; ++x) {
+            for (var z = -8; z <= 8; ++z) {
                 var pos = new BlockPos(x, 3, z);
                 if (pos.getX() == bambooBase.getX() && pos.getZ() == bambooBase.getZ()) {
                     continue;
@@ -7228,7 +7237,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.setBlock(pos, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, NetherWartBlock.MAX_AGE));
             }
         }
-        helper.assertTrue(cropPositions.size() > 64, "HarvestMoon tick budget test requires more than 64 crops");
+        helper.assertTrue(cropPositions.size() > blockBudgetPerTick * 4,
+                "HarvestMoon tick budget test requires more than four ticks of crops");
 
         var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
         helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
@@ -7452,6 +7462,16 @@ public final class ApprenticeCodexGameTestScenarios {
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
     }
 
+    private static int getHarvestMoonBlockBudgetPerTick() {
+        try {
+            var field = HarvestMoon.class.getDeclaredField("BLOCK_BUDGET_PER_TICK");
+            field.setAccessible(true);
+            return field.getInt(null);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to read HarvestMoon block budget for GameTest", exception);
+        }
+    }
+
     private static FakePlayer createSenseEvilPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
@@ -7475,7 +7495,13 @@ public final class ApprenticeCodexGameTestScenarios {
         if (zombie == null) {
             throw new IllegalStateException("Failed to create zombie for SenseEvil GameTest");
         }
-        zombie.moveTo(targetCenter.x, targetCenter.y - zombie.getBbHeight() * 0.5, targetCenter.z, 0.0f, 0.0f);
+        var floorPos = BlockPos.containing(targetCenter.x, targetCenter.y - zombie.getBbHeight() * 0.5, targetCenter.z);
+        level.setBlock(floorPos, Blocks.STONE.defaultBlockState(), 3);
+        level.setBlock(floorPos.above(), Blocks.AIR.defaultBlockState(), 3);
+        level.setBlock(floorPos.above(2), Blocks.AIR.defaultBlockState(), 3);
+        zombie.setNoAi(true);
+        zombie.setPersistenceRequired();
+        zombie.moveTo(targetCenter.x, floorPos.getY() + 1.0, targetCenter.z, 0.0f, 0.0f);
         level.addFreshEntity(zombie);
         return zombie;
     }
