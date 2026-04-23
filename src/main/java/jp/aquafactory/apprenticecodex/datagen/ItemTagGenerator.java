@@ -67,6 +67,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> WISDOM_ENCHANTABLE = Enchantments.WISDOM_ENCHANTABLE;
     private static final TagKey<Item> PLUNDER_ENCHANTABLE = Enchantments.PLUNDER_ENCHANTABLE;
     private static final TagKey<Item> SYNTHESIS_ENCHANTABLE = Enchantments.SYNTHESIS_ENCHANTABLE;
+    private static final TagKey<Item> MANA_SHIELD_CHARM_ENCHANTABLE = Enchantments.MANA_SHIELD_CHARM_ENCHANTABLE;
 
     public ItemTagGenerator(
             PackOutput output,
@@ -294,6 +295,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(FLASK_ENCHANTABLE)
                 .addTag(DRINKABLE_FLASK_ENCHANTABLE)
                 .addTag(ALCHEMISTS_FLASK_ENCHANTABLE);
+        tag(MANA_SHIELD_CHARM_ENCHANTABLE).add(ItemRegistry.MANA_SHIELD_CHARM.get());
         // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
         wisdomEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),

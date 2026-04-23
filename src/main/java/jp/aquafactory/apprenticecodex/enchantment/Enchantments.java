@@ -31,6 +31,9 @@ public final class Enchantments {
     public static final ResourceKey<Enchantment> RED_ENERGY = key("red_energy");
     public static final ResourceKey<Enchantment> GLOW_ENERGY = key("glow_energy");
     public static final ResourceKey<Enchantment> SYNTHESIS = key("synthesis");
+    public static final ResourceKey<Enchantment> SHELL = key("shell");
+    public static final ResourceKey<Enchantment> SYNCHRONIZATION = key("synchronization");
+    public static final ResourceKey<Enchantment> NEUTRALIZATION = key("neutralization");
 
     public static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = itemTag("magic_item_enchantable");
     public static final TagKey<Item> OFFHAND_MAGIC_ENCHANTABLE = itemTag("offhand_magic_enchantable");
@@ -44,12 +47,15 @@ public final class Enchantments {
     public static final TagKey<Item> WISDOM_ENCHANTABLE = itemTag("wisdom_enchantable");
     public static final TagKey<Item> PLUNDER_ENCHANTABLE = itemTag("plunder_enchantable");
     public static final TagKey<Item> SYNTHESIS_ENCHANTABLE = itemTag("synthesis_enchantable");
+    public static final TagKey<Item> MANA_SHIELD_CHARM_ENCHANTABLE = itemTag("mana_shield_charm_enchantable");
     public static final TagKey<Enchantment> EXCLUSIVE_REFLUX_RESERVOIR = enchantmentTag("exclusive_set/reflux_reservoir");
     public static final TagKey<Enchantment> EXCLUSIVE_ALACRITY_TENSE = enchantmentTag("exclusive_set/alacrity_tense");
     public static final TagKey<Enchantment> EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE =
             enchantmentTag("exclusive_set/surge_attunement_transcendence");
     public static final TagKey<Enchantment> EXCLUSIVE_RED_GLOW_ENERGY =
             enchantmentTag("exclusive_set/red_glow_energy");
+    public static final TagKey<Enchantment> EXCLUSIVE_MANA_SHIELD_CHARM =
+            enchantmentTag("exclusive_set/mana_shield_charm");
 
     private static ResourceKey<Enchantment> key(String name) {
         return ResourceKey.create(
@@ -104,6 +110,7 @@ public final class Enchantments {
         var wisdomItems = itemLookup.getOrThrow(WISDOM_ENCHANTABLE);
         var plunderItems = itemLookup.getOrThrow(PLUNDER_ENCHANTABLE);
         var synthesisItems = itemLookup.getOrThrow(SYNTHESIS_ENCHANTABLE);
+        var manaShieldCharmItems = itemLookup.getOrThrow(MANA_SHIELD_CHARM_ENCHANTABLE);
 
         register(
                 context,
@@ -350,6 +357,60 @@ public final class Enchantments {
                                         EquipmentSlotGroup.HAND
                                 )
                         )
+        );
+
+        register(
+                context,
+                SHELL,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        manaShieldCharmItems,
+                                        manaShieldCharmItems,
+                                        2,
+                                        1,
+                                        Enchantment.constantCost(20),
+                                        Enchantment.constantCost(50),
+                                        1,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
+                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_MANA_SHIELD_CHARM))
+        );
+
+        register(
+                context,
+                SYNCHRONIZATION,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        manaShieldCharmItems,
+                                        manaShieldCharmItems,
+                                        2,
+                                        1,
+                                        Enchantment.constantCost(20),
+                                        Enchantment.constantCost(50),
+                                        1,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
+                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_MANA_SHIELD_CHARM))
+        );
+
+        register(
+                context,
+                NEUTRALIZATION,
+                Enchantment.enchantment(
+                                Enchantment.definition(
+                                        manaShieldCharmItems,
+                                        manaShieldCharmItems,
+                                        2,
+                                        1,
+                                        Enchantment.constantCost(20),
+                                        Enchantment.constantCost(50),
+                                        1,
+                                        EquipmentSlotGroup.HAND
+                                )
+                        )
+                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_MANA_SHIELD_CHARM))
         );
     }
 

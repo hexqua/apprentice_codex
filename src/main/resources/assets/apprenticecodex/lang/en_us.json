@@ -349,6 +349,9 @@
   "enchantment.apprenticecodex.red_energy": "Red Energy",
   "enchantment.apprenticecodex.glow_energy": "Glow Energy",
   "enchantment.apprenticecodex.synthesis": "Synthesis",
+  "enchantment.apprenticecodex.shell": "Shell",
+  "enchantment.apprenticecodex.synchronization": "Synchronization",
+  "enchantment.apprenticecodex.neutralization": "Neutralization",
 
   "enchantment.apprenticecodex.reflux.desc": "Increases mana regeneration rate.",
   "enchantment.apprenticecodex.reservoir.desc": "Increases maximum mana.",
@@ -363,6 +366,10 @@
   "enchantment.apprenticecodex.red_energy.desc": "Increases duration of effects in flask.",
   "enchantment.apprenticecodex.glow_energy.desc": "Increases potency of effects in flask but reduces the duration.",
   "enchantment.apprenticecodex.synthesis.desc": "Allows casting spells without arrows.",
+  "enchantment.apprenticecodex.plunder.desc": "Mobs will drop more loot when killed with magic weapons.",
+  "enchantment.apprenticecodex.shell.desc": "(todo:翻訳)マナ障壁が装備者の防具の防御力を得ますが、被弾時に防具が損傷するようになります。",
+  "enchantment.apprenticecodex.synchronization.desc": "(todo:翻訳)マナ障壁が装備者の防具のエンチャントの効果を得ますが、消費マナが増えます。",
+  "enchantment.apprenticecodex.neutralization.desc": "(todo:翻訳)マナ障壁が防御力を無視する攻撃を受けた際に完全に無効化し、代わりにマナとして吸収します。",
   "enchantment.apprenticecodex.plunder.desc": "Mobs will drop more loot when killed with magic weapons.",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
