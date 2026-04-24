@@ -7,9 +7,14 @@
   ],
   "display": {
     "thirdperson_righthand": {
+      "rotation": [
+        180,
+        0,
+        0
+      ],
       "translation": [
         0,
-        -14,
+        14,
         1
       ],
       "scale": [
@@ -19,9 +24,14 @@
       ]
     },
     "thirdperson_lefthand": {
+      "rotation": [
+        -180,
+        0,
+        0
+      ],
       "translation": [
         0,
-        -14,
+        14,
         1
       ],
       "scale": [
@@ -37,9 +47,9 @@
         0
       ],
       "translation": [
-        4,
-        -15,
-        2
+        6,
+        -24,
+        -2
       ],
       "scale": [
         1.25,
@@ -48,14 +58,9 @@
       ]
     },
     "firstperson_lefthand": {
-      "rotation": [
-        -5,
-        0,
-        0
-      ],
       "translation": [
-        4,
-        -15,
+        2,
+        -10,
         2
       ],
       "scale": [
@@ -105,8 +110,5 @@
         0.6
       ]
     }
-  },
-  "textures": {
-    "particle": "apprenticecodex:geo/charged_twin_blade_staff"
   }
 }
