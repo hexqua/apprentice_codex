@@ -2830,6 +2830,32 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void manaShieldCharmLowManaBurnedOutFullNegateStillCancelsHit(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_low_mana_burnout_test");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            assertManaShieldCharmEquipped(helper, player, "low mana burned out full negate");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Low mana Mana Shield Charm test could not resolve player mana data");
+            magicData.setMana(24.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+
+            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
+            helper.assertTrue(event.isCanceled(),
+                    "Mana Shield Charm should still cancel a 1 damage hit when only 24 mana remains before cooldown");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
+                    "Low mana Mana Shield Charm burnout should still leave health unchanged");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Low mana Mana Shield Charm burnout should clamp mana to zero but got " + magicData.getMana());
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Low mana Mana Shield Charm burnout should enter cooldown immediately");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Low mana Mana Shield Charm burnout should still apply vanilla-style invulnerability time");
+        });
+    }
+
     static void manaShieldCharmDoesNotRespendManaDuringVanillaStyleIFrame(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_iframe_test");
@@ -2875,19 +2901,24 @@ public final class ApprenticeCodexGameTestScenarios {
             unarmoredMana.setMana(40.0F);
             var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
             var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
+            var expectedRemainingMana = resolveExpectedBarrierManaAfterHitForGameTest(3.0F, 40.0F);
 
-            helper.assertTrue(Math.abs(armoredMana.getMana() - 15.0F) < 1.0e-4F,
-                    "Mana Shield Charm partial reduction should only spend one affordable mitigation step for the armored player but got " + armoredMana.getMana());
-            helper.assertTrue(Math.abs(unarmoredMana.getMana() - 15.0F) < 1.0e-4F,
-                    "Mana Shield Charm partial reduction should only spend one affordable mitigation step for the unarmored player but got " + unarmoredMana.getMana());
+            helper.assertTrue(Math.abs(armoredMana.getMana() - expectedRemainingMana) < 1.0e-4F,
+                    "Mana Shield Charm partial reduction should apply the one-hit low mana rescue consistently for the armored player"
+                            + " expectedMana=" + expectedRemainingMana
+                            + " actualMana=" + armoredMana.getMana());
+            helper.assertTrue(Math.abs(unarmoredMana.getMana() - expectedRemainingMana) < 1.0e-4F,
+                    "Mana Shield Charm partial reduction should apply the one-hit low mana rescue consistently for the unarmored player"
+                            + " expectedMana=" + expectedRemainingMana
+                            + " actualMana=" + unarmoredMana.getMana());
             helper.assertTrue(armoredEvent.isCanceled(),
                     "Mana Shield Charm partial reduction should cancel the original armored LivingAttackEvent");
             helper.assertTrue(unarmoredEvent.isCanceled(),
                     "Mana Shield Charm partial reduction should cancel the original unarmored LivingAttackEvent");
-            helper.assertFalse(getManaShieldCharmState(armored).cooldownActive,
-                    "Mana Shield Charm should stay active when mana remains after a partial hit");
-            helper.assertFalse(getManaShieldCharmState(unarmored).cooldownActive,
-                    "Mana Shield Charm should stay active when mana remains after a partial hit");
+            helper.assertTrue(getManaShieldCharmState(armored).cooldownActive == (expectedRemainingMana <= 0.0F),
+                    "Mana Shield Charm armored partial reduction cooldown should match the rescued remaining mana expectation");
+            helper.assertTrue(getManaShieldCharmState(unarmored).cooldownActive == (expectedRemainingMana <= 0.0F),
+                    "Mana Shield Charm unarmored partial reduction cooldown should match the rescued remaining mana expectation");
         });
     }
 
@@ -3003,6 +3034,49 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_low_mana_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SHELL), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Shell low mana test could not resolve player mana data");
+            magicData.setMana(24.0F);
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+            var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+            var source = helper.getLevel().damageSources().lava();
+            var incomingDamage = findDamageForArmorReducedTarget(player, source, armor, toughness, 1.0F);
+            var reducedDamage = CombatRules.getDamageAfterAbsorb(player, incomingDamage, source, armor, toughness);
+
+            helper.assertTrue(Math.abs(reducedDamage - 1.0F) < 1.0e-3F,
+                    "Shell low mana test should configure an armor-reduced hit worth exactly one barrier step"
+                            + " reducedDamage=" + reducedDamage
+                            + " incomingDamage=" + incomingDamage);
+
+            var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+            helper.assertTrue(event.isCanceled(),
+                    "Shell should still cancel the hit when only the last armor-reduced barrier step can be rescued");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-3F,
+                    "Shell low mana rescue should still keep health unchanged");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Shell low mana rescue should clamp mana to zero");
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Shell low mana rescue should enter cooldown");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Shell low mana rescue should still apply vanilla-style invulnerability time");
+            helper.assertTrue(chestplate.getDamageValue() == 1,
+                    "Shell low mana rescue should preserve armor durability loss on the armor path");
+        });
+    }
+
     static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_cost_test");
@@ -3033,13 +3107,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var source = helper.getLevel().damageSources().lava();
             var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
             var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
-            var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
-            var manaAfterSynchronization = Math.max(availableMana - synchronizationSteps * 30.0F, 0.0F);
-            var affordableBarrierSteps = Math.min(
-                    countWholeDamageStepsForGameTest(reducedDamage),
-                    (int) (manaAfterSynchronization / 25.0F)
-            );
-            var expectedRemainingMana = manaAfterSynchronization - affordableBarrierSteps * 25.0F;
+            var expectedRemainingMana = resolveExpectedSynchronizationManaAfterHitForGameTest(5.0F, availableMana, protection);
 
             var event = postLivingAttackEventForGameTest(player, source, 5.0F);
             helper.assertTrue(event.isCanceled(),
@@ -3109,6 +3177,99 @@ public final class ApprenticeCodexGameTestScenarios {
                             + " actualLoss=" + (initialHealth - player.getHealth())
                             + " expectedLoss=" + expectedHealthLoss
                             + " mana=" + magicData.getMana());
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_low_mana_stage_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            equipProtectionIvIronArmor(helper, player);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Synchronization low mana enchant-stage test could not resolve player mana data");
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var expectedArmor = getEquippedAttributeTotal(player, Attributes.ARMOR);
+            var expectedToughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
+            var source = helper.getLevel().damageSources().lava();
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
+            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
+            var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
+            helper.assertTrue(synchronizationSteps > 0,
+                    "Synchronization low mana enchant-stage test should require at least one enchant mitigation cost step");
+            magicData.setMana(synchronizationSteps * 30.0F - 1.0F);
+
+            var event = postLivingAttackEventForGameTest(player, source, 5.0F);
+            var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
+                    player,
+                    reducedDamage,
+                    source,
+                    expectedArmor,
+                    expectedToughness
+            );
+
+            helper.assertTrue(event.isCanceled(),
+                    "Synchronization low mana enchant-stage test should still cancel the original LivingAttackEvent");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Synchronization low mana enchant-stage rescue should clamp mana to zero");
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Synchronization low mana enchant-stage rescue should enter cooldown");
+            helper.assertTrue(Math.abs((initialHealth - player.getHealth()) - expectedHealthLoss) < 1.0e-3F,
+                    "Synchronization low mana enchant-stage rescue should stop before the normal barrier stage"
+                            + " actualLoss=" + (initialHealth - player.getHealth())
+                            + " expectedLoss=" + expectedHealthLoss
+                            + " reducedDamage=" + reducedDamage
+                            + " mana=" + magicData.getMana());
+            helper.succeed();
+        });
+    }
+
+    static void manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_low_mana_barrier_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
+            equipCurio(player, CuriosSlotConstants.CHARM, charm);
+
+            equipProtectionIvIronArmor(helper, player);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Synchronization low mana barrier-stage test could not resolve player mana data");
+            player.invulnerableTime = 0;
+            var initialHealth = player.getHealth();
+            var source = helper.getLevel().damageSources().lava();
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
+            var incomingDamage = findDamageForMagicReducedTarget(protection, 1.0F);
+            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
+            var synchronizationSteps = countWholeDamageStepsForGameTest(incomingDamage - reducedDamage);
+
+            helper.assertTrue(Math.abs(reducedDamage - 1.0F) < 1.0e-3F,
+                    "Synchronization low mana barrier-stage test should configure exactly one normal barrier step"
+                            + " reducedDamage=" + reducedDamage
+                            + " incomingDamage=" + incomingDamage);
+            helper.assertTrue(synchronizationSteps > 0,
+                    "Synchronization low mana barrier-stage test should still require enchant mitigation cost before the barrier");
+
+            magicData.setMana(synchronizationSteps * 30.0F + 24.0F);
+            var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
+
+            helper.assertTrue(event.isCanceled(),
+                    "Synchronization low mana barrier-stage rescue should still cancel the original LivingAttackEvent");
+            helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-3F,
+                    "Synchronization low mana barrier-stage rescue should keep health unchanged");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Synchronization low mana barrier-stage rescue should clamp mana to zero");
+            helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                    "Synchronization low mana barrier-stage rescue should enter cooldown");
+            helper.assertTrue(player.invulnerableTime >= 20,
+                    "Synchronization low mana barrier-stage rescue should still apply vanilla-style invulnerability time");
             helper.succeed();
         });
     }
@@ -8322,6 +8483,107 @@ public final class ApprenticeCodexGameTestScenarios {
                     .sum();
         }
         return total;
+    }
+
+    private static void equipProtectionIvIronArmor(GameTestHelper helper, ServerPlayer player) {
+        var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        var allDamageProtection = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
+        for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+            var armorStack = switch (slot) {
+                case HEAD -> new ItemStack(Items.IRON_HELMET);
+                case CHEST -> new ItemStack(Items.IRON_CHESTPLATE);
+                case LEGS -> new ItemStack(Items.IRON_LEGGINGS);
+                case FEET -> new ItemStack(Items.IRON_BOOTS);
+                default -> ItemStack.EMPTY;
+            };
+            armorStack.enchant(allDamageProtection, 4);
+            player.setItemSlot(slot, armorStack);
+        }
+    }
+
+    private static float findDamageForArmorReducedTarget(
+            ServerPlayer player,
+            net.minecraft.world.damagesource.DamageSource source,
+            float armor,
+            float toughness,
+            float targetReducedDamage
+    ) {
+        var low = 0.0F;
+        var high = Math.max(targetReducedDamage * 2.0F, 1.0F);
+        while (CombatRules.getDamageAfterAbsorb(player, high, source, armor, toughness) < targetReducedDamage) {
+            high *= 2.0F;
+        }
+
+        for (var iteration = 0; iteration < 40; ++iteration) {
+            var mid = (low + high) * 0.5F;
+            var reducedDamage = CombatRules.getDamageAfterAbsorb(player, mid, source, armor, toughness);
+            if (reducedDamage < targetReducedDamage) {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+        return high;
+    }
+
+    private static float findDamageForMagicReducedTarget(float protection, float targetReducedDamage) {
+        var low = 0.0F;
+        var high = Math.max(targetReducedDamage * 2.0F, 1.0F);
+        while (CombatRules.getDamageAfterMagicAbsorb(high, protection) < targetReducedDamage) {
+            high *= 2.0F;
+        }
+
+        for (var iteration = 0; iteration < 40; ++iteration) {
+            var mid = (low + high) * 0.5F;
+            var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(mid, protection);
+            if (reducedDamage < targetReducedDamage) {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+        return high;
+    }
+
+    private static float resolveExpectedBarrierManaAfterHitForGameTest(float incomingDamage, float availableMana) {
+        var remainingDamage = incomingDamage;
+        var remainingMana = availableMana;
+
+        while (remainingDamage >= 1.0F) {
+            if (remainingMana >= 25.0F) {
+                remainingDamage -= 1.0F;
+                remainingMana -= 25.0F;
+                continue;
+            }
+            if (remainingMana > 0.0F) {
+                remainingDamage -= 1.0F;
+                remainingMana = 0.0F;
+            }
+            break;
+        }
+
+        return Math.max(remainingMana, 0.0F);
+    }
+
+    private static float resolveExpectedSynchronizationManaAfterHitForGameTest(
+            float incomingDamage,
+            float availableMana,
+            float protection
+    ) {
+        var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
+        var remainingMitigatedDamage = Math.max(incomingDamage - reducedDamage, 0.0F);
+        var remainingMana = availableMana;
+
+        while (remainingMitigatedDamage >= 1.0F && remainingMana >= 30.0F) {
+            remainingMitigatedDamage -= 1.0F;
+            remainingMana -= 30.0F;
+        }
+
+        if (remainingMitigatedDamage >= 1.0F) {
+            return 0.0F;
+        }
+
+        return resolveExpectedBarrierManaAfterHitForGameTest(reducedDamage, remainingMana);
     }
 
     private static int countWholeDamageStepsForGameTest(float damage) {
