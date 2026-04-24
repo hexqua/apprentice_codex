@@ -3,12 +3,14 @@ package jp.aquafactory.apprenticecodex.entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.jetbrains.annotations.NotNull;
@@ -27,17 +29,19 @@ public final class ChargedTwinBladeStaffThrownRenderer extends EntityRenderer<Ch
             @NotNull MultiBufferSource buffer,
             int packedLight
     ) {
-        float yRot = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
-        float xRot = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
+        var yawPitch = entity.resolveRenderYawPitch(partialTicks);
+        var renderLight = (entity.isImpacted() || entity.isClientPredictingBlockImpact())
+                ? resolveImpactPackedLight(entity, packedLight)
+                : packedLight;
 
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(yRot - 90.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(xRot + 90.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-yawPitch.yaw()));
+        poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
 
         Minecraft.getInstance().getItemRenderer().renderStatic(
                 entity.getRenderStack(),
                 ItemDisplayContext.FIXED,
-                packedLight,
+                renderLight,
                 OverlayTexture.NO_OVERLAY,
                 poseStack,
                 buffer,
@@ -52,5 +56,24 @@ public final class ChargedTwinBladeStaffThrownRenderer extends EntityRenderer<Ch
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull ChargedTwinBladeStaffThrownEntity entity) {
         return InventoryMenu.BLOCK_ATLAS;
+    }
+
+    private static int resolveImpactPackedLight(ChargedTwinBladeStaffThrownEntity entity, int packedLight) {
+        var basePos = entity.blockPosition();
+        var brightest = packedLight;
+
+        brightest = maxPackedLight(brightest, LevelRenderer.getLightColor(entity.level(), basePos));
+        for (var direction : Direction.values()) {
+            brightest = maxPackedLight(brightest, LevelRenderer.getLightColor(entity.level(), basePos.relative(direction)));
+        }
+
+        return brightest;
+    }
+
+    private static int maxPackedLight(int first, int second) {
+        return LightTexture.pack(
+                Math.max(LightTexture.block(first), LightTexture.block(second)),
+                Math.max(LightTexture.sky(first), LightTexture.sky(second))
+        );
     }
 }

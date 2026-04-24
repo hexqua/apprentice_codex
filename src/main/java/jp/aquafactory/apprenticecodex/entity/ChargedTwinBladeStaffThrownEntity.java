@@ -7,6 +7,10 @@ import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -36,6 +40,12 @@ import java.util.UUID;
 
 public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     private static final int THROWN_RENDER_CUSTOM_MODEL_DATA = 1;
+    private static final EntityDataAccessor<Boolean> DATA_IMPACTED =
+            SynchedEntityData.defineId(ChargedTwinBladeStaffThrownEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> DATA_IMPACT_YAW =
+            SynchedEntityData.defineId(ChargedTwinBladeStaffThrownEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DATA_IMPACT_PITCH =
+            SynchedEntityData.defineId(ChargedTwinBladeStaffThrownEntity.class, EntityDataSerializers.FLOAT);
     private static final String STACK_TAG = "WeaponStack";
     private static final String SPELL_PAYLOAD_TAG = "SpellPayload";
     private static final String OWNER_UUID_TAG = "OwnerUuid";
@@ -46,6 +56,8 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     private static final int MAX_FLIGHT_TICKS = 20 * 20;
     private static final double DRAG = 0.99D;
     private static final double GRAVITY = 0.05D;
+    private static final double BLOCK_IMPACT_OFFSET = 0.05D;
+    private static final double ENTITY_IMPACT_OFFSET = 0.01D;
 
     private ItemStack weaponStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
     private ChargedTwinBladeStaffSpellPayload spellPayload = ChargedTwinBladeStaffSpellPayload.EMPTY;
@@ -53,6 +65,8 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     private boolean impacted;
     private int impactTick = -1;
     private int maxFlightTicks = MAX_FLIGHT_TICKS;
+    private boolean clientPredictedBlockImpact;
+    private RotationTools.YawPitch clientPredictedImpactRotation;
 
     public ChargedTwinBladeStaffThrownEntity(EntityType<? extends ChargedTwinBladeStaffThrownEntity> entityType, Level level) {
         super(entityType, level);
@@ -78,6 +92,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         super.tick();
 
         if (level().isClientSide) {
+            updateClientImpactPrediction();
             return;
         }
 
@@ -104,6 +119,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
 
         move(MoverType.SELF, getDeltaMovement());
         ProjectileUtil.rotateTowardsMovement(this, 1.0F);
+        // トライデント寄せで、水中でも追加の減速を掛けず一定の drag だけで飛ばす。
         setDeltaMovement(getDeltaMovement().scale(DRAG).add(0.0D, -GRAVITY, 0.0D));
     }
 
@@ -117,6 +133,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         var hitEntity = hitResult.getEntity();
         var owner = getOwner();
         var damageSource = damageSources().trident(this, owner == null ? this : owner);
+        var impactForward = resolveImpactForward();
         var damage = (float) (ChargedTwinBladeStaff.resolveThrownDamage(weaponStack)
                 + (hitEntity instanceof LivingEntity livingEntity
                 ? EnchantmentHelper.getDamageBonus(weaponStack, livingEntity.getMobType())
@@ -129,22 +146,36 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
             }
         }
 
-        finishImpact(hitResult.getLocation());
+        finishImpact(hitResult.getLocation().subtract(impactForward.scale(ENTITY_IMPACT_OFFSET)), impactForward, SoundEvents.TRIDENT_HIT);
     }
 
     @Override
     protected void onHitBlock(@NotNull BlockHitResult hitResult) {
         super.onHitBlock(hitResult);
         if (!level().isClientSide) {
-            finishImpact(hitResult.getLocation());
+            var impactForward = resolveImpactForward();
+            var blockImpactPosition = hitResult.getLocation().add(
+                    Vec3.atLowerCornerOf(hitResult.getDirection().getNormal()).scale(BLOCK_IMPACT_OFFSET)
+            );
+            finishImpact(blockImpactPosition, impactForward, SoundEvents.TRIDENT_HIT_GROUND);
         }
     }
 
-    private void finishImpact(Vec3 impactPosition) {
+    private void finishImpact(Vec3 impactPosition, Vec3 impactForward, net.minecraft.sounds.SoundEvent impactSound) {
+        var impactRotation = calculateImpactRotation(impactForward);
         setPos(impactPosition.x, impactPosition.y, impactPosition.z);
         setDeltaMovement(Vec3.ZERO);
         impacted = true;
         impactTick = tickCount;
+        entityData.set(DATA_IMPACTED, true);
+        entityData.set(DATA_IMPACT_YAW, impactRotation.yaw());
+        entityData.set(DATA_IMPACT_PITCH, impactRotation.pitch());
+        freezeRotation(impactRotation);
+
+        if (level() instanceof ServerLevel serverLevel) {
+            serverLevel.playSound(null, impactPosition.x, impactPosition.y, impactPosition.z,
+                    impactSound, SoundSource.PLAYERS, 1.0F, 1.0F);
+        }
 
         if (level() instanceof ServerLevel serverLevel) {
             if (canSummonLightning(serverLevel)) {
@@ -167,11 +198,48 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
                         weaponStack,
                         spellPayload,
                         impactPosition,
-                        resolveImpactForward()
+                        impactForward
                 );
                 PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(MagicData.getPlayerMagicData(serverPlayer)));
             }
         }
+    }
+
+    private RotationTools.YawPitch calculateImpactRotation(Vec3 impactForward) {
+        return RotationTools.calculateYawPitchByDirection(impactForward);
+    }
+
+    private void freezeRotation(RotationTools.YawPitch impactRotation) {
+        setYRot(impactRotation.yaw());
+        setXRot(impactRotation.pitch());
+        yRotO = impactRotation.yaw();
+        xRotO = impactRotation.pitch();
+    }
+
+    private void updateClientImpactPrediction() {
+        if (isImpacted()) {
+            clientPredictedBlockImpact = false;
+            clientPredictedImpactRotation = null;
+            freezeRotation(getSyncedImpactRotation());
+            return;
+        }
+
+        var movement = getDeltaMovement();
+        if (movement.lengthSqr() <= 1.0E-6D) {
+            clientPredictedBlockImpact = false;
+            clientPredictedImpactRotation = null;
+            return;
+        }
+
+        var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+        if (hitResult.getType() == HitResult.Type.BLOCK) {
+            clientPredictedBlockImpact = true;
+            clientPredictedImpactRotation = calculateImpactRotation(movement.normalize());
+            return;
+        }
+
+        clientPredictedBlockImpact = false;
+        clientPredictedImpactRotation = null;
     }
 
     private void spawnImpactExpiryParticles() {
@@ -210,11 +278,39 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     }
 
     public boolean isImpacted() {
-        return impacted;
+        return impacted || entityData.get(DATA_IMPACTED);
+    }
+
+    public RotationTools.YawPitch resolveRenderYawPitch(float partialTicks) {
+        if (clientPredictedBlockImpact && clientPredictedImpactRotation != null) {
+            return clientPredictedImpactRotation;
+        }
+
+        if (isImpacted()) {
+            return getSyncedImpactRotation();
+        }
+
+        var motion = getDeltaMovement();
+        if (motion.lengthSqr() > 1.0E-6D) {
+            return RotationTools.calculateYawPitchByDirection(motion);
+        }
+
+        return RotationTools.calculateYawPitchByEntity(this, partialTicks);
+    }
+
+    public boolean isClientPredictingBlockImpact() {
+        return clientPredictedBlockImpact;
+    }
+
+    private RotationTools.YawPitch getSyncedImpactRotation() {
+        return new RotationTools.YawPitch(entityData.get(DATA_IMPACT_YAW), entityData.get(DATA_IMPACT_PITCH));
     }
 
     @Override
     protected void defineSynchedData() {
+        entityData.define(DATA_IMPACTED, false);
+        entityData.define(DATA_IMPACT_YAW, 0.0F);
+        entityData.define(DATA_IMPACT_PITCH, 0.0F);
     }
 
     @Override
@@ -227,6 +323,11 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
             ownerUuid = tag.getUUID(OWNER_UUID_TAG);
         }
         impacted = tag.getBoolean(IMPACTED_TAG);
+        entityData.set(DATA_IMPACTED, impacted);
+        if (impacted) {
+            entityData.set(DATA_IMPACT_YAW, getYRot());
+            entityData.set(DATA_IMPACT_PITCH, getXRot());
+        }
         impactTick = tag.getInt(IMPACT_TICK_TAG);
         maxFlightTicks = tag.contains(MAX_FLIGHT_TICKS_TAG) ? tag.getInt(MAX_FLIGHT_TICKS_TAG) : MAX_FLIGHT_TICKS;
     }
@@ -260,6 +361,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
 
     @Override
     public boolean isPickable() {
+        // これは意図的に拾えないようにするため必要.
         return false;
     }
 }

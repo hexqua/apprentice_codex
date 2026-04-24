@@ -8,14 +8,14 @@
   "display": {
     "fixed": {
       "rotation": [
+        90,
         0,
-        180,
-        -45
+        0
       ],
       "translation": [
         0,
         0,
-        0
+        -24
       ],
       "scale": [
         1,
