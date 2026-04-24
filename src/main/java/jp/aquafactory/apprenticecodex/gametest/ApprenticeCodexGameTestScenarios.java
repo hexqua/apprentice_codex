@@ -3037,8 +3037,9 @@ public final class ApprenticeCodexGameTestScenarios {
     static void manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_low_mana_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SHELL.get(), 1);
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SHELL), 1);
             equipCurio(player, CuriosSlotConstants.CHARM, charm);
 
             var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
@@ -3051,15 +3052,16 @@ public final class ApprenticeCodexGameTestScenarios {
             var initialHealth = player.getHealth();
             var armor = getEquippedAttributeTotal(player, Attributes.ARMOR);
             var toughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
-            var incomingDamage = findDamageForArmorReducedTarget(armor, toughness, 1.0F);
-            var reducedDamage = CombatRules.getDamageAfterAbsorb(incomingDamage, armor, toughness);
+            var source = helper.getLevel().damageSources().lava();
+            var incomingDamage = findDamageForArmorReducedTarget(player, source, armor, toughness, 1.0F);
+            var reducedDamage = CombatRules.getDamageAfterAbsorb(player, incomingDamage, source, armor, toughness);
 
             helper.assertTrue(Math.abs(reducedDamage - 1.0F) < 1.0e-3F,
                     "Shell low mana test should configure an armor-reduced hit worth exactly one barrier step"
                             + " reducedDamage=" + reducedDamage
                             + " incomingDamage=" + incomingDamage);
 
-            var event = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), incomingDamage);
+            var event = postLivingAttackEventForGameTest(player, source, incomingDamage);
             helper.assertTrue(event.isCanceled(),
                     "Shell should still cancel the hit when only the last armor-reduced barrier step can be rescued");
             helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-3F,
@@ -3182,11 +3184,12 @@ public final class ApprenticeCodexGameTestScenarios {
     static void manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_low_mana_stage_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
             equipCurio(player, CuriosSlotConstants.CHARM, charm);
 
-            equipProtectionIvIronArmor(player);
+            equipProtectionIvIronArmor(helper, player);
 
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Synchronization low mana enchant-stage test could not resolve player mana data");
@@ -3195,7 +3198,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var expectedArmor = getEquippedAttributeTotal(player, Attributes.ARMOR);
             var expectedToughness = getEquippedAttributeTotal(player, Attributes.ARMOR_TOUGHNESS);
             var source = helper.getLevel().damageSources().lava();
-            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
             var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(5.0F, protection);
             var synchronizationSteps = countWholeDamageStepsForGameTest(5.0F - reducedDamage);
             helper.assertTrue(synchronizationSteps > 0,
@@ -3204,7 +3207,9 @@ public final class ApprenticeCodexGameTestScenarios {
 
             var event = postLivingAttackEventForGameTest(player, source, 5.0F);
             var expectedHealthLoss = CombatRules.getDamageAfterAbsorb(
+                    player,
                     reducedDamage,
+                    source,
                     expectedArmor,
                     expectedToughness
             );
@@ -3228,18 +3233,19 @@ public final class ApprenticeCodexGameTestScenarios {
     static void manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_sync_low_mana_barrier_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            charm.enchant(EnchantmentRegistry.SYNCHRONIZATION.get(), 1);
+            charm.enchant(enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION), 1);
             equipCurio(player, CuriosSlotConstants.CHARM, charm);
 
-            equipProtectionIvIronArmor(player);
+            equipProtectionIvIronArmor(helper, player);
 
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Synchronization low mana barrier-stage test could not resolve player mana data");
             player.invulnerableTime = 0;
             var initialHealth = player.getHealth();
             var source = helper.getLevel().damageSources().lava();
-            var protection = EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source);
+            var protection = EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source);
             var incomingDamage = findDamageForMagicReducedTarget(protection, 1.0F);
             var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
             var synchronizationSteps = countWholeDamageStepsForGameTest(incomingDamage - reducedDamage);
@@ -8479,7 +8485,9 @@ public final class ApprenticeCodexGameTestScenarios {
         return total;
     }
 
-    private static void equipProtectionIvIronArmor(ServerPlayer player) {
+    private static void equipProtectionIvIronArmor(GameTestHelper helper, ServerPlayer player) {
+        var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        var allDamageProtection = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
         for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
             var armorStack = switch (slot) {
                 case HEAD -> new ItemStack(Items.IRON_HELMET);
@@ -8488,21 +8496,27 @@ public final class ApprenticeCodexGameTestScenarios {
                 case FEET -> new ItemStack(Items.IRON_BOOTS);
                 default -> ItemStack.EMPTY;
             };
-            armorStack.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
+            armorStack.enchant(allDamageProtection, 4);
             player.setItemSlot(slot, armorStack);
         }
     }
 
-    private static float findDamageForArmorReducedTarget(float armor, float toughness, float targetReducedDamage) {
+    private static float findDamageForArmorReducedTarget(
+            ServerPlayer player,
+            net.minecraft.world.damagesource.DamageSource source,
+            float armor,
+            float toughness,
+            float targetReducedDamage
+    ) {
         var low = 0.0F;
         var high = Math.max(targetReducedDamage * 2.0F, 1.0F);
-        while (CombatRules.getDamageAfterAbsorb(high, armor, toughness) < targetReducedDamage) {
+        while (CombatRules.getDamageAfterAbsorb(player, high, source, armor, toughness) < targetReducedDamage) {
             high *= 2.0F;
         }
 
         for (var iteration = 0; iteration < 40; ++iteration) {
             var mid = (low + high) * 0.5F;
-            var reducedDamage = CombatRules.getDamageAfterAbsorb(mid, armor, toughness);
+            var reducedDamage = CombatRules.getDamageAfterAbsorb(player, mid, source, armor, toughness);
             if (reducedDamage < targetReducedDamage) {
                 low = mid;
             } else {
@@ -8512,7 +8526,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return high;
     }
 
-    private static float findDamageForMagicReducedTarget(int protection, float targetReducedDamage) {
+    private static float findDamageForMagicReducedTarget(float protection, float targetReducedDamage) {
         var low = 0.0F;
         var high = Math.max(targetReducedDamage * 2.0F, 1.0F);
         while (CombatRules.getDamageAfterMagicAbsorb(high, protection) < targetReducedDamage) {
@@ -8554,7 +8568,7 @@ public final class ApprenticeCodexGameTestScenarios {
     private static float resolveExpectedSynchronizationManaAfterHitForGameTest(
             float incomingDamage,
             float availableMana,
-            int protection
+            float protection
     ) {
         var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
         var remainingMitigatedDamage = Math.max(incomingDamage - reducedDamage, 0.0F);
