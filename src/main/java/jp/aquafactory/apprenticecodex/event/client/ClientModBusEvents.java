@@ -54,6 +54,7 @@ import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunRend
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRenderer;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkRenderer;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileRenderer;
+import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileRenderer;
@@ -149,6 +150,11 @@ public final class ClientModBusEvents {
                 ItemRegistry.ALCHEMISTS_FLASK.get(),
                 ResourceLocation.withDefaultNamespace("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
+        ));
+        event.enqueueWork(() -> ItemProperties.register(
+                ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                new ResourceLocation("throwing"),
+                (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> {
             if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
@@ -394,6 +400,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.THERMAL_PROCESS_THROWER.get(), ThermalProcessThrowerRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(), ChargedTwinBladeStaffThrownRenderer::new);
         event.registerEntityRenderer(EntityRegistry.GRACED_RAIN_CLOUD.get(), GracedRainCloudRenderer::new);
         event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_SAW.get(), TinyLumberjackSawRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);

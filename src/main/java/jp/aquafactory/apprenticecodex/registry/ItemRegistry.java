@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
 import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.AtelierStationItem;
+import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
@@ -231,6 +232,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final DeferredHolder<Item, Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
+    public static final DeferredHolder<Item, Item> CHARGED_TWIN_BLADE_STAFF =
+            ITEMS.register("charged_twin_blade_staff", ChargedTwinBladeStaff::new);
     public static final DeferredHolder<Item, Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> IRON_SWINGCAST_STAFF =
