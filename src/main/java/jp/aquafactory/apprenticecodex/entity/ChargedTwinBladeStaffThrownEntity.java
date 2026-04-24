@@ -21,6 +21,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -134,10 +135,10 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         var owner = getOwner();
         var damageSource = damageSources().trident(this, owner == null ? this : owner);
         var impactForward = resolveImpactForward();
-        var damage = (float) (ChargedTwinBladeStaff.resolveThrownDamage(weaponStack)
-                + (hitEntity instanceof LivingEntity livingEntity
-                ? EnchantmentHelper.getDamageBonus(weaponStack, livingEntity.getMobType())
-                : 0.0F));
+        var damage = (float) ChargedTwinBladeStaff.resolveThrownDamage(
+                weaponStack,
+                hitEntity instanceof LivingEntity livingEntity ? livingEntity.getMobType() : MobType.UNDEFINED
+        );
 
         if (hitEntity.hurt(damageSource, damage) && hitEntity instanceof LivingEntity livingTarget) {
             if (owner instanceof LivingEntity livingOwner) {

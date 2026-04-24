@@ -21,6 +21,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -59,6 +60,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     private static final int THROW_MANA_COST = 100;
     private static final int RIPTIDE_MANA_COST = 50;
     private static final int ENCHANTMENT_VALUE = 15;
+    private static final double BASE_PLAYER_ATTACK_DAMAGE = 1.0D;
     private static final double ATTACK_DAMAGE_BONUS = 10.0D;
     private static final double ATTACK_SPEED_BONUS = -3.0D;
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
@@ -261,7 +263,12 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     public static double resolveThrownDamage(ItemStack stack) {
-        return 11.0D;
+        return resolveThrownDamage(stack, MobType.UNDEFINED);
+    }
+
+    public static double resolveThrownDamage(ItemStack stack, MobType mobType) {
+        // Item の攻撃力補正は素手基礎値を含まないため、投擲でも近接定義へ追従できるよう加算する。
+        return BASE_PLAYER_ATTACK_DAMAGE + ATTACK_DAMAGE_BONUS + EnchantmentHelper.getDamageBonus(stack, mobType);
     }
 
     private static boolean canSpendThrowMana(Player player, ItemStack stack) {

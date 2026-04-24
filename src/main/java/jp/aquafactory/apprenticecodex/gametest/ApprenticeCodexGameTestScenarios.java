@@ -39,6 +39,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -130,6 +131,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -5785,6 +5787,75 @@ public final class ApprenticeCodexGameTestScenarios {
             ) - (-3.0D)) < 1.0e-9D, "Charged Twin Blade Staff attack speed regression: " + describeModifiers(modifiers));
         });
     }
+    static void chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var baseStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            var baseDamage = ChargedTwinBladeStaff.resolveThrownDamage(baseStack, MobType.UNDEFINED);
+            helper.assertTrue(Math.abs(baseDamage - 11.0D) < 1.0e-9D,
+                    "Charged Twin Blade Staff base thrown damage regression: " + baseDamage);
+
+            var sharpnessStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            sharpnessStack.enchant(Enchantments.SHARPNESS, 3);
+            assertChargedTwinBladeStaffThrownDamage(
+                    helper,
+                    sharpnessStack,
+                    MobType.UNDEFINED,
+                    baseDamage + EnchantmentHelper.getDamageBonus(sharpnessStack, MobType.UNDEFINED),
+                    "Charged Twin Blade Staff sharpness thrown damage regression"
+            );
+
+            var smiteStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            smiteStack.enchant(Enchantments.SMITE, 2);
+            assertChargedTwinBladeStaffThrownDamage(
+                    helper,
+                    smiteStack,
+                    MobType.UNDEAD,
+                    baseDamage + EnchantmentHelper.getDamageBonus(smiteStack, MobType.UNDEAD),
+                    "Charged Twin Blade Staff smite thrown damage regression"
+            );
+            assertChargedTwinBladeStaffThrownDamage(
+                    helper,
+                    smiteStack,
+                    MobType.UNDEFINED,
+                    baseDamage + EnchantmentHelper.getDamageBonus(smiteStack, MobType.UNDEFINED),
+                    "Charged Twin Blade Staff smite fallback damage regression"
+            );
+
+            var baneStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            baneStack.enchant(Enchantments.BANE_OF_ARTHROPODS, 2);
+            assertChargedTwinBladeStaffThrownDamage(
+                    helper,
+                    baneStack,
+                    MobType.ARTHROPOD,
+                    baseDamage + EnchantmentHelper.getDamageBonus(baneStack, MobType.ARTHROPOD),
+                    "Charged Twin Blade Staff bane thrown damage regression"
+            );
+            assertChargedTwinBladeStaffThrownDamage(
+                    helper,
+                    baneStack,
+                    MobType.UNDEFINED,
+                    baseDamage + EnchantmentHelper.getDamageBonus(baneStack, MobType.UNDEFINED),
+                    "Charged Twin Blade Staff bane fallback damage regression"
+            );
+
+            var impalingStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            impalingStack.enchant(Enchantments.IMPALING, 2);
+            assertChargedTwinBladeStaffThrownDamage(
+                    helper,
+                    impalingStack,
+                    MobType.WATER,
+                    baseDamage + EnchantmentHelper.getDamageBonus(impalingStack, MobType.WATER),
+                    "Charged Twin Blade Staff impaling thrown damage regression"
+            );
+            assertChargedTwinBladeStaffThrownDamage(
+                    helper,
+                    impalingStack,
+                    MobType.UNDEFINED,
+                    baseDamage + EnchantmentHelper.getDamageBonus(impalingStack, MobType.UNDEFINED),
+                    "Charged Twin Blade Staff impaling fallback damage regression"
+            );
+        });
+    }
     static void chargedTwinBladeStaffThrowConsumesMana(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_throw_mana_test");
         var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
@@ -8274,6 +8345,18 @@ public final class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.WISDOM
         ));
         return expectedEnchantments;
+    }
+
+    private static void assertChargedTwinBladeStaffThrownDamage(
+            GameTestHelper helper,
+            ItemStack stack,
+            MobType mobType,
+            double expectedDamage,
+            String failureMessage
+    ) {
+        var actualDamage = ChargedTwinBladeStaff.resolveThrownDamage(stack, mobType);
+        helper.assertTrue(Math.abs(actualDamage - expectedDamage) < 1.0e-9D,
+                failureMessage + ": mobType=" + mobType + ", expected=" + expectedDamage + ", actual=" + actualDamage);
     }
 
     private static Set<ResourceLocation> expectedReflectcastShieldEnchantments(ItemStack stack) {
