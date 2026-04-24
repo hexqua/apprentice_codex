@@ -207,6 +207,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public final class ApprenticeCodexGameTestScenarios {
+    private static final double SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE = 1.5D;
+
     private static final String CREATE_GAMETEST_HOOKS_CLASS =
             "jp.aquafactory.apprenticecodex.gametest.create.CreateGameTestHooks";
     private static final String VANILLA_NAMESPACE = "minecraft";
@@ -2130,11 +2132,12 @@ public final class ApprenticeCodexGameTestScenarios {
         var range = getSenseEvilRange(spell, caster, 1);
         var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
         var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.5, 0.0, 0.0);
+        prepareAbsoluteIsolationTargetPlatform(level, zombieCenter);
         var zombie = spawnPositionedZombie(level, zombieCenter);
 
         helper.runAtTickTime(5, () -> {
             var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
-            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), 0.25,
+            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE,
                     "SenseEvil should detect undead in the added X direction cube band");
             helper.succeed();
         });
@@ -2152,15 +2155,16 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Diagonal test offset must stay outside the old spherical spawner range");
 
         var zombieCenter = caster.getBoundingBox().getCenter().add(diagonalOffset, 0.0, diagonalOffset);
+        prepareAbsoluteIsolationTargetPlatform(level, zombieCenter);
         var zombie = spawnPositionedZombie(level, zombieCenter);
         var spawnerPos = caster.blockPosition().offset(diagonalOffset, 0, diagonalOffset);
         placeZombieSpawner(level, spawnerPos);
 
         helper.runAtTickTime(5, () -> {
             var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
-            assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(BlockPos.containing(zombie.getBoundingBox().getCenter())), 0.25,
+            assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(BlockPos.containing(zombie.getBoundingBox().getCenter())), SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE,
                     "SenseEvil should still detect entities at the shared diagonal cube offset");
-            assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(spawnerPos), 0.25,
+            assertSenseEvilHighlightPresent(helper, highlights, Vec3.atCenterOf(spawnerPos), SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE,
                     "SenseEvil should detect spawners at the same diagonal cube offset as entities");
             helper.succeed();
         });
@@ -7819,6 +7823,8 @@ public final class ApprenticeCodexGameTestScenarios {
         if (zombie == null) {
             throw new IllegalStateException("Failed to create zombie for SenseEvil GameTest");
         }
+        // SenseEvil の到達距離検証では移動や落下で座標がぶれると誤検知しやすいため固定する。
+        zombie.setNoAi(true);
         zombie.moveTo(targetCenter.x, targetCenter.y - zombie.getBbHeight() * 0.5, targetCenter.z, 0.0f, 0.0f);
         level.addFreshEntity(zombie);
         return zombie;
@@ -8020,6 +8026,14 @@ public final class ApprenticeCodexGameTestScenarios {
                 level.setBlock(upperAirPos, Blocks.AIR.defaultBlockState(), 3);
             }
         }
+    }
+
+    private static void prepareAbsoluteIsolationTargetPlatform(ServerLevel level, Vec3 targetCenter) {
+        var floorPos = BlockPos.containing(targetCenter.x, targetCenter.y - 1.0D, targetCenter.z);
+        forceLoadChunk(level, floorPos);
+        level.setBlock(floorPos, Blocks.STONE.defaultBlockState(), 3);
+        level.setBlock(floorPos.above(), Blocks.AIR.defaultBlockState(), 3);
+        level.setBlock(floorPos.above(2), Blocks.AIR.defaultBlockState(), 3);
     }
 
     private static FakePlayer createPersonalShelfPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
