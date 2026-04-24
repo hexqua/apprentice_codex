@@ -106,20 +106,6 @@
       ]
     }
   },
-  "overrides": [
-    {
-      "predicate": {
-        "custom_model_data": 1
-      },
-      "model": "apprenticecodex:item/charged_twin_blade_staff_thrown"
-    },
-    {
-      "predicate": {
-        "throwing": 1
-      },
-      "model": "apprenticecodex:item/charged_twin_blade_staff_throwing"
-    }
-  ],
   "textures": {
     "particle": "apprenticecodex:geo/charged_twin_blade_staff"
   }

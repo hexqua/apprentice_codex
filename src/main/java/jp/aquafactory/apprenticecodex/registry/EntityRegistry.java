@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
+import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
@@ -129,6 +130,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<ThermalProcessThrowerEntity>> THERMAL_PROCESS_THROWER =
             regWeapon("thermal_process_thrower", ThermalProcessThrowerEntity::new, 1);
+
+    public static final RegistryObject<EntityType<ChargedTwinBladeStaffThrownEntity>> CHARGED_TWIN_BLADE_STAFF_THROWN =
+            regProjectile("charged_twin_blade_staff_thrown", ChargedTwinBladeStaffThrownEntity::new, 96, 1);
 
     public static final RegistryObject<EntityType<GracedRainCloudEntity>> GRACED_RAIN_CLOUD =
             regWeapon("graced_rain_cloud", GracedRainCloudEntity::new, 1);

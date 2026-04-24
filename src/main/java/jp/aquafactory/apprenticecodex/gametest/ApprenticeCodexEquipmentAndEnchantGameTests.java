@@ -399,6 +399,46 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffExposesExpectedMainhandAttributes(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffExposesExpectedMainhandAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffThrowConsumesMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffThrowConsumesMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffLoyaltyReducesThrowManaCost(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffLoyaltyReducesThrowManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffRiptideWorksOnDryGroundWithoutProjectile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRiptideWorksOnDryGroundWithoutProjectile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactCastManagerStartsContinuousSpells(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerStartsContinuousSpells(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerSkipsWhenOwnerCannotCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void meditationPotionsExposeExpectedEffectsAndDurations(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.meditationPotionsExposeExpectedEffectsAndDurations(helper);
     }
