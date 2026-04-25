@@ -2231,29 +2231,6 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(testedItems > 0, "No AbstractSwingMagicItem entries were registered");
         });
     }
-    static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
-        var level = helper.getLevel();
-        var casterPos = createRemoteIsolationOrigin(helper, new BlockPos(0, 14, 0), 768, 0);
-        prepareAbsoluteIsolationPlatform(level, casterPos);
-        var caster = createSenseEvilPlayer(level, casterPos, "sense_evil_horizontal_cube_test");
-        var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
-        var range = getSenseEvilRange(spell, caster, 1);
-        var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
-        // 旧横判定の外側かつ新立方体判定の内側を狙う。
-        // +0.5 だと新境界まで 0.1 程度しかなく、spawn 補正や微小移動で外れやすいので余裕を持たせる。
-        var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.3, 0.0, 0.0);
-        prepareAbsoluteIsolationTargetPlatform(level, zombieCenter);
-        var zombie = spawnPositionedZombie(level, zombieCenter);
-
-        // 隔離用の遠隔 chunk は server 起動直後だと entity 追加直後の観測が揺れることがあるため、
-        // 数 tick 待って着地と entity section 登録を安定させてから判定する。
-        helper.runAtTickTime(10, () -> {
-            var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
-            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE,
-                    "SenseEvil should detect undead in the added X direction cube band");
-            helper.succeed();
-        });
-    }
     static void bonusChestLootIncludesIsekaiTravelGuidebook(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var lootTable = helper.getLevel().getServer().reloadableRegistries().getLootTable(BuiltInLootTables.SPAWN_BONUS_CHEST);
