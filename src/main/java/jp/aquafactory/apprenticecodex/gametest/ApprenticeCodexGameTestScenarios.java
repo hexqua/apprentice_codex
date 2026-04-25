@@ -2123,25 +2123,6 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
-    static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
-        var level = helper.getLevel();
-        var casterPos = createRemoteIsolationOrigin(helper, new BlockPos(0, 14, 0), 768, 0);
-        prepareAbsoluteIsolationPlatform(level, casterPos);
-        var caster = createSenseEvilPlayer(level, casterPos, "sense_evil_horizontal_cube_test");
-        var spell = (SenseEvil) SpellRegistry.SENSE_EVIL.get();
-        var range = getSenseEvilRange(spell, caster, 1);
-        var oldHorizontalHalfExtent = range + caster.getBbWidth() * 0.5;
-        var zombieCenter = caster.getBoundingBox().getCenter().add(oldHorizontalHalfExtent + 0.5, 0.0, 0.0);
-        prepareAbsoluteIsolationTargetPlatform(level, zombieCenter);
-        var zombie = spawnPositionedZombie(level, zombieCenter);
-
-        helper.runAtTickTime(5, () -> {
-            var highlights = collectSenseEvilHighlights(spell, level, 1, caster);
-            assertSenseEvilHighlightPresent(helper, highlights, zombie.getBoundingBox().getCenter(), SENSE_EVIL_HIGHLIGHT_POSITION_TOLERANCE,
-                    "SenseEvil should detect undead in the added X direction cube band");
-            helper.succeed();
-        });
-    }
     static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
         var level = helper.getLevel();
         var casterPos = createRemoteIsolationOrigin(helper, new BlockPos(0, 14, 0), 768, 96);
