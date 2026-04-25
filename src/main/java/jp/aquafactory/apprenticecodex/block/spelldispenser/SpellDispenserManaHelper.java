@@ -83,6 +83,10 @@ public final class SpellDispenserManaHelper {
     }
 
     public static boolean tryConsumeSpellMana(@NotNull ManaAccess manaAccess, SpellData spellData) {
+        if (manaAccess.isManaConsumptionExempt()) {
+            return true;
+        }
+
         var manaCost = getSpellManaCost(spellData);
         if (manaCost <= 0) {
             return true;
@@ -207,6 +211,10 @@ public final class SpellDispenserManaHelper {
         @NotNull ItemStack getInventoryStack(int slot);
 
         void setInventoryStack(int slot, @NotNull ItemStack stack);
+
+        default boolean isManaConsumptionExempt() {
+            return false;
+        }
     }
 
     private record RefillCandidate(int slot, int recoveredMana, ItemStack remainingStack) {

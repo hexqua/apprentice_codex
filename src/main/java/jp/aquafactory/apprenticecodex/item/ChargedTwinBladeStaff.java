@@ -8,10 +8,13 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientTooltip;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.renderer.item.ChargedTwinBladeStaffRenderer;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -31,6 +34,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -40,8 +44,11 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -50,6 +57,8 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -234,6 +243,34 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, level, lines, flag);
+
+        if (EnchantmentHelper.getRiptide(stack) > 0) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.charged_twin_blade_staff.desc.reptide",
+                    Mth.ceil(RIPTIDE_MANA_COST)
+            ).withStyle(ChatFormatting.GRAY));
+        } else {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.charged_twin_blade_staff.desc.throwable",
+                    Mth.ceil(getThrowManaCost(stack))
+            ).withStyle(ChatFormatting.GRAY));
+        }
+
+        if (EnchantmentHelper.hasChanneling(stack)) {
+            lines.add(Component.translatable("item.apprenticecodex.charged_twin_blade_staff.desc.channeling")
+                    .withStyle(ChatFormatting.GRAY));
+            resolveUnsupportedSelectedSpellName().ifPresent(spellName ->
+                    lines.add(Component.translatable(
+                            "item.apprenticecodex.charged_twin_blade_staff.desc.channeling.not_supported",
+                            spellName
+                    ).withStyle(ChatFormatting.RED))
+            );
+        }
+    }
+
+    @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
             private ChargedTwinBladeStaffRenderer renderer;
@@ -320,6 +357,11 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
+    }
+
+    private static Optional<Component> resolveUnsupportedSelectedSpellName() {
+        var result = DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> ChargedTwinBladeStaffClientTooltip::resolveUnsupportedSpellName);
+        return Optional.ofNullable(result).orElseGet(Optional::empty);
     }
 
     private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {

@@ -5932,6 +5932,33 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Charged Twin Blade Staff riptide should not spawn a projectile");
         });
     }
+    static void chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var historyResolved = jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity.resolveImpactForwardForTesting(
+                    new Vec3(4.0D, 0.0D, 0.0D),
+                    Vec3.ZERO,
+                    new Vec3(1.0D, 0.0D, 0.0D)
+            );
+            helper.assertTrue(historyResolved.distanceTo(new Vec3(1.0D, 0.0D, 0.0D)) < 1.0E-6D,
+                    "Charged Twin Blade Staff impact forward should prefer recent flight history: " + historyResolved);
+
+            var shortHistoryFallback = jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity.resolveImpactForwardForTesting(
+                    new Vec3(0.001D, 0.0D, 0.0D),
+                    Vec3.ZERO,
+                    new Vec3(0.0D, 0.0D, 1.0D)
+            );
+            helper.assertTrue(shortHistoryFallback.distanceTo(new Vec3(0.0D, 0.0D, 1.0D)) < 1.0E-6D,
+                    "Charged Twin Blade Staff impact forward should fall back when history is too short: " + shortHistoryFallback);
+
+            var reversedHistoryFallback = jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity.resolveImpactForwardForTesting(
+                    new Vec3(-4.0D, 0.0D, 0.0D),
+                    Vec3.ZERO,
+                    new Vec3(1.0D, 0.0D, 0.0D)
+            );
+            helper.assertTrue(reversedHistoryFallback.distanceTo(new Vec3(1.0D, 0.0D, 0.0D)) < 1.0E-6D,
+                    "Charged Twin Blade Staff impact forward should fall back when history reverses initial throw: " + reversedHistoryFallback);
+        });
+    }
     static void chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var level = (ServerLevel) helper.getLevel();
@@ -5977,6 +6004,258 @@ public final class ApprenticeCodexGameTestScenarios {
             var longProjectiles = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, new AABB(impactPos, impactPos).inflate(12.0D));
             helper.assertTrue(!longProjectiles.isEmpty(),
                     "Charged Twin Blade Staff LONG impact cast did not spawn Compound Phial projectiles");
+        });
+    }
+    static void chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_self_profile_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff self profile test could not resolve player mana data");
+            magicData.setMana(200.0F);
+            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "oakskin"),
+                    1,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level, player, sourceStack, payload, helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3))), new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff self profile failed to cast Oakskin"
+            );
+            helper.assertTrue(player.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.OAKSKIN.get()),
+                    "Charged Twin Blade Staff self profile should apply Oakskin to the real player");
+        });
+    }
+    static void chargedTwinBladeStaffCreativeImpactCastUsesDispenserProfileWithZeroMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_creative_dispenser_profile_test");
+            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative dispenser profile test could not resolve player mana data");
+            magicData.setMana(0.0F);
+            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_missile"),
+                    1,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level,
+                            player,
+                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                            payload,
+                            impactPos,
+                            new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff creative impact cast should use Spell Dispenser profile with zero mana"
+            );
+            var projectiles = level.getEntitiesOfClass(
+                    io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
+                    new AABB(impactPos, impactPos).inflate(12.0D)
+            );
+            helper.assertTrue(!projectiles.isEmpty(),
+                    "Charged Twin Blade Staff creative dispenser profile should spawn Magic Missile projectiles");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Charged Twin Blade Staff creative dispenser profile should leave mana at zero but got " + magicData.getMana());
+        });
+    }
+    static void chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_creative_staff_profile_test");
+            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff creative staff profile test could not resolve player mana data");
+            magicData.setMana(0.0F);
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "oakskin"),
+                    1,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level,
+                            player,
+                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                            payload,
+                            helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3))),
+                            new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff creative impact cast should use staff profile with zero mana"
+            );
+            helper.assertTrue(player.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.OAKSKIN.get()),
+                    "Charged Twin Blade Staff creative staff profile should apply Oakskin to the real player");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Charged Twin Blade Staff creative staff profile should leave mana at zero but got " + magicData.getMana());
+        });
+    }
+    static void chargedTwinBladeStaffImpactCastManagerCastsInitialRaiseDeadProfile(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_raise_dead_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff Raise Dead test could not resolve player mana data");
+            magicData.setMana(500.0F);
+            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "raise_dead"),
+                    1,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff Raise Dead profile failed its initial cast"
+            );
+            var summons = level.getEntitiesOfClass(
+                    net.minecraft.world.entity.monster.Monster.class,
+                    new AABB(impactPos, impactPos).inflate(12.0D),
+                    monster -> monster instanceof io.redspace.ironsspellbooks.entity.mobs.IMagicSummon
+            );
+            helper.assertTrue(!summons.isEmpty(),
+                    "Charged Twin Blade Staff Raise Dead profile should summon mobs near the impact");
+            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get()),
+                    "Charged Twin Blade Staff Raise Dead profile should register recast on the real player");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get()),
+                    "Charged Twin Blade Staff Raise Dead profile should not add a normal cooldown for a recast spell");
+            summons.forEach(net.minecraft.world.entity.Entity::discard);
+        });
+    }
+    static void chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_raise_dead_recast_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff Raise Dead recast test could not resolve player mana data");
+            magicData.setMana(500.0F);
+            var sourceStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "raise_dead"),
+                    1,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff Raise Dead recast setup failed"
+            );
+            helper.assertFalse(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level, player, sourceStack, payload, impactPos, new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff Raise Dead should not recast while an initial recast is active"
+            );
+            level.getEntitiesOfClass(
+                    net.minecraft.world.entity.monster.Monster.class,
+                    new AABB(impactPos, impactPos).inflate(12.0D),
+                    monster -> monster instanceof io.redspace.ironsspellbooks.entity.mobs.IMagicSummon
+            ).forEach(net.minecraft.world.entity.Entity::discard);
+        });
+    }
+    static void chargedTwinBladeStaffRaiseDeadPreservesWheelSelectionAfterRecast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_raise_dead_selection_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff Raise Dead selection test could not resolve player mana data");
+            magicData.setMana(500.0F);
+
+            var amplifierStack = new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get());
+            var mutable = ISpellContainer.create(2, true, false).mutableCopy();
+            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1, 0, false),
+                    "Failed to prepare first wheel spell for Raise Dead selection regression");
+            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get(), 1, 1, false),
+                    "Failed to prepare Raise Dead wheel spell for selection regression");
+            ISpellContainer.set(amplifierStack, mutable.toImmutable());
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            magicData.getSyncedData().setSpellSelection(new io.redspace.ironsspellbooks.gui.overlays.SpellSelection(
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+                    1
+            ));
+
+            var beforeSelection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
+            helper.assertTrue(beforeSelection != null
+                            && beforeSelection.spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get(),
+                    "Raise Dead selection regression setup should select Raise Dead but got " + beforeSelection);
+
+            var impactPos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3)));
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "raise_dead"),
+                    1,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND
+            );
+            helper.assertTrue(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level,
+                            player,
+                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                            payload,
+                            impactPos,
+                            new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff Raise Dead selection regression failed its initial cast"
+            );
+
+            var afterSelection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
+            helper.assertTrue(afterSelection != null
+                            && afterSelection.spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAISE_DEAD_SPELL.get(),
+                    "Raise Dead impact cast should preserve the selected wheel spell but got " + afterSelection);
+            var recastPayload = jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload.capture(afterSelection, player);
+            helper.assertFalse(recastPayload.isPresent(),
+                    "Raise Dead active recast should not fall back to a different wheel spell payload");
+
+            level.getEntitiesOfClass(
+                    net.minecraft.world.entity.monster.Monster.class,
+                    new AABB(impactPos, impactPos).inflate(12.0D),
+                    monster -> monster instanceof io.redspace.ironsspellbooks.entity.mobs.IMagicSummon
+            ).forEach(net.minecraft.world.entity.Entity::discard);
+        });
+    }
+    static void chargedTwinBladeStaffImpactCastManagerRejectsUnprofiledSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = (ServerLevel) helper.getLevel();
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_unprofiled_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Charged Twin Blade Staff unprofiled test could not resolve player mana data");
+            magicData.setMana(500.0F);
+            var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blood_step"),
+                    1,
+                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+
+            helper.assertFalse(
+                    jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
+                            level,
+                            player,
+                            new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                            payload,
+                            helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 3))),
+                            new Vec3(0.0D, 0.0D, 1.0D)
+                    ),
+                    "Charged Twin Blade Staff should reject spells without a staff or Spell Dispenser profile"
+            );
         });
     }
     static void chargedTwinBladeStaffImpactCastManagerStartsContinuousSpells(GameTestHelper helper) {

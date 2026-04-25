@@ -429,8 +429,48 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInstantAndLongSpells(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsPlayerSelfProfile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffCreativeImpactCastUsesDispenserProfileWithZeroMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesDispenserProfileWithZeroMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffCreativeImpactCastUsesStaffProfileWithZeroMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactCastManagerCastsInitialRaiseDeadProfile(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerCastsInitialRaiseDeadProfile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerBlocksRaiseDeadWhenRecastExists(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffRaiseDeadPreservesWheelSelectionAfterRecast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffRaiseDeadPreservesWheelSelectionAfterRecast(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffImpactCastManagerRejectsUnprofiledSpell(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffImpactCastManagerRejectsUnprofiledSpell(helper);
     }
 
     @GameTest(template = TEMPLATE)
