@@ -250,23 +250,26 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             lines.add(Component.translatable(
                     "item.apprenticecodex.charged_twin_blade_staff.desc.reptide",
                     Mth.ceil(RIPTIDE_MANA_COST)
-            ).withStyle(ChatFormatting.GRAY));
+            ).withStyle(ChatFormatting.AQUA));
         } else {
             lines.add(Component.translatable(
                     "item.apprenticecodex.charged_twin_blade_staff.desc.throwable",
                     Mth.ceil(getThrowManaCost(stack))
-            ).withStyle(ChatFormatting.GRAY));
+            ).withStyle(ChatFormatting.AQUA));
         }
 
         if (EnchantmentHelper.hasChanneling(stack)) {
             lines.add(Component.translatable("item.apprenticecodex.charged_twin_blade_staff.desc.channeling")
-                    .withStyle(ChatFormatting.GRAY));
+                    .withStyle(ChatFormatting.YELLOW));
             resolveUnsupportedSelectedSpellName().ifPresent(spellName ->
                     lines.add(Component.translatable(
                             "item.apprenticecodex.charged_twin_blade_staff.desc.channeling.not_supported",
                             spellName
                     ).withStyle(ChatFormatting.RED))
             );
+        } else {
+            lines.add(Component.translatable("item.apprenticecodex.charged_twin_blade_staff.desc.channeling.hint")
+                    .withStyle(ChatFormatting.GRAY));
         }
     }
 
