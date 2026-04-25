@@ -498,7 +498,9 @@ public final class SpellDispenserCastHelper {
 
     private static void syncProxyMana(@Nullable SpellDispenserManaHelper.ManaAccess manaAccess, MagicData magicData) {
         if (manaAccess != null) {
-            magicData.setMana(manaAccess.getCurrentMana());
+            magicData.setMana(manaAccess.isManaConsumptionExempt()
+                    ? SpellDispenserManaHelper.MAX_MANA
+                    : manaAccess.getCurrentMana());
         }
     }
 

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -83,7 +84,12 @@ public record ChargedTwinBladeStaffSpellPayload(
             return EMPTY;
         }
 
-        if (spell.getRecastCount(selection.spellData.getLevel(), player) > 0) {
+        var profile = ChargedTwinBladeStaffSpellProfileManager.getProfile(spell);
+        var hasRecast = spell.getRecastCount(selection.spellData.getLevel(), player) > 0;
+        if (hasRecast && profile.filter(ChargedTwinBladeStaffSpellProfile::allowInitialRecast).isEmpty()) {
+            return EMPTY;
+        }
+        if (hasRecast && MagicData.getPlayerMagicData(player).getPlayerRecasts().hasRecastForSpell(spell)) {
             return EMPTY;
         }
 

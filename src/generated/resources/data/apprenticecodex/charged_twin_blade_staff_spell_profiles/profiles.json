@@ -1,0 +1,29 @@
+{
+  "values": [
+    {
+      "profile": {
+        "cast_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:oakskin"
+    },
+    {
+      "profile": {
+        "cast_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:fortify"
+    },
+    {
+      "profile": {
+        "cast_mode": "player_self"
+      },
+      "spell": "irons_spellbooks:haste"
+    },
+    {
+      "profile": {
+        "allow_initial_recast": true,
+        "cast_mode": "impact_proxy_owner_magic"
+      },
+      "spell": "irons_spellbooks:raise_dead"
+    }
+  ]
+}

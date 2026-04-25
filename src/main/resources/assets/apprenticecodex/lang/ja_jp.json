@@ -105,6 +105,10 @@
   "item.apprenticecodex.isekai_travel_guidebook.desc": "『ようこそMinecraftの世界へ！』",
   "item.apprenticecodex.stealth_rune_armor.desc": "この防具は透明化の効果を阻害しない。",
   "item.apprenticecodex.elemental_bow.desc": "スニークをすることでモード切り替えが可能",
+  "item.apprenticecodex.charged_twin_blade_staff.desc.throwable": "%dマナを消費することで杖を投擲できる。",
+  "item.apprenticecodex.charged_twin_blade_staff.desc.reptide": "%dマナを消費することで激流が発動する。",
+  "item.apprenticecodex.charged_twin_blade_staff.desc.channeling": "この杖を投げた先で魔法が発動する。",
+  "item.apprenticecodex.charged_twin_blade_staff.desc.channeling.not_supported": "%sは杖に適合していないため発動しない。",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
   "item.apprenticecodex.basic_spellcaster_round.desc": "通常の即時詠唱魔法用の実包",
   "item.apprenticecodex.arcane_spellcaster_round.desc": "やや複雑な即時詠唱魔法用の実包",
@@ -509,6 +513,7 @@
   "ui.apprenticecodex.focus_staffbow.loan_mana": "杖にマナを吸われていて詠唱できない...(残り%dマナ)",
   "ui.apprenticecodex.focus_staffbow.insufficient_arrow": "詠唱の触媒に使う矢が無い！",
   "ui.apprenticecodex.autocast_amulet.insufficient_mana": "%1$sの発動にマナが足りない！(%2$dマナ必要)",
+  "ui.apprenticecodex.charged_twin_blade_staff.unsupported_cast": "%1$sは%2$sから発動できないようだ...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

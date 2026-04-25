@@ -37,6 +37,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.UUID;
 
 public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
@@ -53,16 +55,26 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     private static final String IMPACTED_TAG = "Impacted";
     private static final String IMPACT_TICK_TAG = "ImpactTick";
     private static final String MAX_FLIGHT_TICKS_TAG = "MaxFlight";
+    private static final String INITIAL_FORWARD_TAG = "InitialForward";
+    private static final String VECTOR_X_TAG = "X";
+    private static final String VECTOR_Y_TAG = "Y";
+    private static final String VECTOR_Z_TAG = "Z";
     private static final int IMPACT_LIFETIME_TICKS = 20 * 5;
     private static final int MAX_FLIGHT_TICKS = 20 * 20;
+    private static final int POSITION_HISTORY_LIMIT = 4;
     private static final double DRAG = 0.99D;
     private static final double GRAVITY = 0.05D;
     private static final double BLOCK_IMPACT_OFFSET = 0.05D;
     private static final double ENTITY_IMPACT_OFFSET = 0.01D;
+    private static final double MIN_HISTORY_DISTANCE_SQR = 0.01D;
+    private static final double MAX_HISTORY_DISTANCE_SQR = 256.0D;
+    private static final double MIN_INITIAL_ALIGNMENT = -0.25D;
 
     private ItemStack weaponStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
     private ChargedTwinBladeStaffSpellPayload spellPayload = ChargedTwinBladeStaffSpellPayload.EMPTY;
     private UUID ownerUuid;
+    private Vec3 initialForward = Vec3.ZERO;
+    private final Deque<Vec3> recentFlightPositions = new ArrayDeque<>(POSITION_HISTORY_LIMIT);
     private boolean impacted;
     private int impactTick = -1;
     private int maxFlightTicks = MAX_FLIGHT_TICKS;
@@ -118,10 +130,17 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
             }
         }
 
+        recordRecentFlightPosition(position());
         move(MoverType.SELF, getDeltaMovement());
         ProjectileUtil.rotateTowardsMovement(this, 1.0F);
         // トライデント寄せで、水中でも追加の減速を掛けず一定の drag だけで飛ばす。
         setDeltaMovement(getDeltaMovement().scale(DRAG).add(0.0D, -GRAVITY, 0.0D));
+    }
+
+    @Override
+    public void shoot(double x, double y, double z, float velocity, float inaccuracy) {
+        super.shoot(x, y, z, velocity, inaccuracy);
+        setInitialForwardFromMovement();
     }
 
     @Override
@@ -134,7 +153,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         var hitEntity = hitResult.getEntity();
         var owner = getOwner();
         var damageSource = damageSources().trident(this, owner == null ? this : owner);
-        var impactForward = resolveImpactForward();
+        var impactForward = resolveImpactForward(hitResult.getLocation());
         var damage = (float) ChargedTwinBladeStaff.resolveThrownDamage(
                 weaponStack,
                 hitEntity instanceof LivingEntity livingEntity ? livingEntity.getMobType() : MobType.UNDEFINED
@@ -154,10 +173,10 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     protected void onHitBlock(@NotNull BlockHitResult hitResult) {
         super.onHitBlock(hitResult);
         if (!level().isClientSide) {
-            var impactForward = resolveImpactForward();
             var blockImpactPosition = hitResult.getLocation().add(
                     Vec3.atLowerCornerOf(hitResult.getDirection().getNormal()).scale(BLOCK_IMPACT_OFFSET)
             );
+            var impactForward = resolveImpactForward(blockImpactPosition);
             finishImpact(blockImpactPosition, impactForward, SoundEvents.TRIDENT_HIT_GROUND);
         }
     }
@@ -257,12 +276,69 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
                 && level.canSeeSky(blockPosition());
     }
 
-    private Vec3 resolveImpactForward() {
+    private Vec3 resolveImpactForward(Vec3 impactPosition) {
+        var oldestPosition = recentFlightPositions.peekFirst();
+        var historyForward = oldestPosition == null ? Vec3.ZERO : impactPosition.subtract(oldestPosition);
+        if (isUsableHistoryForward(historyForward, initialForward)) {
+            return historyForward.normalize();
+        }
+
+        if (isUsableForward(initialForward)) {
+            return initialForward.normalize();
+        }
+
         var movement = getDeltaMovement();
-        if (movement.lengthSqr() > 1.0E-6D) {
+        if (isUsableForward(movement)) {
             return movement.normalize();
         }
         return calculateViewVector(getXRot(), getYRot());
+    }
+
+    public static Vec3 resolveImpactForwardForTesting(Vec3 impactPosition, Vec3 oldestHistoryPosition, Vec3 initialForward) {
+        var historyForward = impactPosition.subtract(oldestHistoryPosition);
+        if (isUsableHistoryForward(historyForward, initialForward)) {
+            return historyForward.normalize();
+        }
+        if (isUsableForward(initialForward)) {
+            return initialForward.normalize();
+        }
+        return new Vec3(0.0D, 0.0D, 1.0D);
+    }
+
+    private void recordRecentFlightPosition(Vec3 position) {
+        recentFlightPositions.addLast(position);
+        while (recentFlightPositions.size() > POSITION_HISTORY_LIMIT) {
+            recentFlightPositions.removeFirst();
+        }
+    }
+
+    private void setInitialForwardFromMovement() {
+        var movement = getDeltaMovement();
+        if (isUsableForward(movement)) {
+            initialForward = movement.normalize();
+        }
+    }
+
+    private static boolean isUsableHistoryForward(Vec3 historyForward, Vec3 initialForward) {
+        if (!isFinite(historyForward)) {
+            return false;
+        }
+        var lengthSqr = historyForward.lengthSqr();
+        if (lengthSqr < MIN_HISTORY_DISTANCE_SQR || lengthSqr > MAX_HISTORY_DISTANCE_SQR) {
+            return false;
+        }
+        if (isUsableForward(initialForward) && historyForward.normalize().dot(initialForward.normalize()) < MIN_INITIAL_ALIGNMENT) {
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isUsableForward(Vec3 forward) {
+        return isFinite(forward) && forward.lengthSqr() > 1.0E-6D;
+    }
+
+    private static boolean isFinite(Vec3 vector) {
+        return Double.isFinite(vector.x) && Double.isFinite(vector.y) && Double.isFinite(vector.z);
     }
 
     private Player resolveOwnerPlayer(ServerLevel level) {
@@ -323,6 +399,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         if (tag.hasUUID(OWNER_UUID_TAG)) {
             ownerUuid = tag.getUUID(OWNER_UUID_TAG);
         }
+        initialForward = readVec3(tag.getCompound(INITIAL_FORWARD_TAG));
         impacted = tag.getBoolean(IMPACTED_TAG);
         entityData.set(DATA_IMPACTED, impacted);
         if (impacted) {
@@ -340,9 +417,22 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         if (ownerUuid != null) {
             tag.putUUID(OWNER_UUID_TAG, ownerUuid);
         }
+        tag.put(INITIAL_FORWARD_TAG, saveVec3(initialForward));
         tag.putBoolean(IMPACTED_TAG, impacted);
         tag.putInt(IMPACT_TICK_TAG, impactTick);
         tag.putInt(MAX_FLIGHT_TICKS_TAG, maxFlightTicks);
+    }
+
+    private static CompoundTag saveVec3(Vec3 vector) {
+        var tag = new CompoundTag();
+        tag.putDouble(VECTOR_X_TAG, vector.x);
+        tag.putDouble(VECTOR_Y_TAG, vector.y);
+        tag.putDouble(VECTOR_Z_TAG, vector.z);
+        return tag;
+    }
+
+    private static Vec3 readVec3(CompoundTag tag) {
+        return new Vec3(tag.getDouble(VECTOR_X_TAG), tag.getDouble(VECTOR_Y_TAG), tag.getDouble(VECTOR_Z_TAG));
     }
 
     @Override
