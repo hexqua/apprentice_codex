@@ -80,6 +80,14 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                                 spirit(ARCANE_SPIRIT, 8),
                                 spirit(EARTH_SPIRIT, 8)
                         )
+                ),
+                recipe(
+                        "mana_force_blade",
+                        0.5F,
+                        List.of(jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_FORCE_BLADE.get()),
+                        io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get(),
+                        1,
+                        List.of(spirit(ARCANE_SPIRIT, 8))
                 )
         );
 

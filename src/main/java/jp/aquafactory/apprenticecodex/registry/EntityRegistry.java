@@ -24,6 +24,7 @@ import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutEntity;
@@ -109,6 +110,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<ArcherMultipleBowEntity>> ARCHER_MULTIPLE_BOW =
             regWeapon("archer_multiple_bow", ArcherMultipleBowEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ManaForceBladeProjectileEntity>> MANA_FORCE_BLADE_PROJECTILE =
+            regProjectile("mana_force_blade_projectile", ManaForceBladeProjectileEntity::new, 128, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<CommenceFireRifleEntity>> COMMENCE_FIRE_RIFLE =
             regWeapon("commence_fire_rifle", CommenceFireRifleEntity::new, 2);

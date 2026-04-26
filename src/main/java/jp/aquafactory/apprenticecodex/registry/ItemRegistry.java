@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
+import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
@@ -234,6 +235,8 @@ public final class ItemRegistry {
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
     public static final DeferredHolder<Item, Item> CHARGED_TWIN_BLADE_STAFF =
             ITEMS.register("charged_twin_blade_staff", ChargedTwinBladeStaff::new);
+    public static final DeferredHolder<Item, Item> MANA_FORCE_BLADE =
+            ITEMS.register("mana_force_blade", ManaForceBlade::new);
     public static final DeferredHolder<Item, Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> IRON_SWINGCAST_STAFF =

@@ -80,6 +80,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.PASTEL_STAFF.get());
         output.accept(ItemRegistry.FOCUS_STAFFBOW.get());
         output.accept(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        output.accept(ItemRegistry.MANA_FORCE_BLADE.get());
         output.accept(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
         output.accept(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
         output.accept(ItemRegistry.UNITE_LUNA_STAFF.get());
