@@ -1,0 +1,338 @@
+package jp.aquafactory.apprenticecodex.item;
+
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.common.ToolAction;
+import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.util.Set;
+import java.util.function.Consumer;
+
+public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellContainer, RestrictedSpellImbuableItem,
+        SpellSlotUpgradeableItem, NonDamageableAnvilMergeItem {
+    public static final float DISPLAY_ATTACK_DAMAGE = 6.0F;
+    public static final int COOLDOWN_TICKS = 40;
+
+    private static final int DURABILITY = 2031;
+    private static final int USE_DURATION = 72000;
+    private static final int ENCHANTMENT_VALUE = 15;
+    private static final double ATTACK_DAMAGE_MODIFIER_AMOUNT = DISPLAY_ATTACK_DAMAGE - 1.0D;
+    private static final double ATTACK_SPEED_MODIFIER_AMOUNT = -2.0D;
+    private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+    private static final Set<String> EXTRA_ENCHANTMENTS = Set.of(
+            "apprenticecodex:surge",
+            "apprenticecodex:attunement",
+            "apprenticecodex:wisdom",
+            "apprenticecodex:transcendence"
+    );
+
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
+
+    public ManaForceBlade() {
+        super(Tiers.DIAMOND, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT,
+                new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
+        GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public @NotNull ItemStack getDefaultInstance() {
+        var stack = super.getDefaultInstance();
+        initializeSpellContainer(stack);
+        return stack;
+    }
+
+    @Override
+    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
+        super.onCraftedBy(stack, level, player);
+        initializeSpellContainer(stack);
+    }
+
+    @Override
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        if (!level.isClientSide) {
+            initializeSpellContainer(stack);
+        }
+    }
+
+    @Override
+    public void initializeSpellContainer(ItemStack itemStack) {
+        if (itemStack == null || itemStack.isEmpty() || ISpellContainer.isSpellContainer(itemStack)) {
+            return;
+        }
+
+        ISpellContainer.set(itemStack, ISpellContainer.create(1, true, false));
+    }
+
+    @Override
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
+        var stack = player.getItemInHand(usedHand);
+        if (usedHand != InteractionHand.MAIN_HAND) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        player.startUsingItem(usedHand);
+        return InteractionResultHolder.consume(stack);
+    }
+
+    @Override
+    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity, int timeLeft) {
+        if (!level.isClientSide && livingEntity instanceof Player player) {
+            player.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
+        }
+    }
+
+    @Override
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
+        return UseAnim.BLOCK;
+    }
+
+    @Override
+    public int getUseDuration(@NotNull ItemStack stack) {
+        return USE_DURATION;
+    }
+
+    @Override
+    public boolean hurtEnemy(@NotNull ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
+        if (hasImbuedSpell(stack) && !attacker.level().isClientSide && attacker instanceof Player player) {
+            spendMana(player, resolveBladeAttackDamage(stack) * 3.0F);
+        }
+
+        return super.hurtEnemy(stack, target, attacker);
+    }
+
+    @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        return slot == EquipmentSlot.MAINHAND ? mainhandModifiers : super.getAttributeModifiers(slot, stack);
+    }
+
+    @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public int getEnchantmentValue(ItemStack stack) {
+        return ENCHANTMENT_VALUE;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        return enchantmentId != null
+                && (EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
+                || enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK));
+    }
+
+    @Override
+    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+        if (!super.isBookEnchantable(stack, book)) {
+            return false;
+        }
+
+        var enchantments = EnchantmentHelper.getEnchantments(book);
+        return enchantments.isEmpty() || enchantments.keySet().stream()
+                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+    }
+
+    @Override
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
+        return canApplyAtEnchantingTable(stack, enchantment);
+    }
+
+    @Override
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
+        return repair.is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                || super.isValidRepairItem(toRepair, repair);
+    }
+
+    @Override
+    public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ToolAction toolAction) {
+        return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
+    }
+
+    @Override
+    public boolean canImbueSpell(SpellData spellData) {
+        return spellData != SpellData.EMPTY && canImbueSpell(spellData.getSpell(), spellData.getLevel());
+    }
+
+    @Override
+    public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
+        return spell != null
+                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
+                && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG);
+    }
+
+    @Override
+    public void normalizeImbuedSpellContainer(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+
+        SpellData spellData = SpellData.EMPTY;
+        if (ISpellContainer.isSpellContainer(stack)) {
+            var spellContainer = ISpellContainer.get(stack);
+            if (spellContainer != null && spellContainer.getMaxSpellCount() > 0) {
+                spellData = spellContainer.getSpellAtIndex(0);
+            }
+        }
+
+        var normalized = ISpellContainer.create(1, true, false).mutableCopy();
+        if (canImbueSpell(spellData)) {
+            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
+        }
+        ISpellContainer.set(stack, normalized.toImmutable());
+    }
+
+    @Override
+    public boolean canRemoveWorkbenchSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
+        return false;
+    }
+
+    @Override
+    public ItemStack createSpellSlotUpgradeResult(ItemStack baseStack, SpellSlotUpgradeItem upgradeItem) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private ManaForceBladeRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new ManaForceBladeRenderer();
+                }
+
+                return renderer;
+            }
+        });
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(new AnimationController<>(this, "main", 0, state -> {
+            state.setAnimation(ANIM_IDLE);
+            return PlayState.CONTINUE;
+        }));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
+    }
+
+    public static boolean isManaForceBlade(ItemStack stack) {
+        return !stack.isEmpty() && stack.getItem() instanceof ManaForceBlade;
+    }
+
+    public static float resolveBladeAttackDamage(ItemStack stack) {
+        return DISPLAY_ATTACK_DAMAGE + EnchantmentHelper.getDamageBonus(stack, MobType.UNDEFINED);
+    }
+
+    public static boolean hasImbuedSpell(ItemStack stack) {
+        return MagicTools.getImbuedSpellSchool(stack) != null;
+    }
+
+    public static float resolveFinalAttackDamage(LivingEntity attacker, ItemStack stack) {
+        return resolveBladeAttackDamage(stack) * resolveDamageMultiplier(attacker, stack);
+    }
+
+    public static float resolveDamageMultiplier(LivingEntity attacker, ItemStack stack) {
+        var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
+        if (imbuedSchool == null) {
+            return 1.0F;
+        }
+
+        var spellPower = (float) attacker.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
+        Attribute schoolPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+        var schoolSpellPower = schoolPowerAttribute == null ? 1.0F : (float) attacker.getAttributeValue(schoolPowerAttribute);
+        return spellPower * schoolSpellPower;
+    }
+
+    public static void spendMana(Player player, float manaCost) {
+        if (manaCost <= 0.0F || player.getAbilities().instabuild) {
+            return;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null) {
+            return;
+        }
+
+        magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));
+        if (player instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
+        }
+    }
+
+    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        builder.put(
+                Attributes.ATTACK_DAMAGE,
+                new AttributeModifier(
+                        Item.BASE_ATTACK_DAMAGE_UUID,
+                        "Weapon modifier",
+                        ATTACK_DAMAGE_MODIFIER_AMOUNT,
+                        AttributeModifier.Operation.ADDITION
+                )
+        );
+        builder.put(
+                Attributes.ATTACK_SPEED,
+                new AttributeModifier(
+                        Item.BASE_ATTACK_SPEED_UUID,
+                        "Weapon modifier",
+                        ATTACK_SPEED_MODIFIER_AMOUNT,
+                        AttributeModifier.Operation.ADDITION
+                )
+        );
+        return builder.build();
+    }
+}

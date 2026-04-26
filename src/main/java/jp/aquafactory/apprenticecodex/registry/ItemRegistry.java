@@ -220,6 +220,8 @@ public final class ItemRegistry {
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
     public static final RegistryObject<Item> CHARGED_TWIN_BLADE_STAFF =
             ITEMS.register("charged_twin_blade_staff", ChargedTwinBladeStaff::new);
+    public static final RegistryObject<Item> MANA_FORCE_BLADE =
+            ITEMS.register("mana_force_blade", ManaForceBlade::new);
     public static final RegistryObject<Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
     public static final RegistryObject<Item> IRON_SWINGCAST_STAFF =
