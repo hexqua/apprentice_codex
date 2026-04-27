@@ -127,4 +127,23 @@ public class ApprenticeRenderTypes extends RenderStateShard {
         );
     }
 
+    // テクスチャなしの加算合成。POSITION_COLOR は lightmap を持たないため常に明るい色として描く。
+    public static RenderType additiveColorNoCull(String renderTypeName) {
+        return RenderType.create(
+                renderTypeName,
+                DefaultVertexFormat.POSITION_COLOR,
+                VertexFormat.Mode.QUADS,
+                256,
+                false,
+                true,
+                RenderType.CompositeState.builder()
+                        .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
+                        .setTextureState(RenderStateShard.NO_TEXTURE)
+                        .setTransparencyState(RenderStateShard.ADDITIVE_TRANSPARENCY)
+                        .setLightmapState(RenderStateShard.NO_LIGHTMAP)
+                        .setCullState(RenderStateShard.NO_CULL)
+                        .createCompositeState(true)
+        );
+    }
+
 }

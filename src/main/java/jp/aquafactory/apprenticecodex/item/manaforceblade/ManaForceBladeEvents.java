@@ -6,19 +6,27 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -40,6 +48,14 @@ public final class ManaForceBladeEvents {
     private static final int MELEE_GUARD_DURABILITY_COST = 2;
     private static final double RANGED_DISTANCE_SQR = 3.0D * 3.0D;
     private static final double PROJECTILE_SPEED = 2.45D;
+    private static final int DEFAULT_PROJECTILE_COLOR = 0xFFFFFF;
+    private static final int SPARK_LIFETIME = 4;
+    private static final int SPARK_LIFETIME_VARIANCE = 3;
+    private static final SparkColor[] GUARD_SPARK_COLORS = {
+            new SparkColor(1.0F, 0.96F, 0.82F),
+            new SparkColor(1.0F, 0.78F, 0.18F),
+            new SparkColor(1.0F, 0.38F, 0.08F)
+    };
     private static final String RANGED_COST_TICK_TAG = ApprenticeCodex.MODID + ":mana_force_blade_ranged_cost_tick";
     private static final String RANGED_ACTION_TICK_TAG = ApprenticeCodex.MODID + ":mana_force_blade_ranged_action_tick";
     private static final String MELEE_COST_TICK_TAG = ApprenticeCodex.MODID + ":mana_force_blade_melee_cost_tick";
@@ -48,6 +64,9 @@ public final class ManaForceBladeEvents {
     private static final String ATTACK_DAMAGE_MODIFIER_KEY = "attribute.modifier.equals.0";
 
     private static boolean applyingGuardCounterDamage;
+
+    private record SparkColor(float red, float green, float blue) {
+    }
 
     private ManaForceBladeEvents() {
     }
@@ -205,6 +224,7 @@ public final class ManaForceBladeEvents {
 
         if (tryMarkAction(stack, RANGED_ACTION_TICK_TAG, now)) {
             shootGuardProjectile(player, stack, origin, perfectGuard);
+            playGuardEffect(player, origin, 12);
         }
         event.setCanceled(true);
     }
@@ -223,7 +243,11 @@ public final class ManaForceBladeEvents {
         }
 
         if (tryMarkAction(stack, MELEE_ACTION_TICK_TAG, now)) {
-            applyMeleeCounter(player, stack, event.getSource().getEntity(), perfectGuard);
+            var sourceEntity = event.getSource().getEntity();
+            applyMeleeCounter(player, stack, sourceEntity, perfectGuard);
+            if (sourceEntity != null) {
+                playGuardEffect(player, resolveMeleeSparkPosition(player, sourceEntity), 16);
+            }
         }
         event.setCanceled(true);
     }
@@ -262,7 +286,7 @@ public final class ManaForceBladeEvents {
         return true;
     }
 
-    private static net.minecraft.world.phys.Vec3 resolveGuardOrigin(
+    private static Vec3 resolveGuardOrigin(
             @Nullable Entity directEntity,
             @Nullable Entity sourceEntity,
             ServerPlayer player
@@ -276,12 +300,72 @@ public final class ManaForceBladeEvents {
         return player.getEyePosition();
     }
 
-    private static void shootGuardProjectile(ServerPlayer player, ItemStack stack, net.minecraft.world.phys.Vec3 origin, boolean perfectGuard) {
+    private static void shootGuardProjectile(ServerPlayer player, ItemStack stack, Vec3 origin, boolean perfectGuard) {
         var projectile = new ManaForceBladeProjectileEntity(EntityRegistry.MANA_FORCE_BLADE_PROJECTILE.get(), player.level(), player);
         projectile.setPos(origin);
         projectile.setDamage(ManaForceBlade.resolveBladeAttackDamage(stack) * (perfectGuard ? 1.5F : 1.0F));
+        projectile.setColor(resolveProjectileColor(stack));
         projectile.setProjectileVelocity(player.getLookAngle().normalize(), PROJECTILE_SPEED);
         player.level().addFreshEntity(projectile);
+    }
+
+    private static int resolveProjectileColor(ItemStack stack) {
+        var school = MagicTools.getImbuedSpellSchool(stack);
+        if (school == null) {
+            return DEFAULT_PROJECTILE_COLOR;
+        }
+
+        var color = school.getDisplayName().getStyle().getColor();
+        return color != null ? color.getValue() : DEFAULT_PROJECTILE_COLOR;
+    }
+
+    private static void playGuardEffect(ServerPlayer player, Vec3 position, int sparkCount) {
+        var level = player.level();
+        AudioTools.playSoundFromPosition(level, position, SoundRegistry.PARRY.get(), SoundSource.PLAYERS);
+        if (level instanceof ServerLevel serverLevel) {
+            spawnGuardSparks(serverLevel, position, sparkCount);
+        }
+    }
+
+    private static void spawnGuardSparks(ServerLevel level, Vec3 position, int count) {
+        for (var i = 0; i < GUARD_SPARK_COLORS.length; i++) {
+            var color = GUARD_SPARK_COLORS[i];
+            var colorCount = count / GUARD_SPARK_COLORS.length + (i < count % GUARD_SPARK_COLORS.length ? 1 : 0);
+            level.sendParticles(
+                    createGuardSpark(color),
+                    position.x, position.y, position.z,
+                    colorCount,
+                    0.18D, 0.18D, 0.18D,
+                    0.08D
+            );
+        }
+    }
+
+    private static AdditiveGlowParticleOptions createGuardSpark(SparkColor color) {
+        return new AdditiveGlowParticleOptions(
+                ParticleRegistry.ADDITIVE_SPARK.get(),
+                0.12F,
+                color.red(),
+                color.green(),
+                color.blue(),
+                1,
+                SPARK_LIFETIME,
+                SPARK_LIFETIME_VARIANCE,
+                -1.0F,
+                -1.0F,
+                -1.0F,
+                -1.0F,
+                -1.0F,
+                -1.0F,
+                -1.0F,
+                true
+        );
+    }
+
+    private static Vec3 resolveMeleeSparkPosition(ServerPlayer player, Entity sourceEntity) {
+        return player.getBoundingBox().getCenter()
+                .add(sourceEntity.getBoundingBox().getCenter())
+                .scale(0.5D);
     }
 
     private static void applyMeleeCounter(ServerPlayer player, ItemStack stack, @Nullable Entity sourceEntity, boolean perfectGuard) {
