@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientTooltip;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.renderer.item.ChargedTwinBladeStaffRenderer;
@@ -50,6 +51,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
@@ -80,6 +82,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             "apprenticecodex:transcendence"
     );
     private static final String MAIN_CONTROLLER = "main";
+    private static final double USING_IDLE_ANIMATION_SPEED = 4.0D;
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -290,9 +293,21 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
+    public boolean isPerspectiveAware() {
+        return true;
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
         controllerRegistrar.add(new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
+            var stack = state.getData(DataTickets.ITEMSTACK);
+            var perspective = state.getData(DataTickets.ITEM_RENDER_PERSPECTIVE);
             state.setAnimation(ANIM_IDLE);
+            state.getController().setAnimationSpeed(
+                    ChargedTwinBladeStaffClientRenderState.shouldAccelerateIdle(stack, perspective)
+                            ? USING_IDLE_ANIMATION_SPEED
+                            : 1.0D
+            );
             return PlayState.CONTINUE;
         }));
     }
