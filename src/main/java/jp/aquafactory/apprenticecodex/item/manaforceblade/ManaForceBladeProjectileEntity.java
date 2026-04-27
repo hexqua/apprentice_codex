@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.manaforceblade;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
-import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import net.minecraft.client.Minecraft;
@@ -9,9 +8,9 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 public class ManaForceBladeProjectileEntity extends Projectile {
     private static final int LIFE_TICKS = 20 * 3;
     private static final RandomSource RNG = RandomSource.create();
+    private static final EntityDataAccessor<Integer> COLOR =
+            SynchedEntityData.defineId(ManaForceBladeProjectileEntity.class, EntityDataSerializers.INT);
 
     private float damage;
 
@@ -103,7 +104,6 @@ public class ManaForceBladeProjectileEntity extends Projectile {
             var target = CombatTools.resolutePartEntity(hit.getEntity());
             var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.MANA_FORCE_BLADE);
             CombatTools.applyDamage(target, damage, source, null, CombatTools.KnockbackTypes.NO_KNOCKBACK);
-            onImpact(0.5D, true);
             discard();
         }
     }
@@ -112,13 +112,13 @@ public class ManaForceBladeProjectileEntity extends Projectile {
     protected void onHitBlock(@NotNull BlockHitResult hit) {
         super.onHitBlock(hit);
         if (!level().isClientSide) {
-            onImpact(0.1D, false);
             discard();
         }
     }
 
     @Override
     protected void defineSynchedData() {
+        entityData.define(COLOR, 0xFFFFFF);
     }
 
     @Override
@@ -127,12 +127,16 @@ public class ManaForceBladeProjectileEntity extends Projectile {
         if (tag.contains("damage")) {
             damage = tag.getFloat("damage");
         }
+        if (tag.contains("color")) {
+            setColor(tag.getInt("color"));
+        }
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat("damage", damage);
+        tag.putInt("color", getColor());
     }
 
     @Override
@@ -155,27 +159,11 @@ public class ManaForceBladeProjectileEntity extends Projectile {
         damage = newDamage;
     }
 
-    private void onImpact(double impactDistance, boolean isImpactOnEntity) {
-        var level = level();
-        AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
-        if (level instanceof ServerLevel server) {
-            var impactPos = position().add(getDeltaMovement().scale(impactDistance));
-            server.sendParticles(
-                    ParticleTypes.ENCHANTED_HIT,
-                    impactPos.x, impactPos.y, impactPos.z,
-                    8,
-                    0.2D, 0.2D, 0.2D,
-                    0.25D
-            );
-            if (isImpactOnEntity) {
-                server.sendParticles(
-                        ParticleTypes.SWEEP_ATTACK,
-                        impactPos.x, impactPos.y, impactPos.z,
-                        1,
-                        0.05D, 0.05D, 0.05D,
-                        0.0D
-                );
-            }
-        }
+    public void setColor(int rgb) {
+        entityData.set(COLOR, rgb & 0xFFFFFF);
+    }
+
+    public int getColor() {
+        return entityData.get(COLOR);
     }
 }
