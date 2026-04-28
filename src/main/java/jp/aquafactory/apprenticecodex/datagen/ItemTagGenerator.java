@@ -68,7 +68,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
-                ItemRegistry.FOCUS_STAFFBOW.get()
+                ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                ItemRegistry.MANA_FORCE_BLADE.get()
         );
 
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);

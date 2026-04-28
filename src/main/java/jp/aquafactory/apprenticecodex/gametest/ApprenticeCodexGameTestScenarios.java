@@ -3646,6 +3646,10 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.UNITE_LUNA_STAFF.get()),
                     "New swing magic weapon descendants should be upgradeable");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                    "Charged Twin Blade Staff should be upgradeable via explicit whitelist entry");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
+                    "Mana Force Blade should be upgradeable via explicit whitelist entry");
 
             var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
             helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
@@ -3741,6 +3745,83 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(Math.abs(spellPowerBonus - 0.05D) < 1.0e-9D,
                     "Iron Spell Amplifier should expose +0.05 spell power in offhand modifiers but got "
                             + spellPowerBonus + " modifiers=" + describeModifiers(amplifierEvent.getModifiers()));
+        });
+    }
+    static void chargedTwinBladeStaffUpgradeMergesMainhandMeleeDamage(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (ChargedTwinBladeStaff) ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get();
+            var stack = new ItemStack(item);
+            var upgradeData = createUpgradeData(
+                    helper.getLevel().registryAccess(),
+                    stack,
+                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.ATTACK_DAMAGE,
+                    EquipmentSlot.MAINHAND.getName()
+            );
+
+            var event = new ItemAttributeModifierEvent(
+                    stack,
+                    EquipmentSlot.MAINHAND,
+                    item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack)
+            );
+            MinecraftForge.EVENT_BUS.post(event);
+
+            assertSingleModifierAmount(
+                    helper,
+                    event.getModifiers().get(Attributes.ATTACK_DAMAGE),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Charged Twin Blade Staff melee damage upgrade should be a single display modifier"
+                            + " upgradeData=" + upgradeData
+                            + " modifiers=" + describeModifiers(event.getModifiers())
+            );
+        });
+    }
+    static void manaForceBladeAttunementAndUpgradeMergeForTooltip(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
+            setSingleUnlockedSpell(helper, stack, spell, 1);
+            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Mana Force Blade test could not resolve the imbued spell school");
+            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
+                    .resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(attunementAttribute != null,
+                    "Mana Force Blade test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
+            var upgradeKey = findUpgradeKeyForPowerAttribute(attunementAttribute);
+            helper.assertTrue(upgradeKey != null,
+                    "Mana Force Blade test could not resolve a matching upgrade orb for " + ForgeRegistries.ATTRIBUTES.getKey(attunementAttribute));
+
+            var upgradeData = createUpgradeData(
+                    helper.getLevel().registryAccess(),
+                    stack,
+                    upgradeKey,
+                    EquipmentSlot.MAINHAND.getName()
+            );
+
+            var event = new ItemAttributeModifierEvent(
+                    stack,
+                    EquipmentSlot.MAINHAND,
+                    item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack)
+            );
+            MinecraftForge.EVENT_BUS.post(event);
+
+            assertSingleModifierAmount(
+                    helper,
+                    event.getModifiers().get(attunementAttribute),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.09D,
+                    "Mana Force Blade Attunement and matching upgrade should merge into one display modifier"
+                            + " spell=" + spell.getSpellResource()
+                            + " school=" + imbuedSchool.getId()
+                            + " attribute=" + ForgeRegistries.ATTRIBUTES.getKey(attunementAttribute)
+                            + " upgradeData=" + upgradeData
+                            + " modifiers=" + describeModifiers(event.getModifiers())
+            );
         });
     }
     static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
@@ -9129,6 +9210,37 @@ public final class ApprenticeCodexGameTestScenarios {
         return upgradeData;
     }
 
+    @Nullable
+    private static net.minecraft.resources.ResourceKey<io.redspace.ironsspellbooks.item.armor.UpgradeOrbType> findUpgradeKeyForPowerAttribute(
+            Attribute spellPowerAttribute
+    ) {
+        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get())) {
+            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.FIRE_SPELL_POWER;
+        }
+        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get())) {
+            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.ICE_SPELL_POWER;
+        }
+        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get())) {
+            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.LIGHTNING_SPELL_POWER;
+        }
+        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.get())) {
+            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.HOLY_SPELL_POWER;
+        }
+        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ENDER_SPELL_POWER.get())) {
+            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.ENDER_SPELL_POWER;
+        }
+        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.BLOOD_SPELL_POWER.get())) {
+            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.BLOOD_SPELL_POWER;
+        }
+        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.EVOCATION_SPELL_POWER.get())) {
+            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.EVOCATION_SPELL_POWER;
+        }
+        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.NATURE_SPELL_POWER.get())) {
+            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.NATURE_SPELL_POWER;
+        }
+        return null;
+    }
+
     private static double sumModifierAmount(
             Collection<AttributeModifier> modifiers,
             AttributeModifier.Operation operation
@@ -9137,6 +9249,23 @@ public final class ApprenticeCodexGameTestScenarios {
                 .filter(modifier -> modifier.getOperation() == operation)
                 .mapToDouble(AttributeModifier::getAmount)
                 .sum();
+    }
+
+    private static void assertSingleModifierAmount(
+            GameTestHelper helper,
+            Collection<AttributeModifier> modifiers,
+            AttributeModifier.Operation operation,
+            double expectedAmount,
+            String message
+    ) {
+        var matchingModifiers = modifiers.stream()
+                .filter(modifier -> modifier.getOperation() == operation)
+                .toList();
+        helper.assertTrue(matchingModifiers.size() == 1,
+                message + ": expected exactly one " + operation + " modifier but got " + matchingModifiers);
+        var actualAmount = matchingModifiers.get(0).getAmount();
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected " + expectedAmount + " but got " + actualAmount);
     }
 
     private static String describeModifiers(com.google.common.collect.Multimap<Attribute, AttributeModifier> modifiers) {
