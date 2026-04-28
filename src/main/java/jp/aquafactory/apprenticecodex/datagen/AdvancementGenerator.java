@@ -410,6 +410,32 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("craft_reflectcast_shield", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.REFLECTCAST_SHIELD.getId()))
                 .save(saver, advancementId("craft_reflectcast_shield"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(bladed)
+                .display(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_charged_twin_blade_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.getId()))
+                .save(saver, advancementId("craft_charged_twin_blade_staff"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(bladed)
+                .display(ItemRegistry.MANA_FORCE_BLADE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_mana_force_blade.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_mana_force_blade.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_mana_force_blade", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.MANA_FORCE_BLADE.getId()))
+                .save(saver, advancementId("craft_mana_force_blade"), existingFileHelper);
+        
         var bow = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.ELEMENTAL_BOW.get(),
