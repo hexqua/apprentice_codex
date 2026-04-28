@@ -54,6 +54,8 @@ public final class Enchantments {
             enchantmentTag("exclusive_set/surge_attunement_transcendence");
     public static final TagKey<Enchantment> EXCLUSIVE_RED_GLOW_ENERGY =
             enchantmentTag("exclusive_set/red_glow_energy");
+    public static final TagKey<Enchantment> EXCLUSIVE_SYNTHESIS =
+            enchantmentTag("exclusive_set/synthesis");
     public static final TagKey<Enchantment> EXCLUSIVE_MANA_SHIELD_CHARM =
             enchantmentTag("exclusive_set/mana_shield_charm");
 
@@ -357,6 +359,7 @@ public final class Enchantments {
                                         EquipmentSlotGroup.HAND
                                 )
                         )
+                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SYNTHESIS))
         );
 
         register(

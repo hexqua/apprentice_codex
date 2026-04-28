@@ -260,11 +260,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         // Elemental Bow は bow tag に参加させ、バニラ弓と同じ enchantment JSON 面を使う。
         tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.ELEMENTAL_BOW.get());
-        // Elemental Bow は 1.21.1 でも Wisdom / Transcendence / Plunder を個別許可したいが、
+        // Elemental Bow は 1.21.1 でも Wisdom / Transcendence / Plunder / Synthesis を個別許可したいが、
         // spell_gun_enchantable に混ぜると Attunement まで通ってしまうため専用タグ側へ明示追加する。
         transcendenceEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
         wisdomEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
         plunderEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(ItemRegistry.ELEMENTAL_BOW.get());
+        synthesisEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         malumMagicCapableWeaponTag.add(

@@ -377,6 +377,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.elementalBowMagicModeIgnoresInfinityWithoutAmmo(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowAcceptsSynthesisEnchantmentsAndTooltip(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowAcceptsSynthesisEnchantmentsAndTooltip(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSynthesisAllowsMagicModeWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynthesisDoesNotConsumeMagicModeArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSynthesisDoesNotConsumeMagicModeArrows(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
     public static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellcasterQuiverUsesBackSlotAndCapsStoredArrows(helper);

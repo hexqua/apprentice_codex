@@ -76,7 +76,7 @@
 
   "item.apprenticecodex.elemental_bow.mode": "Current firing mode: %s",
   "item.apprenticecodex.focus_staffbow.require_arrow": "Requires arrow for casting",
-  "item.apprenticecodex.focus_staffbow.require_arrow.with_synthesis": "no arrow required for casting",
+  "item.apprenticecodex.focus_staffbow.require_arrow.with_synthesis": "No arrow required for casting",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift for details.",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",
@@ -105,6 +105,7 @@
   "item.apprenticecodex.isekai_travel_guidebook.desc": "\"Welcome to the Minecraft world!\"",
   "item.apprenticecodex.stealth_rune_armor.desc": "This armor dose not prevent invisibility effects.",
   "item.apprenticecodex.elemental_bow.desc": "Can switch mode by sneaking.",
+  "item.apprenticecodex.elemental_bow.with_synthesis": "Synthesis affects casting without arrows.",
   "item.apprenticecodex.charged_twin_blade_staff.desc.throwable": "%d mana to duplicate the staff and throw it.",
   "item.apprenticecodex.charged_twin_blade_staff.desc.reptide": "%d mana to activate riptide.",
   "item.apprenticecodex.charged_twin_blade_staff.desc.channeling": "This staff will cast a spell when thrown.",
