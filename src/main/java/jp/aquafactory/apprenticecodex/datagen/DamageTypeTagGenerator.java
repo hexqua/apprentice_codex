@@ -152,7 +152,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ILLUMINATE_STELLAR,
                 UNITE_LUNA,
                 HEALING_BLOOM,
-                SHOCK
+                SHOCK,
+                MANA_FORCE_BLADE
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
@@ -169,7 +170,10 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
-        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(HAUNTED_BONUS);
+        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(
+                HAUNTED_BONUS,
+                MANA_FORCE_BLADE
+        );
 
         // Lodestone連携: magic_proficiency は forge:is_magic を見て倍率補正する。
         // このタグへ乗せないと armor bypass 系でも魔法ダメージとして扱われない。

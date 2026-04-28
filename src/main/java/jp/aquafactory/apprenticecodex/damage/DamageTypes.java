@@ -40,7 +40,9 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> UNITE_LUNA = register("unite_luna");
     public static final ResourceKey<DamageType> HEALING_BLOOM = register("healing_bloom");
     public static final ResourceKey<DamageType> SHOCK = register("shock");
+
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
+    public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
 
     private static ResourceKey<DamageType> register(String name){
         return ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
@@ -85,6 +87,8 @@ public final class DamageTypes {
         context.register(UNITE_LUNA, createTemplate(UNITE_LUNA));
         context.register(HEALING_BLOOM, createTemplate(HEALING_BLOOM));
         context.register(SHOCK, createTemplate(SHOCK));
+
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
+        context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));
     }
 }

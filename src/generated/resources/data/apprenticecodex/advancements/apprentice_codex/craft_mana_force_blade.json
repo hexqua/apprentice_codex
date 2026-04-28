@@ -1,0 +1,33 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "criteria": {
+    "crafted_mana_force_blade": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:mana_force_blade"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_mana_force_blade.description"
+    },
+    "frame": "challenge",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:mana_force_blade",
+      "nbt": "{Damage:0,\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:1b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_mana_force_blade.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_mana_force_blade"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

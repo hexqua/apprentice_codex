@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
@@ -19,6 +20,10 @@ final class MagicItemEnchantmentTargeting {
         return isSupportedOffhandMagicItem(item)
                 || isSupportedSpellGunItem(item)
                 || isSupportedMagicArmorItem(item);
+    }
+
+    static boolean isSupportedSurgeMagicItem(Item item) {
+        return isSupportedMagicItem(item) || item instanceof ManaForceBlade;
     }
 
     static boolean isSupportedOffhandMagicItem(Item item) {
@@ -41,6 +46,7 @@ final class MagicItemEnchantmentTargeting {
         return isSupportedOffhandMagicItem(item)
                 || isSupportedSpellGunItem(item)
                 || item instanceof ElementalBow
+                || item instanceof ManaForceBlade
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask
                 || isSupportedSpellContainerArmorItem(item);
@@ -53,6 +59,7 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedWisdomEnchantingItem(Item item) {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
+                || item instanceof ManaForceBlade
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask
                 || item instanceof EnchantressRobeItem
@@ -63,6 +70,7 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedHeldWisdomMagicItem(Item item) {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
+                || item instanceof ManaForceBlade
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask;
     }

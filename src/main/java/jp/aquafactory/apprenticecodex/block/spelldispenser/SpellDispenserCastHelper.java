@@ -117,8 +117,36 @@ public final class SpellDispenserCastHelper {
             @Nullable GameProfile ownerProfile,
             @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
     ) {
-        var failurePos = BlockPos.containing(castBasePosition);
         var validation = SpellDispenserSpellValidator.validate(spellSource);
+        if (!validation.isSupported()) {
+            return CastResult.validationFailure(validation);
+        }
+
+        return tryCast(
+                level,
+                castBasePosition,
+                forward,
+                validation,
+                spellSource,
+                ownerProfile,
+                manaAccess,
+                CastSource.COMMAND,
+                SpellSelectionManager.MAINHAND
+        );
+    }
+
+    public static CastResult tryCast(
+            ServerLevel level,
+            Vec3 castBasePosition,
+            Vec3 forward,
+            SpellDispenserSpellValidator.ValidationResult validation,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess,
+            CastSource castSource,
+            String castingSlot
+    ) {
+        var failurePos = BlockPos.containing(castBasePosition);
         if (!validation.isSupported()) {
             return CastResult.validationFailure(validation);
         }
@@ -144,7 +172,7 @@ public final class SpellDispenserCastHelper {
                 // Spell Dispenser の FakePlayer は通常の player tick / sync 経路に乗せないため、ここで同期データを先に用意する。
                 magicData.setSyncedData(new SyncedSpellData(proxy));
                 // LONG を含め詠唱時間 0 扱いで検証したいため、Spellgun 系と同様に override 値 0 を入れる。
-                magicData.initiateCast(spell, spellData.getLevel(), 0, CastSource.COMMAND, SpellSelectionManager.MAINHAND);
+                magicData.initiateCast(spell, spellData.getLevel(), 0, castSource, castingSlot);
                 // 短命な proxy にも casting item を持たせ、scroll 起点の通常経路に近い条件で検証する。
                 magicData.setPlayerCastingItem(spellSource.copy());
                 syncProxyMana(manaAccess, magicData);
@@ -181,7 +209,7 @@ public final class SpellDispenserCastHelper {
                 // 空撃ち音を suppress する条件は「発射処理へ入れたか」で判断する。
                 // そのため onCast 本体へ到達した時点からは失敗でも reachedOnCast=true として扱う。
                 syncProxyMana(manaAccess, magicData);
-                spell.onCast(level, spellData.getLevel(), spellCaster, CastSource.COMMAND, magicData);
+                spell.onCast(level, spellData.getLevel(), spellCaster, castSource, magicData);
             } catch (RuntimeException exception) {
                 result = exceptionFailure(level, failurePos, validation, spellId, CastStage.CAST, exception, true, cooldownTicks, ownerProfile);
                 return result;
@@ -268,6 +296,32 @@ public final class SpellDispenserCastHelper {
             @Nullable GameProfile ownerProfile,
             @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
     ) {
+        return tryStartContinuousCast(
+                level,
+                castBasePosition,
+                forward,
+                validation,
+                spellSource,
+                ownerProfile,
+                manaAccess,
+                CastSource.COMMAND,
+                SpellSelectionManager.MAINHAND,
+                null
+        );
+    }
+
+    public static ContinuousCastStartResult tryStartContinuousCast(
+            ServerLevel level,
+            Vec3 castBasePosition,
+            Vec3 forward,
+            SpellDispenserSpellValidator.ValidationResult validation,
+            ItemStack spellSource,
+            @Nullable GameProfile ownerProfile,
+            @Nullable SpellDispenserManaHelper.ManaAccess manaAccess,
+            CastSource castSource,
+            String castingSlot,
+            @Nullable Integer castDurationOverrideTicks
+    ) {
         var failurePos = BlockPos.containing(castBasePosition);
         if (!validation.isSupported()) {
             return new ContinuousCastStartResult(CastResult.validationFailure(validation), null);
@@ -292,8 +346,10 @@ public final class SpellDispenserCastHelper {
         var cooldownTicks = resolveCooldownTicks(spellData, proxy);
         try {
             magicData.setSyncedData(new SyncedSpellData(proxy));
-            var castDuration = Math.max(0, spell.getEffectiveCastTime(spellData.getLevel(), proxy));
-            magicData.initiateCast(spell, spellData.getLevel(), castDuration, CastSource.COMMAND, SpellSelectionManager.MAINHAND);
+            var castDuration = castDurationOverrideTicks != null
+                    ? Math.max(0, castDurationOverrideTicks)
+                    : Math.max(0, spell.getEffectiveCastTime(spellData.getLevel(), proxy));
+            magicData.initiateCast(spell, spellData.getLevel(), castDuration, castSource, castingSlot);
             magicData.setPlayerCastingItem(spellSource.copy());
             syncProxyMana(manaAccess, magicData);
         } catch (RuntimeException exception) {
@@ -344,7 +400,9 @@ public final class SpellDispenserCastHelper {
                         magicData,
                         trackedAnchor,
                         cooldownTicks,
-                        manaAccess
+                        manaAccess,
+                        castSource,
+                        castingSlot
                 )
         );
     }
@@ -391,7 +449,7 @@ public final class SpellDispenserCastHelper {
             session.markReachedOnCast();
             try {
                 syncProxyMana(session.manaAccess(), magicData);
-                spell.onCast(level, spellData.getLevel(), spellCaster, CastSource.COMMAND, magicData);
+                spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData);
             } catch (RuntimeException exception) {
                 exceptionFailure(
                         level,
@@ -439,7 +497,9 @@ public final class SpellDispenserCastHelper {
 
     private static void syncProxyMana(@Nullable SpellDispenserManaHelper.ManaAccess manaAccess, MagicData magicData) {
         if (manaAccess != null) {
-            magicData.setMana(manaAccess.getCurrentMana());
+            magicData.setMana(manaAccess.isManaConsumptionExempt()
+                    ? SpellDispenserManaHelper.MAX_MANA
+                    : manaAccess.getCurrentMana());
         }
     }
 
@@ -1037,6 +1097,8 @@ public final class SpellDispenserCastHelper {
         private final int cooldownTicks;
         @Nullable
         private final SpellDispenserManaHelper.ManaAccess manaAccess;
+        private final CastSource castSource;
+        private final String castingSlot;
         @Nullable
         private SpellDispenserAnchorEntity trackedAnchor;
         private boolean finished;
@@ -1052,7 +1114,9 @@ public final class SpellDispenserCastHelper {
                 MagicData magicData,
                 @Nullable SpellDispenserAnchorEntity trackedAnchor,
                 int cooldownTicks,
-                @Nullable SpellDispenserManaHelper.ManaAccess manaAccess
+                @Nullable SpellDispenserManaHelper.ManaAccess manaAccess,
+                CastSource castSource,
+                String castingSlot
         ) {
             this.spellId = validation.spellData().getSpell().getSpellResource();
             this.origin = origin.immutable();
@@ -1064,6 +1128,8 @@ public final class SpellDispenserCastHelper {
             this.trackedAnchor = trackedAnchor;
             this.cooldownTicks = Math.max(0, cooldownTicks);
             this.manaAccess = manaAccess;
+            this.castSource = castSource;
+            this.castingSlot = castingSlot;
             this.finished = false;
             this.reachedOnCast = false;
             this.finishedCooldownTicks = 0;
@@ -1103,6 +1169,14 @@ public final class SpellDispenserCastHelper {
 
         public @Nullable SpellDispenserManaHelper.ManaAccess manaAccess() {
             return manaAccess;
+        }
+
+        public CastSource castSource() {
+            return castSource;
+        }
+
+        public String castingSlot() {
+            return castingSlot;
         }
 
         public @Nullable SpellDispenserAnchorEntity trackedAnchor() {

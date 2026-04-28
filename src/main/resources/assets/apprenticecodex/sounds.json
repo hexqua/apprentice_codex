@@ -197,6 +197,12 @@
       "apprenticecodex:mana_slash"
     ]
   },
+  "parry": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:parry"
+    ]
+  },
   "stellar_fire": {
     "category": "player",
     "sounds": [

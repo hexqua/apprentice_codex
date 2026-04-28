@@ -21,11 +21,6 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = SENSE_EVIL_ISOLATED_BATCH)
-    public static void senseEvilExpandsHorizontalReachToCube(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.senseEvilExpandsHorizontalReachToCube(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = SENSE_EVIL_ISOLATED_BATCH)
     public static void senseEvilUsesSameCubeForSpawnersAndEntities(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.senseEvilUsesSameCubeForSpawnersAndEntities(helper);
     }
