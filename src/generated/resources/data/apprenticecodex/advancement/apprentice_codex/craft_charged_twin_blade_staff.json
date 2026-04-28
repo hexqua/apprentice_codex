@@ -9,16 +9,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.description"
     },
     "frame": "challenge",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:charged_twin_blade_staff"
+      "count": 1,
+      "id": "apprenticecodex:charged_twin_blade_staff"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.title"
     }

@@ -144,7 +144,7 @@ public final class ClientModBusEvents {
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.MANA_FORCE_BLADE.get(),
-                new ResourceLocation("blocking"),
+                ResourceLocation.withDefaultNamespace("blocking"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0f : 0.0f
         ));
         event.enqueueWork(() -> ItemProperties.register(
@@ -159,7 +159,7 @@ public final class ClientModBusEvents {
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
-                new ResourceLocation("throwing"),
+                ResourceLocation.withDefaultNamespace("throwing"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> {

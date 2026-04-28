@@ -17,7 +17,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<ChargedTwinBladeStaff> {
     private static final String MAIN_CORE_BONE = "main_core";
@@ -37,9 +37,9 @@ public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<Charged
     @Override
     public void postRender(PoseStack poseStack, ChargedTwinBladeStaff animatable, BakedGeoModel model, MultiBufferSource bufferSource,
                            VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                           float red, float green, float blue, float alpha) {
+                           int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay,
-                red, green, blue, alpha);
+                colour);
 
         if (isReRender) {
             return;
@@ -47,15 +47,15 @@ public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<Charged
 
         var mainCoreBrightness = resolveMainCoreBrightness(partialTick);
         renderCorePass(model, poseStack, bufferSource, animatable, CoreRenderPass.MAIN_CORE, MAIN_CORE_RENDER_TYPE, partialTick,
-                red * mainCoreBrightness, green * mainCoreBrightness, blue * mainCoreBrightness, alpha);
+                multiplyRgb(colour, mainCoreBrightness));
         renderCorePass(model, poseStack, bufferSource, animatable, CoreRenderPass.SUB_CORE, SUB_CORE_RENDER_TYPE, partialTick,
-                1.0F, 1.0F, 1.0F, 1.0F);
+                0xFFFFFFFF);
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, ChargedTwinBladeStaff animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         var mainCoreBone = isBoneOrChildOf(bone, MAIN_CORE_BONE);
         var subCoreBone = isBoneOrChildOf(bone, SUB_CORE_BONE);
 
@@ -66,7 +66,7 @@ public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<Charged
         if (this.coreRenderPass == CoreRenderPass.MAIN_CORE) {
             renderCorePassBone(
                     poseStack, animatable, bone, mainCoreBone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -74,14 +74,14 @@ public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<Charged
         if (this.coreRenderPass == CoreRenderPass.SUB_CORE) {
             renderCorePassBone(
                     poseStack, animatable, bone, subCoreBone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -93,7 +93,7 @@ public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<Charged
 
     private void renderCorePass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                 ChargedTwinBladeStaff animatable, CoreRenderPass pass, RenderType renderType, float partialTick,
-                                float red, float green, float blue, float alpha) {
+                                int colour) {
         this.coreRenderPass = pass;
         try {
             // core は glint から切り離し、専用パスで発光表現だけを再描画する。
@@ -107,10 +107,7 @@ public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<Charged
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.coreRenderPass = CoreRenderPass.NONE;
@@ -120,34 +117,34 @@ public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<Charged
     private void renderCorePassBone(PoseStack poseStack, ChargedTwinBladeStaff animatable, GeoBone bone, boolean targetBone,
                                     RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                     boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                    float red, float green, float blue, float alpha) {
+                                    int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, ChargedTwinBladeStaff animatable, GeoBone bone, RenderType renderType,
                                       MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                                       float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -159,12 +156,17 @@ public final class ChargedTwinBladeStaffRenderer extends GeoItemRenderer<Charged
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
+    }
+
+    private static int multiplyRgb(int colour, float multiplier) {
+        int alpha = colour & 0xFF000000;
+        int red = Math.round(((colour >> 16) & 0xFF) * multiplier);
+        int green = Math.round(((colour >> 8) & 0xFF) * multiplier);
+        int blue = Math.round((colour & 0xFF) * multiplier);
+        return alpha | (Mth.clamp(red, 0, 255) << 16) | (Mth.clamp(green, 0, 255) << 8) | Mth.clamp(blue, 0, 255);
     }
 
     private static float resolveMainCoreBrightness(float partialTick) {

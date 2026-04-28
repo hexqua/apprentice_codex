@@ -11,17 +11,19 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -32,21 +34,22 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Set;
@@ -72,11 +75,14 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
+    private final Multimap<Holder<Attribute>, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
 
     public ManaForceBlade() {
-        super(Tiers.DIAMOND, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT,
-                new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE));
+        super(Tiers.DIAMOND, new Item.Properties()
+                .stacksTo(1)
+                .durability(DURABILITY)
+                .rarity(Rarity.RARE)
+                .attributes(SwordItem.createAttributes(Tiers.DIAMOND, 0, (float) ATTACK_SPEED_MODIFIER_AMOUNT)));
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -134,7 +140,7 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         return USE_DURATION;
     }
 
@@ -148,13 +154,14 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot != EquipmentSlot.MAINHAND) {
-            return super.getAttributeModifiers(slot, stack);
-        }
-
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
         // Iron's の upgrade 処理は同 Attribute/Operation の既存補正 1 本を置換するため、表示前に自前補正を合算しておく。
-        return OffhandMagicModifierHelper.buildEquippedModifiers(mainhandModifiers, stack, "mana_force_blade");
+        var modifiers = OffhandMagicModifierHelper.buildEquippedModifiers(mainhandModifiers, stack, "mana_force_blade");
+        var builder = ItemAttributeModifiers.builder();
+        for (var entry : modifiers.entries()) {
+            builder.add(entry.getKey(), entry.getValue(), EquipmentSlotGroup.MAINHAND);
+        }
+        return builder.build();
     }
 
     @Override
@@ -168,11 +175,20 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
+        }
+
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return enchantmentId != null
                 && (EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
-                || enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK));
+                || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment));
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -181,14 +197,17 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         return enchantments.isEmpty() || enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
-        return canApplyAtEnchantingTable(stack, enchantment);
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
+        return enchantmentId != null
+                && (EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
+                || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment));
     }
 
     @Override
@@ -198,8 +217,8 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     @Override
-    public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ToolAction toolAction) {
-        return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
+    public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
+        return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
     }
 
     @Override
@@ -246,12 +265,12 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
             private ManaForceBladeRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (renderer == null) {
                     renderer = new ManaForceBladeRenderer();
                 }
@@ -279,7 +298,7 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     public static float resolveBladeAttackDamage(ItemStack stack) {
-        return DISPLAY_ATTACK_DAMAGE + EnchantmentHelper.getDamageBonus(stack, MobType.UNDEFINED);
+        return DISPLAY_ATTACK_DAMAGE;
     }
 
     public static boolean hasImbuedSpell(ItemStack stack) {
@@ -296,9 +315,11 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
             return 1.0F;
         }
 
-        var spellPower = (float) attacker.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
+        var spellPower = (float) attacker.getAttributeValue(AttributeRegistry.SPELL_POWER);
         Attribute schoolPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
-        var schoolSpellPower = schoolPowerAttribute == null ? 1.0F : (float) attacker.getAttributeValue(schoolPowerAttribute);
+        var schoolSpellPower = schoolPowerAttribute == null
+                ? 1.0F
+                : (float) attacker.getAttributeValue(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolPowerAttribute));
         return spellPower * schoolSpellPower;
     }
 
@@ -318,24 +339,22 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
         }
     }
 
-    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+    private static Multimap<Holder<Attribute>, AttributeModifier> buildMainhandModifiers() {
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         builder.put(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_DAMAGE_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_DAMAGE_ID,
                         ATTACK_DAMAGE_MODIFIER_AMOUNT,
-                        AttributeModifier.Operation.ADDITION
+                        AttributeModifier.Operation.ADD_VALUE
                 )
         );
         builder.put(
                 Attributes.ATTACK_SPEED,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_SPEED_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_SPEED_ID,
                         ATTACK_SPEED_MODIFIER_AMOUNT,
-                        AttributeModifier.Operation.ADDITION
+                        AttributeModifier.Operation.ADD_VALUE
                 )
         );
         return builder.build();

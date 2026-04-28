@@ -133,7 +133,6 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -3931,7 +3930,7 @@ public final class ApprenticeCodexGameTestScenarios {
             item.initializeSpellContainer(stack);
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
             setSingleUnlockedSpell(helper, stack, spell, 1);
-            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+            stack.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.ATTUNEMENT), 1);
 
             var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
             helper.assertTrue(imbuedSchool != null,
@@ -6127,7 +6126,18 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var baseStack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var baseDamage = ChargedTwinBladeStaff.resolveThrownDamage(baseStack, MobType.UNDEFINED);
+            var level = helper.getLevel();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "charged_twin_blade_staff_damage_test");
+            var genericTarget = new ArmorStand(level, 0.0D, 2.0D, 0.0D);
+            var undeadTarget = EntityType.ZOMBIE.create(level);
+            var arthropodTarget = EntityType.SPIDER.create(level);
+            var aquaticTarget = EntityType.DROWNED.create(level);
+            helper.assertTrue(undeadTarget != null, "Charged Twin Blade Staff damage test could not create undead target");
+            helper.assertTrue(arthropodTarget != null, "Charged Twin Blade Staff damage test could not create arthropod target");
+            helper.assertTrue(aquaticTarget != null, "Charged Twin Blade Staff damage test could not create aquatic target");
+
+            var damageSource = level.damageSources().playerAttack(player);
+            var baseDamage = ChargedTwinBladeStaff.resolveThrownDamage(baseStack);
             helper.assertTrue(Math.abs(baseDamage - 11.0D) < 1.0e-9D,
                     "Charged Twin Blade Staff base thrown damage regression: " + baseDamage);
 
@@ -6136,8 +6146,8 @@ public final class ApprenticeCodexGameTestScenarios {
             assertChargedTwinBladeStaffThrownDamage(
                     helper,
                     sharpnessStack,
-                    MobType.UNDEFINED,
-                    baseDamage + EnchantmentHelper.getDamageBonus(sharpnessStack, MobType.UNDEFINED),
+                    genericTarget,
+                    damageSource,
                     "Charged Twin Blade Staff sharpness thrown damage regression"
             );
 
@@ -6146,15 +6156,15 @@ public final class ApprenticeCodexGameTestScenarios {
             assertChargedTwinBladeStaffThrownDamage(
                     helper,
                     smiteStack,
-                    MobType.UNDEAD,
-                    baseDamage + EnchantmentHelper.getDamageBonus(smiteStack, MobType.UNDEAD),
+                    undeadTarget,
+                    damageSource,
                     "Charged Twin Blade Staff smite thrown damage regression"
             );
             assertChargedTwinBladeStaffThrownDamage(
                     helper,
                     smiteStack,
-                    MobType.UNDEFINED,
-                    baseDamage + EnchantmentHelper.getDamageBonus(smiteStack, MobType.UNDEFINED),
+                    genericTarget,
+                    damageSource,
                     "Charged Twin Blade Staff smite fallback damage regression"
             );
 
@@ -6163,15 +6173,15 @@ public final class ApprenticeCodexGameTestScenarios {
             assertChargedTwinBladeStaffThrownDamage(
                     helper,
                     baneStack,
-                    MobType.ARTHROPOD,
-                    baseDamage + EnchantmentHelper.getDamageBonus(baneStack, MobType.ARTHROPOD),
+                    arthropodTarget,
+                    damageSource,
                     "Charged Twin Blade Staff bane thrown damage regression"
             );
             assertChargedTwinBladeStaffThrownDamage(
                     helper,
                     baneStack,
-                    MobType.UNDEFINED,
-                    baseDamage + EnchantmentHelper.getDamageBonus(baneStack, MobType.UNDEFINED),
+                    genericTarget,
+                    damageSource,
                     "Charged Twin Blade Staff bane fallback damage regression"
             );
 
@@ -6180,15 +6190,15 @@ public final class ApprenticeCodexGameTestScenarios {
             assertChargedTwinBladeStaffThrownDamage(
                     helper,
                     impalingStack,
-                    MobType.WATER,
-                    baseDamage + EnchantmentHelper.getDamageBonus(impalingStack, MobType.WATER),
+                    aquaticTarget,
+                    damageSource,
                     "Charged Twin Blade Staff impaling thrown damage regression"
             );
             assertChargedTwinBladeStaffThrownDamage(
                     helper,
                     impalingStack,
-                    MobType.UNDEFINED,
-                    baseDamage + EnchantmentHelper.getDamageBonus(impalingStack, MobType.UNDEFINED),
+                    genericTarget,
+                    damageSource,
                     "Charged Twin Blade Staff impaling fallback damage regression"
             );
         });
@@ -6368,7 +6378,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ),
                     "Charged Twin Blade Staff self profile failed to cast Oakskin"
             );
-            helper.assertTrue(player.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.OAKSKIN.get()),
+            helper.assertTrue(player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.OAKSKIN.get())),
                     "Charged Twin Blade Staff self profile should apply Oakskin to the real player");
         });
     }
@@ -6435,7 +6445,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     ),
                     "Charged Twin Blade Staff creative impact cast should use staff profile with zero mana"
             );
-            helper.assertTrue(player.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.OAKSKIN.get()),
+            helper.assertTrue(player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(io.redspace.ironsspellbooks.registries.MobEffectRegistry.OAKSKIN.get())),
                     "Charged Twin Blade Staff creative staff profile should apply Oakskin to the real player");
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Charged Twin Blade Staff creative staff profile should leave mana at zero but got " + magicData.getMana());
@@ -8997,13 +9007,15 @@ public final class ApprenticeCodexGameTestScenarios {
     private static void assertChargedTwinBladeStaffThrownDamage(
             GameTestHelper helper,
             ItemStack stack,
-            MobType mobType,
-            double expectedDamage,
+            net.minecraft.world.entity.Entity target,
+            net.minecraft.world.damagesource.DamageSource damageSource,
             String failureMessage
     ) {
-        var actualDamage = ChargedTwinBladeStaff.resolveThrownDamage(stack, mobType);
+        var level = helper.getLevel();
+        var expectedDamage = EnchantmentHelper.modifyDamage(level, stack, target, damageSource, (float) ChargedTwinBladeStaff.resolveThrownDamage(stack));
+        var actualDamage = ChargedTwinBladeStaff.resolveThrownDamage(level, stack, target, damageSource);
         helper.assertTrue(Math.abs(actualDamage - expectedDamage) < 1.0e-9D,
-                failureMessage + ": mobType=" + mobType + ", expected=" + expectedDamage + ", actual=" + actualDamage);
+                failureMessage + ": target=" + EntityType.getKey(target.getType()) + ", expected=" + expectedDamage + ", actual=" + actualDamage);
     }
 
     private static Set<ResourceLocation> expectedReflectcastShieldEnchantments(RegistryAccess registryAccess, ItemStack stack) {

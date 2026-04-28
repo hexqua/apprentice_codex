@@ -16,7 +16,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
     private static final String ORB_BONE = "orb";
@@ -37,16 +37,16 @@ public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
     @Override
     public void postRender(PoseStack poseStack, ManaForceBlade animatable, BakedGeoModel model, MultiBufferSource bufferSource,
                            VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                           float red, float green, float blue, float alpha) {
+                           int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay,
-                red, green, blue, alpha);
+                colour);
 
         if (isReRender) {
             return;
         }
 
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.ORB, ORB_RENDER_TYPE, partialTick,
-                red, green, blue, alpha);
+                colour);
 
         var school = MagicTools.getImbuedSpellSchool(this.currentItemStack);
         if (school == null) {
@@ -55,16 +55,13 @@ public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
 
         var tint = MagicTools.resolveSchoolTintColor(school);
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.RUNE, RUNE_RENDER_TYPE, partialTick,
-                ((tint >> 16) & 0xFF) / 255.0F,
-                ((tint >> 8) & 0xFF) / 255.0F,
-                (tint & 0xFF) / 255.0F,
-                alpha);
+                (colour & 0xFF000000) | (tint & 0x00FFFFFF));
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, ManaForceBlade animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         var orbBone = isBoneOrChildOf(bone, ORB_BONE);
         var runeBone = isBoneOrChildOf(bone, RUNE_BONE);
 
@@ -75,7 +72,7 @@ public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
         if (this.glowPass == GlowPass.ORB) {
             renderGlowPassBone(
                     poseStack, animatable, bone, orbBone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -83,14 +80,14 @@ public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
         if (this.glowPass == GlowPass.RUNE) {
             renderGlowPassBone(
                     poseStack, animatable, bone, runeBone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -102,7 +99,7 @@ public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
 
     private void renderGlowPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                 ManaForceBlade animatable, GlowPass pass, RenderType renderType, float partialTick,
-                                float red, float green, float blue, float alpha) {
+                                int colour) {
         this.glowPass = pass;
         try {
             // orb/rune は通常パスと glint から切り離し、専用の加算発光パスだけで描画する。
@@ -116,10 +113,7 @@ public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.glowPass = GlowPass.NONE;
@@ -129,34 +123,34 @@ public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
     private void renderGlowPassBone(PoseStack poseStack, ManaForceBlade animatable, GeoBone bone, boolean targetBone,
                                     RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                     boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                    float red, float green, float blue, float alpha) {
+                                    int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, ManaForceBlade animatable, GeoBone bone, RenderType renderType,
                                       MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                                       float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -168,10 +162,7 @@ public class ManaForceBladeRenderer extends GeoItemRenderer<ManaForceBlade> {
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }

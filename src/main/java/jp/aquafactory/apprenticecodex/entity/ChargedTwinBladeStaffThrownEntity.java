@@ -2,12 +2,12 @@ package jp.aquafactory.apprenticecodex.entity;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellCastManager;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -15,17 +15,18 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -34,7 +35,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
@@ -123,7 +125,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitResult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult.getType() != HitResult.Type.MISS && !EventHooks.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
             if (impacted) {
                 return;
@@ -154,15 +156,13 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         var owner = getOwner();
         var damageSource = damageSources().trident(this, owner == null ? this : owner);
         var impactForward = resolveImpactForward(hitResult.getLocation());
-        var damage = (float) ChargedTwinBladeStaff.resolveThrownDamage(
-                weaponStack,
-                hitEntity instanceof LivingEntity livingEntity ? livingEntity.getMobType() : MobType.UNDEFINED
-        );
+        var damage = level() instanceof ServerLevel serverLevel
+                ? ChargedTwinBladeStaff.resolveThrownDamage(serverLevel, weaponStack, hitEntity, damageSource)
+                : (float) ChargedTwinBladeStaff.resolveThrownDamage(weaponStack);
 
         if (hitEntity.hurt(damageSource, damage) && hitEntity instanceof LivingEntity livingTarget) {
-            if (owner instanceof LivingEntity livingOwner) {
-                EnchantmentHelper.doPostHurtEffects(livingTarget, livingOwner);
-                EnchantmentHelper.doPostDamageEffects(livingOwner, livingTarget);
+            if (level() instanceof ServerLevel serverLevel) {
+                EnchantmentHelper.doPostAttackEffectsWithItemSource(serverLevel, livingTarget, damageSource, weaponStack);
             }
         }
 
@@ -207,7 +207,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
                     }
                     serverLevel.addFreshEntity(lightningBolt);
                     serverLevel.playSound(null, impactPosition.x, impactPosition.y, impactPosition.z,
-                            SoundEvents.TRIDENT_THUNDER, SoundSource.PLAYERS, 5.0F, 1.0F);
+                            SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 5.0F, 1.0F);
                 }
             }
 
@@ -271,7 +271,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     }
 
     private boolean canSummonLightning(ServerLevel level) {
-        return EnchantmentHelper.hasChanneling(weaponStack)
+        return hasChanneling(weaponStack)
                 && level.isThundering()
                 && level.canSeeSky(blockPosition());
     }
@@ -350,7 +350,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
 
     public ItemStack getRenderStack() {
         var renderStack = weaponStack.copy();
-        renderStack.getOrCreateTag().putInt("CustomModelData", THROWN_RENDER_CUSTOM_MODEL_DATA);
+        renderStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(THROWN_RENDER_CUSTOM_MODEL_DATA));
         return renderStack;
     }
 
@@ -384,16 +384,16 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_IMPACTED, false);
-        entityData.define(DATA_IMPACT_YAW, 0.0F);
-        entityData.define(DATA_IMPACT_PITCH, 0.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_IMPACTED, false);
+        builder.define(DATA_IMPACT_YAW, 0.0F);
+        builder.define(DATA_IMPACT_PITCH, 0.0F);
     }
 
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
         if (tag.contains(STACK_TAG)) {
-            weaponStack = ItemStack.of(tag.getCompound(STACK_TAG));
+            weaponStack = ItemStack.parseOptional(registryAccess(), tag.getCompound(STACK_TAG));
         }
         spellPayload = ChargedTwinBladeStaffSpellPayload.load(tag.getCompound(SPELL_PAYLOAD_TAG));
         if (tag.hasUUID(OWNER_UUID_TAG)) {
@@ -412,7 +412,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        tag.put(STACK_TAG, weaponStack.save(new CompoundTag()));
+        tag.put(STACK_TAG, weaponStack.saveOptional(registryAccess()));
         tag.put(SPELL_PAYLOAD_TAG, spellPayload.save());
         if (ownerUuid != null) {
             tag.putUUID(OWNER_UUID_TAG, ownerUuid);
@@ -436,8 +436,8 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity serverEntity) {
+        return super.getAddEntityPacket(serverEntity);
     }
 
     @Override
@@ -453,6 +453,15 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
     @Override
     public boolean isPickable() {
         // これは意図的に拾えないようにするため必要.
+        return false;
+    }
+
+    private static boolean hasChanneling(ItemStack stack) {
+        for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet()) {
+            if (entry.getKey().is(net.minecraft.world.item.enchantment.Enchantments.CHANNELING)) {
+                return entry.getIntValue() > 0;
+            }
+        }
         return false;
     }
 }

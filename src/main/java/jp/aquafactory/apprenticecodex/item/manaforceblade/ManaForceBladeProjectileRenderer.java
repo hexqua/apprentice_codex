@@ -74,9 +74,8 @@ public class ManaForceBladeProjectileRenderer extends EntityRenderer<ManaForceBl
     private static void addVertex(VertexConsumer buffer, Matrix4f matrix,
                                   float x, float y, float z,
                                   int red, int green, int blue) {
-        buffer.vertex(matrix, x, y, z)
-                .color(red, green, blue, ALPHA)
-                .endVertex();
+        buffer.addVertex(matrix, x, y, z)
+                .setColor(red, green, blue, ALPHA);
     }
 
     @Override

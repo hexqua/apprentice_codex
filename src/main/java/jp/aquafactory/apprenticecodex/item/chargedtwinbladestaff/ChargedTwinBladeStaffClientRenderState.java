@@ -29,8 +29,8 @@ public final class ChargedTwinBladeStaffClientRenderState {
         }
 
         var useItem = player.getUseItem();
-        return ItemStack.isSameItemSameTags(player.getMainHandItem(), renderingStack)
-                && ItemStack.isSameItemSameTags(useItem, renderingStack);
+        return ItemStack.isSameItemSameComponents(player.getMainHandItem(), renderingStack)
+                && ItemStack.isSameItemSameComponents(useItem, renderingStack);
     }
 
     @Nullable

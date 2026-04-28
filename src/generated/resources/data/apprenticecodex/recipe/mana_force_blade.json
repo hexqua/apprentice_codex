@@ -18,7 +18,15 @@
     "MSM"
   ],
   "result": {
-    "item": "apprenticecodex:mana_force_blade"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:mana_force_blade"
+  }
 }

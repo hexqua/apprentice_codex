@@ -1,13 +1,10 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.item.UniqueItem;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientTooltip;
@@ -16,17 +13,22 @@ import jp.aquafactory.apprenticecodex.renderer.item.ChargedTwinBladeStaffRendere
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -38,32 +40,32 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.common.ToolActions;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem {
@@ -77,7 +79,8 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     private static final double ATTACK_DAMAGE_BONUS = 10.0D;
     private static final double ATTACK_SPEED_BONUS = -3.0D;
     private static final double SPELL_POWER_BONUS = 0.10D;
-    private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("7174b516-38cd-4ebe-8732-ec0e56444d4e");
+    private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "charged_twin_blade_staff/spell_power");
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack TRIDENT_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.TRIDENT);
@@ -90,7 +93,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Multimap<Attribute, AttributeModifier> mainhandModifiers = buildMainhandModifiers();
+    private final ItemAttributeModifiers mainhandModifiers = buildMainhandModifiers();
 
     public ChargedTwinBladeStaff() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
@@ -114,12 +117,12 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             return;
         }
 
-        var usedTicks = getUseDuration(stack) - timeLeft;
+        var usedTicks = stack.getUseDuration(livingEntity) - timeLeft;
         if (usedTicks < THROW_THRESHOLD_TICKS) {
             return;
         }
 
-        if (EnchantmentHelper.getRiptide(stack) > 0) {
+        if (getRiptideLevel(stack) > 0) {
             handleRiptideRelease(level, player, stack);
             return;
         }
@@ -133,7 +136,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         }
 
         spendThrowMana(player, stack);
-        var payload = EnchantmentHelper.hasChanneling(stack)
+        var payload = hasChanneling(stack)
                 ? ChargedTwinBladeStaffSpellPayload.capture(new SpellSelectionManager(player).getSelection(), player)
                 : ChargedTwinBladeStaffSpellPayload.EMPTY;
         var projectile = new ChargedTwinBladeStaffThrownEntity(
@@ -145,7 +148,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         );
         projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, THROW_POWER, 1.0F);
         level.addFreshEntity(projectile);
-        level.playSound(null, projectile, SoundEvents.TRIDENT_THROW, SoundSource.PLAYERS, 1.0F, 1.0F);
+        level.playSound(null, projectile, SoundEvents.TRIDENT_THROW.value(), SoundSource.PLAYERS, 1.0F, 1.0F);
         player.awardStat(Stats.ITEM_USED.get(this));
     }
 
@@ -159,7 +162,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         }
 
         player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
-        var riptideLevel = EnchantmentHelper.getRiptide(stack);
+        var riptideLevel = getRiptideLevel(stack);
         var yRot = player.getYRot();
         var xRot = player.getXRot();
         var x = -Mth.sin(yRot * Mth.DEG_TO_RAD) * Mth.cos(xRot * Mth.DEG_TO_RAD);
@@ -168,7 +171,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         var distance = 3.0F * ((1.0F + riptideLevel) / 4.0F);
         var scale = distance / Mth.sqrt(x * x + y * y + z * z);
         player.push(x * scale, y * scale, z * scale);
-        player.startAutoSpinAttack(20);
+        player.startAutoSpinAttack(20, 8.0F, stack);
         if (player.onGround()) {
             player.move(MoverType.SELF, new Vec3(0.0D, 1.1999999D, 0.0D));
         }
@@ -183,7 +186,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         return USE_DURATION;
     }
 
@@ -198,13 +201,13 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
-    public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
-        return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
+    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+        return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        return slot == EquipmentSlot.MAINHAND ? mainhandModifiers : super.getAttributeModifiers(slot, stack);
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        return mainhandModifiers;
     }
 
     @Override
@@ -218,19 +221,28 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        if (super.supportsEnchantment(stack, enchantment)) {
+            return true;
+        }
+
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         if (enchantmentId == null) {
             return false;
         }
 
-        if (enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK)) {
+        if (DURABILITY_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)) {
             return false;
         }
 
         return EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
-                || enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK)
-                || enchantment.canApplyAtEnchantingTable(TRIDENT_ENCHANTMENT_PROBE_STACK);
+                || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)
+                || TRIDENT_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment);
+    }
+
+    @Override
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -239,21 +251,30 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         return enchantments.isEmpty() || enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
-        return canApplyAtEnchantingTable(stack, enchantment);
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
+        if (enchantmentId == null) {
+            return false;
+        }
+        if (DURABILITY_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)) {
+            return false;
+        }
+        return EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
+                || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)
+                || TRIDENT_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment);
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
 
-        if (EnchantmentHelper.getRiptide(stack) > 0) {
+        if (getRiptideLevel(stack) > 0) {
             lines.add(Component.translatable(
                     "item.apprenticecodex.charged_twin_blade_staff.desc.reptide",
                     Mth.ceil(RIPTIDE_MANA_COST)
@@ -265,7 +286,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             ).withStyle(ChatFormatting.AQUA));
         }
 
-        if (EnchantmentHelper.hasChanneling(stack)) {
+        if (hasChanneling(stack)) {
             lines.add(Component.translatable("item.apprenticecodex.charged_twin_blade_staff.desc.channeling")
                     .withStyle(ChatFormatting.YELLOW));
             resolveUnsupportedSelectedSpellName().ifPresent(spellName ->
@@ -281,12 +302,12 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
             private ChargedTwinBladeStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (renderer == null) {
                     renderer = new ChargedTwinBladeStaffRenderer();
                 }
@@ -322,12 +343,12 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     public static double resolveThrownDamage(ItemStack stack) {
-        return resolveThrownDamage(stack, MobType.UNDEFINED);
+        return BASE_PLAYER_ATTACK_DAMAGE + ATTACK_DAMAGE_BONUS;
     }
 
-    public static double resolveThrownDamage(ItemStack stack, MobType mobType) {
+    public static float resolveThrownDamage(ServerLevel level, ItemStack stack, Entity target, DamageSource damageSource) {
         // Item の攻撃力補正は素手基礎値を含まないため、投擲でも近接定義へ追従できるよう加算する。
-        return BASE_PLAYER_ATTACK_DAMAGE + ATTACK_DAMAGE_BONUS + EnchantmentHelper.getDamageBonus(stack, mobType);
+        return EnchantmentHelper.modifyDamage(level, stack, target, damageSource, (float) resolveThrownDamage(stack));
     }
 
     private static boolean canSpendThrowMana(Player player, ItemStack stack) {
@@ -359,7 +380,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     private static float getThrowManaCost(ItemStack stack) {
-        var loyaltyLevel = EnchantmentHelper.getLoyalty(stack);
+        var loyaltyLevel = getLoyaltyLevel(stack);
         return THROW_MANA_COST / (loyaltyLevel + 1.0F);
     }
 
@@ -369,9 +390,9 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
 
     private static SoundEvent resolveRiptideSound(int riptideLevel) {
         return switch (riptideLevel) {
-            case 3 -> SoundEvents.TRIDENT_RIPTIDE_3;
-            case 2 -> SoundEvents.TRIDENT_RIPTIDE_2;
-            default -> SoundEvents.TRIDENT_RIPTIDE_1;
+            case 3 -> SoundEvents.TRIDENT_RIPTIDE_3.value();
+            case 2 -> SoundEvents.TRIDENT_RIPTIDE_2.value();
+            default -> SoundEvents.TRIDENT_RIPTIDE_1.value();
         };
     }
 
@@ -382,40 +403,62 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     private static Optional<Component> resolveUnsupportedSelectedSpellName() {
-        var result = DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> ChargedTwinBladeStaffClientTooltip::resolveUnsupportedSpellName);
-        return Optional.ofNullable(result).orElseGet(Optional::empty);
+        return FMLEnvironment.dist == Dist.CLIENT
+                ? ChargedTwinBladeStaffClientTooltip.resolveUnsupportedSpellName()
+                : Optional.empty();
     }
 
-    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+    private static ItemAttributeModifiers buildMainhandModifiers() {
+        var builder = ItemAttributeModifiers.builder();
         // Iron's の upgrade 処理は同 Attribute/Operation の既存補正 1 本だけを置換するため、基礎補正は重複させない。
-        builder.put(
+        builder.add(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_DAMAGE_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_DAMAGE_ID,
                         ATTACK_DAMAGE_BONUS,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
-        builder.put(
+        builder.add(
                 Attributes.ATTACK_SPEED,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_SPEED_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_SPEED_ID,
                         ATTACK_SPEED_BONUS,
-                        AttributeModifier.Operation.ADDITION
-                )
+                        AttributeModifier.Operation.ADD_VALUE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
-        builder.put(
-                AttributeRegistry.SPELL_POWER.get(),
+        builder.add(
+                AttributeRegistry.SPELL_POWER,
                 new AttributeModifier(
                         SPELL_POWER_MODIFIER_ID,
-                        "apprenticecodex.charged_twin_blade_staff.mainhand.spell_power",
                         SPELL_POWER_BONUS,
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
         return builder.build();
+    }
+
+    private static int getRiptideLevel(ItemStack stack) {
+        return getEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.RIPTIDE);
+    }
+
+    private static int getLoyaltyLevel(ItemStack stack) {
+        return getEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.LOYALTY);
+    }
+
+    private static boolean hasChanneling(ItemStack stack) {
+        return getEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.CHANNELING) > 0;
+    }
+
+    private static int getEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
+        for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet()) {
+            if (entry.getKey().is(enchantmentKey)) {
+                return entry.getIntValue();
+            }
+        }
+        return 0;
     }
 }

@@ -20,24 +20,25 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ManaForceBladeEvents {
     private static final int PERFECT_GUARD_TICKS = 10;
     private static final int COST_INTERVAL_TICKS = 20;
@@ -72,7 +73,7 @@ public final class ManaForceBladeEvents {
     }
 
     @SubscribeEvent
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
         if (applyingGuardCounterDamage || event.isCanceled()) {
             return;
         }
@@ -93,7 +94,7 @@ public final class ManaForceBladeEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (event.isCanceled() || event.getAmount() <= 0.0F || event.getEntity().level().isClientSide) {
             return;
         }
@@ -106,7 +107,7 @@ public final class ManaForceBladeEvents {
             return;
         }
 
-        var usedTicks = stack.getUseDuration() - player.getUseItemRemainingTicks();
+        var usedTicks = stack.getUseDuration(player) - player.getUseItemRemainingTicks();
         var perfectGuard = usedTicks <= PERFECT_GUARD_TICKS;
         if (isRangedAttack(event, player)) {
             handleRangedGuard(event, player, stack, perfectGuard);
@@ -183,18 +184,18 @@ public final class ManaForceBladeEvents {
             return false;
         }
         return attributeName.getContents() instanceof TranslatableContents attributeNameContents
-                && Attributes.ATTACK_DAMAGE.getDescriptionId().equals(attributeNameContents.getKey());
+                && Attributes.ATTACK_DAMAGE.value().getDescriptionId().equals(attributeNameContents.getKey());
     }
 
     private static Component createAttackDamageTooltipLine(float damage) {
         return CommonComponents.space().append(Component.translatable(
                 ATTACK_DAMAGE_MODIFIER_KEY,
                 Utils.stringTruncation(damage, 2),
-                Component.translatable(Attributes.ATTACK_DAMAGE.getDescriptionId())
+                Component.translatable(Attributes.ATTACK_DAMAGE.value().getDescriptionId())
         )).withStyle(ChatFormatting.DARK_GREEN);
     }
 
-    private static boolean isRangedAttack(LivingAttackEvent event, ServerPlayer player) {
+    private static boolean isRangedAttack(LivingIncomingDamageEvent event, ServerPlayer player) {
         var directEntity = event.getSource().getDirectEntity();
         if (directEntity instanceof Projectile) {
             return true;
@@ -204,7 +205,7 @@ public final class ManaForceBladeEvents {
         return sourceEntity != null && sourceEntity.distanceToSqr(player) >= RANGED_DISTANCE_SQR;
     }
 
-    private static void handleRangedGuard(LivingAttackEvent event, ServerPlayer player, ItemStack stack, boolean perfectGuard) {
+    private static void handleRangedGuard(LivingIncomingDamageEvent event, ServerPlayer player, ItemStack stack, boolean perfectGuard) {
         var now = player.level().getGameTime();
         if (!perfectGuard && !tryPayPeriodicGuardCost(
                 player,
@@ -229,7 +230,7 @@ public final class ManaForceBladeEvents {
         event.setCanceled(true);
     }
 
-    private static void handleMeleeGuard(LivingAttackEvent event, ServerPlayer player, ItemStack stack, boolean perfectGuard) {
+    private static void handleMeleeGuard(LivingIncomingDamageEvent event, ServerPlayer player, ItemStack stack, boolean perfectGuard) {
         var now = player.level().getGameTime();
         if (!perfectGuard && !tryPayPeriodicGuardCost(
                 player,
@@ -260,7 +261,7 @@ public final class ManaForceBladeEvents {
             float manaCost,
             int durabilityCost
     ) {
-        var tag = stack.getOrCreateTag();
+        var tag = getCustomDataTag(stack);
         if (tag.contains(lastCostTickTag) && now - tag.getLong(lastCostTickTag) < COST_INTERVAL_TICKS) {
             return true;
         }
@@ -271,19 +272,24 @@ public final class ManaForceBladeEvents {
         }
 
         ManaForceBlade.spendMana(player, manaCost);
-        stack.hurtAndBreak(durabilityCost, player, brokenPlayer -> brokenPlayer.broadcastBreakEvent(EquipmentSlot.MAINHAND));
-        tag.putLong(lastCostTickTag, now);
+        stack.hurtAndBreak(durabilityCost, player, EquipmentSlot.MAINHAND);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> data.putLong(lastCostTickTag, now));
         return true;
     }
 
     private static boolean tryMarkAction(ItemStack stack, String actionTickTag, long now) {
-        var tag = stack.getOrCreateTag();
+        var tag = getCustomDataTag(stack);
         if (tag.contains(actionTickTag) && now - tag.getLong(actionTickTag) < ACTION_INTERVAL_TICKS) {
             return false;
         }
 
-        tag.putLong(actionTickTag, now);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, data -> data.putLong(actionTickTag, now));
         return true;
+    }
+
+    private static net.minecraft.nbt.CompoundTag getCustomDataTag(ItemStack stack) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        return customData == null ? new net.minecraft.nbt.CompoundTag() : customData.copyTag();
     }
 
     private static Vec3 resolveGuardOrigin(

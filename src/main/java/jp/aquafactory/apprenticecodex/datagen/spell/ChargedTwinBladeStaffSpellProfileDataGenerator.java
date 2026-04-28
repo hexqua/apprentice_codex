@@ -1,62 +1,58 @@
 package jp.aquafactory.apprenticecodex.datagen.spell;
 
-import com.mojang.serialization.JsonOps;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellProfile;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellProfileDefinition;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellProfileList;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellProfileManager;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.JsonCodecProvider;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.JsonCodecProvider;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public final class ChargedTwinBladeStaffSpellProfileDataGenerator extends JsonCodecProvider<ChargedTwinBladeStaffSpellProfileList> {
-    public ChargedTwinBladeStaffSpellProfileDataGenerator(PackOutput output, ExistingFileHelper existingFileHelper) {
+    public ChargedTwinBladeStaffSpellProfileDataGenerator(
+            PackOutput output,
+            CompletableFuture<HolderLookup.Provider> lookupProvider,
+            ExistingFileHelper existingFileHelper
+    ) {
         super(
                 output,
-                existingFileHelper,
-                ApprenticeCodex.MODID,
-                JsonOps.INSTANCE,
-                PackType.SERVER_DATA,
+                PackOutput.Target.DATA_PACK,
                 ChargedTwinBladeStaffSpellProfileManager.DIRECTORY,
+                PackType.SERVER_DATA,
                 ChargedTwinBladeStaffSpellProfileList.CODEC,
-                Map.of(
-                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "profiles"),
-                        new ChargedTwinBladeStaffSpellProfileList(List.of(
-                                new ChargedTwinBladeStaffSpellProfileDefinition(
-                                        getResourceLocationRegistry(SpellRegistry.OAKSKIN_SPELL),
-                                        ChargedTwinBladeStaffSpellProfile.PLAYER_SELF
-                                ),
-                                new ChargedTwinBladeStaffSpellProfileDefinition(
-                                        getResourceLocationRegistry(SpellRegistry.FORTIFY_SPELL),
-                                        ChargedTwinBladeStaffSpellProfile.PLAYER_SELF
-                                ),
-                                new ChargedTwinBladeStaffSpellProfileDefinition(
-                                        getResourceLocationRegistry(SpellRegistry.HASTE_SPELL),
-                                        ChargedTwinBladeStaffSpellProfile.PLAYER_SELF
-                                ),
-                                new ChargedTwinBladeStaffSpellProfileDefinition(
-                                        getResourceLocationRegistry(SpellRegistry.RAISE_DEAD_SPELL),
-                                        ChargedTwinBladeStaffSpellProfile.IMPACT_PROXY_OWNER_MAGIC_INITIAL_RECAST
-                                )
-                        ))
-                )
+                lookupProvider,
+                ApprenticeCodex.MODID,
+                existingFileHelper
         );
     }
 
-    private static ResourceLocation getResourceLocationRegistry(RegistryObject<AbstractSpell> spellRegistryObject) {
-        return ResourceLocation.fromNamespaceAndPath(
-                Objects.requireNonNull(spellRegistryObject.getId()).getNamespace(),
-                Objects.requireNonNull(spellRegistryObject.getId()).getPath()
+    @Override
+    protected void gather() {
+        unconditional(
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "profiles"),
+                new ChargedTwinBladeStaffSpellProfileList(List.of(
+                        profile("oakskin", ChargedTwinBladeStaffSpellProfile.PLAYER_SELF),
+                        profile("fortify", ChargedTwinBladeStaffSpellProfile.PLAYER_SELF),
+                        profile("haste", ChargedTwinBladeStaffSpellProfile.PLAYER_SELF),
+                        profile("raise_dead", ChargedTwinBladeStaffSpellProfile.IMPACT_PROXY_OWNER_MAGIC_INITIAL_RECAST)
+                ))
+        );
+    }
+
+    private static ChargedTwinBladeStaffSpellProfileDefinition profile(
+            String path,
+            ChargedTwinBladeStaffSpellProfile profile
+    ) {
+        return new ChargedTwinBladeStaffSpellProfileDefinition(
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", path),
+                profile
         );
     }
 }

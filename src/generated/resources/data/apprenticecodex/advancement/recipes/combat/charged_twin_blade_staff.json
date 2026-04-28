@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "minecraft:netherite_sword"
-            ]
+            "items": "minecraft:netherite_sword"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_netherite_sword",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_netherite_sword"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:charged_twin_blade_staff"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

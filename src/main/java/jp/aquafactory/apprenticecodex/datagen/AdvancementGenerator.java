@@ -416,7 +416,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.description"),
                         null,
-                        FrameType.CHALLENGE,
+                        AdvancementType.CHALLENGE,
                         true,
                         true,
                         false)
@@ -429,7 +429,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_mana_force_blade.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_mana_force_blade.description"),
                         null,
-                        FrameType.CHALLENGE,
+                        AdvancementType.CHALLENGE,
                         true,
                         true,
                         false)

@@ -1,25 +1,23 @@
 {
-  "type": "malum:spirit_repair",
-  "conditions": [
+  "neoforge:conditions": [
     {
-      "type": "forge:mod_loaded",
+      "type": "neoforge:mod_loaded",
       "modid": "malum"
     }
   ],
+  "type": "malum:spirit_repair",
   "durabilityPercentage": 0.5,
-  "inputs": [
-    "apprenticecodex:mana_force_blade"
-  ],
-  "itemIdRegex": "",
-  "modIdRegex": "",
   "repairMaterial": {
     "count": 1,
     "item": "irons_spellbooks:arcane_ingot"
   },
   "spirits": [
     {
-      "type": "arcane",
+      "type": "malum:arcane",
       "count": 8
     }
+  ],
+  "validItems": [
+    "apprenticecodex:mana_force_blade"
   ]
 }

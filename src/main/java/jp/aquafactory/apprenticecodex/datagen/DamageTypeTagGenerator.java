@@ -32,6 +32,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEALING_BLOOM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_FORCE_BLADE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_SLASH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PHALANX_CHARGE;
