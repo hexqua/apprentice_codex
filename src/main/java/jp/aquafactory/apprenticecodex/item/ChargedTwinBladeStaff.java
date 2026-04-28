@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
@@ -62,6 +63,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem {
@@ -74,6 +76,8 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     private static final double BASE_PLAYER_ATTACK_DAMAGE = 1.0D;
     private static final double ATTACK_DAMAGE_BONUS = 10.0D;
     private static final double ATTACK_SPEED_BONUS = -3.0D;
+    private static final double SPELL_POWER_BONUS = 0.10D;
+    private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("7174b516-38cd-4ebe-8732-ec0e56444d4e");
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack TRIDENT_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.TRIDENT);
@@ -400,6 +404,15 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
                         "Weapon modifier",
                         ATTACK_SPEED_BONUS,
                         AttributeModifier.Operation.ADDITION
+                )
+        );
+        builder.put(
+                AttributeRegistry.SPELL_POWER.get(),
+                new AttributeModifier(
+                        SPELL_POWER_MODIFIER_ID,
+                        "apprenticecodex.charged_twin_blade_staff.mainhand.spell_power",
+                        SPELL_POWER_BONUS,
+                        AttributeModifier.Operation.MULTIPLY_BASE
                 )
         );
         return builder.build();

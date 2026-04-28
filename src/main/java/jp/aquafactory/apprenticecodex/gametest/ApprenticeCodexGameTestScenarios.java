@@ -6036,6 +6036,10 @@ public final class ApprenticeCodexGameTestScenarios {
                     modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED),
                     AttributeModifier.Operation.ADD_VALUE
             ) - (-3.0D)) < 1.0e-9D, "Charged Twin Blade Staff attack speed regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                    modifiers.get((Holder<Attribute>) io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            ) - 0.10D) < 1.0e-9D, "Charged Twin Blade Staff spell power regression: " + describeModifiers(modifiers));
         });
     }
     static void chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(GameTestHelper helper) {
