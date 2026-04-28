@@ -388,6 +388,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
 
     private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        // Iron's の upgrade 処理は同 Attribute/Operation の既存補正 1 本だけを置換するため、基礎補正は重複させない。
         builder.put(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
