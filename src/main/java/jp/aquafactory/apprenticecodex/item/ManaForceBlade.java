@@ -14,8 +14,11 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -30,6 +33,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -49,6 +53,7 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -141,10 +146,27 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     @Override
     public boolean hurtEnemy(@NotNull ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
         if (hasImbuedSpell(stack) && !attacker.level().isClientSide && attacker instanceof Player player) {
-            spendMana(player, resolveBladeAttackDamage(stack) * 3.0F);
+            spendMana(player, resolveBladeAttackManaCost(stack));
         }
 
         return super.hurtEnemy(stack, target, attacker);
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+                                @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, level, lines, flag);
+
+        lines.add(Component.translatable("item.apprenticecodex.mana_force_blade.desc").withStyle(ChatFormatting.GRAY));
+        if (hasImbuedSpell(stack)) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.mana_force_blade.desc.imbue_help",
+                    Mth.ceil(resolveBladeAttackManaCost(stack))
+            ).withStyle(ChatFormatting.AQUA));
+        } else {
+            lines.add(Component.translatable("item.apprenticecodex.mana_force_blade.desc.no_imbue")
+                    .withStyle(ChatFormatting.GRAY));
+        }
     }
 
     @Override
@@ -280,6 +302,10 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
 
     public static float resolveBladeAttackDamage(ItemStack stack) {
         return DISPLAY_ATTACK_DAMAGE + EnchantmentHelper.getDamageBonus(stack, MobType.UNDEFINED);
+    }
+
+    public static float resolveBladeAttackManaCost(ItemStack stack) {
+        return resolveBladeAttackDamage(stack) * 3.0F;
     }
 
     public static boolean hasImbuedSpell(ItemStack stack) {
