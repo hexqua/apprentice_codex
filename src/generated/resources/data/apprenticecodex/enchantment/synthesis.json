@@ -3,6 +3,7 @@
   "description": {
     "translate": "enchantment.apprenticecodex.synthesis"
   },
+  "exclusive_set": "#apprenticecodex:exclusive_set/synthesis",
   "max_cost": {
     "base": 50,
     "per_level_above_first": 10
