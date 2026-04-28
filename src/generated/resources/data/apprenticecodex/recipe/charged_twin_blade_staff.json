@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "N": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "S": {
+      "item": "minecraft:netherite_sword"
+    },
+    "T": {
+      "item": "minecraft:trident"
+    }
+  },
+  "pattern": [
+    " NS",
+    " TN",
+    "A  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:charged_twin_blade_staff"
+  }
+}

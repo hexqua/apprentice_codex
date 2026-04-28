@@ -49,6 +49,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> SENSE_EVIL = reg("sense_evil");
     public static final DeferredHolder<SoundEvent, SoundEvent> SIPHON_ORB_LAUNCH = reg("siphon_orb_launch");
     public static final DeferredHolder<SoundEvent, SoundEvent> MANA_SLASH = reg("mana_slash");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PARRY = reg("parry");
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_FIRE = reg("stellar_fire");
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_LAUNCH = reg("stellar_launch");
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_IMPACT = reg("stellar_impact");

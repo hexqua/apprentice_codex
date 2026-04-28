@@ -46,6 +46,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_FIRE_ASPECT = createTag("minecraft", "enchantable/fire_aspect");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_SHARP_WEAPON = createTag("minecraft", "enchantable/sharp_weapon");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_WEAPON = createTag("minecraft", "enchantable/weapon");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_TRIDENT = createTag("minecraft", "enchantable/trident");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_DURABILITY = createTag("minecraft", "enchantable/durability");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_EQUIPPABLE = createTag("minecraft", "enchantable/equippable");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
@@ -104,11 +105,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var vanillaFireAspectEnchantableTag = tag(MINECRAFT_ENCHANTABLE_FIRE_ASPECT);
         var vanillaSharpWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SHARP_WEAPON);
         var vanillaWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_WEAPON);
+        var vanillaTridentEnchantableTag = tag(MINECRAFT_ENCHANTABLE_TRIDENT);
+        var vanillaDurabilityEnchantableTag = tag(MINECRAFT_ENCHANTABLE_DURABILITY);
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
-                ItemRegistry.FOCUS_STAFFBOW.get()
+                ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                ItemRegistry.MANA_FORCE_BLADE.get()
         );
         // Focus Staffbow は StaffItem 継承に依存せず Staff 相当の主手エンチャ面を持たせたいので、
         // sword 系 tag と Malum 互換 tag、個別付与の Wisdom を明示追加する。
@@ -122,6 +127,26 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaFireAspectEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+
+        // Charged Twin Blade Staff は剣/トライデント両面の enchant を許可するが、耐久系は Elytra 面を含めて除外する。
+        transcendenceEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        wisdomEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        vanillaTridentEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+
+        // Mana Force Blade は耐久値を持つ剣として扱い、専用魔法 enchant も JSON/tag 面で通す。
+        tag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.MANA_FORCE_BLADE.get());
+        tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE).add(ItemRegistry.MANA_FORCE_BLADE.get());
+        transcendenceEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        wisdomEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        vanillaDurabilityEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。
         // Crystal Bladed Staff は 1.21.1 で継承階層が StaffItem 直下へ変わったため、明示列挙で維持する。
         for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
@@ -187,7 +212,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
         );
-        tag(MINECRAFT_ENCHANTABLE_DURABILITY).add(
+        vanillaDurabilityEnchantableTag.add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),

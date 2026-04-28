@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "criteria": {
+    "crafted_charged_twin_blade_staff": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:charged_twin_blade_staff"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:charged_twin_blade_staff"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_charged_twin_blade_staff"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

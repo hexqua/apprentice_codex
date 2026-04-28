@@ -32,6 +32,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEALING_BLOOM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_FORCE_BLADE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_SLASH;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PHALANX_CHARGE;
@@ -179,7 +180,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ILLUMINATE_STELLAR,
                 UNITE_LUNA,
                 HEALING_BLOOM,
-                SHOCK
+                SHOCK,
+                MANA_FORCE_BLADE
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
@@ -194,7 +196,10 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
-        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(HAUNTED_BONUS);
+        tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(
+                HAUNTED_BONUS,
+                MANA_FORCE_BLADE
+        );
 
         // Lodestone連携: magic_proficiency / magic_resistance が参照する c:is_magic へ接続する.
         addTagLinks(COMMON_IS_MAGIC, MAGIC_DAMAGE);

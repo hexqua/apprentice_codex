@@ -228,6 +228,27 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.DIAMOND_SWORD), has(Items.DIAMOND_SWORD))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get())
+                .pattern(" NS")
+                .pattern(" TN")
+                .pattern("A  ")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('S', Items.NETHERITE_SWORD)
+                .define('N', Items.NETHERITE_SCRAP)
+                .define('T', Items.TRIDENT)
+                .unlockedBy(getHasName(Items.NETHERITE_SWORD), has(Items.NETHERITE_SWORD))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MANA_FORCE_BLADE.get())
+                .pattern(" A ")
+                .pattern(" A ")
+                .pattern("MSM")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('S', Items.NETHERITE_SWORD)
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(Items.NETHERITE_SWORD), has(Items.NETHERITE_SWORD))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ELEMENTAL_BOW.get())
                 .pattern(" AS")
                 .pattern("DMS")
