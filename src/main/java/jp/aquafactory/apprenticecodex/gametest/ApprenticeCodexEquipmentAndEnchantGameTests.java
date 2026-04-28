@@ -254,6 +254,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaForceBladeAttackManaCostIsOncePerTick(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(helper);
     }
@@ -666,6 +671,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowMagicModeIgnoresInfinityWithoutAmmo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowAcceptsSynthesisEnchantmentsAndTooltip(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowAcceptsSynthesisEnchantmentsAndTooltip(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSynthesisAllowsMagicModeWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowSynthesisDoesNotConsumeMagicModeArrows(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.elementalBowSynthesisDoesNotConsumeMagicModeArrows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = SPELLCASTER_QUIVER_ISOLATED_BATCH)
