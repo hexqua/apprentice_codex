@@ -294,6 +294,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 Component.translatable("item.apprenticecodex.elemental_bow.mode", getModeDisplayName(stack))
                         .withStyle(ChatFormatting.GRAY)
         );
+        if (hasSynthesis(stack)) {
+            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.with_synthesis")
+                    .withStyle(ChatFormatting.GRAY));
+        }
     }
 
     private InteractionResultHolder<ItemStack> useNormalArrowMode(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
@@ -348,7 +352,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         var ammoSource = resolveAmmoSource(player, stack, selection);
-        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var canFireWithoutAmmo = player.getAbilities().instabuild || hasSynthesis(stack);
         if (ammoSource == null && !canFireWithoutAmmo) {
             return InteractionResultHolder.fail(stack);
         }
@@ -481,7 +485,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ResolvedDefinition mode) {
         var ammoSource = resolveVanillaAmmoSource(player, stack);
-        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var hasSynthesisEnchantment = hasSynthesis(stack);
+        var canFireWithoutAmmo = player.getAbilities().instabuild || hasSynthesisEnchantment;
         var drawDuration = getUseDuration(stack) - timeLeft;
         drawDuration = ForgeEventFactory.onArrowLoose(stack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
         if (drawDuration < READY_DRAW_TICKS) {
@@ -498,7 +503,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         var profile = createSpellCastProfile(stack, mode);
 
         if (!player.getAbilities().instabuild) {
-            if (ammoSource == null) {
+            if (ammoSource == null && !hasSynthesisEnchantment) {
                 return;
             }
 
@@ -536,7 +541,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, bowUser -> bowUser.broadcastBreakEvent(player.getUsedItemHand()));
-            if (ammoSource != null) {
+            if (ammoSource != null && !hasSynthesisEnchantment) {
                 ammoSource.consume();
             }
         }
@@ -953,6 +958,11 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private static boolean hasInfinity(ItemStack stack) {
         return stack.getEnchantmentLevel(Enchantments.INFINITY_ARROWS) > 0;
+    }
+
+    private static boolean hasSynthesis(ItemStack stack) {
+        return EnchantmentRegistry.SYNTHESIS.isPresent()
+                && stack.getEnchantmentLevel(EnchantmentRegistry.SYNTHESIS.get()) > 0;
     }
 
     private static boolean canFireTrackedArrowWithoutAmmo(Player player, ItemStack stack) {
@@ -1402,7 +1412,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private static boolean isSupportedAdditionalElementalBowEnchantment(Enchantment enchantment) {
         return (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
                 || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
-                || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get());
+                || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get())
+                || (EnchantmentRegistry.SYNTHESIS.isPresent() && enchantment == EnchantmentRegistry.SYNTHESIS.get());
     }
 
     private static boolean bookContainsOnlySupportedAdditionalElementalBowEnchantments(ItemStack book) {

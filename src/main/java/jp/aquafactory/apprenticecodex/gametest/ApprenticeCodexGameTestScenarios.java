@@ -144,6 +144,7 @@ import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -6525,6 +6526,76 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(player.isUsingItem(), "Elemental Bow magic mode should not enter use state without ammo");
         });
     }
+    static void elementalBowAcceptsSynthesisEnchantmentsAndTooltip(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            helper.assertTrue(stack.getItem().canApplyAtEnchantingTable(stack, EnchantmentRegistry.SYNTHESIS.get()),
+                    "Elemental Bow should accept Synthesis at the enchanting table");
+            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(EnchantmentRegistry.SYNTHESIS.get())),
+                    "Elemental Bow should accept Synthesis from enchanted books");
+            helper.assertFalse(EnchantmentRegistry.SYNTHESIS.get().isCompatibleWith(Enchantments.INFINITY_ARROWS),
+                    "Synthesis should be incompatible with Infinity");
+            helper.assertFalse(EnchantmentRegistry.SYNTHESIS.get().isCompatibleWith(Enchantments.MENDING),
+                    "Synthesis should be incompatible with Mending");
+
+            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
+            var tooltipLines = new ArrayList<Component>();
+            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            var hasSynthesisTooltip = tooltipLines.stream()
+                    .anyMatch(component -> component.getContents() instanceof TranslatableContents translatableContents
+                            && "item.apprenticecodex.elemental_bow.with_synthesis".equals(translatableContents.getKey()));
+            helper.assertTrue(hasSynthesisTooltip,
+                    "Elemental Bow should add the Synthesis tooltip line while Synthesis is enchanted");
+        });
+    }
+    static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_synthesis_empty_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow Synthesis test could not resolve player mana data");
+            magicData.setMana(250.0F);
+            var initialMana = magicData.getMana();
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow magic mode should start without arrows when Synthesis is enchanted: " + result.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            helper.assertTrue(stack.getDamageValue() == 1,
+                    "Elemental Bow Synthesis magic shot should still damage the bow after a successful cast");
+            helper.assertTrue(magicData.getMana() < initialMana,
+                    "Elemental Bow Synthesis magic shot should still consume spell mana");
+        });
+    }
+    static void elementalBowSynthesisDoesNotConsumeMagicModeArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_synthesis_ammo_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow Synthesis ammo test could not resolve player mana data");
+            magicData.setMana(250.0F);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow magic mode should start with Synthesis while arrows are present: " + result.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow Synthesis magic shot should not consume arrows even when arrows are available");
+        });
+    }
     static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var quiverStack = new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get());
@@ -8736,7 +8807,8 @@ public final class ApprenticeCodexGameTestScenarios {
         expectedEnchantments.addAll(registryIdSet(
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER
+                EnchantmentRegistry.PLUNDER,
+                EnchantmentRegistry.SYNTHESIS
         ));
         return expectedEnchantments;
     }
@@ -8750,7 +8822,8 @@ public final class ApprenticeCodexGameTestScenarios {
         expectedEnchantments.addAll(registryIdSet(
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER
+                EnchantmentRegistry.PLUNDER,
+                EnchantmentRegistry.SYNTHESIS
         ));
         return expectedEnchantments;
     }

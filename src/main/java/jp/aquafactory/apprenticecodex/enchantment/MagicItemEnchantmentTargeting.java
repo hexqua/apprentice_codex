@@ -81,6 +81,6 @@ final class MagicItemEnchantmentTargeting {
     }
 
     static boolean isSupportedSynthesisEnchantingItem(Item item) {
-        return item instanceof FocusStaffbow;
+        return item instanceof FocusStaffbow || item instanceof ElementalBow;
     }
 }
