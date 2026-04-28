@@ -30,6 +30,12 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                 .add(Enchantments.SURGE, Enchantments.ATTUNEMENT, Enchantments.TRANSCENDENCE);
         tag(Enchantments.EXCLUSIVE_RED_GLOW_ENERGY)
                 .add(Enchantments.RED_ENERGY, Enchantments.GLOW_ENERGY);
+        tag(Enchantments.EXCLUSIVE_SYNTHESIS)
+                .add(
+                        Enchantments.SYNTHESIS,
+                        net.minecraft.world.item.enchantment.Enchantments.INFINITY,
+                        net.minecraft.world.item.enchantment.Enchantments.MENDING
+                );
         tag(Enchantments.EXCLUSIVE_MANA_SHIELD_CHARM)
                 .add(Enchantments.SHELL, Enchantments.SYNCHRONIZATION, Enchantments.NEUTRALIZATION);
 

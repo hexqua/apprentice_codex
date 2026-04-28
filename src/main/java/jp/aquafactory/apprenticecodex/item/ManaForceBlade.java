@@ -13,12 +13,15 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -32,6 +35,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -52,6 +56,7 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -65,6 +70,7 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double ATTACK_DAMAGE_MODIFIER_AMOUNT = DISPLAY_ATTACK_DAMAGE - 1.0D;
     private static final double ATTACK_SPEED_MODIFIER_AMOUNT = -2.0D;
+    private static final String ATTACK_MANA_SPENT_TICK_TAG = "apprenticecodex:mana_force_blade_attack_mana_spent_tick";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
     private static final Set<String> EXTRA_ENCHANTMENTS = Set.of(
@@ -147,10 +153,27 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     @Override
     public boolean hurtEnemy(@NotNull ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
         if (hasImbuedSpell(stack) && !attacker.level().isClientSide && attacker instanceof Player player) {
-            spendMana(player, resolveBladeAttackDamage(stack) * 3.0F);
+            trySpendAttackManaOncePerTick(player, stack);
         }
 
         return super.hurtEnemy(stack, target, attacker);
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
+                                @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
+
+        lines.add(Component.translatable("item.apprenticecodex.mana_force_blade.desc").withStyle(ChatFormatting.GRAY));
+        if (hasImbuedSpell(stack)) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.mana_force_blade.desc.imbue_help",
+                    Mth.ceil(resolveBladeAttackManaCost(stack))
+            ).withStyle(ChatFormatting.AQUA));
+        } else {
+            lines.add(Component.translatable("item.apprenticecodex.mana_force_blade.desc.no_imbue")
+                    .withStyle(ChatFormatting.GRAY));
+        }
     }
 
     @Override
@@ -301,6 +324,10 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
         return DISPLAY_ATTACK_DAMAGE;
     }
 
+    public static float resolveBladeAttackManaCost(ItemStack stack) {
+        return resolveBladeAttackDamage(stack) * 3.0F;
+    }
+
     public static boolean hasImbuedSpell(ItemStack stack) {
         return MagicTools.getImbuedSpellSchool(stack) != null;
     }
@@ -337,6 +364,18 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
         if (player instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
+    }
+
+    private static void trySpendAttackManaOncePerTick(Player player, ItemStack stack) {
+        var tag = player.getPersistentData();
+        var now = player.level().getGameTime();
+        if (tag.contains(ATTACK_MANA_SPENT_TICK_TAG) && tag.getLong(ATTACK_MANA_SPENT_TICK_TAG) == now) {
+            return;
+        }
+
+        // BetterCombat は複数対象を同一 tick 内で個別に攻撃処理するため、攻撃 1 回分の消費に揃える。
+        tag.putLong(ATTACK_MANA_SPENT_TICK_TAG, now);
+        spendMana(player, resolveBladeAttackManaCost(stack));
     }
 
     private static Multimap<Holder<Attribute>, AttributeModifier> buildMainhandModifiers() {

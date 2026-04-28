@@ -284,6 +284,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 Component.translatable("item.apprenticecodex.elemental_bow.mode", getModeDisplayName(stack))
                         .withStyle(ChatFormatting.GRAY)
         );
+        if (hasSynthesis(stack)) {
+            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.with_synthesis")
+                    .withStyle(ChatFormatting.GRAY));
+        }
     }
 
     @Nullable
@@ -351,7 +355,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         var ammoSource = resolveAmmoSource(player, stack, selection);
-        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var canFireWithoutAmmo = player.getAbilities().instabuild || hasSynthesis(stack);
         if (ammoSource == null && !canFireWithoutAmmo) {
             return InteractionResultHolder.fail(stack);
         }
@@ -485,7 +489,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private void releaseElementalShot(ItemStack stack, Level level, Player player, int timeLeft, ResolvedDefinition mode) {
         var ammoSource = resolveVanillaAmmoSource(player, stack);
-        var canFireWithoutAmmo = player.getAbilities().instabuild;
+        var hasSynthesisEnchantment = hasSynthesis(stack);
+        var canFireWithoutAmmo = player.getAbilities().instabuild || hasSynthesisEnchantment;
         var drawDuration = stack.getUseDuration(player) - timeLeft;
         drawDuration = EventHooks.onArrowLoose(stack, level, player, drawDuration, ammoSource != null || canFireWithoutAmmo);
         if (drawDuration < READY_DRAW_TICKS) {
@@ -502,7 +507,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         var profile = createSpellCastProfile(stack, mode);
 
         if (!player.getAbilities().instabuild) {
-            if (ammoSource == null) {
+            if (ammoSource == null && !hasSynthesisEnchantment) {
                 return;
             }
 
@@ -540,7 +545,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
-            if (ammoSource != null) {
+            if (ammoSource != null && !hasSynthesisEnchantment) {
                 ammoSource.consume();
             }
         }
@@ -945,6 +950,10 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private static boolean hasInfinity(ItemStack stack) {
         return getEnchantmentLevel(stack, Enchantments.INFINITY.location()) > 0;
+    }
+
+    private static boolean hasSynthesis(ItemStack stack) {
+        return getEnchantmentLevel(stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.SYNTHESIS.location()) > 0;
     }
 
     private static boolean canFireTrackedArrowWithoutAmmo(Player player, ItemStack stack, ModeSelection selection) {
@@ -1395,7 +1404,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private static boolean isSupportedAdditionalElementalBowEnchantment(Holder<Enchantment> enchantment) {
         return enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE)
                 || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)
-                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.PLUNDER);
+                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.PLUNDER)
+                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.SYNTHESIS);
     }
 
     private static boolean bookContainsOnlySupportedAdditionalElementalBowEnchantments(ItemStack book) {

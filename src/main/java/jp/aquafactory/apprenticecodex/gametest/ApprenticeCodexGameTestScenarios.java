@@ -153,6 +153,7 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -3971,6 +3972,37 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+
+    static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+            setSingleUnlockedSpell(helper, stack,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mana_force_blade_attack_mana_once_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Mana Force Blade attack mana test could not resolve player mana data");
+            magicData.setMana(100.0F);
+
+            var firstTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+            var secondTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+            item.hurtEnemy(stack, firstTarget, player);
+            item.hurtEnemy(stack, secondTarget, player);
+
+            var expectedMana = 100.0F
+                    - jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(stack);
+            helper.assertTrue(Math.abs(magicData.getMana() - expectedMana) < 1.0e-4F,
+                    "Mana Force Blade should spend attack mana once per tick even when multiple targets are hit"
+                            + " expected=" + expectedMana
+                            + " actual=" + magicData.getMana());
+        });
+    }
+
     static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded("bettercombat")) {
@@ -4681,6 +4713,85 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
                     "Elemental Bow magic mode should fail to start without ammo even with Infinity: " + result.getResult());
             helper.assertFalse(player.isUsingItem(), "Elemental Bow magic mode should not enter use state without ammo");
+        });
+    }
+    static void elementalBowAcceptsSynthesisEnchantmentsAndTooltip(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var synthesis = enchantmentLookup.getOrThrow(Enchantments.SYNTHESIS);
+            var infinity = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var mending = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.MENDING);
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+
+            helper.assertTrue(stack.getItem().supportsEnchantment(stack, synthesis),
+                    "Elemental Bow should accept Synthesis at the enchanting table");
+            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(synthesis)),
+                    "Elemental Bow should accept Synthesis from enchanted books");
+            helper.assertTrue(synthesis.value().canEnchant(stack),
+                    "Elemental Bow should be included in the Synthesis supported_items tag");
+            helper.assertFalse(Enchantment.areCompatible(synthesis, infinity),
+                    "Synthesis should be incompatible with Infinity");
+            helper.assertFalse(Enchantment.areCompatible(synthesis, mending),
+                    "Synthesis should be incompatible with Mending");
+
+            stack.enchant(synthesis, 1);
+            var tooltipLines = new ArrayList<Component>();
+            stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
+            var hasSynthesisTooltip = tooltipLines.stream()
+                    .anyMatch(component -> component.getContents() instanceof TranslatableContents translatableContents
+                            && "item.apprenticecodex.elemental_bow.with_synthesis".equals(translatableContents.getKey()));
+            helper.assertTrue(hasSynthesisTooltip,
+                    "Elemental Bow should add the Synthesis tooltip line while Synthesis is enchanted");
+        });
+    }
+    static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var synthesis = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SYNTHESIS);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_synthesis_empty_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(synthesis, 1);
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow Synthesis test could not resolve player mana data");
+            magicData.setMana(250.0F);
+            var initialMana = magicData.getMana();
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow magic mode should start without arrows when Synthesis is enchanted: " + result.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            helper.assertTrue(stack.getDamageValue() == 1,
+                    "Elemental Bow Synthesis magic shot should still damage the bow after a successful cast");
+            helper.assertTrue(magicData.getMana() < initialMana,
+                    "Elemental Bow Synthesis magic shot should still consume spell mana");
+        });
+    }
+    static void elementalBowSynthesisDoesNotConsumeMagicModeArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var synthesis = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SYNTHESIS);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_synthesis_ammo_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(synthesis, 1);
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow Synthesis ammo test could not resolve player mana data");
+            magicData.setMana(250.0F);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow magic mode should start with Synthesis while arrows are present: " + result.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - ElementalBow.READY_DRAW_TICKS);
+            player.stopUsingItem();
+
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow Synthesis magic shot should not consume arrows even when arrows are available");
         });
     }
     static void spellcasterQuiverUsesBackSlotAndCapsStoredArrows(GameTestHelper helper) {
@@ -8998,7 +9109,6 @@ public final class ApprenticeCodexGameTestScenarios {
                         && !isDurabilityTargetEnchantment(enchantment)
         ));
         expectedEnchantments.addAll(registryIdSet(
-                Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM
         ));
         return expectedEnchantments;
@@ -9031,7 +9141,8 @@ public final class ApprenticeCodexGameTestScenarios {
         return registryIdSet(
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM,
-                Enchantments.PLUNDER
+                Enchantments.PLUNDER,
+                Enchantments.SYNTHESIS
         );
     }
 
