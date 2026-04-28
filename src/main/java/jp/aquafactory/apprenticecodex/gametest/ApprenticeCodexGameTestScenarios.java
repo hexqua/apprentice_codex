@@ -8771,7 +8771,6 @@ public final class ApprenticeCodexGameTestScenarios {
                         && !isDurabilityTargetEnchantment(enchantment)
         ));
         expectedEnchantments.addAll(registryIdSet(
-                EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM
         ));
         return expectedEnchantments;
