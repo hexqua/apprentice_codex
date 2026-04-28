@@ -254,6 +254,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaForceBladeAttackManaCostIsOncePerTick(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(helper);
     }

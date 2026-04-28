@@ -3825,6 +3825,37 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+
+    static void manaForceBladeAttackManaCostIsOncePerTick(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+            setSingleUnlockedSpell(helper, stack,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mana_force_blade_attack_mana_once_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Mana Force Blade attack mana test could not resolve player mana data");
+            magicData.setMana(100.0F);
+
+            var firstTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 0));
+            var secondTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 0));
+            item.hurtEnemy(stack, firstTarget, player);
+            item.hurtEnemy(stack, secondTarget, player);
+
+            var expectedMana = 100.0F
+                    - jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(stack);
+            helper.assertTrue(Math.abs(magicData.getMana() - expectedMana) < 1.0e-4F,
+                    "Mana Force Blade should spend attack mana once per tick even when multiple targets are hit"
+                            + " expected=" + expectedMana
+                            + " actual=" + magicData.getMana());
+        });
+    }
+
     static void betterCombatOffhandRescueIncludesEnchantAndImbueDerivedModifiers(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded("bettercombat")) {
