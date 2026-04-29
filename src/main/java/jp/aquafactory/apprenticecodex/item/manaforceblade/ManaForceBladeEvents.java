@@ -56,6 +56,11 @@ public final class ManaForceBladeEvents {
             new SparkColor(1.0F, 0.78F, 0.18F),
             new SparkColor(1.0F, 0.38F, 0.08F)
     };
+    private static final SparkColor[] BLUE_GUARD_SPARK_COLORS = {
+            new SparkColor(0.72F, 0.96F, 1.0F),
+            new SparkColor(0.28F, 0.66F, 1.0F),
+            new SparkColor(0.12F, 0.36F, 1.0F)
+    };
     private static final String RANGED_COST_TICK_TAG = ApprenticeCodex.MODID + ":mana_force_blade_ranged_cost_tick";
     private static final String RANGED_ACTION_TICK_TAG = ApprenticeCodex.MODID + ":mana_force_blade_ranged_action_tick";
     private static final String MELEE_COST_TICK_TAG = ApprenticeCodex.MODID + ":mana_force_blade_melee_cost_tick";
@@ -319,18 +324,26 @@ public final class ManaForceBladeEvents {
         return color != null ? color.getValue() : DEFAULT_PROJECTILE_COLOR;
     }
 
+    public static void playBlueGuardEffect(ServerPlayer player, Vec3 position, int sparkCount) {
+        playGuardEffect(player, position, sparkCount, BLUE_GUARD_SPARK_COLORS);
+    }
+
     private static void playGuardEffect(ServerPlayer player, Vec3 position, int sparkCount) {
+        playGuardEffect(player, position, sparkCount, GUARD_SPARK_COLORS);
+    }
+
+    private static void playGuardEffect(ServerPlayer player, Vec3 position, int sparkCount, SparkColor[] sparkColors) {
         var level = player.level();
         AudioTools.playSoundFromPosition(level, position, SoundRegistry.PARRY.get(), SoundSource.PLAYERS);
         if (level instanceof ServerLevel serverLevel) {
-            spawnGuardSparks(serverLevel, position, sparkCount);
+            spawnGuardSparks(serverLevel, position, sparkCount, sparkColors);
         }
     }
 
-    private static void spawnGuardSparks(ServerLevel level, Vec3 position, int count) {
-        for (var i = 0; i < GUARD_SPARK_COLORS.length; i++) {
-            var color = GUARD_SPARK_COLORS[i];
-            var colorCount = count / GUARD_SPARK_COLORS.length + (i < count % GUARD_SPARK_COLORS.length ? 1 : 0);
+    private static void spawnGuardSparks(ServerLevel level, Vec3 position, int count, SparkColor[] sparkColors) {
+        for (var i = 0; i < sparkColors.length; i++) {
+            var color = sparkColors[i];
+            var colorCount = count / sparkColors.length + (i < count % sparkColors.length ? 1 : 0);
             level.sendParticles(
                     createGuardSpark(color),
                     position.x, position.y, position.z,
