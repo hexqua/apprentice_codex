@@ -1617,7 +1617,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
             );
             var splashManaFluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(splashPotion);
-            var healingFluid = createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potions.HEALING, 250);
+            var healingFluid = createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potions.HEALING.value(), 250);
 
             blockEntity.setCurrentMana(950);
             helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
@@ -2861,10 +2861,13 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(12.75F, false) == 13,
                     "Reflectcast Shield should keep vanilla high-damage durability cost when the spell cannot trigger");
 
-            var tag = stack.getOrCreateTag();
-            helper.assertFalse(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 100L),
+            helper.assertFalse(ReflectcastShield.isDurabilityConsumptionSuppressed(stack, 100L),
                     "Reflectcast Shield should not suppress durability before a cost is recorded");
             ReflectcastShield.rememberDurabilityConsumed(stack, 100L);
+            var customData = stack.get(DataComponents.CUSTOM_DATA);
+            helper.assertTrue(customData != null,
+                    "Reflectcast Shield should record the durability suppression tick in custom data");
+            var tag = customData.copyTag();
             helper.assertTrue(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 100L),
                     "Reflectcast Shield should suppress durability on the recorded tick");
             helper.assertTrue(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 110L),

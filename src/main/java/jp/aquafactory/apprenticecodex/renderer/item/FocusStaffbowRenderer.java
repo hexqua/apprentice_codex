@@ -14,7 +14,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public final class FocusStaffbowRenderer extends GeoItemRenderer<FocusStaffbow> {
     private static final String CORE_BONE = "core";
@@ -27,9 +27,9 @@ public final class FocusStaffbowRenderer extends GeoItemRenderer<FocusStaffbow> 
     @Override
     public void preRender(PoseStack poseStack, FocusStaffbow animatable, BakedGeoModel model, MultiBufferSource bufferSource,
                           VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                          float red, float green, float blue, float alpha) {
+                          int colour) {
         super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay,
-                red, green, blue, alpha);
+                colour);
 
         if (!isReRender) {
             this.chargeEffectState = FocusStaffbowClientRenderState.resolveChargeEffectState(
@@ -50,18 +50,18 @@ public final class FocusStaffbowRenderer extends GeoItemRenderer<FocusStaffbow> 
     public void renderRecursively(PoseStack poseStack, FocusStaffbow animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                                   float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         if (!CORE_BONE.equals(bone.getName())) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderCoreBoneWithChargeEffect(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender,
-                partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                partialTick, packedLight, packedOverlay, colour
         );
     }
 
@@ -74,16 +74,16 @@ public final class FocusStaffbowRenderer extends GeoItemRenderer<FocusStaffbow> 
     private void renderCoreBoneWithChargeEffect(PoseStack poseStack, FocusStaffbow animatable, GeoBone bone,
                                                 RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                                 boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                                float red, float green, float blue, float alpha) {
+                                                int colour) {
         poseStack.pushPose();
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
-        renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
+        renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, colour);
         if (!isReRender) {
             applyRenderLayersForBone(poseStack, animatable, bone, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
             renderCoreChargeEffect(poseStack, bufferSource, bone, partialTick);
@@ -99,10 +99,7 @@ public final class FocusStaffbowRenderer extends GeoItemRenderer<FocusStaffbow> 
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
@@ -114,7 +111,7 @@ public final class FocusStaffbowRenderer extends GeoItemRenderer<FocusStaffbow> 
 
         poseStack.pushPose();
         // core ボーンの pivot を魔力チャージの基準点として扱い、モデル側の持ち替え/一人称変形へ追従させる。
-        RenderUtils.translateToPivotPoint(poseStack, bone);
+        RenderUtil.translateToPivotPoint(poseStack, bone);
         FocusStaffbowChargeEffectRenderer.render(poseStack, bufferSource, this.chargeEffectState, partialTick);
         poseStack.popPose();
     }

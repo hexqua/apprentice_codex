@@ -21,7 +21,7 @@
     " M "
   ],
   "result": {
-    "item": "apprenticecodex:mana_shield_charm"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:mana_shield_charm"
+  }
 }

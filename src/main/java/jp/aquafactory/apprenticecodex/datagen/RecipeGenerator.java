@@ -100,7 +100,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .define('W', ItemTags.PLANKS)
                 .unlockedBy(getHasName(Items.BOW), has(Items.BOW))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")
@@ -143,7 +143,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.AUTOCAST_AMULET.get())
                 .pattern("I I")
@@ -154,7 +154,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ASHEN_CIRCLET.get())
                 .pattern(" D ")

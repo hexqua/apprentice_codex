@@ -287,13 +287,13 @@ final class FocusStaffbowChargeEffectRenderer {
                                float u, float v, float red, float green, float blue, float alpha,
                                float normalX, float normalY, float normalZ) {
         // 加算合成では alpha だけでなく RGB も落とすと、白飛びを抑えながら密度を調整できる。
-        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(red * alpha, green * alpha, blue * alpha, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, normalX, normalY, normalZ)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(new org.joml.Vector3f(normalX, normalY, normalZ));
+        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(red * alpha, green * alpha, blue * alpha, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
     }
 
     private static float easeOutCubic(float value) {

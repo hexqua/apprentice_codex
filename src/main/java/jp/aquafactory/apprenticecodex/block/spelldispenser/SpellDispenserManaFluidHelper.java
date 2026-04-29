@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
 import io.redspace.ironsspellbooks.fluids.PotionFluid;
+import io.redspace.ironsspellbooks.registries.ComponentRegistry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -43,14 +44,18 @@ public final class SpellDispenserManaFluidHelper {
 
         var fluidId = BuiltInRegistries.FLUID.getKey(fluidStack.getFluid());
         if (IRONS_POTION_FLUID.equals(fluidId)) {
-            var potionStack = PotionFluid.from(fluidStack);
-            return potionStack.is(Items.POTION) ? potionStack : ItemStack.EMPTY;
+            return createIronsRegularPotionFromComponents(fluidStack);
         }
         if (CREATE_POTION_FLUID.equals(fluidId) || IMMERSIVE_ENGINEERING_POTION_FLUID.equals(fluidId)) {
             return createPotionFromComponents(fluidStack);
         }
 
         return ItemStack.EMPTY;
+    }
+
+    private static @NotNull ItemStack createIronsRegularPotionFromComponents(@NotNull FluidStack fluidStack) {
+        var bottleType = fluidStack.getOrDefault(ComponentRegistry.POTION_BOTTLE_TYPE, PotionFluid.BottleType.REGULAR);
+        return bottleType == PotionFluid.BottleType.REGULAR ? createPotionFromComponents(fluidStack) : ItemStack.EMPTY;
     }
 
     private static @NotNull ItemStack createPotionFromComponents(@NotNull FluidStack fluidStack) {

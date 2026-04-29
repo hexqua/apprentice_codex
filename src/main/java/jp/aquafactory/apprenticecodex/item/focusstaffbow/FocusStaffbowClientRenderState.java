@@ -72,7 +72,7 @@ public final class FocusStaffbowClientRenderState {
 
         var renderedHand = resolveRenderedHand(owner, perspective);
         return renderedHand == InteractionHand.MAIN_HAND
-                && ItemStack.isSameItemSameTags(owner.getMainHandItem(), renderingStack);
+                && ItemStack.isSameItemSameComponents(owner.getMainHandItem(), renderingStack);
     }
 
     @Nullable

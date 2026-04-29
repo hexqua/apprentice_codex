@@ -354,6 +354,9 @@
       "spell": "apprenticecodex:quick_arms"
     },
     {
+      "spell": "apprenticecodex:feather_rush"
+    },
+    {
       "profile": {
         "owner_required": false,
         "up_offset": 0.5
@@ -365,6 +368,9 @@
     },
     {
       "spell": "apprenticecodex:auto_turret"
+    },
+    {
+      "spell": "apprenticecodex:search_beacon"
     },
     {
       "profile": {

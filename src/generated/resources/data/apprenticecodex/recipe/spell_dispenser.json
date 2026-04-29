@@ -21,7 +21,7 @@
     "ARA"
   ],
   "result": {
-    "item": "apprenticecodex:spell_dispenser"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:spell_dispenser"
+  }
 }

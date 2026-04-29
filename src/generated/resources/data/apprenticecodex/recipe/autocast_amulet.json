@@ -21,7 +21,7 @@
     " M "
   ],
   "result": {
-    "item": "apprenticecodex:autocast_amulet"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:autocast_amulet"
+  }
 }

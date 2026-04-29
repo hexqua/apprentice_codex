@@ -158,7 +158,7 @@ public final class SpellDispenserManaHelper {
     }
 
     public static boolean isSupportedManaPotion(@NotNull ItemStack stack) {
-        if (!stack.is(Items.POTION) || !MobEffectRegistry.INSTANT_MANA.isPresent()) {
+        if (!stack.is(Items.POTION)) {
             return false;
         }
 

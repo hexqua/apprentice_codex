@@ -88,7 +88,7 @@
       "profile": {
         "cast_mode": "player_self"
       },
-      "spell": "irons_spellbooks:angel_wing"
+      "spell": "irons_spellbooks:angel_wings"
     },
     {
       "profile": {
@@ -192,12 +192,6 @@
         "cast_mode": "impact_proxy_owner_magic"
       },
       "spell": "apprenticecodex:higanbana"
-    },
-    {
-      "profile": {
-        "cast_mode": "player_self"
-      },
-      "spell": "apprenticecodex:auto_magnet"
     },
     {
       "profile": {
