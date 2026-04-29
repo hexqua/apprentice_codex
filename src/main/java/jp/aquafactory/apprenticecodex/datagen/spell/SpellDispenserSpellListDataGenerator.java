@@ -27,7 +27,8 @@ public final class SpellDispenserSpellListDataGenerator extends JsonCodecProvide
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "denylist"),
                         new SpellDispenserSpellList(List.of(
                                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "assist_wings"),
-                                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "auto_magnet")
+                                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "auto_magnet"),
+                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "ray_of_siphoning")
                         ))
                 )
         );
