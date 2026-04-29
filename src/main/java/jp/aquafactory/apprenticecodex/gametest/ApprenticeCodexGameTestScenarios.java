@@ -6873,7 +6873,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(magicData != null, "Charged Twin Blade Staff unprofiled test could not resolve player mana data");
             magicData.setMana(500.0F);
             var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blood_step"),
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "ray_of_siphoning"),
                     1,
                     CastSource.SWORD.name(),
                     io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
