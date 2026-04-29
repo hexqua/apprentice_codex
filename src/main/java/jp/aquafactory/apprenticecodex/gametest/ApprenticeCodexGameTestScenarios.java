@@ -75,6 +75,7 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
@@ -1147,6 +1148,16 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator returned the wrong failure reason for denylisted scroll: " + validation.failureReason());
         });
     }
+    static void spellDispenserValidatorRejectsRayOfSiphoning(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAY_OF_SIPHONING_SPELL.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted Ray of Siphoning");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
+                    "Spell Dispenser validator returned the wrong failure reason for Ray of Siphoning: " + validation.failureReason());
+        });
+    }
     static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.LONG_STRIDE.get());
@@ -1252,6 +1263,56 @@ public final class ApprenticeCodexGameTestScenarios {
             var projectileBox = new AABB(castPos).inflate(5.0D);
             var projectiles = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox);
             helper.assertTrue(!projectiles.isEmpty(), "Spell Dispenser LONG cast completed without spawning a Compound Phial projectile");
+        });
+    }
+    static void spellDispenserCastHelperTicksLongCastBeforeCompletion(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = SpellRegistry.PRECISION_JACK.get();
+            var scrollStack = createSpellScroll(spell);
+
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    (ServerLevel) level,
+                    castPos,
+                    Direction.NORTH,
+                    scrollStack,
+                    createSpellDispenserOwnerProfile("spell_dispenser_precision_jack_test")
+            );
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a Precision Jack scroll");
+
+            var knifeBox = new AABB(castPos).inflate(6.0D);
+            var knives = level.getEntitiesOfClass(PrecisionJackKnifeEntity.class, knifeBox);
+            helper.assertTrue(!knives.isEmpty(), "Spell Dispenser Precision Jack cast completed without spawning a knife");
+            helper.assertTrue(knives.stream().anyMatch(PrecisionJackKnifeEntity::isTrailActive),
+                    "Spell Dispenser LONG cast completed without calling Precision Jack's server cast tick");
+        });
+    }
+    static void spellDispenserPrecisionJackLowManaCleansUpKnife(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var pos = new BlockPos(0, 1, 0);
+        var absolutePos = helper.absolutePos(pos);
+        helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+        var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+        var spell = SpellRegistry.PRECISION_JACK.get();
+        var requiredMana = spell.getManaCost(1);
+        spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(spell));
+        spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_precision_jack_low_mana_test"));
+        spellDispenser.setCurrentMana(Math.max(0, requiredMana - 1));
+
+        var castResult = spellDispenser.tryActivate();
+        helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated Precision Jack with insufficient mana");
+        helper.assertTrue(castResult.insufficientMana(), "Spell Dispenser returned the wrong Precision Jack low-mana failure");
+
+        helper.runAtTickTime(20, () -> {
+            var knifeBox = new AABB(absolutePos).inflate(8.0D);
+            var knives = level.getEntitiesOfClass(PrecisionJackKnifeEntity.class, knifeBox);
+            helper.assertTrue(knives.isEmpty(), "Low-mana Precision Jack left knife entities behind: " + knives.size());
+            helper.succeed();
         });
     }
     static void spellDispenserCastHelperStopsContinuousCastAtDurationCap(GameTestHelper helper) {
@@ -2054,7 +2115,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
 
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
-            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get()));
+            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPECTRAL_HAMMER_SPELL.get()));
 
             var castResult = spellDispenser.tryActivate();
             helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated without an owner profile");

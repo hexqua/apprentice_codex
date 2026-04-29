@@ -35,6 +35,11 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsRayOfSiphoning(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsRayOfSiphoning(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsContinuousScroll(helper);
     }
@@ -67,6 +72,16 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserCastHelperCompletesLongCastImmediately(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperTicksLongCastBeforeCompletion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperTicksLongCastBeforeCompletion(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserPrecisionJackLowManaCleansUpKnife(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserPrecisionJackLowManaCleansUpKnife(helper);
     }
 
     @GameTest(template = TEMPLATE)
