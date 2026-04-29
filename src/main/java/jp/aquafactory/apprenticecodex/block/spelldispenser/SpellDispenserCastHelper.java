@@ -206,6 +206,17 @@ public final class SpellDispenserCastHelper {
                 return CastResult.insufficientMana(validation, spell.getManaCost(spellData.getLevel()), manaAccess.getCurrentMana());
             }
 
+            if (spell.getCastType() == CastType.LONG) {
+                proxy.tickCount++;
+                try {
+                    syncProxyMana(manaAccess, magicData);
+                    spell.onServerCastTick(level, spellData.getLevel(), spellCaster, magicData);
+                } catch (RuntimeException exception) {
+                    result = exceptionFailure(level, failurePos, validation, spellId, CastStage.SERVER_CAST_TICK, exception, false, 0, ownerProfile);
+                    return result;
+                }
+            }
+
             try {
                 // 空撃ち音を suppress する条件は「発射処理へ入れたか」で判断する。
                 // そのため onCast 本体へ到達した時点からは失敗でも reachedOnCast=true として扱う。
