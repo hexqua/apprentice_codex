@@ -64,6 +64,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void reflectcastShieldDurabilityRulesMatchGuardTuning(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.reflectcastShieldDurabilityRulesMatchGuardTuning(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(helper);
     }
