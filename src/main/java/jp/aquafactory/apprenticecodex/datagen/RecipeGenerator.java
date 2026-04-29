@@ -101,6 +101,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(ItemRegistry.SPELLCASTERS_FLASK.get()), has(ItemRegistry.SPELLCASTERS_FLASK.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.SPELL_DISPENSER.get())
+                .pattern("WWW")
+                .pattern("WBW")
+                .pattern("ARA")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('B', Items.BOW)
+                .define('R', Items.REDSTONE)
+                .define('W', ItemTags.PLANKS)
+                .unlockedBy(getHasName(Items.BOW), has(Items.BOW))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")
                 .pattern("IMI")
