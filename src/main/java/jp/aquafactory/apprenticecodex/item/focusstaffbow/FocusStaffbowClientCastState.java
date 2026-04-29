@@ -73,6 +73,14 @@ public final class FocusStaffbowClientCastState {
         return resolveCastBarState(player).visible();
     }
 
+    public static boolean shouldPreserveClientRecastTicks(@Nullable LocalPlayer player, String recastSpellId) {
+        return hasCastState()
+                && spellId.equals(recastSpellId)
+                && player != null
+                && canRenderFor(player)
+                && isActivelyUsingFocusStaffbow(player);
+    }
+
     public static CastBarRenderState resolveCastBarState(@Nullable LocalPlayer player) {
         if (shouldClearImmediately(player)) {
             clear();
