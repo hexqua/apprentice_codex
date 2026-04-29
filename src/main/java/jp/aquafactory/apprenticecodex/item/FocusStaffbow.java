@@ -79,7 +79,7 @@ public final class FocusStaffbow extends CastingItem
     private static final String CHARGE_LEFT_ANIMATION = "charge_left";
     private static final String RELEASE_RIGHT_ANIMATION = "release_right";
     private static final String RELEASE_LEFT_ANIMATION = "release_left";
-    private static final double CHARGING_CORE_IDLE_SPEED = 2.0D;
+    private static final double CHARGING_CORE_IDLE_SPEED = 8.0D;
     private static final RawAnimation ANIM_CORE_IDLE = RawAnimation.begin().thenLoop("core_idle");
     private static final RawAnimation ANIM_OVERLAY_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_CHARGE_RIGHT = RawAnimation.begin().thenPlayAndHold("charge_right");
