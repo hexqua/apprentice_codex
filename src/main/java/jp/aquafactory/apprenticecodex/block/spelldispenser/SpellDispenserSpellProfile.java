@@ -29,12 +29,42 @@ public record SpellDispenserSpellProfile(
             0.0D,
             0.0F,
             0.0F,
-            true
+            false
+    );
+
+    public static final SpellDispenserSpellProfile CONE_BACKWARD = new SpellDispenserSpellProfile(
+            SpellDispenserCastAnchorMode.TRACKED_ANCHOR,
+            -1.0D,
+            0.0D,
+            0.0D,
+            0.0F,
+            0.0F,
+            false
     );
 
     public static final SpellDispenserSpellProfile OWNER_OPTIONAL = new SpellDispenserSpellProfile(
             SpellDispenserCastAnchorMode.AUTO,
             0.0D,
+            0.0D,
+            0.0D,
+            0.0F,
+            0.0F,
+            false
+    );
+
+    public static final SpellDispenserSpellProfile OWNER_OPTIONAL_UP = new SpellDispenserSpellProfile(
+            SpellDispenserCastAnchorMode.AUTO,
+            0.0D,
+            0.5D,
+            0.0D,
+            0.0F,
+            0.0F,
+            false
+    );
+
+    public static final SpellDispenserSpellProfile OWNER_OPTIONAL_BACKWARD = new SpellDispenserSpellProfile(
+            SpellDispenserCastAnchorMode.AUTO,
+            -1.0D,
             0.0D,
             0.0D,
             0.0F,
