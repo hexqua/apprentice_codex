@@ -36,7 +36,8 @@
     {
       "profile": {
         "cast_anchor": "tracked_anchor",
-        "forward_offset": -1.0
+        "forward_offset": -1.0,
+        "owner_required": false
       },
       "spell": "irons_spellbooks:dragon_breath"
     },
@@ -138,7 +139,8 @@
     {
       "profile": {
         "cast_anchor": "tracked_anchor",
-        "forward_offset": -1.0
+        "forward_offset": -1.0,
+        "owner_required": false
       },
       "spell": "irons_spellbooks:fire_breath"
     },
@@ -206,7 +208,8 @@
     {
       "profile": {
         "cast_anchor": "tracked_anchor",
-        "forward_offset": -1.0
+        "forward_offset": -1.0,
+        "owner_required": false
       },
       "spell": "irons_spellbooks:cone_of_cold"
     },
@@ -258,7 +261,8 @@
     },
     {
       "profile": {
-        "cast_anchor": "tracked_anchor"
+        "cast_anchor": "tracked_anchor",
+        "owner_required": false
       },
       "spell": "irons_spellbooks:electrocute"
     },
@@ -307,7 +311,8 @@
     {
       "profile": {
         "cast_anchor": "tracked_anchor",
-        "forward_offset": -1.0
+        "forward_offset": -1.0,
+        "owner_required": false
       },
       "spell": "irons_spellbooks:poison_breath"
     },
