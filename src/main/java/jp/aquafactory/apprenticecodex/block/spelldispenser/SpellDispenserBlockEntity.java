@@ -20,6 +20,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +43,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     private static final String COOLDOWN_REMAINING_TAG = "CooldownRemaining";
     private static final String CURRENT_MANA_TAG = "CurrentMana";
     private static final String REFILL_CHECK_TICKS_TAG = "RefillCheckTicks";
+    private static final String MANA_POTION_FLUID_TAG = "ManaPotionFluid";
 
     private final ItemStackHandler inventory = new ItemStackHandler(INVENTORY_SLOT_COUNT) {
         @Override
@@ -63,6 +66,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         }
     };
     private final IItemHandler automationInventory = new AutomationInventoryHandler();
+    private final IFluidHandler fluidHandler = new SpellDispenserFluidHandler();
     @Nullable
     private GameProfile ownerProfile;
     @Nullable
@@ -72,6 +76,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     private int remainingCooldownTicks;
     private int currentMana = SpellDispenserManaHelper.MAX_MANA;
     private int refillCheckTicks;
+    private FluidStack manaPotionFluid = FluidStack.EMPTY;
 
     public SpellDispenserBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELL_DISPENSER.get(), pos, state);
@@ -235,6 +240,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     }
 
     private void serverTick(ServerLevel level, BlockPos pos, BlockState state) {
+        tryConsumeStoredManaPotionFluid();
         tickCooldown();
         tickRefillCheck();
 
@@ -346,7 +352,6 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         super.setRemoved();
     }
 
-    @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
@@ -355,6 +360,9 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         tag.putInt(COOLDOWN_REMAINING_TAG, remainingCooldownTicks);
         saveCurrentMana(tag, currentMana);
         saveRefillCheckTicks(tag, refillCheckTicks);
+        if (!manaPotionFluid.isEmpty()) {
+            tag.put(MANA_POTION_FLUID_TAG, manaPotionFluid.saveOptional(registries));
+        }
     }
 
     @Override
@@ -366,9 +374,9 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         remainingCooldownTicks = Math.max(0, tag.getInt(COOLDOWN_REMAINING_TAG));
         currentMana = readCurrentMana(tag);
         refillCheckTicks = readRefillCheckTicks(tag);
+        manaPotionFluid = readManaPotionFluid(tag, registries);
     }
 
-    @Override
     public void setCurrentMana(int mana) {
         var normalizedMana = SpellDispenserManaHelper.clampMana(mana);
         if (currentMana == normalizedMana) {
@@ -392,6 +400,10 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     @Override
     public void setInventoryStack(int slot, @NotNull ItemStack stack) {
         inventory.setStackInSlot(slot, stack);
+    }
+
+    public @NotNull FluidStack getStoredManaPotionFluid() {
+        return manaPotionFluid.copy();
     }
 
     private static boolean requiresOwnerProfile(SpellDispenserSpellValidator.ValidationResult validation) {
@@ -467,6 +479,10 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         return side == null ? inventory : automationInventory;
     }
 
+    public @NotNull IFluidHandler getFluidHandler(@Nullable Direction side) {
+        return fluidHandler;
+    }
+
     public static @Nullable String readOwnerName(@Nullable CompoundTag tag) {
         var ownerProfile = readOwnerProfile(tag);
         return ownerProfile != null ? ownerProfile.getName() : null;
@@ -492,6 +508,142 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             return 0;
         }
         return Math.max(0, tag.getInt(REFILL_CHECK_TICKS_TAG));
+    }
+
+    public static @NotNull FluidStack readManaPotionFluid(@Nullable CompoundTag tag, HolderLookup.Provider registries) {
+        if (tag == null || !tag.contains(MANA_POTION_FLUID_TAG, net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+            return FluidStack.EMPTY;
+        }
+
+        var fluid = FluidStack.parseOptional(registries, tag.getCompound(MANA_POTION_FLUID_TAG));
+        if (!SpellDispenserManaFluidHelper.isSupportedManaPotionFluid(fluid)) {
+            return FluidStack.EMPTY;
+        }
+
+        fluid.setAmount(Math.min(fluid.getAmount(), SpellDispenserManaFluidHelper.CAPACITY_MB));
+        return fluid;
+    }
+
+    private void setManaPotionFluid(@NotNull FluidStack fluidStack) {
+        var normalized = fluidStack.copy();
+        if (normalized.isEmpty() || normalized.getAmount() <= 0) {
+            normalized = FluidStack.EMPTY;
+        } else if (normalized.getAmount() > SpellDispenserManaFluidHelper.CAPACITY_MB) {
+            normalized.setAmount(SpellDispenserManaFluidHelper.CAPACITY_MB);
+        }
+
+        manaPotionFluid = normalized;
+        markUpdated();
+    }
+
+    private void tryConsumeStoredManaPotionFluid() {
+        if (manaPotionFluid.isEmpty()) {
+            return;
+        }
+
+        var changed = false;
+        while (manaPotionFluid.getAmount() >= SpellDispenserManaFluidHelper.DOSE_MB) {
+            var dose = manaPotionFluid.copy();
+            dose.setAmount(SpellDispenserManaFluidHelper.DOSE_MB);
+            var recoveredMana = SpellDispenserManaFluidHelper.getManaRecovery(dose);
+            if (recoveredMana <= 0) {
+                break;
+            }
+
+            var current = SpellDispenserManaHelper.clampMana(currentMana);
+            if (recoveredMana > SpellDispenserManaHelper.MAX_MANA - current) {
+                break;
+            }
+
+            currentMana = current + recoveredMana;
+            manaPotionFluid.shrink(SpellDispenserManaFluidHelper.DOSE_MB);
+            changed = true;
+        }
+
+        if (manaPotionFluid.isEmpty() || manaPotionFluid.getAmount() <= 0) {
+            manaPotionFluid = FluidStack.EMPTY;
+        }
+        if (changed) {
+            markUpdated();
+        }
+    }
+
+    private final class SpellDispenserFluidHandler implements IFluidHandler {
+        @Override
+        public int getTanks() {
+            return 1;
+        }
+
+        @Override
+        public @NotNull FluidStack getFluidInTank(int tank) {
+            return tank == 0 ? manaPotionFluid.copy() : FluidStack.EMPTY;
+        }
+
+        @Override
+        public int getTankCapacity(int tank) {
+            return tank == 0 ? SpellDispenserManaFluidHelper.CAPACITY_MB : 0;
+        }
+
+        @Override
+        public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
+            return tank == 0 && canAcceptFluid(stack);
+        }
+
+        @Override
+        public int fill(FluidStack resource, FluidAction action) {
+            if (!canAcceptFluid(resource)) {
+                return 0;
+            }
+
+            var acceptedAmount = Math.min(resource.getAmount(), SpellDispenserManaFluidHelper.CAPACITY_MB - manaPotionFluid.getAmount());
+            if (acceptedAmount <= 0) {
+                return 0;
+            }
+
+            if (action.execute()) {
+                var updated = manaPotionFluid.isEmpty() ? resource.copy() : manaPotionFluid.copy();
+                updated.setAmount(manaPotionFluid.getAmount() + acceptedAmount);
+                setManaPotionFluid(updated);
+                tryConsumeStoredManaPotionFluid();
+            }
+
+            return acceptedAmount;
+        }
+
+        @Override
+        public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
+            if (resource.isEmpty() || manaPotionFluid.isEmpty()
+                    || !SpellDispenserManaFluidHelper.isSameFluidAndTags(manaPotionFluid, resource)) {
+                return FluidStack.EMPTY;
+            }
+
+            return drain(resource.getAmount(), action);
+        }
+
+        @Override
+        public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+            if (maxDrain <= 0 || manaPotionFluid.isEmpty()) {
+                return FluidStack.EMPTY;
+            }
+
+            var drainedAmount = Math.min(maxDrain, manaPotionFluid.getAmount());
+            var drained = manaPotionFluid.copy();
+            drained.setAmount(drainedAmount);
+            if (action.execute()) {
+                var updated = manaPotionFluid.copy();
+                updated.shrink(drainedAmount);
+                setManaPotionFluid(updated);
+            }
+            return drained;
+        }
+
+        private boolean canAcceptFluid(@NotNull FluidStack stack) {
+            if (stack.isEmpty() || !SpellDispenserManaFluidHelper.isSupportedManaPotionFluid(stack)) {
+                return false;
+            }
+
+            return manaPotionFluid.isEmpty() || SpellDispenserManaFluidHelper.isSameFluidAndTags(manaPotionFluid, stack);
+        }
     }
 
     private final class AutomationInventoryHandler implements IItemHandler {

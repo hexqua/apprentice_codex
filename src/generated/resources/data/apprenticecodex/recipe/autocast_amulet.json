@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "C": {
+      "item": "minecraft:clock"
+    },
+    "I": {
+      "item": "minecraft:chain"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  },
+  "pattern": [
+    "I I",
+    "ACA",
+    " M "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:autocast_amulet"
+  }
+}

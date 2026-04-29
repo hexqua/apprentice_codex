@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "B": {
+      "item": "minecraft:bow"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "WWW",
+    "WBW",
+    "ARA"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:spell_dispenser"
+  }
+}

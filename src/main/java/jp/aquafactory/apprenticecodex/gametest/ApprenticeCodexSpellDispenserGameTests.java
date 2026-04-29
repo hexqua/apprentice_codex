@@ -35,6 +35,11 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserValidatorRejectsRayOfSiphoning(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsRayOfSiphoning(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserValidatorRejectsContinuousScroll(helper);
     }
@@ -70,6 +75,16 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastHelperTicksLongCastBeforeCompletion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserCastHelperTicksLongCastBeforeCompletion(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserPrecisionJackLowManaCleansUpKnife(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserPrecisionJackLowManaCleansUpKnife(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperStopsContinuousCastAtDurationCap(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserCastHelperStopsContinuousCastAtDurationCap(helper);
     }
@@ -102,6 +117,31 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellDispenserAutomationOnlyAcceptsManaContainers(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserAutomationOnlyAcceptsManaContainers(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidAcceptsOnlyRegularManaPotions(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidAcceptsOnlyRegularManaPotions(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidConsumesPotionDoseImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidConsumesPotionDoseImmediately(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidDrainsUnconsumedPotionOnly(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidDrainsUnconsumedPotionOnly(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidPersistsThroughNbt(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidPersistsThroughNbt(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidAcceptsCreateManaPotion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidAcceptsCreateManaPotion(helper);
     }
 
     @GameTest(template = TEMPLATE)

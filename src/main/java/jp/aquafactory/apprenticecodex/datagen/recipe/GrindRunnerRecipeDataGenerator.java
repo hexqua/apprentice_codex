@@ -54,7 +54,9 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.SCARLET_THIRST.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.CRAFTSMANS_DELIGHT.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.NATURE_RUNE.get(), 1)),
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.PROTECTION_RUNE.get(), 1)),
+                recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_SHIELD_CHARM.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.PROTECTION_RUNE.get(), 1)),
                 recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.ENCHANTED_CIRCLET.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
+                recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.AUTOCAST_AMULET.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
 
                 recipe(ItemRegistry.FIREWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.CINDER_ESSENCE.get(), 1)),
                 recipe(ItemRegistry.FROSTWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.ICE_CRYSTAL.get(), 1)),

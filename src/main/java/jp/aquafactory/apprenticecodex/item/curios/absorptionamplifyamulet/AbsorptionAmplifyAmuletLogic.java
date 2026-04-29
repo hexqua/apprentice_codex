@@ -24,8 +24,6 @@ import top.theillusivec4.curios.api.SlotContext;
 
 final class AbsorptionAmplifyAmuletLogic {
     private static final long RECOVERY_INTERVAL_TICKS = 10L;
-    private static final long RECOVERY_MANA_CONFIRM_DELAY_TICKS = 2L;
-    private static final float RECOVERY_MANA_COST = 20f;
     private static final long PROC_COOLDOWN_TICKS = 20L;
     private static final float ABSORPTION_SYNC_EPSILON = 1.0e-4f;
     private static final ResourceLocation ABSORPTION_CAP_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
@@ -90,19 +88,12 @@ final class AbsorptionAmplifyAmuletLogic {
             state.targetAbsorption = nextTargetAbsorption;
 
             var currentAbsorption = player.getAbsorptionAmount();
-            resolvePendingRecoveryMana(player, state, gameTime, currentAbsorption);
 
             if (currentAbsorption < state.targetAbsorption
                     && gameTime >= state.recoveryResumeGameTime
-                    && gameTime >= state.nextRecoveryGameTime
-                    && !state.recoveryManaPending) {
-                if (hasEnoughRecoveryMana(player)) {
-                    var restoredAbsorption = Math.min(state.targetAbsorption, currentAbsorption + 1f);
-                    player.setAbsorptionAmount(restoredAbsorption);
-                    currentAbsorption = restoredAbsorption;
-                    startPendingRecovery(state, gameTime, restoredAbsorption);
-                }
-
+                    && gameTime >= state.nextRecoveryGameTime) {
+                currentAbsorption = Math.min(state.targetAbsorption, currentAbsorption + 1f);
+                player.setAbsorptionAmount(currentAbsorption);
                 state.nextRecoveryGameTime = gameTime + RECOVERY_INTERVAL_TICKS;
             }
 
@@ -139,7 +130,6 @@ final class AbsorptionAmplifyAmuletLogic {
             var currentAbsorption = player.getAbsorptionAmount();
             if (currentAbsorption < state.lastKnownAbsorption) {
                 var gameTime = player.level().getGameTime();
-                clearPendingRecovery(state);
                 scheduleRecovery(state, gameTime);
                 KnockbackControlEvent.markIgnoreNextKnockback(player);
 
@@ -168,33 +158,6 @@ final class AbsorptionAmplifyAmuletLogic {
                 && player.isAlive()
                 && player.getAbsorptionAmount() > 0.0f
                 && AbsorptionAmplifyAmulet.isEquippedBy(player);
-    }
-
-    private static boolean hasEnoughRecoveryMana(ServerPlayer player) {
-        var magicData = MagicData.getPlayerMagicData(player);
-        return magicData != null && magicData.getMana() >= RECOVERY_MANA_COST;
-    }
-
-    private static void resolvePendingRecoveryMana(ServerPlayer player, AbsorptionAmplifyAmuletState state, long gameTime, float currentAbsorption) {
-        if (!state.recoveryManaPending) {
-            return;
-        }
-
-        if (currentAbsorption < state.pendingRecoveryAbsorption) {
-            clearPendingRecovery(state);
-            return;
-        }
-
-        if (gameTime < state.pendingRecoveryConfirmGameTime) {
-            return;
-        }
-
-        var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData != null && magicData.getMana() >= RECOVERY_MANA_COST) {
-            magicData.addMana(-RECOVERY_MANA_COST);
-        }
-
-        clearPendingRecovery(state);
     }
 
     static float getTargetAbsorption(LivingEntity entity) {
@@ -240,19 +203,6 @@ final class AbsorptionAmplifyAmuletLogic {
         var recoveryDelayTicks = ApprenticeCodexServerConfig.absorptionAmplifyAmuletRecoveryDelayTicks();
         state.recoveryResumeGameTime = gameTime + recoveryDelayTicks;
         state.nextRecoveryGameTime = state.recoveryResumeGameTime;
-    }
-
-    // 回復直後に吸収量が戻される競合だけを無償扱いにするため、短時間だけ課金を保留する。
-    private static void startPendingRecovery(AbsorptionAmplifyAmuletState state, long gameTime, float restoredAbsorption) {
-        state.recoveryManaPending = true;
-        state.pendingRecoveryAbsorption = restoredAbsorption;
-        state.pendingRecoveryConfirmGameTime = gameTime + RECOVERY_MANA_CONFIRM_DELAY_TICKS;
-    }
-
-    private static void clearPendingRecovery(AbsorptionAmplifyAmuletState state) {
-        state.recoveryManaPending = false;
-        state.pendingRecoveryAbsorption = 0f;
-        state.pendingRecoveryConfirmGameTime = 0L;
     }
 
     private static void resetState(ServerPlayer player) {

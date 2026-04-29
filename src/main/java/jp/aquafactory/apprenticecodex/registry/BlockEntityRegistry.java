@@ -76,6 +76,7 @@ public final class BlockEntityRegistry {
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ESSENCE_SMOKER.get(), EssenceSmokerBlockEntity::getItemHandler);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, SPELL_DISPENSER.get(), SpellDispenserBlockEntity::getItemHandler);
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, SPELL_DISPENSER.get(), SpellDispenserBlockEntity::getFluidHandler);
     }
 }
 
