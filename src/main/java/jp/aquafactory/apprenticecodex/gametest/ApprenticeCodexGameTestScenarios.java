@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaFluidHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
@@ -183,6 +184,8 @@ import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
@@ -1459,6 +1462,110 @@ public final class ApprenticeCodexGameTestScenarios {
                     ),
                     "Spell Dispenser flask slot accepted an unrelated item"
             );
+        });
+    }
+    static void spellDispenserFluidAcceptsOnlyRegularManaPotions(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.UP).resolve().orElse(null);
+            var partialManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 100);
+            var remainingPartialManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 150);
+            var strongerManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_TWO.get(), 250);
+            var splashPotion = PotionUtils.setPotion(
+                    new ItemStack(Items.SPLASH_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
+            );
+            var splashManaFluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(splashPotion);
+            var healingFluid = createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potions.HEALING, 250);
+
+            blockEntity.setCurrentMana(950);
+            helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(healingFluid, IFluidHandler.FluidAction.EXECUTE) == 0,
+                    "Spell Dispenser accepted a non-mana potion fluid");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(splashManaFluid, IFluidHandler.FluidAction.EXECUTE) == 0,
+                    "Spell Dispenser accepted a splash mana potion fluid");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(partialManaFluid, IFluidHandler.FluidAction.EXECUTE) == 100,
+                    "Spell Dispenser rejected a partial regular mana potion fluid");
+            helper.assertTrue(blockEntity.getStoredManaPotionFluid().getAmount() == 100,
+                    "Spell Dispenser did not retain a partial mana potion fluid");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(strongerManaFluid, IFluidHandler.FluidAction.EXECUTE) == 0,
+                    "Spell Dispenser accepted a different mana potion fluid into the same tank");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(remainingPartialManaFluid, IFluidHandler.FluidAction.EXECUTE) == 150,
+                    "Spell Dispenser rejected matching mana potion fluid after a partial fill");
+            helper.assertTrue(blockEntity.getStoredManaPotionFluid().getAmount() == 250,
+                    "Spell Dispenser consumed a potion fluid that should not fit in remaining mana capacity");
+        });
+    }
+    static void spellDispenserFluidConsumesPotionDoseImmediately(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, null).resolve().orElse(null);
+            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+
+            blockEntity.setCurrentMana(850);
+            helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 250,
+                    "Spell Dispenser did not accept a regular mana potion fluid");
+            helper.assertTrue(blockEntity.getCurrentMana() == 925,
+                    "Spell Dispenser did not immediately recover mana from potion fluid: " + blockEntity.getCurrentMana());
+            helper.assertTrue(blockEntity.getStoredManaPotionFluid().isEmpty(),
+                    "Spell Dispenser left consumed mana potion fluid in the tank");
+        });
+    }
+    static void spellDispenserFluidDrainsUnconsumedPotionOnly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.NORTH).resolve().orElse(null);
+            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 500);
+
+            blockEntity.setCurrentMana(950);
+            helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 500,
+                    "Spell Dispenser did not accept unconsumed mana potion fluid");
+
+            var drained = fluidHandler == null ? FluidStack.EMPTY : fluidHandler.drain(500, IFluidHandler.FluidAction.EXECUTE);
+            helper.assertTrue(drained.getAmount() == 500,
+                    "Spell Dispenser did not drain all unconsumed potion fluid: " + drained.getAmount());
+            helper.assertTrue(blockEntity.getCurrentMana() == 950,
+                    "Spell Dispenser converted internal mana into drained potion fluid");
+            helper.assertTrue(fluidHandler == null || fluidHandler.drain(250, IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+                    "Spell Dispenser drained potion fluid after the tank was empty");
+        });
+    }
+    static void spellDispenserFluidPersistsThroughNbt(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var original = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = original.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.SOUTH).resolve().orElse(null);
+            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+
+            original.setCurrentMana(950);
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 250,
+                    "Spell Dispenser did not accept mana potion fluid before NBT round-trip");
+
+            var restored = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            restored.load(original.getUpdateTag());
+            helper.assertTrue(restored.getStoredManaPotionFluid().getAmount() == 250,
+                    "Spell Dispenser did not restore stored mana potion fluid from NBT");
+            helper.assertTrue(SpellDispenserManaFluidHelper.isSameFluidAndTags(restored.getStoredManaPotionFluid(), manaFluid),
+                    "Spell Dispenser changed stored potion fluid identity during NBT round-trip");
+        });
+    }
+    static void spellDispenserFluidAcceptsCreateManaPotion(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.WEST).resolve().orElse(null);
+            var manaFluid = createCreateManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+
+            blockEntity.setCurrentMana(850);
+            helper.assertTrue(!manaFluid.isEmpty(), "Create potion fluid was not registered");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 250,
+                    "Spell Dispenser rejected a Create regular mana potion fluid");
+            helper.assertTrue(blockEntity.getCurrentMana() == 925,
+                    "Spell Dispenser did not recover mana from Create potion fluid: " + blockEntity.getCurrentMana());
         });
     }
     static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
@@ -9610,6 +9717,25 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
         return PotionUtils.setPotion(new ItemStack(Items.POTION), potion);
+    }
+
+    private static FluidStack createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+        var fluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(PotionUtils.setPotion(new ItemStack(Items.POTION), potion));
+        fluid.setAmount(amountMb);
+        return fluid;
+    }
+
+    private static FluidStack createCreateManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+        var createPotion = ForgeRegistries.FLUIDS.getValue(ResourceLocation.fromNamespaceAndPath("create", "potion"));
+        if (createPotion == null) {
+            return FluidStack.EMPTY;
+        }
+
+        var fluid = new FluidStack(createPotion, amountMb);
+        var tag = fluid.getOrCreateTag();
+        tag.putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
+        tag.putString("Bottle", "REGULAR");
+        return fluid;
     }
 
     private static void assertPotionEffect(

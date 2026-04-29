@@ -105,6 +105,31 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidAcceptsOnlyRegularManaPotions(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidAcceptsOnlyRegularManaPotions(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidConsumesPotionDoseImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidConsumesPotionDoseImmediately(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidDrainsUnconsumedPotionOnly(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidDrainsUnconsumedPotionOnly(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidPersistsThroughNbt(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidPersistsThroughNbt(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserFluidAcceptsCreateManaPotion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserFluidAcceptsCreateManaPotion(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(helper);
     }
