@@ -73,6 +73,45 @@ public final class FocusStaffbowClientCastState {
         return resolveCastBarState(player).visible();
     }
 
+    public static FocusStaffbowChargeEffectState resolveChargeEffectState(@Nullable LocalPlayer player) {
+        if (shouldClearImmediately(player)) {
+            clear();
+            return FocusStaffbowChargeEffectState.HIDDEN;
+        }
+        if (player == null || !canRenderFor(player)) {
+            return FocusStaffbowChargeEffectState.HIDDEN;
+        }
+
+        var currentGameTime = player.level().getGameTime();
+        var activelyUsing = isActivelyUsingFocusStaffbow(player);
+        if (activelyUsing) {
+            hasConfirmedActiveUseState = true;
+            lastVisibleGameTime = currentGameTime;
+        } else if (hasConfirmedActiveUseState && !isWithinVisibleGrace(currentGameTime)) {
+            clear();
+            return FocusStaffbowChargeEffectState.HIDDEN;
+        }
+
+        var elapsedTicks = Math.max(0L, currentGameTime - startedGameTime);
+        if (isContinuous()) {
+            return FocusStaffbowChargeEffectState.visible(
+                    spellId,
+                    startedGameTime,
+                    elapsedTicks,
+                    FocusStaffbowChargeLogic.computeContinuousChargeMultiplier(elapsedTicks),
+                    1.0F
+            );
+        }
+
+        var multiplier = elapsedTicks < requiredCastTicks
+                ? 1.0D
+                : FocusStaffbowChargeLogic.computePendingChargeMultiplier(elapsedTicks, chargeBaselineTicks);
+        var longRampProgress = requiredCastTicks > 0 && elapsedTicks < requiredCastTicks
+                ? Mth.clamp(elapsedTicks / (float) requiredCastTicks, 0.0F, 1.0F)
+                : 1.0F;
+        return FocusStaffbowChargeEffectState.visible(spellId, startedGameTime, elapsedTicks, multiplier, longRampProgress);
+    }
+
     public static boolean shouldPreserveClientRecastTicks(@Nullable LocalPlayer player, String recastSpellId) {
         return hasCastState()
                 && spellId.equals(recastSpellId)
