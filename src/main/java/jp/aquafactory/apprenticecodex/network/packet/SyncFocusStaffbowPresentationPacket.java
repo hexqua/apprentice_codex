@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPres
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -16,18 +17,28 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId, PresentationAction action) {
+public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId, PresentationAction action, CompoundTag data) {
+    public SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId, PresentationAction action) {
+        this(entityId, spellId, action, new CompoundTag());
+    }
+
+    public SyncFocusStaffbowPresentationPacket {
+        data = data == null ? new CompoundTag() : data.copy();
+    }
+
     public static void encode(SyncFocusStaffbowPresentationPacket packet, FriendlyByteBuf buffer) {
         buffer.writeUUID(packet.entityId);
         buffer.writeUtf(packet.spellId);
         buffer.writeEnum(packet.action);
+        buffer.writeNbt(packet.data);
     }
 
     public static SyncFocusStaffbowPresentationPacket decode(FriendlyByteBuf buffer) {
         return new SyncFocusStaffbowPresentationPacket(
                 buffer.readUUID(),
                 buffer.readUtf(),
-                buffer.readEnum(PresentationAction.class)
+                buffer.readEnum(PresentationAction.class),
+                buffer.readNbt()
         );
     }
 
@@ -60,7 +71,7 @@ public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId,
         }
 
         private static void handleStart(SyncFocusStaffbowPresentationPacket packet) {
-            FocusStaffbowClientPresentationState.markPending(packet.entityId, packet.spellId);
+            FocusStaffbowClientPresentationState.markPending(packet.entityId, packet.spellId, packet.data);
 
             var player = resolvePlayer(packet.entityId);
             if (player == null) {

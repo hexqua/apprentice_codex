@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "R": {
+      "item": "irons_spellbooks:protection_rune"
+    }
+  },
+  "pattern": [
+    " R ",
+    "ADA",
+    " M "
+  ],
+  "result": {
+    "item": "apprenticecodex:mana_shield_charm"
+  },
+  "show_notification": true
+}

@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaFluidHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
@@ -56,6 +57,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQ
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
 import jp.aquafactory.apprenticecodex.mixin.StructureTemplatePoolAccessor;
@@ -71,6 +73,7 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
@@ -183,6 +186,8 @@ import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
@@ -1051,6 +1056,16 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator returned the wrong failure reason for denylisted scroll: " + validation.failureReason());
         });
     }
+    static void spellDispenserValidatorRejectsRayOfSiphoning(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.RAY_OF_SIPHONING_SPELL.get());
+
+            var validation = SpellDispenserSpellValidator.validate(scrollStack);
+            helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted Ray of Siphoning");
+            helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
+                    "Spell Dispenser validator returned the wrong failure reason for Ray of Siphoning: " + validation.failureReason());
+        });
+    }
     static void spellDispenserValidatorRejectsContinuousScroll(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.LONG_STRIDE.get());
@@ -1156,6 +1171,56 @@ public final class ApprenticeCodexGameTestScenarios {
             var projectileBox = new AABB(castPos).inflate(5.0D);
             var projectiles = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox);
             helper.assertTrue(!projectiles.isEmpty(), "Spell Dispenser LONG cast completed without spawning a Compound Phial projectile");
+        });
+    }
+    static void spellDispenserCastHelperTicksLongCastBeforeCompletion(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = new BlockPos(0, 1, 0);
+            var spell = SpellRegistry.PRECISION_JACK.get();
+            var scrollStack = createSpellScroll(spell);
+
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    (ServerLevel) level,
+                    castPos,
+                    Direction.NORTH,
+                    scrollStack,
+                    createSpellDispenserOwnerProfile("spell_dispenser_precision_jack_test")
+            );
+            helper.assertTrue(castResult.succeeded(), "Spell Dispenser cast helper failed to cast a Precision Jack scroll");
+
+            var knifeBox = new AABB(castPos).inflate(6.0D);
+            var knives = level.getEntitiesOfClass(PrecisionJackKnifeEntity.class, knifeBox);
+            helper.assertTrue(!knives.isEmpty(), "Spell Dispenser Precision Jack cast completed without spawning a knife");
+            helper.assertTrue(knives.stream().anyMatch(PrecisionJackKnifeEntity::isTrailActive),
+                    "Spell Dispenser LONG cast completed without calling Precision Jack's server cast tick");
+        });
+    }
+    static void spellDispenserPrecisionJackLowManaCleansUpKnife(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var pos = new BlockPos(0, 1, 0);
+        var absolutePos = helper.absolutePos(pos);
+        helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+        var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+
+        var spell = SpellRegistry.PRECISION_JACK.get();
+        var requiredMana = spell.getManaCost(1);
+        spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(spell));
+        spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_precision_jack_low_mana_test"));
+        spellDispenser.setCurrentMana(Math.max(0, requiredMana - 1));
+
+        var castResult = spellDispenser.tryActivate();
+        helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated Precision Jack with insufficient mana");
+        helper.assertTrue(castResult.insufficientMana(), "Spell Dispenser returned the wrong Precision Jack low-mana failure");
+
+        helper.runAtTickTime(20, () -> {
+            var knifeBox = new AABB(absolutePos).inflate(8.0D);
+            var knives = level.getEntitiesOfClass(PrecisionJackKnifeEntity.class, knifeBox);
+            helper.assertTrue(knives.isEmpty(), "Low-mana Precision Jack left knife entities behind: " + knives.size());
+            helper.succeed();
         });
     }
     static void spellDispenserCastHelperStopsContinuousCastAtDurationCap(GameTestHelper helper) {
@@ -1459,6 +1524,110 @@ public final class ApprenticeCodexGameTestScenarios {
                     ),
                     "Spell Dispenser flask slot accepted an unrelated item"
             );
+        });
+    }
+    static void spellDispenserFluidAcceptsOnlyRegularManaPotions(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.UP).resolve().orElse(null);
+            var partialManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 100);
+            var remainingPartialManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 150);
+            var strongerManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_TWO.get(), 250);
+            var splashPotion = PotionUtils.setPotion(
+                    new ItemStack(Items.SPLASH_POTION),
+                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
+            );
+            var splashManaFluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(splashPotion);
+            var healingFluid = createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potions.HEALING, 250);
+
+            blockEntity.setCurrentMana(950);
+            helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(healingFluid, IFluidHandler.FluidAction.EXECUTE) == 0,
+                    "Spell Dispenser accepted a non-mana potion fluid");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(splashManaFluid, IFluidHandler.FluidAction.EXECUTE) == 0,
+                    "Spell Dispenser accepted a splash mana potion fluid");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(partialManaFluid, IFluidHandler.FluidAction.EXECUTE) == 100,
+                    "Spell Dispenser rejected a partial regular mana potion fluid");
+            helper.assertTrue(blockEntity.getStoredManaPotionFluid().getAmount() == 100,
+                    "Spell Dispenser did not retain a partial mana potion fluid");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(strongerManaFluid, IFluidHandler.FluidAction.EXECUTE) == 0,
+                    "Spell Dispenser accepted a different mana potion fluid into the same tank");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(remainingPartialManaFluid, IFluidHandler.FluidAction.EXECUTE) == 150,
+                    "Spell Dispenser rejected matching mana potion fluid after a partial fill");
+            helper.assertTrue(blockEntity.getStoredManaPotionFluid().getAmount() == 250,
+                    "Spell Dispenser consumed a potion fluid that should not fit in remaining mana capacity");
+        });
+    }
+    static void spellDispenserFluidConsumesPotionDoseImmediately(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, null).resolve().orElse(null);
+            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+
+            blockEntity.setCurrentMana(850);
+            helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 250,
+                    "Spell Dispenser did not accept a regular mana potion fluid");
+            helper.assertTrue(blockEntity.getCurrentMana() == 925,
+                    "Spell Dispenser did not immediately recover mana from potion fluid: " + blockEntity.getCurrentMana());
+            helper.assertTrue(blockEntity.getStoredManaPotionFluid().isEmpty(),
+                    "Spell Dispenser left consumed mana potion fluid in the tank");
+        });
+    }
+    static void spellDispenserFluidDrainsUnconsumedPotionOnly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.NORTH).resolve().orElse(null);
+            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 500);
+
+            blockEntity.setCurrentMana(950);
+            helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 500,
+                    "Spell Dispenser did not accept unconsumed mana potion fluid");
+
+            var drained = fluidHandler == null ? FluidStack.EMPTY : fluidHandler.drain(500, IFluidHandler.FluidAction.EXECUTE);
+            helper.assertTrue(drained.getAmount() == 500,
+                    "Spell Dispenser did not drain all unconsumed potion fluid: " + drained.getAmount());
+            helper.assertTrue(blockEntity.getCurrentMana() == 950,
+                    "Spell Dispenser converted internal mana into drained potion fluid");
+            helper.assertTrue(fluidHandler == null || fluidHandler.drain(250, IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+                    "Spell Dispenser drained potion fluid after the tank was empty");
+        });
+    }
+    static void spellDispenserFluidPersistsThroughNbt(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var original = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = original.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.SOUTH).resolve().orElse(null);
+            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+
+            original.setCurrentMana(950);
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 250,
+                    "Spell Dispenser did not accept mana potion fluid before NBT round-trip");
+
+            var restored = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            restored.load(original.getUpdateTag());
+            helper.assertTrue(restored.getStoredManaPotionFluid().getAmount() == 250,
+                    "Spell Dispenser did not restore stored mana potion fluid from NBT");
+            helper.assertTrue(SpellDispenserManaFluidHelper.isSameFluidAndTags(restored.getStoredManaPotionFluid(), manaFluid),
+                    "Spell Dispenser changed stored potion fluid identity during NBT round-trip");
+        });
+    }
+    static void spellDispenserFluidAcceptsCreateManaPotion(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
+            var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.WEST).resolve().orElse(null);
+            var manaFluid = createCreateManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+
+            blockEntity.setCurrentMana(850);
+            helper.assertTrue(!manaFluid.isEmpty(), "Create potion fluid was not registered");
+            helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 250,
+                    "Spell Dispenser rejected a Create regular mana potion fluid");
+            helper.assertTrue(blockEntity.getCurrentMana() == 925,
+                    "Spell Dispenser did not recover mana from Create potion fluid: " + blockEntity.getCurrentMana());
         });
     }
     static void spellDispenserPlacementStartsAtZeroManaAndStoresOwnerProfile(GameTestHelper helper) {
@@ -1873,7 +2042,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
 
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
-            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get()));
+            spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPECTRAL_HAMMER_SPELL.get()));
 
             var castResult = spellDispenser.tryActivate();
             helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated without an owner profile");
@@ -2529,6 +2698,35 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield imbued spell should remain removable after save/load");
             helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
                     "Reflectcast Shield imbued spell should remain extractable after save/load");
+        });
+    }
+
+    static void reflectcastShieldDurabilityRulesMatchGuardTuning(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
+            helper.assertTrue(stack.getMaxDamage() == ReflectcastShield.DURABILITY,
+                    "Reflectcast Shield durability should be " + ReflectcastShield.DURABILITY + " but got " + stack.getMaxDamage());
+            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(2.9F, true) == 0,
+                    "Reflectcast Shield should keep sub-threshold successful guard durability at zero");
+            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(3.0F, true) == 1,
+                    "Reflectcast Shield should clamp successful guard durability to one");
+            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(12.75F, true) == 1,
+                    "Reflectcast Shield should keep high-damage successful guard durability at one");
+            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(3.0F, false) == 4,
+                    "Reflectcast Shield should keep vanilla shield durability cost when the spell cannot trigger");
+            helper.assertTrue(ReflectcastShield.resolveBlockedDurabilityCost(12.75F, false) == 13,
+                    "Reflectcast Shield should keep vanilla high-damage durability cost when the spell cannot trigger");
+
+            var tag = stack.getOrCreateTag();
+            helper.assertFalse(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 100L),
+                    "Reflectcast Shield should not suppress durability before a cost is recorded");
+            ReflectcastShield.rememberDurabilityConsumed(stack, 100L);
+            helper.assertTrue(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 100L),
+                    "Reflectcast Shield should suppress durability on the recorded tick");
+            helper.assertTrue(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 110L),
+                    "Reflectcast Shield should suppress durability through the ten tick window");
+            helper.assertFalse(ReflectcastShield.isDurabilityConsumptionSuppressed(tag, 111L),
+                    "Reflectcast Shield should allow durability after the ten tick window");
         });
     }
     static void autocastAmuletStartsWithSingleHiddenSpellSlotAndLoadedAllowlist(GameTestHelper helper) {
@@ -6337,7 +6535,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(magicData != null, "Charged Twin Blade Staff unprofiled test could not resolve player mana data");
             magicData.setMana(500.0F);
             var payload = new jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload(
-                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blood_step"),
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "ray_of_siphoning"),
                     1,
                     io.redspace.ironsspellbooks.api.spells.CastSource.SWORD.name(),
                     io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
@@ -9610,6 +9808,25 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
         return PotionUtils.setPotion(new ItemStack(Items.POTION), potion);
+    }
+
+    private static FluidStack createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+        var fluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(PotionUtils.setPotion(new ItemStack(Items.POTION), potion));
+        fluid.setAmount(amountMb);
+        return fluid;
+    }
+
+    private static FluidStack createCreateManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+        var createPotion = ForgeRegistries.FLUIDS.getValue(ResourceLocation.fromNamespaceAndPath("create", "potion"));
+        if (createPotion == null) {
+            return FluidStack.EMPTY;
+        }
+
+        var fluid = new FluidStack(createPotion, amountMb);
+        var tag = fluid.getOrCreateTag();
+        tag.putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
+        tag.putString("Bottle", "REGULAR");
+        return fluid;
     }
 
     private static void assertPotionEffect(

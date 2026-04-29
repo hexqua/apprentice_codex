@@ -13,15 +13,21 @@
       "spell": "irons_spellbooks:devour"
     },
     {
-      "spell": "irons_spellbooks:ray_of_siphoning"
-    },
-    {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:wither_skull"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:sculk_tentacles"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:sonic_boom"
     },
     {
@@ -29,7 +35,9 @@
     },
     {
       "profile": {
-        "cast_anchor": "tracked_anchor"
+        "cast_anchor": "tracked_anchor",
+        "forward_offset": -1.0,
+        "owner_required": false
       },
       "spell": "irons_spellbooks:dragon_breath"
     },
@@ -46,50 +54,93 @@
       "spell": "irons_spellbooks:magic_missile"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:shadow_slash"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:starfall"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:arrow_volley"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:chain_creeper"
     },
     {
+      "profile": {
+        "forward_offset": -1.0,
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:fang_strike"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:fang_ward"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:firecracker"
     },
     {
+      "profile": {
+        "forward_offset": -1.0,
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:gust"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:lob_creeper"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:shield"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:slow"
     },
     {
       "spell": "irons_spellbooks:spectral_hammer"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:blaze_storm"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:fire_arrow"
     },
     {
       "profile": {
-        "cast_anchor": "tracked_anchor"
+        "cast_anchor": "tracked_anchor",
+        "forward_offset": -1.0,
+        "owner_required": false
       },
       "spell": "irons_spellbooks:fire_breath"
     },
@@ -109,9 +160,15 @@
       "spell": "irons_spellbooks:flaming_strike"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:magma_bomb"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:scorch"
     },
     {
@@ -136,24 +193,43 @@
       "spell": "irons_spellbooks:healing_circle"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:sunbeam"
     },
     {
+      "profile": {
+        "forward_offset": -1.0,
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:wisp"
     },
     {
       "profile": {
-        "cast_anchor": "tracked_anchor"
+        "cast_anchor": "tracked_anchor",
+        "forward_offset": -1.0,
+        "owner_required": false
       },
       "spell": "irons_spellbooks:cone_of_cold"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:frostwave"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:ice_block"
     },
     {
+      "profile": {
+        "forward_offset": -1.0,
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:ice_spikes"
     },
     {
@@ -163,6 +239,9 @@
       "spell": "irons_spellbooks:icicle"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:ray_of_frost"
     },
     {
@@ -172,6 +251,9 @@
       "spell": "irons_spellbooks:snowball"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:ball_lightning"
     },
     {
@@ -179,7 +261,8 @@
     },
     {
       "profile": {
-        "cast_anchor": "tracked_anchor"
+        "cast_anchor": "tracked_anchor",
+        "owner_required": false
       },
       "spell": "irons_spellbooks:electrocute"
     },
@@ -190,6 +273,9 @@
       "spell": "irons_spellbooks:lightning_bolt"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:lightning_lance"
     },
     {
@@ -202,30 +288,50 @@
       "spell": "irons_spellbooks:acid_orb"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:blight"
     },
     {
       "spell": "irons_spellbooks:earthquake"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:firefly_swarm"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:poison_arrow"
     },
     {
       "profile": {
-        "cast_anchor": "tracked_anchor"
+        "cast_anchor": "tracked_anchor",
+        "forward_offset": -1.0,
+        "owner_required": false
       },
       "spell": "irons_spellbooks:poison_breath"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:poison_splash"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:root"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "irons_spellbooks:stomp"
     },
     {
@@ -238,15 +344,20 @@
       "spell": "apprenticecodex:arcane_blast"
     },
     {
+      "profile": {
+        "forward_offset": -1.0,
+        "owner_required": false
+      },
       "spell": "apprenticecodex:arcane_beam"
     },
     {
       "spell": "apprenticecodex:quick_arms"
     },
     {
-      "spell": "apprenticecodex:feather_rush"
-    },
-    {
+      "profile": {
+        "owner_required": false,
+        "up_offset": 0.5
+      },
       "spell": "apprenticecodex:slash_blade"
     },
     {
@@ -256,33 +367,54 @@
       "spell": "apprenticecodex:auto_turret"
     },
     {
-      "spell": "apprenticecodex:search_beacon"
-    },
-    {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:thermal_process"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:mage_light"
     },
     {
       "spell": "apprenticecodex:force_field"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:illuminate_stellar"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:unite_luna"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:sky_edge"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:breaching_enemy"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:bullet_stream"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:fly_swatter"
     },
     {
@@ -292,27 +424,48 @@
       "spell": "apprenticecodex:shock"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:compound_phial"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:tiny_lumberjack"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:graced_rain"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:world_flatter"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:earth_forge"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:grind_runner"
     },
     {
       "spell": "apprenticecodex:harvest_moon"
     },
     {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:moon_light"
     }
   ]

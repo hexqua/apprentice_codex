@@ -10,9 +10,6 @@ public class AbsorptionAmplifyAmuletState implements ICodexSpellState {
     public long recoveryResumeGameTime;
     public long nextRecoveryGameTime;
     public long nextProcGameTime;
-    public boolean recoveryManaPending;
-    public float pendingRecoveryAbsorption;
-    public long pendingRecoveryConfirmGameTime;
 
     public void reset() {
         initialized = false;
@@ -21,9 +18,6 @@ public class AbsorptionAmplifyAmuletState implements ICodexSpellState {
         recoveryResumeGameTime = 0L;
         nextRecoveryGameTime = 0L;
         nextProcGameTime = 0L;
-        recoveryManaPending = false;
-        pendingRecoveryAbsorption = 0f;
-        pendingRecoveryConfirmGameTime = 0L;
     }
 
     @Override
@@ -35,9 +29,6 @@ public class AbsorptionAmplifyAmuletState implements ICodexSpellState {
         tag.putLong("recoveryResumeGameTime", recoveryResumeGameTime);
         tag.putLong("nextRecoveryGameTime", nextRecoveryGameTime);
         tag.putLong("nextProcGameTime", nextProcGameTime);
-        tag.putBoolean("recoveryManaPending", recoveryManaPending);
-        tag.putFloat("pendingRecoveryAbsorption", pendingRecoveryAbsorption);
-        tag.putLong("pendingRecoveryConfirmGameTime", pendingRecoveryConfirmGameTime);
         return tag;
     }
 
@@ -49,8 +40,5 @@ public class AbsorptionAmplifyAmuletState implements ICodexSpellState {
         recoveryResumeGameTime = tag.getLong("recoveryResumeGameTime");
         nextRecoveryGameTime = tag.getLong("nextRecoveryGameTime");
         nextProcGameTime = tag.getLong("nextProcGameTime");
-        recoveryManaPending = tag.getBoolean("recoveryManaPending");
-        pendingRecoveryAbsorption = tag.getFloat("pendingRecoveryAbsorption");
-        pendingRecoveryConfirmGameTime = tag.getLong("pendingRecoveryConfirmGameTime");
     }
 }

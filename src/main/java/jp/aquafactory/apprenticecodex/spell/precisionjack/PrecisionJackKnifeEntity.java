@@ -37,6 +37,8 @@ import java.util.List;
 
 public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoEntity, ISwordTrailEntity {
     private static final int STAY_SLASHED_TICK = 10;
+    private static final int UNPREPARED_TIMEOUT_TICKS = 5;
+    private static final int PREPARED_TIMEOUT_TICKS = 80;
     private static final double SLICE_RANGE = 1.25;
     public static final String TRAIL_CACHE_KEY = "blade";
 
@@ -55,6 +57,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
     private int lootingBonus = 1;
     private int duplicateDropChancePercent;
     private int lifeTick;
+    private int unresolvedCastTick;
     private boolean isPrepared;
 
     public PrecisionJackKnifeEntity(EntityType<?> pEntityType, Level pLevel) {
@@ -105,6 +108,9 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
                 discard();
                 return;
             }
+        } else if (tickUnresolvedCast()) {
+            discard();
+            return;
         }
 
         followTargetPosition(getStandbyPosition());
@@ -121,6 +127,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         entityData.set(SHOW_TRAIL, true);
         triggerAnim("main", "prepare");
         isPrepared = true;
+        unresolvedCastTick = 0;
     }
 
     public void slice(Level level) {
@@ -130,6 +137,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
 
         triggerAnim("main", "slice");
         lifeTick = STAY_SLASHED_TICK;
+        unresolvedCastTick = 0;
         isPrepared = false;
 
         if (!(getOwner() instanceof LivingEntity owner)) {
@@ -173,6 +181,13 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         return duplicateDropChancePercent;
     }
 
+    private boolean tickUnresolvedCast() {
+        ++unresolvedCastTick;
+        // Spell Dispenser のマナ不足などで完了通知へ到達しない場合でも、召喚ナイフだけを残さない。
+        var timeoutTicks = isPrepared ? PREPARED_TIMEOUT_TICKS : UNPREPARED_TIMEOUT_TICKS;
+        return unresolvedCastTick >= timeoutTicks;
+    }
+
     @Override
     public boolean isTrailActive() {
         return entityData.get(SHOW_TRAIL);
@@ -195,6 +210,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         lootingBonus = pCompound.getInt("LootingBonus");
         duplicateDropChancePercent = pCompound.getInt("DuplicateDropChancePercent");
         lifeTick = pCompound.getInt("LifeTick");
+        unresolvedCastTick = pCompound.getInt("UnresolvedCastTick");
         isPrepared = pCompound.getBoolean("IsPrepared");
     }
 
@@ -205,6 +221,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         pCompound.putInt("LootingBonus", lootingBonus);
         pCompound.putInt("DuplicateDropChancePercent", duplicateDropChancePercent);
         pCompound.putInt("LifeTick", lifeTick);
+        pCompound.putInt("UnresolvedCastTick", unresolvedCastTick);
         pCompound.putBoolean("IsPrepared", isPrepared);
     }
 

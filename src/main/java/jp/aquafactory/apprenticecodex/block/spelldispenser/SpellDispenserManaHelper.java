@@ -157,7 +157,7 @@ public final class SpellDispenserManaHelper {
                 && isSupportedManaPotion(SpellcastersFlask.getStoredItem(stack));
     }
 
-    private static boolean isSupportedManaPotion(@NotNull ItemStack stack) {
+    public static boolean isSupportedManaPotion(@NotNull ItemStack stack) {
         if (!stack.is(Items.POTION) || !MobEffectRegistry.INSTANT_MANA.isPresent()) {
             return false;
         }
@@ -169,6 +169,10 @@ public final class SpellDispenserManaHelper {
 
     private static boolean isEmptyFlask(@NotNull ItemStack stack) {
         return stack.is(ItemRegistry.SPELLCASTERS_FLASK.get()) && !SpellcastersFlask.canExtractOneDose(stack);
+    }
+
+    public static int getManaPotionRecovery(@NotNull ItemStack potionStack) {
+        return isSupportedManaPotion(potionStack) ? resolveManaRecoveryFromPotionStack(potionStack, 0) : 0;
     }
 
     private static int resolveManaRecoveryFromPotionStack(@NotNull ItemStack potionStack, int amplifierBonus) {

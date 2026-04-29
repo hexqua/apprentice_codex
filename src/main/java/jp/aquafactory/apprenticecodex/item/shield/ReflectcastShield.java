@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.item.shield;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -17,12 +19,47 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.function.Consumer;
 
 public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem {
+    public static final int DURABILITY = 1561;
+    public static final int DURABILITY_SUPPRESSION_TICKS = 10;
+    private static final float MINIMUM_DURABILITY_DAMAGE = 3.0F;
     private static final int ENCHANTMENT_VALUE = 1;
+    private static final String LAST_DURABILITY_COST_TICK_TAG = "ApprenticeCodexReflectcastShieldLastDurabilityCostTick";
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public ReflectcastShield() {
-        super(new Item.Properties().stacksTo(1).durability(336).rarity(Rarity.UNCOMMON));
+        super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.UNCOMMON));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    public static int resolveBlockedDurabilityCost(float originalBlockedDamage, boolean spellTriggered) {
+        if (originalBlockedDamage < MINIMUM_DURABILITY_DAMAGE) {
+            return 0;
+        }
+
+        var vanillaCost = 1 + Mth.floor(originalBlockedDamage);
+        return spellTriggered ? Math.min(vanillaCost, 1) : vanillaCost;
+    }
+
+    public static boolean isDurabilityConsumptionSuppressed(ItemStack stack, long gameTime) {
+        if (stack.isEmpty() || !stack.hasTag()) {
+            return false;
+        }
+
+        return isDurabilityConsumptionSuppressed(stack.getTag(), gameTime);
+    }
+
+    public static boolean isDurabilityConsumptionSuppressed(CompoundTag tag, long gameTime) {
+        if (tag == null || !tag.contains(LAST_DURABILITY_COST_TICK_TAG)) {
+            return false;
+        }
+
+        return gameTime - tag.getLong(LAST_DURABILITY_COST_TICK_TAG) <= DURABILITY_SUPPRESSION_TICKS;
+    }
+
+    public static void rememberDurabilityConsumed(ItemStack stack, long gameTime) {
+        if (!stack.isEmpty()) {
+            stack.getOrCreateTag().putLong(LAST_DURABILITY_COST_TICK_TAG, gameTime);
+        }
     }
 
     @Override

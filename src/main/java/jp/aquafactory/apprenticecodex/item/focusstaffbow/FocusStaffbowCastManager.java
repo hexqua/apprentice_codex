@@ -235,6 +235,23 @@ public final class FocusStaffbowCastManager {
                 && state.spellId.equals(magicData.getCastingSpellId());
     }
 
+    public static boolean shouldPreserveRecastTicks(ServerPlayer player, String spellId) {
+        var codexSpellData = Capabilities.getSpellDataOrNull(player);
+        if (codexSpellData == null) {
+            return false;
+        }
+
+        var state = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE);
+        if (!state.isActive() || !state.spellId.equals(spellId) || !isFocusStaffbowUseContextValid(player, state)) {
+            return false;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        return state.isPending()
+                ? !magicData.isCasting()
+                : state.spellId.equals(magicData.getCastingSpellId()) && magicData.getSyncedData().isCasting();
+    }
+
     private static boolean handleResolvedInput(ServerPlayer player, @Nullable SpellSelectionManager.SelectionOption selection,
                                                ItemStack focusStaffbowStack) {
         if (selection == null || selection.spellData == SpellData.EMPTY) {
@@ -336,7 +353,16 @@ public final class FocusStaffbowCastManager {
         Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
                 player.getUUID(),
                 spell.getSpellId(),
-                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING
+                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING,
+                createCastStateData(
+                        spell,
+                        player.level().getGameTime(),
+                        requiredCastTicks,
+                        chargeBaselineTicks,
+                        spell.getManaCost(spellLevel),
+                        FocusStaffbowCastState.Mode.PENDING,
+                        1
+                )
         ));
         if (player.getMainHandItem().getItem() instanceof FocusStaffbow focusStaffbow) {
             focusStaffbow.triggerChargeAnimation(player, player.getMainHandItem());
@@ -401,7 +427,16 @@ public final class FocusStaffbowCastManager {
         Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
                 player.getUUID(),
                 spell.getSpellId(),
-                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING
+                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING,
+                createCastStateData(
+                        spell,
+                        player.level().getGameTime(),
+                        requiredCastTicks,
+                        requiredCastTicks,
+                        spell.getManaCost(spellLevel),
+                        FocusStaffbowCastState.Mode.CONTINUOUS,
+                        FocusStaffbowChargeLogic.CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS
+                )
         ));
         PacketDistributor.sendToPlayer(player, new UpdateCastingStatePacket(
                 spell.getSpellId(),
@@ -667,22 +702,7 @@ public final class FocusStaffbowCastManager {
     }
 
     private static boolean shouldCancelFocusStaffbowState(ServerPlayer player, FocusStaffbowCastState state) {
-        if (!(player.getMainHandItem().getItem() instanceof FocusStaffbow)) {
-            return true;
-        }
-        if (!player.isUsingItem() || player.getUsedItemHand() != InteractionHand.MAIN_HAND) {
-            return true;
-        }
-        if (player.getInventory().selected != state.selectedHotbarSlot) {
-            return true;
-        }
-        if (!player.level().dimension().location().toString().equals(state.dimensionId)) {
-            return true;
-        }
-        if (player.isDeadOrDying() || player.isSpectator()) {
-            return true;
-        }
-        if (player.containerMenu != player.inventoryMenu) {
+        if (!isFocusStaffbowUseContextValid(player, state)) {
             return true;
         }
 
@@ -690,6 +710,26 @@ public final class FocusStaffbowCastManager {
         return state.isPending()
                 ? magicData.isCasting()
                 : !state.spellId.equals(magicData.getCastingSpellId()) && magicData.getSyncedData().isCasting();
+    }
+
+    private static boolean isFocusStaffbowUseContextValid(ServerPlayer player, FocusStaffbowCastState state) {
+        if (!(player.getMainHandItem().getItem() instanceof FocusStaffbow)) {
+            return false;
+        }
+        if (!player.isUsingItem() || player.getUsedItemHand() != InteractionHand.MAIN_HAND) {
+            return false;
+        }
+        if (player.getInventory().selected != state.selectedHotbarSlot) {
+            return false;
+        }
+        if (!player.level().dimension().location().toString().equals(state.dimensionId)) {
+            return false;
+        }
+        if (player.isDeadOrDying() || player.isSpectator()) {
+            return false;
+        }
+
+        return player.containerMenu == player.inventoryMenu;
     }
 
     private static boolean denyIfLoanOutstanding(ServerPlayer player,
