@@ -354,7 +354,16 @@ public final class FocusStaffbowCastManager {
         Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
                 player.getUUID(),
                 spell.getSpellId(),
-                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING
+                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING,
+                createCastStateData(
+                        spell,
+                        player.level().getGameTime(),
+                        requiredCastTicks,
+                        chargeBaselineTicks,
+                        spell.getManaCost(spellLevel),
+                        FocusStaffbowCastState.Mode.PENDING,
+                        1
+                )
         ));
         if (player.getMainHandItem().getItem() instanceof FocusStaffbow focusStaffbow) {
             focusStaffbow.triggerChargeAnimation(player, player.getMainHandItem());
@@ -419,7 +428,16 @@ public final class FocusStaffbowCastManager {
         Networks.sendToTrackingEntityAndSelf(player, new SyncFocusStaffbowPresentationPacket(
                 player.getUUID(),
                 spell.getSpellId(),
-                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING
+                SyncFocusStaffbowPresentationPacket.PresentationAction.START_PENDING,
+                createCastStateData(
+                        spell,
+                        player.level().getGameTime(),
+                        requiredCastTicks,
+                        requiredCastTicks,
+                        spell.getManaCost(spellLevel),
+                        FocusStaffbowCastState.Mode.CONTINUOUS,
+                        FocusStaffbowChargeLogic.CONTINUOUS_CHARGE_UPDATE_INTERVAL_TICKS
+                )
         ));
         PacketDistributor.sendToPlayer(player, new UpdateCastingStatePacket(
                 spell.getSpellId(),

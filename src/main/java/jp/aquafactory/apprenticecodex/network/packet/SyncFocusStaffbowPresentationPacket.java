@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPres
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -21,12 +22,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId, PresentationAction action)
+public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId, PresentationAction action, CompoundTag data)
         implements CustomPacketPayload {
     public static final Type<SyncFocusStaffbowPresentationPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_focus_staffbow_presentation"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncFocusStaffbowPresentationPacket> STREAM_CODEC =
             StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncFocusStaffbowPresentationPacket::decode);
+
+    public SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId, PresentationAction action) {
+        this(entityId, spellId, action, new CompoundTag());
+    }
+
+    public SyncFocusStaffbowPresentationPacket {
+        data = data == null ? new CompoundTag() : data.copy();
+    }
 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -37,13 +46,15 @@ public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId,
         buffer.writeUUID(packet.entityId);
         buffer.writeUtf(packet.spellId);
         buffer.writeEnum(packet.action);
+        buffer.writeNbt(packet.data);
     }
 
     public static SyncFocusStaffbowPresentationPacket decode(FriendlyByteBuf buffer) {
         return new SyncFocusStaffbowPresentationPacket(
                 buffer.readUUID(),
                 buffer.readUtf(),
-                buffer.readEnum(PresentationAction.class)
+                buffer.readEnum(PresentationAction.class),
+                buffer.readNbt()
         );
     }
 
@@ -76,7 +87,7 @@ public record SyncFocusStaffbowPresentationPacket(UUID entityId, String spellId,
         }
 
         private static void handleStart(SyncFocusStaffbowPresentationPacket packet) {
-            FocusStaffbowClientPresentationState.markPending(packet.entityId, packet.spellId);
+            FocusStaffbowClientPresentationState.markPending(packet.entityId, packet.spellId, packet.data);
 
             var player = resolvePlayer(packet.entityId);
             if (player == null) {

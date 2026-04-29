@@ -50,6 +50,27 @@ public class ApprenticeRenderTypes extends RenderStateShard {
         );
     }
 
+    // 同一エフェクト内の加算レイヤー同士が depth write で潰し合わないよう、Zテストだけ残して色だけ書く。
+    public static RenderType entityAdditiveGlowNoCullColorOnly(String renderTypeName, ResourceLocation tex) {
+        return RenderType.create(
+                renderTypeName,
+                DefaultVertexFormat.NEW_ENTITY,
+                VertexFormat.Mode.QUADS,
+                256,
+                true,
+                true,
+                RenderType.CompositeState.builder()
+                        .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+                        .setTextureState(new RenderStateShard.TextureStateShard(tex, false, false))
+                        .setTransparencyState(RenderStateShard.ADDITIVE_TRANSPARENCY)
+                        .setCullState(RenderStateShard.NO_CULL)
+                        .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                        .setLightmapState(RenderStateShard.LIGHTMAP)
+                        .setOverlayState(RenderStateShard.OVERLAY)
+                        .createCompositeState(true)
+        );
+    }
+
     public static RenderType entityTranslucentNoCull(String renderTypeName, ResourceLocation tex) {
         return RenderType.create(
                 renderTypeName,
