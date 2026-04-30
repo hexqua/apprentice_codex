@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
@@ -205,7 +206,8 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
 
         var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return enchantmentId != null
-                && (EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
+                && (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)
+                || EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
                 || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment));
     }
 
@@ -229,7 +231,8 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
         var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return enchantmentId != null
-                && (EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
+                && (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)
+                || EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
                 || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment));
     }
 

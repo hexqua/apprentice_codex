@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientTooltip;
@@ -234,6 +235,10 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             return false;
         }
 
+        if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)) {
+            return true;
+        }
+
         return EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
                 || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)
                 || TRIDENT_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment);
@@ -263,6 +268,9 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         }
         if (DURABILITY_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)) {
             return false;
+        }
+        if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)) {
+            return true;
         }
         return EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
                 || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)

@@ -1,7 +1,9 @@
 package jp.aquafactory.apprenticecodex.compat.malum;
 
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -52,7 +54,9 @@ public final class MalumCompatibility {
     public static boolean isHauntedCompatibleWeapon(Item item) {
         return item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof PastelStaff
-                || item instanceof CrystalBladedStaff;
+                || item instanceof CrystalBladedStaff
+                || item instanceof ChargedTwinBladeStaff
+                || item instanceof ManaForceBlade;
     }
 
     public static int getHauntedLevel(ItemStack stack) {

@@ -6410,8 +6410,49 @@ public final class ApprenticeCodexGameTestScenarios {
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
-                    expectedChargedTwinBladeStaffEnchantments(helper.getLevel().registryAccess()),
+                    expectedChargedTwinBladeStaffEnchantments(helper.getLevel().registryAccess(), stack),
                     "Charged Twin Blade Staff"
+            );
+        });
+    }
+    static void chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var haunted = enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)).orElse(null);
+            var animated = enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)).orElse(null);
+            helper.assertTrue(haunted != null, "Missing malum:haunted enchantment");
+            helper.assertTrue(animated != null, "Missing malum:animated enchantment");
+            if (haunted == null || animated == null) {
+                return;
+            }
+
+            assertMalumMagicCapableWeaponEnchantmentAccepted(
+                    helper,
+                    new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                    haunted,
+                    "Charged Twin Blade Staff haunted"
+            );
+            assertMalumMagicCapableWeaponEnchantmentAccepted(
+                    helper,
+                    new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                    animated,
+                    "Charged Twin Blade Staff animated"
+            );
+            assertMalumMagicCapableWeaponEnchantmentAccepted(
+                    helper,
+                    new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
+                    haunted,
+                    "Mana Force Blade haunted"
+            );
+            assertMalumMagicCapableWeaponEnchantmentAccepted(
+                    helper,
+                    new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
+                    animated,
+                    "Mana Force Blade animated"
             );
         });
     }
@@ -9298,7 +9339,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedChargedTwinBladeStaffEnchantments(RegistryAccess registryAccess) {
+    private static Set<ResourceLocation> expectedChargedTwinBladeStaffEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
@@ -9312,6 +9353,7 @@ public final class ApprenticeCodexGameTestScenarios {
         expectedEnchantments.addAll(registryIdSet(
                 Enchantments.WISDOM
         ));
+        addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 
@@ -9720,6 +9762,29 @@ public final class ApprenticeCodexGameTestScenarios {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_MAGIC_CAPABLE_WEAPON)) {
             expectedEnchantments.add(MALUM_HAUNTED);
             expectedEnchantments.add(MALUM_ANIMATED);
+        }
+    }
+
+    private static void assertMalumMagicCapableWeaponEnchantmentAccepted(
+            GameTestHelper helper,
+            ItemStack stack,
+            Holder<Enchantment> enchantment,
+            String itemName
+    ) {
+        var item = stack.getItem();
+        helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
+                itemName + " is missing malum:magic_capable_weapon");
+        helper.assertTrue(item.isPrimaryItemFor(stack, enchantment),
+                itemName + " should allow the Malum enchantment as a primary enchantment");
+        helper.assertTrue(item.supportsEnchantment(stack, enchantment),
+                itemName + " should support the Malum enchantment");
+        helper.assertTrue(enchantment.value().canEnchant(stack),
+                itemName + " should pass the enchantment definition item tag");
+        helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)),
+                itemName + " should accept the Malum enchantment from enchanted books");
+        if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
+            helper.assertTrue(mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment),
+                    itemName + " should accept the Malum enchantment through anvil merges");
         }
     }
 
