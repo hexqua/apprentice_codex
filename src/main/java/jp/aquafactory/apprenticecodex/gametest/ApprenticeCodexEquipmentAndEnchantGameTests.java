@@ -608,6 +608,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaForceBladeKeepsExpectedEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffExposesExpectedMainhandAttributes(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffExposesExpectedMainhandAttributes(helper);
     }
@@ -735,6 +740,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void crystalBladedStaffKeepsItsDedicatedEnchantingRules(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.crystalBladedStaffKeepsItsDedicatedEnchantingRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)

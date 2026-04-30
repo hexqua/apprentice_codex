@@ -40,6 +40,8 @@ public final class Enchantments {
     public static final TagKey<Item> OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE = itemTag("offhand_or_armor_magic_enchantable");
     public static final TagKey<Item> SPELL_CONTAINER_MAGIC_ENCHANTABLE = itemTag("spell_container_magic_enchantable");
     public static final TagKey<Item> SPELL_GUN_ENCHANTABLE = itemTag("spell_gun_enchantable");
+    public static final TagKey<Item> SURGE_ENCHANTABLE = itemTag("surge_enchantable");
+    public static final TagKey<Item> ATTUNEMENT_ENCHANTABLE = itemTag("attunement_enchantable");
     public static final TagKey<Item> DRINKABLE_FLASK_ENCHANTABLE = itemTag("drinkable_flask_enchantable");
     public static final TagKey<Item> ALCHEMISTS_FLASK_ENCHANTABLE = itemTag("alchemists_flask_enchantable");
     public static final TagKey<Item> FLASK_ENCHANTABLE = itemTag("flask_enchantable");
@@ -106,6 +108,8 @@ public final class Enchantments {
         var offhandOrArmorMagicItems = itemLookup.getOrThrow(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE);
         var spellContainerMagicItems = itemLookup.getOrThrow(SPELL_CONTAINER_MAGIC_ENCHANTABLE);
         var spellGunItems = itemLookup.getOrThrow(SPELL_GUN_ENCHANTABLE);
+        var surgeItems = itemLookup.getOrThrow(SURGE_ENCHANTABLE);
+        var attunementItems = itemLookup.getOrThrow(ATTUNEMENT_ENCHANTABLE);
         var drinkableFlaskItems = itemLookup.getOrThrow(DRINKABLE_FLASK_ENCHANTABLE);
         var flaskItems = itemLookup.getOrThrow(FLASK_ENCHANTABLE);
         var transcendenceItems = itemLookup.getOrThrow(TRANSCENDENCE_ENCHANTABLE);
@@ -191,8 +195,8 @@ public final class Enchantments {
                 SURGE,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        magicItems,
-                                        magicItems,
+                                        surgeItems,
+                                        surgeItems,
                                         10,
                                         5,
                                         Enchantment.dynamicCost(5, 8),
@@ -209,8 +213,8 @@ public final class Enchantments {
                 ATTUNEMENT,
                 Enchantment.enchantment(
                                 Enchantment.definition(
-                                        spellContainerMagicItems,
-                                        spellContainerMagicItems,
+                                        attunementItems,
+                                        attunementItems,
                                         5,
                                         5,
                                         Enchantment.dynamicCost(5, 11),
