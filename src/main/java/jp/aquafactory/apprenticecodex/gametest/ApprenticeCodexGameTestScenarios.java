@@ -6415,6 +6415,32 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+    static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get());
+            var requiredExtraEnchantments = registryIdSet(
+                    Enchantments.SURGE,
+                    Enchantments.ATTUNEMENT,
+                    Enchantments.WISDOM,
+                    Enchantments.TRANSCENDENCE
+            );
+            addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, requiredExtraEnchantments);
+            assertRequiredExtraEnchantments(
+                    helper,
+                    stack,
+                    requiredExtraEnchantments,
+                    true,
+                    "Mana Force Blade"
+            );
+            assertRejectedExtraEnchantments(
+                    helper,
+                    stack,
+                    registryIdSet(Enchantments.REFLUX, Enchantments.RESERVOIR),
+                    false,
+                    "Mana Force Blade should reject mana pool/recovery enchantments"
+            );
+        });
+    }
     static void chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded(MALUM_MOD_ID)) {

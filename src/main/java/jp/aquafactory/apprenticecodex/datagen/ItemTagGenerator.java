@@ -61,6 +61,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE = Enchantments.OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE;
     private static final TagKey<Item> SPELL_CONTAINER_MAGIC_ENCHANTABLE = Enchantments.SPELL_CONTAINER_MAGIC_ENCHANTABLE;
     private static final TagKey<Item> SPELL_GUN_ENCHANTABLE = Enchantments.SPELL_GUN_ENCHANTABLE;
+    private static final TagKey<Item> SURGE_ENCHANTABLE = Enchantments.SURGE_ENCHANTABLE;
+    private static final TagKey<Item> ATTUNEMENT_ENCHANTABLE = Enchantments.ATTUNEMENT_ENCHANTABLE;
     private static final TagKey<Item> DRINKABLE_FLASK_ENCHANTABLE = Enchantments.DRINKABLE_FLASK_ENCHANTABLE;
     private static final TagKey<Item> ALCHEMISTS_FLASK_ENCHANTABLE = Enchantments.ALCHEMISTS_FLASK_ENCHANTABLE;
     private static final TagKey<Item> FLASK_ENCHANTABLE = Enchantments.FLASK_ENCHANTABLE;
@@ -102,6 +104,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
         var plunderEnchantableTag = tag(PLUNDER_ENCHANTABLE);
         var synthesisEnchantableTag = tag(SYNTHESIS_ENCHANTABLE);
+        var surgeEnchantableTag = tag(SURGE_ENCHANTABLE);
+        var attunementEnchantableTag = tag(ATTUNEMENT_ENCHANTABLE);
         var vanillaSwordEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SWORD);
         var vanillaFireAspectEnchantableTag = tag(MINECRAFT_ENCHANTABLE_FIRE_ASPECT);
         var vanillaSharpWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SHARP_WEAPON);
@@ -146,8 +150,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumSoulHunterWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         tomagicReversalWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
-        tag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.MANA_FORCE_BLADE.get());
-        tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE).add(ItemRegistry.MANA_FORCE_BLADE.get());
+        surgeEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        attunementEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         transcendenceEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         wisdomEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
@@ -360,6 +364,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
                 .addTag(OFFHAND_MAGIC_ENCHANTABLE)
                 .addTag(SPELL_GUN_ENCHANTABLE);
+        surgeEnchantableTag.addTag(MAGIC_ITEM_ENCHANTABLE);
+        attunementEnchantableTag.addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE);
         transcendenceEnchantableTag
                 .addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
                 .addTag(ALCHEMISTS_FLASK_ENCHANTABLE)

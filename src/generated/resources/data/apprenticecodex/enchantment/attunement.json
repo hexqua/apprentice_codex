@@ -13,10 +13,10 @@
     "base": 5,
     "per_level_above_first": 11
   },
-  "primary_items": "#apprenticecodex:spell_container_magic_enchantable",
+  "primary_items": "#apprenticecodex:attunement_enchantable",
   "slots": [
     "hand"
   ],
-  "supported_items": "#apprenticecodex:spell_container_magic_enchantable",
+  "supported_items": "#apprenticecodex:attunement_enchantable",
   "weight": 5
 }
