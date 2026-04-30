@@ -56,6 +56,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
+                ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get()
         );
         // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
@@ -77,6 +78,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumSoulHunterWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                ItemRegistry.MANA_FORCE_BLADE.get(),
                 // Malum の soul_hunter_weapon 実発動判定は main hand を見るため、
                 // offhand 専用品はタグ対象から外し、main hand で攻撃成立する盾だけ明示的に残す。
                 ItemRegistry.REFLECTCAST_SHIELD.get()
@@ -85,7 +88,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         tomagicReversalWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.FOCUS_STAFFBOW.get()
+                ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                ItemRegistry.MANA_FORCE_BLADE.get()
         );
 
         // 所謂魔法武器全般を自動で登録するようにする.
