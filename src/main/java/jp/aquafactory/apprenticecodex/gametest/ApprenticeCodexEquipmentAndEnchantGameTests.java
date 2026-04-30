@@ -424,6 +424,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaForceBladeKeepsExpectedEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffExposesExpectedMainhandAttributes(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffExposesExpectedMainhandAttributes(helper);
     }

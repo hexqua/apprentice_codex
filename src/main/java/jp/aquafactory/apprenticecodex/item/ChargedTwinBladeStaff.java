@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientTooltip;
@@ -225,6 +226,11 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
 
         if (enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK)) {
             return false;
+        }
+
+        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
+                && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
+            return true;
         }
 
         return EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())

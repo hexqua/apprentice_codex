@@ -6063,8 +6063,19 @@ public final class ApprenticeCodexGameTestScenarios {
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
-                    expectedChargedTwinBladeStaffEnchantments(),
+                    expectedChargedTwinBladeStaffEnchantments(stack),
                     "Charged Twin Blade Staff"
+            );
+        });
+    }
+    static void manaForceBladeKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get());
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedManaForceBladeEnchantments(stack),
+                    "Mana Force Blade"
             );
         });
     }
@@ -7660,6 +7671,20 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(focusStaffbow) > 0.0D,
                     "Focus Staffbow should resolve a positive Haunted magic damage bonus");
 
+            var chargedTwinBladeStaff = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+            chargedTwinBladeStaff.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(chargedTwinBladeStaff),
+                    "Charged Twin Blade Staff should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(chargedTwinBladeStaff) > 0.0D,
+                    "Charged Twin Blade Staff should resolve a positive Haunted magic damage bonus");
+
+            var manaForceBlade = new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get());
+            manaForceBlade.enchant(haunted, 1);
+            helper.assertTrue(MalumHauntedCompat.isSupportedHauntedMainhandItem(manaForceBlade),
+                    "Mana Force Blade should be a supported Haunted main hand item");
+            helper.assertTrue(MalumHauntedCompat.resolveHauntedMagicDamageBonus(manaForceBlade) > 0.0D,
+                    "Mana Force Blade should resolve a positive Haunted magic damage bonus");
+
             helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get())),
                     "Spellgun should stay outside Haunted support");
             helper.assertFalse(MalumHauntedCompat.isSupportedHauntedMainhandItem(new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())),
@@ -8988,7 +9013,7 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedChargedTwinBladeStaffEnchantments() {
+    private static Set<ResourceLocation> expectedChargedTwinBladeStaffEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
                 enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
@@ -9002,6 +9027,22 @@ public final class ApprenticeCodexGameTestScenarios {
         expectedEnchantments.addAll(registryIdSet(
                 EnchantmentRegistry.WISDOM
         ));
+        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedManaForceBladeEnchantments(ItemStack stack) {
+        var expectedEnchantments = collectAllowedEnchantments(
+                new ItemStack(Items.DIAMOND_SWORD),
+                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
+        );
+        expectedEnchantments.addAll(registryIdSet(
+                EnchantmentRegistry.SURGE,
+                EnchantmentRegistry.ATTUNEMENT,
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.TRANSCENDENCE
+        ));
+        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 
