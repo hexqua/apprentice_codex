@@ -86,6 +86,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
+                ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get()
         );
         // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
@@ -129,6 +130,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
 
         // Charged Twin Blade Staff は剣/トライデント両面の enchant を許可するが、耐久系と超越は除外する。
+        malumMagicCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        malumSoulHunterWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         wisdomEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
@@ -137,6 +142,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaTridentEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
 
         // Mana Force Blade は耐久値を持つ剣として扱い、専用魔法 enchant も JSON/tag 面で通す。
+        malumMagicCapableWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        malumSoulHunterWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         tag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.MANA_FORCE_BLADE.get());
         tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE).add(ItemRegistry.MANA_FORCE_BLADE.get());
         transcendenceEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
