@@ -34,6 +34,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public static final TagKey<DamageType> FORGE_IS_MAGIC = create(FORGE_NAMESPACE, "is_magic");
     private static final TagKey<DamageType> MALUM_CAN_SOUL_SHATTER = create("malum", "can_soul_shatter");
 
+    public static final TagKey<DamageType> IGNORE_ARMOR = create("ignore_armor");
     public static final TagKey<DamageType> MAGIC_DAMAGE = create("magic_damage");
     public static final TagKey<DamageType> FIRE_DAMAGE = create("fire_damage");
     public static final TagKey<DamageType> BYPASSES_IFRAME = create("bypasses_iframe");
@@ -85,8 +86,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SHOCK
         );
 
-        // MAGIC_DAMAGE : 防御力無視、盾無視、ウィッチ抵抗.
-        tag(MAGIC_DAMAGE).add(
+        // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
+        tag(IGNORE_ARMOR).add(
                 ARCANE_BEAM,
                 ARCANE_BLAST,
                 COMPOUND_PHIAL,
@@ -94,8 +95,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HIGANBANA,
                 MOON_LIGHT,
                 UNITE_LUNA,
-                HEALING_BLOOM,
-                HAUNTED_BONUS
+                HEALING_BLOOM
         );
 
         // FIRE_DAMAGE: 火炎耐性有効.
@@ -169,6 +169,16 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 AUTO_TURRET
         );
 
+        // MAGIC_DAMAGE: Magic Proficiencyでダメージが伸びる(Malum限定)
+        tag(MAGIC_DAMAGE).add(
+                ARCANE_BEAM,
+                ARCANE_BLAST,
+                COMPOUND_PHIAL,
+                MOON_LIGHT,
+                UNITE_LUNA,
+                HAUNTED_BONUS
+        );
+
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(
                 HAUNTED_BONUS,
@@ -182,12 +192,12 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         // バニラダメージタイプタグ.
         addTagLinks(DamageTypeTags.ALWAYS_HURTS_ENDER_DRAGONS, EXPLOSIONS);
         addTagLinks(DamageTypeTags.AVOIDS_GUARDIAN_THORNS, RANGED_ATTACK, EXPLOSIONS);
-        addTagLinks(DamageTypeTags.BYPASSES_ARMOR, MAGIC_DAMAGE);
+        addTagLinks(DamageTypeTags.BYPASSES_ARMOR, IGNORE_ARMOR);
         addTagLinks(DamageTypeTags.BYPASSES_COOLDOWN, BYPASSES_IFRAME);
-        addTagLinks(DamageTypeTags.BYPASSES_SHIELD, MAGIC_DAMAGE);
+        addTagLinks(DamageTypeTags.BYPASSES_SHIELD, IGNORE_ARMOR);
         addTagLinks(DamageTypeTags.IGNITES_ARMOR_STANDS, FIRE_DAMAGE);
         addTagLinks(DamageTypeTags.IS_EXPLOSION, EXPLOSIONS);
         addTagLinks(DamageTypeTags.IS_FIRE, FIRE_DAMAGE);
-        addTagLinks(DamageTypeTags.WITCH_RESISTANT_TO, MAGIC_DAMAGE);
+        addTagLinks(DamageTypeTags.WITCH_RESISTANT_TO, IGNORE_ARMOR);
     }
 }
