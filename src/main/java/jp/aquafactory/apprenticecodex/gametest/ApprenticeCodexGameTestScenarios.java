@@ -159,6 +159,7 @@ import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
@@ -320,6 +321,31 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.assertTrue(BuiltInRegistries.POTION.get(definition.strongPotionId()) == definition.strongPotion(),
                         "Missing School Affinity potion: " + definition.strongPotionId());
             }
+        });
+    }
+    static void comfortBerriesCanBePottedAsDecoration(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pottedComfortBerryBush = (FlowerPotBlock) BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get();
+            helper.assertTrue(pottedComfortBerryBush.getContent() == BlockRegistry.COMFORT_BERRY_BUSH.get(),
+                    "Potted Comfort Berry Bush should contain the Comfort Berry Bush block");
+
+            var potPos = new BlockPos(1, 1, 1);
+            var absolutePotPos = helper.absolutePos(potPos);
+            helper.setBlock(potPos, Blocks.FLOWER_POT);
+
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "comfort_berry_pot_test"));
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.COMFORT_BERRIES.get()));
+            var result = helper.getLevel().getBlockState(absolutePotPos).use(
+                    helper.getLevel(),
+                    player,
+                    InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(absolutePotPos), Direction.UP, absolutePotPos, false)
+            );
+
+            helper.assertTrue(result.consumesAction(), "Comfort Berries should be accepted by a vanilla Flower Pot");
+            helper.assertBlockPresent(BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get(), potPos);
+            helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
+                    "Potted Comfort Berries should consume one berry item outside creative mode");
         });
     }
     static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
