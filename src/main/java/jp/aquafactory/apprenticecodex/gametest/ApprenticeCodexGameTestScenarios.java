@@ -355,7 +355,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void comfortBerriesCanBePottedAsDecoration(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var pottedComfortBerryBush = (FlowerPotBlock) BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get();
-            helper.assertTrue(pottedComfortBerryBush.getContent() == BlockRegistry.COMFORT_BERRY_BUSH.get(),
+            helper.assertTrue(pottedComfortBerryBush.getPotted() == BlockRegistry.COMFORT_BERRY_BUSH.get(),
                     "Potted Comfort Berry Bush should contain the Comfort Berry Bush block");
 
             var potPos = new BlockPos(1, 1, 1);
@@ -364,9 +364,10 @@ public final class ApprenticeCodexGameTestScenarios {
 
             var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "comfort_berry_pot_test"));
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.COMFORT_BERRIES.get()));
-            var result = helper.getLevel().getBlockState(absolutePotPos).use(
-                    helper.getLevel(),
+            var result = player.gameMode.useItemOn(
                     player,
+                    helper.getLevel(),
+                    player.getItemInHand(InteractionHand.MAIN_HAND),
                     InteractionHand.MAIN_HAND,
                     new BlockHitResult(Vec3.atCenterOf(absolutePotPos), Direction.UP, absolutePotPos, false)
             );

@@ -64,7 +64,7 @@ public final class BlockRegistry {
             BLOCKS.register("potted_comfort_berry_bush", () -> new FlowerPotBlock(
                     () -> (FlowerPotBlock) Blocks.FLOWER_POT,
                     COMFORT_BERRY_BUSH,
-                    BlockBehaviour.Properties.copy(Blocks.POTTED_BLUE_ORCHID)
+                    BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_BLUE_ORCHID)
             ));
 
     public static void register(IEventBus eventBus) {
