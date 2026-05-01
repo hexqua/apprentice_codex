@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
-import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
 import net.minecraftforge.common.crafting.CraftingHelper;
 
@@ -16,7 +15,6 @@ public final class RecipeConditionRegistry {
             return;
         }
 
-        CraftingHelper.register(ApprenticeDeskRecipeEnabledCondition.Serializer.INSTANCE);
         CraftingHelper.register(ArcanumInAJarRecipeEnabledCondition.Serializer.INSTANCE);
         CraftingHelper.register(ExplorersCodexRecipeEnabledCondition.Serializer.INSTANCE);
         initialized = true;

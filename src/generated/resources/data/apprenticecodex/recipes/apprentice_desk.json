@@ -1,39 +1,27 @@
 {
-  "type": "forge:conditional",
-  "recipes": [
-    {
-      "conditions": [
-        {
-          "type": "apprenticecodex:apprentice_desk_recipe_enabled"
-        }
-      ],
-      "recipe": {
-        "type": "minecraft:crafting_shaped",
-        "category": "misc",
-        "key": {
-          "A": {
-            "item": "irons_spellbooks:arcane_essence"
-          },
-          "C": {
-            "item": "minecraft:copper_ingot"
-          },
-          "F": {
-            "tag": "minecraft:wooden_fences"
-          },
-          "S": {
-            "tag": "minecraft:wooden_slabs"
-          }
-        },
-        "pattern": [
-          "CAC",
-          "SSS",
-          "F F"
-        ],
-        "result": {
-          "item": "apprenticecodex:apprentice_desk"
-        },
-        "show_notification": true
-      }
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_essence"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "F": {
+      "tag": "minecraft:wooden_fences"
+    },
+    "S": {
+      "tag": "minecraft:wooden_slabs"
     }
-  ]
+  },
+  "pattern": [
+    "CAC",
+    "SSS",
+    "F F"
+  ],
+  "result": {
+    "item": "apprenticecodex:apprentice_desk"
+  },
+  "show_notification": true
 }

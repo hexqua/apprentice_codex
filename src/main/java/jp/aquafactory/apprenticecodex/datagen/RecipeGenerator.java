@@ -9,7 +9,6 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
-import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
@@ -37,20 +36,16 @@ public final class RecipeGenerator extends RecipeProvider {
     @SuppressWarnings("DataFlowIssue")
     @Override
     protected void buildRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
-        ConditionalRecipe.builder()
-                .addCondition(ApprenticeDeskRecipeEnabledCondition.INSTANCE)
-                .addRecipe(consumer -> ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.APPRENTICE_DESK.get())
-                        .pattern("CAC")
-                        .pattern("SSS")
-                        .pattern("F F")
-                        .define('C', Items.COPPER_INGOT)
-                        .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
-                        .define('S', ItemTags.WOODEN_SLABS)
-                        .define('F', ItemTags.WOODEN_FENCES)
-                        .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
-                        .save(consumer, ItemRegistry.APPRENTICE_DESK.getId()))
-                .generateAdvancement()
-                .build(recipeWriter, ItemRegistry.APPRENTICE_DESK.getId());
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.APPRENTICE_DESK.get())
+                .pattern("CAC")
+                .pattern("SSS")
+                .pattern("F F")
+                .define('C', Items.COPPER_INGOT)
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
+                .define('S', ItemTags.WOODEN_SLABS)
+                .define('F', ItemTags.WOODEN_FENCES)
+                .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
+                .save(recipeWriter, ItemRegistry.APPRENTICE_DESK.getId());
 
         ConditionalRecipe.builder()
                 .addCondition(ArcanumInAJarRecipeEnabledCondition.INSTANCE)
