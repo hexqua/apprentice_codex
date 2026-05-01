@@ -144,7 +144,9 @@ public final class ItemRegistry {
             stealthRuneArmor("stealth_rune_armor_leg", ArmorItem.Type.LEGGINGS);
     public static final RegistryObject<Item> STEALTH_RUNE_ARMOR_FOOT =
             stealthRuneArmor("stealth_rune_armor_foot", ArmorItem.Type.BOOTS);
-    public static final RegistryObject<Item> APPRENTICE_DESK = block("apprentice_desk", BlockRegistry.APPRENTICE_DESK);
+    public static final RegistryObject<Item> APPRENTICE_DESK =
+            ITEMS.register("apprentice_desk",
+                    () -> new ApprenticeDeskItem(BlockRegistry.APPRENTICE_DESK.get(), new Item.Properties()));
     public static final RegistryObject<Item> SPELLCASTER_WORKBENCH =
             ITEMS.register("spellcaster_workbench",
                     () -> new SpellcasterWorkbenchItem(BlockRegistry.SPELLCASTER_WORKBENCH.get(), new Item.Properties()));

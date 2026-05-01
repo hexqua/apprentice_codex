@@ -41,6 +41,10 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.apprenticeDeskEnableSpellCraftBlacklist();
     }
 
+    public static boolean apprenticeDeskDisableNonJobSiteFeatures() {
+        return BLOCKS_CONFIG.apprenticeDeskDisableNonJobSiteFeatures();
+    }
+
     public static java.util.List<String> apprenticeDeskSpellCraftBlacklist() {
         return BLOCKS_CONFIG.apprenticeDeskSpellCraftBlacklist();
     }

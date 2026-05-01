@@ -12,8 +12,13 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlock;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlock;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -55,7 +60,22 @@ public final class BlockRegistry {
     public static final RegistryObject<Block> COMFORT_BERRY_BUSH =
             BLOCKS.register("comfort_berry_bush", ComfortBerryBushBlock::new);
 
+    public static final RegistryObject<Block> POTTED_COMFORT_BERRY_BUSH =
+            BLOCKS.register("potted_comfort_berry_bush", () -> new FlowerPotBlock(
+                    () -> (FlowerPotBlock) Blocks.FLOWER_POT,
+                    COMFORT_BERRY_BUSH,
+                    BlockBehaviour.Properties.copy(Blocks.POTTED_BLUE_ORCHID)
+            ));
+
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);
+        eventBus.addListener(BlockRegistry::registerFlowerPotPlants);
+    }
+
+    private static void registerFlowerPotPlants(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> ((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "comfort_berry_bush"),
+                POTTED_COMFORT_BERRY_BUSH
+        ));
     }
 }

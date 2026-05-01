@@ -17,6 +17,7 @@ import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectil
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
@@ -33,6 +34,7 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
+import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
@@ -137,6 +139,7 @@ import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -154,11 +157,13 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
@@ -186,6 +191,7 @@ import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fml.ModList;
@@ -320,6 +326,31 @@ public final class ApprenticeCodexGameTestScenarios {
                 helper.assertTrue(BuiltInRegistries.POTION.get(definition.strongPotionId()) == definition.strongPotion(),
                         "Missing School Affinity potion: " + definition.strongPotionId());
             }
+        });
+    }
+    static void comfortBerriesCanBePottedAsDecoration(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var pottedComfortBerryBush = (FlowerPotBlock) BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get();
+            helper.assertTrue(pottedComfortBerryBush.getContent() == BlockRegistry.COMFORT_BERRY_BUSH.get(),
+                    "Potted Comfort Berry Bush should contain the Comfort Berry Bush block");
+
+            var potPos = new BlockPos(1, 1, 1);
+            var absolutePotPos = helper.absolutePos(potPos);
+            helper.setBlock(potPos, Blocks.FLOWER_POT);
+
+            var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "comfort_berry_pot_test"));
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.COMFORT_BERRIES.get()));
+            var result = helper.getLevel().getBlockState(absolutePotPos).use(
+                    helper.getLevel(),
+                    player,
+                    InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(absolutePotPos), Direction.UP, absolutePotPos, false)
+            );
+
+            helper.assertTrue(result.consumesAction(), "Comfort Berries should be accepted by a vanilla Flower Pot");
+            helper.assertBlockPresent(BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get(), potPos);
+            helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
+                    "Potted Comfort Berries should consume one berry item outside creative mode");
         });
     }
     static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
@@ -468,6 +499,61 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Tagged scroll should satisfy the errand mage ink trade even when the saved cost stack has tags");
         });
     }
+    static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var trades = createEmptyVillagerTrades();
+            ErrandMageVillagerTradesEvent.onVillagerTrades(
+                    new VillagerTradesEvent(trades, VillagerProfessionRegistry.ERRAND_MAGE.get())
+            );
+
+            var level1Offers = createOffers(trades.get(1), 0L);
+            helper.assertFalse(hasBaseCostItem(level1Offers,
+                            io.redspace.ironsspellbooks.registries.ItemRegistry.FROZEN_BONE_SHARD.get()),
+                    "Errand Mage level 1 trades should not buy Frozen Bone Shards");
+            assertContainsOffer(helper, level1Offers,
+                    new ItemStack(ItemRegistry.RAPID_SPELLCASTER_ROUND.get(), 32),
+                    ItemStack.EMPTY,
+                    new ItemStack(Items.EMERALD),
+                    16,
+                    "Errand Mage level 1 trades should buy Rapid Spellcaster Rounds");
+
+            var level2Listings = trades.get(2);
+            var exclusiveItems = new LinkedHashSet<Item>();
+            var level2Offers = createOffers(level2Listings, 0L);
+            helper.assertTrue(countBaseCostItems(level2Offers,
+                            io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get(),
+                            io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_PEARL.get()) == 1,
+                    "Errand Mage level 2 trades should choose either Shriving Stone or Divine Pearl");
+            var exclusiveRandom = RandomSource.create(0L);
+            var exclusiveListing = level2Listings.get(0);
+            for (var attempt = 0; attempt < 64 && exclusiveItems.size() < 2; attempt++) {
+                var offer = exclusiveListing.getOffer(null, exclusiveRandom);
+                helper.assertTrue(offer != null, "Errand Mage level 2 exclusive trade should create an offer");
+                exclusiveItems.add(offer.getBaseCostA().getItem());
+            }
+            helper.assertTrue(exclusiveItems.size() == 2,
+                    "Errand Mage level 2 exclusive trade should be able to choose both configured items");
+            assertContainsOffer(helper, level2Offers,
+                    new ItemStack(Items.EMERALD),
+                    ItemStack.EMPTY,
+                    new ItemStack(ItemRegistry.BASIC_SPELLCASTER_ROUND.get(), 8),
+                    12,
+                    "Errand Mage level 2 trades should always sell Basic Spellcaster Rounds");
+
+            assertContainsOffer(helper, createOffers(trades.get(4), 0L),
+                    new ItemStack(Items.EMERALD, 32),
+                    ItemStack.EMPTY,
+                    new ItemStack(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()),
+                    12,
+                    "Errand Mage level 4 trades should sell Spellstained Arcane Ingots");
+            assertContainsOffer(helper, createOffers(trades.get(5), 0L),
+                    new ItemStack(Items.EMERALD, 64),
+                    new ItemStack(Items.WRITABLE_BOOK),
+                    new ItemStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get()),
+                    3,
+                    "Errand Mage level 5 trades should sell Isekai Travel Guidebooks");
+        });
+    }
     static void customRecipeDataIsLoaded(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var recipeManager = helper.getLevel().getRecipeManager();
@@ -493,9 +579,9 @@ public final class ApprenticeCodexGameTestScenarios {
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_codex_guidebook_transfer"),
                     RecipeRegistry.EXPLORERS_CODEX_GUIDEBOOK_TRANSFER_SERIALIZER.get(), null);
-            assertRecipeLoaded(helper, recipeManager,
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "isekai_travel_guidebook"),
-                    net.minecraft.world.item.crafting.RecipeSerializer.SHAPELESS_RECIPE, net.minecraft.world.item.crafting.RecipeType.CRAFTING);
+            var guidebookRecipeId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "isekai_travel_guidebook");
+            helper.assertTrue(recipeManager.byKey(guidebookRecipeId).isEmpty(),
+                    "Isekai Travel Guidebook crafting recipe should not be loaded: " + guidebookRecipeId);
 
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "essence_smoker/infuse_coal_to_arcane_cinder"),
@@ -10241,6 +10327,64 @@ public final class ApprenticeCodexGameTestScenarios {
                 message + " (level mismatch: " + spellData.getLevel() + ")");
         helper.assertTrue(spellData.isLocked() == expectedLocked,
                 message + " (locked mismatch: " + spellData.isLocked() + ")");
+    }
+
+    private static Int2ObjectOpenHashMap<List<VillagerTrades.ItemListing>> createEmptyVillagerTrades() {
+        var trades = new Int2ObjectOpenHashMap<List<VillagerTrades.ItemListing>>();
+        for (var level = 1; level <= 5; level++) {
+            trades.put(level, new ArrayList<>());
+        }
+        return trades;
+    }
+
+    private static List<MerchantOffer> createOffers(List<VillagerTrades.ItemListing> listings, long randomSeed) {
+        var random = RandomSource.create(randomSeed);
+        var offers = new ArrayList<MerchantOffer>();
+        for (var listing : listings) {
+            var offer = listing.getOffer(null, random);
+            if (offer != null) {
+                offers.add(offer);
+            }
+        }
+        return offers;
+    }
+
+    private static void assertContainsOffer(GameTestHelper helper, List<MerchantOffer> offers,
+                                            ItemStack costA, ItemStack costB, ItemStack result,
+                                            int maxUses, String message) {
+        helper.assertTrue(offers.stream().anyMatch(offer -> offerMatches(offer, costA, costB, result, maxUses)), message);
+    }
+
+    private static boolean offerMatches(MerchantOffer offer, ItemStack costA, ItemStack costB, ItemStack result, int maxUses) {
+        return stackMatches(offer.getBaseCostA(), costA)
+                && stackMatches(offer.getCostB(), costB)
+                && stackMatches(offer.getResult(), result)
+                && offer.getMaxUses() == maxUses;
+    }
+
+    private static boolean stackMatches(ItemStack actual, ItemStack expected) {
+        if (expected.isEmpty()) {
+            return actual.isEmpty();
+        }
+
+        return actual.is(expected.getItem()) && actual.getCount() == expected.getCount();
+    }
+
+    private static boolean hasBaseCostItem(List<MerchantOffer> offers, Item item) {
+        return offers.stream().anyMatch(offer -> offer.getBaseCostA().is(item));
+    }
+
+    private static int countBaseCostItems(List<MerchantOffer> offers, Item... items) {
+        var count = 0;
+        for (var offer : offers) {
+            for (var item : items) {
+                if (offer.getBaseCostA().is(item)) {
+                    count++;
+                    break;
+                }
+            }
+        }
+        return count;
     }
 
     private static <T> void assertForgeRegistryEntries(

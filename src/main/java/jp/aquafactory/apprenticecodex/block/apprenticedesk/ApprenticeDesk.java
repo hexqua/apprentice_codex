@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.block.apprenticedesk;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -32,6 +34,12 @@ public class ApprenticeDesk extends Block {
                                           @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
+        }
+
+        if (ApprenticeCodexServerConfig.apprenticeDeskDisableNonJobSiteFeatures()) {
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.apprentice_desk.disabled")
+                    .withStyle(ChatFormatting.RED), true);
+            return InteractionResult.CONSUME;
         }
 
         player.openMenu(state.getMenuProvider(level, pos));

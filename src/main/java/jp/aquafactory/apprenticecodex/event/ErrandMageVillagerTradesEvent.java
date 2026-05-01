@@ -35,10 +35,13 @@ public final class ErrandMageVillagerTradesEvent {
 
         var trades = event.getTrades();
         addBuyTrade(trades, 1, ItemRegistry.COMFORT_BERRIES.get(), 22, 1, 16);
-        addBuyTrade(trades, 1, io.redspace.ironsspellbooks.registries.ItemRegistry.FROZEN_BONE_SHARD.get(), 32, 1, 16);
+        addBuyTrade(trades, 1, ItemRegistry.RAPID_SPELLCASTER_ROUND.get(), 32, 1, 16);
 
-        addBuyTrade(trades, 2, io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get(), 4, 1, 16);
-        addBuyTrade(trades, 2, io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_PEARL.get(), 3, 1, 16);
+        addExclusiveBuyTrade(trades, 2,
+                io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get(), 4,
+                io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_PEARL.get(), 3,
+                1, 16);
+        addSellTrade(trades, 2, 1, new ItemStack(ItemRegistry.BASIC_SPELLCASTER_ROUND.get(), 8), 12);
 
         addSellTrade(trades, 3, 7, new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get()), 12);
         addSellTrade(trades, 3, 3, createManaPotion(), 12);
@@ -46,22 +49,40 @@ public final class ErrandMageVillagerTradesEvent {
         // MerchantOffer 側は cost stack が無タグなら追加 NBT を無視する。
         // ただし取引画面の自動投入は別経路なので、そちらは MerchantMenuMixin 側で同じ item 判定に寄せる。
         addBuyTrade(trades, 4, io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get(), 1, 1, 16);
+        addSellTrade(trades, 4, 32, new ItemStack(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()), 12);
         addDualCostSellTrade(trades, 5,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
                 new ItemStack(Items.EMERALD, 16),
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_COMMON.get()),
                 3);
+        addDualCostSellTrade(trades, 5,
+                new ItemStack(Items.EMERALD, 64),
+                new ItemStack(Items.WRITABLE_BOOK),
+                new ItemStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get()),
+                3);
     }
 
     private static void addBuyTrade(Int2ObjectMap<List<VillagerTrades.ItemListing>> trades, int level, Item inputItem,
                                     int inputCount, int emeraldCount, int maxUses) {
-        addTrade(trades, level, (trader, random) -> new MerchantOffer(
+        addTrade(trades, level, (trader, random) -> createBuyOffer(inputItem, inputCount, emeraldCount, maxUses));
+    }
+
+    private static void addExclusiveBuyTrade(Int2ObjectMap<List<VillagerTrades.ItemListing>> trades, int level,
+                                             Item inputItemA, int inputCountA, Item inputItemB, int inputCountB,
+                                             int emeraldCount, int maxUses) {
+        addTrade(trades, level, (trader, random) -> random.nextBoolean()
+                ? createBuyOffer(inputItemA, inputCountA, emeraldCount, maxUses)
+                : createBuyOffer(inputItemB, inputCountB, emeraldCount, maxUses));
+    }
+
+    private static MerchantOffer createBuyOffer(Item inputItem, int inputCount, int emeraldCount, int maxUses) {
+        return new MerchantOffer(
                 ErrandMageTradeHelper.createPaymentStack(inputItem, inputCount),
                 new ItemStack(Items.EMERALD, emeraldCount),
                 maxUses,
                 BUY_XP,
                 PRICE_MULTIPLIER
-        ));
+        );
     }
 
     private static void addSellTrade(Int2ObjectMap<List<VillagerTrades.ItemListing>> trades, int level, int emeraldCount,
