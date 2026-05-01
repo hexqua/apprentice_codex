@@ -5,17 +5,20 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import java.util.List;
 
 public final class ApprenticeDeskServerConfig {
+    private final ModConfigSpec.BooleanValue disableNonJobSiteFeatures;
     private final ModConfigSpec.BooleanValue enableSpellCraftBlacklist;
     private final ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist;
     private final ModConfigSpec.BooleanValue requireSameSchool;
     private final ModConfigSpec.BooleanValue disableCommonRarityConversion;
 
     private ApprenticeDeskServerConfig(
+            ModConfigSpec.BooleanValue disableNonJobSiteFeatures,
             ModConfigSpec.BooleanValue enableSpellCraftBlacklist,
             ModConfigSpec.ConfigValue<List<? extends String>> spellCraftBlacklist,
             ModConfigSpec.BooleanValue requireSameSchool,
             ModConfigSpec.BooleanValue disableCommonRarityConversion
     ) {
+        this.disableNonJobSiteFeatures = disableNonJobSiteFeatures;
         this.enableSpellCraftBlacklist = enableSpellCraftBlacklist;
         this.spellCraftBlacklist = spellCraftBlacklist;
         this.requireSameSchool = requireSameSchool;
@@ -26,6 +29,7 @@ public final class ApprenticeDeskServerConfig {
         builder.comment("Entries for spellCraftBlacklist use \"modid:spell_id\" (example: \"irons_spellbooks:black_hole\").")
                 .push("ApprenticeDesk");
 
+        var disableNonJobSiteFeatures = builder.define("disableNonJobSiteFeatures", false);
         var enableSpellCraftBlacklist = builder.define("enableSpellCraftBlacklist", false);
         var spellCraftBlacklist = builder.defineList("spellCraftBlacklist", List.<String>of(),
                 value -> value instanceof String text && !text.isBlank());
@@ -34,11 +38,16 @@ public final class ApprenticeDeskServerConfig {
 
         builder.pop();
         return new ApprenticeDeskServerConfig(
+                disableNonJobSiteFeatures,
                 enableSpellCraftBlacklist,
                 spellCraftBlacklist,
                 requireSameSchool,
                 disableCommonRarityConversion
         );
+    }
+
+    public boolean disableNonJobSiteFeatures() {
+        return disableNonJobSiteFeatures.get();
     }
 
     public boolean enableSpellCraftBlacklist() {

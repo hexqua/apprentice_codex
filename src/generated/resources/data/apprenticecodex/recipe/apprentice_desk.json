@@ -1,9 +1,4 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "apprenticecodex:apprentice_desk_recipe_enabled"
-    }
-  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
