@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -7727,6 +7728,100 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+    static void circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            var item = (CircuitHeatStaff) stack.getItem();
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_DAMAGE),
+                    AttributeModifier.Operation.ADDITION,
+                    3.0D,
+                    "Circuit Heat Staff attack damage modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_SPEED),
+                    AttributeModifier.Operation.ADDITION,
+                    -3.0D,
+                    "Circuit Heat Staff attack speed modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.10D,
+                    "Circuit Heat Staff spell power modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Circuit Heat Staff fire spell power modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Circuit Heat Staff lightning spell power modifier changed"
+            );
+            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
+                    "Circuit Heat Staff should not expose an imbue spell container");
+
+            CircuitHeatStaff.startStaffOverheat(stack, helper.getLevel(), 20 * 45);
+            var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(stack, helper.getLevel());
+            helper.assertTrue(remainingOverheatTicks > 0 && remainingOverheatTicks <= 20 * 30,
+                    "Circuit Heat Staff item overheat should be active and capped at 30 seconds: "
+                            + remainingOverheatTicks);
+
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedCircuitHeatStaffEnchantments(stack),
+                    "Circuit Heat Staff"
+            );
+        });
+    }
+    static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_base_mana_gate_test");
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Circuit Heat Staff mana gate test could not resolve player mana data");
+            var baseManaCost = spell.getManaCost(1);
+            magicData.setMana(baseManaCost - 1.0F);
+
+            var selection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
+            helper.assertTrue(selection != null && selection.spellData.getSpell() == spell,
+                    "Circuit Heat Staff mana gate test could not resolve the selected spell: " + selection);
+            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, selection.getCastSource());
+
+            var result = staffStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Circuit Heat Staff should fail forced casts when base mana is insufficient but got " + result.getResult());
+            helper.assertTrue(Math.abs(magicData.getMana() - (baseManaCost - 1.0F)) < 1.0e-4F,
+                    "Circuit Heat Staff base mana failure should not mutate mana: " + magicData.getMana());
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Circuit Heat Staff should restore the original cooldown after base mana failure");
+            helper.assertFalse(jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                            .getState(player, spell.getSpellId()).active(),
+                    "Circuit Heat Staff should not store bypass overheat state after base mana failure");
+            helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
+                    "Circuit Heat Staff item should not enter overheat cooldown after base mana failure");
+        });
+    }
     static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
         helper.succeedIf(() -> {
             if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
@@ -9129,6 +9224,21 @@ public final class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.TRANSCENDENCE
         ));
         addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedCircuitHeatStaffEnchantments(ItemStack stack) {
+        var expectedEnchantments = collectAllowedEnchantments(
+                new ItemStack(Items.DIAMOND_SWORD),
+                enchantment -> enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))
+                        && !isDurabilityTargetEnchantment(enchantment)
+        );
+        expectedEnchantments.addAll(registryIdSet(
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.PLUNDER
+        ));
+        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 

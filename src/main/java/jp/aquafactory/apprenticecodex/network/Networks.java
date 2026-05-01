@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
@@ -32,7 +33,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "19";
+    private static final String PROTOCOL_VERSION = "20";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -164,6 +165,13 @@ public final class Networks {
                 SyncElementalBowOverheatPacket::encode,
                 SyncElementalBowOverheatPacket::decode,
                 SyncElementalBowOverheatPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncCircuitHeatStaffOverheatPacket.class,
+                SyncCircuitHeatStaffOverheatPacket::encode,
+                SyncCircuitHeatStaffOverheatPacket::decode,
+                SyncCircuitHeatStaffOverheatPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

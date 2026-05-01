@@ -57,6 +57,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get()
         );
         // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
@@ -78,6 +79,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumSoulHunterWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
                 // Malum の soul_hunter_weapon 実発動判定は main hand を見るため、
@@ -89,6 +91,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tomagicReversalWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get()
         );
