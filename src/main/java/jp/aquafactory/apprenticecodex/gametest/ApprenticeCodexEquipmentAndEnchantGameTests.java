@@ -743,6 +743,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffBypassKeepsBaseManaGate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(helper);
     }

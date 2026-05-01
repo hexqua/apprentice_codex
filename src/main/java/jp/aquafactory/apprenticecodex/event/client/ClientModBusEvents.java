@@ -29,6 +29,7 @@ import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterQuiverCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
+import jp.aquafactory.apprenticecodex.renderer.item.CircuitHeatStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.CopperSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
@@ -244,6 +245,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.FOCUS_STAFFBOW.get());
+        event.registerItem(new ClientStaffItemExtensions() {
+            private CircuitHeatStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new CircuitHeatStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
             private IlluminateStellarStaffRenderer renderer;
 

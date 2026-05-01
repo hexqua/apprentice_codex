@@ -170,6 +170,7 @@
   "item.apprenticecodex.flask_system.effects": "効果:",
   "item.apprenticecodex.flask_system.amount_label": "残量: ",
   "item.apprenticecodex.flask_system.particles_suppressed": "効果演出を抑制中",
+  "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "過熱冷却中: 残り%1$d秒",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "壊すと完成済みの秘術のエッセンスと未使用のレッドストーンがそのまま落ちる。",

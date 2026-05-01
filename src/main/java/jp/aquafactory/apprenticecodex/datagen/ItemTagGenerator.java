@@ -89,6 +89,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ILLUMINATE_STELLAR_STAFF.get(),
                 ItemRegistry.UNITE_LUNA_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
+                ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get()
         );
         // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
@@ -132,6 +133,18 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaFireAspectEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+
+        // Circuit Heat Staff は剣相当の主手杖として扱い、耐久系を除いた近接武器 enchant と互換 tag を通す。
+        malumMagicCapableWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        malumSoulHunterWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        wisdomEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        plunderEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
 
         // Charged Twin Blade Staff は剣/トライデント両面の enchant を許可するが、耐久系と超越は除外する。
         malumMagicCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
