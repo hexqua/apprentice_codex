@@ -10,6 +10,7 @@
   "block.apprenticecodex.spellcaster_workbench": "Spellcaster Workbench",
   "block.apprenticecodex.atelier_station": "Atelier Station",
   "block.apprenticecodex.comfort_berry_bush": "Comfort Berry Bush",
+  "block.apprenticecodex.potted_comfort_berry_bush": "Potted Comfort Berry Bush",
   "block.apprenticecodex.spell_dispenser": "Spell Dispenser",
 
   "item.apprenticecodex.arcane_cinder": "Arcane Cinder",
@@ -100,6 +101,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- None",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "Rare and below",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "Above Epic",
+  "item.apprenticecodex.apprentice_desk.disabled_tooltip": "Only functional as a job site block for an Errand Mage.",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "Currently pointing at the lodestone.",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
   "item.apprenticecodex.elemental_bow.mode": "Current firing mode: %s",
@@ -506,6 +508,7 @@
   "ui.apprenticecodex.focus_staffbow.insufficient_arrow": "Need an arrow for casting spell!",
   "ui.apprenticecodex.autocast_amulet.insufficient_mana": "%1$s requires %2$d mana to activate",
   "ui.apprenticecodex.charged_twin_blade_staff.unsupported_cast": "%1$s cannot be cast from %2$s...",
+  "ui.apprenticecodex.apprentice_desk.disabled": "Cannot use this desk for me...",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",

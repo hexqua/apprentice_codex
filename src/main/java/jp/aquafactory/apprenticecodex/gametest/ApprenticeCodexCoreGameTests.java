@@ -20,6 +20,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void comfortBerriesCanBePottedAsDecoration(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.comfortBerriesCanBePottedAsDecoration(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(helper);
     }
@@ -42,6 +47,11 @@ public final class ApprenticeCodexCoreGameTests {
     @GameTest(template = TEMPLATE)
     public static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.errandMageOffersAcceptTaggedErrandMagePayments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.errandMageTradesMatchExpectedOffers(helper);
     }
 
     @GameTest(template = TEMPLATE)

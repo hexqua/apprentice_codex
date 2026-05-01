@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.event.ApprenticeDeskConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IsekaiTravelGuidebookConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
@@ -69,6 +70,7 @@ public class ApprenticeCodex
         GlobalLootModifierRegistry.register(modEventBus);
         AttachmentRegistry.register(modEventBus);
         ModEntityAttributeEvent.register(modEventBus);
+        ApprenticeDeskConfigSyncEvents.register(modEventBus);
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
         CodexSpellStateTypeRegister.register();
         Networks.register(modEventBus);

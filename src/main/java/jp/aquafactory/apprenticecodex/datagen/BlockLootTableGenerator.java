@@ -8,6 +8,7 @@ import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.advancements.critereon.StatePropertiesPredicate;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
@@ -40,6 +41,7 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
         dropSelf(BlockRegistry.ATELIER_STATION.get());
         dropSelf(BlockRegistry.ESSENCE_SMOKER.get());
         add(BlockRegistry.COMFORT_BERRY_BUSH.get(), this::createComfortBerryBushDrops);
+        add(BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get(), this::createPottedComfortBerryBushDrops);
     }
 
     @Override
@@ -50,7 +52,8 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
                 BlockRegistry.ARCANUM_IN_A_JAR.get(),
                 BlockRegistry.ATELIER_STATION.get(),
                 BlockRegistry.ESSENCE_SMOKER.get(),
-                BlockRegistry.COMFORT_BERRY_BUSH.get()
+                BlockRegistry.COMFORT_BERRY_BUSH.get(),
+                BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get()
         );
     }
 
@@ -86,5 +89,15 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
                         .add(LootItem.lootTableItem(ItemRegistry.COMFORT_BERRIES.get())
                                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(2.0f, 3.0f)))
                                 .apply(ApplyBonusCount.addUniformBonusCount(fortune)))));
+    }
+
+    private LootTable.Builder createPottedComfortBerryBushDrops(Block block) {
+        return applyExplosionDecay(block, LootTable.lootTable()
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0f))
+                        .add(LootItem.lootTableItem(Items.FLOWER_POT)))
+                .withPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1.0f))
+                        .add(LootItem.lootTableItem(ItemRegistry.COMFORT_BERRIES.get()))));
     }
 }

@@ -38,6 +38,10 @@ final class BlocksServerConfig {
         return apprenticeDeskConfig.enableSpellCraftBlacklist();
     }
 
+    boolean apprenticeDeskDisableNonJobSiteFeatures() {
+        return apprenticeDeskConfig.disableNonJobSiteFeatures();
+    }
+
     java.util.List<String> apprenticeDeskSpellCraftBlacklist() {
         return apprenticeDeskConfig.spellCraftBlacklist();
     }

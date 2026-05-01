@@ -12,6 +12,7 @@
   "block.apprenticecodex.spellcaster_workbench" : "魔術師の作業台",
   "block.apprenticecodex.atelier_station" : "アトリエステーション",
   "block.apprenticecodex.comfort_berry_bush" : "安楽の果実の低木",
+  "block.apprenticecodex.potted_comfort_berry_bush" : "鉢植えの安楽の果実の低木",
   "block.apprenticecodex.spell_dispenser" : "スペルディスペンサー",
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
@@ -103,6 +104,7 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- 特に無し",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "レア以下",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "エピック以上",
+  "item.apprenticecodex.apprentice_desk.disabled_tooltip": "使い走り魔術師の職業ブロックとしてのみ機能する。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
   "item.apprenticecodex.elemental_bow.mode": "現在の射撃モード: %s",
@@ -523,6 +525,7 @@
   "ui.apprenticecodex.focus_staffbow.insufficient_arrow": "詠唱の触媒に使う矢が無い！",
   "ui.apprenticecodex.autocast_amulet.insufficient_mana": "%1$sの発動にマナが足りない！(%2$dマナ必要)",
   "ui.apprenticecodex.charged_twin_blade_staff.unsupported_cast": "%1$sは%2$sから発動できないようだ...",
+  "ui.apprenticecodex.apprentice_desk.disabled": "この机は自分では使えないようだ...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

@@ -10,8 +10,6 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class ApprenticeCodexCommonConfig {
     public static final ModConfigSpec SPEC;
 
-    // レシピ制御はSERVERだと評価タイミングが遅く、COMMON出ないとダメ.
-    private static final ModConfigSpec.BooleanValue DISABLE_APPRENTICE_DESK_RECIPE;
     private static final ModConfigSpec.BooleanValue DISABLE_ARCANUM_IN_A_JAR_RECIPE;
     private static final ModConfigSpec.BooleanValue DISABLE_EXPLORERS_CODEX_RECIPE;
     private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_PRIORITY;
@@ -20,7 +18,6 @@ public final class ApprenticeCodexCommonConfig {
     static {
         var builder = new ModConfigSpec.Builder();
         builder.push("Items");
-        DISABLE_APPRENTICE_DESK_RECIPE = builder.define("disableApprenticeDeskRecipe", false);
         DISABLE_ARCANUM_IN_A_JAR_RECIPE = builder.define("disableArcanumInAJarRecipe", false);
         DISABLE_EXPLORERS_CODEX_RECIPE = builder.define("disableExplorersCodexRecipe", false);
         builder.pop();
@@ -43,10 +40,6 @@ public final class ApprenticeCodexCommonConfig {
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(ApprenticeCodexCommonConfig::onConfigLoading);
         modEventBus.addListener(ApprenticeCodexCommonConfig::onConfigReloading);
-    }
-
-    public static boolean disableApprenticeDeskRecipe() {
-        return DISABLE_APPRENTICE_DESK_RECIPE.get();
     }
 
     public static boolean disableArcanumInAJarRecipe() {

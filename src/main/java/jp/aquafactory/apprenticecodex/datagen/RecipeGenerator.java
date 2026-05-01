@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
-import jp.aquafactory.apprenticecodex.recipe.condition.ApprenticeDeskRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
 import net.minecraft.advancements.AdvancementRequirements;
@@ -33,7 +32,6 @@ public final class RecipeGenerator extends RecipeProvider {
 
     @Override
     protected void buildRecipes(@NotNull RecipeOutput recipeOutput) {
-        var apprenticeDeskOutput = recipeOutput.withConditions(ApprenticeDeskRecipeEnabledCondition.INSTANCE);
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.APPRENTICE_DESK.get())
                 .pattern("CAC")
                 .pattern("SSS")
@@ -43,7 +41,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('S', ItemTags.WOODEN_SLABS)
                 .define('F', ItemTags.WOODEN_FENCES)
                 .unlockedBy(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
-                .save(apprenticeDeskOutput, ItemRegistry.APPRENTICE_DESK.getId());
+                .save(recipeOutput, ItemRegistry.APPRENTICE_DESK.getId());
 
         var arcanumInAJarOutput = recipeOutput.withConditions(ArcanumInAJarRecipeEnabledCondition.INSTANCE);
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.ARCANUM_IN_A_JAR.get())
@@ -232,13 +230,6 @@ public final class RecipeGenerator extends RecipeProvider {
 
         saveAlchemistsFlaskSmithingRecipe(recipeOutput);
         saveSpellbookCarryoverSmithingRecipe(recipeOutput);
-
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get())
-                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get())
-                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get(), 2)
-                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()),
-                        has(io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get()))
-                .save(recipeOutput, ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.getId());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
