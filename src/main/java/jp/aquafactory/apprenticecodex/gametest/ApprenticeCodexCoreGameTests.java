@@ -45,6 +45,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.errandMageTradesMatchExpectedOffers(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void customRecipeDataIsLoaded(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.customRecipeDataIsLoaded(helper);
     }
