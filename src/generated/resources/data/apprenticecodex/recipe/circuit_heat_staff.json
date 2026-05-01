@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "P": {
+      "item": "irons_spellbooks:pyrium_ingot"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    " PD",
+    " WG",
+    "P  "
+  ],
+  "result": {
+    "item": "apprenticecodex:circuit_heat_staff"
+  },
+  "show_notification": true
+}
