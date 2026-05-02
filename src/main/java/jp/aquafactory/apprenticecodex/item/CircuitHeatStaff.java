@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
+import io.redspace.ironsspellbooks.network.casting.CancelCastPacket;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
@@ -62,8 +63,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     private static final String OVERHEAT_EXPIRE_GAME_TIME_TAG = "CircuitHeatStaffOverheatExpireGameTime";
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final Set<ResourceLocation> ALLOWED_APPRENTICE_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "plunder")
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom")
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final RawAnimation ANIM_IDLE_FRAME = RawAnimation.begin().thenLoop("idle_frame");
@@ -282,26 +282,38 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
             return InteractionResultHolder.fail(stack);
         }
 
-        var magicData = MagicData.getPlayerMagicData(serverPlayer);
+        var slot = usedHand == InteractionHand.MAIN_HAND ? SpellSelectionManager.MAINHAND : SpellSelectionManager.OFFHAND;
+        return tryInitiateSelectedCast(level, serverPlayer, stack, selection, slot)
+                ? InteractionResultHolder.consume(stack)
+                : InteractionResultHolder.fail(stack);
+    }
+
+    private boolean tryInitiateSelectedCast(Level level, ServerPlayer player, ItemStack stack,
+                                            SpellSelectionManager.SelectionOption selection, String slot) {
+        var magicData = MagicData.getPlayerMagicData(player);
         if (magicData == null) {
-            return InteractionResultHolder.fail(stack);
+            return false;
         }
 
         var spellData = selection.spellData;
         var spell = spellData.getSpell();
-        var spellLevel = spell.getLevelFor(spellData.getLevel(), serverPlayer);
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         var castSource = selection.getCastSource();
-        var slot = usedHand == InteractionHand.MAIN_HAND ? SpellSelectionManager.MAINHAND : SpellSelectionManager.OFFHAND;
-        if (!magicData.getPlayerCooldowns().isOnCooldown(spell)) {
-            var casted = spell.attemptInitiateCast(stack, spellLevel, level, serverPlayer, castSource, true, slot);
-            if (casted) {
-                CircuitHeatStaffOverheatManager.clear(serverPlayer, spell.getSpellId());
-                return InteractionResultHolder.consume(stack);
-            }
-            return InteractionResultHolder.fail(stack);
+        if (magicData.isCasting() && !magicData.getCastingSpellId().equals(spell.getSpellId())) {
+            CancelCastPacket.cancelCast(player, magicData.getCastType() != CastType.LONG);
         }
 
-        return useBypassingCooldown(level, serverPlayer, stack, spell, spellLevel, castSource, slot, magicData);
+        if (!magicData.getPlayerCooldowns().isOnCooldown(spell)) {
+            var casted = spell.attemptInitiateCast(stack, spellLevel, level, player, castSource, true, slot);
+            if (casted) {
+                CircuitHeatStaffOverheatManager.clear(player, spell.getSpellId());
+            }
+            return casted;
+        }
+
+        return useBypassingCooldown(level, player, stack, spell, spellLevel, castSource, slot, magicData)
+                .getResult()
+                .consumesAction();
     }
 
     private InteractionResultHolder<ItemStack> useBypassingCooldown(Level level, ServerPlayer player, ItemStack stack,

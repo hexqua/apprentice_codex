@@ -45,6 +45,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
@@ -7494,6 +7495,77 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void circuitHeatStaffRightClickBypassesCooldownButShortcutDoesNot(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_right_click_test");
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Circuit Heat Staff cast packet test could not resolve player mana data");
+            magicData.setMana(spell.getManaCost(1) * 4.0F);
+
+            var selection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
+            helper.assertTrue(selection != null && selection.spellData.getSpell() == spell,
+                    "Circuit Heat Staff cast packet test could not resolve the selected spell: " + selection);
+            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, selection.getCastSource());
+
+            helper.assertFalse(Utils.serverSideInitiateCast(player),
+                    "Circuit Heat Staff should not bypass cooldown from Iron's shortcut cast packet path");
+            helper.assertFalse(magicData.isCasting(),
+                    "Circuit Heat Staff shortcut path should not start casting during normal cooldown");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Circuit Heat Staff shortcut path should keep the original cooldown");
+            helper.assertFalse(jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                            .getState(player, spell.getSpellId()).active(),
+                    "Circuit Heat Staff shortcut path should not store overheat state");
+
+            var rightClickEvent = new net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickItem(
+                    player,
+                    InteractionHand.MAIN_HAND
+            );
+            CircuitHeatStaffRightClickItemEvent.onRightClickItem(rightClickEvent);
+            helper.assertTrue(rightClickEvent.isCanceled(),
+                    "Circuit Heat Staff right click event should claim the casting item path before Iron's handler");
+            helper.assertTrue(rightClickEvent.getCancellationResult().consumesAction(),
+                    "Circuit Heat Staff right click should consume the event while bypassing cooldown: "
+                            + rightClickEvent.getCancellationResult());
+            helper.assertTrue(magicData.isCasting() && magicData.getCastingSpellId().equals(spell.getSpellId()),
+                    "Circuit Heat Staff right click path should start casting the selected spell");
+            helper.assertTrue(magicData.getPlayerCastingItem() == staffStack,
+                    "Circuit Heat Staff right click path should keep the held staff as casting item");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Circuit Heat Staff should remove the spell cooldown while the right-click bypass starts");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                            .getState(player, spell.getSpellId()).active(),
+                    "Circuit Heat Staff should store bypass overheat state after right-click bypass");
+
+            var baseManaCost = spell.getManaCost(1);
+            var expectedOverheatManaCost = baseManaCost
+                    + jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, 1);
+            var manaEvent = new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    baseManaCost,
+                    spell.getSchoolType(),
+                    selection.getCastSource()
+            );
+            NeoForge.EVENT_BUS.post(manaEvent);
+            helper.assertTrue(manaEvent.getManaCost() == expectedOverheatManaCost,
+                    "Circuit Heat Staff right-click bypass should apply step 1 extra mana: " + manaEvent.getManaCost());
+
+            magicData.resetCastingState();
+        });
+    }
+
     static void circuitHeatStaffContinuousBypassKeepsOverheatManaCost(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_continuous_mana_test");
@@ -9674,8 +9746,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         && !isDurabilityTargetEnchantment(enchantment)
         );
         expectedEnchantments.addAll(registryIdSet(
-                Enchantments.WISDOM,
-                Enchantments.PLUNDER
+                Enchantments.WISDOM
         ));
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);

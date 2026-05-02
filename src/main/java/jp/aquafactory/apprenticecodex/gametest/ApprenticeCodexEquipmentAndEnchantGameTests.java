@@ -753,6 +753,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffRightClickBypassesCooldownButShortcutDoesNot(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffRightClickBypassesCooldownButShortcutDoesNot(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffContinuousBypassKeepsOverheatManaCost(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffContinuousBypassKeepsOverheatManaCost(helper);
     }

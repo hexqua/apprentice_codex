@@ -140,7 +140,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         wisdomEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        plunderEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
