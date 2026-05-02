@@ -7489,6 +7489,93 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Circuit Heat Staff item should not enter overheat cooldown after base mana failure");
         });
     }
+
+    static void circuitHeatStaffContinuousBypassKeepsOverheatManaCost(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_continuous_mana_test");
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Circuit Heat Staff continuous mana test could not resolve player mana data");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+            magicData.getSyncedData();
+            magicData.initiateCast(
+                    spell,
+                    1,
+                    spell.getCastTime(1),
+                    CastSource.SPELLBOOK,
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+            );
+            magicData.setPlayerCastingItem(staffStack);
+
+            var baseManaCost = spell.getManaCost(1);
+            var plannedManaCost = baseManaCost
+                    + jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, 1);
+            CircuitHeatStaffCastEvent.reserveOverheatCast(
+                    player,
+                    spell.getSpellId(),
+                    plannedManaCost,
+                    plannedManaCost * 3.0F,
+                    60,
+                    true
+            );
+
+            magicData.setMana(plannedManaCost * 3.0F);
+            var firstEvent = new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    baseManaCost,
+                    spell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            NeoForge.EVENT_BUS.post(firstEvent);
+            helper.assertTrue(firstEvent.getManaCost() == plannedManaCost,
+                    "Circuit Heat Staff continuous first tick should use overheated mana cost: " + firstEvent.getManaCost());
+            helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
+                    "Circuit Heat Staff should not enter item overheat while overheated continuous mana can still be paid");
+
+            magicData.setMana(plannedManaCost + 5.0F);
+            var secondEvent = new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    baseManaCost,
+                    spell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            NeoForge.EVENT_BUS.post(secondEvent);
+            helper.assertTrue(secondEvent.getManaCost() == plannedManaCost,
+                    "Circuit Heat Staff continuous later tick should keep overheated mana cost: " + secondEvent.getManaCost());
+            helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
+                    "Circuit Heat Staff should still avoid item overheat while continuous mana remains above the overheated cost");
+
+            magicData.setMana(plannedManaCost);
+            var depletionEvent = new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    baseManaCost,
+                    spell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            NeoForge.EVENT_BUS.post(depletionEvent);
+            helper.assertTrue(depletionEvent.getManaCost() == plannedManaCost,
+                    "Circuit Heat Staff continuous depletion tick should keep overheated mana cost: " + depletionEvent.getManaCost());
+            helper.assertTrue(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
+                    "Circuit Heat Staff should enter item overheat when the overheated continuous cost depletes mana");
+            helper.assertTrue(
+                    CircuitHeatStaff.formatOverheatManaCostForDisplay(spell, plannedManaCost).equals(plannedManaCost * 2 + "/s"),
+                    "Circuit Heat Staff continuous warning should display per-second mana"
+            );
+
+            CircuitHeatStaffCastEvent.clearReservedOverheatCast(player);
+            magicData.resetCastingState();
+        });
+    }
+
     static void crystalBladedStaffKeepsItsDedicatedEnchantingRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
