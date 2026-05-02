@@ -36,6 +36,7 @@ import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEnti
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
 import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltEntity;
+import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassinRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
@@ -128,6 +129,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<BreachingEnemyShotgunEntity>> BREACHING_ENEMY_SHOTGUN =
             regWeapon("breaching_enemy_shotgun", BreachingEnemyShotgunEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<SilentAssassinRifleEntity>> SILENT_ASSASSIN_RIFLE =
+            regWeapon("silent_assassin_rifle", SilentAssassinRifleEntity::new, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
             regWeapon("bullet_stream_minigun", BulletStreamMinigunEntity::new, 1);

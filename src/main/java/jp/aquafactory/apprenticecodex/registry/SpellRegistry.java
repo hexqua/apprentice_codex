@@ -40,6 +40,7 @@ import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeacon;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.shock.Shock;
+import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassin;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
@@ -99,6 +100,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMPANION_TRUNK = reg("companion_trunk", CompanionTrunk::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SEARCH_BEACON = reg("search_beacon", SearchBeacon::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> TAMERS_POCKET = reg("tamers_pocket", TamersPocket::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> SILENT_ASSASSIN = reg("silent_assassin", SilentAssassin::new);
 
     // 炎.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);

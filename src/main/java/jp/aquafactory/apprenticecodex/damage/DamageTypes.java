@@ -21,6 +21,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> COMPOUND_PHIAL = register("compound_phial");
     public static final ResourceKey<DamageType> GRACED_RAIN = register("graced_rain");
     public static final ResourceKey<DamageType> QUICK_ARMS = register("quick_arms");
+    public static final ResourceKey<DamageType> SILENT_ASSASSIN = register("silent_assassin");
     public static final ResourceKey<DamageType> SKY_EDGE = register("sky_edge");
     public static final ResourceKey<DamageType> TINY_LUMBERJACK = register("tiny_lumberjack");
     public static final ResourceKey<DamageType> FLY_SWATTER = register("fly_swatter");
@@ -68,6 +69,7 @@ public final class DamageTypes {
         context.register(COMPOUND_PHIAL, createTemplate(COMPOUND_PHIAL));
         context.register(GRACED_RAIN, createTemplate(GRACED_RAIN));
         context.register(QUICK_ARMS, createTemplate(QUICK_ARMS));
+        context.register(SILENT_ASSASSIN, createTemplate(SILENT_ASSASSIN));
         context.register(SKY_EDGE, createTemplate(SKY_EDGE));
         context.register(TINY_LUMBERJACK, createTemplate(TINY_LUMBERJACK));
         context.register(FLY_SWATTER, createTemplate(FLY_SWATTER));

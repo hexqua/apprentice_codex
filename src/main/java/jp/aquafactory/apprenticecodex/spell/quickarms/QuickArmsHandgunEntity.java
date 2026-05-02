@@ -15,8 +15,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -126,7 +124,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
             var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.QUICK_ARMS);
-            var hasSneakBonus = shouldApplySneakBonus(target, owner);
+            var hasSneakBonus = SummonedFirearmTools.shouldApplyUnawareBonus(target, owner);
             var finalDamage = damage * (hasSneakBonus ? sneakPercent / 100.0f : 1.0f);
             CombatTools.applyDamage(target, finalDamage, source, SpellRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
             if (hasSneakBonus) {
@@ -184,23 +182,6 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         setXRot(yawPitch.pitch());
         setRot(getYRot(), getXRot());
         hasImpulse = true;
-    }
-
-    private boolean shouldApplySneakBonus(Entity target, LivingEntity owner) {
-        if (target instanceof Mob mob && mob.getTarget() == owner) {
-            return false;
-        }
-
-        if (target instanceof NeutralMob neutral) {
-            var angerTarget = neutral.getPersistentAngerTarget();
-            if (angerTarget != null && angerTarget.equals(owner.getUUID())) {
-                return false;
-            }
-
-            return !neutral.isAngryAt(owner);
-        }
-
-        return true;
     }
 }
 
