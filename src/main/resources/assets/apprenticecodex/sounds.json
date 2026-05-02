@@ -5,6 +5,12 @@
       "apprenticecodex:rifle"
     ]
   },
+  "suppress_rifle": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:suppress_rifle"
+    ]
+  },
   "handgun": {
     "category": "player",
     "sounds": [
@@ -15,6 +21,12 @@
     "category": "player",
     "sounds": [
       "apprenticecodex:shotgun"
+    ]
+  },
+  "musket": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:musket"
     ]
   },
   "minigun_finish": {

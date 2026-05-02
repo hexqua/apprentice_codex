@@ -293,10 +293,6 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL_BACKWARD
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
-                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.QUICK_ARMS),
-                                        SpellDispenserSpellProfile.DEFAULT
-                                ),
-                                new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE),
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL_UP
                                 ),
@@ -378,6 +374,10 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MOON_LIGHT),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SILENT_ASSASSIN),
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 )
                         ))

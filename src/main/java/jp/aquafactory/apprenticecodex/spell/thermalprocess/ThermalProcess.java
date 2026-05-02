@@ -56,9 +56,13 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
         );
     }
 
-    private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 0.5f + getSpellPower(spellLevel, entity) / 100.0f;
+    static float getDamage(float spellPower) {
+        var rawDamage = 0.5f + spellPower / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.THERMAL_PROCESS);
+    }
+
+    private float getDamage(int spellLevel, LivingEntity entity) {
+        return getDamage(getSpellPower(spellLevel, entity));
     }
 
     private float getRange(int spellLevel, LivingEntity entity) {
@@ -117,6 +121,7 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
     @Override
     public ThermalProcessThrowerEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new ThermalProcessThrowerEntity(EntityRegistry.THERMAL_PROCESS_THROWER.get(), level, entity);
+        summonWeapon.setSpellLevel(spellLevel);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange(spellLevel, entity));
         summonWeapon.setBurnItemPerSecond(getBurnItemPerSecond(spellLevel, entity));

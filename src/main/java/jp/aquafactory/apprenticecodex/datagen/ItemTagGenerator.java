@@ -180,6 +180,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.COMMENCE_FIRE_RIFLE.get(),
                 ItemRegistry.QUICK_ARMS_HANDGUN.get(),
                 ItemRegistry.BREACHING_ENEMY_SHOTGUN.get(),
+                ItemRegistry.SILENT_ASSASSIN_RIFLE.get(),
                 ItemRegistry.FLY_SWATTER_LAUNCHER.get(),
                 ItemRegistry.THERMAL_PROCESS_THROWER.get()
         );

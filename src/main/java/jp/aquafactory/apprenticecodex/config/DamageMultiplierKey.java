@@ -29,6 +29,8 @@ public enum DamageMultiplierKey {
     UNITE_LUNA("uniteLuna"),
     HEALING_BLOOM("healingBloom"),
     SHOCK("shock"),
+    SILENT_ASSASSIN("silentAssassin"),
+    TIRO_VOLLEY("tiroVolley"),
     ;
 
     private final String configKey;

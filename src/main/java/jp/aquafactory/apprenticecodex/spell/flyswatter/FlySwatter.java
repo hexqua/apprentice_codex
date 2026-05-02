@@ -138,6 +138,8 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull FlySwatterLauncherEntity weapon) {
+        // FocusStaffbow の continuous 終了時は完了処理前に補正が外れるため、詠唱中の最新値を保持しておく。
+        weapon.setDamage(getDamage(spellLevel, entity));
         if (playerMagicData.getAdditionalCastData() instanceof FlySwatterCastData castData && castData.lockOnEntityIdList.size() < getLockOnCount(spellLevel, entity)) {
             var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
             if (result.hitEntity() != null) {

@@ -54,9 +54,13 @@ public class BulletStream extends AbstractSummonWeaponSpell<BulletStreamMinigunE
         );
     }
 
-    private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 1 * getSpellPower(spellLevel, entity) / 100.0f;
+    static float getDamage(float spellPower) {
+        var rawDamage = spellPower / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.BULLET_STREAM);
+    }
+
+    private float getDamage(int spellLevel, LivingEntity entity) {
+        return getDamage(getSpellPower(spellLevel, entity));
     }
 
     private int getRange() {
@@ -113,6 +117,7 @@ public class BulletStream extends AbstractSummonWeaponSpell<BulletStreamMinigunE
     @Override
     public BulletStreamMinigunEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new BulletStreamMinigunEntity(EntityRegistry.BULLET_STREAM_MINIGUN.get(), level, entity);
+        summonWeapon.setSpellLevel(spellLevel);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange());
         summonWeapon.setTickSettings(getWarmUpBaseDelayTick(), getWarmUpStartTick(spellLevel, entity), getWarmUpFinishTick(spellLevel, entity));

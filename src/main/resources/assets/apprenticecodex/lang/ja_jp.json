@@ -277,6 +277,8 @@
   "entity.apprenticecodex.moon_light_charge_cut": "月光斬",
   "entity.apprenticecodex.phalanx_charge_beam": "チャージビーム",
   "entity.apprenticecodex.spell_dispenser_anchor": "詠唱代行存在",
+  "entity.apprenticecodex.silent_assassin_rifle": "マジックスナイパーライフル",
+  "entity.apprenticecodex.tiro_volley_musket": "魔法のマスケット銃",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -390,12 +392,14 @@
   "spell.apprenticecodex.harvest_moon": "ハーベストムーン",
   "spell.apprenticecodex.shock": "衝撃",
   "spell.apprenticecodex.extract": "抽出",
+  "spell.apprenticecodex.silent_assassin": "サイレントアサシン",
+  "spell.apprenticecodex.tiro_volley": "ティロ・ボレー",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
   "spell.apprenticecodex.commence_fire.guide": "自身に追従する魔法のライフルを召喚する。続いて使用することで強力な射撃攻撃を行う。",
   "spell.apprenticecodex.compound_phial.guide": "その場で即座にポーションを調合して投擲する。防御力を無視するが、自分にも当たる。",
-  "spell.apprenticecodex.quick_arms.guide": "魔法のハンドガンを召喚すると同時に射撃する。こちらに気づいていないMobを狙うとダメージが上昇する。",
+  "spell.apprenticecodex.quick_arms.guide": "魔法のハンドガンを召喚し、短時間だけ素早く連射できる。",
   "spell.apprenticecodex.breaching_enemy.guide": "魔法のショットガンを召喚し攻撃する。射程が短いがノックバックが非常に強力。",
   "spell.apprenticecodex.bullet_stream.guide": "魔法のガトリングガンを召喚し攻撃し続ける。ノックバックは無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.arcane_blast.guide": "魔力を対象の体内で爆破させ、自分の魔力の循環を加速させる。魔力による攻撃のため防具に阻まれないが、魔の存在に対しては無力。織物の魔術師の魔法のレプリカ。",
@@ -441,6 +445,8 @@
   "spell.apprenticecodex.harvest_moon.guide": "周囲の収穫可能な作物を、作物を破壊することなく収穫して手元に取り寄せる。",
   "spell.apprenticecodex.shock.guide": "元素のエネルギーを稲妻として集中して放って攻撃する。",
   "spell.apprenticecodex.extract.guide": "手元の錬金術師のフラスコから中身を抽出し、ポーションとして投擲する。効果そのものやスプラッシュか残留かは取り出した中身に依存する。",
+  "spell.apprenticecodex.silent_assassin.guide": "一発で自壊する魔法のスナイパーライフルを召喚して狙いを付けて射撃する。こちらに気付いていないモブに対して非常に高い威力を発揮する。",
+  "spell.apprenticecodex.tiro_volley.guide": "周囲に次々と魔法のマスケット銃を召喚し、継続的に周囲へ攻撃を行う。恐れを克服した魔法使いの女の子の魔法の模造品。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -603,6 +609,8 @@
   "death.attack.apprenticecodex.healing_bloom": "%1$sに癒しの力は有害すぎた",
   "death.attack.apprenticecodex.haunted_bonus": "%1$sは%2$sの取り憑いた魔力に蝕まれた",
   "death.attack.apprenticecodex.shock": "%1$sは%2$sによって分解された",
+  "death.attack.apprenticecodex.silent_assassin": "%1$sは%2$sへ依頼の中止を頼むことはできなかった",
+  "death.attack.apprenticecodex.tiro_volley": "%1$sは%2$sへ抗う覚悟を持つことができなかった",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
