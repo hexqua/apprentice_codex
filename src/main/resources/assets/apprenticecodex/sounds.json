@@ -23,6 +23,12 @@
       "apprenticecodex:shotgun"
     ]
   },
+  "musket": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:musket"
+    ]
+  },
   "minigun_finish": {
     "category": "player",
     "sounds": [

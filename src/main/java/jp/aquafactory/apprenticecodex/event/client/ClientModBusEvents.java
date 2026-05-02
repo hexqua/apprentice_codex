@@ -70,6 +70,7 @@ import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingLayer;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerRenderer;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRenderer;
+import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolleyMusketRenderer;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorRenderer;
@@ -215,6 +216,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SILENT_ASSASSIN_RIFLE.get(), SilentAssassinRifleRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.TIRO_VOLLEY_MUSKET.get(), TiroVolleyMusketRenderer::new);
         event.registerEntityRenderer(EntityRegistry.THERMAL_PROCESS_THROWER.get(), ThermalProcessThrowerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(), ChargedTwinBladeStaffThrownRenderer::new);
         event.registerEntityRenderer(EntityRegistry.GRACED_RAIN_CLOUD.get(), GracedRainCloudRenderer::new);
