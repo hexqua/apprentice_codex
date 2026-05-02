@@ -240,6 +240,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_pastel_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.PASTEL_STAFF.getId()))
                 .save(saver, advancementId("craft_pastel_staff"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_circuit_heat_staff.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_circuit_heat_staff.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_circuit_heat_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.CIRCUIT_HEAT_STAFF.getId()))
+                .save(saver, advancementId("craft_circuit_heat_staff"), existingFileHelper);
+
         var ironAmp = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.IRON_SPELL_AMPLIFIER.get(),

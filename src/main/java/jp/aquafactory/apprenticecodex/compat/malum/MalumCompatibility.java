@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.malum;
 
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
@@ -55,6 +56,7 @@ public final class MalumCompatibility {
         return item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof PastelStaff
                 || item instanceof CrystalBladedStaff
+                || item instanceof CircuitHeatStaff
                 || item instanceof ChargedTwinBladeStaff
                 || item instanceof ManaForceBlade;
     }

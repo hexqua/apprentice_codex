@@ -743,6 +743,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffKeepsExpectedStatsAndEnchantingRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffBypassKeepsBaseManaGate(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffRightClickBypassesCooldownButShortcutDoesNot(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffRightClickBypassesCooldownButShortcutDoesNot(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffContinuousBypassKeepsOverheatManaCost(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffContinuousBypassKeepsOverheatManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(helper);
     }

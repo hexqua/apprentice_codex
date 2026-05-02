@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.ArcanumInAJarItem;
 import jp.aquafactory.apprenticecodex.item.ApprenticeDeskItem;
 import jp.aquafactory.apprenticecodex.item.AtelierStationItem;
 import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
@@ -236,6 +237,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final DeferredHolder<Item, Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
+    public static final DeferredHolder<Item, Item> CIRCUIT_HEAT_STAFF =
+            ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final DeferredHolder<Item, Item> CHARGED_TWIN_BLADE_STAFF =
             ITEMS.register("charged_twin_blade_staff", ChargedTwinBladeStaff::new);
     public static final DeferredHolder<Item, Item> MANA_FORCE_BLADE =
