@@ -351,9 +351,6 @@
       "spell": "apprenticecodex:arcane_beam"
     },
     {
-      "spell": "apprenticecodex:quick_arms"
-    },
-    {
       "profile": {
         "owner_required": false,
         "up_offset": 0.5

@@ -9,9 +9,7 @@ import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -20,10 +18,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class QuickArmsHandgunEntity extends SummonWeaponEntity {
 
-    private float damage;
     private float range;
-    private int sneakPercent;
-    private int lifeTicks;
+
+    private float standbyDamage;
+    private boolean isStandbyFirstFire;
+    private int standbyTick;
 
     public QuickArmsHandgunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -41,19 +40,19 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
     @Override
     protected void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
-        damage = pCompound.getFloat("Damage");
         range = pCompound.getFloat("Range");
-        sneakPercent = pCompound.getInt("SneakPercent");
-        lifeTicks = pCompound.getInt("LifeTicks");
+        standbyDamage = pCompound.getFloat("StandbyDamage");
+        isStandbyFirstFire = pCompound.getBoolean("IsStandbyFirstFire");
+        standbyTick = pCompound.getInt("StandbyTick");
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
-        pCompound.putFloat("Damage", damage);
         pCompound.putFloat("Range", range);
-        pCompound.putInt("SneakPercent", sneakPercent);
-        pCompound.putInt("LifeTicks", lifeTicks);
+        pCompound.putFloat("StandbyDamage", standbyDamage);
+        pCompound.putBoolean("IsStandbyFirstFire", isStandbyFirstFire);
+        pCompound.putInt("StandbyTick", standbyTick);
     }
 
     @Override
@@ -105,15 +104,16 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         var aimResult = RaycastTools.raycastFromEye(owner, range, 1, e -> CombatTools.isValidCombatTarget(e, this));
         faceTarget(aimResult.hitPosition());
 
-        if (lifeTicks > 0) {
-            --lifeTicks;
-            if (lifeTicks <= 0) {
-                discard();
+        if (standbyTick > 0) {
+            --standbyTick;
+            if (standbyTick == 0 && isStandbyFirstFire) {
+                isStandbyFirstFire = false;
+                fire(level, standbyDamage);
             }
         }
     }
 
-    public void fire(Level level){
+    public void fire(Level level, float damage){
         if (!(getOwner() instanceof LivingEntity owner)){
             return;
         }
@@ -123,12 +123,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
             var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.QUICK_ARMS);
-            var hasSneakBonus = SummonedFirearmTools.shouldApplyUnawareBonus(target, owner);
-            var finalDamage = damage * (hasSneakBonus ? sneakPercent / 100.0f : 1.0f);
-            CombatTools.applyDamage(target, finalDamage, source, SpellRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-            if (hasSneakBonus) {
-                AudioTools.playSoundFromEntity(level, this, SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 1.0f, 2.0f);
-            }
+            CombatTools.applyDamage(target, damage, source, SpellRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
         }
 
         if (level instanceof ServerLevel server) {
@@ -161,17 +156,18 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         return Vec3.ZERO;
     }
 
-    public void setDamage(float newDamage, int newSneakPercent) {
-        damage = newDamage;
-        sneakPercent = newSneakPercent;
-    }
-
     public void setRange(float newRange) {
         range = newRange;
     }
 
-    public void setLifetimeTicks(int ticks) {
-        lifeTicks = ticks;
+    public void setFireStandby(int ticks, float firstFireDamage) {
+        isStandbyFirstFire = true;
+        standbyTick = ticks;
+        standbyDamage = firstFireDamage;
+    }
+
+    public boolean canFire(){
+        return standbyTick <= 0;
     }
 
     private void faceTarget(Vec3 target) {

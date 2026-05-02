@@ -293,10 +293,6 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL_BACKWARD
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
-                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.QUICK_ARMS),
-                                        SpellDispenserSpellProfile.DEFAULT
-                                ),
-                                new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE),
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL_UP
                                 ),
