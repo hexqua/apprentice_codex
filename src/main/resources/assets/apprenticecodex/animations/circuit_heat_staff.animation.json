@@ -1,0 +1,71 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"idle_frame": {
+			"loop": true,
+			"animation_length": 12,
+			"bones": {
+				"frame2": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"2.0": {
+							"vector": [0, 180, 0]
+						},
+						"4.0": {
+							"vector": [0, 360, 0]
+						},
+						"6.0": {
+							"vector": [0, 540, 0]
+						},
+						"8.0": {
+							"vector": [0, 720, 0]
+						},
+						"10.0": {
+							"vector": [0, 960, 0]
+						},
+						"12.0": {
+							"vector": [0, 1080, 0]
+						}
+					}
+				},
+				"frame1": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"3.0": {
+							"vector": [0, -180, 0]
+						},
+						"6.0": {
+							"vector": [0, -360, 0]
+						},
+						"9.0": {
+							"vector": [0, -480, 0]
+						},
+						"12.0": {
+							"vector": [0, -720, 0]
+						}
+					}
+				}
+			}
+		},
+		"idle_cog": {
+			"loop": true,
+			"animation_length": 2.5,
+			"bones": {
+				"cog_main": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"2.5": {
+							"vector": [-360, 0, 0]
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_circuit_heat_staff": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:circuit_heat_staff"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_circuit_heat_staff.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:circuit_heat_staff"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_circuit_heat_staff.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_circuit_heat_staff"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
