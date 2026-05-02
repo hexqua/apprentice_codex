@@ -190,6 +190,8 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
 
     @Override
     public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull CommenceFireRifleEntity weapon){
+        // FocusStaffbow のリキャスト詠唱は castSpell 中だけ SPELL_POWER を増やすため、射撃直前に計算する。
+        weapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
         var result = resolvePlayerAim(entity);
         var isHeadShot = SummonedFirearmTools.isHeadShot(result);
         if (result.hitEntity() != null) {
