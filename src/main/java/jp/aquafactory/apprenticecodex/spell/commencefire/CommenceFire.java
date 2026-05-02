@@ -50,10 +50,10 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     public CommenceFire() {
         super(CommenceFireRifleEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 25;
-        manaCostPerLevel = 25;
-        baseManaCost = 150;
-        castTime = 40;
+        spellPowerPerLevel = 30;
+        baseManaCost = 100;
+        manaCostPerLevel = 30;
+        castTime = 30;
     }
 
     @Override
@@ -107,7 +107,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     private int getHeadshotPercent(int spellLevel, LivingEntity entity) {
-        return Math.min(300, 150 + Math.round(25 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
+        return Math.min(400, 150 + Math.round(30 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
     }
 
     @Override
