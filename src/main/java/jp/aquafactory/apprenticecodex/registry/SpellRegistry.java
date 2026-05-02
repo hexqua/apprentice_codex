@@ -92,7 +92,6 @@ public final class SpellRegistry {
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
-    public static final DeferredHolder<AbstractSpell, AbstractSpell> QUICK_ARMS = reg("quick_arms", QuickArms::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FEATHER_RUSH = reg("feather_rush", FeatherRush::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SLASH_BLADE = reg("slash_blade", SlashBlade::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> PRECISION_JACK = reg("precision_jack", PrecisionJack::new);
@@ -120,6 +119,7 @@ public final class SpellRegistry {
     // 雷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SKY_EDGE = reg("sky_edge", SkyEdge::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMMENCE_FIRE = reg("commence_fire", CommenceFire::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> QUICK_ARMS = reg("quick_arms", QuickArms::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BREACHING_ENEMY = reg("breaching_enemy", BreachingEnemy::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BULLET_STREAM = reg("bullet_stream", BulletStream::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FLY_SWATTER = reg("fly_swatter", FlySwatter::new);
