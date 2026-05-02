@@ -433,8 +433,8 @@
   "spell.apprenticecodex.harvest_moon.guide": "Harvest crops around you without destroying them and bringing them to you.",
   "spell.apprenticecodex.shock.guide": "Shot lightning bolt converted from elemental energy.",
   "spell.apprenticecodex.extract.guide": "Extract contents from Alchemist's Flask in your hand and throw it as a potion. Effectiveness, splash or lingering depends on what is extracted.",
-  "spell.apprenticecodex.silent_assassin.guide": "(todo:翻訳)一発で自壊する魔法のスナイパーライフルを召喚して狙いを付けて射撃する。こちらに気付いていないモブに対して非常に高い威力を発揮する。",
-  "spell.apprenticecodex.tiro_volley.guide": "(todo:翻訳)周囲に次々と魔法のマスケット銃を召喚し、継続的に周囲へ攻撃を行う。恐れを克服した魔法使いの女の子の魔法の模造品。",
+  "spell.apprenticecodex.silent_assassin.guide": "Summons a magical sniper rifle that self-destructs after one shot, then aims and fires. It deals extremely high damage to mobs that have not noticed you.",
+  "spell.apprenticecodex.tiro_volley.guide": "Summons magical muskets one after another around you, continuously attacking nearby enemies. A replica of the magic used by a magical girl who overcame her fear.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
