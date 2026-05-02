@@ -64,6 +64,7 @@ import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunRenderer;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconRenderer;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltRenderer;
+import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassinRifleRenderer;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingLayer;
@@ -212,6 +213,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.EXTRACT_POTION_PROJECTILE.get(), ExtractPotionProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.QUICK_ARMS_HANDGUN.get(), QuickArmsHandgunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BREACHING_ENEMY_SHOTGUN.get(), BreachingEnemyShotgunRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SILENT_ASSASSIN_RIFLE.get(), SilentAssassinRifleRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BULLET_STREAM_MINIGUN.get(), BulletStreamMinigunRenderer::new);
         event.registerEntityRenderer(EntityRegistry.THERMAL_PROCESS_THROWER.get(), ThermalProcessThrowerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(), ChargedTwinBladeStaffThrownRenderer::new);

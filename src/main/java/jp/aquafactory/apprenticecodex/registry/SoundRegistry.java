@@ -18,6 +18,7 @@ public final class SoundRegistry {
     }
 
     public static final RegistryObject<SoundEvent> RIFLE = reg("rifle");
+    public static final RegistryObject<SoundEvent> SUPPRESS_RIFLE = reg("suppress_rifle");
     public static final RegistryObject<SoundEvent> HANDGUN = reg("handgun");
     public static final RegistryObject<SoundEvent> SHOTGUN = reg("shotgun");
     public static final RegistryObject<SoundEvent> MINIGUN_SINGLE = reg("minigun_single");
