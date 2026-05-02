@@ -203,7 +203,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
     public void fire(Vec3 target, Level level, HitTypes hitType, boolean isHeadShot) {
         recoilTick = MAX_RECOIL_TICK;
         entityData.set(RECOIL_TICK, recoilTick);
-        setFireRotationByVector(aimPosition);
+        setFireRotationByVector(target);
 
         if (level instanceof ServerLevel server) {
             var targetVec = target.subtract(position());
