@@ -114,7 +114,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ILLUMINATE_STELLAR,
                 UNITE_LUNA,
                 HEALING_BLOOM,
-                SHOCK
+                SHOCK,
+                TIRO_VOLLEY
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -148,7 +149,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 GRIND_RUNNER,
                 ILLUMINATE_STELLAR,
                 HEALING_BLOOM,
-                HAUNTED_BONUS
+                HAUNTED_BONUS,
+                TIRO_VOLLEY
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -183,6 +185,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 UNITE_LUNA,
                 HEALING_BLOOM,
                 SHOCK,
+                TIRO_VOLLEY,
                 MANA_FORCE_BLADE
         );
 
@@ -194,7 +197,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ARCHER_MULTIPLE,
                 ARCHER_MULTIPLE_LAST,
                 HEALING_BLOOM,
-                AUTO_TURRET
+                AUTO_TURRET,
+                TIRO_VOLLEY
         );
 
         // MAGIC_DAMAGE: Magic Proficiencyでダメージが伸びる(Malum限定)
