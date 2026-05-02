@@ -5,7 +5,9 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.CooldownInstance;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
@@ -330,7 +332,14 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         // cooldown だけ通常判定から外し、基礎マナ不足などの失敗条件は Iron's の判定をそのまま使う。
         // 追加マナ分だけは SpellOnCastEvent で上乗せし、足りなければ発動後に杖の過熱 cooldown へ入れる。
         cooldowns.removeCooldown(spellId);
-        CircuitHeatStaffCastEvent.reserveOverheatCast(player, spellId, plannedManaCost, originalMana, overheatTicks);
+        CircuitHeatStaffCastEvent.reserveOverheatCast(
+                player,
+                spellId,
+                plannedManaCost,
+                originalMana,
+                overheatTicks,
+                spell.getCastType() == CastType.CONTINUOUS
+        );
 
         var casted = spell.attemptInitiateCast(stack, spellLevel, level, player, castSource, true, slot);
         if (!casted) {
@@ -342,9 +351,17 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         CircuitHeatStaffOverheatManager.applyAfterBypass(player, spellId, effectiveCooldown);
         player.displayClientMessage(Component.translatable(
                 "ui.apprenticecodex.circuit_heat_staff.overheat_mana_warning",
-                plannedManaCost
+                formatOverheatManaCostForDisplay(spell, plannedManaCost)
         ).withStyle(ChatFormatting.RED), true);
         return InteractionResultHolder.consume(stack);
+    }
+
+    public static String formatOverheatManaCostForDisplay(AbstractSpell spell, int manaCost) {
+        if (spell.getCastType() != CastType.CONTINUOUS) {
+            return Integer.toString(manaCost);
+        }
+
+        return manaCost * (20 / MagicManager.CONTINUOUS_CAST_TICK_INTERVAL) + "/s";
     }
 
     private static void restoreCooldown(java.util.Map<String, CooldownInstance> cooldowns, String spellId, CooldownInstance cooldown) {

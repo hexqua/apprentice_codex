@@ -844,6 +844,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffContinuousBypassKeepsOverheatManaCost(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffContinuousBypassKeepsOverheatManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void malumHauntedBonusResolvesFromSupportedMainhandWeapons(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.malumHauntedBonusResolvesFromSupportedMainhandWeapons(helper);
     }
