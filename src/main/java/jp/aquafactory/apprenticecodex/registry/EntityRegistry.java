@@ -40,6 +40,7 @@ import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassinRifleEn
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
+import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolleyMusketEntity;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
 import net.minecraft.core.registries.Registries;
@@ -135,6 +136,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<BulletStreamMinigunEntity>> BULLET_STREAM_MINIGUN =
             regWeapon("bullet_stream_minigun", BulletStreamMinigunEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<TiroVolleyMusketEntity>> TIRO_VOLLEY_MUSKET =
+            regWeapon("tiro_volley_musket", TiroVolleyMusketEntity::new, 1);
 
     public static final DeferredHolder<EntityType<?>, EntityType<ThermalProcessThrowerEntity>> THERMAL_PROCESS_THROWER =
             regWeapon("thermal_process_thrower", ThermalProcessThrowerEntity::new, 1);
