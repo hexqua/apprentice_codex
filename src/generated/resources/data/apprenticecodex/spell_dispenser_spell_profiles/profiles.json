@@ -470,6 +470,12 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:moon_light"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:silent_assassin"
     }
   ]
 }
