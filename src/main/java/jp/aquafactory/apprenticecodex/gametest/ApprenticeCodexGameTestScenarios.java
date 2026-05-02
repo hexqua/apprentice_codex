@@ -563,7 +563,11 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var trades = createEmptyVillagerTrades();
             ErrandMageVillagerTradesEvent.onVillagerTrades(
-                    new VillagerTradesEvent(trades, VillagerProfessionRegistry.ERRAND_MAGE.get())
+                    new VillagerTradesEvent(
+                            trades,
+                            VillagerProfessionRegistry.ERRAND_MAGE.get(),
+                            helper.getLevel().registryAccess()
+                    )
             );
 
             var level1Offers = createOffers(trades.get(1), 0L);
