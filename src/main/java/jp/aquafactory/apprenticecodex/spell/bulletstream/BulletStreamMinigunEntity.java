@@ -43,6 +43,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
 
     private float damage;
     private float range;
+    private int spellLevel;
 
     private int currentTick;
     private int currentWarmUpDelayTick;
@@ -188,7 +189,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         if (hitResult.hitEntity() != null) {
             var target = hitResult.hitEntity();
             var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.BULLET_STREAM);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.BULLET_STREAM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applyDamage(target, resolveCurrentDamage(owner), source, SpellRegistry.BULLET_STREAM.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
 
         if (level instanceof ServerLevel server) {
@@ -223,6 +224,9 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     public void setDamage(float damage) {
         this.damage = damage;
     }
+    public void setSpellLevel(int spellLevel) {
+        this.spellLevel = spellLevel;
+    }
     public void setRange(float range) {
         this.range = range;
     }
@@ -233,6 +237,14 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     }
     public boolean getIsRecoilTick() {
         return entityData.get(IS_RECOIL_TICK);
+    }
+
+    private float resolveCurrentDamage(net.minecraft.world.entity.Entity owner) {
+        if (owner instanceof LivingEntity livingOwner && spellLevel > 0) {
+            return BulletStream.getDamage(SpellRegistry.BULLET_STREAM.get().getSpellPower(spellLevel, livingOwner));
+        }
+
+        return damage;
     }
 
     @Override
