@@ -21,7 +21,7 @@
     "P  "
   ],
   "result": {
-    "item": "apprenticecodex:circuit_heat_staff"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:circuit_heat_staff"
+  }
 }

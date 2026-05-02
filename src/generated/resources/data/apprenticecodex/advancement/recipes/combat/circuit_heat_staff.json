@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:pyrium_ingot"
-            ]
+            "items": "irons_spellbooks:pyrium_ingot"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_pyrium_ingot",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_pyrium_ingot"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:circuit_heat_staff"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -9,16 +9,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_circuit_heat_staff.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:circuit_heat_staff"
+      "count": 1,
+      "id": "apprenticecodex:circuit_heat_staff"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_circuit_heat_staff.title"
     }
