@@ -121,7 +121,7 @@
   "item.apprenticecodex.isekai_travel_guidebook.desc": "『ようこそMinecraftの世界へ！』",
   "item.apprenticecodex.stealth_rune_armor.desc": "この防具は透明化の効果を阻害しない。",
   "item.apprenticecodex.chromatic_magia_dress_hat.desc": "この防具は詠唱を伴う魔法の\"色\"に染まる。",
-  "item.apprenticecodex.chromatic_magia_dress_coat.desc": "この防具は使用される魔法の\"色\"に染まる。",
+  "item.apprenticecodex.chromatic_magia_dress_coat.desc": "この防具は再詠唱ができる魔法の\"色\"に染まる。",
   "item.apprenticecodex.chromatic_magia_dress_leggings.desc": "この防具は詠唱し続ける魔法の\"色\"に染まる。",
   "item.apprenticecodex.chromatic_magia_dress_boots.desc": "この防具は詠唱が不要な魔法の\"色\"に染まる。",
   "item.apprenticecodex.charged_twin_blade_staff.desc.throwable": "%dマナを消費することで杖を複製して投擲できる。",

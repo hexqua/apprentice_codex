@@ -118,7 +118,7 @@
   "item.apprenticecodex.isekai_travel_guidebook.desc": "\"Welcome to the Minecraft world!\"",
   "item.apprenticecodex.stealth_rune_armor.desc": "This armor dose not prevent invisibility effects.",
   "item.apprenticecodex.chromatic_magia_dress_hat.desc": "This armor is dyed with the \"COLOR\" of the spell casting.",
-  "item.apprenticecodex.chromatic_magia_dress_coat.desc": "This armor is dyed with the \"COLOR\" of the spell casted.",
+  "item.apprenticecodex.chromatic_magia_dress_coat.desc": "This armor is dyed with the \"COLOR\" of the recast spell.",
   "item.apprenticecodex.chromatic_magia_dress_leggings.desc": "This armor is dyed with the \"COLOR\" of the spell continuous casting.",
   "item.apprenticecodex.chromatic_magia_dress_boots.desc": "This armor is dyed with the \"COLOR\" of the spell without casting.",
   "item.apprenticecodex.charged_twin_blade_staff.desc.throwable": "%d mana to duplicate the staff and throw it.",

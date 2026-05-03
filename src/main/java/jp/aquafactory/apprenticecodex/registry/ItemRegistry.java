@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
@@ -94,6 +95,10 @@ public final class ItemRegistry {
         return ITEMS.register(id, () -> new StealthRuneArmorItem(type));
     }
 
+    private static DeferredHolder<Item, Item> chromaticMagiaDress(String id, ArmorItem.Type type) {
+        return ITEMS.register(id, () -> new ChromaticMagiaDressItem(type));
+    }
+
     public static final DeferredHolder<Item, Item> SKY_EDGE_SWORD = simple("sky_edge_sword");
     public static final DeferredHolder<Item, Item> COMMENCE_FIRE_RIFLE = simple("commence_fire_rifle");
     public static final DeferredHolder<Item, Item> QUICK_ARMS_HANDGUN = simple("quick_arms_handgun");
@@ -162,6 +167,14 @@ public final class ItemRegistry {
             stealthRuneArmor("stealth_rune_armor_leg", ArmorItem.Type.LEGGINGS);
     public static final DeferredHolder<Item, Item> STEALTH_RUNE_ARMOR_FOOT =
             stealthRuneArmor("stealth_rune_armor_foot", ArmorItem.Type.BOOTS);
+    public static final DeferredHolder<Item, Item> CHROMATIC_MAGIA_DRESS_HAT =
+            chromaticMagiaDress("chromatic_magia_dress_hat", ArmorItem.Type.HELMET);
+    public static final DeferredHolder<Item, Item> CHROMATIC_MAGIA_DRESS_COAT =
+            chromaticMagiaDress("chromatic_magia_dress_coat", ArmorItem.Type.CHESTPLATE);
+    public static final DeferredHolder<Item, Item> CHROMATIC_MAGIA_DRESS_LEGGINGS =
+            chromaticMagiaDress("chromatic_magia_dress_leggings", ArmorItem.Type.LEGGINGS);
+    public static final DeferredHolder<Item, Item> CHROMATIC_MAGIA_DRESS_BOOTS =
+            chromaticMagiaDress("chromatic_magia_dress_boots", ArmorItem.Type.BOOTS);
     public static final DeferredHolder<Item, Item> APPRENTICE_DESK =
             ITEMS.register("apprentice_desk",
                     () -> new ApprenticeDeskItem(BlockRegistry.APPRENTICE_DESK.get(), new Item.Properties()));
