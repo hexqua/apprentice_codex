@@ -95,7 +95,10 @@ public final class FocusStaffbow extends CastingItem
     private final ItemAttributeModifiers mainhandModifiers = buildMainhandModifiers();
 
     public FocusStaffbow() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+        super(new Item.Properties()
+                .stacksTo(1)
+                .rarity(Rarity.RARE)
+                .attributes(buildMainhandModifiers()));
         GeoItem.registerSyncedAnimatable(this);
     }
 
