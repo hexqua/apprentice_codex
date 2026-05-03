@@ -309,10 +309,11 @@
 				{
 					"name": "monocle",
 					"parent": "armorHead",
-					"pivot": [-3.5, 28.375, -4.125],
+					"pivot": [-4.25, 30.375, -5.375],
+					"rotation": [2.5, 0, 0],
 					"cubes": [
 						{
-							"origin": [-4.75, 26.75, -4.25],
+							"origin": [-4.75, 26.75, -5.5],
 							"size": [1, 4, 0.25],
 							"uv": {
 								"north": {"uv": [74, 80], "uv_size": [1, 4]},
@@ -328,10 +329,10 @@
 				{
 					"name": "lens_trans",
 					"parent": "monocle",
-					"pivot": [-2.75, 28, -4.125],
+					"pivot": [-2.75, 27, -5.375],
 					"cubes": [
 						{
-							"origin": [-4, 26.5, -4.25],
+							"origin": [-4, 25.5, -5.5],
 							"size": [3, 3, 0.25],
 							"inflate": 0.05,
 							"uv": {
@@ -498,6 +499,47 @@
 					]
 				},
 				{
+					"name": "core2",
+					"parent": "armorBody",
+					"pivot": [0, 19, 3.25],
+					"cubes": [
+						{
+							"origin": [-2, 17, 2.375],
+							"size": [4, 4, 1],
+							"inflate": 0.25,
+							"pivot": [0, 19, 2.875],
+							"rotation": [0, 0, 45],
+							"uv": {
+								"north": {"uv": [47, 104], "uv_size": [-4, 4]},
+								"east": {"uv": [44, 104], "uv_size": [-1, 4]},
+								"south": {"uv": [47, 104], "uv_size": [-4, 4]},
+								"west": {"uv": [47, 104], "uv_size": [-1, 4]},
+								"up": {"uv": [43, 105], "uv_size": [4, -1]},
+								"down": {"uv": [43, 108], "uv_size": [4, -1]}
+							}
+						}
+					]
+				},
+				{
+					"name": "core_main_2",
+					"parent": "core2",
+					"pivot": [0, 19, 3.625],
+					"cubes": [
+						{
+							"origin": [-1.875, 17.125, 3.25],
+							"size": [3.75, 3.75, 0.75],
+							"uv": {
+								"north": {"uv": [73, 80], "uv_size": [-4, 4]},
+								"east": {"uv": [70, 80], "uv_size": [-1, 4]},
+								"south": {"uv": [73, 80], "uv_size": [-4, 4]},
+								"west": {"uv": [73, 80], "uv_size": [-1, 4]},
+								"up": {"uv": [73, 80], "uv_size": [-4, 1]},
+								"down": {"uv": [73, 83], "uv_size": [-4, 1]}
+							}
+						}
+					]
+				},
+				{
 					"name": "bipedRightArm",
 					"pivot": [-5, 22, 0]
 				},
@@ -649,7 +691,7 @@
 					"parent": "leggings_left_main",
 					"pivot": [2, 7, 0],
 					"cubes": [
-						{"origin": [0, 2, -2], "size": [4, 10, 4], "inflate": 0.3, "uv": [0, 46]}
+						{"origin": [0, 2, -2], "size": [4, 10, 4], "inflate": 0.35, "uv": [0, 46]}
 					]
 				},
 				{
@@ -736,7 +778,7 @@
 					"parent": "leggings_right_main",
 					"pivot": [-2, 7, 0],
 					"cubes": [
-						{"origin": [-4, 2, -2], "size": [4, 10, 4], "inflate": 0.3, "uv": [32, 52]}
+						{"origin": [-4, 2, -2], "size": [4, 10, 4], "inflate": 0.35, "uv": [32, 52]}
 					]
 				},
 				{
