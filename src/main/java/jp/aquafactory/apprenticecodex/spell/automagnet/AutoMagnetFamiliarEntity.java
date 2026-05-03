@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.automagnet;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import jp.aquafactory.apprenticecodex.compat.botania.BotaniaSolegnoliaCompatBridge;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -235,6 +236,9 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
             return false;
         }
         if (item.position().distanceToSqr(ownerPos) > rangeSq) {
+            return false;
+        }
+        if (BotaniaSolegnoliaCompatBridge.preventsAutoMagnetItemCollection(owner, item)) {
             return false;
         }
         if (isRecentOwnerDrop(item, owner)) {
