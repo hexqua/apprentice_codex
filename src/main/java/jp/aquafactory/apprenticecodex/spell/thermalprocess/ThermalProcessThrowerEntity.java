@@ -57,6 +57,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
     private float damage;
     private float range;
     private float burnItemPerSecond;
+    private int spellLevel;
     private float pendingItemProcessBudget;
     private int startupTick;
     private final Set<UUID> skipProcessingItemIds = new HashSet<>();
@@ -209,6 +210,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         var beamEnd = resolveBeamEnd(level, beamStart, direction);
         var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.THERMAL_PROCESS);
         var school = SpellRegistry.THERMAL_PROCESS.get().getSchoolType();
+        var currentDamage = resolveCurrentDamage(owner);
         var hits = RaycastTools.sampleBeamHits(
                 level,
                 beamStart,
@@ -219,7 +221,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         );
 
         for (var target : hits) {
-            var applied = CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            var applied = CombatTools.applyDamage(target, currentDamage, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
             if (!applied || !(target instanceof LivingEntity livingTarget)) {
                 continue;
             }
@@ -493,6 +495,10 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         this.damage = damage;
     }
 
+    public void setSpellLevel(int spellLevel) {
+        this.spellLevel = spellLevel;
+    }
+
     public void setBurnItemPerSecond(float burnItemPerSecond) {
         this.burnItemPerSecond = Math.max(0.0f, burnItemPerSecond);
         pendingItemProcessBudget = 0.0f;
@@ -506,6 +512,14 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
     private float getEffectiveRange() {
         var synced = entityData.get(RANGE_SYNC);
         return synced > 0 ? synced : range;
+    }
+
+    private float resolveCurrentDamage(LivingEntity owner) {
+        if (spellLevel > 0) {
+            return ThermalProcess.getDamage(SpellRegistry.THERMAL_PROCESS.get().getSpellPower(spellLevel, owner));
+        }
+
+        return damage;
     }
 }
 

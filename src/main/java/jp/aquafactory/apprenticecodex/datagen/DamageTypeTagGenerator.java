@@ -39,9 +39,11 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PHALANX_CHARGE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PRECISION_JACK;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.QUICK_ARMS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SHOCK;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SILENT_ASSASSIN;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SKY_EDGE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SLASH_BLADE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.THERMAL_PROCESS;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.TIRO_VOLLEY;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.TINY_LUMBERJACK;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.UNITE_LUNA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.WORLD_FLATTER;
@@ -95,6 +97,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 COMPOUND_PHIAL,
                 GRACED_RAIN,
                 QUICK_ARMS,
+                SILENT_ASSASSIN,
                 SKY_EDGE,
                 TINY_LUMBERJACK,
                 FLY_SWATTER,
@@ -113,7 +116,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ILLUMINATE_STELLAR,
                 UNITE_LUNA,
                 HEALING_BLOOM,
-                SHOCK
+                SHOCK,
+                TIRO_VOLLEY
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -147,7 +151,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 GRIND_RUNNER,
                 ILLUMINATE_STELLAR,
                 HEALING_BLOOM,
-                HAUNTED_BONUS
+                HAUNTED_BONUS,
+                TIRO_VOLLEY
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -162,6 +167,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 COMPOUND_PHIAL,
                 GRACED_RAIN,
                 QUICK_ARMS,
+                SILENT_ASSASSIN,
                 SKY_EDGE,
                 TINY_LUMBERJACK,
                 FLY_SWATTER,
@@ -181,6 +187,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 UNITE_LUNA,
                 HEALING_BLOOM,
                 SHOCK,
+                TIRO_VOLLEY,
                 MANA_FORCE_BLADE
         );
 
@@ -192,7 +199,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ARCHER_MULTIPLE,
                 ARCHER_MULTIPLE_LAST,
                 HEALING_BLOOM,
-                AUTO_TURRET
+                AUTO_TURRET,
+                TIRO_VOLLEY
         );
 
         // MAGIC_DAMAGE: Magic Proficiencyでダメージが伸びる(Malum限定)

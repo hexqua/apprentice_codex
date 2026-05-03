@@ -103,7 +103,6 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                         profile("irons_spellbooks", "touch_dig", SpellDispenserSpellProfile.DEFAULT),
                         profile(ApprenticeCodex.MODID, "arcane_blast", SpellDispenserSpellProfile.OWNER_OPTIONAL),
                         profile(ApprenticeCodex.MODID, "arcane_beam", SpellDispenserSpellProfile.OWNER_OPTIONAL_BACKWARD),
-                        profile(ApprenticeCodex.MODID, "quick_arms", SpellDispenserSpellProfile.DEFAULT),
                         profile(ApprenticeCodex.MODID, "feather_rush", SpellDispenserSpellProfile.DEFAULT),
                         profile(ApprenticeCodex.MODID, "slash_blade", SpellDispenserSpellProfile.OWNER_OPTIONAL_UP),
                         profile(ApprenticeCodex.MODID, "precision_jack", SpellDispenserSpellProfile.DEFAULT),
@@ -126,7 +125,8 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                         profile(ApprenticeCodex.MODID, "earth_forge", SpellDispenserSpellProfile.OWNER_OPTIONAL),
                         profile(ApprenticeCodex.MODID, "grind_runner", SpellDispenserSpellProfile.OWNER_OPTIONAL),
                         profile(ApprenticeCodex.MODID, "harvest_moon", SpellDispenserSpellProfile.DEFAULT),
-                        profile(ApprenticeCodex.MODID, "moon_light", SpellDispenserSpellProfile.OWNER_OPTIONAL)
+                        profile(ApprenticeCodex.MODID, "moon_light", SpellDispenserSpellProfile.OWNER_OPTIONAL),
+                        profile(ApprenticeCodex.MODID, "silent_assassin", SpellDispenserSpellProfile.OWNER_OPTIONAL)
                 ))
         );
     }

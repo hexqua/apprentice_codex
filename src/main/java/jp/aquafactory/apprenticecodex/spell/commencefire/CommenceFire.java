@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -21,6 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRifleEntity> {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "commence_fire");
@@ -42,10 +45,10 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     public CommenceFire() {
         super(CommenceFireRifleEntity.class);
         baseSpellPower = 100;
-        spellPowerPerLevel = 25;
-        manaCostPerLevel = 25;
-        baseManaCost = 150;
-        castTime = 40;
+        spellPowerPerLevel = 30;
+        baseManaCost = 100;
+        manaCostPerLevel = 30;
+        castTime = 30;
     }
 
     @Override
@@ -99,7 +102,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     private int getHeadshotPercent(int spellLevel, LivingEntity entity) {
-        return Math.min(300, 150 + Math.round(25 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
+        return Math.min(400, 150 + Math.round(30 * (getOverSpellPower(spellLevel, entity) / 100.0f)));
     }
 
     @Override
@@ -155,8 +158,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
             return;
         }
 
-        var range = getRange();
-        var result = RaycastTools.raycastFromEye(entity, range, 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
+        var result = resolvePlayerAim(entity);
 
         // 上の判定式で非nullが保証.
         //noinspection DataFlowIssue
@@ -188,9 +190,10 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
 
     @Override
     public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull CommenceFireRifleEntity weapon){
-        var range = getRange();
-        var result = RaycastTools.raycastFromEye(entity, range, 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
-        var isHeadShot = result.hitEntity() instanceof LivingEntity living && CombatTools.isHeadShot(living, result.hitPosition());
+        // FocusStaffbow のリキャスト詠唱は castSpell 中だけ SPELL_POWER を増やすため、射撃直前に計算する。
+        weapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
+        var result = resolvePlayerAim(entity);
+        var isHeadShot = SummonedFirearmTools.isHeadShot(result);
         if (result.hitEntity() != null) {
             weapon.damageTarget(result.hitEntity(), isHeadShot, level);
         }
@@ -210,5 +213,13 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         summonWeapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
+    }
+
+    private RaycastTools.TargetResult resolvePlayerAim(LivingEntity caster) {
+        return resolvePlayerAim(caster, e -> CombatTools.isValidCombatTarget(e, caster));
+    }
+
+    private RaycastTools.TargetResult resolvePlayerAim(LivingEntity caster, Predicate<Entity> predicate) {
+        return SummonedFirearmTools.resolveAssistedAim(caster, getRange(), predicate);
     }
 }
