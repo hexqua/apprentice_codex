@@ -27,7 +27,7 @@ public class GoldSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.INSTANT),
             20 * 20,
-            true,
+            false,
             40,
             null
     );
