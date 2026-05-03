@@ -20,6 +20,7 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
     private static final String RECIPE_DIRECTORY = "recipe/malum/spirit_crucible/repair";
     private static final String ARCANE_SPIRIT = MALUM_MOD_ID + ":arcane";
     private static final String EARTH_SPIRIT = MALUM_MOD_ID + ":earth";
+    private static final String ELDRITCH_SPIRIT = MALUM_MOD_ID + ":eldritch";
     private static final String INFERNAL_SPIRIT = MALUM_MOD_ID + ":infernal";
     private static final String SACRED_SPIRIT = MALUM_MOD_ID + ":sacred";
 
@@ -60,6 +61,24 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         List.of(
                                 spirit(INFERNAL_SPIRIT, 8),
                                 spirit(SACRED_SPIRIT, 4)
+                        )
+                ),
+                recipe(
+                        "chromatic_magia_dress",
+                        1.0F,
+                        List.of(
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                                jp.aquafactory.apprenticecodex.registry.ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+                        ),
+                        io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get(),
+                        1,
+                        List.of(
+                                spirit(ARCANE_SPIRIT, 16),
+                                spirit(EARTH_SPIRIT, 16),
+                                spirit(SACRED_SPIRIT, 16),
+                                spirit(ELDRITCH_SPIRIT, 4)
                         )
                 ),
                 recipe(

@@ -9,6 +9,8 @@ import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -19,6 +21,8 @@ import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.Tags;
@@ -26,8 +30,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 public final class RecipeGenerator extends RecipeProvider {
+    private static final TagKey<Item> IRONS_WIZARD_BASE_HELMET = ironItemTag("wizard_base_helmet");
+    private static final TagKey<Item> IRONS_WIZARD_BASE_CHESTPLATE = ironItemTag("wizard_base_chestplate");
+    private static final TagKey<Item> IRONS_WIZARD_BASE_LEGGINGS = ironItemTag("wizard_base_leggings");
+    private static final TagKey<Item> IRONS_WIZARD_BASE_BOOTS = ironItemTag("wizard_base_boots");
+
     public RecipeGenerator(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries);
+    }
+
+    private static TagKey<Item> ironItemTag(String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("irons_spellbooks", path));
     }
 
     @Override
@@ -648,6 +661,8 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()))
                 .save(recipeOutput, ItemRegistry.ENCHANTRESS_BOOTS.getId());
 
+        saveChromaticMagiaDressSmithingRecipes(recipeOutput);
+
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
                         Ingredient.of(Items.GOLDEN_HELMET),
@@ -687,6 +702,45 @@ public final class RecipeGenerator extends RecipeProvider {
                 )
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get()))
                 .save(recipeOutput, ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.getId());
+    }
+
+    private void saveChromaticMagiaDressSmithingRecipes(@NotNull RecipeOutput recipeOutput) {
+        saveChromaticMagiaDressSmithingRecipe(
+                recipeOutput,
+                IRONS_WIZARD_BASE_HELMET,
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()
+        );
+        saveChromaticMagiaDressSmithingRecipe(
+                recipeOutput,
+                IRONS_WIZARD_BASE_CHESTPLATE,
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()
+        );
+        saveChromaticMagiaDressSmithingRecipe(
+                recipeOutput,
+                IRONS_WIZARD_BASE_LEGGINGS,
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()
+        );
+        saveChromaticMagiaDressSmithingRecipe(
+                recipeOutput,
+                IRONS_WIZARD_BASE_BOOTS,
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+        );
+    }
+
+    private void saveChromaticMagiaDressSmithingRecipe(
+            @NotNull RecipeOutput recipeOutput,
+            TagKey<Item> baseTag,
+            Item result
+    ) {
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                        Ingredient.of(baseTag),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()),
+                        RecipeCategory.COMBAT,
+                        result
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()))
+                .save(recipeOutput, BuiltInRegistries.ITEM.getKey(result));
     }
 
     private void saveAlchemistsFlaskSmithingRecipe(@NotNull RecipeOutput recipeOutput) {

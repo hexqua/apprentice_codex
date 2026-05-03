@@ -69,6 +69,16 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                                 .build())
                         .build()
         );
+        var chromaticMagiaDressEquipPredicate = EntityPredicate.wrap(
+                EntityPredicate.Builder.entity()
+                        .equipment(EntityEquipmentPredicate.Builder.equipment()
+                                .head(ItemPredicate.Builder.item().of(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()))
+                                .chest(ItemPredicate.Builder.item().of(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()))
+                                .legs(ItemPredicate.Builder.item().of(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()))
+                                .feet(ItemPredicate.Builder.item().of(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()))
+                                .build())
+                        .build()
+        );
 
         var root = Advancement.Builder.advancement()
                 .display(ItemRegistry.SKY_EDGE_SWORD.get(),
@@ -131,7 +141,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 )
                 .save(saver, advancementId("equip_apprentice_mage_robe"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var enchantressRobe = Advancement.Builder.advancement()
                 .parent(apprenticeMageRobe)
                 .display(ItemRegistry.ENCHANTRESS_HAT.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_enchantress_robe.title"),
@@ -148,6 +158,24 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         )
                 )
                 .save(saver, advancementId("equip_enchantress_robe"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(enchantressRobe)
+                .display(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.description"),
+                        null,
+                        AdvancementType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion(
+                        "equip_chromatic_magia_dress",
+                        CriteriaTriggers.TICK.createCriterion(
+                                new PlayerTrigger.TriggerInstance(Optional.of(chromaticMagiaDressEquipPredicate))
+                        )
+                )
+                .save(saver, advancementId("equip_chromatic_magia_dress"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)
