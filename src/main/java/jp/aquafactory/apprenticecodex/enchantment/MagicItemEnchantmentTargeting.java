@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -64,6 +65,7 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof AlchemistsFlask
                 || item instanceof EnchantressRobeItem
                 || item instanceof StealthRuneArmorItem
+                || item instanceof ChromaticMagiaDressItem
                 || item instanceof OffhandMagicCompatibleItem;
     }
 

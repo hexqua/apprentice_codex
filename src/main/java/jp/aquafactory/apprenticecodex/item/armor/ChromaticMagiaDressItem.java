@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ChromaticMagiaDressRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
@@ -19,9 +20,13 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -94,6 +99,40 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
     }
 
     @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return getEnchantmentValue(stack) > 0;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        if (enchantmentId == null) {
+            return false;
+        }
+
+        if (ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
+            return isSupportedArmorEnchantment(enchantment);
+        }
+
+        return enchantment.canApplyAtEnchantingTable(createArmorProbeStack());
+    }
+
+    @Override
+    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+        if (!super.isBookEnchantable(stack, book)) {
+            return false;
+        }
+
+        var enchantments = EnchantmentHelper.getEnchantments(book);
+        if (enchantments.isEmpty()) {
+            return true;
+        }
+
+        return enchantments.keySet().stream()
+                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
+    }
+
+    @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         var baseModifiers = super.getAttributeModifiers(slot, stack);
         if (slot != armorType.getSlot()) {
@@ -160,5 +199,18 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
                             + i
             );
         }
+    }
+
+    private boolean isSupportedArmorEnchantment(Enchantment enchantment) {
+        return EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
+    }
+
+    private ItemStack createArmorProbeStack() {
+        return switch (armorType) {
+            case HELMET -> new ItemStack(Items.LEATHER_HELMET);
+            case CHESTPLATE -> new ItemStack(Items.LEATHER_CHESTPLATE);
+            case LEGGINGS -> new ItemStack(Items.LEATHER_LEGGINGS);
+            case BOOTS -> new ItemStack(Items.LEATHER_BOOTS);
+        };
     }
 }

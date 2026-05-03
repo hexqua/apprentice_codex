@@ -7667,6 +7667,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     item -> item instanceof StealthRuneArmorItem,
                     ApprenticeCodexGameTestScenarios::expectedStealthRuneArmorEnchantments
             );
+            assertCategoryEnchantments(
+                    helper,
+                    "Chromatic Magia Dress",
+                    item -> item instanceof ChromaticMagiaDressItem,
+                    ApprenticeCodexGameTestScenarios::expectedChromaticMagiaDressEnchantments
+            );
         });
     }
     static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
@@ -9702,6 +9708,16 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(ItemStack stack) {
+        var probeStack = createArmorProbeStack(stack);
+        var expectedEnchantments = collectAllowedEnchantments(
+                probeStack,
+                enchantment -> enchantment.canApplyAtEnchantingTable(probeStack)
+        );
+        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedChromaticMagiaDressEnchantments(ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
                 probeStack,
