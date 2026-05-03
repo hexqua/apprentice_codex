@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -118,7 +119,7 @@ public class TiroVolley extends AbstractSpell implements ICastHighlightSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
+        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE.value());
     }
 
     @Override
@@ -357,10 +358,10 @@ public class TiroVolley extends AbstractSpell implements ICastHighlightSpell {
     }
 
     private static AABB makeAabbAt(EntityDimensions dims, Vec3 center) {
-        var hw = dims.width / 2.0;
+        var hw = dims.width() / 2.0;
         return new AABB(
                 center.x - hw, center.y, center.z - hw,
-                center.x + hw, center.y + dims.height, center.z + hw
+                center.x + hw, center.y + dims.height(), center.z + hw
         );
     }
 
@@ -401,7 +402,7 @@ public class TiroVolley extends AbstractSpell implements ICastHighlightSpell {
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             tag.putLong("StartGameTick", startGameTick);
             tag.putInt("NextSpawnIndex", nextSpawnIndex);
@@ -410,7 +411,7 @@ public class TiroVolley extends AbstractSpell implements ICastHighlightSpell {
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             startGameTick = nbt.getLong("StartGameTick");
             nextSpawnIndex = nbt.getInt("NextSpawnIndex");
             initialized = nbt.getBoolean("Initialized");

@@ -27,11 +27,11 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
@@ -71,11 +71,11 @@ public class TiroVolleyMusketEntity extends SummonWeaponEntity implements GeoEnt
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(RECOIL_TICK, 0);
-        entityData.define(FIRE_YAW, 0.0f);
-        entityData.define(FIRE_PITCH, 0.0f);
-        entityData.define(IS_FIRED, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RECOIL_TICK, 0);
+        builder.define(FIRE_YAW, 0.0f);
+        builder.define(FIRE_PITCH, 0.0f);
+        builder.define(IS_FIRED, false);
     }
 
     @Override

@@ -338,17 +338,17 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         // Priority: blasting -> smelting -> smoking
         var blasting = recipeManager.getRecipeFor(RecipeType.BLASTING, input, level);
         if (blasting.isPresent()) {
-            return blasting;
+            return Optional.of(blasting.get());
         }
 
         var smelting = recipeManager.getRecipeFor(RecipeType.SMELTING, input, level);
         if (smelting.isPresent()) {
-            return smelting;
+            return Optional.of(smelting.get());
         }
 
         var smoking = recipeManager.getRecipeFor(RecipeType.SMOKING, input, level);
         if (smoking.isPresent()) {
-            return smoking;
+            return Optional.of(smoking.get());
         }
 
         return Optional.empty();
