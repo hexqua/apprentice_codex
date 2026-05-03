@@ -96,7 +96,10 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     private final ItemAttributeModifiers mainhandModifiers = buildMainhandModifiers();
 
     public ChargedTwinBladeStaff() {
-        super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
+        super(new Item.Properties()
+                .stacksTo(1)
+                .rarity(Rarity.RARE)
+                .attributes(buildMainhandModifiers()));
         GeoItem.registerSyncedAnimatable(this);
     }
 
