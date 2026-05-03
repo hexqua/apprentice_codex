@@ -8845,6 +8845,23 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void autoMagnetCollectsItemsWithoutSolegnoliaBlock(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "auto_magnet_owner_test");
+        var familiar = new AutoMagnetFamiliarEntity(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), level, owner, 4.0, 0.0);
+        var item = new ItemEntity(level, owner.getX() + 2.0, owner.getY(), owner.getZ(), new ItemStack(Items.IRON_INGOT));
+        level.addFreshEntity(owner);
+        level.addFreshEntity(item);
+
+        helper.runAtTickTime(1, () -> {
+            familiar.tickOnServer(level);
+            helper.assertFalse(item.isRemoved(), "AutoMagnet test item should remain as an entity before player pickup");
+            helper.assertTrue(item.position().distanceToSqr(owner.position()) <= 0.001,
+                    "AutoMagnet should collect items when no Solegnolia blocks it");
+            helper.succeed();
+        });
+    }
+
     private static FakePlayer createHarvestMoonPlayer(GameTestHelper helper, BlockPos pos, ItemStack mainHandStack) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "harvest_moon_test"));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);

@@ -16,6 +16,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String PERSONAL_SHELF_ISOLATED_BATCH = "apprenticecodex.personal_shelf_isolated";
     private static final String COMPANION_TRUNK_ISOLATED_BATCH = "apprenticecodex.companion_trunk_isolated";
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
+    private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -148,5 +149,10 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)
     public static void harvestMoonHarvestsKelpColumnBeyondInitialYSlice(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.harvestMoonHarvestsKelpColumnBeyondInitialYSlice(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void autoMagnetCollectsItemsWithoutSolegnoliaBlock(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoMagnetCollectsItemsWithoutSolegnoliaBlock(helper);
     }
 }
