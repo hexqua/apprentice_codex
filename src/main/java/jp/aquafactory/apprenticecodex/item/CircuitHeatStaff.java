@@ -255,15 +255,16 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
             return InteractionResultHolder.pass(stack);
         }
 
-        if (isStaffOverheated(stack, level)) {
-            return InteractionResultHolder.fail(stack);
-        }
-
         if (ClientMagicData.isCasting()) {
             return InteractionResultHolder.consume(stack);
         }
 
         var spell = selection.spellData.getSpell();
+        var hasRecast = ClientMagicData.getRecasts().hasRecastForSpell(spell);
+        if (isStaffOverheated(stack, level) && !hasRecast) {
+            return InteractionResultHolder.fail(stack);
+        }
+
         var cooldown = ClientMagicData.getCooldowns().isOnCooldown(spell);
         if (cooldown) {
             return InteractionResultHolder.consume(stack);
@@ -273,13 +274,6 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     }
 
     private InteractionResultHolder<ItemStack> useServer(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
-        if (isStaffOverheated(stack, level)) {
-            player.displayClientMessage(Component.translatable(
-                    "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down"
-            ).withStyle(ChatFormatting.RED), true);
-            return InteractionResultHolder.fail(stack);
-        }
-
         var selection = new SpellSelectionManager(player).getSelection();
         if (selection == null || selection.spellData == SpellData.EMPTY) {
             return InteractionResultHolder.pass(stack);
@@ -299,6 +293,19 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), serverPlayer);
         var castSource = selection.getCastSource();
         var slot = usedHand == InteractionHand.MAIN_HAND ? SpellSelectionManager.MAINHAND : SpellSelectionManager.OFFHAND;
+        if (magicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId())) {
+            // Iron's の Recast は通常 cooldown とマナ消費を使わないため、杖過熱中でも踏み倒し連鎖とは独立して扱う。
+            var casted = spell.attemptInitiateCast(stack, spellLevel, level, serverPlayer, castSource, true, slot);
+            return casted ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
+        }
+
+        if (isStaffOverheated(stack, level)) {
+            player.displayClientMessage(Component.translatable(
+                    "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down"
+            ).withStyle(ChatFormatting.RED), true);
+            return InteractionResultHolder.fail(stack);
+        }
+
         if (!magicData.getPlayerCooldowns().isOnCooldown(spell)) {
             var casted = spell.attemptInitiateCast(stack, spellLevel, level, serverPlayer, castSource, true, slot);
             if (casted) {
