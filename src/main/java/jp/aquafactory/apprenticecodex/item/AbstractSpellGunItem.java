@@ -439,6 +439,12 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return spellGunConfig.overriddenSpellCooldownTicks();
     }
 
+    final boolean isRecastCast(@Nullable MagicData magicData, @Nullable AbstractSpell spell) {
+        return magicData != null
+                && spell != null
+                && magicData.getPlayerRecasts().hasRecastForSpell(spell);
+    }
+
     @Nullable
     private Integer getOverriddenLongCastTicks() {
         return spellGunConfig.overriddenLongCastDurationTicks();
@@ -525,7 +531,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         var ammoItem = getAmmoItem(stack, spellData);
-        if (ammoItem != null && !SpellGunCastEvent.hasAmmo(player, player.getInventory(), ammoItem)) {
+        if (ammoItem != null && !isRecastCast(magicData, spell) && !SpellGunCastEvent.hasAmmo(player, player.getInventory(), ammoItem)) {
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
                         Component.translatable("ui.apprenticecodex.missing_spell_gun_ammo", ammoItem.getDescription())

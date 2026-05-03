@@ -27,7 +27,7 @@ public class CopperSpellcasterGun extends AbstractSpellGunItem implements GeoIte
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.LONG),
             20 * 10,
-            true,
+            false,
             20,
             0
     );
