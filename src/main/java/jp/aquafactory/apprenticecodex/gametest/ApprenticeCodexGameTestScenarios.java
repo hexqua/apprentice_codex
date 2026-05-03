@@ -7696,10 +7696,15 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Circuit Heat Staff recast setup should create an active recast");
             helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
                     "Circuit Heat Staff recast setup should not leave a normal cooldown");
+            CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 100);
+            var staffOverheatBefore = CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel());
+            helper.assertTrue(staffOverheatBefore > 0,
+                    "Circuit Heat Staff recast setup should start from item overheat cooldown");
 
             var result = staffStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
-                    "Circuit Heat Staff recast should start through the recast-neutral path but got " + result.getResult());
+                    "Circuit Heat Staff recast should start through the recast-neutral path during item overheat but got "
+                            + result.getResult());
             var stateAfterUse = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
                     .getState(player, spell.getSpellId());
             helper.assertTrue(stateAfterUse.active()
@@ -7713,8 +7718,8 @@ public final class ApprenticeCodexGameTestScenarios {
             spell.castSpell(helper.getLevel(), 1, player, CastSource.SPELLBOOK, true);
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Circuit Heat Staff recast resolution should keep Iron's no-mana recast behavior: " + magicData.getMana());
-            helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
-                    "Circuit Heat Staff recast should not enter item overheat from bypass mana handling");
+            helper.assertTrue(CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel()) == staffOverheatBefore,
+                    "Circuit Heat Staff recast should ignore existing item overheat without clearing or refreshing it");
             var stateAfterCast = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
                     .getState(player, spell.getSpellId());
             helper.assertTrue(stateAfterCast.active()

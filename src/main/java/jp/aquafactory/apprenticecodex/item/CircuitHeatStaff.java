@@ -248,15 +248,16 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
             return InteractionResultHolder.pass(stack);
         }
 
-        if (isStaffOverheated(stack, level)) {
-            return InteractionResultHolder.fail(stack);
-        }
-
         if (ClientMagicData.isCasting()) {
             return InteractionResultHolder.consume(stack);
         }
 
         var spell = selection.spellData.getSpell();
+        var hasRecast = ClientMagicData.getRecasts().hasRecastForSpell(spell);
+        if (isStaffOverheated(stack, level) && !hasRecast) {
+            return InteractionResultHolder.fail(stack);
+        }
+
         var cooldown = ClientMagicData.getCooldowns().isOnCooldown(spell);
         if (cooldown) {
             return InteractionResultHolder.consume(stack);
@@ -266,13 +267,6 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     }
 
     private InteractionResultHolder<ItemStack> useServer(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
-        if (isStaffOverheated(stack, level)) {
-            player.displayClientMessage(Component.translatable(
-                    "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down"
-            ).withStyle(ChatFormatting.RED), true);
-            return InteractionResultHolder.fail(stack);
-        }
-
         var selection = new SpellSelectionManager(player).getSelection();
         if (selection == null || selection.spellData == SpellData.EMPTY) {
             return InteractionResultHolder.pass(stack);
@@ -304,8 +298,15 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         }
 
         if (magicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId())) {
-            // Iron's の Recast は通常 cooldown を消してマナ消費も行わないため、踏み倒し連鎖とは独立して扱う。
+            // Iron's の Recast は通常 cooldown とマナ消費を使わないため、杖過熱中でも踏み倒し連鎖とは独立して扱う。
             return spell.attemptInitiateCast(stack, spellLevel, level, player, castSource, true, slot);
+        }
+
+        if (isStaffOverheated(stack, level)) {
+            player.displayClientMessage(Component.translatable(
+                    "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down"
+            ).withStyle(ChatFormatting.RED), true);
+            return false;
         }
 
         if (!magicData.getPlayerCooldowns().isOnCooldown(spell)) {
