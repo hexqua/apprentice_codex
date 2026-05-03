@@ -7361,6 +7361,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     item -> item instanceof StealthRuneArmorItem,
                     stack -> expectedStealthRuneArmorEnchantments(helper.getLevel().registryAccess(), stack)
             );
+            assertCategoryEnchantments(
+                    helper,
+                    "Chromatic Magia Dress",
+                    item -> item instanceof ChromaticMagiaDressItem,
+                    stack -> expectedChromaticMagiaDressEnchantments(helper.getLevel().registryAccess(), stack)
+            );
         });
     }
     static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
@@ -10141,6 +10147,16 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        var probeStack = createArmorProbeStack(stack);
+        var expectedEnchantments = collectAllowedEnchantments(
+                registryAccess,
+                enchantment -> enchantment.value().canEnchant(probeStack)
+        );
+        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedChromaticMagiaDressEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var probeStack = createArmorProbeStack(stack);
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,

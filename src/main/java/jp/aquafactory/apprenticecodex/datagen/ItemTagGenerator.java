@@ -373,7 +373,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
-                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
+                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
         );
         tag(OFFHAND_MAGIC_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELL_AMPLIFIER.get(),
