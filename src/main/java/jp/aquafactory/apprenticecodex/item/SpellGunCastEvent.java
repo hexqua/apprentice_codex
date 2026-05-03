@@ -38,6 +38,10 @@ public final class SpellGunCastEvent {
             return;
         }
 
+        if (spellGunItem.isRecastCast(magicData, spell)) {
+            return;
+        }
+
         if (!player.isCreative()) {
             var ammoItem = spellGunItem.getAmmoItem(castingItem, spellGunItem.getPrimarySpellData(castingItem));
             if (ammoItem != null) {

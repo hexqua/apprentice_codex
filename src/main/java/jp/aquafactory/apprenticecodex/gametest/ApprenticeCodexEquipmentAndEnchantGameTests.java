@@ -34,6 +34,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcasterGunRecastImbueRestrictionsMatchTier(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcasterGunRecastImbueRestrictionsMatchTier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcasterGunRecastCastBypassesAmmoRequirement(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcasterGunRecastCastBypassesAmmoRequirement(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(helper);
     }

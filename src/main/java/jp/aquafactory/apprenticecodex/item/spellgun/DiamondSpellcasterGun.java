@@ -24,7 +24,7 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
             20 * 30,
-            true,
+            false,
             80,
             0
     );
