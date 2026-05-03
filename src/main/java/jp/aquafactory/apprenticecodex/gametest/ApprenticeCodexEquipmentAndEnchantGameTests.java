@@ -743,6 +743,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void pastelStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.pastelStaffKeepsItsExtraMiningEnchantments(helper);
     }

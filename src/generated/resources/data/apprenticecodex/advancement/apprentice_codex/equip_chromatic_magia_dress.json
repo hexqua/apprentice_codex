@@ -1,0 +1,51 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/equip_enchantress_robe",
+  "criteria": {
+    "equip_chromatic_magia_dress": {
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "equipment": {
+                "chest": {
+                  "items": "apprenticecodex:chromatic_magia_dress_coat"
+                },
+                "feet": {
+                  "items": "apprenticecodex:chromatic_magia_dress_boots"
+                },
+                "head": {
+                  "items": "apprenticecodex:chromatic_magia_dress_hat"
+                },
+                "legs": {
+                  "items": "apprenticecodex:chromatic_magia_dress_leggings"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:chromatic_magia_dress_hat"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.title"
+    }
+  },
+  "requirements": [
+    [
+      "equip_chromatic_magia_dress"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

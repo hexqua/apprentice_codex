@@ -219,22 +219,26 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(MINECRAFT_HEAD_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
-                ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()
+                ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()
         );
         tag(MINECRAFT_CHEST_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
-                ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get()
+                ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()
         );
         tag(MINECRAFT_LEG_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
                 ItemRegistry.ENCHANTRESS_LEGGINGS.get(),
-                ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get()
+                ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()
         );
         tag(MINECRAFT_FOOT_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_BOOTS.get(),
                 ItemRegistry.ENCHANTRESS_BOOTS.get(),
-                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
+                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
         );
         vanillaDurabilityEnchantableTag.add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -249,6 +253,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
@@ -264,7 +272,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
-                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
+                ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
         );
         tag(MINECRAFT_ENCHANTABLE_VANISHING).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -279,6 +291,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );

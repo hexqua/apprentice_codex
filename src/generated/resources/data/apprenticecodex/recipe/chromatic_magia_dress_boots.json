@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": {
+    "item": "irons_spellbooks:mithril_scrap"
+  },
+  "base": {
+    "tag": "irons_spellbooks:wizard_base_boots"
+  },
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:chromatic_magia_dress_boots"
+  },
+  "template": {
+    "item": "irons_spellbooks:arcane_rune"
+  }
+}

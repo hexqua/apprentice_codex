@@ -88,6 +88,8 @@ import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastCooldownMode;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
@@ -160,6 +162,7 @@ import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -7436,6 +7439,110 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Enchantress Robe chestplate should add +0.05 imbued school spell power: " + describeModifiers(modifiers));
         });
     }
+
+    static void chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA;
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER;
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                    ArmorItem.Type.CHESTPLATE, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                    ArmorItem.Type.LEGGINGS, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                    ArmorItem.Type.BOOTS, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                helper.assertTrue(item.getMaterial().value().defense().get(armorType).equals(ArmorMaterials.IRON.value().defense().get(armorType)),
+                        "Chromatic Magia Dress " + armorType + " defense should match iron");
+                helper.assertTrue(Math.abs(item.getMaterial().value().toughness() - 1.0F) < 1.0e-6F,
+                        "Chromatic Magia Dress " + armorType + " toughness should be 1");
+                helper.assertTrue(item.getEnchantmentValue(stack) == ChromaticMagiaDressStats.enchantmentValue(),
+                        "Chromatic Magia Dress " + armorType + " enchantment value changed");
+                helper.assertTrue(item.isValidRepairItem(
+                                stack,
+                                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                        ),
+                        "Chromatic Magia Dress " + armorType + " should repair with mithril scrap");
+
+                var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADD_VALUE);
+                helper.assertTrue(Math.abs(maxManaBonus - 125.0D) < 1.0e-9D,
+                        "Chromatic Magia Dress " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+                helper.assertTrue(Math.abs(spellPowerBonus - 0.15D) < 1.0e-9D,
+                        "Chromatic Magia Dress " + armorType + " spell power regression: " + describeModifiers(modifiers));
+
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
+                        "Chromatic Magia Dress " + armorType + " imbue surface regression");
+
+                var tooltipLines = new ArrayList<Component>();
+                item.appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
+                helper.assertTrue(tooltipLines.stream().anyMatch(line ->
+                                line.getContents() instanceof TranslatableContents contents
+                                        && (item.getDescriptionId() + ".desc").equals(contents.getKey())),
+                        "Chromatic Magia Dress " + armorType + " should show its lang desc key");
+            }
+        });
+    }
+    static void chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "chromatic_magia_dress_history_test");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Chromatic Magia Dress test could not resolve player mana data");
+
+            var helmet = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get());
+            var chestplate = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
+            var leggings = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
+            var boots = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get());
+            player.setItemSlot(EquipmentSlot.HEAD, helmet);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            player.setItemSlot(EquipmentSlot.LEGS, leggings);
+            player.setItemSlot(EquipmentSlot.FEET, boots);
+
+            var longSpell = SpellRegistry.COMPOUND_PHIAL.get();
+            for (int i = 0; i < 21; ++i) {
+                postSpellOnCast(player, longSpell, 1);
+            }
+            assertSchoolSpellPowerBonus(helper, helmet, EquipmentSlot.HEAD, longSpell, 0.20D,
+                    "Chromatic Magia Dress helmet should keep only the latest 20 LONG histories");
+            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, longSpell, 0.0D,
+                    "Chromatic Magia Dress chestplate should ignore non-recast LONG spells");
+
+            var continuousSpell = SpellRegistry.FORCE_FIELD.get();
+            postSpellOnCast(player, continuousSpell, 1);
+            assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, 0.01D,
+                    "Chromatic Magia Dress leggings should record CONTINUOUS spells");
+
+            var instantSpell = SpellRegistry.MANA_SLASH.get();
+            postSpellOnCast(player, instantSpell, 1);
+            assertSchoolSpellPowerBonus(helper, boots, EquipmentSlot.FEET, instantSpell, 0.01D,
+                    "Chromatic Magia Dress boots should record INSTANT spells");
+
+            var recastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
+            postSpellOnCast(player, recastSpell, 1);
+            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, 0.01D,
+                    "Chromatic Magia Dress chestplate should record initial recast-capable casts");
+
+            magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                    recastSpell.getSpellId(),
+                    1,
+                    2,
+                    100,
+                    CastSource.SPELLBOOK,
+                    null
+            ), magicData);
+            postSpellOnCast(player, recastSpell, 1);
+            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, 0.01D,
+                    "Chromatic Magia Dress chestplate should ignore casts while the same spell is in Recast");
+        });
+    }
+
     static void pastelStaffKeepsItsExtraMiningEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.PASTEL_STAFF.get());
@@ -10635,6 +10742,38 @@ public final class ApprenticeCodexGameTestScenarios {
         var actualAmount = matchingModifiers.get(0).amount();
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected " + expectedAmount + " but got " + actualAmount);
+    }
+
+    private static void postSpellOnCast(ServerPlayer player, AbstractSpell spell, int spellLevel) {
+        NeoForge.EVENT_BUS.post(new SpellOnCastEvent(
+                player,
+                spell.getSpellId(),
+                spellLevel,
+                spell.getManaCost(spellLevel),
+                spell.getSchoolType(),
+                CastSource.SPELLBOOK
+        ));
+    }
+
+    private static void assertSchoolSpellPowerBonus(
+            GameTestHelper helper,
+            ItemStack stack,
+            EquipmentSlot slot,
+            AbstractSpell spell,
+            double expectedAmount,
+            String message
+    ) {
+        var attribute = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(spell.getSchoolType());
+        helper.assertTrue(attribute != null, "Could not resolve school spell power attribute for " + spell.getSpellId());
+        var modifiers = toModifierMultimap(stack.getItem().getDefaultAttributeModifiers(stack));
+        var actualAmount = sumModifierAmount(
+                modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute)),
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+        );
+        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
+                message + ": expected=" + expectedAmount
+                        + ", actual=" + actualAmount
+                        + ", modifiers=" + describeModifiers(modifiers));
     }
 
     private static void placeAndAssertBlockEntity(
