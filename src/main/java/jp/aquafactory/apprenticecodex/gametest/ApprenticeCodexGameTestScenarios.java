@@ -52,6 +52,7 @@ import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
@@ -2827,6 +2828,81 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Gold Spellcaster Gun imbued spell should be removable");
             helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
                     "Gold Spellcaster Gun imbued spell should remain extractable in Spellcaster Workbench");
+        });
+    }
+    static void spellcasterGunRecastImbueRestrictionsMatchTier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var iron = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
+            var gold = (AbstractSpellGunItem) ItemRegistry.GOLD_SPELLCASTER_GUN.get();
+            var diamond = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
+            var instantRecastSpell = SpellRegistry.HIGANBANA.get();
+            var longRecastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
+            var continuousSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+
+            helper.assertFalse(iron.canImbueSpell(instantRecastSpell, 1),
+                    "Iron Spellcaster Gun should continue rejecting recast spells");
+            helper.assertTrue(gold.canImbueSpell(instantRecastSpell, 1),
+                    "Gold Spellcaster Gun should allow instant recast spell imbuing");
+            helper.assertTrue(diamond.canImbueSpell(instantRecastSpell, 1),
+                    "Diamond Spellcaster Gun should allow instant recast spell imbuing");
+            helper.assertTrue(diamond.canImbueSpell(longRecastSpell, 1),
+                    "Diamond Spellcaster Gun should allow long recast spell imbuing");
+            helper.assertFalse(diamond.canImbueSpell(continuousSpell, 1),
+                    "Diamond Spellcaster Gun should continue rejecting continuous spells");
+        });
+    }
+    static void spellcasterGunRecastCastBypassesAmmoRequirement(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
+            var stack = createInitializedPresetStack(item);
+            var spell = SpellRegistry.ARCHER_MULTIPLE.get();
+            applyRestrictedImbueNormalization(helper, stack, item, spell, 1);
+
+            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 12, 0), "spellgun_recast_ammo_bypass_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertFalse(firstUse.getResult().consumesAction(),
+                    "Diamond Spellcaster Gun should reject initial Archer Multiple cast without ammo");
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                    spell.getSpellId(),
+                    1,
+                    2,
+                    100,
+                    CastSource.SWORD,
+                    null
+            ), magicData);
+
+            var recastUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(recastUse.getResult().consumesAction(),
+                    "Diamond Spellcaster Gun should allow recast without ammo");
+
+            var ammoStack = new ItemStack(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(), 1);
+            player.getInventory().add(ammoStack);
+            magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                    spell.getSpellId(),
+                    1,
+                    2,
+                    100,
+                    CastSource.SWORD,
+                    null
+            ), magicData);
+            magicData.setPlayerCastingItem(stack);
+            NeoForge.EVENT_BUS.post(new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    spell.getManaCost(1),
+                    spell.getSchoolType(),
+                    CastSource.SWORD
+            ));
+            helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
+                    player,
+                    player.getInventory(),
+                    ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get()
+            ) == 1, "Recast Spellcaster Gun cast should not consume ammo from the cast event");
         });
     }
     static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
