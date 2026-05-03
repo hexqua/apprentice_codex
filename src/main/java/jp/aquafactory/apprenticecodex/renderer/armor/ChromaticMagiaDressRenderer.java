@@ -25,6 +25,7 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
     private static final String HAT_GEM_BONE = "hat_gem";
     private static final String LENS_TRANS_BONE = "lens_trans";
     private static final String CORE_MAIN_BONE = "core_main";
+    private static final String CORE_MAIN_2_BONE = "core_main_2";
     private static final String RUNE_TINT_LEFT_BONE = "rune_tint_left";
     private static final String RUNE_TINT_RIGHT_BONE = "rune_tint_right";
     private static final String BOOT_CORE_LEFT_BONE = "boot_core_left";
@@ -270,6 +271,7 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
     private static boolean isSpecialColorBone(GeoBone bone) {
         return isBoneOrChildOf(bone, HAT_GEM_BONE)
                 || isBoneOrChildOf(bone, CORE_MAIN_BONE)
+                || isBoneOrChildOf(bone, CORE_MAIN_2_BONE)
                 || isBoneOrChildOf(bone, RUNE_TINT_LEFT_BONE)
                 || isBoneOrChildOf(bone, RUNE_TINT_RIGHT_BONE)
                 || isBoneOrChildOf(bone, BOOT_CORE_LEFT_BONE)
