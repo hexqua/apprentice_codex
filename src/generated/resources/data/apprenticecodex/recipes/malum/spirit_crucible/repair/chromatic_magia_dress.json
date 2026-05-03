@@ -1,0 +1,40 @@
+{
+  "type": "malum:spirit_repair",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "durabilityPercentage": 1.0,
+  "inputs": [
+    "apprenticecodex:chromatic_magia_dress_hat",
+    "apprenticecodex:chromatic_magia_dress_coat",
+    "apprenticecodex:chromatic_magia_dress_leggings",
+    "apprenticecodex:chromatic_magia_dress_boots"
+  ],
+  "itemIdRegex": "",
+  "modIdRegex": "",
+  "repairMaterial": {
+    "count": 1,
+    "item": "irons_spellbooks:mithril_scrap"
+  },
+  "spirits": [
+    {
+      "type": "arcane",
+      "count": 16
+    },
+    {
+      "type": "earth",
+      "count": 16
+    },
+    {
+      "type": "sacred",
+      "count": 16
+    },
+    {
+      "type": "eldritch",
+      "count": 4
+    }
+  ]
+}

@@ -99,6 +99,10 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get());
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get());
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get());
+        output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get());
+        output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
+        output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
+        output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());

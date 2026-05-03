@@ -10,10 +10,12 @@ import jp.aquafactory.apprenticecodex.registry.RecipeConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.recipe.condition.ArcanumInAJarRecipeEnabledCondition;
 import jp.aquafactory.apprenticecodex.recipe.condition.ExplorersCodexRecipeEnabledCondition;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -28,9 +30,18 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public final class RecipeGenerator extends RecipeProvider {
+    private static final TagKey<Item> IRONS_WIZARD_BASE_HELMET = ironItemTag("wizard_base_helmet");
+    private static final TagKey<Item> IRONS_WIZARD_BASE_CHESTPLATE = ironItemTag("wizard_base_chestplate");
+    private static final TagKey<Item> IRONS_WIZARD_BASE_LEGGINGS = ironItemTag("wizard_base_leggings");
+    private static final TagKey<Item> IRONS_WIZARD_BASE_BOOTS = ironItemTag("wizard_base_boots");
+
     public RecipeGenerator(PackOutput output) {
         super(output);
         RecipeConditionRegistry.register();
+    }
+
+    private static TagKey<Item> ironItemTag(String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("irons_spellbooks", path));
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -655,6 +666,8 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PUMPKIN_BOOTS.get()))
                 .save(recipeWriter, ItemRegistry.ENCHANTRESS_BOOTS.getId());
 
+        saveChromaticMagiaDressSmithingRecipes(recipeWriter);
+
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
                         Ingredient.of(Items.GOLDEN_HELMET),
@@ -701,6 +714,45 @@ public final class RecipeGenerator extends RecipeProvider {
 
     }
 
+    private void saveChromaticMagiaDressSmithingRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        saveChromaticMagiaDressSmithingRecipe(
+                recipeWriter,
+                IRONS_WIZARD_BASE_HELMET,
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()
+        );
+        saveChromaticMagiaDressSmithingRecipe(
+                recipeWriter,
+                IRONS_WIZARD_BASE_CHESTPLATE,
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()
+        );
+        saveChromaticMagiaDressSmithingRecipe(
+                recipeWriter,
+                IRONS_WIZARD_BASE_LEGGINGS,
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()
+        );
+        saveChromaticMagiaDressSmithingRecipe(
+                recipeWriter,
+                IRONS_WIZARD_BASE_BOOTS,
+                ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+        );
+    }
+
+    private void saveChromaticMagiaDressSmithingRecipe(
+            @NotNull Consumer<FinishedRecipe> recipeWriter,
+            TagKey<Item> baseTag,
+            Item result
+    ) {
+        SmithingTransformRecipeBuilder.smithing(
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                        Ingredient.of(baseTag),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()),
+                        RecipeCategory.COMBAT,
+                        result
+                )
+                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()))
+                .save(recipeWriter, ForgeRegistries.ITEMS.getKey(result));
+    }
+
     private void saveMalumSpiritRepairRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
         // Malum は通常の修理判定から自動連携しないため、対象と spirit コストを明示する.
         saveMalumSpiritRepairRecipe(
@@ -733,6 +785,26 @@ public final class RecipeGenerator extends RecipeProvider {
                 List.of(
                         new MalumSpiritCost("infernal", 8),
                         new MalumSpiritCost("sacred", 4)
+                )
+        );
+
+        saveMalumSpiritRepairRecipe(
+                recipeWriter,
+                "chromatic_magia_dress",
+                List.of(
+                        ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
+                        ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
+                        ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get(),
+                        ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()
+                ),
+                io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get(),
+                1,
+                1.0f,
+                List.of(
+                        new MalumSpiritCost("arcane", 16),
+                        new MalumSpiritCost("earth", 16),
+                        new MalumSpiritCost("sacred", 16),
+                        new MalumSpiritCost("eldritch", 4)
                 )
         );
 
