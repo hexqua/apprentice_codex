@@ -8793,6 +8793,24 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertBlockNotPresent(BlockRegistry.PERSONAL_SHELF_CHEST.get(), shelfPos);
         });
     }
+
+    static void autoMagnetCollectsItemsWithoutSolegnoliaBlock(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "auto_magnet_owner_test");
+        var familiar = new AutoMagnetFamiliarEntity(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), level, owner, 4.0, 0.0);
+        var item = new ItemEntity(level, owner.getX() + 2.0, owner.getY(), owner.getZ(), new ItemStack(Items.IRON_INGOT));
+        level.addFreshEntity(owner);
+        level.addFreshEntity(item);
+
+        helper.runAtTickTime(1, () -> {
+            familiar.tickOnServer(level);
+            helper.assertFalse(item.isRemoved(), "AutoMagnet test item should remain as an entity before player pickup");
+            helper.assertTrue(item.position().distanceToSqr(owner.position()) <= 0.001,
+                    "AutoMagnet should collect items when no Solegnolia blocks it");
+            helper.succeed();
+        });
+    }
+
     static void companionTrunkRecastRecallsLoadedTrunkWhenFar(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var playerPos = new BlockPos(0, 12, 0);
