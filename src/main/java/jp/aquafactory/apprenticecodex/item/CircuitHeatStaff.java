@@ -299,6 +299,12 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), serverPlayer);
         var castSource = selection.getCastSource();
         var slot = usedHand == InteractionHand.MAIN_HAND ? SpellSelectionManager.MAINHAND : SpellSelectionManager.OFFHAND;
+        if (magicData.getPlayerRecasts().hasRecastForSpell(spell.getSpellId())) {
+            // Iron's の Recast は通常 cooldown を消してマナ消費も行わないため、踏み倒し連鎖とは独立して扱う。
+            var casted = spell.attemptInitiateCast(stack, spellLevel, level, serverPlayer, castSource, true, slot);
+            return casted ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
+        }
+
         if (!magicData.getPlayerCooldowns().isOnCooldown(spell)) {
             var casted = spell.attemptInitiateCast(stack, spellLevel, level, serverPlayer, castSource, true, slot);
             if (casted) {

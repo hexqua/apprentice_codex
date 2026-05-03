@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
@@ -7906,6 +7907,80 @@ public final class ApprenticeCodexGameTestScenarios {
             );
 
             CircuitHeatStaffCastEvent.clearReservedOverheatCast(player);
+            magicData.resetCastingState();
+        });
+    }
+
+    static void circuitHeatStaffRecastDoesNotTouchBypassOverheatState(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_recast_neutral_test");
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            var amplifierItem = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierStack = new ItemStack(amplifierItem);
+            amplifierItem.initializeSpellContainer(amplifierStack);
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+            player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Circuit Heat Staff recast test could not resolve player mana data");
+            magicData.setMana(0.0F);
+
+            jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager.applyAfterBypass(
+                    player,
+                    spell.getSpellId(),
+                    200
+            );
+            jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager.applyAfterBypass(
+                    player,
+                    spell.getSpellId(),
+                    200
+            );
+            var stateBefore = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getState(player, spell.getSpellId());
+            helper.assertTrue(stateBefore.active() && stateBefore.chainDepth() == 2,
+                    "Circuit Heat Staff recast setup should start from bypass chain depth 2 but got " + stateBefore);
+
+            magicData.getPlayerRecasts().addRecast(new RecastInstance(
+                    spell.getSpellId(),
+                    1,
+                    2,
+                    100,
+                    CastSource.SPELLBOOK,
+                    null
+            ), magicData);
+            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(spell),
+                    "Circuit Heat Staff recast setup should create an active recast");
+            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Circuit Heat Staff recast setup should not leave a normal cooldown");
+
+            var result = staffStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+                    "Circuit Heat Staff recast should start through the recast-neutral path but got " + result.getResult());
+            var stateAfterUse = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getState(player, spell.getSpellId());
+            helper.assertTrue(stateAfterUse.active()
+                            && stateAfterUse.chainDepth() == stateBefore.chainDepth()
+                            && stateAfterUse.expireGameTime() == stateBefore.expireGameTime(),
+                    "Circuit Heat Staff recast use should not mutate bypass state: " + stateAfterUse
+                            + " / before " + stateBefore);
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Circuit Heat Staff recast use should not consume mana before cast resolution: " + magicData.getMana());
+
+            spell.castSpell(helper.getLevel(), 1, player, CastSource.SPELLBOOK, true);
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Circuit Heat Staff recast resolution should keep Iron's no-mana recast behavior: " + magicData.getMana());
+            helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
+                    "Circuit Heat Staff recast should not enter item overheat from bypass mana handling");
+            var stateAfterCast = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getState(player, spell.getSpellId());
+            helper.assertTrue(stateAfterCast.active()
+                            && stateAfterCast.chainDepth() == stateBefore.chainDepth()
+                            && stateAfterCast.expireGameTime() == stateBefore.expireGameTime(),
+                    "Circuit Heat Staff recast resolution should not mutate bypass state: " + stateAfterCast
+                            + " / before " + stateBefore);
+
             magicData.resetCastingState();
         });
     }
