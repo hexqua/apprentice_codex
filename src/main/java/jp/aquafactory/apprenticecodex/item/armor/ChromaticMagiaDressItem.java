@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.armor;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -54,6 +55,10 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
 
     public boolean hasImbueSlot() {
         return armorType == Type.CHESTPLATE;
+    }
+
+    public static List<SchoolType> readSchoolHistory(ItemStack stack) {
+        return ChromaticMagiaDressHistory.readSchools(stack);
     }
 
     @Override
