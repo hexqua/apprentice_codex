@@ -7,7 +7,16 @@
     "tag": "irons_spellbooks:wizard_base_chestplate"
   },
   "result": {
-    "item": "apprenticecodex:chromatic_magia_dress_coat"
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": true,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:chromatic_magia_dress_coat"
   },
   "template": {
     "item": "irons_spellbooks:arcane_rune"

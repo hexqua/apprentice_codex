@@ -10,24 +10,16 @@
             "predicate": {
               "equipment": {
                 "chest": {
-                  "items": [
-                    "apprenticecodex:chromatic_magia_dress_coat"
-                  ]
+                  "items": "apprenticecodex:chromatic_magia_dress_coat"
                 },
                 "feet": {
-                  "items": [
-                    "apprenticecodex:chromatic_magia_dress_boots"
-                  ]
+                  "items": "apprenticecodex:chromatic_magia_dress_boots"
                 },
                 "head": {
-                  "items": [
-                    "apprenticecodex:chromatic_magia_dress_hat"
-                  ]
+                  "items": "apprenticecodex:chromatic_magia_dress_hat"
                 },
                 "legs": {
-                  "items": [
-                    "apprenticecodex:chromatic_magia_dress_leggings"
-                  ]
+                  "items": "apprenticecodex:chromatic_magia_dress_leggings"
                 }
               }
             }
@@ -38,17 +30,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.description"
     },
     "frame": "challenge",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:chromatic_magia_dress_hat",
-      "nbt": "{Damage:0}"
+      "count": 1,
+      "id": "apprenticecodex:chromatic_magia_dress_hat"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.equip_chromatic_magia_dress.title"
     }

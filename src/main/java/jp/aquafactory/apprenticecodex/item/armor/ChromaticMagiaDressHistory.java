@@ -2,11 +2,13 @@ package jp.aquafactory.apprenticecodex.item.armor;
 
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -36,22 +38,22 @@ final class ChromaticMagiaDressHistory {
             history.remove(0);
         }
 
-        var tag = stack.getOrCreateTag();
-        var listTag = new ListTag();
-        history.forEach(id -> listTag.add(StringTag.valueOf(id)));
-        tag.put(HISTORY_TAG, listTag);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            var listTag = new ListTag();
+            history.forEach(id -> listTag.add(StringTag.valueOf(id)));
+            tag.put(HISTORY_TAG, listTag);
+        });
     }
 
     static List<SchoolType> readSchools(ItemStack stack) {
         var result = new ArrayList<SchoolType>();
-        var schoolRegistry = SchoolRegistry.REGISTRY.get();
         for (var schoolId : readSchoolIds(stack)) {
             var resourceLocation = ResourceLocation.tryParse(schoolId);
             if (resourceLocation == null) {
                 continue;
             }
 
-            var schoolType = schoolRegistry.getValue(resourceLocation);
+            var schoolType = SchoolRegistry.REGISTRY.get(resourceLocation);
             if (schoolType != null) {
                 result.add(schoolType);
             }
@@ -61,8 +63,13 @@ final class ChromaticMagiaDressHistory {
 
     private static List<String> readSchoolIds(ItemStack stack) {
         var result = new ArrayList<String>();
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(HISTORY_TAG, Tag.TAG_LIST)) {
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return result;
+        }
+
+        var tag = customData.copyTag();
+        if (!tag.contains(HISTORY_TAG, Tag.TAG_LIST)) {
             return result;
         }
 

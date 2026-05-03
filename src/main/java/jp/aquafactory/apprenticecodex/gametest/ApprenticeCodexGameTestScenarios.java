@@ -7482,7 +7482,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Chromatic Magia Dress " + armorType + " imbue surface regression");
 
                 var tooltipLines = new ArrayList<Component>();
-                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+                item.appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
                 helper.assertTrue(tooltipLines.stream().anyMatch(line ->
                                 line.getContents() instanceof TranslatableContents contents
                                         && (item.getDescriptionId() + ".desc").equals(contents.getKey())),

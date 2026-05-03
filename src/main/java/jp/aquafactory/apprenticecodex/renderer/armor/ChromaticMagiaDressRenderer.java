@@ -18,7 +18,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagiaDressItem> {
     private static final String HAT_EMISSIVE_BONE = "hat_emissive";
@@ -51,9 +51,9 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
     @Override
     public void postRender(PoseStack poseStack, ChromaticMagiaDressItem animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                           int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
@@ -62,22 +62,22 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
         float hatBrightness = resolveHatEmissiveBrightness(partialTick);
         renderSpecialPass(model, poseStack, bufferSource, animatable, SpecialRenderPass.HAT_EMISSIVE,
                 EMISSIVE_RENDER_TYPE, partialTick, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                hatBrightness, hatBrightness, hatBrightness, alpha);
+                makeColor(hatBrightness, hatBrightness, hatBrightness, alpha(colour)));
 
         renderSpecialPass(model, poseStack, bufferSource, animatable, SpecialRenderPass.LENS,
-                TRANSLUCENT_RENDER_TYPE, partialTick, packedLight, packedOverlay, red, green, blue, 1.0F);
+                TRANSLUCENT_RENDER_TYPE, partialTick, packedLight, packedOverlay, makeColor(red(colour), green(colour), blue(colour), 1.0F));
 
         var specialColor = resolveSpecialColor(partialTick);
         renderSpecialPass(model, poseStack, bufferSource, animatable, SpecialRenderPass.SPECIAL_COLOR,
                 EMISSIVE_RENDER_TYPE, partialTick, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                specialColor.red(), specialColor.green(), specialColor.blue(), alpha);
+                makeColor(specialColor.red(), specialColor.green(), specialColor.blue(), alpha(colour)));
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, ChromaticMagiaDressItem animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         boolean hatEmissiveBone = isBoneOrChildOf(bone, HAT_EMISSIVE_BONE);
         boolean lensBone = isBoneOrChildOf(bone, LENS_TRANS_BONE);
         boolean specialColorBone = isSpecialColorBone(bone);
@@ -85,7 +85,7 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
         if (this.specialRenderPass == SpecialRenderPass.NONE && (hatEmissiveBone || lensBone || specialColorBone)) {
             renderChildBonesOnly(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -93,7 +93,7 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
         if (this.specialRenderPass == SpecialRenderPass.HAT_EMISSIVE) {
             renderSpecialPassBone(
                     poseStack, animatable, bone, hatEmissiveBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
@@ -101,7 +101,7 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
         if (this.specialRenderPass == SpecialRenderPass.LENS) {
             renderSpecialPassBone(
                     poseStack, animatable, bone, lensBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
@@ -109,14 +109,14 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
         if (this.specialRenderPass == SpecialRenderPass.SPECIAL_COLOR) {
             renderSpecialPassBone(
                     poseStack, animatable, bone, specialColorBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -128,8 +128,7 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
 
     private void renderSpecialPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                    ChromaticMagiaDressItem animatable, SpecialRenderPass pass, RenderType renderType,
-                                   float partialTick, int packedLight, int packedOverlay, float red, float green,
-                                   float blue, float alpha) {
+                                   float partialTick, int packedLight, int packedOverlay, int colour) {
         this.specialRenderPass = pass;
         try {
             // 特殊ボーンは通常パスと glint から切り離し、対象ボーンだけを専用 RenderType で再描画する。
@@ -143,10 +142,7 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
                     partialTick,
                     packedLight,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.specialRenderPass = SpecialRenderPass.NONE;
@@ -156,34 +152,34 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
     private void renderSpecialPassBone(PoseStack poseStack, ChromaticMagiaDressItem animatable, GeoBone bone,
                                        boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                        VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
-                                       int packedOverlay, float red, float green, float blue, float alpha) {
+                                       int packedOverlay, int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, ChromaticMagiaDressItem animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -195,10 +191,7 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
@@ -265,6 +258,18 @@ public class ChromaticMagiaDressRenderer extends GeoArmorRenderer<ChromaticMagia
 
     private static float blue(int rgb) {
         return (rgb & 0xFF) / 255.0F;
+    }
+
+    private static float alpha(int argb) {
+        return ((argb >>> 24) & 0xFF) / 255.0F;
+    }
+
+    private static int makeColor(float red, float green, float blue, float alpha) {
+        var safeAlpha = Math.round(Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F);
+        var safeRed = Math.round(Mth.clamp(red, 0.0F, 1.0F) * 255.0F);
+        var safeGreen = Math.round(Mth.clamp(green, 0.0F, 1.0F) * 255.0F);
+        var safeBlue = Math.round(Mth.clamp(blue, 0.0F, 1.0F) * 255.0F);
+        return (safeAlpha << 24) | (safeRed << 16) | (safeGreen << 8) | safeBlue;
     }
 
     private static boolean isSpecialColorBone(GeoBone bone) {
