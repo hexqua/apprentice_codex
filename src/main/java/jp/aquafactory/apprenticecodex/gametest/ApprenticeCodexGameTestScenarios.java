@@ -6563,6 +6563,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get());
             var modifiers = toModifierMultimap(stack.getAttributeModifiers());
+            var componentModifiers = stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
 
             helper.assertTrue(Math.abs(sumModifierAmount(
                     modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
@@ -6576,6 +6577,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     modifiers.get((Holder<Attribute>) io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ) - 0.10D) < 1.0e-9D, "Focus Staffbow spell power regression: " + describeModifiers(modifiers));
+            assertModifierAmount(helper, componentModifiers, Attributes.ATTACK_SPEED.value(), EquipmentSlotGroup.MAINHAND, -3.0D,
+                    AttributeModifier.Operation.ADD_VALUE, "Focus Staffbow attack speed component regression");
         });
     }
     static void chargedTwinBladeStaffKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
@@ -6660,6 +6663,8 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
             var modifiers = toModifierMultimap(stack.getAttributeModifiers());
+            var componentModifiers = stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
+            var componentModifierMap = toModifierMultimap(componentModifiers);
 
             helper.assertTrue(Math.abs(sumModifierAmount(
                     modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
@@ -6673,6 +6678,11 @@ public final class ApprenticeCodexGameTestScenarios {
                     modifiers.get((Holder<Attribute>) io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ) - 0.10D) < 1.0e-9D, "Charged Twin Blade Staff spell power regression: " + describeModifiers(modifiers));
+            helper.assertTrue(Math.abs(sumModifierAmount(
+                    componentModifierMap.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED),
+                    AttributeModifier.Operation.ADD_VALUE
+            ) - (-3.0D)) < 1.0e-9D, "Charged Twin Blade Staff attack speed component regression: "
+                    + describeModifiers(componentModifierMap));
         });
     }
     static void chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(GameTestHelper helper) {
@@ -8041,6 +8051,39 @@ public final class ApprenticeCodexGameTestScenarios {
             assertModifierAmount(helper, modifiers, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.value(),
                     EquipmentSlotGroup.MAINHAND, 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     "Unite Luna Staff holy spell power regression");
+            assertModifierAmount(
+                    helper,
+                    stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY),
+                    Attributes.ATTACK_SPEED.value(),
+                    EquipmentSlotGroup.MAINHAND,
+                    -3.2D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Unite Luna Staff attack speed component regression"
+            );
+        });
+    }
+    static void rightClickMagicWeaponsExposeBaseAttributesAsComponents(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertModifierAmount(
+                    helper,
+                    new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get())
+                            .getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY),
+                    Attributes.ATTACK_SPEED.value(),
+                    EquipmentSlotGroup.MAINHAND,
+                    -2.4D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Illuminate Stellar Staff attack speed component regression"
+            );
+            assertModifierAmount(
+                    helper,
+                    new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get())
+                            .getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY),
+                    Attributes.ATTACK_DAMAGE.value(),
+                    EquipmentSlotGroup.MAINHAND,
+                    5.0D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Illuminate Stellar Staff attack damage component regression"
+            );
         });
     }
     static void offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(GameTestHelper helper) {
@@ -10561,6 +10604,15 @@ public final class ApprenticeCodexGameTestScenarios {
                 itemName + " long spell imbue regression: expected " + allowsLong);
         helper.assertFalse(item.canImbueSpell(continuousSpell, 1),
                 itemName + " should continue rejecting continuous spells");
+        assertModifierAmount(
+                helper,
+                new ItemStack(item).getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY),
+                Attributes.ATTACK_SPEED.value(),
+                EquipmentSlotGroup.MAINHAND,
+                tier.attackSpeedModifier(),
+                AttributeModifier.Operation.ADD_VALUE,
+                itemName + " attack speed component regression"
+        );
     }
 
     private static void assertModifierAmount(

@@ -808,6 +808,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponsExposeBaseAttributesAsComponents(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.rightClickMagicWeaponsExposeBaseAttributesAsComponents(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.offhandUpgradeBridgeAppliesMainhandStoredUpgradeData(helper);
     }

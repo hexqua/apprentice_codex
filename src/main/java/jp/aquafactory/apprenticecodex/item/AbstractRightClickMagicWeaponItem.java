@@ -70,7 +70,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             double attackSpeed,
             List<AttributeBonus> handBonuses
     ) {
-        super(properties);
+        super(withBaseMainhandAttributes(properties, itemKey, attackDamage, attackSpeed, handBonuses));
         this.configuredSpell = Objects.requireNonNull(configuredSpell);
         this.configuredSpellLevel = configuredSpellLevel;
         this.startsWithPresetSpell = true;
@@ -92,7 +92,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
             double attackSpeed,
             List<AttributeBonus> handBonuses
     ) {
-        super(properties);
+        super(withBaseMainhandAttributes(properties, itemKey, attackDamage, attackSpeed, handBonuses));
         this.configuredSpell = null;
         this.configuredSpellLevel = 0;
         this.startsWithPresetSpell = false;
@@ -362,7 +362,31 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
         return casted ? CastResult.SUCCESS : CastResult.FAIL;
     }
 
+    private static Properties withBaseMainhandAttributes(
+            Properties properties,
+            String itemKey,
+            double attackDamage,
+            double attackSpeed,
+            List<AttributeBonus> handBonuses
+    ) {
+        return properties.attributes(buildBaseMainhandModifiers(
+                normalizeKeyToken(itemKey),
+                attackDamage,
+                attackSpeed,
+                handBonuses
+        ));
+    }
+
     private ItemAttributeModifiers buildBaseMainhandModifiers() {
+        return buildBaseMainhandModifiers(itemKey, attackDamage, attackSpeed, handBonuses);
+    }
+
+    private static ItemAttributeModifiers buildBaseMainhandModifiers(
+            String itemKey,
+            double attackDamage,
+            double attackSpeed,
+            List<AttributeBonus> handBonuses
+    ) {
         var builder = ItemAttributeModifiers.builder();
         builder.add(
                 Attributes.ATTACK_DAMAGE,
