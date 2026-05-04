@@ -77,7 +77,7 @@ public class EarthForgeJob {
     }
 
     private void tryPlace(ServerLevel level, BlockPos pos) {
-        if (!level.getBlockState(pos).isAir()) {
+        if (!EarthForgePlacementRules.canReplaceWithDirt(level.getBlockState(pos))) {
             return;
         }
 

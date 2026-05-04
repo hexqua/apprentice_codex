@@ -67,7 +67,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     private static final double TELEPORT_DISTANCE = 24.0;
     private static final double HORIZONTAL_JUMP_SPEED = 0.32;
     private static final double JUMP_VERTICAL_SPEED = 0.75;
-    private static final float MAX_UP_STEP = 1.1f;
+    private static final double MAX_UP_STEP = 1.1;
     private static final double FOLLOW_VERTICAL_GAP_DISTANCE = 0.75;
     private static final double FOLLOW_VERTICAL_JUMP_HORIZONTAL_DISTANCE_SQR = 0.25;
     private static final int JUMP_COOLDOWN_TICK = 10;
@@ -117,7 +117,6 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         super(entityType, level);
         xpReward = 0;
         wasOnGround = true;
-        setMaxUpStep(MAX_UP_STEP);
     }
 
     public CompanionTrunkEntity(EntityType<? extends PathfinderMob> entityType, Level level, Player owner) {
@@ -130,6 +129,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
                 .add(Attributes.MAX_HEALTH, 20.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.28)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.75)
+                .add(Attributes.STEP_HEIGHT, MAX_UP_STEP)
                 .add(Attributes.FOLLOW_RANGE, TELEPORT_DISTANCE);
     }
 
@@ -736,7 +736,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
 
     @Override
     public boolean canTrample(@NotNull BlockState state, @NotNull BlockPos pos, float fallDistance) {
-        // Forge 1.20.1 は置換先 state を渡すため、踏み荒らし対象はワールド側から確認する。
+        // NeoForge 1.21.1 は置換先 state を渡すため、踏み荒らし対象はワールド側から確認する。
         if (level().getBlockState(pos).is(Blocks.FARMLAND)) {
             return false;
         }

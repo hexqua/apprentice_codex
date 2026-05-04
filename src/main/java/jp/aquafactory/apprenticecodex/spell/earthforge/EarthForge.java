@@ -215,7 +215,7 @@ public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenti
         for (var axisA = -span; axisA <= span; axisA++) {
             for (var axisB = -span; axisB <= span; axisB++) {
                 var pos = offsetOnParallelPlane(centerPos, normal, axisA, axisB);
-                if (!level.getBlockState(pos).isAir()) {
+                if (!EarthForgePlacementRules.canReplaceWithDirt(level.getBlockState(pos))) {
                     continue;
                 }
                 positions.add(pos.immutable());
