@@ -8962,6 +8962,44 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Companion Trunk should return near its owner after falling below the world");
         });
     }
+
+    static void companionTrunkClimbsOneBlockStepWhenFollowingOwner(GameTestHelper helper) {
+        var trunkPos = new BlockPos(-2, 12, 0);
+        var ownerPos = new BlockPos(2, 13, 0);
+        prepareSummonedEntityIsolationArea(helper, trunkPos);
+        for (var x = 0; x <= 2; ++x) {
+            helper.setBlock(new BlockPos(x, 12, 0), Blocks.STONE);
+            helper.setBlock(new BlockPos(x, 13, 0), Blocks.AIR);
+            helper.setBlock(new BlockPos(x, 14, 0), Blocks.AIR);
+        }
+
+        var owner = createCompanionTrunkPlayer(helper, ownerPos);
+        var trunk = createCompanionTrunk(helper, owner, trunkPos);
+        var absoluteOwnerPos = helper.absolutePos(ownerPos);
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(trunk.onGround(),
+                    "Companion Trunk should land on the raised step after following its owner");
+            helper.assertTrue(trunk.blockPosition().getY() >= absoluteOwnerPos.getY(),
+                    "Companion Trunk should climb onto the one block step while following its owner");
+        });
+    }
+
+    static void companionTrunkLandingDoesNotTrampleFarmland(GameTestHelper helper) {
+        var farmlandPos = new BlockPos(0, 11, 0);
+        var owner = createCompanionTrunkPlayer(helper, new BlockPos(0, 12, 1));
+        helper.setBlock(farmlandPos, Blocks.FARMLAND);
+        helper.setBlock(farmlandPos.above(), Blocks.AIR);
+        helper.setBlock(farmlandPos.above(2), Blocks.AIR);
+        helper.setBlock(farmlandPos.above(3), Blocks.AIR);
+        var trunk = createCompanionTrunk(helper, owner, farmlandPos.above(4));
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(trunk.onGround(), "Companion Trunk should land on the farmland test block");
+            helper.assertBlockPresent(Blocks.FARMLAND, farmlandPos);
+        });
+    }
+
     static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var matureCropPos = new BlockPos(3, 2, 0);
