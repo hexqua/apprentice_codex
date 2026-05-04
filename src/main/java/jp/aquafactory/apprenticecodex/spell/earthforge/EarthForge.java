@@ -215,7 +215,7 @@ public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenti
         for (var axisA = -span; axisA <= span; axisA++) {
             for (var axisB = -span; axisB <= span; axisB++) {
                 var pos = offsetOnParallelPlane(centerPos, normal, axisA, axisB);
-                if (!level.getBlockState(pos).isAir()) {
+                if (!EarthForgePlacementRules.canReplaceWithDirt(level.getBlockState(pos))) {
                     continue;
                 }
                 positions.add(pos.immutable());
@@ -255,14 +255,17 @@ public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenti
 
         @Override
         public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            friendlyByteBuf.writeBoolean(centerPos != null && effectDirection != null && radius > 0);
-            if (centerPos == null || effectDirection == null || radius <= 0) {
+            var center = centerPos;
+            var direction = effectDirection;
+            var castRadius = radius;
+            friendlyByteBuf.writeBoolean(center != null && direction != null && castRadius > 0);
+            if (center == null || direction == null || castRadius <= 0) {
                 return;
             }
 
-            friendlyByteBuf.writeBlockPos(centerPos);
-            friendlyByteBuf.writeInt(effectDirection.get3DDataValue());
-            friendlyByteBuf.writeInt(radius);
+            friendlyByteBuf.writeBlockPos(center);
+            friendlyByteBuf.writeInt(direction.get3DDataValue());
+            friendlyByteBuf.writeInt(castRadius);
         }
 
         @Override
@@ -286,16 +289,19 @@ public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenti
 
         @Override
         public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+            var center = centerPos;
+            var direction = effectDirection;
+            var castRadius = radius;
             var tag = new CompoundTag();
-            if (centerPos == null || effectDirection == null || radius <= 0) {
+            if (center == null || direction == null || castRadius <= 0) {
                 return tag;
             }
 
-            tag.putInt("CenterX", centerPos.getX());
-            tag.putInt("CenterY", centerPos.getY());
-            tag.putInt("CenterZ", centerPos.getZ());
-            tag.putInt("EffectDirection", effectDirection.get3DDataValue());
-            tag.putInt("Radius", radius);
+            tag.putInt("CenterX", center.getX());
+            tag.putInt("CenterY", center.getY());
+            tag.putInt("CenterZ", center.getZ());
+            tag.putInt("EffectDirection", direction.get3DDataValue());
+            tag.putInt("Radius", castRadius);
             return tag;
         }
 
