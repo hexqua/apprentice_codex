@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.material.Fluids;
@@ -65,7 +66,10 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     private static final double FOLLOW_STOP_DISTANCE = 1.75;
     private static final double TELEPORT_DISTANCE = 24.0;
     private static final double HORIZONTAL_JUMP_SPEED = 0.32;
-    private static final double JUMP_VERTICAL_SPEED = 0.5;
+    private static final double JUMP_VERTICAL_SPEED = 0.75;
+    private static final float MAX_UP_STEP = 1.1f;
+    private static final double FOLLOW_VERTICAL_GAP_DISTANCE = 0.75;
+    private static final double FOLLOW_VERTICAL_JUMP_HORIZONTAL_DISTANCE_SQR = 0.25;
     private static final int JUMP_COOLDOWN_TICK = 10;
     private static final int HEAL_INTERVAL_TICK = 80;
     private static final double GROUND_HORIZONTAL_DAMPING = 0.08;
@@ -113,6 +117,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         super(entityType, level);
         xpReward = 0;
         wasOnGround = true;
+        setMaxUpStep(MAX_UP_STEP);
     }
 
     public CompanionTrunkEntity(EntityType<? extends PathfinderMob> entityType, Level level, Player owner) {
@@ -224,7 +229,10 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
             return;
         }
 
-        if (distanceSqr <= FOLLOW_STOP_DISTANCE * FOLLOW_STOP_DISTANCE) {
+        var toOwner = owner.position().subtract(position());
+        var verticalDistance = Math.abs(toOwner.y);
+        if (distanceSqr <= FOLLOW_STOP_DISTANCE * FOLLOW_STOP_DISTANCE
+                && verticalDistance <= FOLLOW_VERTICAL_GAP_DISTANCE) {
             getNavigation().stop();
             dampGroundMotion();
             setXRot(0.0f);
@@ -236,8 +244,11 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
             dampGroundMotion();
         }
 
-        if (onGround() && jumpCooldownTick <= 0 && distanceSqr >= FOLLOW_START_DISTANCE * FOLLOW_START_DISTANCE) {
-            performFollowJump(owner.position().subtract(position()));
+        var shouldJumpTowardOwner = distanceSqr >= FOLLOW_START_DISTANCE * FOLLOW_START_DISTANCE
+                || (verticalDistance > FOLLOW_VERTICAL_GAP_DISTANCE
+                        && toOwner.horizontalDistanceSqr() >= FOLLOW_VERTICAL_JUMP_HORIZONTAL_DISTANCE_SQR);
+        if (onGround() && jumpCooldownTick <= 0 && shouldJumpTowardOwner) {
+            performFollowJump(toOwner);
         }
 
         var movement = getDeltaMovement();
@@ -728,6 +739,15 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     @Override
     public boolean causeFallDamage(float fallDistance, float multiplier, @NotNull DamageSource damageSource) {
         return false;
+    }
+
+    @Override
+    public boolean canTrample(@NotNull BlockState state, @NotNull BlockPos pos, float fallDistance) {
+        // Forge 1.20.1 は置換先 state を渡すため、踏み荒らし対象はワールド側から確認する。
+        if (level().getBlockState(pos).is(Blocks.FARMLAND)) {
+            return false;
+        }
+        return super.canTrample(state, pos, fallDistance);
     }
 
     @Override
