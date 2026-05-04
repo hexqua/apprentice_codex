@@ -121,6 +121,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.companionTrunkIgnoresFireAndRescuesFromVoid(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = COMPANION_TRUNK_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void companionTrunkClimbsOneBlockStepWhenFollowingOwner(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.companionTrunkClimbsOneBlockStepWhenFollowingOwner(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMPANION_TRUNK_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void companionTrunkLandingDoesNotTrampleFarmland(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.companionTrunkLandingDoesNotTrampleFarmland(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)
     public static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.harvestMoonResetsMatureNetherWartAndPullsDrops(helper);
