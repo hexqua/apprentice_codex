@@ -92,6 +92,7 @@ import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
+import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackBlockClassifier;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
@@ -367,6 +368,22 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+    static void tinyLumberjackRecognizesMalumRunewoodAndSoulwoodLogs(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            assertTinyLumberjackLog(helper, "runewood_log");
+            assertTinyLumberjackLog(helper, "runewood");
+            assertTinyLumberjackLog(helper, "exposed_runewood_log");
+            assertTinyLumberjackLog(helper, "soulwood_log");
+            assertTinyLumberjackLog(helper, "soulwood");
+            assertTinyLumberjackLog(helper, "exposed_soulwood_log");
+            assertTinyLumberjackNonLog(helper, "runewood_planks");
+        });
+    }
+
     static void comfortBerriesCanBePottedAsDecoration(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var pottedComfortBerryBush = (FlowerPotBlock) BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get();
@@ -9971,6 +9988,20 @@ public final class ApprenticeCodexGameTestScenarios {
         var block = BuiltInRegistries.BLOCK.getOptional(id).orElse(null);
         helper.assertTrue(block != null, "Missing required block for GameTest: " + id);
         return block;
+    }
+
+    private static void assertTinyLumberjackLog(GameTestHelper helper, String malumBlockName) {
+        var id = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, malumBlockName);
+        var state = requireForgeBlock(helper, id).defaultBlockState();
+        helper.assertTrue(TinyLumberjackBlockClassifier.isLog(state),
+                "TinyLumberjack should recognize " + id + " as a log");
+    }
+
+    private static void assertTinyLumberjackNonLog(GameTestHelper helper, String malumBlockName) {
+        var id = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, malumBlockName);
+        var state = requireForgeBlock(helper, id).defaultBlockState();
+        helper.assertFalse(TinyLumberjackBlockClassifier.isLog(state),
+                "TinyLumberjack should not recognize " + id + " as a log");
     }
 
     private static Item requireForgeItem(GameTestHelper helper, ResourceLocation id) {
