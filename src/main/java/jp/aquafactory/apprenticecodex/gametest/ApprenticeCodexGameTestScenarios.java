@@ -20,6 +20,7 @@ import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
@@ -2460,6 +2461,16 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+
+    static void arcanumInAJarComparatorOutputMatchesStoredEssence(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertArcanumInAJarComparatorOutput(helper, new BlockPos(0, 1, 0), 0, 0, 0);
+            assertArcanumInAJarComparatorOutput(helper, new BlockPos(1, 1, 0), 3, 0, 3);
+            assertArcanumInAJarComparatorOutput(helper, new BlockPos(2, 1, 0), ArcanumInAJarBlockEntity.MAX_STORED_PARAMETER, 0, 8);
+            assertArcanumInAJarComparatorOutput(helper, new BlockPos(3, 1, 0), 0, 5, 0);
+        });
+    }
+
     static void creativeTabSpellsStayGroupedBySchool(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var apprenticeEnabledSpells = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells().stream()
@@ -11149,6 +11160,34 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(blockEntity != null, "Missing block entity for " + BuiltInRegistries.BLOCK.getKey(block));
         helper.assertTrue(blockEntity.getType() == expectedType,
                 "Block entity type mismatch for " + BuiltInRegistries.BLOCK.getKey(block) + ": " + BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType()));
+    }
+
+    private static void assertArcanumInAJarComparatorOutput(
+            GameTestHelper helper,
+            BlockPos pos,
+            int storedParameterCount,
+            int remainingOperationCount,
+            int expectedOutput
+    ) {
+        helper.setBlock(pos, BlockRegistry.ARCANUM_IN_A_JAR.get());
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof ArcanumInAJarBlockEntity,
+                "Arcanum in a Jar block entity was not created");
+
+        var tag = new CompoundTag();
+        tag.putInt("StoredParameterCount", storedParameterCount);
+        tag.putInt("RemainingOperationCount", remainingOperationCount);
+        blockEntity.load(tag);
+
+        var absolutePos = helper.absolutePos(pos);
+        var state = helper.getLevel().getBlockState(absolutePos);
+        helper.assertTrue(state.getBlock().hasAnalogOutputSignal(state),
+                "Arcanum in a Jar should advertise comparator output");
+
+        var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
+        helper.assertTrue(output == expectedOutput,
+                "Arcanum in a Jar comparator output mismatch: expected " + expectedOutput + " but got " + output);
     }
 
     private static void assertRecipeLoaded(
