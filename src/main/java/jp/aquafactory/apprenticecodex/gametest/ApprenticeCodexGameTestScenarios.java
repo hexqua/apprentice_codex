@@ -92,6 +92,7 @@ import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchService;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
+import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackBlockClassifier;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
@@ -367,6 +368,22 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+    static void tinyLumberjackRecognizesMalumRunewoodAndSoulwoodLogs(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            assertTinyLumberjackLog(helper, "runewood_log");
+            assertTinyLumberjackLog(helper, "runewood");
+            assertTinyLumberjackLog(helper, "exposed_runewood_log");
+            assertTinyLumberjackLog(helper, "soulwood_log");
+            assertTinyLumberjackLog(helper, "soulwood");
+            assertTinyLumberjackLog(helper, "exposed_soulwood_log");
+            assertTinyLumberjackNonLog(helper, "runewood_planks");
+        });
+    }
+
     static void comfortBerriesCanBePottedAsDecoration(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var pottedComfortBerryBush = (FlowerPotBlock) BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get();
@@ -6759,12 +6776,12 @@ public final class ApprenticeCodexGameTestScenarios {
             var animated = enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)).orElse(null);
             helper.assertTrue(animated != null, "Missing malum:animated enchantment");
             if (animated != null) {
-                helper.assertFalse(stack.getItem().supportsEnchantment(stack, animated),
-                        "Focus Staffbow should keep rejecting malum:animated at the enchanting table");
-                helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(animated)),
-                        "Focus Staffbow should keep rejecting malum:animated from enchanted books");
-                helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, animated),
-                        "Focus Staffbow should keep rejecting malum:animated through anvil merges");
+                helper.assertTrue(stack.getItem().supportsEnchantment(stack, animated),
+                        "Focus Staffbow should allow malum:animated at the enchanting table");
+                helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(animated)),
+                        "Focus Staffbow should allow malum:animated from enchanted books");
+                helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, animated),
+                        "Focus Staffbow should allow malum:animated through anvil merges");
             }
         });
     }
@@ -9973,6 +9990,20 @@ public final class ApprenticeCodexGameTestScenarios {
         return block;
     }
 
+    private static void assertTinyLumberjackLog(GameTestHelper helper, String malumBlockName) {
+        var id = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, malumBlockName);
+        var state = requireForgeBlock(helper, id).defaultBlockState();
+        helper.assertTrue(TinyLumberjackBlockClassifier.isLog(state),
+                "TinyLumberjack should recognize " + id + " as a log");
+    }
+
+    private static void assertTinyLumberjackNonLog(GameTestHelper helper, String malumBlockName) {
+        var id = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, malumBlockName);
+        var state = requireForgeBlock(helper, id).defaultBlockState();
+        helper.assertFalse(TinyLumberjackBlockClassifier.isLog(state),
+                "TinyLumberjack should not recognize " + id + " as a log");
+    }
+
     private static Item requireForgeItem(GameTestHelper helper, ResourceLocation id) {
         var item = BuiltInRegistries.ITEM.getOptional(id).orElse(null);
         helper.assertTrue(item != null, "Missing required item for GameTest: " + id);
@@ -10373,6 +10404,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 Enchantments.WISDOM
         ));
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 

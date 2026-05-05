@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.tinylumberjack;
 
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -10,7 +11,9 @@ public final class TinyLumberjackBlockClassifier {
     }
 
     public static boolean isLog(BlockState state) {
-        return state.is(BlockTags.LOGS) || state.is(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LOGS);
+        return state.is(BlockTags.LOGS)
+                || state.is(TagRegistry.Blocks.TINY_LUMBERJACK_FORCED_LOGS)
+                || MalumCompatibility.isRunewoodOrSoulwoodLog(state);
     }
 
     public static boolean isBreakableLeaf(BlockState state) {
