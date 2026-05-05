@@ -2483,6 +2483,16 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void spellDispenserComparatorOutputMatchesStoredMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertSpellDispenserComparatorOutput(helper, new BlockPos(0, 1, 0), 0, false, 0);
+            assertSpellDispenserComparatorOutput(helper, new BlockPos(1, 1, 0), 1, false, 1);
+            assertSpellDispenserComparatorOutput(helper, new BlockPos(2, 1, 0), SpellDispenserManaHelper.MAX_MANA / 2, false, 8);
+            assertSpellDispenserComparatorOutput(helper, new BlockPos(3, 1, 0), SpellDispenserManaHelper.MAX_MANA, false, 15);
+            assertSpellDispenserComparatorOutput(helper, new BlockPos(4, 1, 0), 0, true, 0);
+        });
+    }
+
     static void creativeTabSpellsStayGroupedBySchool(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var apprenticeEnabledSpells = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells().stream()
@@ -11250,6 +11260,39 @@ public final class ApprenticeCodexGameTestScenarios {
         var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
         helper.assertTrue(output == expectedOutput,
                 "Atelier Station comparator output mismatch: expected " + expectedOutput + " but got " + output);
+    }
+
+    private static void assertSpellDispenserComparatorOutput(
+            GameTestHelper helper,
+            BlockPos pos,
+            int currentMana,
+            boolean insertInventoryScroll,
+            int expectedOutput
+    ) {
+        helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity,
+                "Spell Dispenser block entity was not created");
+
+        if (blockEntity instanceof SpellDispenserBlockEntity spellDispenser) {
+            spellDispenser.setCurrentMana(currentMana);
+            if (insertInventoryScroll) {
+                spellDispenser.getInventory().setStackInSlot(
+                        SpellDispenserBlockEntity.SPELL_SLOT_INDEX,
+                        createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+                );
+            }
+        }
+
+        var absolutePos = helper.absolutePos(pos);
+        var state = helper.getLevel().getBlockState(absolutePos);
+        helper.assertTrue(state.getBlock().hasAnalogOutputSignal(state),
+                "Spell Dispenser should advertise comparator output");
+
+        var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
+        helper.assertTrue(output == expectedOutput,
+                "Spell Dispenser comparator output mismatch: expected " + expectedOutput + " but got " + output);
     }
 
     private static void assertRecipeLoaded(

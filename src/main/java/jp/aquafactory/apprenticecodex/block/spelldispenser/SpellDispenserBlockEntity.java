@@ -384,6 +384,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         }
 
         currentMana = normalizedMana;
+        updateComparatorOutput();
         markUpdated();
     }
 
@@ -564,8 +565,17 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             manaPotionFluid = FluidStack.EMPTY;
         }
         if (changed) {
+            updateComparatorOutput();
             markUpdated();
         }
+    }
+
+    private void updateComparatorOutput() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+
+        level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
     }
 
     private final class SpellDispenserFluidHandler implements IFluidHandler {
