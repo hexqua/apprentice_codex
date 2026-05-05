@@ -928,6 +928,9 @@ public final class ApprenticeCodexGameTestScenarios {
             enchantmentLookup.get(Enchantments.RED_ENERGY).ifPresent(enchantment -> spellcastersFlask.enchant(enchantment, 1));
             enchantmentLookup.get(Enchantments.GLOW_ENERGY).ifPresent(enchantment -> spellcastersFlask.enchant(enchantment, 1));
             var filledSpellcastersFlask = SpellcastersFlask.copyWithAddedDoses(spellcastersFlask, normalPotion, 2);
+            filledSpellcastersFlask = SpellcastersFlask.copyWithToggledEffectParticles(filledSpellcastersFlask);
+            helper.assertTrue(SpellcastersFlask.isEffectParticlesSuppressed(filledSpellcastersFlask),
+                    "Spellcaster's Flask test input should start with suppressed particles");
             var smithingInput = new net.minecraft.world.item.crafting.SmithingRecipeInput(
                     new ItemStack(Items.EMERALD),
                     filledSpellcastersFlask,
@@ -950,6 +953,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Filled Spellcaster's Flask should convert a regular potion into a splash potion");
             helper.assertTrue(PotionContentsHelper.getPotion(convertedStoredItem) == PotionContentsHelper.getPotion(normalPotion),
                     "Converted Alchemist's Flask should keep the original potion type");
+            helper.assertTrue(!SpellcastersFlask.isEffectParticlesSuppressed(convertedFlask),
+                    "Alchemist's Flask smithing recipe should reset suppressed particles");
 
             helper.assertTrue(Enchantments.getLevel(convertedFlask, Enchantments.GUZZLE) == 0,
                     "Alchemist's Flask smithing recipe should drop only Guzzle");
@@ -3088,6 +3093,27 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(presetStaffMenu.isBlockedByDefaultSpellExtraction(),
                     "Copper Swingcast Staff preset spell should keep the default-spell extraction error");
+
+            var spellcastersFlaskMenu = createSpellcasterWorkbenchMenuWithSingleInput(
+                    player,
+                    new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get())
+            );
+            var spellcastersFlaskResult = spellcastersFlaskMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+            helper.assertTrue(spellcastersFlaskResult.is(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    "Spellcaster's Flask should keep the Workbench particle toggle result");
+            helper.assertTrue(SpellcastersFlask.isEffectParticlesSuppressed(spellcastersFlaskResult),
+                    "Spellcaster's Flask Workbench result should toggle particles off from the default state");
+
+            var alchemistsFlask = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
+            var defaultAlchemistsFlask = new ItemStack(alchemistsFlask);
+            alchemistsFlask.initializeSpellContainer(defaultAlchemistsFlask);
+            var alchemistsFlaskMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, defaultAlchemistsFlask);
+            helper.assertTrue(alchemistsFlaskMenu.isBlockedByDefaultSpellExtraction(),
+                    "Alchemist's Flask preset Extract should keep the default-spell extraction error");
+            helper.assertTrue(alchemistsFlaskMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Alchemist's Flask should not create a Workbench particle toggle result");
+            helper.assertTrue(alchemistsFlaskMenu.quickMoveStack(player, SpellcasterWorkbenchMenu.RESULT_SLOT).isEmpty(),
+                    "Alchemist's Flask result slot should not allow taking a hidden particle toggle result");
         });
     }
 
@@ -6752,18 +6778,20 @@ public final class ApprenticeCodexGameTestScenarios {
                     Enchantments.TRANSCENDENCE
             );
             addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, requiredExtraEnchantments);
+            helper.assertFalse(stack.getItem() instanceof NonDamageableAnvilMergeItem,
+                    "Mana Force Blade should not keep the non-damageable anvil merge hook");
             assertRequiredExtraEnchantments(
                     helper,
                     stack,
                     requiredExtraEnchantments,
-                    true,
+                    null,
                     "Mana Force Blade"
             );
             assertRejectedExtraEnchantments(
                     helper,
                     stack,
                     registryIdSet(Enchantments.REFLUX, Enchantments.RESERVOIR),
-                    false,
+                    null,
                     "Mana Force Blade should reject mana pool/recovery enchantments"
             );
         });

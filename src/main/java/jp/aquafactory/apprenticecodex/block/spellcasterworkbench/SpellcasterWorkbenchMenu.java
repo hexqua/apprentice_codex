@@ -10,7 +10,6 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
@@ -18,10 +17,11 @@ import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWor
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
-import net.minecraft.core.registries.BuiltInRegistries;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerPlayer;
@@ -734,7 +734,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         var inputStack = container.getItem(sourceSlotIndex);
-        if (!(inputStack.getItem() instanceof AbstractPotionFlaskItem)) {
+        if (!(inputStack.getItem() instanceof SpellcastersFlask)) {
             return null;
         }
 
@@ -975,7 +975,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
                     inputStack,
                     spellContainer,
                     spellData,
-                    getUnsupportedSpellExtractionBlockReason(inputStack)
+                    getUnsupportedSpellExtractionBlockReason(inputStack, spellData)
             );
         }
 
@@ -1078,7 +1078,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
     }
 
-    private void repairExtractablePresetSpellContainerIfNeeded(ItemStack stack) {
+    private static void repairExtractablePresetSpellContainerIfNeeded(ItemStack stack) {
         if (stack.isEmpty()) {
             return;
         }
@@ -1139,19 +1139,30 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
                     inputStack,
                     spellContainer,
                     spellData,
-                    getUnsupportedSpellExtractionBlockReason(inputStack)
+                    getUnsupportedSpellExtractionBlockReason(inputStack, spellData)
             );
         }
 
         return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, null);
     }
 
-    private static SpellExtractionBlockReason getUnsupportedSpellExtractionBlockReason(ItemStack stack) {
+    private static SpellExtractionBlockReason getUnsupportedSpellExtractionBlockReason(ItemStack stack, SpellData spellData) {
+        if (isAlchemistsFlaskDefaultExtract(stack, spellData)) {
+            return SpellExtractionBlockReason.DEFAULT_SPELL;
+        }
+
         if (stack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
                 && !canCreateAnyExtractableWorkbenchImbue(stack, restrictedSpellImbuableItem)) {
             return SpellExtractionBlockReason.NOT_ALLOWED;
         }
         return SpellExtractionBlockReason.DEFAULT_SPELL;
+    }
+
+    private static boolean isAlchemistsFlaskDefaultExtract(ItemStack stack, SpellData spellData) {
+        return stack.getItem() instanceof AlchemistsFlask
+                && spellData != SpellData.EMPTY
+                && spellData.getSpell() == SpellRegistry.EXTRACT.get()
+                && spellData.getLevel() == 1;
     }
 
     private static boolean isAllowedSpellExtractionItem(ItemStack stack) {
@@ -1181,7 +1192,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private boolean consumeFlaskForParticleToggle(int sourceSlotIndex) {
         var inputStack = container.getItem(sourceSlotIndex);
-        if (!(inputStack.getItem() instanceof AbstractPotionFlaskItem)) {
+        if (!(inputStack.getItem() instanceof SpellcastersFlask)) {
             return false;
         }
 
