@@ -74,7 +74,7 @@ repositories {
         }
     }
 
-    // JEI
+    // JEI / Patchouli
     maven {
         url = uri("https://maven.blamejared.com")
     }
@@ -177,7 +177,8 @@ dependencies {
     runtimeOnly fg.deobf("maven.modrinth:jade:LecuGude")
 
     // Patchouli.
-    runtimeOnly fg.deobf("curse.maven:patchouli-306770:6164575")
+    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
+    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
 }
 
 tasks.named('processResources', ProcessResources).configure {

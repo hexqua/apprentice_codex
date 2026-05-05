@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
+import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
@@ -109,6 +110,9 @@ public final class ClientModBusEvents {
 
     @SuppressWarnings("removal")
     private static void onClientSetup(FMLClientSetupEvent event) {
+        if (ModList.get().isLoaded("patchouli")) {
+            event.enqueueWork(PatchouliBuiltinTemplateSupport::registerBuiltinTemplates);
+        }
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.APPRENTICE_DESK.get(), ApprenticeDeskScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELLCASTER_WORKBENCH.get(), SpellcasterWorkbenchScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELL_DISPENSER.get(), SpellDispenserScreen::new));
