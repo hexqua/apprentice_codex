@@ -10,7 +10,6 @@ import jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRe
 import jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskTransferRecipe;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipeSerializer;
-import jp.aquafactory.apprenticecodex.recipe.crafting.IronsGuideBookRepairRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
@@ -45,11 +44,6 @@ public final class RecipeRegistry {
             RECIPE_SERIALIZERS.register("alchemists_flask_smithing", AlchemistsFlaskSmithingRecipeSerializer::new);
     public static final RegistryObject<RecipeSerializer<SpellcasterWorkbenchRecipe>> SPELLCASTER_WORKBENCH_SERIALIZER =
             RECIPE_SERIALIZERS.register("spellcaster_workbench", SpellcasterWorkbenchRecipeSerializer::new);
-    public static final RegistryObject<RecipeSerializer<IronsGuideBookRepairRecipe>> IRONS_GUIDE_BOOK_REPAIR_SERIALIZER =
-            RECIPE_SERIALIZERS.register(
-                    "irons_guide_book_repair",
-                    () -> new SimpleCraftingRecipeSerializer<>(IronsGuideBookRepairRecipe::new)
-            );
     public static final RegistryObject<RecipeSerializer<ExplorersCaneLodestoneBindRecipe>> EXPLORERS_CANE_LODESTONE_BIND_SERIALIZER =
             RECIPE_SERIALIZERS.register(
                     "explorers_cane_lodestone_bind",
