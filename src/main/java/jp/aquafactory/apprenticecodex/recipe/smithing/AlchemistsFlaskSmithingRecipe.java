@@ -28,6 +28,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String STORAGE_TAG = "SpellcastersFlask";
     private static final String STORED_ITEM_TAG = "StoredItem";
+    private static final String PARTICLES_SUPPRESSED_TAG = "ParticlesSuppressed";
 
     private final Ingredient template;
     private final Ingredient base;
@@ -66,6 +67,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
                 ? result.copy()
                 : baseStack.transmuteCopy(result.getItem(), result.getCount());
         replaceStoredItem(resultStack, convertedStoredItem);
+        resetEffectParticlesSuppression(resultStack);
         removeGuzzleEnchantment(resultStack);
         backfillMissingDefaultComponents(resultStack, result);
         return resultStack;
@@ -174,6 +176,22 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
                     : new CompoundTag();
             storageTag.put(STORED_ITEM_TAG, storedItem.saveOptional(SERIALIZATION_LOOKUP));
             tag.put(STORAGE_TAG, storageTag);
+        });
+    }
+
+    private static void resetEffectParticlesSuppression(ItemStack resultStack) {
+        CustomData.update(DataComponents.CUSTOM_DATA, resultStack, tag -> {
+            if (!tag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)) {
+                return;
+            }
+
+            var storageTag = tag.getCompound(STORAGE_TAG).copy();
+            storageTag.remove(PARTICLES_SUPPRESSED_TAG);
+            if (storageTag.getAllKeys().isEmpty()) {
+                tag.remove(STORAGE_TAG);
+            } else {
+                tag.put(STORAGE_TAG, storageTag);
+            }
         });
     }
 
