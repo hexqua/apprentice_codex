@@ -532,6 +532,9 @@
   "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down": "Circuit is overheating, cannot cast...",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",
+  "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist": "This item does not contain any spell",
+  "ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow": "Spells imbued into this item cannot be extracted later",
+
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.casting_mobility": "Casting Mobility",
   "effect.apprenticecodex.intelligence": "Intelligence",

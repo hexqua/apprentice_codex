@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.spellcasterworkbench;
 
+import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
@@ -144,6 +145,18 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     public boolean isBlockedByUnsupportedSpellExtraction() {
         return getBlockedSpellExtractionReason() == SpellExtractionBlockReason.NOT_ALLOWED;
+    }
+
+    public boolean isBlockedByMissingSpellExtraction() {
+        return getBlockedSpellExtractionReason() == SpellExtractionBlockReason.MISSING_SPELL;
+    }
+
+    public boolean isWarnedByUnsupportedEmptySpellExtraction() {
+        return getBlockedSpellExtractionReason() == SpellExtractionBlockReason.EMPTY_NOT_ALLOWED;
+    }
+
+    public boolean isSpellExtractionBlocked() {
+        return getBlockedSpellExtractionReason() != null;
     }
 
     @Override
@@ -682,7 +695,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private @Nullable SpellExtractionBlockReason getBlockedSpellExtractionReason() {
         var extractionContext = getSpellExtractionContext();
-        return extractionContext == null ? null : extractionContext.blockReason();
+        if (extractionContext != null) {
+            return extractionContext.blockReason();
+        }
+        return getEmptySpellExtractionBlockReason();
     }
 
     private @Nullable SpellExtractionContext getSpellExtractionContext() {
@@ -693,6 +709,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
         var inputStack = container.getItem(sourceSlotIndex);
         repairExtractablePresetSpellContainerIfNeeded(inputStack);
+        initializePresetSpellContainerIfNeeded(inputStack);
         if (!ISpellContainer.isSpellContainer(inputStack)) {
             return null;
         }
@@ -713,10 +730,46 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         if (!canRemoveExtractedSpell(inputStack, spellContainer, extractionIndex, spellData)) {
-            return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.DEFAULT_SPELL);
+            return new SpellExtractionContext(
+                    sourceSlotIndex,
+                    extractionIndex,
+                    inputStack,
+                    spellContainer,
+                    spellData,
+                    getUnsupportedSpellExtractionBlockReason(inputStack)
+            );
         }
 
         return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, null);
+    }
+
+    private @Nullable SpellExtractionBlockReason getEmptySpellExtractionBlockReason() {
+        var sourceSlotIndex = findSingleOccupiedInputSlot();
+        if (sourceSlotIndex < 0) {
+            return null;
+        }
+
+        var inputStack = container.getItem(sourceSlotIndex);
+        repairExtractablePresetSpellContainerIfNeeded(inputStack);
+        initializePresetSpellContainerIfNeeded(inputStack);
+        if (!ISpellContainer.isSpellContainer(inputStack)) {
+            return null;
+        }
+
+        var spellContainer = ISpellContainer.get(inputStack);
+        if (spellContainer == null || spellContainer.getActiveSpellCount() > 0) {
+            return null;
+        }
+
+        if (inputStack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem) {
+            return restrictedSpellImbuableItem.canRemoveEmptyWorkbenchSpell(inputStack)
+                    ? SpellExtractionBlockReason.MISSING_SPELL
+                    : SpellExtractionBlockReason.EMPTY_NOT_ALLOWED;
+        }
+
+        return isAllowedSpellExtractionItem(inputStack)
+                ? SpellExtractionBlockReason.MISSING_SPELL
+                : SpellExtractionBlockReason.EMPTY_NOT_ALLOWED;
     }
 
     private int findSingleOccupiedInputSlot() {
@@ -777,6 +830,16 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
     }
 
+    private static void initializePresetSpellContainerIfNeeded(ItemStack stack) {
+        if (stack.isEmpty() || ISpellContainer.isSpellContainer(stack)) {
+            return;
+        }
+
+        if (stack.getItem() instanceof IPresetSpellContainer presetSpellContainer) {
+            presetSpellContainer.initializeSpellContainer(stack);
+        }
+    }
+
     private @Nullable SpellExtractionContext getSpellExtractionContext(int sourceSlotIndex) {
         if (sourceSlotIndex < 0 || sourceSlotIndex >= INPUT_SLOT_COUNT) {
             return null;
@@ -784,6 +847,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
         var inputStack = container.getItem(sourceSlotIndex);
         repairExtractablePresetSpellContainerIfNeeded(inputStack);
+        initializePresetSpellContainerIfNeeded(inputStack);
         if (!ISpellContainer.isSpellContainer(inputStack)) {
             return null;
         }
@@ -804,10 +868,25 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         if (!canRemoveExtractedSpell(inputStack, spellContainer, extractionIndex, spellData)) {
-            return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, SpellExtractionBlockReason.DEFAULT_SPELL);
+            return new SpellExtractionContext(
+                    sourceSlotIndex,
+                    extractionIndex,
+                    inputStack,
+                    spellContainer,
+                    spellData,
+                    getUnsupportedSpellExtractionBlockReason(inputStack)
+            );
         }
 
         return new SpellExtractionContext(sourceSlotIndex, extractionIndex, inputStack, spellContainer, spellData, null);
+    }
+
+    private static SpellExtractionBlockReason getUnsupportedSpellExtractionBlockReason(ItemStack stack) {
+        if (stack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
+                && !restrictedSpellImbuableItem.canRemoveEmptyWorkbenchSpell(stack)) {
+            return SpellExtractionBlockReason.NOT_ALLOWED;
+        }
+        return SpellExtractionBlockReason.DEFAULT_SPELL;
     }
 
     private static boolean isAllowedSpellExtractionItem(ItemStack stack) {
@@ -899,7 +978,9 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private enum SpellExtractionBlockReason {
         DEFAULT_SPELL,
-        NOT_ALLOWED
+        NOT_ALLOWED,
+        MISSING_SPELL,
+        EMPTY_NOT_ALLOWED
     }
 
     private record FlaskParticleToggle(

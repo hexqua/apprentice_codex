@@ -27,4 +27,8 @@ public interface RestrictedSpellImbuableItem {
     default boolean canRemoveWorkbenchSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
         return spellData.canRemove();
     }
+
+    default boolean canRemoveEmptyWorkbenchSpell(ItemStack stack) {
+        return true;
+    }
 }

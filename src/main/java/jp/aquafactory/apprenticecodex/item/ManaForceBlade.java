@@ -286,6 +286,11 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     @Override
+    public boolean canRemoveEmptyWorkbenchSpell(ItemStack stack) {
+        return false;
+    }
+
+    @Override
     public ItemStack createSpellSlotUpgradeResult(ItemStack baseStack, SpellSlotUpgradeItem upgradeItem) {
         return ItemStack.EMPTY;
     }
