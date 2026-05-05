@@ -244,6 +244,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         }
 
         setChanged();
+        updateComparatorOutput();
         syncToClient();
         return storedParameterCount;
     }
@@ -341,6 +342,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         }
 
         setChanged();
+        updateComparatorOutput();
         syncToClient();
     }
 
@@ -355,7 +357,16 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         progressStartGameTime = -1L;
         legacyPlacedGameTime = -1L;
         setChanged();
+        updateComparatorOutput();
         syncToClient();
+    }
+
+    private void updateComparatorOutput() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+
+        level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
     }
 
     private boolean shouldProcess() {

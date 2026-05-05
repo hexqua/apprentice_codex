@@ -150,6 +150,11 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserComparatorOutputMatchesStoredMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellDispenserComparatorOutputMatchesStoredMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserSneakPlacementStartsAtZeroMana(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellDispenserSneakPlacementStartsAtZeroMana(helper);
     }

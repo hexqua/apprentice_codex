@@ -421,6 +421,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         }
 
         currentMana = normalizedMana;
+        updateComparatorOutput();
         markUpdated();
     }
 
@@ -604,8 +605,17 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
             manaPotionFluid = FluidStack.EMPTY;
         }
         if (changed) {
+            updateComparatorOutput();
             markUpdated();
         }
+    }
+
+    private void updateComparatorOutput() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+
+        level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
     }
 
     private final class SpellDispenserFluidHandler implements IFluidHandler {
