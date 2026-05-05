@@ -534,6 +534,7 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist": "This item does not contain any spell",
   "ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow": "Spells imbued into this item cannot be extracted later",
+  "ui.apprenticecodex.spellcaster_workbench.cant_imbue_unsupported_equipment": "This workbench does not support imbuing this item. Use an Arcane Anvil instead",
 
   "effect.apprenticecodex.arcane_charge": "Arcane Charge",
   "effect.apprenticecodex.casting_mobility": "Casting Mobility",

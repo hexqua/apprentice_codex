@@ -159,6 +159,14 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return getBlockedSpellExtractionReason() != null;
     }
 
+    public boolean isBlockedByUnsupportedWorkbenchImbue() {
+        return getBlockedWorkbenchImbueReason() == WorkbenchImbueBlockReason.UNSUPPORTED_EQUIPMENT;
+    }
+
+    public boolean isResultBlocked() {
+        return isSpellExtractionBlocked() || isBlockedByUnsupportedWorkbenchImbue();
+    }
+
     @Override
     public boolean clickMenuButton(@NotNull Player player, int buttonId) {
         var iconIndex = buttonId & ~SHIFT_FILL_FLAG;
@@ -491,6 +499,18 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        var workbenchImbue = getActiveWorkbenchImbue();
+        if (workbenchImbue != null) {
+            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
+            if (!consumeWorkbenchImbueInputs(workbenchImbue.sourceSlotIndex(), workbenchImbue.scrollSlotIndex())) {
+                return;
+            }
+
+            playCraftSound();
+            setupResultSlot();
+            return;
+        }
+
         var extraction = getActiveSpellExtraction();
         if (extraction != null) {
             craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
@@ -598,6 +618,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return buildSpellExtraction();
     }
 
+    private @Nullable WorkbenchImbue getActiveWorkbenchImbue() {
+        return buildWorkbenchImbue();
+    }
+
     private @Nullable FlaskParticleToggle getActiveFlaskParticleToggle() {
         return buildFlaskParticleToggle();
     }
@@ -606,6 +630,11 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         var activeRecipe = getActiveRecipe();
         if (activeRecipe != null) {
             return activeRecipe.getPrimaryResultTemplate();
+        }
+
+        var workbenchImbue = getActiveWorkbenchImbue();
+        if (workbenchImbue != null) {
+            return workbenchImbue.resultTemplate().copy();
         }
 
         var extraction = getActiveSpellExtraction();
@@ -663,6 +692,30 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
                 .toList();
     }
 
+    private @Nullable WorkbenchImbue buildWorkbenchImbue() {
+        var context = getWorkbenchImbueContext();
+        if (context == null || context.blockReason() != null || context.spellImbueItem() == null
+                || !hasAvailableSpellSlot(context.normalizedBaseStack())) {
+            return null;
+        }
+
+        var spellImbueItem = context.spellImbueItem();
+        var resultStack = spellImbueItem.createArcaneAnvilImbueResult(
+                context.normalizedBaseStack(),
+                context.spellData()
+        );
+        if (resultStack.isEmpty()) {
+            return null;
+        }
+
+        resultStack.setCount(1);
+        if (!canExtractWorkbenchImbuedSpell(spellImbueItem, resultStack, context.spellData())) {
+            return null;
+        }
+
+        return new WorkbenchImbue(context.sourceSlotIndex(), context.scrollSlotIndex(), resultStack);
+    }
+
     private @Nullable SpellExtraction buildSpellExtraction() {
         var extractionContext = getSpellExtractionContext();
         if (extractionContext == null || extractionContext.blockReason() != null) {
@@ -699,6 +752,192 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return extractionContext.blockReason();
         }
         return getEmptySpellExtractionBlockReason();
+    }
+
+    private @Nullable WorkbenchImbueBlockReason getBlockedWorkbenchImbueReason() {
+        var context = getWorkbenchImbueContext();
+        return context == null ? null : context.blockReason();
+    }
+
+    private @Nullable WorkbenchImbueContext getWorkbenchImbueContext() {
+        var sourceSlotIndex = -1;
+        var scrollSlotIndex = -1;
+        for (var slotIndex = 0; slotIndex < INPUT_SLOT_COUNT; ++slotIndex) {
+            var inputStack = container.getItem(slotIndex);
+            if (inputStack.isEmpty()) {
+                continue;
+            }
+
+            if (inputStack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll) {
+                if (scrollSlotIndex >= 0) {
+                    return null;
+                }
+                scrollSlotIndex = slotIndex;
+                continue;
+            }
+
+            if (sourceSlotIndex >= 0) {
+                return null;
+            }
+            sourceSlotIndex = slotIndex;
+        }
+
+        if (sourceSlotIndex < 0 || scrollSlotIndex < 0) {
+            return null;
+        }
+
+        var inputStack = container.getItem(sourceSlotIndex);
+        var scrollStack = container.getItem(scrollSlotIndex);
+        var scrollContainer = ISpellContainer.get(scrollStack);
+        if (scrollContainer == null) {
+            return null;
+        }
+
+        var spellData = scrollContainer.getSpellAtIndex(0);
+        if (spellData == SpellData.EMPTY) {
+            return null;
+        }
+
+        var normalizedBaseStack = inputStack.copy();
+        normalizedBaseStack.setCount(1);
+        repairExtractablePresetSpellContainerIfNeeded(normalizedBaseStack);
+        initializePresetSpellContainerIfNeeded(normalizedBaseStack);
+        var spellImbueItem = inputStack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
+                ? restrictedSpellImbuableItem
+                : null;
+
+        if (spellImbueItem == null) {
+            if (!ISpellContainer.isSpellContainer(normalizedBaseStack)) {
+                return null;
+            }
+
+            // 他 MOD の Imbue 対象は制約を判断できないため、Workbench ではなく Arcane Anvil へ誘導する。
+            return new WorkbenchImbueContext(
+                    sourceSlotIndex,
+                    scrollSlotIndex,
+                    null,
+                    normalizedBaseStack,
+                    spellData,
+                    WorkbenchImbueBlockReason.UNSUPPORTED_EQUIPMENT
+            );
+        }
+
+        if (!spellImbueItem.canImbueSpell(spellData)) {
+            return null;
+        }
+
+        spellImbueItem.normalizeImbuedSpellContainer(normalizedBaseStack);
+
+        if (!canCreateExtractableWorkbenchImbue(spellImbueItem, normalizedBaseStack, spellData)) {
+            return new WorkbenchImbueContext(
+                    sourceSlotIndex,
+                    scrollSlotIndex,
+                    spellImbueItem,
+                    normalizedBaseStack,
+                    spellData,
+                    WorkbenchImbueBlockReason.UNSUPPORTED_EQUIPMENT
+            );
+        }
+
+        return new WorkbenchImbueContext(sourceSlotIndex, scrollSlotIndex, spellImbueItem, normalizedBaseStack, spellData, null);
+    }
+
+    private static boolean canCreateExtractableWorkbenchImbue(
+            RestrictedSpellImbuableItem spellImbueItem,
+            ItemStack normalizedBaseStack,
+            SpellData spellData
+    ) {
+        if (!hasAvailableSpellSlot(normalizedBaseStack)) {
+            return true;
+        }
+
+        var resultStack = spellImbueItem.createArcaneAnvilImbueResult(normalizedBaseStack, spellData);
+        if (resultStack.isEmpty()) {
+            return false;
+        }
+
+        return canExtractWorkbenchImbuedSpell(spellImbueItem, resultStack, spellData);
+    }
+
+    private static boolean canCreateAnyExtractableWorkbenchImbue(
+            ItemStack stack,
+            RestrictedSpellImbuableItem spellImbueItem
+    ) {
+        var probeStack = createEmptyWorkbenchImbueProbe(stack, spellImbueItem);
+        if (!hasAvailableSpellSlot(probeStack)) {
+            return false;
+        }
+
+        for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
+            for (var level = spell.getMinLevel(); level <= spell.getMaxLevel(); ++level) {
+                var spellData = new SpellData(spell, level);
+                if (spellImbueItem.canImbueSpell(spellData)
+                        && canCreateExtractableWorkbenchImbue(spellImbueItem, probeStack, spellData)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static ItemStack createEmptyWorkbenchImbueProbe(
+            ItemStack stack,
+            RestrictedSpellImbuableItem spellImbueItem
+    ) {
+        var probeStack = stack.copy();
+        probeStack.setCount(1);
+        repairExtractablePresetSpellContainerIfNeeded(probeStack);
+        initializePresetSpellContainerIfNeeded(probeStack);
+
+        var spellContainer = ISpellContainer.get(probeStack);
+        var spellSlotCount = spellContainer == null ? 1 : Math.max(1, spellContainer.getMaxSpellCount());
+        ISpellContainer.set(probeStack, ISpellContainer.create(spellSlotCount, false, false));
+        // 実アイテムの正規化結果で、後から Workbench 抽出できる Imbue かを判定する。
+        spellImbueItem.normalizeImbuedSpellContainer(probeStack);
+        return probeStack;
+    }
+
+    private static boolean hasAvailableSpellSlot(ItemStack stack) {
+        var spellContainer = ISpellContainer.get(stack);
+        if (spellContainer == null) {
+            return false;
+        }
+
+        for (var index = 0; index < spellContainer.getMaxSpellCount(); ++index) {
+            if (spellContainer.getSpellAtIndex(index) == SpellData.EMPTY) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean canExtractWorkbenchImbuedSpell(
+            RestrictedSpellImbuableItem spellImbueItem,
+            ItemStack resultStack,
+            SpellData expectedSpellData
+    ) {
+        var spellContainer = ISpellContainer.get(resultStack);
+        if (spellContainer == null) {
+            return false;
+        }
+
+        for (var index = 0; index < spellContainer.getMaxSpellCount(); ++index) {
+            var spellData = spellContainer.getSpellAtIndex(index);
+            if (!isSameSpellData(spellData, expectedSpellData)) {
+                continue;
+            }
+            if (spellImbueItem.canRemoveWorkbenchSpell(resultStack, spellContainer, index, spellData)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isSameSpellData(SpellData first, SpellData second) {
+        return first != SpellData.EMPTY
+                && second != SpellData.EMPTY
+                && first.getSpell() == second.getSpell()
+                && first.getLevel() == second.getLevel();
     }
 
     private @Nullable SpellExtractionContext getSpellExtractionContext() {
@@ -762,7 +1001,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         }
 
         if (inputStack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem) {
-            return restrictedSpellImbuableItem.canRemoveEmptyWorkbenchSpell(inputStack)
+            return canCreateAnyExtractableWorkbenchImbue(inputStack, restrictedSpellImbuableItem)
                     ? SpellExtractionBlockReason.MISSING_SPELL
                     : SpellExtractionBlockReason.EMPTY_NOT_ALLOWED;
         }
@@ -800,6 +1039,32 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         // 初期化済みアイテムから spell_container を消すと既定呪文が再生成され得るため、空コンテナを保持する。
         ISpellContainer.set(extractionContext.inputStack(), mutable.toImmutable());
         rememberClearedPresetSpellState(extractionContext.inputStack());
+        container.setChanged();
+        return true;
+    }
+
+    private boolean consumeWorkbenchImbueInputs(int sourceSlotIndex, int scrollSlotIndex) {
+        if (sourceSlotIndex < 0 || sourceSlotIndex >= INPUT_SLOT_COUNT
+                || scrollSlotIndex < 0 || scrollSlotIndex >= INPUT_SLOT_COUNT
+                || sourceSlotIndex == scrollSlotIndex) {
+            return false;
+        }
+
+        var sourceStack = container.getItem(sourceSlotIndex);
+        var scrollStack = container.getItem(scrollSlotIndex);
+        if (!(sourceStack.getItem() instanceof RestrictedSpellImbuableItem)
+                || !(scrollStack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll)) {
+            return false;
+        }
+
+        sourceStack.shrink(1);
+        scrollStack.shrink(1);
+        if (sourceStack.isEmpty()) {
+            container.setItem(sourceSlotIndex, ItemStack.EMPTY);
+        }
+        if (scrollStack.isEmpty()) {
+            container.setItem(scrollSlotIndex, ItemStack.EMPTY);
+        }
         container.setChanged();
         return true;
     }
@@ -883,7 +1148,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private static SpellExtractionBlockReason getUnsupportedSpellExtractionBlockReason(ItemStack stack) {
         if (stack.getItem() instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
-                && !restrictedSpellImbuableItem.canRemoveEmptyWorkbenchSpell(stack)) {
+                && !canCreateAnyExtractableWorkbenchImbue(stack, restrictedSpellImbuableItem)) {
             return SpellExtractionBlockReason.NOT_ALLOWED;
         }
         return SpellExtractionBlockReason.DEFAULT_SPELL;
@@ -966,6 +1231,13 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     ) {
     }
 
+    private record WorkbenchImbue(
+            int sourceSlotIndex,
+            int scrollSlotIndex,
+            ItemStack resultTemplate
+    ) {
+    }
+
     private record SpellExtractionContext(
             int sourceSlotIndex,
             int spellIndex,
@@ -981,6 +1253,20 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         NOT_ALLOWED,
         MISSING_SPELL,
         EMPTY_NOT_ALLOWED
+    }
+
+    private enum WorkbenchImbueBlockReason {
+        UNSUPPORTED_EQUIPMENT
+    }
+
+    private record WorkbenchImbueContext(
+            int sourceSlotIndex,
+            int scrollSlotIndex,
+            @Nullable RestrictedSpellImbuableItem spellImbueItem,
+            ItemStack normalizedBaseStack,
+            SpellData spellData,
+            @Nullable WorkbenchImbueBlockReason blockReason
+    ) {
     }
 
     private record FlaskParticleToggle(

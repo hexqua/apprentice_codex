@@ -3091,6 +3091,84 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void spellcasterWorkbenchImbueOnlySupportsExtractableTargets(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_workbench_imbue_test");
+            var autocastAmulet = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var upgradeItem = (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get();
+            var senseEvil = SpellRegistry.SENSE_EVIL.get();
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var greaterHeal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+
+            var emptyAmulet = new ItemStack(autocastAmulet);
+            autocastAmulet.initializeSpellContainer(emptyAmulet);
+            var emptyAmuletMenu = createSpellcasterWorkbenchMenuWithInputs(player, emptyAmulet, createSpellScroll(heal));
+            var emptyAmuletResult = emptyAmuletMenu.quickMoveStack(player, SpellcasterWorkbenchMenu.RESULT_SLOT);
+            helper.assertFalse(emptyAmuletResult.isEmpty(),
+                    "Empty Autocast Amulet should accept Workbench imbue with an allowlisted scroll");
+            assertStackHasSpell(helper, emptyAmuletResult, heal, 1,
+                    "Workbench-imbued Autocast Amulet should contain heal");
+            helper.assertTrue(emptyAmuletMenu.getSlot(0).getItem().isEmpty(),
+                    "Workbench imbue should consume the source Autocast Amulet");
+            helper.assertTrue(emptyAmuletMenu.getSlot(1).getItem().isEmpty(),
+                    "Workbench imbue should consume the source scroll");
+
+            var twoSlotAmulet = autocastAmulet.createSpellSlotUpgradeResult(new ItemStack(autocastAmulet), upgradeItem);
+            twoSlotAmulet = autocastAmulet.createArcaneAnvilImbueResult(twoSlotAmulet, new SpellData(senseEvil, 1));
+            var twoSlotAmuletMenu = createSpellcasterWorkbenchMenuWithInputs(player, twoSlotAmulet, createSpellScroll(heal));
+            var twoSlotAmuletResult = twoSlotAmuletMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().copy();
+            helper.assertFalse(twoSlotAmuletResult.isEmpty(),
+                    "Autocast Amulet with an empty extra slot should accept Workbench imbue");
+            var twoSlotContainer = ISpellContainer.get(twoSlotAmuletResult);
+            helper.assertTrue(twoSlotContainer != null && twoSlotContainer.getActiveSpellCount() == 2,
+                    "Workbench imbue should add a second Autocast Amulet spell");
+            assertStackHasSpell(helper, twoSlotAmuletResult, senseEvil, 1,
+                    "Workbench imbue should keep the existing Autocast Amulet spell");
+            assertStackHasSpell(helper, twoSlotAmuletResult, heal, 1,
+                    "Workbench imbue should add heal to the empty Autocast Amulet slot");
+
+            var fullAmulet = autocastAmulet.createArcaneAnvilImbueResult(twoSlotAmuletResult, new SpellData(greaterHeal, 1));
+            var fullAmuletMenu = createSpellcasterWorkbenchMenuWithInputs(player, fullAmulet, createSpellScroll(heal));
+            helper.assertTrue(fullAmuletMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Full Autocast Amulet should not replace an existing spell in Workbench imbue");
+            helper.assertFalse(fullAmuletMenu.isBlockedByUnsupportedWorkbenchImbue(),
+                    "Full Autocast Amulet should fail because no slot is available, not because the equipment is unsupported");
+
+            var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var bladeMenu = createSpellcasterWorkbenchMenuWithInputs(
+                    player,
+                    new ItemStack(manaForceBlade),
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+            helper.assertTrue(bladeMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Workbench imbue should not produce a result for items whose imbues cannot be extracted later");
+            helper.assertTrue(bladeMenu.isBlockedByUnsupportedWorkbenchImbue(),
+                    "Workbench imbue should report unsupported equipment for non-extractable imbue targets");
+
+            var externalSpellContainerStack = new ItemStack(Items.DIAMOND_SWORD);
+            ISpellContainer.set(externalSpellContainerStack, ISpellContainer.create(1, false, false));
+            var externalContainerMenu = createSpellcasterWorkbenchMenuWithInputs(
+                    player,
+                    externalSpellContainerStack,
+                    createSpellScroll(heal)
+            );
+            helper.assertTrue(externalContainerMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Workbench imbue should not produce a result for generic ISpellContainer items");
+            helper.assertTrue(externalContainerMenu.isBlockedByUnsupportedWorkbenchImbue(),
+                    "Generic ISpellContainer items with a scroll should report unsupported equipment instead of no-op");
+
+            var disallowedSpellMenu = createSpellcasterWorkbenchMenuWithInputs(
+                    player,
+                    new ItemStack(autocastAmulet),
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+            helper.assertTrue(disallowedSpellMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Workbench imbue should not accept a spell rejected by the target item");
+            helper.assertFalse(disallowedSpellMenu.isBlockedByUnsupportedWorkbenchImbue(),
+                    "Rejected scrolls should not use the unsupported-equipment error");
+        });
+    }
+
     static void reflectcastShieldDurabilityRulesMatchGuardTuning(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
@@ -11521,6 +11599,38 @@ public final class ApprenticeCodexGameTestScenarios {
         var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
         menu.getSlot(0).set(stack);
         return menu;
+    }
+
+    private static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithInputs(Player player, ItemStack first, ItemStack second) {
+        var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
+        menu.getSlot(0).set(first);
+        menu.getSlot(1).set(second);
+        return menu;
+    }
+
+    private static void assertStackHasSpell(
+            GameTestHelper helper,
+            ItemStack stack,
+            AbstractSpell expectedSpell,
+            int expectedLevel,
+            String message
+    ) {
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, message + ": missing spell container");
+        if (spellContainer == null) {
+            return;
+        }
+
+        for (var index = 0; index < spellContainer.getMaxSpellCount(); ++index) {
+            var spellData = spellContainer.getSpellAtIndex(index);
+            if (spellData != SpellData.EMPTY
+                    && spellData.getSpell() == expectedSpell
+                    && spellData.getLevel() == expectedLevel) {
+                return;
+            }
+        }
+
+        helper.assertTrue(false, message + ": expected spell was not found");
     }
 
     private static void applyRestrictedImbueNormalization(
