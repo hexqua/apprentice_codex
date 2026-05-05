@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -91,6 +92,25 @@ public final class SpellDispenser extends BaseEntityBlock {
     @Override
     protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) {
         builder.add(FACING, TRIGGERED);
+    }
+
+    @Override
+    public boolean hasAnalogOutputSignal(@NotNull BlockState state) {
+        return true;
+    }
+
+    @Override
+    public int getAnalogOutputSignal(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos) {
+        if (!(level.getBlockEntity(pos) instanceof SpellDispenserBlockEntity blockEntity)) {
+            return 0;
+        }
+
+        var currentMana = blockEntity.getCurrentMana();
+        if (currentMana <= 0) {
+            return 0;
+        }
+
+        return Mth.clamp(1 + (int)((long)currentMana * 14L / SpellDispenserManaHelper.MAX_MANA), 1, 15);
     }
 
     @Override
