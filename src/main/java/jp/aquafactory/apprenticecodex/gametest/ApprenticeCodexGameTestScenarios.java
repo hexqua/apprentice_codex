@@ -842,6 +842,9 @@ public final class ApprenticeCodexGameTestScenarios {
                 spellcastersFlask.enchant(EnchantmentRegistry.GLOW_ENERGY.get(), 1);
             }
             var filledSpellcastersFlask = SpellcastersFlask.copyWithAddedDoses(spellcastersFlask, normalPotion, 2);
+            filledSpellcastersFlask = SpellcastersFlask.copyWithToggledEffectParticles(filledSpellcastersFlask);
+            helper.assertTrue(SpellcastersFlask.isEffectParticlesSuppressed(filledSpellcastersFlask),
+                    "Spellcaster's Flask test input should start with suppressed particles");
             var smithingContainer = new net.minecraft.world.SimpleContainer(
                     new ItemStack(Items.EMERALD),
                     filledSpellcastersFlask,
@@ -864,6 +867,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Filled Spellcaster's Flask should convert a regular potion into a splash potion");
             helper.assertTrue(PotionUtils.getPotion(convertedStoredItem) == PotionUtils.getPotion(normalPotion),
                     "Converted Alchemist's Flask should keep the original potion type");
+            helper.assertTrue(!SpellcastersFlask.isEffectParticlesSuppressed(convertedFlask),
+                    "Alchemist's Flask smithing recipe should reset suppressed particles");
 
             var convertedEnchantments = EnchantmentHelper.getEnchantments(convertedFlask);
             helper.assertTrue(!EnchantmentRegistry.GUZZLE.isPresent()
@@ -2935,6 +2940,27 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(presetStaffMenu.isBlockedByDefaultSpellExtraction(),
                     "Copper Swingcast Staff preset spell should keep the default-spell extraction error");
+
+            var spellcastersFlaskMenu = createSpellcasterWorkbenchMenuWithSingleInput(
+                    player,
+                    new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get())
+            );
+            var spellcastersFlaskResult = spellcastersFlaskMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+            helper.assertTrue(spellcastersFlaskResult.is(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                    "Spellcaster's Flask should keep the Workbench particle toggle result");
+            helper.assertTrue(SpellcastersFlask.isEffectParticlesSuppressed(spellcastersFlaskResult),
+                    "Spellcaster's Flask Workbench result should toggle particles off from the default state");
+
+            var alchemistsFlask = (AlchemistsFlask) ItemRegistry.ALCHEMISTS_FLASK.get();
+            var defaultAlchemistsFlask = new ItemStack(alchemistsFlask);
+            alchemistsFlask.initializeSpellContainer(defaultAlchemistsFlask);
+            var alchemistsFlaskMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, defaultAlchemistsFlask);
+            helper.assertTrue(alchemistsFlaskMenu.isBlockedByDefaultSpellExtraction(),
+                    "Alchemist's Flask preset Extract should keep the default-spell extraction error");
+            helper.assertTrue(alchemistsFlaskMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Alchemist's Flask should not create a Workbench particle toggle result");
+            helper.assertTrue(alchemistsFlaskMenu.quickMoveStack(player, SpellcasterWorkbenchMenu.RESULT_SLOT).isEmpty(),
+                    "Alchemist's Flask result slot should not allow taking a hidden particle toggle result");
         });
     }
 

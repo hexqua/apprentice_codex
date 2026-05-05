@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
     private static final String STORAGE_TAG = "SpellcastersFlask";
     private static final String STORED_ITEM_TAG = "StoredItem";
+    private static final String PARTICLES_SUPPRESSED_TAG = "ParticlesSuppressed";
 
     private final ResourceLocation id;
     private final Ingredient template;
@@ -75,6 +76,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
         }
 
         replaceStoredItem(resultStack, convertedStoredItem);
+        resetEffectParticlesSuppression(resultStack);
         removeGuzzleEnchantment(resultStack);
         backfillMissingDefaultTags(resultStack, createDefaultResultStack());
         return resultStack;
@@ -182,6 +184,13 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
         }
 
         storageTag.put(STORED_ITEM_TAG, storedItem.save(new CompoundTag()));
+    }
+
+    private static void resetEffectParticlesSuppression(ItemStack resultStack) {
+        var storageTag = resultStack.getTagElement(STORAGE_TAG);
+        if (storageTag != null) {
+            storageTag.remove(PARTICLES_SUPPRESSED_TAG);
+        }
     }
 
     private static void removeGuzzleEnchantment(ItemStack stack) {
