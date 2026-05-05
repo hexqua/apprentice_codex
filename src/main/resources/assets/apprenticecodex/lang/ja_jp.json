@@ -547,6 +547,8 @@
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",
+  "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_exist": "取り出す魔法が存在しない",
+  "ui.apprenticecodex.spellcaster_workbench.warning_remove_not_allow": "このアイテムに注入した魔法は後から取り出せない",
 
   "effect.apprenticecodex.arcane_charge": "アルケインチャージ",
   "effect.apprenticecodex.casting_mobility": "詠唱移動補助",

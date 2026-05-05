@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaFlu
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellValidator;
+import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
@@ -2866,6 +2867,74 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield imbued spell should remain removable after save/load");
             helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
                     "Reflectcast Shield imbued spell should remain extractable after save/load");
+        });
+    }
+
+    static void spellcasterWorkbenchExtractionWarningsMatchImbueState(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellcaster_workbench_warning_test");
+            var autocastAmulet = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
+            var emptyAmulet = new ItemStack(autocastAmulet);
+            autocastAmulet.initializeSpellContainer(emptyAmulet);
+
+            var emptyAmuletMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, emptyAmulet);
+            helper.assertTrue(emptyAmuletMenu.isBlockedByMissingSpellExtraction(),
+                    "Empty Autocast Amulet should report a missing spell, not an unsupported extraction warning");
+            helper.assertFalse(emptyAmuletMenu.isWarnedByUnsupportedEmptySpellExtraction(),
+                    "Empty Autocast Amulet should remain a potentially extractable Workbench target");
+            helper.assertTrue(emptyAmuletMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Empty Autocast Amulet should not create a scroll result");
+
+            var imbuedAmulet = autocastAmulet.createArcaneAnvilImbueResult(
+                    new ItemStack(autocastAmulet),
+                    new SpellData(SpellRegistry.SENSE_EVIL.get(), 1)
+            );
+            var imbuedAmuletMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, imbuedAmulet);
+            helper.assertFalse(imbuedAmuletMenu.isSpellExtractionBlocked(),
+                    "Imbued Autocast Amulet should be extractable in Spellcaster Workbench");
+            helper.assertTrue(imbuedAmuletMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem()
+                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Imbued Autocast Amulet should create a scroll result");
+
+            var manaForceBlade = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var emptyBlade = new ItemStack(manaForceBlade);
+            manaForceBlade.initializeSpellContainer(emptyBlade);
+            var emptyBladeMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, emptyBlade);
+            helper.assertTrue(emptyBladeMenu.isWarnedByUnsupportedEmptySpellExtraction(),
+                    "Empty Mana Force Blade should warn that future imbued spells cannot be extracted");
+            helper.assertFalse(emptyBladeMenu.isBlockedByMissingSpellExtraction(),
+                    "Empty Mana Force Blade should not use the missing-spell message");
+
+            var imbuedBlade = manaForceBlade.createArcaneAnvilImbueResult(
+                    new ItemStack(manaForceBlade),
+                    new SpellData(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1)
+            );
+            var imbuedBladeMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, imbuedBlade);
+            helper.assertTrue(imbuedBladeMenu.isBlockedByUnsupportedSpellExtraction(),
+                    "Imbued Mana Force Blade should keep the actual extraction-not-allowed error");
+            helper.assertTrue(imbuedBladeMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
+                    "Imbued Mana Force Blade should not create a scroll result");
+
+            var emptyEnchantressRobe = new ItemStack(ItemRegistry.ENCHANTRESS_ROBE.get());
+            var emptyEnchantressRobeMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, emptyEnchantressRobe);
+            helper.assertTrue(emptyEnchantressRobeMenu.isWarnedByUnsupportedEmptySpellExtraction(),
+                    "Empty Enchantress Robe chestplate should warn that future imbued spells cannot be extracted");
+            helper.assertFalse(emptyEnchantressRobeMenu.isBlockedByMissingSpellExtraction(),
+                    "Empty Enchantress Robe chestplate should not use the missing-spell message");
+
+            var emptyEnchantressHatMenu = createSpellcasterWorkbenchMenuWithSingleInput(
+                    player,
+                    new ItemStack(ItemRegistry.ENCHANTRESS_HAT.get())
+            );
+            helper.assertFalse(emptyEnchantressHatMenu.isSpellExtractionBlocked(),
+                    "Enchantress Hat should not warn because it does not expose an imbue slot");
+
+            var presetStaffMenu = createSpellcasterWorkbenchMenuWithSingleInput(
+                    player,
+                    createInitializedPresetStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get())
+            );
+            helper.assertTrue(presetStaffMenu.isBlockedByDefaultSpellExtraction(),
+                    "Copper Swingcast Staff preset spell should keep the default-spell extraction error");
         });
     }
 
@@ -10725,6 +10794,12 @@ public final class ApprenticeCodexGameTestScenarios {
             presetSpellContainer.initializeSpellContainer(stack);
         }
         return stack;
+    }
+
+    private static SpellcasterWorkbenchMenu createSpellcasterWorkbenchMenuWithSingleInput(Player player, ItemStack stack) {
+        var menu = new SpellcasterWorkbenchMenu(0, player.getInventory());
+        menu.getSlot(0).set(stack);
+        return menu;
     }
 
     private static void applyRestrictedImbueNormalization(

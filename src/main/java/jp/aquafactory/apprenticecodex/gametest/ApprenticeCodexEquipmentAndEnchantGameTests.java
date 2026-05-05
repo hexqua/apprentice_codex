@@ -74,6 +74,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellcasterWorkbenchExtractionWarningsMatchImbueState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcasterWorkbenchExtractionWarningsMatchImbueState(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldDurabilityRulesMatchGuardTuning(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.reflectcastShieldDurabilityRulesMatchGuardTuning(helper);
     }
