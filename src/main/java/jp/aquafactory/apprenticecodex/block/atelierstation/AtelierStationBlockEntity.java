@@ -629,6 +629,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             return;
         }
 
+        var previousStoredFluidAmount = storedFluidAmount;
         for (var index = 0; index < storedFluids.size(); ++index) {
             var current = storedFluids.get(index);
             if (!ItemStack.isSameItemSameComponents(current.representativeItem(), representativeItem)) {
@@ -637,11 +638,17 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
 
             storedFluids.set(index, new StoredPotionEntry(representativeItem, current.amountMb() + normalizedAmount));
             storedFluidAmount = Math.min(MAX_STORED_FLUID_AMOUNT, storedFluidAmount + normalizedAmount);
+            if (storedFluidAmount != previousStoredFluidAmount) {
+                updateComparatorOutput();
+            }
             return;
         }
 
         storedFluids.add(new StoredPotionEntry(representativeItem, normalizedAmount));
         storedFluidAmount = Math.min(MAX_STORED_FLUID_AMOUNT, storedFluidAmount + normalizedAmount);
+        if (storedFluidAmount != previousStoredFluidAmount) {
+            updateComparatorOutput();
+        }
     }
 
     private int getStoredFluidDoseCount(ItemStack representativeItem) {
@@ -682,6 +689,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             } else {
                 storedFluids.remove(index);
             }
+            updateComparatorOutput();
             return consumedAmount;
         }
 
@@ -779,6 +787,14 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
+    }
+
+    private void updateComparatorOutput() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+
+        level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
     }
 
     private static int normalizeFluidAmount(int amountMb) {

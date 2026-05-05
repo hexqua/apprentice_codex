@@ -21,6 +21,7 @@ import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
@@ -133,6 +134,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.EnchantmentTags;
@@ -2468,6 +2470,16 @@ public final class ApprenticeCodexGameTestScenarios {
             assertArcanumInAJarComparatorOutput(helper, new BlockPos(1, 1, 0), 3, 0, 3);
             assertArcanumInAJarComparatorOutput(helper, new BlockPos(2, 1, 0), ArcanumInAJarBlockEntity.MAX_STORED_PARAMETER, 0, 8);
             assertArcanumInAJarComparatorOutput(helper, new BlockPos(3, 1, 0), 0, 5, 0);
+        });
+    }
+
+    static void atelierStationComparatorOutputMatchesStoredPotionFluidAmount(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertAtelierStationComparatorOutput(helper, new BlockPos(0, 1, 0), 0, false, 0);
+            assertAtelierStationComparatorOutput(helper, new BlockPos(1, 1, 0), AtelierStationBlockEntity.MILLIBUCKETS_PER_USE, false, 1);
+            assertAtelierStationComparatorOutput(helper, new BlockPos(2, 1, 0), AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT / 2, false, 8);
+            assertAtelierStationComparatorOutput(helper, new BlockPos(3, 1, 0), AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT, false, 15);
+            assertAtelierStationComparatorOutput(helper, new BlockPos(4, 1, 0), 0, true, 0);
         });
     }
 
@@ -11178,7 +11190,7 @@ public final class ApprenticeCodexGameTestScenarios {
         var tag = new CompoundTag();
         tag.putInt("StoredParameterCount", storedParameterCount);
         tag.putInt("RemainingOperationCount", remainingOperationCount);
-        blockEntity.load(tag);
+        blockEntity.loadWithComponents(tag, helper.getLevel().registryAccess());
 
         var absolutePos = helper.absolutePos(pos);
         var state = helper.getLevel().getBlockState(absolutePos);
@@ -11188,6 +11200,56 @@ public final class ApprenticeCodexGameTestScenarios {
         var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
         helper.assertTrue(output == expectedOutput,
                 "Arcanum in a Jar comparator output mismatch: expected " + expectedOutput + " but got " + output);
+    }
+
+    private static void assertAtelierStationComparatorOutput(
+            GameTestHelper helper,
+            BlockPos pos,
+            int storedFluidAmount,
+            boolean insertInventoryFlask,
+            int expectedOutput
+    ) {
+        helper.setBlock(pos, BlockRegistry.ATELIER_STATION.get());
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof AtelierStationBlockEntity,
+                "Atelier Station block entity was not created");
+
+        if (blockEntity instanceof AtelierStationBlockEntity atelierStation) {
+            var registryAccess = helper.getLevel().registryAccess();
+            if (storedFluidAmount > 0) {
+                var tag = new CompoundTag();
+                var storedFluidList = new ListTag();
+                var storedFluidTag = new CompoundTag();
+                var storedPotion = PotionContentsHelper.createPotionStack(Items.POTION,
+                        net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+                storedFluidTag.put("Item", storedPotion.saveOptional(registryAccess));
+                storedFluidTag.putInt("Amount", storedFluidAmount);
+                storedFluidList.add(storedFluidTag);
+                tag.put("StoredFluids", storedFluidList);
+                blockEntity.loadWithComponents(tag, registryAccess);
+            }
+
+            if (insertInventoryFlask) {
+                var flask = createFilledSpellcastersFlask(
+                        registryAccess,
+                        PotionContentsHelper.createPotionStack(Items.POTION,
+                                net.minecraft.world.item.alchemy.Potions.REGENERATION.value()),
+                        1,
+                        0
+                );
+                atelierStation.getFlaskInventory().setStackInSlot(0, flask);
+            }
+        }
+
+        var absolutePos = helper.absolutePos(pos);
+        var state = helper.getLevel().getBlockState(absolutePos);
+        helper.assertTrue(state.getBlock().hasAnalogOutputSignal(state),
+                "Atelier Station should advertise comparator output");
+
+        var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
+        helper.assertTrue(output == expectedOutput,
+                "Atelier Station comparator output mismatch: expected " + expectedOutput + " but got " + output);
     }
 
     private static void assertRecipeLoaded(
