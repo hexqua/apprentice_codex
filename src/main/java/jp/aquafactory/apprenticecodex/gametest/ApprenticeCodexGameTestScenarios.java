@@ -3058,10 +3058,10 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(emptyBladeMenu.isBlockedByMissingSpellExtraction(),
                     "Empty Mana Force Blade should not use the missing-spell message");
 
-            var imbuedBlade = manaForceBlade.createArcaneAnvilImbueResult(
-                    new ItemStack(manaForceBlade),
-                    new SpellData(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1)
-            );
+            var imbuedBlade = new ItemStack(manaForceBlade);
+            manaForceBlade.initializeSpellContainer(imbuedBlade);
+            setSingleUnlockedSpell(helper, imbuedBlade,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1);
             var imbuedBladeMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, imbuedBlade);
             helper.assertTrue(imbuedBladeMenu.isBlockedByUnsupportedSpellExtraction(),
                     "Imbued Mana Force Blade should keep the actual extraction-not-allowed error");
