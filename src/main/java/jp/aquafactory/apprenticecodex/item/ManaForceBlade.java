@@ -4,11 +4,8 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
@@ -58,8 +55,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellContainer, RestrictedSpellImbuableItem,
-        SpellSlotUpgradeableItem, NonDamageableAnvilMergeItem {
+public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem {
     public static final float DISPLAY_ATTACK_DAMAGE = 6.0F;
     public static final int COOLDOWN_TICKS = 40;
 
@@ -219,11 +215,6 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     @Override
-    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
-        return canApplyAtEnchantingTable(stack, enchantment);
-    }
-
-    @Override
     public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
         return repair.is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 || super.isValidRepairItem(toRepair, repair);
@@ -232,44 +223,6 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     @Override
     public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ToolAction toolAction) {
         return ToolActions.SWORD_SWEEP == toolAction || super.canPerformAction(stack, toolAction);
-    }
-
-    @Override
-    public boolean canImbueSpell(SpellData spellData) {
-        return spellData != SpellData.EMPTY && canImbueSpell(spellData.getSpell(), spellData.getLevel());
-    }
-
-    @Override
-    public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        return spell != null
-                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
-                && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG);
-    }
-
-    @Override
-    public void normalizeImbuedSpellContainer(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return;
-        }
-
-        SpellData spellData = SpellData.EMPTY;
-        if (ISpellContainer.isSpellContainer(stack)) {
-            var spellContainer = ISpellContainer.get(stack);
-            if (spellContainer != null && spellContainer.getMaxSpellCount() > 0) {
-                spellData = spellContainer.getSpellAtIndex(0);
-            }
-        }
-
-        var normalized = ISpellContainer.create(1, true, false).mutableCopy();
-        if (canImbueSpell(spellData)) {
-            normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
-        }
-        ISpellContainer.set(stack, normalized.toImmutable());
-    }
-
-    @Override
-    public boolean canRemoveWorkbenchSpell(ItemStack stack, ISpellContainer spellContainer, int spellIndex, SpellData spellData) {
-        return false;
     }
 
     @Override
