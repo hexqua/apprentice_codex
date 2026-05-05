@@ -11204,7 +11204,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         var absolutePos = helper.absolutePos(pos);
         var state = helper.getLevel().getBlockState(absolutePos);
-        helper.assertTrue(state.getBlock().hasAnalogOutputSignal(state),
+        helper.assertTrue(state.hasAnalogOutputSignal(),
                 "Arcanum in a Jar should advertise comparator output");
 
         var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
@@ -11254,7 +11254,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         var absolutePos = helper.absolutePos(pos);
         var state = helper.getLevel().getBlockState(absolutePos);
-        helper.assertTrue(state.getBlock().hasAnalogOutputSignal(state),
+        helper.assertTrue(state.hasAnalogOutputSignal(),
                 "Atelier Station should advertise comparator output");
 
         var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
@@ -11287,7 +11287,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
         var absolutePos = helper.absolutePos(pos);
         var state = helper.getLevel().getBlockState(absolutePos);
-        helper.assertTrue(state.getBlock().hasAnalogOutputSignal(state),
+        helper.assertTrue(state.hasAnalogOutputSignal(),
                 "Spell Dispenser should advertise comparator output");
 
         var output = state.getAnalogOutputSignal(helper.getLevel(), absolutePos);
