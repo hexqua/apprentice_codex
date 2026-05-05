@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticleP
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
+import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
@@ -131,6 +132,9 @@ public final class ClientModBusEvents {
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
+        if (ModList.get().isLoaded("patchouli")) {
+            event.enqueueWork(PatchouliBuiltinTemplateSupport::registerBuiltinTemplates);
+        }
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENDER_GRIMOIRE.get(), SpellBookCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.EXPLORERS_CODEX.get(), SpellBookCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get(), SpellBookCurioRenderer::new));

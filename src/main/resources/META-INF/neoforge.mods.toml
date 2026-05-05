@@ -84,3 +84,10 @@ config="mixins.apprenticecodex.json"
     versionRange="[0,)"
     ordering="NONE"
     side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="patchouli"
+    type="optional"
+    versionRange="[${patchouli_version},)"
+    ordering="AFTER"
+    side="BOTH"

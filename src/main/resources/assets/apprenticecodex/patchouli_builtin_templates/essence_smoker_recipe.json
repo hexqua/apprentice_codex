@@ -1,0 +1,20 @@
+{
+  "components": [
+    {
+      "type": "patchouli:custom",
+      "class": "jp.aquafactory.apprenticecodex.compat.patchouli.EssenceSmokerRecipeComponent",
+      "x": 0,
+      "y": 0,
+      "recipe": "#recipe",
+      "recipe2": "#recipe2",
+      "recipe3": "#recipe3"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "#text",
+      "x": 0,
+      "y": 74,
+      "max_width": 116
+    }
+  ]
+}
