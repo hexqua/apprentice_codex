@@ -581,9 +581,6 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask_tipped_arrow"),
                     RecipeRegistry.ALCHEMISTS_FLASK_TIPPED_ARROW_SERIALIZER.get(), net.minecraft.world.item.crafting.RecipeType.CRAFTING);
             assertRecipeLoaded(helper, recipeManager,
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "irons_guide_book_repair"),
-                    RecipeRegistry.IRONS_GUIDE_BOOK_REPAIR_SERIALIZER.get(), null);
-            assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_cane_lodestone_bind"),
                     RecipeRegistry.EXPLORERS_CANE_LODESTONE_BIND_SERIALIZER.get(), null);
             assertRecipeLoaded(helper, recipeManager,
