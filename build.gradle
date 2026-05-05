@@ -40,7 +40,7 @@ repositories {
         }
     }
 
-    // JEI
+    // JEI / Patchouli
     maven {
         url = uri("https://maven.blamejared.com")
     }
@@ -170,6 +170,10 @@ dependencies {
     // mods.toml 側で使う表示用バージョン文字列だけを gradle.properties に持つ。
     compileOnly "maven.modrinth:jade:yd8FKCmx"
     runtimeOnly "maven.modrinth:jade:yd8FKCmx"
+
+    // Patchouli.
+    compileOnly "vazkii.patchouli:Patchouli:${patchouli_version}:api"
+    runtimeOnly "vazkii.patchouli:Patchouli:${patchouli_version}"
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -190,6 +194,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             irons_spells_version   : irons_spells_version,
             geckolib_version       : geckolib_version,
             curios_version         : curios_version,
+            patchouli_version      : patchouli_version,
     ]
     inputs.properties replaceProperties
     expand replaceProperties
@@ -222,6 +227,7 @@ tasks.named('processResources', ProcessResources).configure {
             irons_spells_version   : irons_spells_version,
             geckolib_version       : geckolib_version,
             curios_version         : curios_version,
+            patchouli_version      : patchouli_version,
     ]
     inputs.properties replaceProperties
     filesMatching('META-INF/neoforge.mods.toml') {
