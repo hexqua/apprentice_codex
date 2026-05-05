@@ -65,6 +65,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void atelierStationComparatorOutputMatchesStoredPotionFluidAmount(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.atelierStationComparatorOutputMatchesStoredPotionFluidAmount(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void creativeTabSpellsStayGroupedBySchool(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.creativeTabSpellsStayGroupedBySchool(helper);
     }

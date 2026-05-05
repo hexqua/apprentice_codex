@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -68,7 +69,27 @@ public final class AtelierStation extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
+    public boolean hasAnalogOutputSignal(@NotNull BlockState state) {
+        return true;
+    }
+
+    @Override
+    public int getAnalogOutputSignal(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos) {
+        if (!(level.getBlockEntity(pos) instanceof AtelierStationBlockEntity blockEntity)) {
+            return 0;
+        }
+
+        var storedAmount = blockEntity.getStoredFluidAmount();
+        if (storedAmount <= 0) {
+            return 0;
+        }
+
+        var capacity = AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT;
+        return Mth.clamp(1 + (int)((long)storedAmount * 14L / capacity), 1, 15);
+    }
+
+    @Override
+    public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
@@ -88,7 +109,7 @@ public final class AtelierStation extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+    public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         return new AtelierStationBlockEntity(pos, state);
     }
 
