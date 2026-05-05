@@ -242,6 +242,10 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             return true;
         }
 
+        if (MalumCompatibility.isSpiritPlunderSupported(stack, enchantmentId)) {
+            return true;
+        }
+
         return EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())
                 || SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)
                 || TRIDENT_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment);
@@ -273,6 +277,9 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             return false;
         }
         if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)) {
+            return true;
+        }
+        if (MalumCompatibility.isSpiritPlunderSupported(stack, enchantmentId)) {
             return true;
         }
         return EXTRA_ENCHANTMENTS.contains(enchantmentId.toString())

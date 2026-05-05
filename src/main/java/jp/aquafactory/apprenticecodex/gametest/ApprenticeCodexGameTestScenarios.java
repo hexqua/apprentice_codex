@@ -6776,12 +6776,12 @@ public final class ApprenticeCodexGameTestScenarios {
             var animated = enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)).orElse(null);
             helper.assertTrue(animated != null, "Missing malum:animated enchantment");
             if (animated != null) {
-                helper.assertFalse(stack.getItem().supportsEnchantment(stack, animated),
-                        "Focus Staffbow should keep rejecting malum:animated at the enchanting table");
-                helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(animated)),
-                        "Focus Staffbow should keep rejecting malum:animated from enchanted books");
-                helper.assertFalse(item.isAnvilMergeEnchantmentAllowed(stack, animated),
-                        "Focus Staffbow should keep rejecting malum:animated through anvil merges");
+                helper.assertTrue(stack.getItem().supportsEnchantment(stack, animated),
+                        "Focus Staffbow should allow malum:animated at the enchanting table");
+                helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(animated)),
+                        "Focus Staffbow should allow malum:animated from enchanted books");
+                helper.assertTrue(item.isAnvilMergeEnchantmentAllowed(stack, animated),
+                        "Focus Staffbow should allow malum:animated through anvil merges");
             }
         });
     }
@@ -10404,6 +10404,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 Enchantments.WISDOM
         ));
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
 
