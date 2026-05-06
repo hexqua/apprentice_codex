@@ -164,7 +164,7 @@ public final class PhotonSiphonClientRenderState {
             return;
         }
 
-        var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA);
         if (maxMana <= 0.0F) {
             state.reset();
             return;
