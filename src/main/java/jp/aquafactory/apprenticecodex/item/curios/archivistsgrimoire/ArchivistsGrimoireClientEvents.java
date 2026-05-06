@@ -33,7 +33,10 @@ public final class ArchivistsGrimoireClientEvents {
         }
 
         var delta = event.getScrollDelta() > 0.0D ? -1 : 1;
-        ArchivistsGrimoire.changeSelectedRow(spellbookStack, delta);
+        if (!ArchivistsGrimoire.changeSelectedRowToPopulatedRow(spellbookStack, delta)) {
+            return;
+        }
+
         ClientMagicData.updateSpellSelectionManager();
         Networks.sendToServer(new ClientChangeArchivistsGrimoireRowPacket(delta));
         event.setCanceled(true);

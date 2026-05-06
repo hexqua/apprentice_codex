@@ -85,8 +85,44 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook {
         return setSelectedRow(stack, getSelectedRow(stack) + delta);
     }
 
+    public static boolean ensureSelectedRowHasScroll(ItemStack stack) {
+        var inventory = new ScrollInventory(stack);
+        var selectedRow = getSelectedRow(stack);
+        if (hasScrollInRow(inventory, selectedRow)) {
+            return true;
+        }
+
+        for (var row = 0; row < ROW_COUNT; ++row) {
+            if (hasScrollInRow(inventory, row)) {
+                setSelectedRow(stack, row);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean changeSelectedRowToPopulatedRow(ItemStack stack, int delta) {
+        if (delta == 0) {
+            return false;
+        }
+
+        var inventory = new ScrollInventory(stack);
+        for (var offset = 1; offset <= ROW_COUNT; ++offset) {
+            var row = Math.floorMod(getSelectedRow(stack) + delta * offset, ROW_COUNT);
+            if (hasScrollInRow(inventory, row)) {
+                setSelectedRow(stack, row);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static SpellData getVisibleSpell(ItemStack grimoireStack, int visibleSlot) {
         if (visibleSlot < 0 || visibleSlot >= COLUMN_COUNT) {
+            return SpellData.EMPTY;
+        }
+
+        if (!ensureSelectedRowHasScroll(grimoireStack)) {
             return SpellData.EMPTY;
         }
 
@@ -102,6 +138,17 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook {
 
     static boolean isScroll(ItemStack stack) {
         return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+    }
+
+    private static boolean hasScrollInRow(ScrollInventory inventory, int row) {
+        var normalizedRow = Math.floorMod(row, ROW_COUNT);
+        var startSlot = normalizedRow * COLUMN_COUNT;
+        for (var slot = startSlot; slot < startSlot + COLUMN_COUNT; ++slot) {
+            if (isScroll(inventory.getStackInSlot(slot))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @NotNull

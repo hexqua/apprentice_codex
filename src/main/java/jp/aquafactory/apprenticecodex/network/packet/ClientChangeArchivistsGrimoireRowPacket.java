@@ -32,7 +32,7 @@ public class ClientChangeArchivistsGrimoireRowPacket {
 
             var spellbookStack = Utils.getPlayerSpellbookStack(sender);
             if (spellbookStack != null && spellbookStack.getItem() instanceof ArchivistsGrimoire) {
-                ArchivistsGrimoire.changeSelectedRow(spellbookStack, packet.delta);
+                ArchivistsGrimoire.changeSelectedRowToPopulatedRow(spellbookStack, packet.delta);
             }
         });
         context.setPacketHandled(true);
