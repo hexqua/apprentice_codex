@@ -37,6 +37,15 @@ public final class BlockTargetingHelper {
     }
 
     public static Optional<BlockTargetData> getValidatedPendingTarget(Level level, LivingEntity entity, ResourceLocation expectedSpellId, double range) {
+        return getValidatedPendingTarget(level, entity, expectedSpellId, range, true);
+    }
+
+    public static Optional<BlockTargetData> peekValidatedPendingTarget(Level level, LivingEntity entity, ResourceLocation expectedSpellId, double range) {
+        return getValidatedPendingTarget(level, entity, expectedSpellId, range, false);
+    }
+
+    private static Optional<BlockTargetData> getValidatedPendingTarget(Level level, LivingEntity entity, ResourceLocation expectedSpellId, double range,
+                                                                       boolean consume) {
         if (!(entity instanceof ServerPlayer serverPlayer)) {
             return Optional.empty();
         }
@@ -55,7 +64,9 @@ public final class BlockTargetingHelper {
         }
 
         var validated = validateTarget(level, entity, range, pendingTarget.targetData());
-        validated.ifPresent(unused -> PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID()));
+        if (consume) {
+            validated.ifPresent(unused -> PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID()));
+        }
         return validated;
     }
 
