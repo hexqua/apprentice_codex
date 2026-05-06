@@ -203,7 +203,7 @@ public class TiroVolley extends AbstractSpell implements ICastHighlightSpell {
         level.addFreshEntity(musket);
 
         AudioTools.playSoundFromEntity(level, musket, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f);
-        AudioTools.playSoundFromEntity(level, musket, SoundEvents.ARMOR_EQUIP_IRON, SoundSource.PLAYERS, 0.5f, 1.5f);
+        AudioTools.playSoundFromEntity(level, musket, SoundEvents.ARMOR_EQUIP_IRON.value(), SoundSource.PLAYERS, 0.5f, 1.5f);
     }
 
     private static Entity findInitialTarget(ServerLevel level, LivingEntity caster) {
