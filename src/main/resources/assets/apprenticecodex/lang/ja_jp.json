@@ -578,6 +578,7 @@
   "effect.apprenticecodex.sense_sensor": "センスセンサー",
   "effect.apprenticecodex.spectral_wing": "スペクトラルウィング",
   "effect.apprenticecodex.penetrated_armor": "装甲貫通",
+  "effect.apprenticecodex.frost_trapped": "氷結",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
 
@@ -594,6 +595,7 @@
   "effect.apprenticecodex.sense_sensor.description": "自身をスカルクセンサーと同調させている状態。音を感知できる。",
   "effect.apprenticecodex.spectral_wing.description": "魔力の翼で滑空している状態。",
   "effect.apprenticecodex.penetrated_armor.description": "ドリルによって装甲が貫かれた状態。防御力と防具強度を大きく低下させる。",
+  "effect.apprenticecodex.frost_trapped.description": "氷の魔術で強制的に氷結されている状態。氷結ダメージを受け続ける。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",

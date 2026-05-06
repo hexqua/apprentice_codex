@@ -46,6 +46,7 @@ import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileRen
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileRenderer;
+import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudRenderer;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelRenderer;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomRenderer;
@@ -207,6 +208,7 @@ public final class ClientModBusEvents {
         event.registerBlockEntityRenderer(BlockEntityRegistry.ATELIER_STATION.get(), AtelierStationBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ARCANUM_IN_A_JAR.get(), ArcanumInAJarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ESSENCE_SMOKER.get(), EssenceSmokerBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityRegistry.FROST_RUNE_TRAP.get(), FrostRuneTrapBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.PERSONAL_SHELF_CHEST.get(), PersonalShelfChestBlockRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.RIFT_HOLE.get(), RiftHoleBlockEntityRenderer::new);

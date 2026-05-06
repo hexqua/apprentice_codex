@@ -563,6 +563,7 @@
   "effect.apprenticecodex.sense_sensor": "Sense Sensor",
   "effect.apprenticecodex.spectral_wing": "Spectral Wing",
   "effect.apprenticecodex.penetrated_armor": "Penetrated Armor",
+  "effect.apprenticecodex.frost_trapped": "Frost Trapped",
   "effect.apprenticecodex.school_affinity": "Affinity",
   "effect.apprenticecodex.school_affinity.dynamic": "%s Affinity",
   "effect.apprenticecodex.arcane_charge.description": "Increases spell power.",
@@ -578,6 +579,8 @@
   "effect.apprenticecodex.sense_sensor.description": "Synced with the Sculk Sensor. Can sense sounds.",
   "effect.apprenticecodex.spectral_wing.description": "You are gliding with manifested magical wings.",
   "effect.apprenticecodex.penetrated_armor.description": "Armor has been pierced by a drill. Greatly reduces armor and armor toughness.",
+  "effect.apprenticecodex.frost_trapped.description": "Frozen by a magical ice spell. Continuously takes freezing damage.",
+
   "item.minecraft.potion.effect.intelligence": "Potion of Intelligence",
   "item.minecraft.potion.effect.meditation": "Potion of Meditation",
   "item.apprenticecodex.school_affinity.potion": "Potion of %s",
