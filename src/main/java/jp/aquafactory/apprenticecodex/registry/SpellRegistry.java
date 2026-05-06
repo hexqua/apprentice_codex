@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.spell.extract.Extract;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRush;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatter;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceField;
+import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRune;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRain;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunner;
 import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
@@ -28,6 +29,7 @@ import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
+import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpear;
 import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
@@ -105,6 +107,7 @@ public final class SpellRegistry {
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
+    public static final RegistryObject<AbstractSpell> MAGIC_SPEAR = reg("magic_spear", MagicSpear::new);
 
     // 聖.
     public static final RegistryObject<AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
@@ -116,7 +119,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> UNITE_LUNA = reg("unite_luna", UniteLuna::new);
 
     // 氷.
-    // まだなし...
+    public static final RegistryObject<AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);
 
     // 雷.
     public static final RegistryObject<AbstractSpell> SKY_EDGE = reg("sky_edge", SkyEdge::new);

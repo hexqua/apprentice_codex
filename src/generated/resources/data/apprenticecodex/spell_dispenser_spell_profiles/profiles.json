@@ -470,6 +470,18 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:silent_assassin"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:magic_spear"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:frost_rune"
     }
   ]
 }

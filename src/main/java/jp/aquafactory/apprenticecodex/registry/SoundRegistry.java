@@ -57,6 +57,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> STELLAR_LAUNCH = reg("stellar_launch");
     public static final RegistryObject<SoundEvent> STELLAR_IMPACT = reg("stellar_impact");
     public static final RegistryObject<SoundEvent> STELLAR_EXPLODE = reg("stellar_explode");
+    public static final RegistryObject<SoundEvent> FROZEN_RUNE = reg("frozen_rune");
 
 
     public static void register(IEventBus modEventBus) {
