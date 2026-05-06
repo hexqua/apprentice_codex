@@ -9,18 +9,28 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.RotationTools;
+import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Optional;
 
 public class MagicSpear extends AbstractSpell {
+    private static final double LOCK_ON_RANGE = 64.0;
+    private static final String NEXT_LEFT_TAG = "apprenticecodex.magic_spear.next_left";
+
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_spear");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -78,6 +88,44 @@ public class MagicSpear extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (level instanceof ServerLevel serverLevel) {
+            spawnMissile(serverLevel, spellLevel, entity);
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private void spawnMissile(ServerLevel level, int spellLevel, LivingEntity caster) {
+        var forward = RotationTools.getFlatForward(caster);
+        var right = new Vec3(forward.z, 0.0, -forward.x).normalize();
+        var side = nextSide(caster);
+        var sideDirection = right.scale(side);
+        var spawnPosition = caster.getEyePosition()
+                .add(forward.scale(0.4))
+                .add(sideDirection.scale(0.75))
+                .add(0.0, -0.25, 0.0);
+        var target = findLockOnTarget(caster).orElse(null);
+
+        var missile = new MagicSpearMissileEntity(EntityRegistry.MAGIC_SPEAR_MISSILE.get(), level, caster);
+        missile.setPos(spawnPosition.x, spawnPosition.y, spawnPosition.z);
+        missile.setup(getDamage(spellLevel, caster), forward, sideDirection, target);
+        level.addFreshEntity(missile);
+    }
+
+    private static Optional<Entity> findLockOnTarget(LivingEntity caster) {
+        var result = SummonedFirearmTools.resolveAssistedAim(caster, LOCK_ON_RANGE,
+                e -> CombatTools.isValidCombatTarget(e, caster));
+        if (result.hitEntity() == null) {
+            return Optional.empty();
+        }
+
+        var target = CombatTools.resolutePartEntity(result.hitEntity());
+        return CombatTools.isValidCombatTarget(target, caster) ? Optional.of(target) : Optional.empty();
+    }
+
+    private static int nextSide(LivingEntity caster) {
+        var tag = caster.getPersistentData();
+        var left = tag.getBoolean(NEXT_LEFT_TAG);
+        tag.putBoolean(NEXT_LEFT_TAG, !left);
+        return left ? -1 : 1;
     }
 }
