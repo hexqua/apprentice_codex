@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
@@ -1085,6 +1086,9 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
         } else if (item instanceof AbstractImbueShieldItem imbueShieldItem) {
             imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);
+        } else if (item instanceof PhotonSiphon photonSiphon) {
+            // 昔のフォトンサイフォンはImbue入れ替え不可能アイテムだったため、それを変更した個体を救済する処理.
+            photonSiphon.repairWorkbenchLegacyLockedSpellIfNeeded(stack);
         }
     }
 

@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStateP
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
@@ -186,6 +187,13 @@ public final class Networks {
                 SyncTamersPocketCountPacket::encode,
                 SyncTamersPocketCountPacket::decode,
                 SyncTamersPocketCountPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncPhotonSiphonCombatStatePacket.class,
+                SyncPhotonSiphonCombatStatePacket::encode,
+                SyncPhotonSiphonCombatStatePacket::decode,
+                SyncPhotonSiphonCombatStatePacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
