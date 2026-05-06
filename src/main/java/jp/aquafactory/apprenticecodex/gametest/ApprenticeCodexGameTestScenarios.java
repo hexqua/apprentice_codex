@@ -85,6 +85,7 @@ import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
@@ -8971,6 +8972,65 @@ public final class ApprenticeCodexGameTestScenarios {
                     "CraftsmansDelight should route Spectral Hammer cooldown through the reduced cooldown helper");
         });
     }
+
+    static void craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_apprentice_spell_discount_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            assertCraftsmansDelightBasicDiscountOnly(helper, player, SpellRegistry.HARVEST_MOON.get(), 60, "Harvest Moon");
+            assertCraftsmansDelightBasicDiscountOnly(helper, player, SpellRegistry.EARTH_FORGE.get(), 20, "Earth Forge");
+        });
+    }
+
+    private static void assertCraftsmansDelightBasicDiscountOnly(
+            GameTestHelper helper,
+            FakePlayer player,
+            AbstractSpell spell,
+            int baseManaCost,
+            String spellName
+    ) {
+        if (!(spell instanceof ICraftsmansDelightAffectedSpell affectedSpell)) {
+            helper.fail(spellName + " should opt into CraftsmansDelight support");
+            return;
+        }
+
+        helper.assertFalse(affectedSpell.isCraftsmansDelightBreakSpeedBonusEnabled(),
+                spellName + " should not receive CraftsmansDelight break speed bonuses");
+        helper.assertFalse(affectedSpell.isCraftsmansDelightProcessSpeedBonusEnabled(),
+                spellName + " should not receive CraftsmansDelight process speed bonuses");
+        helper.assertFalse(affectedSpell.isCraftsmansDelightCastingMobilityEnabled(),
+                spellName + " should keep CraftsmansDelight casting mobility disabled");
+        helper.assertTrue(CraftsmansDelightSpellSupport.isManaCostDiscountTarget(spell.getSpellId()),
+                spellName + " should be a CraftsmansDelight mana discount target");
+        helper.assertTrue(CraftsmansDelightSpellSupport.isCooldownReductionTarget(spell),
+                spellName + " should be a CraftsmansDelight cooldown reduction target");
+
+        var manaEvent = new SpellOnCastEvent(
+                player,
+                spell.getSpellId(),
+                1,
+                baseManaCost,
+                spell.getSchoolType(),
+                CastSource.SPELLBOOK
+        );
+        CraftsmansDelightManaCostDiscountEvent.onSpellCast(manaEvent);
+        var expectedManaCost = Math.max(1, Math.round(baseManaCost * 0.5f));
+        helper.assertTrue(manaEvent.getManaCost() == expectedManaCost,
+                spellName + " mana cost should be reduced to " + expectedManaCost + " but got " + manaEvent.getManaCost());
+
+        var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                spell.getSpellCooldown(),
+                spell,
+                player,
+                CastSource.SPELLBOOK
+        );
+        CraftsmansDelightCooldownReductionEvent.onSpellCooldownAdded(cooldownEvent);
+        helper.assertTrue(cooldownEvent.getEffectiveCooldown()
+                        == CraftsmansDelight.getReducedEffectiveCooldown(spell, player, CastSource.SPELLBOOK),
+                spellName + " cooldown should route through the reduced cooldown helper");
+    }
+
     static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = new TouchDigSpell();

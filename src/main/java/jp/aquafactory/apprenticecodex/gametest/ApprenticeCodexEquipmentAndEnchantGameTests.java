@@ -868,6 +868,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.craftsmansDelightExtendsTouchDigRange(helper);
     }
