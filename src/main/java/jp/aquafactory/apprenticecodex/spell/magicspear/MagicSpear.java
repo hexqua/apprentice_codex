@@ -21,6 +21,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -95,8 +96,8 @@ public class MagicSpear extends AbstractSpell {
     }
 
     private void spawnMissile(ServerLevel level, int spellLevel, LivingEntity caster) {
-        var forward = RotationTools.getFlatForward(caster);
-        var right = new Vec3(forward.z, 0.0, -forward.x).normalize();
+        var forward = resolveLaunchForward(caster);
+        var right = resolveLaunchRight(caster, forward);
         var side = nextSide(caster);
         var sideDirection = right.scale(side);
         var spawnPosition = caster.getEyePosition()
@@ -109,6 +110,33 @@ public class MagicSpear extends AbstractSpell {
         missile.setPos(spawnPosition.x, spawnPosition.y, spawnPosition.z);
         missile.setup(getDamage(spellLevel, caster), forward, sideDirection, target);
         level.addFreshEntity(missile);
+    }
+
+    private static Vec3 resolveLaunchForward(LivingEntity caster) {
+        if (isProneLaunch(caster)) {
+            var look = caster.getViewVector(1.0F);
+            if (look.lengthSqr() > 1.0e-6) {
+                return look.normalize();
+            }
+        }
+        return RotationTools.getFlatForward(caster);
+    }
+
+    private static Vec3 resolveLaunchRight(LivingEntity caster, Vec3 forward) {
+        var worldUp = new Vec3(0.0, 1.0, 0.0);
+        var right = worldUp.cross(forward);
+        if (right.lengthSqr() > 1.0e-6) {
+            return right.normalize();
+        }
+
+        var flatForward = RotationTools.getFlatForward(caster);
+        return new Vec3(flatForward.z, 0.0, -flatForward.x).normalize();
+    }
+
+    private static boolean isProneLaunch(LivingEntity caster) {
+        return caster.isFallFlying()
+                || caster.isSwimming()
+                || caster.getPose() == Pose.SWIMMING;
     }
 
     private static Optional<Entity> findLockOnTarget(LivingEntity caster) {
