@@ -11,10 +11,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
-import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.utility.RaycastTools;
-import jp.aquafactory.apprenticecodex.utility.RotationTools;
-import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
+import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -23,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -198,6 +196,9 @@ public class TiroVolley extends AbstractSpell implements ICastHighlightSpell {
         musket.setPos(spawnPosition);
         musket.setup(getDamage(spellLevel, caster), spellLevel, fireDelay, target);
         level.addFreshEntity(musket);
+
+        AudioTools.playSoundFromEntity(level, musket, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f);
+        AudioTools.playSoundFromEntity(level, musket, SoundEvents.ARMOR_EQUIP_IRON, SoundSource.PLAYERS, 0.5f, 1.5f);
     }
 
     private static Entity findInitialTarget(ServerLevel level, LivingEntity caster) {
