@@ -181,6 +181,8 @@
   "item.apprenticecodex.flask_system.amount_label": "残量: ",
   "item.apprenticecodex.flask_system.particles_suppressed": "効果演出を抑制中",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "過熱冷却中: 残り%1$d秒",
+  "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "選択中のページ: %1$d/%2$d",
+  "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count": "他のページのスクロール数: %d",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "壊すと完成済みの秘術のエッセンスと未使用のレッドストーンがそのまま落ちる。",

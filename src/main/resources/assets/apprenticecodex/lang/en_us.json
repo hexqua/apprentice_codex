@@ -178,6 +178,9 @@
   "item.apprenticecodex.flask_system.amount_label": "Amount: ",
   "item.apprenticecodex.flask_system.particles_suppressed": "Effects visuals suppressed",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "Overheat cooldown: %1$ds remaining",
+  "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "Current Page: %1$d/%2$d",
+  "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count": "Other Page Scroll Count: %d",
+
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "Place it and supply redstone to slowly convert it into Arcane Essence over time.",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "Breaking it drops any finished Arcane Essence and any unused redstone.",
   "jei.apprenticecodex.spellcaster_workbench.desc_1": "Spellcaster Workbench for crafting Spellcaster Bullets.",
