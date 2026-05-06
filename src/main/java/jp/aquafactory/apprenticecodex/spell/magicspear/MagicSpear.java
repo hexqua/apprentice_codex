@@ -38,12 +38,12 @@ public class MagicSpear extends AbstractSpell {
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.FIRE_RESOURCE)
             .setMaxLevel(5)
-            .setCooldownSeconds(0)
+            .setCooldownSeconds(0.5)
             .build();
 
     public MagicSpear() {
         baseSpellPower = 900;
-        spellPowerPerLevel = 150;
+        spellPowerPerLevel = 200;
         baseManaCost = 100;
         manaCostPerLevel = 30;
         castTime = 0;
