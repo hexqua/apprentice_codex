@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -304,7 +305,7 @@ public class FrostRune extends AbstractSpell implements jp.aquafactory.apprentic
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
             var tag = new CompoundTag();
             if (position != null && supportFacing != null && visualNorth != null) {
                 tag.putInt("PositionX", position.getX());
@@ -317,7 +318,7 @@ public class FrostRune extends AbstractSpell implements jp.aquafactory.apprentic
         }
 
         @Override
-        public void deserializeNBT(CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
             if (!nbt.contains("PositionX")) {
                 reset();
                 return;

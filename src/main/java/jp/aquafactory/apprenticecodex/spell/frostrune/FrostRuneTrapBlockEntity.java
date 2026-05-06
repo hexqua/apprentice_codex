@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
@@ -40,10 +41,10 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashSet;
@@ -186,8 +187,8 @@ public class FrostRuneTrapBlockEntity extends BlockEntity implements GeoBlockEnt
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (ownerUuid != null) {
             tag.putUUID(OWNER_UUID_TAG, ownerUuid);
         }
@@ -201,8 +202,8 @@ public class FrostRuneTrapBlockEntity extends BlockEntity implements GeoBlockEnt
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         ownerUuid = tag.hasUUID(OWNER_UUID_TAG) ? tag.getUUID(OWNER_UUID_TAG) : null;
         damage = tag.getFloat(DAMAGE_TAG);
         surviveTicks = tag.getInt(SURVIVE_TICKS_TAG);
@@ -219,9 +220,9 @@ public class FrostRuneTrapBlockEntity extends BlockEntity implements GeoBlockEnt
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         var tag = new CompoundTag();
-        saveAdditional(tag);
+        saveAdditional(tag, registries);
         return tag;
     }
 
@@ -309,7 +310,14 @@ public class FrostRuneTrapBlockEntity extends BlockEntity implements GeoBlockEnt
             );
             if (damaged && target instanceof LivingEntity livingTarget) {
                 livingTarget.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, SLOW_DURATION_TICKS, SLOW_AMPLIFIER, false, true, true));
-                livingTarget.addEffect(new MobEffectInstance(EffectRegistry.FROST_TRAPPED.get(), FROST_TRAPPED_DURATION_TICKS, 0, false, false, true));
+                livingTarget.addEffect(new MobEffectInstance(
+                        net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.FROST_TRAPPED.get()),
+                        FROST_TRAPPED_DURATION_TICKS,
+                        0,
+                        false,
+                        false,
+                        true
+                ));
             }
         }
 

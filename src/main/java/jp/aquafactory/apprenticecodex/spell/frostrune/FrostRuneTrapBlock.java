@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.frostrune;
 
+import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FrostRuneTrapBlock extends BaseEntityBlock {
+    public static final MapCodec<FrostRuneTrapBlock> CODEC = simpleCodec(FrostRuneTrapBlock::new);
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     private static final VoxelShape FLOOR_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
     private static final VoxelShape CEILING_SHAPE = Block.box(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D);
@@ -34,13 +36,17 @@ public class FrostRuneTrapBlock extends BaseEntityBlock {
     private static final VoxelShape WEST_WALL_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 1.0D, 16.0D, 16.0D);
     private static final VoxelShape EAST_WALL_SHAPE = Block.box(15.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
 
-    public FrostRuneTrapBlock() {
-        super(Properties.of()
+    public FrostRuneTrapBlock(Properties properties) {
+        super(properties
                 .strength(0.0F)
                 .noCollission()
                 .noOcclusion()
                 .sound(SoundType.GLASS));
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.DOWN));
+    }
+
+    public FrostRuneTrapBlock() {
+        this(Properties.of());
     }
 
     @Override
@@ -97,7 +103,6 @@ public class FrostRuneTrapBlock extends BaseEntityBlock {
         super.onRemove(state, level, pos, newState, isMoving);
     }
 
-    @Override
     @SuppressWarnings("deprecation")
     public boolean isPathfindable(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos,
                                   @NotNull PathComputationType pathComputationType) {
@@ -115,5 +120,10 @@ public class FrostRuneTrapBlock extends BaseEntityBlock {
         return level.isClientSide
                 ? null
                 : createTickerHelper(blockEntityType, BlockEntityRegistry.FROST_RUNE_TRAP.get(), FrostRuneTrapBlockEntity::serverTick);
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 }

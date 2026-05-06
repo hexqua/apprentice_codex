@@ -18,7 +18,7 @@ import org.joml.Vector3f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
@@ -43,7 +43,7 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
     public void actuallyRender(PoseStack poseStack, FrostRuneTrapBlockEntity animatable, BakedGeoModel model,
                                RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                               float red, float green, float blue, float alpha) {
+                               int colour) {
         if (!isReRender) {
             var animationState = new AnimationState<>(animatable, 0, 0, partialTick, false);
             var instanceId = getInstanceId(animatable);
@@ -72,10 +72,7 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         }
     }
@@ -84,7 +81,7 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
     public void renderRecursively(PoseStack poseStack, FrostRuneTrapBlockEntity animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var boneName = bone.getName();
         if (RUNE_1_BONE.equals(boneName)) {
             var opacity = rune1Opacity(animatable, partialTick) * distanceOpacity(animatable, partialTick);
@@ -93,6 +90,12 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
             }
             // 加算合成では頂点alphaが効きづらいため、透明度相当は色へ乗算する。
             var colorBlend = 0.5F + 0.5F * Mth.sin(animatable.getRenderAge(partialTick) * Mth.TWO_PI / 200.0F);
+            var runeColour = packColor(
+                    1.0F,
+                    Mth.lerp(colorBlend, ICE_RED, 1.0F) * opacity,
+                    Mth.lerp(colorBlend, ICE_GREEN, 1.0F) * opacity,
+                    Mth.lerp(colorBlend, ICE_BLUE, 1.0F) * opacity
+            );
             super.renderRecursively(
                     poseStack,
                     animatable,
@@ -104,10 +107,7 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     packedOverlay,
-                    Mth.lerp(colorBlend, ICE_RED, 1.0F) * opacity,
-                    Mth.lerp(colorBlend, ICE_GREEN, 1.0F) * opacity,
-                    Mth.lerp(colorBlend, ICE_BLUE, 1.0F) * opacity,
-                    1.0F
+                    runeColour
             );
             return;
         }
@@ -117,6 +117,7 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
             if (opacity <= 0.0F) {
                 return;
             }
+            var runeColour = packColor(1.0F, opacity, opacity, opacity);
             super.renderRecursively(
                     poseStack,
                     animatable,
@@ -128,10 +129,7 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     packedOverlay,
-                    opacity,
-                    opacity,
-                    opacity,
-                    1.0F
+                    runeColour
             );
             return;
         }
@@ -147,10 +145,7 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
                 partialTick,
                 LightTexture.FULL_BRIGHT,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
     }
 
@@ -196,6 +191,14 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
 
     private static float sineEaseOut(float progress) {
         return Mth.sin(progress * Mth.HALF_PI);
+    }
+
+    private static int packColor(float alpha, float red, float green, float blue) {
+        return (toChannel(alpha) << 24) | (toChannel(red) << 16) | (toChannel(green) << 8) | toChannel(blue);
+    }
+
+    private static int toChannel(float value) {
+        return Math.round(Mth.clamp(value, 0.0F, 1.0F) * 255.0F);
     }
 
     private static Quaternionf createOrientation(FrostRuneTrapBlockEntity blockEntity) {

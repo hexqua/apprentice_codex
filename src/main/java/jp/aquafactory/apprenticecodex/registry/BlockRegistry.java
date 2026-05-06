@@ -32,7 +32,7 @@ public final class BlockRegistry {
             BLOCKS.register("mage_light_torch", MageLightTorchBlock::new);
 
     public static final DeferredHolder<Block, Block> FROST_RUNE_TRAP =
-            BLOCKS.register("frost_rune_trap", FrostRuneTrapBlock::new);
+            BLOCKS.register("frost_rune_trap", () -> new FrostRuneTrapBlock());
 
     public static final DeferredHolder<Block, Block> HEALING_BLOOM_LIGHT =
             BLOCKS.register("healing_bloom_light", () -> new HealingBloomLightBlock());

@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -69,10 +70,10 @@ public class MagicSpearMissileRenderer extends GeoEntityRenderer<MagicSpearMissi
     @Override
     public void renderRecursively(PoseStack poseStack, MagicSpearMissileEntity animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
 
         if (!isEmissiveBone(bone)) {
@@ -82,7 +83,7 @@ public class MagicSpearMissileRenderer extends GeoEntityRenderer<MagicSpearMissi
         var emissiveBuffer = bufferSource.getBuffer(emissiveRenderType);
         super.renderRecursively(
                 poseStack, animatable, bone, emissiveRenderType, bufferSource, emissiveBuffer, isReRender, partialTick,
-                FULL_BRIGHT_LIGHT, packedOverlay, 1.0f, 0.72f, 0.24f, alpha
+                FULL_BRIGHT_LIGHT, packedOverlay, packColor(1.0f, 1.0f, 0.72f, 0.24f)
         );
     }
 
@@ -164,12 +165,20 @@ public class MagicSpearMissileRenderer extends GeoEntityRenderer<MagicSpearMissi
                                   float x, float y, float z, float u, float v,
                                   float normalX, float normalY, float normalZ,
                                   float red, float green, float blue, float alpha) {
-        buffer.vertex(poseMatrix, x, y, z)
-                .color(red, green, blue, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normalMatrix, normalX, normalY, normalZ)
-                .endVertex();
+        var transformedNormal = normalMatrix.transform(new org.joml.Vector3f(normalX, normalY, normalZ));
+        buffer.addVertex(poseMatrix, x, y, z)
+                .setColor(red, green, blue, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
+    }
+
+    private static int packColor(float alpha, float red, float green, float blue) {
+        return (toChannel(alpha) << 24) | (toChannel(red) << 16) | (toChannel(green) << 8) | toChannel(blue);
+    }
+
+    private static int toChannel(float value) {
+        return Math.round(Mth.clamp(value, 0.0f, 1.0f) * 255.0f);
     }
 }

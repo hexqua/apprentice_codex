@@ -15,6 +15,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -31,15 +32,15 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashSet;
@@ -111,9 +112,9 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_PHASE, PHASE_RELEASE);
-        entityData.define(DATA_SPIN_DIRECTION, 1);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_PHASE, PHASE_RELEASE);
+        builder.define(DATA_SPIN_DIRECTION, 1);
     }
 
     @Override
@@ -187,8 +188,8 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
+    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket(@NotNull ServerEntity serverEntity) {
+        return super.getAddEntityPacket(serverEntity);
     }
 
     @Override
@@ -316,7 +317,7 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity {
         applyBlastDamage(center);
         if (level() instanceof ServerLevel server) {
             server.sendParticles(ParticleTypes.EXPLOSION, center.x, center.y, center.z, 1, 0.0, 0.0, 0.0, 0.0);
-            server.playSound(null, BlockPos.containing(center), SoundEvents.GENERIC_EXPLODE,
+            server.playSound(null, BlockPos.containing(center), SoundEvents.GENERIC_EXPLODE.value(),
                     SoundSource.PLAYERS, 0.95f, 1.15f + level().random.nextFloat() * 0.12f);
         }
     }
@@ -324,7 +325,7 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity {
     private boolean moveWithImpactCheck(Vec3 movement) {
         setDeltaMovement(movement);
         var hitResult = findImpactResult(movement);
-        if (hitResult != null && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult != null && !EventHooks.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
         }
         if (isRemoved() || getPhase() == PHASE_BURST) {
