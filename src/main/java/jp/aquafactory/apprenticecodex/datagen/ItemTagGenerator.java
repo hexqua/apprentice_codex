@@ -115,6 +115,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var vanillaDurabilityEnchantableTag = tag(MINECRAFT_ENCHANTABLE_DURABILITY);
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
+                ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
@@ -211,6 +212,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         }
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
+                ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
                 ItemRegistry.EXPLORERS_CODEX.get(),
                 ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get(),
                 ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get()
