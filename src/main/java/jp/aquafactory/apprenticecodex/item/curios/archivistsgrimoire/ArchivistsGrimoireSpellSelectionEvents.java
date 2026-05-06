@@ -40,6 +40,9 @@ public final class ArchivistsGrimoireSpellSelectionEvents {
 
         // Iron's本体はISpellContainer持ちの装備変更だけを同期するため、独自保管型の魔導書は明示的に更新させる。
         if (event.getFrom().getItem() instanceof ArchivistsGrimoire || event.getTo().getItem() instanceof ArchivistsGrimoire) {
+            if (event.getTo().getItem() instanceof ArchivistsGrimoire) {
+                ArchivistsGrimoire.ensureSelectedRowHasScroll(event.getTo());
+            }
             PacketDistributor.sendToPlayer(serverPlayer, new EquipmentChangedPacket());
         }
     }
