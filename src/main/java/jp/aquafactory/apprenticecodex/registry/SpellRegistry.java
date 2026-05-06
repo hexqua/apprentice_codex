@@ -28,6 +28,7 @@ import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
+import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpear;
 import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
@@ -105,6 +106,7 @@ public final class SpellRegistry {
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
+    public static final RegistryObject<AbstractSpell> MAGIC_SPEAR = reg("magic_spear", MagicSpear::new);
 
     // 聖.
     public static final RegistryObject<AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);

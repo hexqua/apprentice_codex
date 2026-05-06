@@ -42,6 +42,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> HEALING_BLOOM = register("healing_bloom");
     public static final ResourceKey<DamageType> SHOCK = register("shock");
     public static final ResourceKey<DamageType> TIRO_VOLLEY = register("tiro_volley");
+    public static final ResourceKey<DamageType> MAGIC_SPEAR = register("magic_spear");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -91,6 +92,7 @@ public final class DamageTypes {
         context.register(HEALING_BLOOM, createTemplate(HEALING_BLOOM));
         context.register(SHOCK, createTemplate(SHOCK));
         context.register(TIRO_VOLLEY, createTemplate(TIRO_VOLLEY));
+        context.register(MAGIC_SPEAR, createTemplate(MAGIC_SPEAR));
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));
