@@ -614,6 +614,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void worldFlatterPenetratedArmorEffectAndDamageTags(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterPenetratedArmorEffectAndDamageTags(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(helper);
     }

@@ -420,7 +420,7 @@
   "spell.apprenticecodex.rift_hole.guide": "ブロックに対して異界への穴を開き、一時的に壁の中へ通路を作る。もう一度使うか、しばらくすると穴は閉じる。",
   "spell.apprenticecodex.fly_swatter.guide": "魔法のランチャーを召喚し、視線先に捕捉した対象に向かって攻撃する。攻撃は敵を追尾する。",
   "spell.apprenticecodex.assist_wings.guide": "魔法の翼を召喚し、羽ばたいてジャンプする。空中でも魔法力に応じて一定回数のみ発動可能。発動後、着地するまで低速落下となり、落下ダメージを受けない。",
-  "spell.apprenticecodex.world_flatter.guide": "魔法のドリルを召喚し、視線の先の対象を穿つ。大地に向かって振るうことで素早く大穴を開けることもできる。",
+  "spell.apprenticecodex.world_flatter.guide": "魔法のドリルを召喚し、視線の先の対象を防具ごと穿つ。大地に向かって振るうことで素早く大穴を開けることもできる。",
   "spell.apprenticecodex.slash_blade.guide": "魔法の刀を召喚して目の前を一閃する。発動が阻止されることはない。",
   "spell.apprenticecodex.manifestation_grimoire.guide": "術者の領域と繋がっている魔導書を召喚する。その魔導書に入れた魔法はこの魔法で呼び出すどの魔導書でも扱える。",
   "spell.apprenticecodex.feather_rush.guide": "魔法の翼を召喚し、羽ばたいて無数の羽を飛ばす。羽ばたいている間は落下しない。",
@@ -468,6 +468,8 @@
   "ui.apprenticecodex.lock_on_time": "ロックオンにかかる時間: %s",
   "ui.apprenticecodex.jumps_count": "最大ジャンプ数: %d",
   "ui.apprenticecodex.deepslate_break_time": "深層岩採掘にかかる時間: %s ",
+  "ui.apprenticecodex.entity_reach_range": "モブに対するサーチ射程: %dブロック",
+  "ui.apprenticecodex.penetrated_armor_percent": "防御貫通割合: %d%%",
   "ui.apprenticecodex.feather_rpm": "羽のRPM: %d",
   "ui.apprenticecodex.process_item_per_second": "1秒間に処理できるアイテム数: %d",
   "ui.apprenticecodex.mana_recover_speed": "秒間マナ回復: %d",
@@ -563,6 +565,7 @@
   "effect.apprenticecodex.thermal_processing": "熱加工",
   "effect.apprenticecodex.sense_sensor": "センスセンサー",
   "effect.apprenticecodex.spectral_wing": "スペクトラルウィング",
+  "effect.apprenticecodex.penetrated_armor": "装甲貫通",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
 
@@ -578,6 +581,7 @@
   "effect.apprenticecodex.thermal_processing.description": "熱加工を受けている状態。レベルが進行すると強力なデバフとダメージが発生し続ける。",
   "effect.apprenticecodex.sense_sensor.description": "自身をスカルクセンサーと同調させている状態。音を感知できる。",
   "effect.apprenticecodex.spectral_wing.description": "魔力の翼で滑空している状態。",
+  "effect.apprenticecodex.penetrated_armor.description": "ドリルによって装甲が貫かれた状態。防御力と防具強度を大きく低下させる。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",

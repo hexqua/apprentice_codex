@@ -113,7 +113,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SKY_EDGE,
                 TINY_LUMBERJACK,
                 FLY_SWATTER,
-                WORLD_FLATTER,
                 SLASH_BLADE,
                 MANTIS_LEAP,
                 HIGANBANA,
