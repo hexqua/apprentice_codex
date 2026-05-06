@@ -377,6 +377,10 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.TIRO_VOLLEY),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SILENT_ASSASSIN),
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
