@@ -72,7 +72,7 @@ public final class SearchBeaconTargetManager extends SimpleJsonResourceReloadLis
     }
 
     private static @Nullable HintCandidate createHintCandidate(SearchBeaconTargetList.Definition definition) {
-        var item = ForgeRegistries.ITEMS.getValue(definition.item());
+        var item = BuiltInRegistries.ITEM.getOptional(definition.item()).orElse(null);
         if (item == null) {
             return null;
         }
