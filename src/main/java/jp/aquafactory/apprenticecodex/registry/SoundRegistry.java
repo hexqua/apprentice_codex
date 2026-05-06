@@ -56,6 +56,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_LAUNCH = reg("stellar_launch");
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_IMPACT = reg("stellar_impact");
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_EXPLODE = reg("stellar_explode");
+    public static final DeferredHolder<SoundEvent, SoundEvent> FROZEN_RUNE = reg("frozen_rune");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

@@ -14,6 +14,7 @@
   "block.apprenticecodex.comfort_berry_bush" : "安楽の果実の低木",
   "block.apprenticecodex.potted_comfort_berry_bush" : "鉢植えの安楽の果実の低木",
   "block.apprenticecodex.spell_dispenser" : "スペルディスペンサー",
+  "block.apprenticecodex.frost_rune_trap" : "氷のルーン",
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.comfort_berries": "安楽の果実",
@@ -288,6 +289,7 @@
   "entity.apprenticecodex.spell_dispenser_anchor": "詠唱代行存在",
   "entity.apprenticecodex.silent_assassin_rifle": "マジックスナイパーライフル",
   "entity.apprenticecodex.tiro_volley_musket": "魔法のマスケット銃",
+  "entity.apprenticecodex.magic_spear_missile": "SAAM",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -403,6 +405,8 @@
   "spell.apprenticecodex.extract": "抽出",
   "spell.apprenticecodex.silent_assassin": "サイレントアサシン",
   "spell.apprenticecodex.tiro_volley": "ティロ・ボレー",
+  "spell.apprenticecodex.magic_spear": "マジックスピアー",
+  "spell.apprenticecodex.frost_rune": "氷のルーン",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -456,6 +460,8 @@
   "spell.apprenticecodex.extract.guide": "手元の錬金術師のフラスコから中身を抽出し、ポーションとして投擲する。効果そのものやスプラッシュか残留かは取り出した中身に依存する。",
   "spell.apprenticecodex.silent_assassin.guide": "一発で自壊する魔法のスナイパーライフルを召喚して狙いを付けて射撃する。こちらに気付いていないモブに対して非常に高い威力を発揮する。",
   "spell.apprenticecodex.tiro_volley.guide": "周囲に次々と魔法のマスケット銃を召喚し、継続的に周囲へ攻撃を行う。恐れを克服した魔法使いの女の子の魔法の模造品。",
+  "spell.apprenticecodex.magic_spear.guide": "視線先の対象に向かって飛翔する魔法の槍を召喚して射出する。命中時に炸裂して周囲も巻き込む。かつて大空を支配した天使の武器の模造品。",
+  "spell.apprenticecodex.frost_rune.guide": "地形に氷のルーンを刻み込む。設置した本人以外の物体に反応して起爆し、範囲内の対象を攻撃する。隠形の魔術も含まれるため視認しづらくはなっているが、翡翠の目を欺くことは一切出来ない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -572,6 +578,7 @@
   "effect.apprenticecodex.sense_sensor": "センスセンサー",
   "effect.apprenticecodex.spectral_wing": "スペクトラルウィング",
   "effect.apprenticecodex.penetrated_armor": "装甲貫通",
+  "effect.apprenticecodex.frost_trapped": "氷結",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
 
@@ -588,6 +595,7 @@
   "effect.apprenticecodex.sense_sensor.description": "自身をスカルクセンサーと同調させている状態。音を感知できる。",
   "effect.apprenticecodex.spectral_wing.description": "魔力の翼で滑空している状態。",
   "effect.apprenticecodex.penetrated_armor.description": "ドリルによって装甲が貫かれた状態。防御力と防具強度を大きく低下させる。",
+  "effect.apprenticecodex.frost_trapped.description": "氷の魔術で強制的に氷結されている状態。氷結ダメージを受け続ける。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",
@@ -633,6 +641,8 @@
   "death.attack.apprenticecodex.shock": "%1$sは%2$sによって分解された",
   "death.attack.apprenticecodex.silent_assassin": "%1$sは%2$sへ依頼の中止を頼むことはできなかった",
   "death.attack.apprenticecodex.tiro_volley": "%1$sは%2$sへ抗う覚悟を持つことができなかった",
+  "death.attack.apprenticecodex.magic_spear": "%1$sは%2$sに撃墜された",
+  "death.attack.apprenticecodex.frost_rune": "%1$sは警戒を怠ったことを後悔した",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

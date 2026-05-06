@@ -238,5 +238,11 @@
     "sounds": [
       "apprenticecodex:stellar_explode"
     ]
+  },
+  "frozen_rune": {
+    "category": "player",
+    "sounds": [
+      "apprenticecodex:frozen_rune"
+    ]
   }
 }

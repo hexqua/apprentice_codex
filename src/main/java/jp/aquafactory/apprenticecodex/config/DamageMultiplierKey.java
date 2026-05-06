@@ -31,6 +31,8 @@ public enum DamageMultiplierKey {
     SHOCK("shock"),
     SILENT_ASSASSIN("silentAssassin"),
     TIRO_VOLLEY("tiroVolley"),
+    MAGIC_SPEAR("magicSpear"),
+    FROST_RUNE("frostRune"),
     ;
 
     private final String configKey;

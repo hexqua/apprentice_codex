@@ -5,8 +5,10 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Direction;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -57,7 +59,9 @@ public final class ClientPlacementPreviewRenderEvent {
         var previewData = activePreview.previewData();
         var baseCenter = previewData.baseCenter();
         var radius = previewData.radius();
-        var topY = (float) baseCenter.y + previewData.height();
+        var axis = Vec3.atLowerCornerOf(previewData.normal().getNormal()).scale(previewData.height());
+        var tangentA = tangentA(previewData.normal());
+        var tangentB = tangentB(previewData.normal(), tangentA);
         var red = ((activePreview.color() >> 16) & 0xFF) / 255.0f;
         var green = ((activePreview.color() >> 8) & 0xFF) / 255.0f;
         var blue = (activePreview.color() & 0xFF) / 255.0f;
@@ -68,15 +72,39 @@ public final class ClientPlacementPreviewRenderEvent {
             var nextIndex = (index + 1) % UNIT_RING.length;
             var current = UNIT_RING[index];
             var next = UNIT_RING[nextIndex];
-            var bottomAx = (float) baseCenter.x + current.x() * radius;
-            var bottomAz = (float) baseCenter.z + current.z() * radius;
-            var bottomBx = (float) baseCenter.x + next.x() * radius;
-            var bottomBz = (float) baseCenter.z + next.z() * radius;
-            addVertex(buffer, poseMatrix, bottomAx, (float) baseCenter.y, bottomAz, red, green, blue, BASE_ALPHA);
-            addVertex(buffer, poseMatrix, bottomBx, (float) baseCenter.y, bottomBz, red, green, blue, BASE_ALPHA);
-            addVertex(buffer, poseMatrix, bottomBx, topY, bottomBz, red, green, blue, 0.0f);
-            addVertex(buffer, poseMatrix, bottomAx, topY, bottomAz, red, green, blue, 0.0f);
+            var bottomA = ringPoint(baseCenter, tangentA, tangentB, current, radius);
+            var bottomB = ringPoint(baseCenter, tangentA, tangentB, next, radius);
+            var topB = bottomB.add(axis);
+            var topA = bottomA.add(axis);
+            addVertex(buffer, poseMatrix, bottomA, red, green, blue, BASE_ALPHA);
+            addVertex(buffer, poseMatrix, bottomB, red, green, blue, BASE_ALPHA);
+            addVertex(buffer, poseMatrix, topB, red, green, blue, 0.0f);
+            addVertex(buffer, poseMatrix, topA, red, green, blue, 0.0f);
         }
+    }
+
+    private static Vec3 ringPoint(Vec3 center, Vec3 tangentA, Vec3 tangentB, UnitVertex unitVertex, float radius) {
+        return center
+                .add(tangentA.scale(unitVertex.x() * radius))
+                .add(tangentB.scale(unitVertex.z() * radius));
+    }
+
+    private static Vec3 tangentA(Direction normal) {
+        return switch (normal.getAxis()) {
+            case Y -> new Vec3(1.0, 0.0, 0.0);
+            case X -> new Vec3(0.0, 1.0, 0.0);
+            case Z -> new Vec3(1.0, 0.0, 0.0);
+        };
+    }
+
+    private static Vec3 tangentB(Direction normal, Vec3 tangentA) {
+        var axis = Vec3.atLowerCornerOf(normal.getNormal());
+        return axis.cross(tangentA).normalize();
+    }
+
+    private static void addVertex(VertexConsumer buffer, Matrix4f poseMatrix, Vec3 point,
+                                  float red, float green, float blue, float alpha) {
+        addVertex(buffer, poseMatrix, (float) point.x, (float) point.y, (float) point.z, red, green, blue, alpha);
     }
 
     private static void addVertex(VertexConsumer buffer, Matrix4f poseMatrix, float x, float y, float z,

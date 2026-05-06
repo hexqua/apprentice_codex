@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEn
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
+import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlockEntity;
@@ -38,6 +39,10 @@ public final class BlockEntityRegistry {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MageLightTorchBlockEntity>> MAGE_LIGHT_TORCH = reg(
             "mage_light_torch", MageLightTorchBlockEntity::new, BlockRegistry.MAGE_LIGHT_TORCH
+    );
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FrostRuneTrapBlockEntity>> FROST_RUNE_TRAP = reg(
+            "frost_rune_trap", FrostRuneTrapBlockEntity::new, BlockRegistry.FROST_RUNE_TRAP
     );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HealingBloomLightBlockEntity>> HEALING_BLOOM_LIGHT = reg(

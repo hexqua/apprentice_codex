@@ -25,6 +25,7 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutEntity;
@@ -193,6 +194,10 @@ public final class EntityRegistry {
             regProjectile("illuminate_stellar_star", IlluminateStellarStarEntity::new, 96, 1);
     public static final DeferredHolder<EntityType<?>, EntityType<UniteLunaMoonEntity>> UNITE_LUNA_MOON =
             regProjectile("unite_luna_moon", UniteLunaMoonEntity::new, 96, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MagicSpearMissileEntity>> MAGIC_SPEAR_MISSILE =
+            regProjectile("magic_spear_missile", MagicSpearMissileEntity::new, 128, 1);
+
     public static final DeferredHolder<EntityType<?>, EntityType<FeatherRushProjectileEntity>> FEATHER_RUSH_PROJECTILE =
             regProjectile("feather_rush_projectile", FeatherRushProjectileEntity::new, 96, 1);
 
