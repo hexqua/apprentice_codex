@@ -896,4 +896,19 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     public static void tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(helper);
     }
+
+    @GameTest(template = TEMPLATE)
+    public static void worldFlatterPenetratedArmorEffectAndDamageTags(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterPenetratedArmorEffectAndDamageTags(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(helper);
+    }
 }
