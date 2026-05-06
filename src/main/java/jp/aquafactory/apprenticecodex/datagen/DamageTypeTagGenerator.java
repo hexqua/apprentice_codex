@@ -31,6 +31,7 @@ import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HAUNTED_BONUS;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEALING_BLOOM;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MAGIC_SPEAR;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_FORCE_BLADE;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_SLASH;
@@ -117,7 +118,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 UNITE_LUNA,
                 HEALING_BLOOM,
                 SHOCK,
-                TIRO_VOLLEY
+                TIRO_VOLLEY,
+                MAGIC_SPEAR
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -151,7 +153,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ILLUMINATE_STELLAR,
                 HEALING_BLOOM,
                 HAUNTED_BONUS,
-                TIRO_VOLLEY
+                TIRO_VOLLEY,
+                MAGIC_SPEAR
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -187,11 +190,15 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEALING_BLOOM,
                 SHOCK,
                 TIRO_VOLLEY,
-                MANA_FORCE_BLADE
+                MANA_FORCE_BLADE,
+                MAGIC_SPEAR
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
-        tag(EXPLOSIONS).add(FLY_SWATTER);
+        tag(EXPLOSIONS).add(
+                FLY_SWATTER,
+                MAGIC_SPEAR
+        );
 
         // SUMMON_DAMAGE: 召喚のネックレス系のダメージブーストが乗る.
         tag(SUMMON_DAMAGE).add(
