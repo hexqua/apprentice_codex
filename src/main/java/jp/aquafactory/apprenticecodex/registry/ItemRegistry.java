@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldChar
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.isekaitravelguidebook.IsekaiTravelGuidebook;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
@@ -194,6 +195,8 @@ public final class ItemRegistry {
             ITEMS.register("mana_shield_charm", ManaShieldCharm::new);
     public static final RegistryObject<Item> ENDER_GRIMOIRE =
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
+    public static final RegistryObject<Item> ARCHIVISTS_GRIMOIRE =
+            ITEMS.register("archivists_grimoire", ArchivistsGrimoire::new);
     public static final RegistryObject<Item> EXPLORERS_CODEX =
             ITEMS.register("explorers_codex", ExplorersCodex::new);
     public static final RegistryObject<Item> ISEKAI_TRAVEL_GUIDEBOOK =

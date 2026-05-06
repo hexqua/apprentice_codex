@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireMenu;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
@@ -31,6 +32,9 @@ public final class MenuRegistry {
 
     public static final RegistryObject<MenuType<EnderGrimoireInscriptionMenu>> ENDER_GRIMOIRE_INSCRIPTION =
             MENUS.register("ender_grimoire_inscription", () -> IForgeMenuType.create((windowId, inv, data) -> new EnderGrimoireInscriptionMenu(windowId, inv)));
+
+    public static final RegistryObject<MenuType<ArchivistsGrimoireMenu>> ARCHIVISTS_GRIMOIRE =
+            MENUS.register("archivists_grimoire", () -> IForgeMenuType.create(ArchivistsGrimoireMenu::new));
 
     public static void register(IEventBus bus) {
         MENUS.register(bus);
