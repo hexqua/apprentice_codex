@@ -475,6 +475,12 @@
       "profile": {
         "owner_required": false
       },
+      "spell": "apprenticecodex:tiro_volley"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:silent_assassin"
     },
     {
