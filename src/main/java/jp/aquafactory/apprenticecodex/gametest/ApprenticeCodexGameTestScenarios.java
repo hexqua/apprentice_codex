@@ -93,6 +93,7 @@ import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSearchServi
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackBlockClassifier;
+import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
@@ -9018,6 +9019,66 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spectral Hammer with ring Silk Touch should not drop cobblestone");
         });
     }
+
+    static void tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "tiny_lumberjack_drop_move_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var originPos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var logPos = originPos.above();
+            level.setBlock(originPos, Blocks.AIR.defaultBlockState(), 3);
+            level.setBlock(logPos, Blocks.OAK_LOG.defaultBlockState(), 3);
+
+            var existingItemPos = Vec3.atCenterOf(logPos);
+            var existingItem = new ItemEntity(
+                    level,
+                    existingItemPos.x,
+                    existingItemPos.y,
+                    existingItemPos.z,
+                    new ItemStack(Items.COBBLESTONE)
+            );
+            level.addFreshEntity(existingItem);
+
+            var job = new TinyLumberjackJob(originPos, 1, player);
+            job.tick(level);
+
+            helper.assertTrue(hasItemEntityWithin(level, Items.OAK_LOG, Vec3.atCenterOf(originPos), 0.25D),
+                    "Tiny Lumberjack should move new log drops to the initial chopped block while CraftsmansDelight is equipped");
+            helper.assertTrue(!existingItem.isRemoved() && existingItem.position().distanceToSqr(existingItemPos) < 0.01D,
+                    "Tiny Lumberjack drop moving should not move ItemEntities that existed before the block break");
+            helper.succeed();
+        });
+    }
+
+    static void tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "tiny_lumberjack_drop_move_unequip_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var originPos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var logPos = originPos.above();
+            level.setBlock(originPos, Blocks.AIR.defaultBlockState(), 3);
+            level.setBlock(logPos, Blocks.OAK_LOG.defaultBlockState(), 3);
+
+            var job = new TinyLumberjackJob(originPos, 1, player);
+            equipRingCurio(player, ItemStack.EMPTY);
+            job.tick(level);
+
+            helper.assertFalse(hasItemEntityWithin(level, Items.OAK_LOG, Vec3.atCenterOf(originPos), 0.25D),
+                    "Tiny Lumberjack should stop moving job drops after CraftsmansDelight is unequipped");
+            helper.assertTrue(hasItemEntityWithin(level, Items.OAK_LOG, Vec3.atCenterOf(logPos), 1.25D),
+                    "Tiny Lumberjack should leave log drops near the broken block when CraftsmansDelight is not currently equipped");
+            helper.succeed();
+        });
+    }
+
     static void personalShelfOpensVanillaChestMenuAndHandlesFullQuickMove(GameTestHelper helper) {
         var player = createPersonalShelfPlayer(helper, new BlockPos(0, 2, 0), "personal_shelf_vanilla_menu_test");
         var shelfPos = new BlockPos(0, 1, 0);
@@ -9599,6 +9660,15 @@ public final class ApprenticeCodexGameTestScenarios {
                 itemEntity -> itemEntity.getAge() <= 1
         );
     }
+
+    private static boolean hasItemEntityWithin(ServerLevel level, Item item, Vec3 pos, double radius) {
+        return !level.getEntitiesOfClass(
+                ItemEntity.class,
+                new AABB(pos, pos).inflate(radius),
+                itemEntity -> !itemEntity.isRemoved() && itemEntity.getItem().is(item)
+        ).isEmpty();
+    }
+
     private static FakePlayer createSpellDispenserPlacer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
