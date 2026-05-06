@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -22,7 +23,7 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 import java.util.Optional;
 
-public class HarvestMoon extends AbstractSpell {
+public class HarvestMoon extends AbstractSpell implements ICraftsmansDelightAffectedSpell {
     private static final int BLOCK_BUDGET_PER_TICK = 32;
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "harvest_moon");
 
@@ -54,6 +55,16 @@ public class HarvestMoon extends AbstractSpell {
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
+    }
+
+    @Override
+    public boolean isCraftsmansDelightBreakSpeedBonusEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isCraftsmansDelightProcessSpeedBonusEnabled() {
+        return false;
     }
 
     @Override

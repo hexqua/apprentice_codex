@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.spell.tinylumberjack;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayDeque;
 import java.util.Comparator;
@@ -27,6 +27,7 @@ public class TinyLumberjackJob {
     private final LongOpenHashSet visitedLeaves = new LongOpenHashSet();
     private int maxLogDistanceProcessed;
     private final ServerPlayer starter;
+    private final Vec3 dropAttractPos;
     private boolean complete;
 
     public TinyLumberjackJob(BlockPos originPos, int logsPerTick, ServerPlayer starter) {
@@ -37,6 +38,7 @@ public class TinyLumberjackJob {
         visitedLogs.add(originPos1.asLong());
         addLogInfluence(originPos1);
         this.starter = starter;
+        dropAttractPos = Vec3.atCenterOf(originPos1);
     }
 
     public boolean isComplete() {
@@ -161,7 +163,7 @@ public class TinyLumberjackJob {
     }
 
     private void breakBlock(ServerLevel level, BlockPos pos) {
-        BlockTools.breakBlockByPlayerHands(level, starter, pos, createDummyAxe());
+        TinyLumberjackDropMover.breakBlockByPlayerHands(level, starter, pos, createDummyAxe(), dropAttractPos);
     }
 
     private ItemStack createDummyAxe() {

@@ -33,4 +33,20 @@ public final class ClientBlockTargetingHelper {
         targetData.setTarget(hitPos, hitFace, blockHit.getLocation(), placePos, hitFace.getOpposite());
         return targetData;
     }
+
+    public static BlockTargetData captureOutlinedHitTarget(Player player, double range, boolean ignoreRange) {
+        var targetData = new BlockTargetData();
+        var hitResult = Minecraft.getInstance().hitResult;
+        if (!(hitResult instanceof BlockHitResult blockHit) || hitResult.getType() != HitResult.Type.BLOCK) {
+            return targetData;
+        }
+        if (!ignoreRange && player.getEyePosition(1.0F).distanceToSqr(blockHit.getLocation()) > range * range) {
+            return targetData;
+        }
+
+        var hitPos = blockHit.getBlockPos();
+        var hitFace = blockHit.getDirection();
+        targetData.setTarget(hitPos, hitFace, blockHit.getLocation(), hitPos, hitFace);
+        return targetData;
+    }
 }

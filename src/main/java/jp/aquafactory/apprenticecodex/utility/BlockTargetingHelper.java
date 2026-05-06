@@ -37,6 +37,15 @@ public final class BlockTargetingHelper {
     }
 
     public static Optional<BlockTargetData> getValidatedPendingTarget(Level level, LivingEntity entity, ResourceLocation expectedSpellId, double range) {
+        return getValidatedPendingTarget(level, entity, expectedSpellId, range, true);
+    }
+
+    public static Optional<BlockTargetData> peekValidatedPendingTarget(Level level, LivingEntity entity, ResourceLocation expectedSpellId, double range) {
+        return getValidatedPendingTarget(level, entity, expectedSpellId, range, false);
+    }
+
+    private static Optional<BlockTargetData> getValidatedPendingTarget(Level level, LivingEntity entity, ResourceLocation expectedSpellId, double range,
+                                                                       boolean consume) {
         if (!(entity instanceof ServerPlayer serverPlayer)) {
             return Optional.empty();
         }
@@ -55,7 +64,9 @@ public final class BlockTargetingHelper {
         }
 
         var validated = validateTarget(level, entity, range, pendingTarget.targetData());
-        validated.ifPresent(unused -> PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID()));
+        if (consume) {
+            validated.ifPresent(unused -> PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID()));
+        }
         return validated;
     }
 
@@ -83,6 +94,29 @@ public final class BlockTargetingHelper {
         }
 
         var validated = validateHitTarget(level, entity, range, pendingTarget.targetData());
+        validated.ifPresent(unused -> PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID()));
+        return validated;
+    }
+
+    public static Optional<BlockTargetData> getPendingHitTargetIgnoringRange(Level level, LivingEntity entity, ResourceLocation expectedSpellId) {
+        if (!(entity instanceof ServerPlayer serverPlayer)) {
+            return Optional.empty();
+        }
+
+        var pendingTarget = PENDING_SERVER_TARGETS.get(serverPlayer.getUUID());
+        if (pendingTarget == null) {
+            return Optional.empty();
+        }
+        if (level.getGameTime() > pendingTarget.expireGameTime()) {
+            PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID());
+            return Optional.empty();
+        }
+        if (!pendingTarget.spellId().equals(expectedSpellId)) {
+            PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID());
+            return Optional.empty();
+        }
+
+        var validated = validateHitTargetIgnoringRange(pendingTarget.targetData());
         validated.ifPresent(unused -> PENDING_SERVER_TARGETS.remove(serverPlayer.getUUID()));
         return validated;
     }
@@ -129,6 +163,17 @@ public final class BlockTargetingHelper {
         var allowedRange = range + RANGE_EPSILON;
         var distanceSq = entity.getEyePosition(1.0F).distanceToSqr(targetData.getHitLocation());
         if (distanceSq > allowedRange * allowedRange) {
+            return Optional.empty();
+        }
+
+        return Optional.of(targetData.copy());
+    }
+
+    private static Optional<BlockTargetData> validateHitTargetIgnoringRange(@Nullable BlockTargetData targetData) {
+        if (targetData == null || !targetData.hasTarget()) {
+            return Optional.empty();
+        }
+        if (targetData.getHitBlockPos() == null || targetData.getHitFace() == null) {
             return Optional.empty();
         }
 

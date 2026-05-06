@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.ManaRegeneration;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
+import jp.aquafactory.apprenticecodex.effect.PenetratedArmor;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.effect.SenseSensor;
 import jp.aquafactory.apprenticecodex.effect.SpectralWingEffect;
@@ -46,6 +47,8 @@ public final class EffectRegistry {
             EFFECTS.register("spectral_wing", SpectralWingEffect::new);
     public static final RegistryObject<MobEffect> THERMAL_PROCESSING =
             EFFECTS.register("thermal_processing", ThermalProcessing::new);
+    public static final RegistryObject<MobEffect> PENETRATED_ARMOR =
+            EFFECTS.register("penetrated_armor", PenetratedArmor::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);
