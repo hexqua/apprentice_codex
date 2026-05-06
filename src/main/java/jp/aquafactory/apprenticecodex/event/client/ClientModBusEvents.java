@@ -41,6 +41,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.PhotonSiphonRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
@@ -373,6 +374,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.EXPLORERS_CANE.get());
+        event.registerItem(new IClientItemExtensions() {
+            private PhotonSiphonRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new PhotonSiphonRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.PHOTON_SIPHON.get());
         event.registerItem(new IClientItemExtensions() {
             private ReflectcastShieldRenderer renderer;
 
