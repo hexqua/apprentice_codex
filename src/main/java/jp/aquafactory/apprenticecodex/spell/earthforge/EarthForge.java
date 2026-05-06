@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -29,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell {
+public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell, ICraftsmansDelightAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "earth_forge");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -50,6 +51,16 @@ public class EarthForge extends AbstractSpell implements jp.aquafactory.apprenti
     @Override
     public ResourceLocation getSpellResource() {
         return spellId;
+    }
+
+    @Override
+    public boolean isCraftsmansDelightBreakSpeedBonusEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isCraftsmansDelightProcessSpeedBonusEnabled() {
+        return false;
     }
 
     @Override
