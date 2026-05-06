@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.worldflatter;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.BlockPos;
@@ -10,6 +11,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -36,20 +39,24 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
     private static final RawAnimation ROTATE = RawAnimation.begin().thenLoop("spin");
     private static final double BLOCK_ATTACH_DISTANCE = 0.5;
     private static final double MOB_ATTACH_DISTANCE = 0.25;
-    private static final double BLOCK_ATTACH_COMPLETE_DISTANCE_SQR = 0.04;
     private static final double TARGET_CHANGED_EPSILON_SQR = 0.0025;
+    private static final int ENTITY_REACH_TICKS = 15;
+    private static final int BLOCK_REACH_TICKS = 8;
+    private static final int BLOCK_BREAK_START_MOVE_TICK = 6;
+    private static final int PENETRATED_ARMOR_DURATION_TICKS = 20 * 5;
     private static final int CRACK_ID_SLOT_BITS = 5;
     private static final int CRACK_ID_SLOT_COUNT = 1 << CRACK_ID_SLOT_BITS;
 
     private float damage;
     private float toolSpeed;
-    private int reachSpeed;
+    private int penetratedArmorAmplifier;
     private RaycastTools.TargetType targetType = RaycastTools.TargetType.NONE;
     private Vec3 ownerTargetHitPos = Vec3.ZERO;
     private @Nullable BlockPos ownerTargetBlockPos;
     private @Nullable LivingEntity ownerTargetEntity;
     private @Nullable Vec3 moveStartPos;
     private @Nullable Vec3 moveTargetPos;
+    private @Nullable Integer moveTargetEntityId;
     private int moveTick;
     private @Nullable BlockPos breakCenterPos;
     private @Nullable Vec3 breakSideNormal;
@@ -128,7 +135,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         }
 
         resetBreakProgress(level);
-        moveToTarget(getStandbyPosition(), owner.getYRot(), owner.getXRot());
+        moveToTarget(getStandbyPosition(), owner.getYRot(), owner.getXRot(), ENTITY_REACH_TICKS);
     }
 
     @Override
@@ -154,8 +161,8 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         this.damage = damage;
     }
 
-    public void setReachSpeed(int reachSpeed) {
-        this.reachSpeed = reachSpeed;
+    public void setPenetratedArmorAmplifier(int penetratedArmorAmplifier) {
+        this.penetratedArmorAmplifier = Math.max(0, Math.min(3, penetratedArmorAmplifier));
     }
 
     public void setToolSpeed(float toolSpeed) {
@@ -179,9 +186,13 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         }
     }
 
+    public boolean hasBlockTarget() {
+        return targetType == RaycastTools.TargetType.BLOCK && ownerTargetBlockPos != null;
+    }
+
     private void handleLivingTarget(LivingEntity owner, LivingEntity target) {
-        if (!target.isAlive()) {
-            moveToTarget(getStandbyPosition(), owner.getYRot(), owner.getXRot());
+        if (!target.isAlive() || !CombatTools.isValidCombatTarget(target, owner)) {
+            moveToTarget(getStandbyPosition(), owner.getYRot(), owner.getXRot(), ENTITY_REACH_TICKS);
             return;
         }
 
@@ -194,41 +205,38 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
 
         var targetCenter = target.getBoundingBox().getCenter();
         var attachPosition = targetCenter.subtract(ownerLook.scale(MOB_ATTACH_DISTANCE));
-        moveToTarget(attachPosition, owner.getYRot(), owner.getXRot());
-        performMobAttack(owner);
+        moveToEntityTarget(target, attachPosition, owner.getYRot(), owner.getXRot(), ENTITY_REACH_TICKS);
+        if (moveTick >= ENTITY_REACH_TICKS) {
+            performMobAttack(owner, target);
+        }
     }
 
-    private void performMobAttack(LivingEntity owner) {
-        if (tickCount % 2 != 0) {
-            return;
-        }
-
+    private void performMobAttack(LivingEntity owner, LivingEntity target) {
         var level = level();
         var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.WORLD_FLATTER);
-        var hitResult = RaycastTools.sampleBeamHits(
-                level,
-                position(),
-                position().add(getLookAngle().normalize().scale(1.0)),
-                1,
-                0.5,
-                e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
+        var damaged = CombatTools.applyDamage(
+                target,
+                damage,
+                source,
+                SpellRegistry.WORLD_FLATTER.get().getSchoolType(),
+                CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
-
-        for (var hit : hitResult) {
-            CombatTools.applyDamage(
-                    hit,
-                    damage,
-                    source,
-                    SpellRegistry.WORLD_FLATTER.get().getSchoolType(),
-                    CombatTools.KnockbackTypes.NO_KNOCKBACK
-            );
+        if (damaged) {
+            target.addEffect(new MobEffectInstance(
+                    EffectRegistry.PENETRATED_ARMOR,
+                    PENETRATED_ARMOR_DURATION_TICKS,
+                    penetratedArmorAmplifier,
+                    false,
+                    true,
+                    true
+            ));
         }
     }
 
     private void handleBlockTarget(Level level, LivingEntity owner, BlockPos targetPos, Vec3 hitPos) {
         if (level.isEmptyBlock(targetPos)) {
             resetBreakProgress(level);
-            moveToTarget(getStandbyPosition(), owner.getYRot(), owner.getXRot());
+            moveToTarget(getStandbyPosition(), owner.getYRot(), owner.getXRot(), ENTITY_REACH_TICKS);
             return;
         }
 
@@ -239,9 +247,9 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
 
         var directionToBlock = blockCenter.subtract(attachPosition);
         var yawPitch = RotationTools.calculateYawPitchByDirection(directionToBlock);
-        moveToTarget(attachPosition, yawPitch.yaw(), yawPitch.pitch());
+        moveToTarget(attachPosition, yawPitch.yaw(), yawPitch.pitch(), BLOCK_REACH_TICKS);
 
-        if (position().distanceToSqr(attachPosition) <= BLOCK_ATTACH_COMPLETE_DISTANCE_SQR) {
+        if (moveTick >= BLOCK_BREAK_START_MOVE_TICK) {
             onBlockAttached(level, owner, targetPos, sideNormal);
         }
     }
@@ -337,8 +345,12 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         return centerPos.offset(axisA, axisB, 0);
     }
 
-    private static boolean canBreakTarget(Level level, LivingEntity owner, BlockPos pos, BlockState state, @Nullable BlockState representativeState) {
+    public static boolean canBreakTarget(Level level, LivingEntity owner, BlockPos pos, BlockState state, @Nullable BlockState representativeState) {
         if (state.isAir()) {
+            return false;
+        }
+
+        if (!state.is(BlockTags.MINEABLE_WITH_PICKAXE) && !state.is(BlockTags.MINEABLE_WITH_SHOVEL)) {
             return false;
         }
 
@@ -444,13 +456,30 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
                 && Math.abs(a.z - b.z) < 1.0E-6;
     }
 
-    private void moveToTarget(Vec3 targetPos, float yaw, float pitch) {
+    private void moveToTarget(Vec3 targetPos, float yaw, float pitch, int durationTicks) {
+        moveTargetEntityId = null;
         if (moveTargetPos == null || moveTargetPos.distanceToSqr(targetPos) > TARGET_CHANGED_EPSILON_SQR) {
             moveStartPos = position();
             moveTargetPos = targetPos;
             moveTick = 0;
         }
 
+        applyMove(yaw, pitch, durationTicks);
+    }
+
+    private void moveToEntityTarget(LivingEntity target, Vec3 targetPos, float yaw, float pitch, int durationTicks) {
+        var targetId = target.getId();
+        if (moveTargetEntityId == null || moveTargetEntityId != targetId) {
+            moveStartPos = position();
+            moveTick = 0;
+        }
+
+        moveTargetEntityId = targetId;
+        moveTargetPos = targetPos;
+        applyMove(yaw, pitch, durationTicks);
+    }
+
+    private void applyMove(float yaw, float pitch, int durationTicks) {
         if (moveStartPos == null || moveTargetPos == null) {
             moveStartPos = position();
             moveTargetPos = position();
@@ -462,7 +491,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         setRot(getYRot(), getXRot());
         hasImpulse = true;
 
-        var moveDuration = Math.max(1, reachSpeed);
+        var moveDuration = Math.max(1, durationTicks);
         moveTick = Math.min(moveTick + 1, moveDuration);
         var t = moveTick / (double) moveDuration;
         var eased = 1.0 - (1.0 - t) * (1.0 - t);

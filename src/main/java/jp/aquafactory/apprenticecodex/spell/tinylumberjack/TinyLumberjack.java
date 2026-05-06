@@ -15,8 +15,10 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.IClientBlockHitTargetingSpell;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.network.chat.Component;
@@ -35,8 +37,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawEntity> implements ICraftsmansDelightAffectedSpell {
+public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawEntity> implements IClientBlockHitTargetingSpell, ICraftsmansDelightAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tiny_lumberjack");
+    private static final double BLOCK_TARGET_RANGE = 8.0;
+    private static final double ENTITY_TARGET_RANGE = 3.0;
+    private static final double ENTITY_TARGET_RAYCAST_WIDTH = 0.5;
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
@@ -59,7 +64,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.apprenticecodex.tree_cut_time", Utils.timeFromTicks(getBreakBestTime(spellLevel,caster), 1)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getBlockRange(), 1))
         );
     }
 
@@ -68,12 +73,16 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.TINY_LUMBERJACK);
     }
 
-    private float getRange(){
-        return 6;
+    private double getBlockRange(){
+        return BLOCK_TARGET_RANGE;
+    }
+
+    private double getEntityRange() {
+        return ENTITY_TARGET_RANGE;
     }
 
     private int getReachSpeed() {
-        return 15;
+        return 10;
     }
 
     private float getBreakSpeed(int spellLevel, LivingEntity entity) {
@@ -103,6 +112,16 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
 
     @Override
     public boolean isCraftsmansDelightCastingMobilityEnabled() {
+        return true;
+    }
+
+    @Override
+    public double getClientBlockTargetingRange(int spellLevel, LivingEntity entity) {
+        return getBlockRange();
+    }
+
+    @Override
+    public boolean ignoresClientBlockTargetingRange() {
         return true;
     }
 
@@ -155,8 +174,56 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
         if (isCraftsmansDelightCastingMobilityEnabled()) {
             CraftsmansDelight.applyCastingMobility(entity);
         }
-        var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
-        weapon.updateOwnerTarget(result);
+        updateTarget(level, entity, weapon);
+    }
+
+    private void updateTarget(Level level, LivingEntity entity, TinyLumberjackSawEntity weapon) {
+        if (weapon.hasValidLockedCombatTarget(entity)) {
+            weapon.refreshLockedCombatTarget();
+            return;
+        }
+
+        var entityResult = RaycastTools.raycastFromEye(
+                entity,
+                getEntityRange(),
+                ENTITY_TARGET_RAYCAST_WIDTH,
+                e -> CombatTools.isValidCombatTarget(e, entity)
+        );
+        if (entityResult.hitType() == RaycastTools.TargetType.LIVING_ENTITY && entityResult.hitEntity() != null) {
+            weapon.updateOwnerTarget(entityResult);
+            return;
+        }
+
+        var clientBlockTarget = BlockTargetingHelper.getPendingHitTargetIgnoringRange(level, entity, getSpellResource())
+                .filter(target -> target.getHitBlockPos() != null)
+                .filter(target -> TinyLumberjackBlockClassifier.isLog(level.getBlockState(target.getHitBlockPos())))
+                .map(target -> new RaycastTools.TargetResult(
+                        RaycastTools.TargetType.BLOCK,
+                        target.getHitLocation(),
+                        null,
+                        target.getHitBlockPos()
+                ));
+        if (clientBlockTarget.isPresent()) {
+            weapon.updateOwnerTarget(clientBlockTarget.get());
+            return;
+        }
+
+        var blockResult = RaycastTools.raycast(entity, entity.getViewVector(1.0F), getBlockRange(), 0.0, e -> false);
+        if (blockResult.hitType() == RaycastTools.TargetType.BLOCK
+                && blockResult.hitBlock() != null
+                && TinyLumberjackBlockClassifier.isLog(level.getBlockState(blockResult.hitBlock()))) {
+            weapon.updateOwnerTarget(blockResult);
+            return;
+        }
+
+        if (!weapon.hasBlockTarget()) {
+            weapon.updateOwnerTarget(new RaycastTools.TargetResult(
+                    RaycastTools.TargetType.NONE,
+                    blockResult.hitPosition(),
+                    null,
+                    null
+            ));
+        }
     }
 
     @Override

@@ -134,10 +134,12 @@ public interface HarvestMoonAction {
     final class ColumnHarvestAction implements HarvestMoonAction {
         private final BlockPos anchorPos;
         private final List<BlockPos> harvestTargets;
+        private final AABB harvestBox;
 
         ColumnHarvestAction(BlockPos anchorPos, List<BlockPos> harvestTargets) {
             this.anchorPos = anchorPos.immutable();
             this.harvestTargets = List.copyOf(harvestTargets);
+            this.harvestBox = HarvestMoonActionUtil.createBlockBox(this.harvestTargets).inflate(2.5);
         }
 
         @Override
@@ -156,8 +158,7 @@ public interface HarvestMoonAction {
                 return 0;
             }
 
-            var box = new AABB(anchorPos).inflate(2.5);
-            var beforeIds = HarvestMoonActionUtil.captureNearbyItemIds(level, box);
+            var beforeIds = HarvestMoonActionUtil.captureNearbyItemIds(level, harvestBox);
             var processed = 0;
             for (var target : harvestTargets) {
                 var state = level.getBlockState(target);
@@ -170,7 +171,7 @@ public interface HarvestMoonAction {
             }
 
             if (processed > 0) {
-                HarvestMoonActionUtil.moveNewDropsTo(level, box, beforeIds, attractPos);
+                HarvestMoonActionUtil.moveNewDropsTo(level, harvestBox, beforeIds, attractPos);
             }
             return processed;
         }
@@ -486,6 +487,24 @@ public interface HarvestMoonAction {
 
         static AABB createDropBox(BlockPos pos) {
             return new AABB(pos).inflate(1.5);
+        }
+
+        static AABB createBlockBox(List<BlockPos> positions) {
+            var minX = Integer.MAX_VALUE;
+            var minY = Integer.MAX_VALUE;
+            var minZ = Integer.MAX_VALUE;
+            var maxX = Integer.MIN_VALUE;
+            var maxY = Integer.MIN_VALUE;
+            var maxZ = Integer.MIN_VALUE;
+            for (var pos : positions) {
+                minX = Math.min(minX, pos.getX());
+                minY = Math.min(minY, pos.getY());
+                minZ = Math.min(minZ, pos.getZ());
+                maxX = Math.max(maxX, pos.getX());
+                maxY = Math.max(maxY, pos.getY());
+                maxZ = Math.max(maxZ, pos.getZ());
+            }
+            return new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
         }
 
         static Set<Integer> captureNearbyItemIds(ServerLevel level, AABB box) {

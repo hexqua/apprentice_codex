@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.gracedrain;
 
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -17,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,15 +28,16 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     public static final double HEIGHT_OFFSET = 4.0;
-    private static final double EFFECT_HEIGHT_TOLERANCE = 0.5;
+    private static final int BLOCK_ANCHOR_HEIGHT_LIMIT = (int) HEIGHT_OFFSET;
     private static final float CLOUD_THICKNESS = 0.8f;
     private static final float VISUAL_OVERFLOW_BLOCKS = 0.35f;
-    private static final int FOLLOW_EFFECT_INTERVAL_TICKS = 20;
+    private static final int FOLLOW_EFFECT_INTERVAL_TICKS = 10;
     private static final int SOUND_INTERVAL_TICKS = 55;
 
     private static final EntityDataAccessor<Integer> EFFECT_RADIUS_BLOCKS =
@@ -82,11 +85,12 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         setPos(anchorPosition.x, anchorPosition.y, anchorPosition.z);
     }
 
-    public void setAnchorBlock(BlockPos blockPos) {
+    public void setAnchorBlock(Level level, BlockPos blockPos) {
         anchorBlockPos = blockPos.immutable();
         followTargetUuid = null;
         cachedFollowTarget = null;
-        anchorPosition = toCloudPosition(Vec3.atCenterOf(blockPos));
+        anchorPosition = findBlockAnchorCloudPosition(level, blockPos)
+                .orElseGet(() -> toCloudPosition(Vec3.atCenterOf(blockPos)));
         setPos(anchorPosition.x, anchorPosition.y, anchorPosition.z);
     }
 
@@ -266,6 +270,24 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         return basePosition.add(0.0, HEIGHT_OFFSET, 0.0);
     }
 
+    // 天井下でも雨が届くよう、4ブロック上を上限にして直下の空気ブロックへ雲を収める。
+    public static Optional<Vec3> findBlockAnchorCloudPosition(Level level, BlockPos blockPos) {
+        var cloudBlockPos = blockPos.above();
+        if (!level.getBlockState(cloudBlockPos).isAir()) {
+            return Optional.empty();
+        }
+
+        for (var offset = 2; offset <= BLOCK_ANCHOR_HEIGHT_LIMIT; offset++) {
+            var candidate = blockPos.above(offset);
+            if (!level.getBlockState(candidate).isAir()) {
+                break;
+            }
+            cloudBlockPos = candidate;
+        }
+
+        return Optional.of(Vec3.atCenterOf(cloudBlockPos));
+    }
+
     @Override
     public Vec3 getStandbyPosition() {
         return anchorPosition != null ? anchorPosition : position();
@@ -293,26 +315,32 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
 
     private void applyFollowEffect(Level level) {
         var center = position();
-        var baseY = center.y - HEIGHT_OFFSET;
         var halfExtent = getEffectHalfExtentBlocks();
         var box = new AABB(
-                center.x - halfExtent, baseY - EFFECT_HEIGHT_TOLERANCE, center.z - halfExtent,
-                center.x + halfExtent, baseY + EFFECT_HEIGHT_TOLERANCE, center.z + halfExtent
+                center.x - halfExtent, center.y - HEIGHT_OFFSET, center.z - halfExtent,
+                center.x + halfExtent, center.y, center.z + halfExtent
         );
         var source = CombatTools.getDamageSource(level, this, getOwner(), DamageTypes.GRACED_RAIN);
         var school = SpellRegistry.GRACED_RAIN.get().getSchoolType();
+        var targets = level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive);
 
-        for (var target : level.getEntitiesOfClass(LivingEntity.class, box, LivingEntity::isAlive)) {
-            var targetY = RaycastTools.getEntityTargetPosition(target).y;
-            if (Math.abs(targetY - baseY) > EFFECT_HEIGHT_TOLERANCE) {
-                continue;
-            }
+        for (var target : targets) {
+            applyHealingEffect(target, source, school);
+        }
 
-            if (target.isInvertedHealAndHarm()) {
-                CombatTools.applyDamage(target, healAmount, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
-            } else {
-                target.heal(healAmount);
-            }
+        var owner = getOwner();
+        if (owner instanceof LivingEntity ownerLiving && ownerLiving.isAlive()
+                && box.intersects(ownerLiving.getBoundingBox())
+                && !targets.contains(ownerLiving)) {
+            applyHealingEffect(ownerLiving, source, school);
+        }
+    }
+
+    private void applyHealingEffect(LivingEntity target, DamageSource source, SchoolType school) {
+        if (target.isInvertedHealAndHarm()) {
+            CombatTools.applyDamage(target, healAmount, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+        } else {
+            target.heal(healAmount);
         }
     }
 

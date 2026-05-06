@@ -868,6 +868,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.craftsmansDelightAppliesToHarvestMoonAndEarthForgeManaAndCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void craftsmansDelightExtendsTouchDigRange(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.craftsmansDelightExtendsTouchDigRange(helper);
     }
@@ -885,5 +890,30 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spectralHammerUsesCraftsmansDelightRingMiningEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void worldFlatterPenetratedArmorEffectAndDamageTags(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterPenetratedArmorEffectAndDamageTags(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterBlockTargetFilterMatchesPickaxeOrShovel(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.worldFlatterEntityAttackRequiresArrivalAndHitsSingleTarget(helper);
     }
 }
