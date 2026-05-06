@@ -16,10 +16,13 @@ import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,6 +35,7 @@ import java.util.Optional;
 
 public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity> implements IClientBlockTargetingSpell, ICraftsmansDelightAffectedSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "graced_rain");
+    private static final String MESSAGE_CANT_PLACE = "ui.apprenticecodex.cant_place";
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.EPIC)
@@ -52,8 +56,10 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.healing", Utils.stringTruncation(getHealAmount(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getEffectRadiusBlocks(spellLevel, caster), 1))
+                Component.translatable("ui.apprenticecodex.healing_per_second", Math.round(getHealAmount(spellLevel, caster) * 2.0f)),
+                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getEffectRadiusBlocks(spellLevel, caster), 1)),
+                Component.translatable("ui.apprenticecodex.growth_speed_rank",
+                        Component.translatable(getGrowthSpeedRankKey(getGrowthIntervalTicks(spellLevel, caster))))
         );
     }
 
@@ -76,6 +82,16 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
 
     private int getGrowthIntervalTicks(int spellLevel, LivingEntity entity) {
         return Math.max(1, 5 - Math.round(getSpellPower(spellLevel, entity) / 100.0f));
+    }
+
+    private String getGrowthSpeedRankKey(int growthIntervalTicks) {
+        if (growthIntervalTicks <= 1) {
+            return "ui.apprenticecodex.growth_speed_rank.fastest";
+        }
+        if (growthIntervalTicks <= 3) {
+            return "ui.apprenticecodex.growth_speed_rank.fast";
+        }
+        return "ui.apprenticecodex.growth_speed_rank.normal";
     }
 
     @Override
@@ -114,6 +130,22 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        var result = RaycastTools.raycastFromEye(entity, getTargetRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
+        if (result.hitEntity() != null) {
+            return true;
+        }
+
+        var blockTarget = resolveBlockTarget(level, spellLevel, entity, result, false);
+        if (blockTarget.isPresent() && GracedRainCloudEntity.findBlockAnchorCloudPosition(level, blockTarget.get()).isEmpty()) {
+            sendCantPlaceMessage(entity);
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
     public GracedRainCloudEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var result = RaycastTools.raycastFromEye(entity, getTargetRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
         var cloud = new GracedRainCloudEntity(EntityRegistry.GRACED_RAIN_CLOUD.get(), level, entity);
@@ -125,13 +157,9 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
         } else {
             Vec3 basePos;
             // 植物のような collider を持たない対象へ合わせるため、クライアントで見えていた枠線対象を優先復元する。
-            var outlinedTarget = resolveOutlinedTarget(level, spellLevel, entity);
-            if (outlinedTarget.isPresent()) {
-                cloud.setAnchorBlock(outlinedTarget.get());
-                level.addFreshEntity(cloud);
-                return cloud;
-            } else if (result.hitType() == RaycastTools.TargetType.BLOCK && result.hitBlock() != null) {
-                cloud.setAnchorBlock(result.hitBlock());
+            var blockTarget = resolveBlockTarget(level, spellLevel, entity, result, true);
+            if (blockTarget.isPresent()) {
+                cloud.setAnchorBlock(level, blockTarget.get());
                 level.addFreshEntity(cloud);
                 return cloud;
             } else {
@@ -153,8 +181,33 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
         return CompleteCastTypes.RELEASE_WEAPON;
     }
 
-    private Optional<BlockPos> resolveOutlinedTarget(Level level, int spellLevel, LivingEntity entity) {
-        return BlockTargetingHelper.getValidatedPendingTarget(level, entity, getSpellResource(), getClientBlockTargetingRange(spellLevel, entity))
-                .map(target -> target.getHitBlockPos().immutable());
+    private Optional<BlockPos> resolveBlockTarget(Level level, int spellLevel, LivingEntity entity, RaycastTools.TargetResult result, boolean consumeOutlinedTarget) {
+        var outlinedTarget = resolveOutlinedTarget(level, spellLevel, entity, consumeOutlinedTarget);
+        if (outlinedTarget.isPresent()) {
+            return outlinedTarget;
+        }
+
+        if (result.hitType() == RaycastTools.TargetType.BLOCK && result.hitBlock() != null) {
+            return Optional.of(result.hitBlock());
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<BlockPos> resolveOutlinedTarget(Level level, int spellLevel, LivingEntity entity, boolean consume) {
+        var target = consume
+                ? BlockTargetingHelper.getValidatedPendingTarget(level, entity, getSpellResource(), getClientBlockTargetingRange(spellLevel, entity))
+                : BlockTargetingHelper.peekValidatedPendingTarget(level, entity, getSpellResource(), getClientBlockTargetingRange(spellLevel, entity));
+        return target
+                .map(targetData -> targetData.getHitBlockPos().immutable());
+    }
+
+    private void sendCantPlaceMessage(LivingEntity entity) {
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable(MESSAGE_CANT_PLACE, this.getDisplayName(serverPlayer))
+                            .withStyle(ChatFormatting.RED)
+            ));
+        }
     }
 }
