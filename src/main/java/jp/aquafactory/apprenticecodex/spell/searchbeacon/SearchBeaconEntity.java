@@ -51,6 +51,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     public static final float WIDTH = 0.7f;
     public static final float HEIGHT = 1.45f;
     private static final int SEARCH_RESOLVE_TICKS = 20 * 3;
+    private static final int INITIAL_HINT_DELAY_TICKS = 20;
     private static final int OFFER_CHECK_INTERVAL_TICKS = 4;
     private static final int DIRECTION_PARTICLE_INTERVAL_TICKS = 8;
     private static final int REOFFER_COOLDOWN_TICKS = 20 * 5;
@@ -187,6 +188,9 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     }
 
     private void tickIdle(ServerLevel level) {
+        if (phaseTicks == INITIAL_HINT_DELAY_TICKS) {
+            sendRandomEmptyHint();
+        }
         absorbNearbyOfferedItem(level);
     }
 
@@ -585,7 +589,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
             var heldStack = player.getItemInHand(hand);
             if (heldStack.isEmpty()) {
-                return InteractionResult.PASS;
+                return sendRandomEmptyHint() ? InteractionResult.CONSUME : InteractionResult.PASS;
             }
 
             var definition = SearchBeaconTargetManager.getDefinition(heldStack);
@@ -626,6 +630,20 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         if (owner != null) {
             owner.connection.send(new ClientboundSetActionBarTextPacket(message));
         }
+    }
+
+    private boolean sendRandomEmptyHint() {
+        var candidate = SearchBeaconTargetManager.getRandomHintCandidate(random);
+        if (candidate == null) {
+            return false;
+        }
+
+        sendOwnerActionBar(Component.translatable(
+                "ui.apprenticecodex.search_beacon.entity.hint_with_empty",
+                candidate.itemStack().getDisplayName(),
+                Component.literal(candidate.targetLabel())
+        ).withStyle(ChatFormatting.YELLOW));
+        return true;
     }
 
     @Override

@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -27,11 +28,13 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SearchBeaconTargetManager extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = "search_beacon_targets";
+    private static final int HINT_TARGET_LABEL_MAX_LENGTH = 32;
 
     private static final Gson GSON = new GsonBuilder().create();
     private static final SearchBeaconTargetManager INSTANCE = new SearchBeaconTargetManager();
@@ -55,6 +58,43 @@ public final class SearchBeaconTargetManager extends SimpleJsonResourceReloadLis
         return definition.targets().stream()
                 .map(SearchBeaconTargetList.TargetReference::toDisplayString)
                 .collect(Collectors.joining(", "));
+    }
+
+    public static @Nullable HintCandidate getRandomHintCandidate(RandomSource random) {
+        var candidates = definitionsByItemId.values().stream()
+                .map(SearchBeaconTargetManager::createHintCandidate)
+                .filter(Objects::nonNull)
+                .toList();
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        return candidates.get(random.nextInt(candidates.size()));
+    }
+
+    private static @Nullable HintCandidate createHintCandidate(SearchBeaconTargetList.Definition definition) {
+        var item = ForgeRegistries.ITEMS.getValue(definition.item());
+        if (item == null) {
+            return null;
+        }
+
+        var itemStack = new ItemStack(item);
+        if (itemStack.isEmpty()) {
+            return null;
+        }
+
+        return definition.targets().stream()
+                .findFirst()
+                .map(SearchBeaconTargetManager::createHintTargetLabel)
+                .map(targetLabel -> new HintCandidate(itemStack, targetLabel))
+                .orElse(null);
+    }
+
+    private static String createHintTargetLabel(SearchBeaconTargetList.TargetReference target) {
+        var display = target.toDisplayString();
+        if (display.length() <= HINT_TARGET_LABEL_MAX_LENGTH) {
+            return display;
+        }
+        return display.substring(0, HINT_TARGET_LABEL_MAX_LENGTH - 3) + "...";
     }
 
     public static List<Holder<Structure>> resolveTargets(ServerLevel level, SearchBeaconTargetList.Definition definition) {
@@ -116,5 +156,11 @@ public final class SearchBeaconTargetManager extends SimpleJsonResourceReloadLis
                         );
                     }
                 }));
+    }
+
+    public record HintCandidate(ItemStack itemStack, String targetLabel) {
+        public HintCandidate {
+            itemStack = itemStack.copy();
+        }
     }
 }
