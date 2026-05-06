@@ -10,6 +10,7 @@
     "AbstractFurnaceBlockEntityMixin",
     "ArcaneAnvilMenuMixin",
     "BowItemSpellcasterQuiverMixin",
+    "CombatTrackerAccessor",
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
     "FluidStackMixin",

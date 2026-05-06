@@ -74,6 +74,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void photonSiphonStartsWithLockedManaChargeAndIsNotUnique(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.photonSiphonStartsWithLockedManaChargeAndIsNotUnique(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void photonSiphonWorkbenchRepairUnlocksLegacyReplacementOnly(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.photonSiphonWorkbenchRepairUnlocksLegacyReplacementOnly(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellcasterWorkbenchExtractionWarningsMatchImbueState(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellcasterWorkbenchExtractionWarningsMatchImbueState(helper);
     }

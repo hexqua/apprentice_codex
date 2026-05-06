@@ -69,6 +69,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQ
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.mixin.SinglePoolElementAccessor;
@@ -3081,6 +3082,46 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Reflectcast Shield imbued spell should remain removable after save/load");
             helper.assertTrue(spellContainer.getSpellAtIndex(0).canRemove(),
                     "Reflectcast Shield imbued spell should remain extractable after save/load");
+        });
+    }
+
+    static void photonSiphonStartsWithLockedManaChargeAndIsNotUnique(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = ItemRegistry.PHOTON_SIPHON.get();
+            var stack = createInitializedPresetStack(item);
+            var spellContainer = ISpellContainer.get(stack);
+
+            helper.assertFalse(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+                    "Photon Siphon should not block external imbue as a UniqueItem");
+            helper.assertTrue(spellContainer != null, "Photon Siphon default spell container is null");
+            assertSpellData(helper, spellContainer, 0, SpellRegistry.MANA_CHARGE.get(), 1, true,
+                    "Photon Siphon should still start with locked Mana Charge");
+        });
+    }
+
+    static void photonSiphonWorkbenchRepairUnlocksLegacyReplacementOnly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "photon_siphon_workbench_repair_test");
+            var item = (PhotonSiphon) ItemRegistry.PHOTON_SIPHON.get();
+            var replacementSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            var legacyReplacementStack = createInitializedPresetStack(item);
+            applyLegacyLockedReplacement(helper, legacyReplacementStack, replacementSpell, 1);
+            var legacyReplacementMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, legacyReplacementStack);
+            legacyReplacementMenu.isSpellExtractionBlocked();
+            var repairedReplacementContainer = ISpellContainer.get(legacyReplacementStack);
+            helper.assertTrue(repairedReplacementContainer != null,
+                    "Photon Siphon repaired replacement spell container is null");
+            assertSpellData(helper, repairedReplacementContainer, 0, replacementSpell, 1, false,
+                    "Photon Siphon Workbench repair should unlock legacy non-default replacement spells");
+
+            var defaultStack = createInitializedPresetStack(item);
+            var defaultMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, defaultStack);
+            defaultMenu.isSpellExtractionBlocked();
+            var defaultContainer = ISpellContainer.get(defaultStack);
+            helper.assertTrue(defaultContainer != null, "Photon Siphon default spell container is null after Workbench check");
+            assertSpellData(helper, defaultContainer, 0, SpellRegistry.MANA_CHARGE.get(), 1, true,
+                    "Photon Siphon Workbench repair should not unlock the default Mana Charge");
         });
     }
 
