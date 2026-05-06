@@ -1,10 +1,10 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
+import jp.aquafactory.apprenticecodex.spell.IClientBlockHitTargetingSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.ClientBlockTargetingHelper;
@@ -96,6 +96,14 @@ public final class ClientBlockTargetUseInputEvent {
                                                      IClientBlockTargetingSpell targetingSpell) {
         if (spell instanceof IClientBlockTargetCaptureSpell customCaptureSpell) {
             return customCaptureSpell.captureClientBlockTarget(player, spellLevel);
+        }
+
+        if (spell instanceof IClientBlockHitTargetingSpell hitTargetingSpell) {
+            return ClientBlockTargetingHelper.captureOutlinedHitTarget(
+                    player,
+                    hitTargetingSpell.getClientBlockTargetingRange(spellLevel, player),
+                    hitTargetingSpell.ignoresClientBlockTargetingRange()
+            );
         }
 
         return ClientBlockTargetingHelper.captureOutlinedTarget(
