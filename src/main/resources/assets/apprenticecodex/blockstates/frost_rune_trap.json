@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "apprenticecodex:block/frost_rune_trap"
+    },
+    "facing=up": {
+      "model": "apprenticecodex:block/frost_rune_trap"
+    },
+    "facing=north": {
+      "model": "apprenticecodex:block/frost_rune_trap"
+    },
+    "facing=south": {
+      "model": "apprenticecodex:block/frost_rune_trap"
+    },
+    "facing=west": {
+      "model": "apprenticecodex:block/frost_rune_trap"
+    },
+    "facing=east": {
+      "model": "apprenticecodex:block/frost_rune_trap"
+    }
+  }
+}

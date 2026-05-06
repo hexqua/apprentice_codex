@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
 import jp.aquafactory.apprenticecodex.effect.CastingMobility;
 import jp.aquafactory.apprenticecodex.effect.CraftsmansDelightMobility;
+import jp.aquafactory.apprenticecodex.effect.FrostTrapped;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.ManaRegeneration;
@@ -49,6 +50,8 @@ public final class EffectRegistry {
             EFFECTS.register("thermal_processing", ThermalProcessing::new);
     public static final DeferredHolder<MobEffect, MobEffect> PENETRATED_ARMOR =
             EFFECTS.register("penetrated_armor", PenetratedArmor::new);
+    public static final RegistryObject<MobEffect> FROST_TRAPPED =
+            EFFECTS.register("frost_trapped", FrostTrapped::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);

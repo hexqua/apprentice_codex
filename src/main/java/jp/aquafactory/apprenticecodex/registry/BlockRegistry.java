@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbench;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlock;
+import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlock;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelfChestBlock;
 import net.minecraft.core.registries.Registries;
@@ -29,6 +30,9 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> MAGE_LIGHT_TORCH =
             BLOCKS.register("mage_light_torch", MageLightTorchBlock::new);
+
+    public static final DeferredHolder<Block, Block> FROST_RUNE_TRAP =
+            BLOCKS.register("frost_rune_trap", FrostRuneTrapBlock::new);
 
     public static final DeferredHolder<Block, Block> HEALING_BLOOM_LIGHT =
             BLOCKS.register("healing_bloom_light", () -> new HealingBloomLightBlock());
