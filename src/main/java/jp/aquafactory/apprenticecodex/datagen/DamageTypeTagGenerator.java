@@ -86,7 +86,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEALING_BLOOM,
                 SHOCK,
                 TIRO_VOLLEY,
-                MAGIC_SPEAR
+                MAGIC_SPEAR,
+                FROST_RUNE
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -123,7 +124,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEALING_BLOOM,
                 HAUNTED_BONUS,
                 TIRO_VOLLEY,
-                MAGIC_SPEAR
+                MAGIC_SPEAR,
+                FROST_RUNE
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -160,7 +162,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SHOCK,
                 TIRO_VOLLEY,
                 MANA_FORCE_BLADE,
-                MAGIC_SPEAR
+                MAGIC_SPEAR,
+                FROST_RUNE
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
