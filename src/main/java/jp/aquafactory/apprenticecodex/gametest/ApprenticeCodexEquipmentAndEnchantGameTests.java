@@ -603,6 +603,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.spectralHammerUsesCraftsmansDelightRingMiningEnchantments(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.tinyLumberjackWithCraftsmansDelightMovesJobDropsToOrigin(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.tinyLumberjackDropMoveFollowsCurrentCraftsmansDelightEquipment(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(helper);

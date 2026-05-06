@@ -324,11 +324,12 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
         if (breakProgress >= 1.0f) {
             breakProgress = 0.0f;
             if (level instanceof ServerLevel serverLevel && owner instanceof ServerPlayer player) {
-                BlockTools.breakBlockByPlayerHands(
+                TinyLumberjackDropMover.breakBlockByPlayerHands(
                         serverLevel,
                         player,
                         breakTargetPos,
-                        TinyLumberjack.createDummyTool(player)
+                        TinyLumberjack.createDummyTool(player),
+                        Vec3.atCenterOf(breakTargetPos)
                 );
             } else {
                 level.destroyBlock(breakTargetPos, true, owner);
