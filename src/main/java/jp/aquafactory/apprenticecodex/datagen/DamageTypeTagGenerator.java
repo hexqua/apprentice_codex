@@ -155,8 +155,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEALING_BLOOM,
                 HAUNTED_BONUS,
                 TIRO_VOLLEY,
-                MAGIC_SPEAR,
-                FROST_RUNE
+                MAGIC_SPEAR
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
