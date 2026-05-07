@@ -249,6 +249,18 @@ public final class RecipeGenerator extends RecipeProvider {
                 .generateAdvancement()
                 .build(recipeWriter, ItemRegistry.EXPLORERS_CODEX.getId());
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ARCHIVISTS_GRIMOIRE.get())
+                .pattern("MDM")
+                .pattern("CBC")
+                .pattern("MWM")
+                .define('B', io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get())
+                .define('D', Items.DIAMOND)
+                .define('C', Tags.Items.CHESTS)
+                .define('W', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PASTEL_STAFF.get())
                 .pattern(" MU")
                 .pattern(" W ")
