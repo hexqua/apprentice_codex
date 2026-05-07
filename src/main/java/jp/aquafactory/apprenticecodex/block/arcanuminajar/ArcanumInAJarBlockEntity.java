@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -117,7 +118,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         dispensing = true;
         nextReleaseGameTime = serverLevel.getGameTime() + INITIAL_RELEASE_DELAY_TICKS;
         setOpen(true);
-        AudioTools.playSoundFromPosition(level, worldPosition.getCenter(), SoundEvents.BARREL_OPEN, SoundSource.BLOCKS);
+        AudioTools.playSoundFromPosition(level, worldPosition.getCenter(), SoundRegistry.VANILLA_JAR_OPEN.get(), SoundSource.BLOCKS);
         setChanged();
         syncToClient();
     }
@@ -258,7 +259,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         dispensing = false;
         nextReleaseGameTime = -1L;
         setOpen(false);
-        AudioTools.playSoundFromPosition(level, worldPosition.getCenter(), SoundEvents.BARREL_CLOSE, SoundSource.BLOCKS);
+        AudioTools.playSoundFromPosition(level, worldPosition.getCenter(), SoundRegistry.VANILLA_JAR_CLOSE.get(), SoundSource.BLOCKS);
         setChanged();
         syncToClient();
     }

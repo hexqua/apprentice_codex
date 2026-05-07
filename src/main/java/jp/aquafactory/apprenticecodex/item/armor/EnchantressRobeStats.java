@@ -4,9 +4,9 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -59,7 +59,7 @@ public final class EnchantressRobeStats {
     public static final ArmorMaterial MATERIAL = new ArmorMaterial(
             DEFENSE,
             ENCHANTMENT_VALUE,
-            SoundEvents.ARMOR_EQUIP_LEATHER,
+            SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE,
             REPAIR_INGREDIENT,
             List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "enchantress_robe"))),
             TOUGHNESS,

@@ -15,6 +15,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.ChatFormatting;
@@ -114,7 +115,7 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
+        return Optional.of(SoundRegistry.VANILLA_RIFT_HOLE.get());
     }
 
     @Override
@@ -298,7 +299,6 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
         );
         playerMagicData.getPlayerRecasts().addRecast(recastInstance, playerMagicData);
         spawnTunnelParticles(level, castData.positions());
-        level.playSound(null, entity.blockPosition(), SoundEvents.END_PORTAL_SPAWN, SoundSource.PLAYERS, 0.2f, 1.0f);
     }
 
     private void closeTunnel(ServerLevel level, RiftHoleCastData castData) {
@@ -323,7 +323,7 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
 
         spawnTunnelParticles(level, castData.positions());
         if (!castData.positions().isEmpty()) {
-            level.playSound(null, castData.positions().get(0), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 0.8f, 1.1f);
+            level.playSound(null, castData.positions().get(0), SoundRegistry.VANILLA_RIFT_HOLE.get(), SoundSource.BLOCKS, 0.8f, 1.1f);
         }
     }
 

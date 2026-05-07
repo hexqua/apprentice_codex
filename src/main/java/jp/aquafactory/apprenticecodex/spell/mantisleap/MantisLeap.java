@@ -25,7 +25,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -180,7 +179,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         );
         if (started) {
             // サーバー権威の方で跳躍開始成功で音を鳴らす.
-            AudioTools.playSoundFromEntity(level, entity, SoundEvents.HORSE_JUMP, SoundSource.PLAYERS);
+            AudioTools.playSoundFromEntity(level, entity, SoundRegistry.VANILLA_HIGH_JUMP.get(), SoundSource.PLAYERS);
         } else {
             weapon.slash(level);
         }

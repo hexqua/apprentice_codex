@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.spell.featherrush;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -104,7 +104,7 @@ public class FeatherRushProjectileEntity extends ThrowableProjectile {
             var target = CombatTools.resolutePartEntity(hit.getEntity());
             var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.FEATHER_RUSH);
             CombatTools.applyDamage(target, damage, source, SpellRegistry.FEATHER_RUSH.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-            AudioTools.playSoundFromEntity(level, this, SoundEvents.ARROW_HIT, SoundSource.PLAYERS);
+            AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_FEATHER_HIT.get(), SoundSource.PLAYERS);
         }
 
         discard();

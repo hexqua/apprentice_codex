@@ -8,9 +8,9 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.ClientPlacementPreviewData;
 import jp.aquafactory.apprenticecodex.spell.IClientPlacementPreviewSpell;
-import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -29,8 +29,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -99,7 +97,7 @@ public class PersonalShelf extends AbstractSpell implements jp.aquafactory.appre
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.of(SoundEvents.ENDER_CHEST_OPEN);
+        return Optional.of(SoundRegistry.VANILLA_INTERFACE_OPEN.get());
     }
 
     @Override
@@ -192,7 +190,6 @@ public class PersonalShelf extends AbstractSpell implements jp.aquafactory.appre
                         );
 
                         var effectCenter = castData.position.getCenter();
-                        AudioTools.playSoundFromPosition(level, effectCenter, SoundEvents.ENDER_CHEST_CLOSE, SoundSource.BLOCKS);
                         if (level instanceof ServerLevel server) {
                             server.sendParticles(ParticleTypes.REVERSE_PORTAL, effectCenter.x, effectCenter.y, effectCenter.z, 32, 0.5, 0.5, 0.5, 0.05);
                         }
