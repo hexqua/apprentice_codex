@@ -9,16 +9,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.description"
     },
     "frame": "challenge",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:archivists_grimoire"
+      "count": 1,
+      "id": "apprenticecodex:archivists_grimoire"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.title"
     }

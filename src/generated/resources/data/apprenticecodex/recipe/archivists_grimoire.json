@@ -6,7 +6,7 @@
       "item": "irons_spellbooks:ruined_book"
     },
     "C": {
-      "tag": "forge:chests"
+      "tag": "c:chests"
     },
     "D": {
       "item": "minecraft:diamond"
@@ -24,7 +24,7 @@
     "MWM"
   ],
   "result": {
-    "item": "apprenticecodex:archivists_grimoire"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:archivists_grimoire"
+  }
 }

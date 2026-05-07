@@ -33,8 +33,8 @@ public final class MenuRegistry {
     public static final DeferredHolder<MenuType<?>, MenuType<EnderGrimoireInscriptionMenu>> ENDER_GRIMOIRE_INSCRIPTION =
             MENUS.register("ender_grimoire_inscription", () -> IMenuTypeExtension.create((windowId, inv, data) -> new EnderGrimoireInscriptionMenu(windowId, inv)));
 
-    public static final RegistryObject<MenuType<ArchivistsGrimoireMenu>> ARCHIVISTS_GRIMOIRE =
-            MENUS.register("archivists_grimoire", () -> IForgeMenuType.create(ArchivistsGrimoireMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<ArchivistsGrimoireMenu>> ARCHIVISTS_GRIMOIRE =
+            MENUS.register("archivists_grimoire", () -> IMenuTypeExtension.create(ArchivistsGrimoireMenu::new));
 
     public static void register(IEventBus bus) {
         MENUS.register(bus);

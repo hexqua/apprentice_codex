@@ -1,14 +1,14 @@
 package jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire;
 
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public final class ArchivistsGrimoireMenu extends AbstractContainerMenu {
@@ -29,7 +29,7 @@ public final class ArchivistsGrimoireMenu extends AbstractContainerMenu {
     private final InteractionHand hand;
     private final ItemStack grimoireStack;
 
-    public ArchivistsGrimoireMenu(int containerId, Inventory playerInventory, FriendlyByteBuf data) {
+    public ArchivistsGrimoireMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf data) {
         this(containerId, playerInventory, data.readEnum(InteractionHand.class));
     }
 
@@ -39,7 +39,7 @@ public final class ArchivistsGrimoireMenu extends AbstractContainerMenu {
         this.hand = hand;
         this.grimoireStack = playerInventory.player.getItemInHand(hand);
 
-        var grimoireInventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+        var grimoireInventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack, playerInventory.player.registryAccess());
         for (var row = 0; row < ArchivistsGrimoire.ROW_COUNT; ++row) {
             for (var col = 0; col < ArchivistsGrimoire.COLUMN_COUNT; ++col) {
                 var slot = col + row * ArchivistsGrimoire.COLUMN_COUNT;

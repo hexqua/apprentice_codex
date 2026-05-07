@@ -6,19 +6,19 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.InputEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ArchivistsGrimoireClientEvents {
     private ArchivistsGrimoireClientEvents() {
     }
 
     @SubscribeEvent
     public static void onMouseScrolling(InputEvent.MouseScrollingEvent event) {
-        if (!SpellWheelOverlay.instance.active || event.getScrollDelta() == 0.0D) {
+        if (!SpellWheelOverlay.instance.active || event.getScrollDeltaY() == 0.0D) {
             return;
         }
 
@@ -32,8 +32,8 @@ public final class ArchivistsGrimoireClientEvents {
             return;
         }
 
-        var delta = event.getScrollDelta() > 0.0D ? -1 : 1;
-        if (!ArchivistsGrimoire.changeSelectedRowToPopulatedRow(spellbookStack, delta)) {
+        var delta = event.getScrollDeltaY() > 0.0D ? -1 : 1;
+        if (!ArchivistsGrimoire.changeSelectedRowToPopulatedRow(spellbookStack, delta, player.registryAccess())) {
             return;
         }
 

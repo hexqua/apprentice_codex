@@ -574,7 +574,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.description"),
                         null,
-                        FrameType.CHALLENGE,
+                        AdvancementType.CHALLENGE,
                         true,
                         true,
                         false)
