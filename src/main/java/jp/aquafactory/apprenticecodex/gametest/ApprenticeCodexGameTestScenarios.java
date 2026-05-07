@@ -60,6 +60,7 @@ import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
@@ -2825,6 +2826,208 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Overflow recipe assembly should return empty result");
         });
     }
+    static void archivistsGrimoireInventoryKeepsOnlyScrollsAndPersists(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+
+            var rejected = inventory.insertItem(0, new ItemStack(Items.DIAMOND), false);
+            helper.assertTrue(!rejected.isEmpty() && rejected.is(Items.DIAMOND),
+                    "Archivist's Grimoire should reject non-scroll insertion");
+            helper.assertTrue(inventory.getStackInSlot(0).isEmpty(),
+                    "Rejected non-scroll should not remain in Archivist's Grimoire inventory");
+
+            inventory.setStackInSlot(5, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()));
+            var restoredInventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            assertScrollSpell(
+                    helper,
+                    restoredInventory.getStackInSlot(5),
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(),
+                    "Archivist's Grimoire lost persisted scroll data"
+            );
+
+            restoredInventory.setStackInSlot(6, new ItemStack(Items.DIAMOND));
+            var cleanedInventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            helper.assertTrue(cleanedInventory.getStackInSlot(6).isEmpty(),
+                    "Archivist's Grimoire should purge non-scroll stacks from saved inventory data");
+        });
+    }
+    static void archivistsGrimoireSelectedRowNavigationUsesPopulatedRowsOnly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT * 2 + 4,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT * 5 + 1,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get())
+            );
+
+            ArchivistsGrimoire.setSelectedRow(grimoireStack, 4);
+            helper.assertTrue(ArchivistsGrimoire.ensureSelectedRowHasScroll(grimoireStack),
+                    "Archivist's Grimoire should find a populated row from an empty selected row");
+            helper.assertTrue(ArchivistsGrimoire.getSelectedRow(grimoireStack) == 2,
+                    "Archivist's Grimoire should normalize empty selected row to the first populated row");
+
+            helper.assertTrue(ArchivistsGrimoire.changeSelectedRowToPopulatedRow(grimoireStack, 1),
+                    "Archivist's Grimoire should move forward to the next populated row");
+            helper.assertTrue(ArchivistsGrimoire.getSelectedRow(grimoireStack) == 5,
+                    "Archivist's Grimoire forward navigation skipped the wrong rows");
+
+            helper.assertTrue(ArchivistsGrimoire.changeSelectedRowToPopulatedRow(grimoireStack, 1),
+                    "Archivist's Grimoire should wrap forward to the first populated row");
+            helper.assertTrue(ArchivistsGrimoire.getSelectedRow(grimoireStack) == 2,
+                    "Archivist's Grimoire forward wrap did not land on the populated row");
+
+            helper.assertTrue(ArchivistsGrimoire.changeSelectedRowToPopulatedRow(grimoireStack, -1),
+                    "Archivist's Grimoire should wrap backward to the last populated row");
+            helper.assertTrue(ArchivistsGrimoire.getSelectedRow(grimoireStack) == 5,
+                    "Archivist's Grimoire backward wrap did not land on the populated row");
+
+            helper.assertFalse(ArchivistsGrimoire.changeSelectedRowToPopulatedRow(grimoireStack, 0),
+                    "Archivist's Grimoire should ignore zero row delta");
+            helper.assertTrue(ArchivistsGrimoire.getSelectedRow(grimoireStack) == 5,
+                    "Archivist's Grimoire zero delta should not change the selected row");
+        });
+    }
+    static void archivistsGrimoireVisibleSpellsExposeOnlySelectedRow(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT + 8,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get())
+            );
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT * 4 + 3,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get())
+            );
+
+            ArchivistsGrimoire.setSelectedRow(grimoireStack, 1);
+            assertSpellData(
+                    helper,
+                    ArchivistsGrimoire.getVisibleSpell(grimoireStack, 0),
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(),
+                    1,
+                    "Archivist's Grimoire visible slot 0 mismatch"
+            );
+            assertSpellData(
+                    helper,
+                    ArchivistsGrimoire.getVisibleSpell(grimoireStack, 8),
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(),
+                    1,
+                    "Archivist's Grimoire visible slot 8 mismatch"
+            );
+            helper.assertTrue(ArchivistsGrimoire.getVisibleSpell(grimoireStack, 3) == SpellData.EMPTY,
+                    "Archivist's Grimoire should not expose spells from another row");
+            helper.assertTrue(ArchivistsGrimoire.getVisibleSpell(grimoireStack, -1) == SpellData.EMPTY,
+                    "Archivist's Grimoire should return empty for negative visible slots");
+            helper.assertTrue(ArchivistsGrimoire.getVisibleSpell(grimoireStack, ArchivistsGrimoire.COLUMN_COUNT) == SpellData.EMPTY,
+                    "Archivist's Grimoire should return empty for out-of-range visible slots");
+
+            ArchivistsGrimoire.setSelectedRow(grimoireStack, 4);
+            assertSpellData(
+                    helper,
+                    ArchivistsGrimoire.getVisibleSpell(grimoireStack, 3),
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(),
+                    1,
+                    "Archivist's Grimoire should expose the newly selected row"
+            );
+            helper.assertTrue(ArchivistsGrimoire.getVisibleSpell(grimoireStack, 0) == SpellData.EMPTY,
+                    "Archivist's Grimoire should hide previous row spells after row change");
+        });
+    }
+    static void archivistsGrimoireCurioAndUpgradeContractsStayRegistered(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            var spellbookTag = TagKey.create(
+                    Registries.ITEM,
+                    ResourceLocation.fromNamespaceAndPath("curios", io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT)
+            );
+            helper.assertTrue(grimoireStack.is(spellbookTag),
+                    "Archivist's Grimoire should be tagged for the Curios spellbook slot");
+            assertUpgradeable(helper, grimoireStack,
+                    "Archivist's Grimoire should remain upgradeable via explicit whitelist entry");
+
+            var item = (ArchivistsGrimoire) ItemRegistry.ARCHIVISTS_GRIMOIRE.get();
+            var slotContext = new top.theillusivec4.curios.api.SlotContext(
+                    io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
+                    0,
+                    false,
+                    true
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    slotContext,
+                    grimoireStack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                    200.0D,
+                    AttributeModifier.Operation.ADDITION,
+                    "Archivist's Grimoire spellbook-slot max mana bonus regression"
+            );
+
+            var wrongSlotContext = new top.theillusivec4.curios.api.SlotContext(
+                    CuriosSlotConstants.CHARM,
+                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 1)),
+                    0,
+                    false,
+                    true
+            );
+            assertCurioModifierAmount(
+                    helper,
+                    item,
+                    wrongSlotContext,
+                    grimoireStack,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                    0.0D,
+                    AttributeModifier.Operation.ADDITION,
+                    "Archivist's Grimoire should not add spellbook max mana outside the spellbook slot"
+            );
+        });
+    }
+    static void archivistsGrimoireSpellSelectionManagerReadsVisibleRow(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            inventory.setStackInSlot(0, createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get()));
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT * 3 + 1,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+            inventory.setStackInSlot(
+                    ArchivistsGrimoire.COLUMN_COUNT * 3 + 4,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get())
+            );
+            ArchivistsGrimoire.setSelectedRow(grimoireStack, 3);
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "archivists_grimoire_selection_test");
+            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoireStack);
+
+            var manager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var spellbookOptions = manager.getSpellsForSlot(io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT);
+            helper.assertTrue(spellbookOptions.size() == 2,
+                    "Archivist's Grimoire should expose exactly the two spells in the selected row but got " + spellbookOptions.size());
+            helper.assertTrue(spellbookOptions.stream().anyMatch(option ->
+                            option.slotIndex == 1
+                                    && option.spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()),
+                    "Archivist's Grimoire spell selection missing selected-row Magic Missile at visible slot 1");
+            helper.assertTrue(spellbookOptions.stream().anyMatch(option ->
+                            option.slotIndex == 4
+                                    && option.spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()),
+                    "Archivist's Grimoire spell selection missing selected-row Fire Breath at visible slot 4");
+            helper.assertFalse(spellbookOptions.stream().anyMatch(option ->
+                            option.spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get()),
+                    "Archivist's Grimoire spell selection should not expose spells outside the selected row");
+        });
+    }
     static void copperSpellAmplifierStartsWithBallLightningAndStacksAttunement(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
@@ -4441,6 +4644,8 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()),
                     "Ender Grimoire should remain upgradeable via explicit whitelist entry");
+            assertUpgradeable(helper, new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get()),
+                    "Archivist's Grimoire should remain upgradeable via explicit whitelist entry");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ELEMENTAL_BOW.get()),
                     "Elemental Bow should remain upgradeable via explicit whitelist entry");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get()),
@@ -11855,6 +12060,20 @@ public final class ApprenticeCodexGameTestScenarios {
         return stack;
     }
 
+    private static void assertScrollSpell(
+            GameTestHelper helper,
+            ItemStack stack,
+            AbstractSpell expectedSpell,
+            String message
+    ) {
+        helper.assertTrue(stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                message + " (stack is not a scroll: " + ForgeRegistries.ITEMS.getKey(stack.getItem()) + ")");
+
+        var spellContainer = ISpellContainer.get(stack);
+        helper.assertTrue(spellContainer != null, message + " (scroll spell container is null)");
+        assertSpellData(helper, spellContainer.getSpellAtIndex(0), expectedSpell, 1, message);
+    }
+
     private static @Nullable AbstractSpell getScrollSpell(ItemStack stack) {
         if (!stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())) {
             return null;
@@ -12310,6 +12529,21 @@ public final class ApprenticeCodexGameTestScenarios {
         jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onPlayerTick(
                 new PlayerTickEvent.Post(player)
         );
+    }
+
+    private static void assertSpellData(
+            GameTestHelper helper,
+            SpellData spellData,
+            AbstractSpell expectedSpell,
+            int expectedLevel,
+            String message
+    ) {
+        helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+                message + " (spell data is empty)");
+        helper.assertTrue(spellData.getSpell() == expectedSpell,
+                message + " (spell mismatch: " + spellData.getSpell().getSpellResource() + ")");
+        helper.assertTrue(spellData.getLevel() == expectedLevel,
+                message + " (level mismatch: " + spellData.getLevel() + ")");
     }
 
     private static void assertSpellData(
