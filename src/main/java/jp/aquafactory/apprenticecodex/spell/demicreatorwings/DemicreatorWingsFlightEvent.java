@@ -3,8 +3,8 @@ package jp.aquafactory.apprenticecodex.spell.demicreatorwings;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -49,7 +49,7 @@ public final class DemicreatorWingsFlightEvent {
                 : DemicreatorWingsManager.ALERT_INTERVAL_TICKS;
         if (remainingTicks <= DemicreatorWingsManager.ALERT_THRESHOLD_TICKS
                 && player.level().getGameTime() % alertInterval == 0) {
-            player.playNotifySound(SoundEvents.AMETHYST_BLOCK_BREAK, SoundSource.PLAYERS, 0.75f, 1.0f);
+            player.playNotifySound(SoundRegistry.VANILLA_DEMICREATOR_BREAK.get(), SoundSource.PLAYERS, 0.75f, 1.0f);
         }
     }
 

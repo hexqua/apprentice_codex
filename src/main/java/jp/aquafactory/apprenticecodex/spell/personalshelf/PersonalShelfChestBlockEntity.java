@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventory;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -214,7 +215,7 @@ public class PersonalShelfChestBlockEntity extends BlockEntity implements MenuPr
         openers.clear();
         serverLevel.removeBlock(pos, false);
         serverLevel.sendParticles(ParticleTypes.REVERSE_PORTAL, pos.getCenter().x, pos.getCenter().y, pos.getCenter().z, 32, 0.2, 0.2, 0.2, 0);
-        AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS);
+        AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundRegistry.VANILLA_DISAPPEAR_MAGICAL_ENTITY.get(), SoundSource.BLOCKS);
     }
 
     private void exportItem(Level level, BlockPos pos) {
