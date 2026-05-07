@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
@@ -13,7 +14,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -308,7 +308,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
                 Component.literal(targetLabel),
                 searchRange
         ).withStyle(ChatFormatting.YELLOW));
-        level.playSound(null, blockPosition(), SoundEvents.RESPAWN_ANCHOR_CHARGE, SoundSource.BLOCKS, 0.8f, 1.15f);
+        level.playSound(null, blockPosition(), SoundRegistry.VANILLA_START_SEARCH.get(), SoundSource.BLOCKS, 0.8f, 1.15f);
         transitionTo(Phase.SEARCHING);
     }
 
@@ -823,7 +823,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         var base = getParticleBasePosition();
         serverLevel.sendParticles(ParticleTypes.END_ROD, base.x, base.y + 0.08, base.z, 18, 0.18, 0.14, 0.18, 0.04);
         serverLevel.sendParticles(ParticleTypes.FIREWORK, base.x, base.y + 0.12, base.z, 12, 0.10, 0.10, 0.10, 0.08);
-        serverLevel.playSound(null, blockPosition(), SoundEvents.BLAZE_SHOOT, SoundSource.BLOCKS, 0.7f, 1.15f);
+        serverLevel.playSound(null, blockPosition(), SoundRegistry.VANILLA_BRAZIER_SACRIFICE.get(), SoundSource.BLOCKS, 0.7f, 1.15f);
     }
 
     private void issueRefundIfNeeded() {

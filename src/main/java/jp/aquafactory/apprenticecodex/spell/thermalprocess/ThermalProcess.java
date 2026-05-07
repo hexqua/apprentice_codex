@@ -100,7 +100,7 @@ public class ThermalProcess extends AbstractSummonWeaponSpell<ThermalProcessThro
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
+        return Optional.of(jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_SUMMON_WEAPON.get());
     }
 
     @Override

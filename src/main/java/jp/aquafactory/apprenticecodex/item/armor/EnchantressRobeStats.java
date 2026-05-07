@@ -6,8 +6,8 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
@@ -32,7 +32,7 @@ public final class EnchantressRobeStats {
     public static final int ENCHANTING_TABLE_LEVEL_BONUS_PER_PIECE = 5;
     private static final float TOUGHNESS = 0.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
-    private static final SoundEvent EQUIP_SOUND = SoundEvents.ARMOR_EQUIP_LEATHER;
+    private static final SoundEvent EQUIP_SOUND = SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE.get();
     private static final Supplier<Ingredient> REPAIR_INGREDIENT = () -> Ingredient.of(ItemRegistry.HOGSKIN.get());
 
     private static final Map<ArmorItem.Type, Integer> BASE_DURABILITY = Map.of(

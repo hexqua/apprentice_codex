@@ -12,7 +12,7 @@ import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
-import net.minecraft.sounds.SoundEvents;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -88,7 +88,7 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
                 containerAccess.execute((targetLevel, targetPos) -> {
                     var gameTime = targetLevel.getGameTime();
                     if (ApprenticeDeskMenu.this.lastSoundTime != gameTime) {
-                        targetLevel.playSound(null, targetPos, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        targetLevel.playSound(null, targetPos, SoundRegistry.VANILLA_USE_DESK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
                         ApprenticeDeskMenu.this.lastSoundTime = gameTime;
                     }
                 });

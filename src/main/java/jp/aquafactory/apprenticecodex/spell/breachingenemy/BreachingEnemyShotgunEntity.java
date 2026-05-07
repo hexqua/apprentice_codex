@@ -13,7 +13,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -213,7 +212,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
 
             // 試しにドアをぶち破る.
             if (state.getBlock() instanceof DoorBlock){
-                AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.PLAYERS);
+                AudioTools.playSoundFromPosition(level, pos.getCenter(), SoundRegistry.VANILLA_BREAK_DOOR.get(), SoundSource.PLAYERS);
                 level.destroyBlock(pos, true, getOwner());
             }
         }

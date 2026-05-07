@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -29,7 +28,7 @@ public final class VillagerProfessionRegistry {
                     poiType -> poiType.is(PoiTypeRegistry.APPRENTICE_DESK_KEY),
                     ImmutableSet.of(),
                     ImmutableSet.of(),
-                    SoundEvents.ENCHANTMENT_TABLE_USE
+                    SoundRegistry.VANILLA_USE_DESK.get()
             ));
 
     private VillagerProfessionRegistry() {

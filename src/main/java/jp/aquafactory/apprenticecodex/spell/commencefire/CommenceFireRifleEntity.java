@@ -16,7 +16,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -224,7 +223,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
             }
 
             if (isHeadShot) {
-                AudioTools.playSoundFromEntity(level, this, SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 1.0f, 2.0f);
+                AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_CRITICAL_SHOT.get(), SoundSource.PLAYERS, 1.0f, 2.0f);
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 24, .35, .35, .35, .2);
             }
         }

@@ -137,7 +137,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundEvents.ENDERMAN_TELEPORT);
+        return Optional.of(SoundRegistry.VANILLA_SUMMON_WEAPON.get());
     }
 
     @Override

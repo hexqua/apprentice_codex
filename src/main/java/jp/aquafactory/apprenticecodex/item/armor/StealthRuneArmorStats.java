@@ -4,13 +4,12 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +27,7 @@ public final class StealthRuneArmorStats {
     private static final int ENCHANTMENT_VALUE = 22;
     private static final float TOUGHNESS = 0.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
-    private static final SoundEvent EQUIP_SOUND = SoundEvents.ENCHANTMENT_TABLE_USE;
+    private static final SoundEvent EQUIP_SOUND = SoundRegistry.VANILLA_INSCRIBE_MANA.get();
 
     private static final Map<ArmorItem.Type, Integer> BASE_DURABILITY = Map.of(
             ArmorItem.Type.HELMET, 11,
