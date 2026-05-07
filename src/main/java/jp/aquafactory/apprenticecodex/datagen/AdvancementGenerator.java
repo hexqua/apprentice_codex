@@ -530,7 +530,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("crafted_unite_luna_staff", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.UNITE_LUNA_STAFF.getId()))
                 .save(saver, advancementId("craft_unite_luna_staff"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var tablet = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellstained_runic_tablet.title"),
@@ -542,6 +542,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_spellstained_runic_tablet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.getId()))
                 .save(saver, advancementId("craft_spellstained_runic_tablet"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(tablet)
+                .display(ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_archivists_grimoire", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ARCHIVISTS_GRIMOIRE.getId()))
+                .save(saver, advancementId("craft_archivists_grimoire"), existingFileHelper);
 
         var flask = Advancement.Builder.advancement()
                 .parent(root)
