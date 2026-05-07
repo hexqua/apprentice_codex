@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
@@ -46,7 +47,10 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem {
+public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem implements GeoItem, IJeiInfoItem {
+    private static final String JEI_INFO_GROUP_ID = "swingcast_staves";
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.swingcast_staves.desc_";
+
     private static final String MAIN_CONTROLLER = "main";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
 
@@ -434,6 +438,16 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem 
                 bonus.operation(),
                 bonus.key()
         );
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    public String getJeiInfoGroupId() {
+        return JEI_INFO_GROUP_ID;
     }
 
     private static void addMainhandModifier(
