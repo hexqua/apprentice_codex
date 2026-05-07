@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
@@ -18,7 +19,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -129,7 +129,7 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
                 return InteractionResultHolder.fail(stack);
             }
 
-            AudioTools.playSoundFromEntity(level, player, SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS);
+            AudioTools.playSoundFromEntity(level, player, SoundRegistry.VANILLA_INSCRIBE_MANA.get(), SoundSource.PLAYERS);
             applySneakUseEnchantment(stack);
         }
 

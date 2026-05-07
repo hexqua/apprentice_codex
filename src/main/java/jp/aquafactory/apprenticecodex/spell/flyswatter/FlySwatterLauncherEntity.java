@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.flyswatter;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
@@ -11,7 +12,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -189,7 +189,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         }
 
         level.addFreshEntity(projectile);
-        AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 1.0f, 1.2f);
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_PROJECTILE_SHOOT.get(), SoundSource.PLAYERS, 1.0f, 1.2f);
     }
 
     public void setCastingReticleEffect(int tick, @Nullable Vec3 target) {

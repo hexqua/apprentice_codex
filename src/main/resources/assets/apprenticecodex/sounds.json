@@ -283,5 +283,258 @@
     "sounds": [
       "apprenticecodex:frozen_rune"
     ]
+  },
+  "vanilla_summon_weapon": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENDERMAN_TELEPORT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_summon_weapon",
+    "sounds": [
+      "minecraft:mob/endermen/portal",
+      "minecraft:mob/endermen/portal2"
+    ]
+  },
+  "vanilla_summon_magical_entity": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENDERMAN_TELEPORT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_summon_magical_entity",
+    "sounds": [
+      "minecraft:mob/endermen/portal",
+      "minecraft:mob/endermen/portal2"
+    ]
+  },
+  "vanilla_disappear_magical_entity": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENDERMAN_TELEPORT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_disappear_magical_entity",
+    "sounds": [
+      "minecraft:mob/endermen/portal",
+      "minecraft:mob/endermen/portal2"
+    ]
+  },
+  "vanilla_rift_hole": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENDERMAN_TELEPORT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_rift_hole",
+    "sounds": [
+      "minecraft:mob/endermen/portal",
+      "minecraft:mob/endermen/portal2"
+    ]
+  },
+  "vanilla_projectile_shoot": {
+    "_apprentice_codex_note": "ベースはSoundEvents.SHULKER_SHOOT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_projectile_shoot",
+    "sounds": [
+      "minecraft:entity/shulker/shoot1",
+      "minecraft:entity/shulker/shoot2",
+      "minecraft:entity/shulker/shoot3",
+      "minecraft:entity/shulker/shoot4"
+    ]
+  },
+  "vanilla_summon_trunk": {
+    "_apprentice_codex_note": "ベースはSoundEvents.SHULKER_BOX_OPEN",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_summon_trunk",
+    "sounds": [
+      "minecraft:block/shulker_box/open"
+    ]
+  },
+  "vanilla_high_jump": {
+    "_apprentice_codex_note": "ベースはSoundEvents.HORSE_JUMP",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_high_jump",
+    "sounds": [
+      "minecraft:mob/horse/jump"
+    ]
+  },
+  "vanilla_brazier_sacrifice": {
+    "_apprentice_codex_note": "ベースはSoundEvents.BLAZE_SHOOT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_brazier_sacrifice",
+    "sounds": [
+      "minecraft:mob/ghast/fireball4"
+    ]
+  },
+  "vanilla_break_door": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ZOMBIE_BREAK_WOODEN_DOOR",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_break_door",
+    "sounds": [
+      "minecraft:mob/zombie/woodbreak"
+    ]
+  },
+  "vanilla_long_stride": {
+    "_apprentice_codex_note": "ベースはSoundEvents.TRIDENT_RIPTIDE_1",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_long_stride",
+    "sounds": [
+      "minecraft:item/trident/riptide1"
+    ]
+  },
+  "vanilla_hold_weapon": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ARMOR_EQUIP_NETHERITE",
+    "subtitle": "subtitle.apprenticecodex.sound.hold_weapon",
+    "sounds": [
+      {
+        "name": "minecraft:item/armor/equip_netherite1",
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:item/armor/equip_netherite1",
+        "pitch": 0.9,
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:item/armor/equip_netherite2",
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:item/armor/equip_netherite2",
+        "pitch": 0.9,
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:item/armor/equip_netherite3",
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:item/armor/equip_netherite3",
+        "pitch": 0.9,
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:item/armor/equip_netherite4",
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:item/armor/equip_netherite4",
+        "pitch": 0.9,
+        "volume": 0.8
+      }
+    ]
+  },
+  "vanilla_armor_equip_robe": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ARMOR_EQUIP_LEATHER",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_armor_equip_robe",
+    "sounds": [
+      "minecraft:item/armor/equip_leather1",
+      "minecraft:item/armor/equip_leather2",
+      "minecraft:item/armor/equip_leather3",
+      "minecraft:item/armor/equip_leather4",
+      "minecraft:item/armor/equip_leather5",
+      "minecraft:item/armor/equip_leather6"
+    ]
+  },
+  "vanilla_power_activate": {
+    "_apprentice_codex_note": "ベースはSoundEvents.BEACON_ACTIVATE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_power_activate",
+    "sounds": [
+      "minecraft:block/beacon/activate"
+    ]
+  },
+  "vanilla_power_tuning": {
+    "_apprentice_codex_note": "ベースはSoundEvents.BEACON_POWER_SELECT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_power_tuning",
+    "sounds": [
+      "minecraft:block/beacon/power1",
+      "minecraft:block/beacon/power2",
+      "minecraft:block/beacon/power3"
+    ]
+  },
+  "vanilla_interface_open": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENDER_CHEST_OPEN",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_interface_open",
+    "sounds": [
+      "minecraft:block/enderchest/open"
+    ]
+  },
+  "vanilla_start_search": {
+    "_apprentice_codex_note": "ベースはSoundEvents.RESPAWN_ANCHOR_CHARGE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_start_search",
+    "sounds": [
+      "minecraft:block/respawn_anchor/charge1",
+      "minecraft:block/respawn_anchor/charge2",
+      "minecraft:block/respawn_anchor/charge3"
+    ]
+  },
+  "vanilla_constructing_mechanical": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ANVIL_USE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_constructing_mechanical",
+    "sounds": [
+      "minecraft:random/anvil_use"
+    ]
+  },
+  "vanilla_constructed_mechanical": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ANVIL_PLACE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_anvil_land",
+    "sounds": [
+      "minecraft:random/anvil_land"
+    ]
+  },
+  "vanilla_critical_shot": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ANVIL_LAND",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_critical_shot",
+    "sounds": [
+      "minecraft:random/anvil_land"
+    ]
+  },
+  "vanilla_use_desk": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENCHANTMENT_TABLE_USE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_use_desk",
+    "sounds": [
+      "minecraft:block/enchantment_table/enchant1",
+      "minecraft:block/enchantment_table/enchant2",
+      "minecraft:block/enchantment_table/enchant3"
+    ]
+  },
+  "vanilla_inscribe_mana": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENCHANTMENT_TABLE_USE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_inscribe_mana",
+    "sounds": [
+      "minecraft:block/enchantment_table/enchant1",
+      "minecraft:block/enchantment_table/enchant2",
+      "minecraft:block/enchantment_table/enchant3"
+    ]
+  },
+  "vanilla_demicreator_break": {
+    "_apprentice_codex_note": "ベースはSoundEvents.AMETHYST_BLOCK_BREAK",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_demicreator_break",
+    "sounds": [
+      "minecraft:block/amethyst/break1",
+      "minecraft:block/amethyst/break2",
+      "minecraft:block/amethyst/break3",
+      "minecraft:block/amethyst/break4"
+    ]
+  },
+  "vanilla_feather_hit": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ARROW_HIT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_arrow_hit",
+    "sounds": [
+      "minecraft:random/bowhit1",
+      "minecraft:random/bowhit2",
+      "minecraft:random/bowhit3",
+      "minecraft:random/bowhit4"
+    ]
+  },
+  "vanilla_feather_shoot": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ARROW_SHOOT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_arrow_shoot",
+    "sounds": [
+      "minecraft:random/bow"
+    ]
+  },
+  "vanilla_jar_close": {
+    "_apprentice_codex_note": "ベースはSoundEvents.BARREL_CLOSE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_jar_close",
+    "sounds": [
+      "minecraft:block/barrel/close"
+    ]
+  },
+  "vanilla_jar_open": {
+    "_apprentice_codex_note": "ベースはSoundEvents.BARREL_OPEN",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_jar_open",
+    "sounds": [
+      "minecraft:block/barrel/open1",
+      "minecraft:block/barrel/open2"
+    ]
+  },
+  "vanilla_chest_jump": {
+    "_apprentice_codex_note": "ベースはSoundEvents.CHEST_CLOSE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_chest_close",
+    "sounds": [
+      "minecraft:block/chest/close1",
+      "minecraft:block/chest/close2",
+      "minecraft:block/chest/close3"
+    ]
   }
 }

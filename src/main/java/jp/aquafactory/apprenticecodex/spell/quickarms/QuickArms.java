@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -82,7 +83,7 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
 
     @Override
     public Optional<SoundEvent> getFireSound() {
-        return Optional.of(SoundEvents.ARMOR_EQUIP_NETHERITE);
+        return Optional.of(SoundRegistry.VANILLA_HOLD_WEAPON.get());
     }
 
     @Override

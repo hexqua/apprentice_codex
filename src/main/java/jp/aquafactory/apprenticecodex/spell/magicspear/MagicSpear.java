@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
@@ -18,7 +19,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
@@ -78,8 +78,7 @@ public class MagicSpear extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        // todo:音を作る.
-        return Optional.of(SoundEvents.SHULKER_SHOOT);
+        return Optional.of(SoundRegistry.VANILLA_PROJECTILE_SHOOT.get());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.skyedge;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -87,7 +88,7 @@ public class SkyEdgeProjectileEntity extends Projectile
             }
 
             if (tickCount == standbyTick){
-                AudioTools.playSoundFromEntity(level, this, SoundEvents.SHULKER_SHOOT, SoundSource.PLAYERS, 0.75f, 1.5f);
+                AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_PROJECTILE_SHOOT.get(), SoundSource.PLAYERS, 0.75f, 1.5f);
             }
         }
 

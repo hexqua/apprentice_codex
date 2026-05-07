@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ArmorItem;
@@ -29,7 +29,7 @@ public final class ChromaticMagiaDressStats {
     private static final int ENCHANTMENT_VALUE = 22;
     private static final float TOUGHNESS = 1.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
-    private static final SoundEvent EQUIP_SOUND = SoundEvents.ARMOR_EQUIP_LEATHER;
+    private static final SoundEvent EQUIP_SOUND = SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE.get();
     private static final Supplier<Ingredient> REPAIR_INGREDIENT =
             () -> Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get());
 

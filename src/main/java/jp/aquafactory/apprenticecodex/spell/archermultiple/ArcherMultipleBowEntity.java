@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.archermultiple;
 import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleOptions;
@@ -305,7 +306,7 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
     private void fire(Entity target, Level level, boolean isLastBullet) {
         var targetPosition = RaycastTools.getEntityTargetPosition(target);
         var damage = this.damage * (isLastBullet ? 2.0f : 1.0f);
-        var soundEvent = isLastBullet ? SoundEvents.SHULKER_SHOOT : SoundEvents.ARROW_SHOOT;
+        var soundEvent = isLastBullet ? SoundRegistry.VANILLA_PROJECTILE_SHOOT.get() : SoundEvents.ARROW_SHOOT;
         var sourceType = isLastBullet ? DamageTypes.ARCHER_MULTIPLE_LAST : DamageTypes.ARCHER_MULTIPLE;
 
         var source = CombatTools.getDamageSource(level, this, getOwner(), sourceType);

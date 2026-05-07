@@ -59,6 +59,33 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> STELLAR_EXPLODE = reg("stellar_explode");
     public static final RegistryObject<SoundEvent> FROZEN_RUNE = reg("frozen_rune");
 
+    public static final RegistryObject<SoundEvent> VANILLA_SUMMON_WEAPON = reg("vanilla_summon_weapon");
+    public static final RegistryObject<SoundEvent> VANILLA_SUMMON_MAGICAL_ENTITY = reg("vanilla_summon_magical_entity");
+    public static final RegistryObject<SoundEvent> VANILLA_DISAPPEAR_MAGICAL_ENTITY = reg("vanilla_disappear_magical_entity");
+    public static final RegistryObject<SoundEvent> VANILLA_RIFT_HOLE = reg("vanilla_rift_hole");
+    public static final RegistryObject<SoundEvent> VANILLA_PROJECTILE_SHOOT = reg("vanilla_projectile_shoot");
+    public static final RegistryObject<SoundEvent> VANILLA_SUMMON_TRUNK = reg("vanilla_summon_trunk");
+    public static final RegistryObject<SoundEvent> VANILLA_HIGH_JUMP = reg("vanilla_high_jump");
+    public static final RegistryObject<SoundEvent> VANILLA_BRAZIER_SACRIFICE = reg("vanilla_brazier_sacrifice");
+    public static final RegistryObject<SoundEvent> VANILLA_BREAK_DOOR = reg("vanilla_break_door");
+    public static final RegistryObject<SoundEvent> VANILLA_LONG_STRIDE = reg("vanilla_long_stride");
+    public static final RegistryObject<SoundEvent> VANILLA_HOLD_WEAPON = reg("vanilla_hold_weapon");
+    public static final RegistryObject<SoundEvent> VANILLA_ARMOR_EQUIP_ROBE = reg("vanilla_armor_equip_robe");
+    public static final RegistryObject<SoundEvent> VANILLA_POWER_ACTIVATE = reg("vanilla_power_activate");
+    public static final RegistryObject<SoundEvent> VANILLA_POWER_TUNING = reg("vanilla_power_tuning");
+    public static final RegistryObject<SoundEvent> VANILLA_INTERFACE_OPEN = reg("vanilla_interface_open");
+    public static final RegistryObject<SoundEvent> VANILLA_START_SEARCH = reg("vanilla_start_search");
+    public static final RegistryObject<SoundEvent> VANILLA_CONSTRUCTING_MECHANICAL = reg("vanilla_constructing_mechanical");
+    public static final RegistryObject<SoundEvent> VANILLA_CONSTRUCTED_MECHANICAL = reg("vanilla_constructed_mechanical");
+    public static final RegistryObject<SoundEvent> VANILLA_CRITICAL_SHOT = reg("vanilla_critical_shot");
+    public static final RegistryObject<SoundEvent> VANILLA_USE_DESK = reg("vanilla_use_desk");
+    public static final RegistryObject<SoundEvent> VANILLA_INSCRIBE_MANA = reg("vanilla_inscribe_mana");
+    public static final RegistryObject<SoundEvent> VANILLA_DEMICREATOR_BREAK = reg("vanilla_demicreator_break");
+    public static final RegistryObject<SoundEvent> VANILLA_FEATHER_HIT = reg("vanilla_feather_hit");
+    public static final RegistryObject<SoundEvent> VANILLA_FEATHER_SHOOT = reg("vanilla_feather_shoot");
+    public static final RegistryObject<SoundEvent> VANILLA_JAR_CLOSE = reg("vanilla_jar_close");
+    public static final RegistryObject<SoundEvent> VANILLA_JAR_OPEN = reg("vanilla_jar_open");
+    public static final RegistryObject<SoundEvent> VANILLA_CHEST_JUMP = reg("vanilla_chest_jump");
 
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);

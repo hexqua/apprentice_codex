@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.companiontrunk;
 
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -274,7 +275,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         );
         hasImpulse = true;
         jumpCooldownTick = JUMP_COOLDOWN_TICK;
-        level().playSound(null, blockPosition(), SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 0.75f, 1.0f);
+        level().playSound(null, blockPosition(), SoundRegistry.VANILLA_CHEST_JUMP.get(), SoundSource.BLOCKS, 0.75f, 1.0f);
 
         // ラッチは open と排他なので、誰かが開いている間は open 姿勢を優先する.
         if (openers.isEmpty()) {

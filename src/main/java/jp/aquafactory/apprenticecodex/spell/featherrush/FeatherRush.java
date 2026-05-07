@@ -23,7 +23,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -219,7 +218,7 @@ public class FeatherRush extends AbstractSummonWeaponSpell<FeatherRushWingEntity
             );
             level.addFreshEntity(projectile);
         }
-        AudioTools.playSoundFromEntity(level, entity, SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS);
+        AudioTools.playSoundFromEntity(level, entity, SoundRegistry.VANILLA_FEATHER_SHOOT.get(), SoundSource.PLAYERS);
     }
 
     @Override
