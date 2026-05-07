@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_spellstained_runic_tablet",
+  "criteria": {
+    "crafted_archivists_grimoire": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:archivists_grimoire"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:archivists_grimoire"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_archivists_grimoire"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

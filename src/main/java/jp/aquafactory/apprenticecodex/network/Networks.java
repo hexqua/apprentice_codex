@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -33,7 +34,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "20";
+    private static final String PROTOCOL_VERSION = "21";
 
     private Networks() {
     }
@@ -58,6 +59,11 @@ public final class Networks {
                 ClientConfirmElementalBowModePacket.TYPE,
                 ClientConfirmElementalBowModePacket.STREAM_CODEC,
                 ClientConfirmElementalBowModePacket::handle
+        );
+        registrar.playToServer(
+                ClientChangeArchivistsGrimoireRowPacket.TYPE,
+                ClientChangeArchivistsGrimoireRowPacket.STREAM_CODEC,
+                ClientChangeArchivistsGrimoireRowPacket::handle
         );
         registrar.playToServer(
                 ClientSwingMagicAttackPacket.TYPE,

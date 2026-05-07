@@ -115,6 +115,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ENCHANTED_CIRCLET.get());
         output.accept(ItemRegistry.MANA_SHIELD_CHARM.get());
         output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
+        output.accept(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
         output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
         output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());

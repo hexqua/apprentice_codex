@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "irons_spellbooks:ruined_book"
+    },
+    "C": {
+      "tag": "c:chests"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "W": {
+      "item": "irons_spellbooks:mithril_weave"
+    }
+  },
+  "pattern": [
+    "MDM",
+    "CBC",
+    "MWM"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:archivists_grimoire"
+  }
+}

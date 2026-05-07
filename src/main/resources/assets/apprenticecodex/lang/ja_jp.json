@@ -59,6 +59,7 @@
   "item.apprenticecodex.explorers_codex": "探索者の写本",
   "item.apprenticecodex.spellstained_runic_tablet": "魔術染めのルーンタブレット",
   "item.apprenticecodex.isekai_travel_guidebook": "異世界旅行ガイドブック",
+  "item.apprenticecodex.archivists_grimoire": "司書の魔導書",
   "item.apprenticecodex.grimoire_manifest": "グリモア目録",
   "item.apprenticecodex.pastel_staff": "パステルスタッフ",
   "item.apprenticecodex.focus_staffbow": "集中の弓杖",
@@ -180,6 +181,8 @@
   "item.apprenticecodex.flask_system.amount_label": "残量: ",
   "item.apprenticecodex.flask_system.particles_suppressed": "効果演出を抑制中",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "過熱冷却中: 残り%1$d秒",
+  "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "選択中のページ: %1$d/%2$d",
+  "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count": "他のページのスクロール数: %d",
 
   "jei.apprenticecodex.arcanum_in_a_jar.desc_1": "設置してレッドストーンを入れて放置しておくと秘術のエッセンスに変換する。",
   "jei.apprenticecodex.arcanum_in_a_jar.desc_2": "壊すと完成済みの秘術のエッセンスと未使用のレッドストーンがそのまま落ちる。",
@@ -322,6 +325,7 @@
   "container.apprenticecodex.atelier_station.fluid.summary_count": " %1$d/%2$d 回分",
   "container.apprenticecodex.atelier_station.fluid.count": "(%d回分)",
   "container.apprenticecodex.companion_trunk.default": "コンパニオントランク",
+  "container.apprenticecodex.archivists_grimoire.default": "司書の魔導書",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "近くのスペルディスペンサーが魔法詠唱に失敗した",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "理由: 魔法のスクロールが設定されていない",
@@ -662,6 +666,8 @@
   "advancements.apprenticecodex.apprentice_codex.retrieve_max_arcanum_in_a_jar.description": "瓶詰めの神秘が最大まで溜まった状態から回収する",
   "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.title": "次元連結システムのちょっとした応用",
   "advancements.apprenticecodex.apprentice_codex.get_ender_grimoire.description": "グリモア目録を使ってエンダーグリモアを入手する",
+  "advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.title": "ポケットの中の図書館",
+  "advancements.apprenticecodex.apprentice_codex.craft_archivists_grimoire.description": "司書の魔導書を手に入れる",
   "advancements.apprenticecodex.apprentice_codex.craft_crystal_bladed_staff.title": "力こそパワー",
   "advancements.apprenticecodex.apprentice_codex.craft_crystal_bladed_staff.description": "刃の結晶杖を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_charged_twin_blade_staff.title": "杖は投げ捨てるもの",
