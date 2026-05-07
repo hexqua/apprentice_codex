@@ -363,7 +363,7 @@
   },
   "vanilla_hold_weapon": {
     "_apprentice_codex_note": "ベースはSoundEvents.ARMOR_EQUIP_NETHERITE",
-    "subtitle": "subtitle.apprenticecodex.sound.hold_weapon",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_hold_weapon",
     "sounds": [
       {
         "name": "minecraft:item/armor/equip_netherite1",
@@ -456,7 +456,7 @@
   },
   "vanilla_constructed_mechanical": {
     "_apprentice_codex_note": "ベースはSoundEvents.ANVIL_PLACE",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_anvil_land",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_constructed_mechanical",
     "sounds": [
       "minecraft:random/anvil_land"
     ]
@@ -498,7 +498,7 @@
   },
   "vanilla_feather_hit": {
     "_apprentice_codex_note": "ベースはSoundEvents.ARROW_HIT",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_arrow_hit",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_feather_hit",
     "sounds": [
       "minecraft:random/bowhit1",
       "minecraft:random/bowhit2",
@@ -508,7 +508,7 @@
   },
   "vanilla_feather_shoot": {
     "_apprentice_codex_note": "ベースはSoundEvents.ARROW_SHOOT",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_arrow_shoot",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_feather_shoot",
     "sounds": [
       "minecraft:random/bow"
     ]
@@ -530,7 +530,7 @@
   },
   "vanilla_chest_jump": {
     "_apprentice_codex_note": "ベースはSoundEvents.CHEST_CLOSE",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_chest_close",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_chest_jump",
     "sounds": [
       "minecraft:block/chest/close1",
       "minecraft:block/chest/close2",
