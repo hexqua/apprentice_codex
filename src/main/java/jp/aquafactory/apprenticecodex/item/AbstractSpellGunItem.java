@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -54,7 +55,9 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
-        ManaBypassSpellItem, CastAnimationOverrideItem, NonDamageableAnvilMergeItem {
+        ManaBypassSpellItem, CastAnimationOverrideItem, IJeiInfoItem, NonDamageableAnvilMergeItem {
+    private static final String JEI_INFO_GROUP_ID = "spellgun_items";
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellgun_items.desc_";
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
@@ -578,6 +581,16 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 getOverriddenLongCastTicks()
         );
         return true;
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    public String getJeiInfoGroupId() {
+        return JEI_INFO_GROUP_ID;
     }
 
     private Multimap<Attribute, AttributeModifier> buildBaseMainhandModifiers() {
