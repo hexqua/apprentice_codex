@@ -178,6 +178,7 @@
   "item.apprenticecodex.flask_system.amount_label": "Amount: ",
   "item.apprenticecodex.flask_system.particles_suppressed": "Effects visuals suppressed",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "Overheat cooldown: %1$ds remaining",
+  "item.apprenticecodex.special_spellbook.inscribe_hint": "(todo:翻訳)この魔法書は銘刻台で刻み込む代わりに手に持って使ってスクロールを入れる。",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "Current Page: %1$d/%2$d",
   "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count": "Other Page Scroll Count: %d",
 

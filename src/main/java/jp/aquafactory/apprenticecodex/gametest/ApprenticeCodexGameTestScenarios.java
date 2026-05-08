@@ -2776,6 +2776,24 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Archivist's Grimoire should hide previous row spells after row change");
         });
     }
+
+    static void archivistsGrimoireTooltipShowsInscribeHintOnlyWhenEmpty(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            assertArchivistsGrimoireInscribeHintTooltip(helper, grimoireStack, true,
+                    "Empty Archivist's Grimoire should show the special inscription hint");
+
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT + 2,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()));
+            assertArchivistsGrimoireInscribeHintTooltip(helper, grimoireStack, false,
+                    "Archivist's Grimoire with a stored spell should hide the special inscription hint");
+
+            inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT + 2, ItemStack.EMPTY);
+            assertArchivistsGrimoireInscribeHintTooltip(helper, grimoireStack, true,
+                    "Archivist's Grimoire should show the special inscription hint again after becoming empty");
+        });
+    }
     static void archivistsGrimoireCurioAndUpgradeContractsStayRegistered(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
@@ -11332,6 +11350,20 @@ public final class ApprenticeCodexGameTestScenarios {
         var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, stack);
         return stack;
+    }
+
+    private static void assertArchivistsGrimoireInscribeHintTooltip(
+            GameTestHelper helper,
+            ItemStack stack,
+            boolean expected,
+            String message
+    ) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        var hasHint = tooltipLines.stream()
+                .anyMatch(component -> component.getContents() instanceof TranslatableContents translatableContents
+                        && "item.apprenticecodex.special_spellbook.inscribe_hint".equals(translatableContents.getKey()));
+        helper.assertTrue(hasHint == expected, message);
     }
 
     private static void assertScrollSpell(

@@ -103,6 +103,9 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
                 lines.add(Component.translatable("tooltip.irons_spellbooks.spellbook_spell_count", spellList.getMaxSpellCount()).withStyle(ChatFormatting.GRAY));
 
                 var activeSpellSlots = spellList.getActiveSpells();
+                if (activeSpellSlots.isEmpty()) {
+                    lines.add(Component.translatable("item.apprenticecodex.special_spellbook.inscribe_hint").withStyle(ChatFormatting.GRAY));
+                }
                 if (!activeSpellSlots.isEmpty()) {
                     lines.add(Component.empty());
                     lines.add(Component.translatable("tooltip.irons_spellbooks.press_to_cast", Component.keybind("key.irons_spellbooks.spellbook_cast")).withStyle(ChatFormatting.GOLD));
