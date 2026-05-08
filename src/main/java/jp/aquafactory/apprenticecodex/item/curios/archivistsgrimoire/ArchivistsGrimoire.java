@@ -202,7 +202,7 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
                         selectedRow + 1,
                         ROW_COUNT)
                 .withStyle(ChatFormatting.GRAY));
-        if (!hasStoredSpell(itemStack)) {
+        if (!hasStoredSpell(itemStack, registries)) {
             lines.add(Component.translatable("item.apprenticecodex.special_spellbook.inscribe_hint").withStyle(ChatFormatting.GRAY));
         }
 
@@ -262,8 +262,8 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
         return count;
     }
 
-    private static boolean hasStoredSpell(ItemStack grimoireStack) {
-        var inventory = new ScrollInventory(grimoireStack);
+    private static boolean hasStoredSpell(ItemStack grimoireStack, HolderLookup.Provider registries) {
+        var inventory = new ScrollInventory(grimoireStack, registries);
         for (var slot = 0; slot < SLOT_COUNT; ++slot) {
             if (getSpellData(inventory.getStackInSlot(slot)) != SpellData.EMPTY) {
                 return true;

@@ -788,7 +788,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void spellcastersFlaskMismatchedVanillaPotionDrinkConsumesExtraDose(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var storedPotion = PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
-            var twoDoseFlask = createFilledSpellcastersFlask(storedPotion, 2, 0);
+            var twoDoseFlask = createFilledSpellcastersFlask(helper.getLevel().registryAccess(), storedPotion, 2, 0);
             var player = new FakePlayer((ServerLevel) helper.getLevel(), new GameProfile(UUID.randomUUID(), "spellcasters_flask_mismatch_drink_test"));
 
             twoDoseFlask.getItem().finishUsingItem(twoDoseFlask, helper.getLevel(), player);
@@ -798,7 +798,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(SpellcastersFlask.getStoredItem(twoDoseFlask).isEmpty(),
                     "Mismatched Spellcaster's Flask should clear StoredItem when extra consumption empties it");
 
-            var oneDoseFlask = createFilledSpellcastersFlask(storedPotion, 1, 0);
+            var oneDoseFlask = createFilledSpellcastersFlask(helper.getLevel().registryAccess(), storedPotion, 1, 0);
             oneDoseFlask.getItem().finishUsingItem(oneDoseFlask, helper.getLevel(), player);
             helper.assertTrue(SpellcastersFlask.getStoredDoseCount(oneDoseFlask) == 0,
                     "Mismatched Spellcaster's Flask drink should still work with one remaining dose");
@@ -922,27 +922,27 @@ public final class ApprenticeCodexGameTestScenarios {
 
             assertTooltipKeyUsesColor(
                     helper,
-                    createFilledSpellcastersFlask(splashPotion, 1, 0),
+                    createFilledSpellcastersFlask(helper.getLevel().registryAccess(), splashPotion, 1, 0),
                     "item.apprenticecodex.flask_system.mismatch_flask_type",
                     ChatFormatting.YELLOW,
                     "Spellcaster's Flask should warn for stored splash potions"
             );
             assertTooltipKeyUsesColor(
                     helper,
-                    createFilledAlchemistsFlask(normalPotion, 1, 0),
+                    createFilledAlchemistsFlask(helper.getLevel().registryAccess(), normalPotion, 1, 0),
                     "item.apprenticecodex.flask_system.mismatch_flask_type",
                     ChatFormatting.YELLOW,
                     "Alchemist's Flask should warn for stored regular potions"
             );
             assertTooltipKeyAbsent(
                     helper,
-                    createFilledSpellcastersFlask(normalPotion, 1, 0),
+                    createFilledSpellcastersFlask(helper.getLevel().registryAccess(), normalPotion, 1, 0),
                     "item.apprenticecodex.flask_system.mismatch_flask_type",
                     "Spellcaster's Flask should not warn for regular potions"
             );
             assertTooltipKeyAbsent(
                     helper,
-                    createFilledAlchemistsFlask(simpleElixir, 1, 0),
+                    createFilledAlchemistsFlask(helper.getLevel().registryAccess(), simpleElixir, 1, 0),
                     "item.apprenticecodex.flask_system.mismatch_flask_type",
                     "Alchemist's Flask should not warn for Simple Elixir"
             );
@@ -1289,7 +1289,7 @@ public final class ApprenticeCodexGameTestScenarios {
             magicData.setAdditionalCastData(null);
 
             var normalPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
-            player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(normalPotion, 2, 0));
+            player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(helper.getLevel().registryAccess(), normalPotion, 2, 0));
             player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Extract should prepare a force-splash normal potion cast");
@@ -3050,7 +3050,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertArchivistsGrimoireInscribeHintTooltip(helper, grimoireStack, true,
                     "Empty Archivist's Grimoire should show the special inscription hint");
 
-            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack, helper.getLevel().registryAccess());
             inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT + 2,
                     createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()));
             assertArchivistsGrimoireInscribeHintTooltip(helper, grimoireStack, false,
@@ -5438,7 +5438,7 @@ public final class ApprenticeCodexGameTestScenarios {
             for (var item : rightClickMagicWeapons) {
                 var stack = new ItemStack(item);
                 var tooltipLines = new ArrayList<Component>();
-                item.appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
+                item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
                 helper.assertTrue(!tooltipLines.isEmpty(),
                         item + " should expose right click magic weapon tooltip");
                 assertTranslatableKey(
@@ -8293,7 +8293,7 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Chromatic Magia Dress " + armorType + " imbue surface regression");
 
                 var tooltipLines = new ArrayList<Component>();
-                item.appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
+                item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
                 helper.assertTrue(tooltipLines.stream().anyMatch(line ->
                                 line.getContents() instanceof TranslatableContents contents
                                         && (item.getDescriptionId() + ".desc").equals(contents.getKey())),
@@ -8517,7 +8517,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     spell.getSchoolType(),
                     CastSource.SPELLBOOK
             );
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
+            NeoForge.EVENT_BUS.post(event);
 
             var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel());
             helper.assertTrue(remainingOverheatTicks == expectedOverheatTicks,
@@ -11737,7 +11737,7 @@ public final class ApprenticeCodexGameTestScenarios {
             String message
     ) {
         var tooltipLines = new ArrayList<Component>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
+        stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
         helper.assertTrue(tooltipLines.size() > index,
                 message + " (tooltip line count=" + tooltipLines.size() + ")");
         assertTranslatableKey(helper, tooltipLines.get(index), expectedKey, message);
@@ -11751,7 +11751,7 @@ public final class ApprenticeCodexGameTestScenarios {
             String message
     ) {
         var tooltipLines = new ArrayList<Component>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
+        stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
         var matchingLine = tooltipLines.stream()
                 .filter(component -> component.getContents() instanceof TranslatableContents contents
                         && expectedKey.equals(contents.getKey()))
@@ -11768,7 +11768,7 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static void assertTooltipKeyAbsent(GameTestHelper helper, ItemStack stack, String key, String message) {
         var tooltipLines = new ArrayList<Component>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
+        stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
         var present = tooltipLines.stream()
                 .anyMatch(component -> component.getContents() instanceof TranslatableContents contents
                         && key.equals(contents.getKey()));
@@ -12558,7 +12558,7 @@ public final class ApprenticeCodexGameTestScenarios {
             String message
     ) {
         var tooltipLines = new ArrayList<Component>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltipLines, TooltipFlag.Default.NORMAL);
+        stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
         var hasHint = tooltipLines.stream()
                 .anyMatch(component -> component.getContents() instanceof TranslatableContents translatableContents
                         && "item.apprenticecodex.special_spellbook.inscribe_hint".equals(translatableContents.getKey()));

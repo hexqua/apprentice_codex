@@ -4,7 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.DistExecutor;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
@@ -100,9 +100,6 @@ public final class ImbueTooltipHelper {
     }
 
     private static boolean isShiftDown() {
-        return Boolean.TRUE.equals(DistExecutor.safeCallWhenOn(
-                Dist.CLIENT,
-                () -> ImbueTooltipClientHelper::hasShiftDown
-        ));
+        return FMLEnvironment.dist == Dist.CLIENT && ImbueTooltipClientHelper.hasShiftDown();
     }
 }
