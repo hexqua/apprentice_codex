@@ -41,6 +41,9 @@ public final class ManaSiphonOrbRenderEvent {
     private static final float BASE_RED = 0.45f;
     private static final float BASE_GREEN = 0.95f;
     private static final float BASE_BLUE = 1.0f;
+    // カメラ至近では加算発光が画面を覆うため、距離で段階的に抑制する。
+    private static final double ORB_CAMERA_HIDE_DISTANCE = 0.45d;
+    private static final double ORB_CAMERA_FADE_DISTANCE = 1.35d;
     private static final List<ActiveOrb> ACTIVE_ORBS = new ArrayList<>();
 
     private ManaSiphonOrbRenderEvent() {
@@ -114,8 +117,8 @@ public final class ManaSiphonOrbRenderEvent {
             var owner = level.getEntity(orb.ownerEntityId);
             var currentPosition = currentPosition(orb, owner, age);
             updateTrail(orb, currentPosition, age);
-            renderTrail(poseStack, buffer, orb, cameraRotation);
-            renderOrb(poseStack, buffer, orb, age, currentPosition, cameraRotation);
+            renderTrail(poseStack, buffer, orb, cameraPosition, cameraRotation);
+            renderOrb(poseStack, buffer, orb, age, currentPosition, cameraPosition, cameraRotation);
         }
 
         poseStack.popPose();
@@ -187,7 +190,8 @@ public final class ManaSiphonOrbRenderEvent {
         }
     }
 
-    private static void renderTrail(PoseStack poseStack, VertexConsumer buffer, ActiveOrb orb, Quaternionf cameraRotation) {
+    private static void renderTrail(PoseStack poseStack, VertexConsumer buffer, ActiveOrb orb, Vec3 cameraPosition,
+                                    Quaternionf cameraRotation) {
         if (orb.trailPoints.isEmpty()) {
             return;
         }
@@ -198,13 +202,13 @@ public final class ManaSiphonOrbRenderEvent {
             var ageRatio = trailSize == 1 ? 1.0f : (float) i / (trailSize - 1);
             var alpha = 0.1f + ageRatio * 0.22f;
             var scale = orb.orbData.scale() * (0.42f + ageRatio * 0.52f);
-            renderBillboard(poseStack, buffer, point, scale, alpha, ageRatio * 0.8f, 0.65f, cameraRotation);
+            renderBillboard(poseStack, buffer, point, scale, alpha, ageRatio * 0.8f, 0.65f, cameraPosition, cameraRotation);
             i++;
         }
     }
 
     private static void renderOrb(PoseStack poseStack, VertexConsumer buffer, ActiveOrb orb, float age, Vec3 position,
-                                  Quaternionf cameraRotation) {
+                                  Vec3 cameraPosition, Quaternionf cameraRotation) {
         var pulse = 0.9f + 0.1f * (float) Math.sin(age * 0.35f + orb.orbData.phaseOffset());
         var baseScale = orb.orbData.scale() * pulse;
         var fade = getAlpha(orb, age);
@@ -212,21 +216,23 @@ public final class ManaSiphonOrbRenderEvent {
             return;
         }
 
-        renderBillboard(poseStack, buffer, position, baseScale, fade, age * 0.05f, 1.0f, cameraRotation);
+        renderBillboard(poseStack, buffer, position, baseScale, fade, age * 0.05f, 1.0f, cameraPosition, cameraRotation);
         renderBillboard(poseStack, buffer,
                 position.add(
                         Math.cos(age * 0.11f + orb.orbData.phaseOffset()) * 0.015d,
                         Math.sin(age * 0.13f + orb.orbData.phaseOffset()) * 0.01d,
                         Math.sin(age * 0.09f + orb.orbData.phaseOffset()) * 0.015d
                 ),
-                baseScale * 0.72f, fade * 0.9f, -age * 0.09f + orb.orbData.phaseOffset(), 0.82f, cameraRotation);
+                baseScale * 0.72f, fade * 0.9f, -age * 0.09f + orb.orbData.phaseOffset(), 0.82f,
+                cameraPosition, cameraRotation);
         renderBillboard(poseStack, buffer,
                 position.add(
                         Math.sin(age * 0.07f + orb.orbData.phaseOffset()) * 0.012d,
                         Math.cos(age * 0.1f + orb.orbData.phaseOffset()) * 0.012d,
                         Math.cos(age * 0.12f + orb.orbData.phaseOffset()) * 0.012d
                 ),
-                baseScale * 0.48f, fade * 0.75f, age * 0.13f + orb.orbData.phaseOffset() * 0.5f, 0.68f, cameraRotation);
+                baseScale * 0.48f, fade * 0.75f, age * 0.13f + orb.orbData.phaseOffset() * 0.5f, 0.68f,
+                cameraPosition, cameraRotation);
     }
 
     private static float getAlpha(ActiveOrb orb, float age) {
@@ -245,7 +251,12 @@ public final class ManaSiphonOrbRenderEvent {
 
     private static void renderBillboard(PoseStack poseStack, VertexConsumer buffer, Vec3 position,
                                         float scale, float alpha, float rotation, float tintStrength,
-                                        Quaternionf cameraRotation) {
+                                        Vec3 cameraPosition, Quaternionf cameraRotation) {
+        alpha *= getCameraProximityAlpha(position, cameraPosition);
+        if (alpha <= 0.001f) {
+            return;
+        }
+
         var rotated = new Quaternionf(cameraRotation).rotateZ(rotation);
         var right = new Vector3f(1.0f, 0.0f, 0.0f).rotate(rotated).mul(scale * 0.5f);
         var up = new Vector3f(0.0f, 1.0f, 0.0f).rotate(rotated).mul(scale * 0.5f);
@@ -274,6 +285,20 @@ public final class ManaSiphonOrbRenderEvent {
                 alpha,
                 new Vec3(normalVector.x(), normalVector.y(), normalVector.z())
         );
+    }
+
+    private static float getCameraProximityAlpha(Vec3 position, Vec3 cameraPosition) {
+        var distance = position.distanceTo(cameraPosition);
+        if (distance <= ORB_CAMERA_HIDE_DISTANCE) {
+            return 0.0f;
+        }
+
+        if (distance >= ORB_CAMERA_FADE_DISTANCE) {
+            return 1.0f;
+        }
+
+        var progress = (distance - ORB_CAMERA_HIDE_DISTANCE) / (ORB_CAMERA_FADE_DISTANCE - ORB_CAMERA_HIDE_DISTANCE);
+        return (float) (progress * progress * (3.0d - 2.0d * progress));
     }
 
     private static void addDoubleSidedQuad(PoseStack poseStack, VertexConsumer buffer,
