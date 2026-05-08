@@ -123,7 +123,12 @@ public class AlchemistsFlask extends AbstractPotionFlaskItem
     @Override
     protected boolean isSupportedPotionItem(ItemStack stack) {
         return stack.getItem() instanceof PotionItem
-                && (stack.is(Items.SPLASH_POTION) || stack.is(Items.LINGERING_POTION));
+                && (stack.is(Items.POTION) || stack.is(Items.SPLASH_POTION) || stack.is(Items.LINGERING_POTION));
+    }
+
+    @Override
+    protected boolean isPreferredPotionItem(ItemStack stack) {
+        return stack.is(Items.SPLASH_POTION) || stack.is(Items.LINGERING_POTION);
     }
 
     @Override
