@@ -7808,14 +7808,42 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(EnchantmentRegistry.SYNTHESIS.get().isCompatibleWith(Enchantments.MENDING),
                     "Synthesis should be incompatible with Mending");
 
-            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
-            var tooltipLines = new ArrayList<Component>();
-            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
-            var hasSynthesisTooltip = tooltipLines.stream()
-                    .anyMatch(component -> component.getContents() instanceof TranslatableContents translatableContents
-                            && "item.apprenticecodex.elemental_bow.with_synthesis".equals(translatableContents.getKey()));
-            helper.assertTrue(hasSynthesisTooltip,
-                    "Elemental Bow should add the Synthesis tooltip line while Synthesis is enchanted");
+            assertTooltipKeyAt(helper, stack, 0, "item.apprenticecodex.elemental_bow.mode",
+                    "Elemental Bow should always show the current mode tooltip line");
+            assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.desc", ChatFormatting.GRAY,
+                    "Elemental Bow should always show the description tooltip line");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment",
+                    "Elemental Bow should not show spell ammo tooltip while not in magic mode");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
+                    "Elemental Bow should not show Infinity spell tooltip while not in magic mode");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_synthesis",
+                    "Elemental Bow should not show Synthesis spell tooltip while not in magic mode");
+
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            assertTooltipKeyAt(helper, stack, 1, "item.apprenticecodex.elemental_bow.desc",
+                    "Elemental Bow should show the description below the mode tooltip line");
+            assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment", ChatFormatting.YELLOW,
+                    "Elemental Bow should show the no-enchantment spell tooltip in magic mode");
+
+            var infinityStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(infinityStack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            infinityStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            assertTooltipKeyUsesColor(helper, infinityStack, "item.apprenticecodex.elemental_bow.spell.with_infinity", ChatFormatting.YELLOW,
+                    "Elemental Bow should show the Infinity spell tooltip in magic mode");
+
+            var synthesisStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(synthesisStack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            synthesisStack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
+            assertTooltipKeyUsesColor(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", ChatFormatting.AQUA,
+                    "Elemental Bow should show the Synthesis spell tooltip in magic mode");
+            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.with_synthesis",
+                    "Elemental Bow should no longer show the legacy Synthesis tooltip key");
+
+            synthesisStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            assertTooltipKeyUsesColor(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", ChatFormatting.AQUA,
+                    "Elemental Bow should prefer the Synthesis spell tooltip when Synthesis and Infinity are both present");
+            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
+                    "Elemental Bow should not show the Infinity spell tooltip when Synthesis is also present");
         });
     }
     static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
