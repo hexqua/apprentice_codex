@@ -78,7 +78,6 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final RawAnimation ANIM_IDLE_FRAME = RawAnimation.begin().thenLoop("idle_frame");
     private static final RawAnimation ANIM_IDLE_COG = RawAnimation.begin().thenLoop("idle_cog");
-    private static final int MAX_STAFF_OVERHEAT_TICKS = 20 * 30;
     private static final int ENCHANTMENT_VALUE = 14;
     private static final StaffTier CIRCUIT_HEAT_STAFF_TIER = new StaffTier(
             3.0F,
@@ -254,7 +253,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
         stack.getOrCreateTag().putLong(
                 OVERHEAT_EXPIRE_GAME_TIME_TAG,
-                level.getGameTime() + Math.min(cooldownTicks, MAX_STAFF_OVERHEAT_TICKS)
+                level.getGameTime() + cooldownTicks
         );
     }
 
@@ -339,11 +338,16 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
         var originalMana = magicData.getMana();
         var baseManaCost = spell.getManaCost(spellLevel);
+        var remainingCooldownTicks = Math.max(0, removedCooldown.getCooldownRemaining());
         var step = CircuitHeatStaffOverheatManager.getNextStep(player, spellId);
-        var additionalManaCost = CircuitHeatStaffOverheatManager.getAdditionalManaCost(baseManaCost, step);
+        var additionalManaCost = CircuitHeatStaffOverheatManager.getAdditionalManaCost(
+                baseManaCost,
+                step,
+                remainingCooldownTicks
+        );
         var plannedManaCost = baseManaCost + additionalManaCost;
         var effectiveCooldown = Math.max(0, WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource, stack));
-        var overheatTicks = Math.min(effectiveCooldown, MAX_STAFF_OVERHEAT_TICKS);
+        var overheatTicks = (int) Math.min((long) effectiveCooldown + remainingCooldownTicks, Integer.MAX_VALUE);
 
         // cooldown だけ通常判定から外し、基礎マナ不足などの失敗条件は Iron's の判定をそのまま使う。
         // 追加マナ分だけは SpellOnCastEvent で上乗せし、足りなければ発動後に杖の過熱 cooldown へ入れる。

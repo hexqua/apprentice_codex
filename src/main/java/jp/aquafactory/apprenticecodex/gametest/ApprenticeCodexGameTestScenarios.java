@@ -8664,8 +8664,8 @@ public final class ApprenticeCodexGameTestScenarios {
 
             CircuitHeatStaff.startStaffOverheat(stack, helper.getLevel(), 20 * 45);
             var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(stack, helper.getLevel());
-            helper.assertTrue(remainingOverheatTicks > 0 && remainingOverheatTicks <= 20 * 30,
-                    "Circuit Heat Staff item overheat should be active and capped at 30 seconds: "
+            helper.assertTrue(remainingOverheatTicks == 20 * 45,
+                    "Circuit Heat Staff item overheat should keep the requested duration: "
                             + remainingOverheatTicks);
 
             assertExactEnchantmentSurfaces(
@@ -8676,6 +8676,81 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+
+    static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var baseManaCost = 100;
+            var step = 1;
+
+            var referenceAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, step, 20 * 10);
+            helper.assertTrue(referenceAdditionalMana == 20,
+                    "Circuit Heat Staff skipped 10 seconds should keep the old step-1 extra mana: "
+                            + referenceAdditionalMana);
+
+            var shortAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, step, 20 * 5);
+            helper.assertTrue(shortAdditionalMana == 10,
+                    "Circuit Heat Staff skipped 5 seconds should halve the step-1 extra mana: "
+                            + shortAdditionalMana);
+
+            var longAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, step, 20 * 40);
+            helper.assertTrue(longAdditionalMana == 80,
+                    "Circuit Heat Staff skipped 40 seconds should quadruple the step-1 extra mana: "
+                            + longAdditionalMana);
+
+            var noSkippedCooldownAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, step, 0);
+            helper.assertTrue(noSkippedCooldownAdditionalMana == 0,
+                    "Circuit Heat Staff should not add mana when no cooldown is skipped: "
+                            + noSkippedCooldownAdditionalMana);
+        });
+    }
+
+    static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_overheat_duration_test");
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGIC_SPEAR.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Circuit Heat Staff overheat duration test could not resolve player mana data");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+            magicData.setPlayerCastingItem(staffStack);
+
+            var castCooldownTicks = 20 * 120;
+            var skippedCooldownTicks = 20 * 40;
+            var expectedOverheatTicks = castCooldownTicks + skippedCooldownTicks;
+            var plannedManaCost = Math.max(1, spell.getManaCost(1));
+            CircuitHeatStaffCastEvent.reserveOverheatCast(
+                    player,
+                    spell.getSpellId(),
+                    plannedManaCost,
+                    plannedManaCost,
+                    expectedOverheatTicks
+            );
+
+            magicData.setMana(plannedManaCost);
+            var event = new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    spell.getManaCost(1),
+                    spell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
+
+            var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel());
+            helper.assertTrue(remainingOverheatTicks == expectedOverheatTicks,
+                    "Circuit Heat Staff item overheat should use cast cooldown plus skipped cooldown: "
+                            + remainingOverheatTicks + " / expected " + expectedOverheatTicks);
+
+            CircuitHeatStaffCastEvent.clearReservedOverheatCast(player);
+        });
+    }
+
     static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_base_mana_gate_test");
@@ -8735,7 +8810,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var baseManaCost = spell.getManaCost(1);
             var plannedManaCost = baseManaCost
                     + jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getAdditionalManaCost(baseManaCost, 1);
+                    .getAdditionalManaCost(baseManaCost, 1, 20 * 10);
             CircuitHeatStaffCastEvent.reserveOverheatCast(
                     player,
                     spell.getSpellId(),

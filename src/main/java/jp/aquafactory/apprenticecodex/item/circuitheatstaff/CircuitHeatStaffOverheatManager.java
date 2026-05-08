@@ -14,6 +14,8 @@ public final class CircuitHeatStaffOverheatManager {
     private static final String EXPIRE_GAME_TIME_TAG = "ExpireGameTime";
     private static final String CHAIN_DEPTH_TAG = "ChainDepth";
     private static final String LAST_APPLIED_COOLDOWN_TICKS_TAG = "LastAppliedCooldownTicks";
+    // 10秒ぶんの踏み倒しを従来の追加マナ倍率と同等に扱う。
+    private static final float COOLDOWN_MANA_REFERENCE_TICKS = 20.0F * 10.0F;
     private static final float EXTRA_MANA_LINEAR_MULTIPLIER = 0.10F;
     private static final float EXTRA_MANA_QUADRATIC_MULTIPLIER = 0.10F;
 
@@ -25,12 +27,14 @@ public final class CircuitHeatStaffOverheatManager {
         return state.active() ? state.chainDepth() + 1 : 1;
     }
 
-    public static int getAdditionalManaCost(int baseManaCost, int step) {
-        if (baseManaCost <= 0 || step <= 0) {
+    public static int getAdditionalManaCost(int baseManaCost, int step, int remainingCooldownTicks) {
+        if (baseManaCost <= 0 || step <= 0 || remainingCooldownTicks <= 0) {
             return 0;
         }
 
-        var multiplier = EXTRA_MANA_LINEAR_MULTIPLIER * step + EXTRA_MANA_QUADRATIC_MULTIPLIER * step * step;
+        var skippedCooldownMultiplier = remainingCooldownTicks / COOLDOWN_MANA_REFERENCE_TICKS;
+        var multiplier = (EXTRA_MANA_LINEAR_MULTIPLIER * step + EXTRA_MANA_QUADRATIC_MULTIPLIER * step * step)
+                * skippedCooldownMultiplier;
         return Math.max(1, (int)Math.ceil(baseManaCost * multiplier));
     }
 

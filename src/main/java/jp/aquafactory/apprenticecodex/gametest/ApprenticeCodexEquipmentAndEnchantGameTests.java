@@ -909,6 +909,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffBypassKeepsBaseManaGate(helper);
     }
