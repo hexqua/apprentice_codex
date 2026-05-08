@@ -348,8 +348,14 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.wisdomAppliesToBlockBreakExperienceAndRoundsUp(helper);
     }
 
+    @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.rightClickMagicWeaponTooltipsStartWithShieldHint(helper);
     }
 
     @GameTest(template = TEMPLATE)

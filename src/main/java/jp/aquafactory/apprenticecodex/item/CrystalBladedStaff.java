@@ -141,6 +141,8 @@ public class CrystalBladedStaff extends StaffItem implements GeoItem, IPresetSpe
 
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.translatable("item.apprenticecodex.right_click_magic_weapon.desc")
+                .withStyle(ChatFormatting.GRAY));
         tooltipComponents.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }

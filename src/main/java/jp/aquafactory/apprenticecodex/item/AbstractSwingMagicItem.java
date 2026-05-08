@@ -292,8 +292,8 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        lines.add(Component.translatable("item.apprenticecodex.swingcast.common.desc").withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, lines, flag);
+        lines.add(Component.translatable("item.apprenticecodex.swingcast.common.desc").withStyle(ChatFormatting.GRAY));
     }
 
     private enum NoopAutoCloseable implements AutoCloseable {
