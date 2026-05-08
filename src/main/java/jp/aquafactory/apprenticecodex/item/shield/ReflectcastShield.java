@@ -1,9 +1,13 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -16,9 +20,12 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
 import java.util.function.Consumer;
 
-public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem {
+public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.reflectcast_shield.desc_";
+
     public static final int DURABILITY = 1561;
     public static final int DURABILITY_SUPPRESSION_TICKS = 10;
     private static final float MINIMUM_DURABILITY_DAMAGE = 3.0F;
@@ -29,6 +36,17 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     public ReflectcastShield() {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.UNCOMMON));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    protected void appendAlwaysVisibleImbueTooltip(List<Component> lines) {
+        lines.add(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".reflectcast_shield.hint"));
+        lines.add(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".reflectcast_shield.cast_hint"));
     }
 
     public static int resolveBlockedDurabilityCost(float originalBlockedDamage, boolean spellTriggered) {

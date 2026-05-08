@@ -188,6 +188,8 @@
   "item.apprenticecodex.special_spellbook.inscribe_hint": "(todo:翻訳)この魔法書は銘刻台で刻み込む代わりに手に持って使ってスクロールを入れる。",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "Current Page: %1$d/%2$d",
   "item.apprenticecodex.archivists_grimoire.tooltip.other_scroll_count": "Other Page Scroll Count: %d",
+  "item.apprenticecodex.reflectcast_shield.hint": "Can be cast instantly.",
+  "item.apprenticecodex.reflectcast_shield.cast_hint": "When blocking an attack immediately after casting, imbued spells will be cast.",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "Using it as fuel in a furnace, blast furnace, or smoker increases processing speed.",
   "jei.apprenticecodex.arcane_cinder.desc_2": "It has no effect in other machines.",
@@ -254,6 +256,10 @@
   "jei.apprenticecodex.elemental_bow.desc_1": "(todo:翻訳)手に持った状態でスニークすることでモードを切り替えられ、様々な矢を打ち分けることができる。",
   "jei.apprenticecodex.elemental_bow.desc_2": "(todo:翻訳)また、矢を消費するものの魔法詠唱を伴う矢も詠唱することが可能で、クールダウンを無視して連射することもできるが消費マナが上昇していく。",
   "jei.apprenticecodex.elemental_bow.desc_3": "(todo:翻訳)魔法の詠唱を伴う矢は無限の影響を受けられず、合成というエンチャントが必要となる。",
+  "jei.apprenticecodex.reflectcast_shield.desc_1": "(todo:翻訳)即座に構えることができる軽量の盾。",
+  "jei.apprenticecodex.reflectcast_shield.desc_2": "(todo:翻訳)構えた直後に攻撃をブロックすると、注入されている魔法をマナを消費せずに即座に詠唱できる。",
+  "jei.apprenticecodex.reflectcast_shield.desc_3": "(todo:翻訳)ただし、盾が赤く光っている時は魔法がクールダウン途中となり、この時はブロックが成立しても魔法が発動しない。",
+  "jei.apprenticecodex.reflectcast_shield.desc_4": "(todo:翻訳)注入できる魔法の種類はアイテムの詳細及びJEI上で確認が可能。",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
