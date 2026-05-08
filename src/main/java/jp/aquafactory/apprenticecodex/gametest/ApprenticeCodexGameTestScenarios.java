@@ -4773,7 +4773,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertUpgradeable(helper, new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
                     "AbstractSpellGunItem descendants should be upgradeable");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
-                    "Crystal Bladed Staff should remain upgradeable after the 1.21.1 StaffItem migration");
+                    "Crystal Bladed Staff should remain upgradeable as a right-click magic weapon");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get()),
                     "Indirect AbstractRightClickMagicWeaponItem descendants should be upgradeable");
             assertUpgradeable(helper, new ItemStack(ItemRegistry.UNITE_LUNA_STAFF.get()),
@@ -5421,7 +5421,6 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> assertCategoryEnchantments(
                 helper,
                 "Right Click Magic Weapon",
-                // 1.21.1 では Crystal Bladed Staff が StaffItem 化され、このカテゴリから外れている。
                 item -> item instanceof AbstractRightClickMagicWeaponItem,
                 stack -> expectedRightClickMagicWeaponEnchantments(helper.getLevel().registryAccess(), stack)
         ));
@@ -8944,35 +8943,17 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
             var item = (CrystalBladedStaff) stack.getItem();
-            assertRequiredExtraEnchantments(
+            helper.assertTrue(item instanceof AbstractRightClickMagicWeaponItem,
+                    "Crystal Bladed Staff should return to the right-click magic weapon inheritance path");
+            assertExactEnchantmentSurfaces(
                     helper,
                     stack,
-                    requiredCrystalBladedStaffExtraEnchantments(),
-                    true,
-                    "Crystal Bladed Staff required extra enchantment"
-            );
-            assertRejectedExtraEnchantments(
-                    helper,
-                    stack,
-                    rejectedCrystalBladedStaffExtraEnchantments(),
-                    false,
-                    "Crystal Bladed Staff should keep rejecting"
+                    expectedRightClickMagicWeaponEnchantments(helper.getLevel().registryAccess(), stack),
+                    "Crystal Bladed Staff"
             );
 
             helper.assertTrue(item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Crystal Bladed Staff should keep accepting diamonds as its repair material");
-
-            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
-                helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
-                        "Crystal Bladed Staff is missing malum:magic_capable_weapon");
-                assertRequiredExtraEnchantments(
-                        helper,
-                        stack,
-                        requiredMalumMagicCapableWeaponEnchantments(),
-                        true,
-                        "Crystal Bladed Staff malum extra enchantment"
-                );
-            }
         });
     }
     static void hauntedBonusDamageTypeStaysOnMagicDamageTagPath(GameTestHelper helper) {
@@ -9092,6 +9073,44 @@ public final class ApprenticeCodexGameTestScenarios {
                     5.0D,
                     AttributeModifier.Operation.ADD_VALUE,
                     "Illuminate Stellar Staff attack damage component regression"
+            );
+            var crystalBladedStaff = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+            var crystalModifiers = crystalBladedStaff.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
+            assertModifierAmount(
+                    helper,
+                    crystalModifiers,
+                    Attributes.ATTACK_DAMAGE.value(),
+                    EquipmentSlotGroup.MAINHAND,
+                    4.0D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Crystal Bladed Staff attack damage component regression"
+            );
+            assertModifierAmount(
+                    helper,
+                    crystalModifiers,
+                    Attributes.ATTACK_SPEED.value(),
+                    EquipmentSlotGroup.MAINHAND,
+                    -2.4D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Crystal Bladed Staff attack speed component regression"
+            );
+            assertModifierAmount(
+                    helper,
+                    crystalModifiers,
+                    Attributes.ENTITY_INTERACTION_RANGE.value(),
+                    EquipmentSlotGroup.MAINHAND,
+                    0.5D,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    "Crystal Bladed Staff entity reach component regression"
+            );
+            assertModifierAmount(
+                    helper,
+                    crystalModifiers,
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.value(),
+                    EquipmentSlotGroup.MAINHAND,
+                    0.10D,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    "Crystal Bladed Staff spell power component regression"
             );
         });
     }
@@ -11398,20 +11417,6 @@ public final class ApprenticeCodexGameTestScenarios {
         return registryIdSet(
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM
-        );
-    }
-
-    private static Set<ResourceLocation> requiredCrystalBladedStaffExtraEnchantments() {
-        return registryIdSet(
-                Enchantments.TRANSCENDENCE,
-                Enchantments.WISDOM
-        );
-    }
-
-    private static Set<ResourceLocation> rejectedCrystalBladedStaffExtraEnchantments() {
-        return registryIdSet(
-                net.minecraft.world.item.enchantment.Enchantments.FORTUNE,
-                net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
         );
     }
 
