@@ -18,6 +18,7 @@ import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager;
 import jp.aquafactory.apprenticecodex.renderer.item.CircuitHeatStaffRenderer;
 import net.minecraft.ChatFormatting;
@@ -31,6 +32,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -158,6 +160,12 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     }
 
     @Override
+    public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
+        CircuitHeatStaffCoolingHandler.onEntityItemUpdate(stack, entity);
+        return false;
+    }
+
+    @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
         if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
@@ -255,6 +263,27 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
                 OVERHEAT_EXPIRE_GAME_TIME_TAG,
                 level.getGameTime() + cooldownTicks
         );
+    }
+
+    public static int reduceStaffOverheatTicks(ItemStack stack, Level level, int reductionTicks) {
+        if (stack == null || stack.isEmpty() || level == null || reductionTicks <= 0) {
+            return getStaffOverheatRemainingTicks(stack, level);
+        }
+
+        var tag = stack.getTag();
+        if (tag == null || !tag.contains(OVERHEAT_EXPIRE_GAME_TIME_TAG, Tag.TAG_LONG)) {
+            return 0;
+        }
+
+        var remainingTicks = getStaffOverheatRemainingTicks(stack, level);
+        if (remainingTicks <= reductionTicks) {
+            tag.remove(OVERHEAT_EXPIRE_GAME_TIME_TAG);
+            return 0;
+        }
+
+        var reducedTicks = remainingTicks - reductionTicks;
+        tag.putLong(OVERHEAT_EXPIRE_GAME_TIME_TAG, level.getGameTime() + reducedTicks);
+        return reducedTicks;
     }
 
     private InteractionResultHolder<ItemStack> useClient(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
