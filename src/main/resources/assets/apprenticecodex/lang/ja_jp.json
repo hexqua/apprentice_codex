@@ -249,7 +249,7 @@
   "jei.apprenticecodex.focus_staffbow.desc_3": "消費マナが現在マナを上回っていてもそのまま詠唱はできるが、足りなかったマナが回復するまでは常に杖にマナが奪われ、その間は溜めて詠唱することができない。",
   "jei.apprenticecodex.circuit_heat_staff.desc_1": "利き手で握って使用することで魔法のクールダウンを無視して強制的に魔法を詠唱できる。",
   "jei.apprenticecodex.circuit_heat_staff.desc_2": "クールダウンを無視した詠唱は消費マナが大幅に上昇し、現在マナを上回って消費してしまった場合は過熱状態となりしばらく機能が停止する。",
-  "jei.apprenticecodex.circuit_heat_staff.desc_3": "上昇する消費マナの量は連続して無視した回数で計算される。",
+  "jei.apprenticecodex.circuit_heat_staff.desc_3": "上昇する消費マナの量は無視しようとしたクールダウンの時間と連続して無視した回数で計算される。",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
