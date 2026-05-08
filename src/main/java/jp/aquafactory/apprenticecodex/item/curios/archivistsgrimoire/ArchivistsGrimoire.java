@@ -202,6 +202,9 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
                         selectedRow + 1,
                         ROW_COUNT)
                 .withStyle(ChatFormatting.GRAY));
+        if (!hasStoredSpell(itemStack)) {
+            lines.add(Component.translatable("item.apprenticecodex.special_spellbook.inscribe_hint").withStyle(ChatFormatting.GRAY));
+        }
 
         if (!visibleSpells.isEmpty() && FMLEnvironment.dist == Dist.CLIENT) {
             ArchivistsGrimoireClientTooltip.append(itemStack, lines, visibleSpells);
@@ -257,6 +260,16 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
             }
         }
         return count;
+    }
+
+    private static boolean hasStoredSpell(ItemStack grimoireStack) {
+        var inventory = new ScrollInventory(grimoireStack);
+        for (var slot = 0; slot < SLOT_COUNT; ++slot) {
+            if (getSpellData(inventory.getStackInSlot(slot)) != SpellData.EMPTY) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean isScroll(ItemStack stack) {
