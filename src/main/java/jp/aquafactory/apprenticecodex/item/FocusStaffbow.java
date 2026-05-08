@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
@@ -56,7 +57,8 @@ import java.util.List;
 import java.util.Set;
 
 public final class FocusStaffbow extends CastingItem
-        implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem {
+        implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.focus_staffbow.desc_";
     private static final int MAX_USE_DURATION = 72000;
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.001F;
     private static final Set<ResourceLocation> ALLOWED_EXTRA_ENCHANTMENTS = Set.of(
@@ -100,6 +102,11 @@ public final class FocusStaffbow extends CastingItem
                 .rarity(Rarity.RARE)
                 .attributes(buildMainhandModifiers()));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
@@ -401,6 +408,14 @@ public final class FocusStaffbow extends CastingItem
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_synthesis").withStyle(ChatFormatting.GRAY));
         } else {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow").withStyle(ChatFormatting.GRAY));
+        }
+        if (FocusStaffbowClientLoanState.hasOutstandingLoan()) {
+            var remainingLoanMana = Mth.ceil(Math.max(0.0F, FocusStaffbowClientLoanState.remainingLoanMana()));
+            lines.add(Component.translatable(getDescriptionId() + ".loan_mana").withStyle(ChatFormatting.RED));
+            lines.add(Component.translatable(
+                    getDescriptionId() + ".loan_mana.rest",
+                    Component.literal(Integer.toString(remainingLoanMana)).withStyle(ChatFormatting.AQUA)
+            ).withStyle(ChatFormatting.GRAY));
         }
         super.appendHoverText(stack, context, lines, flag);
     }
