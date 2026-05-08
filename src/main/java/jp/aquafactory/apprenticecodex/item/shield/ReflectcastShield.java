@@ -1,10 +1,14 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
@@ -20,7 +24,11 @@ import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem {
+import java.util.List;
+
+public class ReflectcastShield extends AbstractImbueShieldItem implements GeoItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.reflectcast_shield.desc_";
+
     public static final int DURABILITY = 1561;
     public static final int DURABILITY_SUPPRESSION_TICKS = 10;
     private static final String MALUM_NAMESPACE = "malum";
@@ -38,6 +46,17 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     public ReflectcastShield() {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.UNCOMMON));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    protected void appendAlwaysVisibleImbueTooltip(List<Component> lines) {
+        lines.add(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".reflectcast_shield.hint"));
+        lines.add(ImbueTooltipHelper.translatableGray("item." + ApprenticeCodex.MODID + ".reflectcast_shield.cast_hint"));
     }
 
     public static int resolveBlockedDurabilityCost(float originalBlockedDamage, boolean spellTriggered) {
