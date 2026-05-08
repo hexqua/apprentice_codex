@@ -199,6 +199,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.StairBlock;
@@ -8614,6 +8615,143 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnItem(helper, waterPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
+                    "Circuit Heat Staff drop should use unlimited lifetime while dropped: " + itemEntity.getAge());
+            helper.assertTrue(remainingTicks <= 20 * 30,
+                    "Circuit Heat Staff water-source cooling should reduce at least 30 seconds after three cycles: "
+                            + remainingTicks);
+            helper.assertTrue(helper.getBlockState(waterPos).isAir(),
+                    "Circuit Heat Staff water-source cooling should consume the source after three cycles");
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnItem(helper, waterPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(remainingTicks > 20 * 55,
+                    "Circuit Heat Staff should not use flowing water for cooling: " + remainingTicks);
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingConsumesCauldronLevel(GameTestHelper helper) {
+        var cauldronPos = new BlockPos(0, 2, 0);
+        helper.setBlock(
+                cauldronPos,
+                Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
+        );
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var state = helper.getBlockState(cauldronPos);
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(remainingTicks <= 20 * 30,
+                    "Circuit Heat Staff cauldron cooling should reduce at least 30 seconds after three cycles: "
+                            + remainingTicks);
+            helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 2,
+                    "Circuit Heat Staff cauldron cooling should consume one water level after three cycles: " + state);
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingKeepsPowderSnowBlock(GameTestHelper helper) {
+        var powderSnowPos = new BlockPos(0, 2, 0);
+        helper.setBlock(powderSnowPos, Blocks.POWDER_SNOW);
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnNoGravityItem(helper, powderSnowPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(remainingTicks <= 20 * 30,
+                    "Circuit Heat Staff powder snow cooling should reduce at least 30 seconds after three cycles: "
+                            + remainingTicks);
+            helper.assertTrue(helper.getBlockState(powderSnowPos).is(Blocks.POWDER_SNOW),
+                    "Circuit Heat Staff powder snow cooling should not consume powder snow block");
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(GameTestHelper helper) {
+        var cauldronPos = new BlockPos(0, 2, 0);
+        helper.setBlock(
+                cauldronPos,
+                Blocks.POWDER_SNOW_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
+        );
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var state = helper.getBlockState(cauldronPos);
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(remainingTicks <= 20 * 30,
+                    "Circuit Heat Staff powder snow cauldron cooling should reduce at least 30 seconds after three cycles: "
+                            + remainingTicks);
+            helper.assertTrue(state.is(Blocks.POWDER_SNOW_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 3,
+                    "Circuit Heat Staff powder snow cauldron cooling should not consume cauldron level: " + state);
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+
+        var itemEntity = spawnItem(helper, waterPos, new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()));
+
+        helper.runAtTickTime(40, () -> {
+            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
+                    "Circuit Heat Staff drop should use unlimited lifetime even when it is not overheated: "
+                            + itemEntity.getAge());
+            helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
+                    "Circuit Heat Staff should not consume water when it is not overheated");
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(GameTestHelper helper) {
+        var powderSnowPos = new BlockPos(0, 2, 0);
+        helper.setBlock(powderSnowPos, Blocks.POWDER_SNOW);
+
+        var itemEntity = spawnNoGravityItem(helper, powderSnowPos, new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()));
+
+        helper.runAtTickTime(40, () -> {
+            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
+                    "Circuit Heat Staff drop should use unlimited lifetime in powder snow even when it is not overheated: "
+                            + itemEntity.getAge());
+            helper.assertTrue(helper.getBlockState(powderSnowPos).is(Blocks.POWDER_SNOW),
+                    "Circuit Heat Staff should not change powder snow when it is not overheated");
+            helper.succeed();
+        });
+    }
+
     static void crystalBladedStaffKeepsItsDedicatedEnchantingRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
@@ -10038,6 +10176,30 @@ public final class ApprenticeCodexGameTestScenarios {
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
+    }
+
+    private static ItemEntity spawnItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
+        var absolutePos = helper.absoluteVec(new Vec3(pos.getX() + 0.5D, pos.getY() + 0.45D, pos.getZ() + 0.5D));
+        var itemEntity = new ItemEntity(helper.getLevel(), absolutePos.x, absolutePos.y, absolutePos.z, stack);
+        itemEntity.setDeltaMovement(Vec3.ZERO);
+        helper.getLevel().addFreshEntity(itemEntity);
+        return itemEntity;
+    }
+
+    private static void placeWaterTestBasin(GameTestHelper helper, BlockPos waterPos) {
+        helper.setBlock(waterPos.below(), Blocks.STONE);
+        for (var direction : Direction.Plane.HORIZONTAL) {
+            helper.setBlock(waterPos.relative(direction), Blocks.STONE);
+        }
+    }
+
+    private static ItemEntity spawnNoGravityItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
+        var absolutePos = helper.absoluteVec(new Vec3(pos.getX() + 0.5D, pos.getY() + 0.45D, pos.getZ() + 0.5D));
+        var itemEntity = new ItemEntity(helper.getLevel(), absolutePos.x, absolutePos.y, absolutePos.z, stack);
+        itemEntity.setNoGravity(true);
+        itemEntity.setDeltaMovement(Vec3.ZERO);
+        helper.getLevel().addFreshEntity(itemEntity);
+        return itemEntity;
     }
 
     private static FakePlayer createEquipmentTestPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {

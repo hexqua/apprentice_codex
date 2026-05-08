@@ -817,6 +817,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffRecastDoesNotTouchBypassOverheatState(helper);
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingConsumesWaterSource(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresFlowingWater(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingConsumesCauldronLevel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingConsumesCauldronLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingKeepsPowderSnowBlock(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsPowderSnowBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chargedTwinBladeStaffAndManaForceBladeAcceptMalumMagicCapableEnchantments(helper);
