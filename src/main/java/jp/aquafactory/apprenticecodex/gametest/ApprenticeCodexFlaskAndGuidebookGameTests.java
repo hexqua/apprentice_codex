@@ -15,8 +15,8 @@ public final class ApprenticeCodexFlaskAndGuidebookGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellcastersFlaskRejectsSplashAndLingeringPotions(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellcastersFlaskRejectsSplashAndLingeringPotions(helper);
+    public static void spellcastersFlaskAcceptsAllVanillaPotionTypes(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcastersFlaskAcceptsAllVanillaPotionTypes(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -27,6 +27,11 @@ public final class ApprenticeCodexFlaskAndGuidebookGameTests {
     @GameTest(template = TEMPLATE)
     public static void spellcastersFlaskDrinkingGlowEnergyTradesDurationForAmplifier(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellcastersFlaskDrinkingGlowEnergyTradesDurationForAmplifier(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellcastersFlaskMismatchedVanillaPotionDrinkConsumesExtraDose(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellcastersFlaskMismatchedVanillaPotionDrinkConsumesExtraDose(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -50,8 +55,18 @@ public final class ApprenticeCodexFlaskAndGuidebookGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(helper);
+    public static void alchemistsFlaskAcceptsAllVanillaPotionTypesAndSimpleElixir(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.alchemistsFlaskAcceptsAllVanillaPotionTypesAndSimpleElixir(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void flaskMismatchTooltipOnlyWarnsForVanillaPotionTypeMismatch(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.flaskMismatchTooltipOnlyWarnsForVanillaPotionTypeMismatch(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void flaskAutomaticFillTypeGateRejectsMismatchedEmptyVanillaPotion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.flaskAutomaticFillTypeGateRejectsMismatchedEmptyVanillaPotion(helper);
     }
 
     @GameTest(template = TEMPLATE)

@@ -30,6 +30,11 @@ public final class ApprenticeCodexArchivistsGrimoireGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void archivistsGrimoireTooltipShowsInscribeHintOnlyWhenEmpty(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archivistsGrimoireTooltipShowsInscribeHintOnlyWhenEmpty(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void archivistsGrimoireCurioAndUpgradeContractsStayRegistered(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.archivistsGrimoireCurioAndUpgradeContractsStayRegistered(helper);
     }

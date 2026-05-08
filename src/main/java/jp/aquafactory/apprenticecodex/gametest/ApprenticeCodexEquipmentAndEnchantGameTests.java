@@ -348,8 +348,14 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ApprenticeCodexGameTestScenarios.wisdomAppliesToBlockBreakExperienceAndRoundsUp(helper);
     }
 
+    @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.rightClickMagicWeaponsKeepExpectedEnchantmentSurfaces(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.rightClickMagicWeaponTooltipsStartWithShieldHint(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -788,6 +794,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffBypassKeepsBaseManaGate(helper);
     }
@@ -805,6 +821,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffRecastDoesNotTouchBypassOverheatState(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffRecastDoesNotTouchBypassOverheatState(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingConsumesWaterSource(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresFlowingWater(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingConsumesCauldronLevel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingConsumesCauldronLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingKeepsPowderSnowBlock(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsPowderSnowBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(helper);
     }
 
     @GameTest(template = TEMPLATE)

@@ -2,11 +2,13 @@ package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -24,11 +26,11 @@ public final class ImbueTooltipHelper {
     }
 
     public static boolean appendHintIfDetailsHidden(List<Component> lines) {
-        if (Screen.hasShiftDown()) {
+        if (isShiftDown()) {
             return false;
         }
 
-        lines.add(translatableGray(TOOLTIP_PREFIX + "hint"));
+        lines.add(Component.translatable(TOOLTIP_PREFIX + "hint").withStyle(ChatFormatting.YELLOW));
         return true;
     }
 
@@ -90,9 +92,14 @@ public final class ImbueTooltipHelper {
     }
 
     public static String formatTooltipSeconds(int ticks) {
+        // 小数点1位まで表示して切り捨てる.
         return BigDecimal.valueOf(ticks)
-                .divide(BigDecimal.valueOf(20L))
+                .divide(BigDecimal.valueOf(20L), 1, RoundingMode.DOWN)
                 .stripTrailingZeros()
                 .toPlainString();
+    }
+
+    private static boolean isShiftDown() {
+        return FMLEnvironment.dist == Dist.CLIENT && ImbueTooltipClientHelper.hasShiftDown();
     }
 }

@@ -117,7 +117,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get()
@@ -173,7 +172,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaDurabilityEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。
-        // Crystal Bladed Staff は 1.21.1 で継承階層が StaffItem 直下へ変わったため、明示列挙で維持する。
         for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
             if (item instanceof AbstractOffhandMagicItem
@@ -190,8 +188,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
             if (item instanceof AbstractSpellGunItem
                     || item instanceof AbstractRightClickMagicWeaponItem) {
                 // 他の武器互換系も登録する.
-                // 1.21.1申し送り事項:CrystalBladedStaffは1.21.1だとStaffItemで登録が漏れるため、別途登録.
-                // (重複するとタグが2回出てしまうので1.20.1では個別登録していない)
                 malumSoulHunterWeaponTag.add(item);
                 malumSoulShatterCapableWeaponTag.add(item);
 
@@ -310,28 +306,20 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         synthesisEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
-        malumMagicCapableWeaponTag.add(
-                ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
-        );
+        malumMagicCapableWeaponTag.add(ItemRegistry.PASTEL_STAFF.get());
         // Malum の soul_hunter_weapon は main hand 前提なので、
         // offhand 専用品を巻き込まず個別互換が必要な staff / shield だけ明示登録する。
         tag(MALUM_SOUL_HUNTER_WEAPON).add(
                 ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
         // 1.21.1 の Spirit Plunder は soul_hunter_weapon ではなく soul_shatter_capable_weapon 経由で supported_items を見ている。
         // Java 側の許可だけでは definition 判定を通らないため、Malum 側 tag も同じ面へ揃える。
         tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON).add(
                 ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
-        tag(TOMAGIC_REVERSAL_WEAPON).add(
-                ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get()
-        );
+        tag(TOMAGIC_REVERSAL_WEAPON).add(ItemRegistry.PASTEL_STAFF.get());
         tag(MAGIC_ITEM_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELLCASTER_GUN.get(),
                 ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
@@ -364,9 +352,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 .addTag(DRINKABLE_FLASK_ENCHANTABLE)
                 .addTag(ALCHEMISTS_FLASK_ENCHANTABLE);
         tag(MANA_SHIELD_CHARM_ENCHANTABLE).add(ItemRegistry.MANA_SHIELD_CHARM.get());
-        // Crystal Bladed Staff は Surge/Attunement などを避けつつ、個別指定の Wisdom/Transcendence のみ許可する。
         wisdomEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(
-                ItemRegistry.CRYSTAL_BLADED_STAFF.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),
@@ -402,8 +388,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         attunementEnchantableTag.addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE);
         transcendenceEnchantableTag
                 .addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
-                .addTag(ALCHEMISTS_FLASK_ENCHANTABLE)
-                .add(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
+                .addTag(ALCHEMISTS_FLASK_ENCHANTABLE);
 
         // 指輪.
         tag(CURIOS_RING).add(

@@ -431,9 +431,9 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                 continue;
             }
 
-            var representativeItem = getRandomStoredFluidRepresentative(level);
+            var representativeItem = getRandomStoredFluidRepresentative(level, stack);
             if (representativeItem.isEmpty()) {
-                break;
+                continue;
             }
 
             changed |= fillStationFlaskFromTank(slot, representativeItem);
@@ -449,6 +449,10 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         }
 
         var currentDoseCount = SpellcastersFlask.getStoredDoseCount(stack);
+        if (currentDoseCount <= 0 && !SpellcastersFlask.canAcceptRepresentativeForAutomaticFill(stack, representativeItem)) {
+            return false;
+        }
+
         var remainingCapacity = SpellcastersFlask.getMaxDoseCapacity(stack) - currentDoseCount;
         if (remainingCapacity <= 0) {
             return false;
@@ -696,10 +700,11 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         return 0;
     }
 
-    private ItemStack getRandomStoredFluidRepresentative(ServerLevel level) {
+    private ItemStack getRandomStoredFluidRepresentative(ServerLevel level, ItemStack flaskStack) {
         var candidates = new ArrayList<ItemStack>();
         for (var entry : storedFluids) {
-            if (entry.amountMb() >= MILLIBUCKETS_PER_USE) {
+            if (entry.amountMb() >= MILLIBUCKETS_PER_USE
+                    && SpellcastersFlask.canAcceptRepresentativeForAutomaticFill(flaskStack, entry.representativeItem())) {
                 candidates.add(entry.representativeItem());
             }
         }
