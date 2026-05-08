@@ -15,6 +15,7 @@ import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import io.redspace.ironsspellbooks.util.MinecraftInstanceHelper;
 import io.redspace.ironsspellbooks.util.TooltipsUtils;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -39,7 +40,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPresetSpellContainer {
+public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPresetSpellContainer, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.ender_grimoire.desc_";
     private static final AttributeContainer[] SPELLBOOK_ATTRIBUTES = {
             new AttributeContainer(
                     AttributeRegistry.MAX_MANA,
@@ -50,6 +52,11 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
 
     public EnderGrimoire() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.SpellBook;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -18,8 +19,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class SpellStainedRunicTablet extends SpellBook {
+public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
     private static final String MODIFIER_NAME_PREFIX = "apprenticecodex.spellstained_runic_tablet.";
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellstained_runic_tablet.desc_";
     private static final double BASE_MAX_MANA_PER_SPELL = 15.0D;
     private static final double EPIC_MAX_MANA_PER_SPELL = 20.0D;
     private static final double LEGENDARY_MAX_MANA_PER_SPELL = 25.0D;
@@ -51,6 +53,11 @@ public class SpellStainedRunicTablet extends SpellBook {
         builder.putAll(baseModifiers);
         builder.putAll(dynamicModifiers);
         return builder.build();
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     /**
