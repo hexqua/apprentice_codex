@@ -329,7 +329,8 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         return TRIGGER_WINDOW_CASTED_TAG_PREFIX + usedHand.name().toLowerCase(Locale.ROOT);
     }
 
-    private static void appendImbueTargetSpellTooltip(List<Component> lines) {
+    private void appendImbueTargetSpellTooltip(List<Component> lines) {
+        appendAlwaysVisibleImbueTooltip(lines);
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
@@ -347,6 +348,9 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
                 null
         );
+    }
+
+    protected void appendAlwaysVisibleImbueTooltip(List<Component> lines) {
     }
 
     private static List<Component> collectRestrictTooltipSection() {

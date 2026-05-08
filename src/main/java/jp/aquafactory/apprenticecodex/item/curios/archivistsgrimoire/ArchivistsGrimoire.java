@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,11 +40,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook {
+public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, IJeiInfoItem {
     public static final int ROW_COUNT = 6;
     public static final int COLUMN_COUNT = 9;
     public static final int SLOT_COUNT = ROW_COUNT * COLUMN_COUNT;
 
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.archivists_grimoire.desc_";
     private static final String INVENTORY_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_inventory";
     private static final String SELECTED_ROW_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_selected_row";
     private static final String DEFAULT_CONTAINER_KEY = "container.apprenticecodex.archivists_grimoire.default";
@@ -57,6 +59,11 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook {
 
     public ArchivistsGrimoire() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
@@ -185,6 +192,9 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook {
                         selectedRow + 1,
                         ROW_COUNT)
                 .withStyle(ChatFormatting.GRAY));
+        if (!hasStoredSpell(itemStack)) {
+            lines.add(Component.translatable("item.apprenticecodex.special_spellbook.inscribe_hint").withStyle(ChatFormatting.GRAY));
+        }
 
         if (!visibleSpells.isEmpty()) {
             DistExecutor.unsafeRunWhenOn(
@@ -242,6 +252,16 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook {
             }
         }
         return count;
+    }
+
+    private static boolean hasStoredSpell(ItemStack grimoireStack) {
+        var inventory = new ScrollInventory(grimoireStack);
+        for (var slot = 0; slot < SLOT_COUNT; ++slot) {
+            if (getSpellData(inventory.getStackInSlot(slot)) != SpellData.EMPTY) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean isScroll(ItemStack stack) {

@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
@@ -70,7 +71,9 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
-        WeaponImbueCooldownPolicyItem {
+        WeaponImbueCooldownPolicyItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.elemental_bow.desc_";
+
     public static final int READY_DRAW_TICKS = 20;
     private static final String MAIN_CONTROLLER = "main";
     private static final String RELEASE_ANIMATION = "release";
@@ -92,6 +95,11 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     public ElementalBow() {
         super(new Properties().durability(1561));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
@@ -294,9 +302,21 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 Component.translatable("item.apprenticecodex.elemental_bow.mode", getModeDisplayName(stack))
                         .withStyle(ChatFormatting.GRAY)
         );
+        lines.add(Component.translatable("item.apprenticecodex.elemental_bow.desc")
+                .withStyle(ChatFormatting.GRAY));
+        if (normalizeModeState(stack).kind() != ShotModeKind.MAGIC) {
+            return;
+        }
+
         if (hasSynthesis(stack)) {
-            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.with_synthesis")
-                    .withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.spell.with_synthesis")
+                    .withStyle(ChatFormatting.AQUA));
+        } else if (hasInfinity(stack)) {
+            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.spell.with_infinity")
+                    .withStyle(ChatFormatting.YELLOW));
+        } else {
+            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.spell.no_enchantment")
+                    .withStyle(ChatFormatting.YELLOW));
         }
     }
 

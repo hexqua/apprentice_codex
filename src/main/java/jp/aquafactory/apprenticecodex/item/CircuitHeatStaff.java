@@ -16,7 +16,9 @@ import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager;
 import jp.aquafactory.apprenticecodex.renderer.item.CircuitHeatStaffRenderer;
 import net.minecraft.ChatFormatting;
@@ -30,6 +32,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -57,7 +60,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem {
+public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.circuit_heat_staff.desc_";
     private static final String FRAME_CONTROLLER = "frame";
     private static final String COG_CONTROLLER = "cog";
     private static final String OVERHEAT_EXPIRE_GAME_TIME_TAG = "CircuitHeatStaffOverheatExpireGameTime";
@@ -76,7 +80,6 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final RawAnimation ANIM_IDLE_FRAME = RawAnimation.begin().thenLoop("idle_frame");
     private static final RawAnimation ANIM_IDLE_COG = RawAnimation.begin().thenLoop("idle_cog");
-    private static final int MAX_STAFF_OVERHEAT_TICKS = 20 * 30;
     private static final int ENCHANTMENT_VALUE = 14;
     private static final StaffTier CIRCUIT_HEAT_STAFF_TIER = new StaffTier(
             3.0F,
@@ -91,6 +94,11 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     public CircuitHeatStaff() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE), CIRCUIT_HEAT_STAFF_TIER);
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
@@ -152,6 +160,12 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     }
 
     @Override
+    public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
+        CircuitHeatStaffCoolingHandler.onEntityItemUpdate(stack, entity);
+        return false;
+    }
+
+    @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
         if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
@@ -207,7 +221,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        lines.add(Component.translatable("item.apprenticecodex.circuit_heat_staff.tooltip").withStyle(ChatFormatting.GRAY));
         var remainingTicks = getStaffOverheatRemainingTicks(stack, level);
         if (remainingTicks > 0) {
             lines.add(Component.translatable(
@@ -215,6 +229,8 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
                     Math.max(1, (remainingTicks + 19) / 20)
             ).withStyle(ChatFormatting.RED));
         }
+
+        super.appendHoverText(stack, level, lines, flag);
     }
 
     public static boolean isStaffOverheated(ItemStack stack, @Nullable Level level) {
@@ -245,8 +261,29 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
         stack.getOrCreateTag().putLong(
                 OVERHEAT_EXPIRE_GAME_TIME_TAG,
-                level.getGameTime() + Math.min(cooldownTicks, MAX_STAFF_OVERHEAT_TICKS)
+                level.getGameTime() + cooldownTicks
         );
+    }
+
+    public static int reduceStaffOverheatTicks(ItemStack stack, Level level, int reductionTicks) {
+        if (stack == null || stack.isEmpty() || level == null || reductionTicks <= 0) {
+            return getStaffOverheatRemainingTicks(stack, level);
+        }
+
+        var tag = stack.getTag();
+        if (tag == null || !tag.contains(OVERHEAT_EXPIRE_GAME_TIME_TAG, Tag.TAG_LONG)) {
+            return 0;
+        }
+
+        var remainingTicks = getStaffOverheatRemainingTicks(stack, level);
+        if (remainingTicks <= reductionTicks) {
+            tag.remove(OVERHEAT_EXPIRE_GAME_TIME_TAG);
+            return 0;
+        }
+
+        var reducedTicks = remainingTicks - reductionTicks;
+        tag.putLong(OVERHEAT_EXPIRE_GAME_TIME_TAG, level.getGameTime() + reducedTicks);
+        return reducedTicks;
     }
 
     private InteractionResultHolder<ItemStack> useClient(Level level, Player player, InteractionHand usedHand, ItemStack stack) {
@@ -330,11 +367,16 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
         var originalMana = magicData.getMana();
         var baseManaCost = spell.getManaCost(spellLevel);
+        var remainingCooldownTicks = Math.max(0, removedCooldown.getCooldownRemaining());
         var step = CircuitHeatStaffOverheatManager.getNextStep(player, spellId);
-        var additionalManaCost = CircuitHeatStaffOverheatManager.getAdditionalManaCost(baseManaCost, step);
+        var additionalManaCost = CircuitHeatStaffOverheatManager.getAdditionalManaCost(
+                baseManaCost,
+                step,
+                remainingCooldownTicks
+        );
         var plannedManaCost = baseManaCost + additionalManaCost;
         var effectiveCooldown = Math.max(0, WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, castSource, stack));
-        var overheatTicks = Math.min(effectiveCooldown, MAX_STAFF_OVERHEAT_TICKS);
+        var overheatTicks = (int) Math.min((long) effectiveCooldown + remainingCooldownTicks, Integer.MAX_VALUE);
 
         // cooldown だけ通常判定から外し、基礎マナ不足などの失敗条件は Iron's の判定をそのまま使う。
         // 追加マナ分だけは SpellOnCastEvent で上乗せし、足りなければ発動後に杖の過熱 cooldown へ入れる。

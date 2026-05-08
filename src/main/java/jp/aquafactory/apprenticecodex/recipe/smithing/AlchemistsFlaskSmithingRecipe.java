@@ -148,17 +148,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
             return ItemStack.EMPTY;
         }
 
-        if (storedItem.is(Items.POTION)) {
-            var converted = new ItemStack(Items.SPLASH_POTION);
-            if (storedItem.hasTag()) {
-                if (storedItem.getTag() != null) {
-                    converted.setTag(storedItem.getTag().copy());
-                }
-            }
-            return converted;
-        }
-
-        if (storedItem.is(Items.SPLASH_POTION) || storedItem.is(Items.LINGERING_POTION)) {
+        if (storedItem.is(Items.POTION) || storedItem.is(Items.SPLASH_POTION) || storedItem.is(Items.LINGERING_POTION)) {
             var converted = storedItem.copy();
             converted.setCount(1);
             return converted;

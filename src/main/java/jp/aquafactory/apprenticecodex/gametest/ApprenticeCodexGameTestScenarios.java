@@ -66,6 +66,7 @@ import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldChar
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
@@ -120,6 +121,7 @@ import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -130,6 +132,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -184,6 +187,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.StairBlock;
@@ -624,7 +628,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "No Spellcaster Workbench recipes were loaded");
         });
     }
-    static void spellcastersFlaskRejectsSplashAndLingeringPotions(GameTestHelper helper) {
+    static void spellcastersFlaskAcceptsAllVanillaPotionTypes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
             var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION),
@@ -635,14 +639,14 @@ public final class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
                     "Spellcaster's Flask rejected a regular potion");
-            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
-                    "Spellcaster's Flask accepted a splash potion");
-            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
-                    "Spellcaster's Flask accepted a lingering potion");
-            helper.assertTrue(SpellcastersFlask.copyWithAddedDoses(emptyFlask, splashPotion, 1).isEmpty(),
-                    "Spellcaster's Flask stored a splash potion through copyWithAddedDoses");
-            helper.assertTrue(SpellcastersFlask.copyWithAddedDoses(emptyFlask, lingeringPotion, 1).isEmpty(),
-                    "Spellcaster's Flask stored a lingering potion through copyWithAddedDoses");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
+                    "Spellcaster's Flask rejected a splash potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
+                    "Spellcaster's Flask rejected a lingering potion");
+            helper.assertTrue(!SpellcastersFlask.copyWithAddedDoses(emptyFlask, splashPotion, 1).isEmpty(),
+                    "Spellcaster's Flask failed to store a splash potion");
+            helper.assertTrue(!SpellcastersFlask.copyWithAddedDoses(emptyFlask, lingeringPotion, 1).isEmpty(),
+                    "Spellcaster's Flask failed to store a lingering potion");
         });
     }
     static void spellcastersFlaskDrinkingLastDoseClearsStoredItem(GameTestHelper helper) {
@@ -682,6 +686,25 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(appliedEffect != null
                             && appliedEffect.getDuration() == Math.max(1, Math.round(originalEffect.getDuration() * (1.0F / 3.0F))),
                     "Glow Energy should reduce drunk flask duration by 1 / (1 + level)");
+        });
+    }
+    static void spellcastersFlaskMismatchedVanillaPotionDrinkConsumesExtraDose(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var twoDoseFlask = createFilledSpellcastersFlask(storedPotion, 2, 0);
+            var player = new FakePlayer((ServerLevel) helper.getLevel(), new GameProfile(UUID.randomUUID(), "spellcasters_flask_mismatch_drink_test"));
+
+            twoDoseFlask.getItem().finishUsingItem(twoDoseFlask, helper.getLevel(), player);
+
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(twoDoseFlask) == 0,
+                    "Mismatched Spellcaster's Flask drink should consume two doses");
+            helper.assertTrue(SpellcastersFlask.getStoredItem(twoDoseFlask).isEmpty(),
+                    "Mismatched Spellcaster's Flask should clear StoredItem when extra consumption empties it");
+
+            var oneDoseFlask = createFilledSpellcastersFlask(storedPotion, 1, 0);
+            oneDoseFlask.getItem().finishUsingItem(oneDoseFlask, helper.getLevel(), player);
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(oneDoseFlask) == 0,
+                    "Mismatched Spellcaster's Flask drink should still work with one remaining dose");
         });
     }
     static void spellcastersFlaskBatchExtractionClearsStoredItemAtZero(GameTestHelper helper) {
@@ -767,7 +790,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask should allow continuous spell imbuing");
         });
     }
-    static void alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(GameTestHelper helper) {
+    static void alchemistsFlaskAcceptsAllVanillaPotionTypesAndSimpleElixir(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var emptyFlask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
@@ -777,14 +800,76 @@ public final class ApprenticeCodexGameTestScenarios {
                     io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
 
-            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
-                    "Alchemist's Flask accepted a regular potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
+                    "Alchemist's Flask rejected a regular potion");
             helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
                     "Alchemist's Flask rejected a splash potion");
             helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
                     "Alchemist's Flask rejected a lingering potion");
             helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, simpleElixir),
                     "Alchemist's Flask rejected a Simple Elixir");
+        });
+    }
+    static void flaskMismatchTooltipOnlyWarnsForVanillaPotionTypeMismatch(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+
+            assertTooltipKeyUsesColor(
+                    helper,
+                    createFilledSpellcastersFlask(splashPotion, 1, 0),
+                    "item.apprenticecodex.flask_system.mismatch_flask_type",
+                    ChatFormatting.YELLOW,
+                    "Spellcaster's Flask should warn for stored splash potions"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    createFilledAlchemistsFlask(normalPotion, 1, 0),
+                    "item.apprenticecodex.flask_system.mismatch_flask_type",
+                    ChatFormatting.YELLOW,
+                    "Alchemist's Flask should warn for stored regular potions"
+            );
+            assertTooltipKeyAbsent(
+                    helper,
+                    createFilledSpellcastersFlask(normalPotion, 1, 0),
+                    "item.apprenticecodex.flask_system.mismatch_flask_type",
+                    "Spellcaster's Flask should not warn for regular potions"
+            );
+            assertTooltipKeyAbsent(
+                    helper,
+                    createFilledAlchemistsFlask(simpleElixir, 1, 0),
+                    "item.apprenticecodex.flask_system.mismatch_flask_type",
+                    "Alchemist's Flask should not warn for Simple Elixir"
+            );
+        });
+    }
+    static void flaskAutomaticFillTypeGateRejectsMismatchedEmptyVanillaPotion(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+
+            helper.assertFalse(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                            splashPotion),
+                    "Atelier Station should not auto-fill an empty Spellcaster's Flask with splash potions");
+            helper.assertFalse(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                            normalPotion),
+                    "Atelier Station should not auto-fill an empty Alchemist's Flask with regular potions");
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                            normalPotion),
+                    "Atelier Station should auto-fill an empty Spellcaster's Flask with regular potions");
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                            splashPotion),
+                    "Atelier Station should auto-fill an empty Alchemist's Flask with splash potions");
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                            simpleElixir),
+                    "Atelier Station should keep non-vanilla Alchemist's Flask items outside mismatch penalties");
         });
     }
     static void alchemistsFlaskUsesDoubleCapacityAndExtractRecipeSupportsSplashPotion(GameTestHelper helper) {
@@ -874,8 +959,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask smithing recipe should preserve stored dose count");
 
             var convertedStoredItem = SpellcastersFlask.getStoredItem(convertedFlask);
-            helper.assertTrue(convertedStoredItem.is(Items.SPLASH_POTION),
-                    "Filled Spellcaster's Flask should convert a regular potion into a splash potion");
+            helper.assertTrue(convertedStoredItem.is(Items.POTION),
+                    "Filled Spellcaster's Flask should keep a regular potion as a mismatch-usable potion");
             helper.assertTrue(PotionUtils.getPotion(convertedStoredItem) == PotionUtils.getPotion(normalPotion),
                     "Converted Alchemist's Flask should keep the original potion type");
             helper.assertTrue(!SpellcastersFlask.isEffectParticlesSuppressed(convertedFlask),
@@ -1086,6 +1171,21 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Extract should consume exactly one dose from the casting flask");
 
             lingeringProjectile.discard();
+            magicData.setAdditionalCastData(null);
+
+            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(normalPotion, 2, 0));
+            player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Extract should prepare a force-splash normal potion cast");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            var forcedSplashProjectile = getSingleExtractProjectile(helper, player);
+            helper.assertTrue(forcedSplashProjectile.getItem().is(Items.SPLASH_POTION),
+                    "Extract should throw normal potion contents as a splash potion");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()) == 0,
+                    "Extract should consume two doses when force-splashing a normal potion");
+            forcedSplashProjectile.discard();
             magicData.setAdditionalCastData(null);
 
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
@@ -2774,6 +2874,24 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(ArchivistsGrimoire.getVisibleSpell(grimoireStack, 0) == SpellData.EMPTY,
                     "Archivist's Grimoire should hide previous row spells after row change");
+        });
+    }
+
+    static void archivistsGrimoireTooltipShowsInscribeHintOnlyWhenEmpty(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+            assertArchivistsGrimoireInscribeHintTooltip(helper, grimoireStack, true,
+                    "Empty Archivist's Grimoire should show the special inscription hint");
+
+            var inventory = new ArchivistsGrimoire.ScrollInventory(grimoireStack);
+            inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT + 2,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()));
+            assertArchivistsGrimoireInscribeHintTooltip(helper, grimoireStack, false,
+                    "Archivist's Grimoire with a stored spell should hide the special inscription hint");
+
+            inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT + 2, ItemStack.EMPTY);
+            assertArchivistsGrimoireInscribeHintTooltip(helper, grimoireStack, true,
+                    "Archivist's Grimoire should show the special inscription hint again after becoming empty");
         });
     }
     static void archivistsGrimoireCurioAndUpgradeContractsStayRegistered(GameTestHelper helper) {
@@ -5709,6 +5827,67 @@ public final class ApprenticeCodexGameTestScenarios {
                 ApprenticeCodexGameTestScenarios::expectedRightClickMagicWeaponEnchantments
         ));
     }
+
+    static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var rightClickMagicWeapons = ForgeRegistries.ITEMS.getValues().stream()
+                    .filter(item -> item instanceof AbstractRightClickMagicWeaponItem)
+                    .toList();
+            helper.assertTrue(!rightClickMagicWeapons.isEmpty(),
+                    "Right Click Magic Weapon tooltip test found no target items");
+
+            for (var item : rightClickMagicWeapons) {
+                var stack = new ItemStack(item);
+                var tooltipLines = new ArrayList<Component>();
+                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+                helper.assertTrue(!tooltipLines.isEmpty(),
+                        item + " should expose right click magic weapon tooltip");
+                assertTranslatableKey(
+                        helper,
+                        tooltipLines.get(0),
+                        "item.apprenticecodex.right_click_magic_weapon.desc",
+                        item + " should show shield priority tooltip first"
+                );
+            }
+
+            assertTooltipKeyAt(
+                    helper,
+                    new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
+                    1,
+                    "item.apprenticecodex.crystal_bladed_staff.desc",
+                    "Crystal Bladed Staff should show its ability tooltip after shield priority tooltip"
+            );
+            assertTooltipKeyAt(
+                    helper,
+                    new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
+                    1,
+                    "item.apprenticecodex.swingcast.common.desc",
+                    "Swingcast Staff should show swingcast tooltip after shield priority tooltip"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                    "item.apprenticecodex.spellgun.tooltip.hint",
+                    ChatFormatting.YELLOW,
+                    "Spell Gun shift hint should stand out"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
+                    "item.apprenticecodex.spellgun.tooltip.hint",
+                    ChatFormatting.YELLOW,
+                    "Swingcast Staff shift hint should stand out"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
+                    "item.apprenticecodex.spellgun.tooltip.hint",
+                    ChatFormatting.YELLOW,
+                    "Reflectcast Shield shift hint should stand out"
+            );
+        });
+    }
+
     static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
@@ -7629,14 +7808,42 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(EnchantmentRegistry.SYNTHESIS.get().isCompatibleWith(Enchantments.MENDING),
                     "Synthesis should be incompatible with Mending");
 
-            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
-            var tooltipLines = new ArrayList<Component>();
-            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
-            var hasSynthesisTooltip = tooltipLines.stream()
-                    .anyMatch(component -> component.getContents() instanceof TranslatableContents translatableContents
-                            && "item.apprenticecodex.elemental_bow.with_synthesis".equals(translatableContents.getKey()));
-            helper.assertTrue(hasSynthesisTooltip,
-                    "Elemental Bow should add the Synthesis tooltip line while Synthesis is enchanted");
+            assertTooltipKeyAt(helper, stack, 0, "item.apprenticecodex.elemental_bow.mode",
+                    "Elemental Bow should always show the current mode tooltip line");
+            assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.desc", ChatFormatting.GRAY,
+                    "Elemental Bow should always show the description tooltip line");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment",
+                    "Elemental Bow should not show spell ammo tooltip while not in magic mode");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
+                    "Elemental Bow should not show Infinity spell tooltip while not in magic mode");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_synthesis",
+                    "Elemental Bow should not show Synthesis spell tooltip while not in magic mode");
+
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            assertTooltipKeyAt(helper, stack, 1, "item.apprenticecodex.elemental_bow.desc",
+                    "Elemental Bow should show the description below the mode tooltip line");
+            assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment", ChatFormatting.YELLOW,
+                    "Elemental Bow should show the no-enchantment spell tooltip in magic mode");
+
+            var infinityStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(infinityStack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            infinityStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            assertTooltipKeyUsesColor(helper, infinityStack, "item.apprenticecodex.elemental_bow.spell.with_infinity", ChatFormatting.YELLOW,
+                    "Elemental Bow should show the Infinity spell tooltip in magic mode");
+
+            var synthesisStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(synthesisStack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            synthesisStack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
+            assertTooltipKeyUsesColor(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", ChatFormatting.AQUA,
+                    "Elemental Bow should show the Synthesis spell tooltip in magic mode");
+            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.with_synthesis",
+                    "Elemental Bow should no longer show the legacy Synthesis tooltip key");
+
+            synthesisStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            assertTooltipKeyUsesColor(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", ChatFormatting.AQUA,
+                    "Elemental Bow should prefer the Synthesis spell tooltip when Synthesis and Infinity are both present");
+            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
+                    "Elemental Bow should not show the Infinity spell tooltip when Synthesis is also present");
         });
     }
     static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
@@ -8646,8 +8853,8 @@ public final class ApprenticeCodexGameTestScenarios {
 
             CircuitHeatStaff.startStaffOverheat(stack, helper.getLevel(), 20 * 45);
             var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(stack, helper.getLevel());
-            helper.assertTrue(remainingOverheatTicks > 0 && remainingOverheatTicks <= 20 * 30,
-                    "Circuit Heat Staff item overheat should be active and capped at 30 seconds: "
+            helper.assertTrue(remainingOverheatTicks == 20 * 45,
+                    "Circuit Heat Staff item overheat should keep the requested duration: "
                             + remainingOverheatTicks);
 
             assertExactEnchantmentSurfaces(
@@ -8658,6 +8865,81 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+
+    static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var baseManaCost = 100;
+            var step = 1;
+
+            var referenceAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, step, 20 * 10);
+            helper.assertTrue(referenceAdditionalMana == 20,
+                    "Circuit Heat Staff skipped 10 seconds should keep the old step-1 extra mana: "
+                            + referenceAdditionalMana);
+
+            var shortAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, step, 20 * 5);
+            helper.assertTrue(shortAdditionalMana == 10,
+                    "Circuit Heat Staff skipped 5 seconds should halve the step-1 extra mana: "
+                            + shortAdditionalMana);
+
+            var longAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, step, 20 * 40);
+            helper.assertTrue(longAdditionalMana == 80,
+                    "Circuit Heat Staff skipped 40 seconds should quadruple the step-1 extra mana: "
+                            + longAdditionalMana);
+
+            var noSkippedCooldownAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    .getAdditionalManaCost(baseManaCost, step, 0);
+            helper.assertTrue(noSkippedCooldownAdditionalMana == 0,
+                    "Circuit Heat Staff should not add mana when no cooldown is skipped: "
+                            + noSkippedCooldownAdditionalMana);
+        });
+    }
+
+    static void circuitHeatStaffOverheatUsesCastCooldownPlusSkippedCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_overheat_duration_test");
+            var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGIC_SPEAR.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Circuit Heat Staff overheat duration test could not resolve player mana data");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
+            magicData.setPlayerCastingItem(staffStack);
+
+            var castCooldownTicks = 20 * 120;
+            var skippedCooldownTicks = 20 * 40;
+            var expectedOverheatTicks = castCooldownTicks + skippedCooldownTicks;
+            var plannedManaCost = Math.max(1, spell.getManaCost(1));
+            CircuitHeatStaffCastEvent.reserveOverheatCast(
+                    player,
+                    spell.getSpellId(),
+                    plannedManaCost,
+                    plannedManaCost,
+                    expectedOverheatTicks
+            );
+
+            magicData.setMana(plannedManaCost);
+            var event = new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    spell.getManaCost(1),
+                    spell.getSchoolType(),
+                    CastSource.SPELLBOOK
+            );
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
+
+            var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel());
+            helper.assertTrue(remainingOverheatTicks == expectedOverheatTicks,
+                    "Circuit Heat Staff item overheat should use cast cooldown plus skipped cooldown: "
+                            + remainingOverheatTicks + " / expected " + expectedOverheatTicks);
+
+            CircuitHeatStaffCastEvent.clearReservedOverheatCast(player);
+        });
+    }
+
     static void circuitHeatStaffBypassKeepsBaseManaGate(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_base_mana_gate_test");
@@ -8717,7 +8999,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var baseManaCost = spell.getManaCost(1);
             var plannedManaCost = baseManaCost
                     + jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
-                    .getAdditionalManaCost(baseManaCost, 1);
+                    .getAdditionalManaCost(baseManaCost, 1, 20 * 10);
             CircuitHeatStaffCastEvent.reserveOverheatCast(
                     player,
                     spell.getSpellId(),
@@ -8857,6 +9139,143 @@ public final class ApprenticeCodexGameTestScenarios {
                             + " / before " + stateBefore);
 
             magicData.resetCastingState();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnItem(helper, waterPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
+                    "Circuit Heat Staff drop should use unlimited lifetime while dropped: " + itemEntity.getAge());
+            helper.assertTrue(remainingTicks <= 20 * 30,
+                    "Circuit Heat Staff water-source cooling should reduce at least 30 seconds after three cycles: "
+                            + remainingTicks);
+            helper.assertTrue(helper.getBlockState(waterPos).isAir(),
+                    "Circuit Heat Staff water-source cooling should consume the source after three cycles");
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnItem(helper, waterPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(remainingTicks > 20 * 55,
+                    "Circuit Heat Staff should not use flowing water for cooling: " + remainingTicks);
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingConsumesCauldronLevel(GameTestHelper helper) {
+        var cauldronPos = new BlockPos(0, 2, 0);
+        helper.setBlock(
+                cauldronPos,
+                Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
+        );
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var state = helper.getBlockState(cauldronPos);
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(remainingTicks <= 20 * 30,
+                    "Circuit Heat Staff cauldron cooling should reduce at least 30 seconds after three cycles: "
+                            + remainingTicks);
+            helper.assertTrue(state.is(Blocks.WATER_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 2,
+                    "Circuit Heat Staff cauldron cooling should consume one water level after three cycles: " + state);
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingKeepsPowderSnowBlock(GameTestHelper helper) {
+        var powderSnowPos = new BlockPos(0, 2, 0);
+        helper.setBlock(powderSnowPos, Blocks.POWDER_SNOW);
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnNoGravityItem(helper, powderSnowPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(remainingTicks <= 20 * 30,
+                    "Circuit Heat Staff powder snow cooling should reduce at least 30 seconds after three cycles: "
+                            + remainingTicks);
+            helper.assertTrue(helper.getBlockState(powderSnowPos).is(Blocks.POWDER_SNOW),
+                    "Circuit Heat Staff powder snow cooling should not consume powder snow block");
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(GameTestHelper helper) {
+        var cauldronPos = new BlockPos(0, 2, 0);
+        helper.setBlock(
+                cauldronPos,
+                Blocks.POWDER_SNOW_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
+        );
+
+        var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        CircuitHeatStaff.startStaffOverheat(staffStack, helper.getLevel(), 20 * 60);
+        var itemEntity = spawnNoGravityItem(helper, cauldronPos, staffStack);
+
+        helper.runAtTickTime(40, () -> {
+            var state = helper.getBlockState(cauldronPos);
+            var remainingTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(itemEntity.getItem(), helper.getLevel());
+            helper.assertTrue(remainingTicks <= 20 * 30,
+                    "Circuit Heat Staff powder snow cauldron cooling should reduce at least 30 seconds after three cycles: "
+                            + remainingTicks);
+            helper.assertTrue(state.is(Blocks.POWDER_SNOW_CAULDRON) && state.getValue(LayeredCauldronBlock.LEVEL) == 3,
+                    "Circuit Heat Staff powder snow cauldron cooling should not consume cauldron level: " + state);
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(GameTestHelper helper) {
+        var waterPos = new BlockPos(0, 2, 0);
+        placeWaterTestBasin(helper, waterPos);
+        helper.setBlock(waterPos, Blocks.WATER);
+
+        var itemEntity = spawnItem(helper, waterPos, new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()));
+
+        helper.runAtTickTime(40, () -> {
+            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
+                    "Circuit Heat Staff drop should use unlimited lifetime even when it is not overheated: "
+                            + itemEntity.getAge());
+            helper.assertTrue(helper.getBlockState(waterPos).is(Blocks.WATER),
+                    "Circuit Heat Staff should not consume water when it is not overheated");
+            helper.succeed();
+        });
+    }
+
+    static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(GameTestHelper helper) {
+        var powderSnowPos = new BlockPos(0, 2, 0);
+        helper.setBlock(powderSnowPos, Blocks.POWDER_SNOW);
+
+        var itemEntity = spawnNoGravityItem(helper, powderSnowPos, new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()));
+
+        helper.runAtTickTime(40, () -> {
+            helper.assertTrue(itemEntity.getAge() == Short.MIN_VALUE,
+                    "Circuit Heat Staff drop should use unlimited lifetime in powder snow even when it is not overheated: "
+                            + itemEntity.getAge());
+            helper.assertTrue(helper.getBlockState(powderSnowPos).is(Blocks.POWDER_SNOW),
+                    "Circuit Heat Staff should not change powder snow when it is not overheated");
+            helper.succeed();
         });
     }
 
@@ -9645,6 +10064,30 @@ public final class ApprenticeCodexGameTestScenarios {
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
+    }
+
+    private static ItemEntity spawnItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
+        var absolutePos = helper.absoluteVec(new Vec3(pos.getX() + 0.5D, pos.getY() + 0.45D, pos.getZ() + 0.5D));
+        var itemEntity = new ItemEntity(helper.getLevel(), absolutePos.x, absolutePos.y, absolutePos.z, stack);
+        itemEntity.setDeltaMovement(Vec3.ZERO);
+        helper.getLevel().addFreshEntity(itemEntity);
+        return itemEntity;
+    }
+
+    private static void placeWaterTestBasin(GameTestHelper helper, BlockPos waterPos) {
+        helper.setBlock(waterPos.below(), Blocks.STONE);
+        for (var direction : Direction.Plane.HORIZONTAL) {
+            helper.setBlock(waterPos.relative(direction), Blocks.STONE);
+        }
+    }
+
+    private static ItemEntity spawnNoGravityItem(GameTestHelper helper, BlockPos pos, ItemStack stack) {
+        var absolutePos = helper.absoluteVec(new Vec3(pos.getX() + 0.5D, pos.getY() + 0.45D, pos.getZ() + 0.5D));
+        var itemEntity = new ItemEntity(helper.getLevel(), absolutePos.x, absolutePos.y, absolutePos.z, stack);
+        itemEntity.setNoGravity(true);
+        itemEntity.setDeltaMovement(Vec3.ZERO);
+        helper.getLevel().addFreshEntity(itemEntity);
+        return itemEntity;
     }
 
     private static FakePlayer createEquipmentTestPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
@@ -10740,6 +11183,52 @@ public final class ApprenticeCodexGameTestScenarios {
         }
     }
 
+    private static void assertTooltipKeyAt(
+            GameTestHelper helper,
+            ItemStack stack,
+            int index,
+            String expectedKey,
+            String message
+    ) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        helper.assertTrue(tooltipLines.size() > index,
+                message + " (tooltip line count=" + tooltipLines.size() + ")");
+        assertTranslatableKey(helper, tooltipLines.get(index), expectedKey, message);
+    }
+
+    private static void assertTooltipKeyUsesColor(
+            GameTestHelper helper,
+            ItemStack stack,
+            String expectedKey,
+            ChatFormatting expectedColor,
+            String message
+    ) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        var matchingLine = tooltipLines.stream()
+                .filter(component -> component.getContents() instanceof TranslatableContents contents
+                        && expectedKey.equals(contents.getKey()))
+                .findFirst();
+        helper.assertTrue(matchingLine.isPresent(),
+                message + " (missing tooltip key=" + expectedKey + ")");
+        if (matchingLine.isPresent()) {
+            var expectedTextColor = TextColor.fromLegacyFormat(expectedColor);
+            helper.assertTrue(Objects.equals(expectedTextColor, matchingLine.get().getStyle().getColor()),
+                    message + " (expected=" + expectedTextColor + ", actual="
+                            + matchingLine.get().getStyle().getColor() + ")");
+        }
+    }
+
+    private static void assertTooltipKeyAbsent(GameTestHelper helper, ItemStack stack, String key, String message) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        var present = tooltipLines.stream()
+                .anyMatch(component -> component.getContents() instanceof TranslatableContents contents
+                        && key.equals(contents.getKey()));
+        helper.assertFalse(present, message + " (unexpected tooltip key=" + key + ")");
+    }
+
     private static Set<ResourceLocation> collectAllowedEnchantments(
             ItemStack stack,
             Predicate<Enchantment> predicate
@@ -11332,6 +11821,20 @@ public final class ApprenticeCodexGameTestScenarios {
         var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, stack);
         return stack;
+    }
+
+    private static void assertArchivistsGrimoireInscribeHintTooltip(
+            GameTestHelper helper,
+            ItemStack stack,
+            boolean expected,
+            String message
+    ) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        var hasHint = tooltipLines.stream()
+                .anyMatch(component -> component.getContents() instanceof TranslatableContents translatableContents
+                        && "item.apprenticecodex.special_spellbook.inscribe_hint".equals(translatableContents.getKey()));
+        helper.assertTrue(hasHint == expected, message);
     }
 
     private static void assertScrollSpell(

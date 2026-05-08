@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.AlchemistCauldronFluidTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -18,10 +19,12 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.StringUtil;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.PotionUtils;
@@ -38,7 +41,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.UnaryOperator;
 
 public abstract class AbstractPotionFlaskItem extends Item {
@@ -55,6 +61,9 @@ public abstract class AbstractPotionFlaskItem extends Item {
 
     private static final int BASE_MAX_STORED_DOSES = 8;
     private static final int LARGE_MUG_BONUS_PER_LEVEL = 2;
+    private static final int MISMATCH_TRANSFER_CONFIRM_TICKS = 30;
+    private static final int MISMATCH_POTION_CONSUMPTION = 2;
+    private static final Map<UUID, PendingMismatchTransfer> PENDING_MISMATCH_TRANSFERS = new HashMap<>();
 
     protected AbstractPotionFlaskItem(Properties properties) {
         super(properties);
@@ -90,6 +99,15 @@ public abstract class AbstractPotionFlaskItem extends Item {
                 return InteractionResult.SUCCESS;
             }
 
+            var player = context.getPlayer();
+            if (isVanillaPotionTypeMismatched(importPreview.representativeItem)
+                    && player != null
+                    && !consumePendingMismatchTransfer(player, context.getClickedPos(), context.getHand(), importPreview, level.getGameTime())) {
+                rememberPendingMismatchTransfer(player, context.getClickedPos(), context.getHand(), importPreview, level.getGameTime());
+                sendMismatchTransferWarning(player, stack, importPreview.representativeItem);
+                return InteractionResult.CONSUME;
+            }
+
             applyTransfer(stack, cauldronTile, importPreview);
             return InteractionResult.CONSUME;
         }
@@ -115,6 +133,7 @@ public abstract class AbstractPotionFlaskItem extends Item {
         var storedItem = getStoredItem(stack);
         appendStoredEffectTooltips(lines, stack, storedItem);
         appendSuppressedParticlesTooltip(lines, stack);
+        appendMismatchFlaskTypeTooltip(lines, stack);
         lines.add(Component.empty());
         lines.add(createStoredAmountTooltipLine(stack));
     }
@@ -197,7 +216,11 @@ public abstract class AbstractPotionFlaskItem extends Item {
     }
 
     protected boolean isSupportedPotionItem(ItemStack stack) {
-        return stack.getItem() instanceof PotionItem && stack.is(Items.POTION);
+        return isSupportedPotionItemByAnyFlask(stack);
+    }
+
+    protected boolean isPreferredPotionItem(ItemStack stack) {
+        return stack.is(Items.POTION);
     }
 
     protected boolean isSupportedFlaskEnchantment(Enchantment enchantment) {
@@ -297,6 +320,22 @@ public abstract class AbstractPotionFlaskItem extends Item {
     public static int getMaxDoseCapacity(ItemStack stack) {
         var flaskItem = getFlaskItem(stack);
         return flaskItem == null ? 0 : flaskItem.getMaxStoredDoseCount(stack);
+    }
+
+    public static boolean isStoredVanillaPotionTypeMismatched(ItemStack flaskStack) {
+        var flaskItem = getFlaskItem(flaskStack);
+        return flaskItem != null && flaskItem.isVanillaPotionTypeMismatched(getStoredItem(flaskStack));
+    }
+
+    public static int getStoredDoseConsumptionCount(ItemStack flaskStack) {
+        return isStoredVanillaPotionTypeMismatched(flaskStack) ? MISMATCH_POTION_CONSUMPTION : 1;
+    }
+
+    public static boolean canAcceptRepresentativeForAutomaticFill(ItemStack flaskStack, ItemStack representativeItem) {
+        var flaskItem = getFlaskItem(flaskStack);
+        return flaskItem != null
+                && !flaskItem.normalizeAcceptedItem(representativeItem).isEmpty()
+                && !flaskItem.isVanillaPotionTypeMismatched(representativeItem);
     }
 
     public static ItemStack getStoredItem(ItemStack stack) {
@@ -507,6 +546,15 @@ public abstract class AbstractPotionFlaskItem extends Item {
 
         lines.add(Component.translatable("item.apprenticecodex.flask_system.particles_suppressed")
                 .withStyle(ChatFormatting.GRAY));
+    }
+
+    private static void appendMismatchFlaskTypeTooltip(List<Component> lines, ItemStack flaskStack) {
+        if (!isStoredVanillaPotionTypeMismatched(flaskStack)) {
+            return;
+        }
+
+        lines.add(Component.translatable("item.apprenticecodex.flask_system.mismatch_flask_type")
+                .withStyle(ChatFormatting.YELLOW));
     }
 
     private List<Component> createStoredEffectTooltipLines(ItemStack flaskStack, ItemStack storedItem) {
@@ -804,6 +852,38 @@ public abstract class AbstractPotionFlaskItem extends Item {
                 && (stack.is(Items.POTION) || stack.is(Items.SPLASH_POTION) || stack.is(Items.LINGERING_POTION));
     }
 
+    private boolean isVanillaPotionTypeMismatched(ItemStack stack) {
+        return isSupportedPotionItemByAnyFlask(stack) && !isPreferredPotionItem(stack);
+    }
+
+    private static boolean consumePendingMismatchTransfer(Player player, BlockPos cauldronPos, InteractionHand hand,
+                                                          TransferPreview preview, long gameTime) {
+        var pending = PENDING_MISMATCH_TRANSFERS.remove(player.getUUID());
+        return pending != null
+                && pending.expiresAtGameTime >= gameTime
+                && pending.hand == hand
+                && pending.cauldronPos.equals(cauldronPos)
+                && ItemStack.isSameItemSameTags(pending.representativeItem, preview.representativeItem);
+    }
+
+    private static void rememberPendingMismatchTransfer(Player player, BlockPos cauldronPos, InteractionHand hand,
+                                                        TransferPreview preview, long gameTime) {
+        PENDING_MISMATCH_TRANSFERS.put(player.getUUID(), new PendingMismatchTransfer(
+                cauldronPos.immutable(),
+                hand,
+                preview.representativeItem.copy(),
+                gameTime + MISMATCH_TRANSFER_CONFIRM_TICKS
+        ));
+    }
+
+    private static void sendMismatchTransferWarning(Player player, ItemStack flaskStack, ItemStack representativeItem) {
+        player.displayClientMessage(Component.translatable(
+                "ui.apprenticecodex.flask_system.mismatch_flask_type.warning",
+                representativeItem.getHoverName(),
+                flaskStack.getHoverName()
+        ).withStyle(ChatFormatting.YELLOW), true);
+    }
+
     private static void applyTransfer(ItemStack flaskStack, AlchemistCauldronTile cauldronTile, TransferPreview preview) {
         var transferredFluid = AlchemistCauldronFluidTools.drainMatchingFluid(
                 cauldronTile,
@@ -1017,6 +1097,10 @@ public abstract class AbstractPotionFlaskItem extends Item {
     }
 
     private record TransferPreview(ItemStack representativeItem, FluidStack drainFluid) {
+    }
+
+    private record PendingMismatchTransfer(BlockPos cauldronPos, InteractionHand hand, ItemStack representativeItem,
+                                           long expiresAtGameTime) {
     }
 
     protected record ExportPreview(FluidStack fluidStack, int doseCount, SoundEvent fillSound) {
