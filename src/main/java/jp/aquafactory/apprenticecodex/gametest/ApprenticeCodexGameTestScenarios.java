@@ -69,6 +69,7 @@ import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldChar
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
@@ -719,7 +720,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "No Spellcaster Workbench recipes were loaded");
         });
     }
-    static void spellcastersFlaskRejectsSplashAndLingeringPotions(GameTestHelper helper) {
+    static void spellcastersFlaskAcceptsAllVanillaPotionTypes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
             var splashPotion = PotionContentsHelper.createPotionStack(
@@ -734,14 +735,14 @@ public final class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
                     "Spellcaster's Flask rejected a regular potion");
-            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
-                    "Spellcaster's Flask accepted a splash potion");
-            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
-                    "Spellcaster's Flask accepted a lingering potion");
-            helper.assertTrue(SpellcastersFlask.copyWithAddedDoses(emptyFlask, splashPotion, 1).isEmpty(),
-                    "Spellcaster's Flask stored a splash potion through copyWithAddedDoses");
-            helper.assertTrue(SpellcastersFlask.copyWithAddedDoses(emptyFlask, lingeringPotion, 1).isEmpty(),
-                    "Spellcaster's Flask stored a lingering potion through copyWithAddedDoses");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
+                    "Spellcaster's Flask rejected a splash potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
+                    "Spellcaster's Flask rejected a lingering potion");
+            helper.assertTrue(!SpellcastersFlask.copyWithAddedDoses(emptyFlask, splashPotion, 1).isEmpty(),
+                    "Spellcaster's Flask failed to store a splash potion");
+            helper.assertTrue(!SpellcastersFlask.copyWithAddedDoses(emptyFlask, lingeringPotion, 1).isEmpty(),
+                    "Spellcaster's Flask failed to store a lingering potion");
         });
     }
     static void spellcastersFlaskDrinkingLastDoseClearsStoredItem(GameTestHelper helper) {
@@ -782,6 +783,25 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(appliedEffect != null
                             && appliedEffect.getDuration() == Math.max(1, Math.round(originalEffect.getDuration() * (1.0F / 3.0F))),
                     "Glow Energy should reduce drunk flask duration by 1 / (1 + level)");
+        });
+    }
+    static void spellcastersFlaskMismatchedVanillaPotionDrinkConsumesExtraDose(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var storedPotion = PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var twoDoseFlask = createFilledSpellcastersFlask(storedPotion, 2, 0);
+            var player = new FakePlayer((ServerLevel) helper.getLevel(), new GameProfile(UUID.randomUUID(), "spellcasters_flask_mismatch_drink_test"));
+
+            twoDoseFlask.getItem().finishUsingItem(twoDoseFlask, helper.getLevel(), player);
+
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(twoDoseFlask) == 0,
+                    "Mismatched Spellcaster's Flask drink should consume two doses");
+            helper.assertTrue(SpellcastersFlask.getStoredItem(twoDoseFlask).isEmpty(),
+                    "Mismatched Spellcaster's Flask should clear StoredItem when extra consumption empties it");
+
+            var oneDoseFlask = createFilledSpellcastersFlask(storedPotion, 1, 0);
+            oneDoseFlask.getItem().finishUsingItem(oneDoseFlask, helper.getLevel(), player);
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(oneDoseFlask) == 0,
+                    "Mismatched Spellcaster's Flask drink should still work with one remaining dose");
         });
     }
     static void spellcastersFlaskBatchExtractionClearsStoredItemAtZero(GameTestHelper helper) {
@@ -870,7 +890,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask should allow continuous spell imbuing");
         });
     }
-    static void alchemistsFlaskAcceptsSplashLingeringAndSimpleElixirButRejectsNormalPotion(GameTestHelper helper) {
+    static void alchemistsFlaskAcceptsAllVanillaPotionTypesAndSimpleElixir(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var emptyFlask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
@@ -884,14 +904,76 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
 
-            helper.assertFalse(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
-                    "Alchemist's Flask accepted a regular potion");
+            helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, normalPotion),
+                    "Alchemist's Flask rejected a regular potion");
             helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, splashPotion),
                     "Alchemist's Flask rejected a splash potion");
             helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, lingeringPotion),
                     "Alchemist's Flask rejected a lingering potion");
             helper.assertTrue(SpellcastersFlask.canAddDoseFromItem(emptyFlask, simpleElixir),
                     "Alchemist's Flask rejected a Simple Elixir");
+        });
+    }
+    static void flaskMismatchTooltipOnlyWarnsForVanillaPotionTypeMismatch(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var normalPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var splashPotion = PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+
+            assertTooltipKeyUsesColor(
+                    helper,
+                    createFilledSpellcastersFlask(splashPotion, 1, 0),
+                    "item.apprenticecodex.flask_system.mismatch_flask_type",
+                    ChatFormatting.YELLOW,
+                    "Spellcaster's Flask should warn for stored splash potions"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    createFilledAlchemistsFlask(normalPotion, 1, 0),
+                    "item.apprenticecodex.flask_system.mismatch_flask_type",
+                    ChatFormatting.YELLOW,
+                    "Alchemist's Flask should warn for stored regular potions"
+            );
+            assertTooltipKeyAbsent(
+                    helper,
+                    createFilledSpellcastersFlask(normalPotion, 1, 0),
+                    "item.apprenticecodex.flask_system.mismatch_flask_type",
+                    "Spellcaster's Flask should not warn for regular potions"
+            );
+            assertTooltipKeyAbsent(
+                    helper,
+                    createFilledAlchemistsFlask(simpleElixir, 1, 0),
+                    "item.apprenticecodex.flask_system.mismatch_flask_type",
+                    "Alchemist's Flask should not warn for Simple Elixir"
+            );
+        });
+    }
+    static void flaskAutomaticFillTypeGateRejectsMismatchedEmptyVanillaPotion(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var normalPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var splashPotion = PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
+
+            helper.assertFalse(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                            splashPotion),
+                    "Atelier Station should not auto-fill an empty Spellcaster's Flask with splash potions");
+            helper.assertFalse(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                            normalPotion),
+                    "Atelier Station should not auto-fill an empty Alchemist's Flask with regular potions");
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
+                            normalPotion),
+                    "Atelier Station should auto-fill an empty Spellcaster's Flask with regular potions");
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                            splashPotion),
+                    "Atelier Station should auto-fill an empty Alchemist's Flask with splash potions");
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                            new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                            simpleElixir),
+                    "Atelier Station should keep non-vanilla Alchemist's Flask items outside mismatch penalties");
         });
     }
     static void alchemistsFlaskUsesDoubleCapacityAndExtractRecipeSupportsSplashPotion(GameTestHelper helper) {
@@ -980,8 +1062,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask smithing recipe should preserve stored dose count");
 
             var convertedStoredItem = SpellcastersFlask.getStoredItem(convertedFlask);
-            helper.assertTrue(convertedStoredItem.is(Items.SPLASH_POTION),
-                    "Filled Spellcaster's Flask should convert a regular potion into a splash potion");
+            helper.assertTrue(convertedStoredItem.is(Items.POTION),
+                    "Filled Spellcaster's Flask should keep a regular potion as a mismatch-usable potion");
             helper.assertTrue(PotionContentsHelper.getPotion(convertedStoredItem) == PotionContentsHelper.getPotion(normalPotion),
                     "Converted Alchemist's Flask should keep the original potion type");
             helper.assertTrue(!SpellcastersFlask.isEffectParticlesSuppressed(convertedFlask),
@@ -1204,6 +1286,21 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Extract should consume exactly one dose from the casting flask");
 
             lingeringProjectile.discard();
+            magicData.setAdditionalCastData(null);
+
+            var normalPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(normalPotion, 2, 0));
+            player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Extract should prepare a force-splash normal potion cast");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            var forcedSplashProjectile = getSingleExtractProjectile(helper, player);
+            helper.assertTrue(forcedSplashProjectile.getItem().is(Items.SPLASH_POTION),
+                    "Extract should throw normal potion contents as a splash potion");
+            helper.assertTrue(jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()) == 0,
+                    "Extract should consume two doses when force-splashing a normal potion");
+            forcedSplashProjectile.discard();
             magicData.setAdditionalCastData(null);
 
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
@@ -11639,6 +11736,15 @@ public final class ApprenticeCodexGameTestScenarios {
                     message + " (expected=" + expectedTextColor + ", actual="
                             + matchingLine.get().getStyle().getColor() + ")");
         }
+    }
+
+    private static void assertTooltipKeyAbsent(GameTestHelper helper, ItemStack stack, String key, String message) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        var present = tooltipLines.stream()
+                .anyMatch(component -> component.getContents() instanceof TranslatableContents contents
+                        && key.equals(contents.getKey()));
+        helper.assertFalse(present, message + " (unexpected tooltip key=" + key + ")");
     }
 
     private static Set<ResourceLocation> collectAllowedEnchantments(

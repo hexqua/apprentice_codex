@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.item.flask;
 
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -41,6 +43,7 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
             return InteractionResult.PASS;
         }
 
+        sendForcedNormalDrinkWarning(context.getLevel(), player, stack);
         player.startUsingItem(context.getHand());
         return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
     }
@@ -54,6 +57,7 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
             return InteractionResultHolder.pass(stack);
         }
 
+        sendForcedNormalDrinkWarning(level, player, stack);
         player.startUsingItem(usedHand);
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
@@ -85,7 +89,7 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
             for (var effect : extractedEffects) {
                 applyScaledEffect(stack, livingEntity, effect);
             }
-            decrementStoredDoseCount(stack);
+            decrementStoredDoseCount(stack, getStoredDoseConsumptionCount(stack));
         }
 
         if (livingEntity instanceof Player player) {
@@ -113,6 +117,17 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
 
     private boolean canConsumeStoredItem(ItemStack stack) {
         return getStoredDoseCount(stack) > 0 && !extractStoredEffects(stack).isEmpty();
+    }
+
+    private static void sendForcedNormalDrinkWarning(Level level, Player player, ItemStack stack) {
+        if (level.isClientSide || !isStoredVanillaPotionTypeMismatched(stack)) {
+            return;
+        }
+
+        player.displayClientMessage(Component.translatable(
+                "ui.apprenticecodex.flask_system.drink_with_force_normal",
+                getStoredItem(stack).getHoverName()
+        ).withStyle(ChatFormatting.YELLOW), true);
     }
 
     private java.util.List<MobEffectInstance> extractStoredEffects(ItemStack flaskStack) {

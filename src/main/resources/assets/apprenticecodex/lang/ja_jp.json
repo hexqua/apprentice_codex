@@ -184,6 +184,7 @@
   "item.apprenticecodex.flask_system.effects": "効果:",
   "item.apprenticecodex.flask_system.amount_label": "残量: ",
   "item.apprenticecodex.flask_system.particles_suppressed": "効果演出を抑制中",
+  "item.apprenticecodex.flask_system.mismatch_flask_type": "中身がフラスコのタイプと不一致",
   "item.apprenticecodex.circuit_heat_staff.tooltip": "この杖を使用して詠唱するとクールダウンを無視できる。",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "過熱冷却中: 残り%1$d秒",
   "item.apprenticecodex.special_spellbook.inscribe_hint": "この魔法書は銘刻台で刻み込む代わりに手に持って使ってスクロールを入れる。",
@@ -198,7 +199,7 @@
   "jei.apprenticecodex.spellcaster_workbench.desc_2": "アイテムに注入した魔法を取り出すこともできるほか、詠唱者のフラスコの一部調整も行える。",
   "jei.apprenticecodex.spellcaster_workbench.desc_3": "また、一部アイテムであれば魔法の注入も行うこともできる。",
   "jei.apprenticecodex.spellcaster_workbench.desc_4": "注入した魔法は取り出すことができないものもあるが、事前にアイテムを置くことで調べることができる。",
-  "jei.apprenticecodex.atelier_station.desc_1": "詠唱者のフラスコへの補充を補助する装置。",
+  "jei.apprenticecodex.atelier_station.desc_1": "フラスコへの補充を補助する装置。",
   "jei.apprenticecodex.atelier_station.desc_2": "2ブロック以内の錬金術師の大釜から条件にあったポーションを抽出し、合わせて手元のフラスコに遠距離から補充することができる。",
   "jei.apprenticecodex.spell_dispenser.desc_1": "スクロールをセットすることでレッドストーンによる魔法の代行詠唱を行うことができる。",
   "jei.apprenticecodex.spell_dispenser.desc_2": "使用できるスクロールには制限があり、スクロールを置くことで使用可能かどうかを確認することができる。",
@@ -592,6 +593,7 @@
   "ui.apprenticecodex.extract.no_flask": "この魔法は手に錬金術師のフラスコが必要だ",
   "ui.apprenticecodex.extract.empty_flask": "錬金術師のフラスコの中身がない！",
   "ui.apprenticecodex.extract.effect_use": "%s として使用する",
+  "ui.apprenticecodex.extract.effect_use_with_force_splash": "%s をスプラッシュ化して使用するため、余分に消費される！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
@@ -604,6 +606,8 @@
   "ui.apprenticecodex.apprentice_desk.disabled": "この机は自分では使えないようだ...",
   "ui.apprenticecodex.circuit_heat_staff.overheat_mana_warning": "%sマナを消費して強制的に詠唱を開始...",
   "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down": "回路が焼き切れそうなため詠唱できない...",
+  "ui.apprenticecodex.flask_system.mismatch_flask_type.warning": "%1$sは%2$sには合わないため、このまま汲むと使用時に消費量が増加する",
+  "ui.apprenticecodex.flask_system.drink_with_force_normal": "%sを通常化して飲用するため、余分に消費される！",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

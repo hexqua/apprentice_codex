@@ -42,6 +42,8 @@ public class Extract extends AbstractSpell {
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String MESSAGE_NO_FLASK = "ui.apprenticecodex.extract.no_flask";
     private static final String MESSAGE_EMPTY_FLASK = "ui.apprenticecodex.extract.empty_flask";
+    private static final String MESSAGE_EFFECT_USE = "ui.apprenticecodex.extract.effect_use";
+    private static final String MESSAGE_EFFECT_USE_WITH_FORCE_SPLASH = "ui.apprenticecodex.extract.effect_use_with_force_splash";
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "extract");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -145,15 +147,16 @@ public class Extract extends AbstractSpell {
         var castData = playerMagicData != null && playerMagicData.getAdditionalCastData() instanceof ExtractCastData data
                 ? data
                 : null;
-        var storedItem = castData != null && !castData.storedItem.isEmpty()
-                ? castData.storedItem
-                : Optional.ofNullable(resolveFilledFlask(entity)).map(FlaskResolution::storedItem).orElse(ItemStack.EMPTY);
-        if (storedItem.isEmpty()) {
+        var resolution = resolveFlaskForCast(entity, castData);
+        if (resolution == null || resolution.storedItem().isEmpty()) {
             return;
         }
 
+        var isTypeMismatched = AbstractPotionFlaskItem.isStoredVanillaPotionTypeMismatched(resolution.flaskStack());
+        var messageKey = isTypeMismatched ? MESSAGE_EFFECT_USE_WITH_FORCE_SPLASH : MESSAGE_EFFECT_USE;
+        var messageColor = isTypeMismatched ? ChatFormatting.YELLOW : ChatFormatting.GREEN;
         serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                Component.translatable("ui.apprenticecodex.extract.effect_use", storedItem.getHoverName())
+                Component.translatable(messageKey, resolution.storedItem().getHoverName()).withStyle(messageColor)
         ));
     }
 
@@ -225,7 +228,10 @@ public class Extract extends AbstractSpell {
             return;
         }
 
-        var afterUse = AbstractPotionFlaskItem.copyAfterExtractingOneDose(heldStack);
+        var afterUse = AbstractPotionFlaskItem.copyAfterExtractingDoses(
+                heldStack,
+                AbstractPotionFlaskItem.getStoredDoseConsumptionCount(heldStack)
+        );
         if (!afterUse.isEmpty()) {
             entity.setItemInHand(hand, afterUse);
         }
