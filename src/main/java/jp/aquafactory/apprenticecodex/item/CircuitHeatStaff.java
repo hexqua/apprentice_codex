@@ -17,6 +17,7 @@ import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.network.casting.CancelCastPacket;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager;
 import net.minecraft.ChatFormatting;
@@ -57,7 +58,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.Set;
 
-public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem {
+public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.circuit_heat_staff.desc_";
     private static final String FRAME_CONTROLLER = "frame";
     private static final String COG_CONTROLLER = "cog";
     private static final String OVERHEAT_EXPIRE_GAME_TIME_TAG = "CircuitHeatStaffOverheatExpireGameTime";
@@ -86,6 +88,11 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
                 .rarity(Rarity.RARE)
                 .attributes(ExtendedSwordItem.createAttributes(CIRCUIT_HEAT_STAFF_TIER)));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
@@ -192,7 +199,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, context, lines, flag);
+        lines.add(Component.translatable("item.apprenticecodex.circuit_heat_staff.tooltip").withStyle(ChatFormatting.GRAY));
         var remainingTicks = getStaffOverheatRemainingTicks(stack, context.level());
         if (remainingTicks > 0) {
             lines.add(Component.translatable(
@@ -200,6 +207,8 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
                     Math.max(1, (remainingTicks + 19) / 20)
             ).withStyle(ChatFormatting.RED));
         }
+
+        super.appendHoverText(stack, context, lines, flag);
     }
 
     public static boolean isStaffOverheated(ItemStack stack, @Nullable Level level) {

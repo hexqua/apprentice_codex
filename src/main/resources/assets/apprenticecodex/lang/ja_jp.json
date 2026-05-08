@@ -183,6 +183,7 @@
   "item.apprenticecodex.flask_system.effects": "効果:",
   "item.apprenticecodex.flask_system.amount_label": "残量: ",
   "item.apprenticecodex.flask_system.particles_suppressed": "効果演出を抑制中",
+  "item.apprenticecodex.circuit_heat_staff.tooltip": "この杖を使用して詠唱するとクールダウンを無視できる。",
   "item.apprenticecodex.circuit_heat_staff.tooltip.overheat_remaining": "過熱冷却中: 残り%1$d秒",
   "item.apprenticecodex.special_spellbook.inscribe_hint": "この魔法書は銘刻台で刻み込む代わりに手に持って使ってスクロールを入れる。",
   "item.apprenticecodex.archivists_grimoire.tooltip.current_page": "選択中のページ: %1$d/%2$d",
@@ -246,6 +247,9 @@
   "jei.apprenticecodex.focus_staffbow.desc_1": "利き手で握って使用することで魔法を溜めて詠唱することができる。",
   "jei.apprenticecodex.focus_staffbow.desc_2": "最大3倍(継続して詠唱するものは2倍)まで溜めることができるが、その分消費マナが大幅に上昇する。",
   "jei.apprenticecodex.focus_staffbow.desc_3": "消費マナが現在マナを上回っていてもそのまま詠唱はできるが、足りなかったマナが回復するまでは常に杖にマナが奪われ、その間は溜めて詠唱することができない。",
+  "jei.apprenticecodex.circuit_heat_staff.desc_1": "利き手で握って使用することで魔法のクールダウンを無視して強制的に魔法を詠唱できる。",
+  "jei.apprenticecodex.circuit_heat_staff.desc_2": "クールダウンを無視した詠唱は消費マナが大幅に上昇し、現在マナを上回って消費してしまった場合は過熱状態となりしばらく機能が停止する。",
+  "jei.apprenticecodex.circuit_heat_staff.desc_3": "上昇する消費マナの量は連続して無視した回数で計算される。",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
