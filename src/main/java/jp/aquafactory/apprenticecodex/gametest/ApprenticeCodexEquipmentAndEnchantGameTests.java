@@ -649,6 +649,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.rightClickMagicWeaponTooltipsStartWithShieldHint(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.elementalBowKeepsVanillaBowEnchantmentSurfaces(helper);
     }

@@ -102,8 +102,8 @@ public class CrystalBladedStaff extends AbstractRightClickMagicWeaponItem implem
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        lines.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, level, lines, flag);
+        lines.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
     }
 
     @Override

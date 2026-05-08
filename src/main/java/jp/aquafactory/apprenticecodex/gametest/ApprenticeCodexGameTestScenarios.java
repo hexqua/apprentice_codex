@@ -120,6 +120,7 @@ import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -130,6 +131,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -5728,6 +5730,67 @@ public final class ApprenticeCodexGameTestScenarios {
                 ApprenticeCodexGameTestScenarios::expectedRightClickMagicWeaponEnchantments
         ));
     }
+
+    static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var rightClickMagicWeapons = ForgeRegistries.ITEMS.getValues().stream()
+                    .filter(item -> item instanceof AbstractRightClickMagicWeaponItem)
+                    .toList();
+            helper.assertTrue(!rightClickMagicWeapons.isEmpty(),
+                    "Right Click Magic Weapon tooltip test found no target items");
+
+            for (var item : rightClickMagicWeapons) {
+                var stack = new ItemStack(item);
+                var tooltipLines = new ArrayList<Component>();
+                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+                helper.assertTrue(!tooltipLines.isEmpty(),
+                        item + " should expose right click magic weapon tooltip");
+                assertTranslatableKey(
+                        helper,
+                        tooltipLines.get(0),
+                        "item.apprenticecodex.right_click_magic_weapon.desc",
+                        item + " should show shield priority tooltip first"
+                );
+            }
+
+            assertTooltipKeyAt(
+                    helper,
+                    new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get()),
+                    1,
+                    "item.apprenticecodex.crystal_bladed_staff.desc",
+                    "Crystal Bladed Staff should show its ability tooltip after shield priority tooltip"
+            );
+            assertTooltipKeyAt(
+                    helper,
+                    new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
+                    1,
+                    "item.apprenticecodex.swingcast.common.desc",
+                    "Swingcast Staff should show swingcast tooltip after shield priority tooltip"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                    "item.apprenticecodex.spellgun.tooltip.hint",
+                    ChatFormatting.YELLOW,
+                    "Spell Gun shift hint should stand out"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
+                    "item.apprenticecodex.spellgun.tooltip.hint",
+                    ChatFormatting.YELLOW,
+                    "Swingcast Staff shift hint should stand out"
+            );
+            assertTooltipKeyUsesColor(
+                    helper,
+                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
+                    "item.apprenticecodex.spellgun.tooltip.hint",
+                    ChatFormatting.YELLOW,
+                    "Reflectcast Shield shift hint should stand out"
+            );
+        });
+    }
+
     static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
@@ -10992,6 +11055,43 @@ public final class ApprenticeCodexGameTestScenarios {
         if (contents instanceof TranslatableContents translatableContents) {
             helper.assertTrue(expectedKey.equals(translatableContents.getKey()),
                     message + " (expected=" + expectedKey + ", actual=" + translatableContents.getKey() + ")");
+        }
+    }
+
+    private static void assertTooltipKeyAt(
+            GameTestHelper helper,
+            ItemStack stack,
+            int index,
+            String expectedKey,
+            String message
+    ) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        helper.assertTrue(tooltipLines.size() > index,
+                message + " (tooltip line count=" + tooltipLines.size() + ")");
+        assertTranslatableKey(helper, tooltipLines.get(index), expectedKey, message);
+    }
+
+    private static void assertTooltipKeyUsesColor(
+            GameTestHelper helper,
+            ItemStack stack,
+            String expectedKey,
+            ChatFormatting expectedColor,
+            String message
+    ) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        var matchingLine = tooltipLines.stream()
+                .filter(component -> component.getContents() instanceof TranslatableContents contents
+                        && expectedKey.equals(contents.getKey()))
+                .findFirst();
+        helper.assertTrue(matchingLine.isPresent(),
+                message + " (missing tooltip key=" + expectedKey + ")");
+        if (matchingLine.isPresent()) {
+            var expectedTextColor = TextColor.fromLegacyFormat(expectedColor);
+            helper.assertTrue(Objects.equals(expectedTextColor, matchingLine.get().getStyle().getColor()),
+                    message + " (expected=" + expectedTextColor + ", actual="
+                            + matchingLine.get().getStyle().getColor() + ")");
         }
     }
 
