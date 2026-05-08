@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -43,11 +44,12 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook {
+public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, IJeiInfoItem {
     public static final int ROW_COUNT = 6;
     public static final int COLUMN_COUNT = 9;
     public static final int SLOT_COUNT = ROW_COUNT * COLUMN_COUNT;
 
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.archivists_grimoire.desc_";
     private static final String INVENTORY_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_inventory";
     private static final String SELECTED_ROW_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_selected_row";
     private static final String DEFAULT_CONTAINER_KEY = "container.apprenticecodex.archivists_grimoire.default";
@@ -61,6 +63,11 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook {
 
     public ArchivistsGrimoire() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
