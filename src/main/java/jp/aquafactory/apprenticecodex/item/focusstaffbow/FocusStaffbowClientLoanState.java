@@ -16,6 +16,10 @@ public final class FocusStaffbowClientLoanState {
         return remainingLoanMana > LOAN_EPSILON;
     }
 
+    public static float remainingLoanMana() {
+        return remainingLoanMana;
+    }
+
     public static void clear() {
         remainingLoanMana = 0.0F;
     }

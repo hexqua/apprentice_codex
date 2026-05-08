@@ -120,6 +120,8 @@
   "item.apprenticecodex.elemental_bow.with_synthesis": "合成の影響により、魔法の詠唱に矢を必要としない",
   "item.apprenticecodex.focus_staffbow.require_arrow": "集中を伴う詠唱には矢を必要とする",
   "item.apprenticecodex.focus_staffbow.require_arrow.with_synthesis": "合成の影響により、集中を伴う詠唱に矢を必要としない",
+  "item.apprenticecodex.focus_staffbow.loan_mana": "不足分のマナを補ったことにより、現在集中詠唱は動作しない。",
+  "item.apprenticecodex.focus_staffbow.loan_mana.rest": "残り前借りマナ: %s",
   "item.apprenticecodex.crystal_bladed_staff.desc": "この杖は盾を優先的に使用できる。",
   "item.apprenticecodex.isekai_travel_guidebook.desc": "『ようこそMinecraftの世界へ！』",
   "item.apprenticecodex.stealth_rune_armor.desc": "この防具は透明化の効果を阻害しない。",
@@ -241,6 +243,9 @@
   "jei.apprenticecodex.archivists_grimoire.desc_1": "銘刻台で刻み込む代わりに手に持って使うことでスクロールを入れられる魔法書。",
   "jei.apprenticecodex.archivists_grimoire.desc_2": "全てが同時に使えるわけではなく、一度に使える魔法はインベントリの1行分と同じ9スロットまで。",
   "jei.apprenticecodex.archivists_grimoire.desc_3": "魔法選択画面を出した状態でマウスホイールを操作することで使用するインベントリの行を切り替えられる。",
+  "jei.apprenticecodex.focus_staffbow.desc_1": "利き手で握って使用することで魔法を溜めて詠唱することができる。",
+  "jei.apprenticecodex.focus_staffbow.desc_2": "最大3倍(継続して詠唱するものは2倍)まで溜めることができるが、その分消費マナが大幅に上昇する。",
+  "jei.apprenticecodex.focus_staffbow.desc_3": "消費マナが現在マナを上回っていてもそのまま詠唱はできるが、足りなかったマナが回復するまでは常に杖にマナが奪われ、その間は溜めて詠唱することができない。",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
