@@ -8,10 +8,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
+import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.IdentifierProvider;
+import yesman.epicfight.api.event.types.entity.TakeDamageEvent;
 import yesman.epicfight.api.utils.AttackResult;
-import yesman.epicfight.gameasset.EpicFightSounds;
-import yesman.epicfight.particle.EpicFightParticles;
 import yesman.epicfight.particle.HitParticleType;
+import yesman.epicfight.registry.entries.EpicFightParticles;
+import yesman.epicfight.registry.entries.EpicFightSounds;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.guard.GuardSkill;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -20,8 +23,6 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
-import yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType;
-import yesman.epicfight.world.entity.eventlistener.TakeDamageEvent;
 
 import java.util.Set;
 import java.util.UUID;
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class EpicFightManaForceBladeCompat {
     public static final String MOD_ID = "epicfight";
 
-    private static final UUID GUARD_EVENT_UUID = UUID.fromString("b1dc3c56-6e3d-4f37-85c5-b2c476559c46");
+    private static final String GUARD_EVENT_ID = "apprenticecodex:mana_force_blade_guard";
     private static final Set<UUID> INSTALLED_PLAYERS = ConcurrentHashMap.newKeySet();
 
     private EpicFightManaForceBladeCompat() {
@@ -43,10 +44,10 @@ public final class EpicFightManaForceBladeCompat {
 
         EpicFightCapabilities.getUnparameterizedEntityPatch(player, ServerPlayerPatch.class).ifPresent(playerpatch -> {
             // Epic Fight の通常ガード後にも反撃を差し込めるよう、cancel 済みでも動く -1 priority に置く。
-            playerpatch.getEventListener().addEventListener(
-                    EventType.TAKE_DAMAGE_EVENT_ATTACK,
-                    GUARD_EVENT_UUID,
-                    EpicFightManaForceBladeCompat::onTakeDamage,
+            playerpatch.getEventListener().registerContextAwareEvent(
+                    EpicFightEventHooks.Entity.TAKE_DAMAGE_INCOME,
+                    (event, context) -> EpicFightManaForceBladeCompat.onTakeDamage(event),
+                    IdentifierProvider.constant(GUARD_EVENT_ID),
                     -1
             );
             INSTALLED_PLAYERS.add(player.getUUID());
@@ -63,8 +64,8 @@ public final class EpicFightManaForceBladeCompat {
                 .orElse(false);
     }
 
-    private static void onTakeDamage(TakeDamageEvent.Attack event) {
-        var playerpatch = event.getPlayerPatch();
+    private static void onTakeDamage(TakeDamageEvent.Income event) {
+        var playerpatch = (ServerPlayerPatch) event.getEntityPatch();
         var guardContext = resolveGuardContext(playerpatch);
         if (guardContext == null) {
             return;
@@ -76,15 +77,6 @@ public final class EpicFightManaForceBladeCompat {
         var player = playerpatch.getOriginal();
         var stack = player.getMainHandItem();
         var wasAlreadyBlockedByEpicFight = event.isCanceled();
-        var previousResult = event.getResult();
-        var previousParried = event.isParried();
-        var wasBlockedByThisCompat = false;
-        if (!wasAlreadyBlockedByEpicFight) {
-            tryGuardWithEpicFight(guardContext, event);
-            wasBlockedByThisCompat = event.isCanceled();
-        }
-        var wasBlockedByEpicFight = wasAlreadyBlockedByEpicFight || wasBlockedByThisCompat;
-
         if (!ManaForceBladeGuardLogic.tryHandleGuard(
                 player,
                 stack,
@@ -92,16 +84,13 @@ public final class EpicFightManaForceBladeCompat {
                 event.isParried(),
                 false
         )) {
-            if (wasBlockedByThisCompat) {
-                // Epic Fight の guard は先に event を確定するため、マナ/耐久不足では通常被弾へ戻す。
-                event.setCanceled(false);
-                event.setResult(previousResult);
-                event.setParried(previousParried);
-            }
             return;
         }
 
-        if (!wasBlockedByEpicFight) {
+        if (!wasAlreadyBlockedByEpicFight) {
+            tryGuardWithEpicFight(guardContext, playerpatch, event);
+        }
+        if (!event.isCanceled()) {
             markBlockedWithEpicFightGuard(event, guardContext);
         }
     }
@@ -123,7 +112,11 @@ public final class EpicFightManaForceBladeCompat {
         return resolveGuardContext(playerpatch) != null;
     }
 
-    private static void tryGuardWithEpicFight(GuardContext guardContext, TakeDamageEvent.Attack event) {
+    private static void tryGuardWithEpicFight(
+            GuardContext guardContext,
+            ServerPlayerPatch playerpatch,
+            TakeDamageEvent.Income event
+    ) {
         var damageSource = event.getDamageSource();
         if (damageSource instanceof EpicFightDamageSource epicfightDamageSource
                 && epicfightDamageSource.is(EpicFightDamageTypeTags.GUARD_PUNCTURE)) {
@@ -133,6 +126,7 @@ public final class EpicFightManaForceBladeCompat {
         guardContext.guardSkill().guard(
                 guardContext.skillContainer(),
                 guardContext.itemCapability(),
+                playerpatch,
                 event,
                 resolveGuardKnockback(damageSource),
                 resolveGuardImpact(damageSource),
@@ -156,7 +150,7 @@ public final class EpicFightManaForceBladeCompat {
         return 0.5F;
     }
 
-    private static boolean isDamageSourceInFront(ServerPlayerPatch playerpatch, TakeDamageEvent.Attack event) {
+    private static boolean isDamageSourceInFront(ServerPlayerPatch playerpatch, TakeDamageEvent.Income event) {
         var sourcePosition = event.getDamageSource().getSourcePosition();
         if (sourcePosition == null) {
             return false;
@@ -169,13 +163,13 @@ public final class EpicFightManaForceBladeCompat {
         return toSourcePosition.dot(viewVector) > 0.0D;
     }
 
-    private static void markBlockedWithEpicFightGuard(TakeDamageEvent.Attack event, GuardContext guardContext) {
+    private static void markBlockedWithEpicFightGuard(TakeDamageEvent.Income event, GuardContext guardContext) {
         playEpicFightGuardFeedback(event, guardContext);
         markBlocked(event);
     }
 
-    private static void playEpicFightGuardFeedback(TakeDamageEvent.Attack event, GuardContext guardContext) {
-        var playerpatch = event.getPlayerPatch();
+    private static void playEpicFightGuardFeedback(TakeDamageEvent.Income event, GuardContext guardContext) {
+        var playerpatch = (ServerPlayerPatch) event.getEntityPatch();
         playerpatch.playSound(EpicFightSounds.CLASH.get(), -0.05F, 0.1F);
 
         var offender = resolveOffender(event);
@@ -197,7 +191,7 @@ public final class EpicFightManaForceBladeCompat {
         }
     }
 
-    private static Entity resolveOffender(TakeDamageEvent.Attack event) {
+    private static Entity resolveOffender(TakeDamageEvent.Income event) {
         var directEntity = event.getDamageSource().getDirectEntity();
         if (directEntity instanceof Projectile) {
             return directEntity;
@@ -206,15 +200,16 @@ public final class EpicFightManaForceBladeCompat {
         return event.getDamageSource().getEntity();
     }
 
-    private static void markBlocked(TakeDamageEvent.Attack event) {
-        event.setCanceled(true);
+    private static void markBlocked(TakeDamageEvent.Income event) {
+        event.cancel();
         event.setResult(AttackResult.ResultType.BLOCKED);
-        event.getPlayerPatch().countHurtTime(event.getDamage());
+        var playerpatch = (ServerPlayerPatch) event.getEntityPatch();
+        playerpatch.countHurtTime(event.getDamage());
 
         var attacker = event.getDamageSource().getEntity();
         if (attacker != null) {
             EpicFightCapabilities.getUnparameterizedEntityPatch(attacker, LivingEntityPatch.class)
-                    .ifPresent(attackerpatch -> attackerpatch.setLastAttackEntity(event.getPlayerPatch().getOriginal()));
+                    .ifPresent(attackerpatch -> attackerpatch.setLastAttackEntity(playerpatch.getOriginal()));
         }
 
         var directEntity = event.getDamageSource().getDirectEntity();
@@ -224,7 +219,7 @@ public final class EpicFightManaForceBladeCompat {
                             LivingEntity.class,
                             LivingEntityPatch.class
                     )
-                    .ifPresent(entitypatch -> entitypatch.onAttackBlocked(event.getDamageSource(), event.getPlayerPatch()));
+                    .ifPresent(entitypatch -> entitypatch.onAttackBlocked(event.getDamageSource(), playerpatch));
         }
     }
 

@@ -94,7 +94,7 @@ config="mixins.apprenticecodex.json"
 
 [[dependencies.${mod_id}]]
     modId="epicfight"
-    mandatory=false
-    versionRange="[${epicfight_version},)"
+    type="optional"
+    versionRange="[${epicfight_mod_version},)"
     ordering="AFTER"
     side="BOTH"

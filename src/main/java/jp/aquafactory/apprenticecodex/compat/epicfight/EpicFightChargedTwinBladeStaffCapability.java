@@ -23,7 +23,7 @@ public final class EpicFightChargedTwinBladeStaffCapability extends WeaponCapabi
                     LivingMotions.SHOT, Animations.BIPED_JAVELIN_THROW
             );
 
-    public EpicFightChargedTwinBladeStaffCapability(CapabilityItem.Builder builder) {
+    public EpicFightChargedTwinBladeStaffCapability(WeaponCapability.Builder builder) {
         super(builder);
     }
 

@@ -16,7 +16,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class ManaForceBladeSheathRenderer extends GeoItemRenderer<ManaForceBladeSheathItem> {
     private static final String HOLDER_EMISSIVE_BONE = "holder_emissive";
@@ -34,15 +34,15 @@ public class ManaForceBladeSheathRenderer extends GeoItemRenderer<ManaForceBlade
     public void postRender(PoseStack poseStack, ManaForceBladeSheathItem animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
                            float partialTick, int packedLight, int packedOverlay,
-                           float red, float green, float blue, float alpha) {
+                           int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
         }
 
-        var brightness = resolveHolderEmissiveBrightness(partialTick);
+        var emissiveColour = resolveHolderEmissiveColour(partialTick, colour);
         this.holderEmissivePass = true;
         try {
             // holder_emissive は環境光に潰されない魔力部品として、専用フルブライトパスだけで描く。
@@ -56,10 +56,7 @@ public class ManaForceBladeSheathRenderer extends GeoItemRenderer<ManaForceBlade
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    brightness,
-                    brightness,
-                    brightness,
-                    alpha
+                    emissiveColour
             );
         } finally {
             this.holderEmissivePass = false;
@@ -70,7 +67,7 @@ public class ManaForceBladeSheathRenderer extends GeoItemRenderer<ManaForceBlade
     public void renderRecursively(PoseStack poseStack, ManaForceBladeSheathItem animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var holderEmissiveBone = isBoneOrChildOf(bone, HOLDER_EMISSIVE_BONE);
 
         if (!this.holderEmissivePass && holderEmissiveBone) {
@@ -80,14 +77,14 @@ public class ManaForceBladeSheathRenderer extends GeoItemRenderer<ManaForceBlade
         if (this.holderEmissivePass) {
             renderHolderEmissivePassBone(
                     poseStack, animatable, bone, holderEmissiveBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -101,34 +98,34 @@ public class ManaForceBladeSheathRenderer extends GeoItemRenderer<ManaForceBlade
                                               boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                               VertexConsumer buffer, boolean isReRender, float partialTick,
                                               int packedLight, int packedOverlay,
-                                              float red, float green, float blue, float alpha) {
+                                              int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha
+                packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, ManaForceBladeSheathItem animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -140,18 +137,16 @@ public class ManaForceBladeSheathRenderer extends GeoItemRenderer<ManaForceBlade
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
 
-    private static float resolveHolderEmissiveBrightness(float partialTick) {
+    private static int resolveHolderEmissiveColour(float partialTick, int colour) {
         var level = Minecraft.getInstance().level;
         float tick = level == null ? partialTick : level.getGameTime() + partialTick;
-        return 0.95F + Mth.sin(tick / 20.0F * Mth.TWO_PI) * 0.05F;
+        var brightness = Mth.clamp(Math.round((0.95F + Mth.sin(tick / 20.0F * Mth.TWO_PI) * 0.05F) * 255.0F), 0, 255);
+        return (colour & 0xFF000000) | (brightness << 16) | (brightness << 8) | brightness;
     }
 
     private static boolean isBoneOrChildOf(GeoBone bone, String rootBoneName) {

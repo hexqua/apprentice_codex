@@ -4,16 +4,17 @@ import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.IdentifierProvider;
+import yesman.epicfight.api.event.types.animation.AnimationBeginEvent;
+import yesman.epicfight.api.event.types.animation.AnimationEndEvent;
+import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
-import yesman.epicfight.world.entity.eventlistener.AnimationBeginEvent;
-import yesman.epicfight.world.entity.eventlistener.AnimationEndEvent;
-import yesman.epicfight.world.entity.eventlistener.AttackPhaseEndEvent;
-import yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 public final class EpicFightSwingMagicCompat {
     public static final String MOD_ID = "epicfight";
 
-    private static final UUID SWING_MAGIC_EVENT_UUID = UUID.fromString("c3e82f78-5e2e-41b7-86af-f38c7adcb8bd");
+    private static final String SWING_MAGIC_EVENT_ID = "apprenticecodex:swing_magic";
     private static final Set<UUID> INSTALLED_PLAYERS = ConcurrentHashMap.newKeySet();
     private static final ConcurrentMap<TriggerKey, Long> LAST_TRIGGERED_TICKS = new ConcurrentHashMap<>();
     private static final ConcurrentMap<UUID, List<TimedTrigger>> TIMED_TRIGGERS = new ConcurrentHashMap<>();
@@ -41,20 +42,20 @@ public final class EpicFightSwingMagicCompat {
 
         EpicFightCapabilities.getUnparameterizedEntityPatch(player, ServerPlayerPatch.class).ifPresent(playerpatch -> {
             // Epic Fight は vanilla の attack input を経由しないため、攻撃フェーズ終端を swing 発動点として使う。
-            playerpatch.getEventListener().addEventListener(
-                    EventType.ATTACK_PHASE_END_EVENT,
-                    SWING_MAGIC_EVENT_UUID,
-                    EpicFightSwingMagicCompat::onAttackPhaseEnd
+            playerpatch.getEventListener().registerEvent(
+                    EpicFightEventHooks.Animation.ATTACK_PHASE_END,
+                    EpicFightSwingMagicCompat::onAttackPhaseEnd,
+                    IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
             );
-            playerpatch.getEventListener().addEventListener(
-                    EventType.ANIMATION_BEGIN_EVENT,
-                    SWING_MAGIC_EVENT_UUID,
-                    EpicFightSwingMagicCompat::onAnimationBegin
+            playerpatch.getEventListener().registerEvent(
+                    EpicFightEventHooks.Animation.BEGIN,
+                    EpicFightSwingMagicCompat::onAnimationBegin,
+                    IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
             );
-            playerpatch.getEventListener().addEventListener(
-                    EventType.ANIMATION_END_EVENT,
-                    SWING_MAGIC_EVENT_UUID,
-                    EpicFightSwingMagicCompat::onAnimationEnd
+            playerpatch.getEventListener().registerEvent(
+                    EpicFightEventHooks.Animation.END,
+                    EpicFightSwingMagicCompat::onAnimationEnd,
+                    IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
             );
             INSTALLED_PLAYERS.add(player.getUUID());
         });
@@ -73,15 +74,17 @@ public final class EpicFightSwingMagicCompat {
     }
 
     private static void onAnimationBegin(AnimationBeginEvent event) {
-        var player = event.getPlayerPatch().getOriginal();
-
-        var animation = event.getAnimation();
-        if (animation == null) {
+        if (!(event.getEntityPatch().getOriginal() instanceof Player player)) {
             return;
         }
+        var animationAccessor = event.getAnimation();
+        if (animationAccessor == null || !animationAccessor.isPresent()) {
+            return;
+        }
+        var animation = animationAccessor.get();
 
         // datapack 側は Epic Fight の登録IDで書く。location はアニメーションファイル位置なので互換用の予備に留める。
-        var schedule = EpicFightSwingMagicScheduleManager.getSchedule(animation.getRegistryName());
+        var schedule = EpicFightSwingMagicScheduleManager.getSchedule(animationAccessor.registryName());
         if (schedule == null) {
             schedule = EpicFightSwingMagicScheduleManager.getSchedule(animation.getLocation());
         }
@@ -89,7 +92,7 @@ public final class EpicFightSwingMagicCompat {
             return;
         }
 
-        scheduleTimedTriggers(player, animation, event.getPlayerPatch(), schedule);
+        scheduleTimedTriggers(player, animation, event.getEntityPatch(), schedule);
     }
 
     private static void scheduleTimedTriggers(
@@ -118,11 +121,15 @@ public final class EpicFightSwingMagicCompat {
     }
 
     private static void onAnimationEnd(AnimationEndEvent event) {
-        var player = event.getPlayerPatch().getOriginal();
+        if (!(event.getEntityPatch().getOriginal() instanceof Player player)) {
+            return;
+        }
         var playerId = player.getUUID();
         var animation = event.getAnimation();
         var activeScheduledAnimationId = ACTIVE_SCHEDULED_ANIMATION_IDS.get(playerId);
-        if (animation != null && activeScheduledAnimationId != null && activeScheduledAnimationId == animation.getId()) {
+        if (animation != null && animation.isPresent()
+                && activeScheduledAnimationId != null
+                && activeScheduledAnimationId == animation.get().getId()) {
             TIMED_TRIGGERS.remove(playerId);
             ACTIVE_SCHEDULED_ANIMATION_IDS.remove(playerId);
             return;
@@ -133,13 +140,15 @@ public final class EpicFightSwingMagicCompat {
             return;
         }
 
-        if (animation != null && triggers.get(0).animationId() == animation.getId()) {
+        if (animation != null && animation.isPresent() && triggers.get(0).animationId() == animation.get().getId()) {
             TIMED_TRIGGERS.remove(player.getUUID());
         }
     }
 
     private static void onAttackPhaseEnd(AttackPhaseEndEvent event) {
-        var player = event.getPlayerPatch().getOriginal();
+        if (!(event.getEntityPatch().getOriginal() instanceof Player player)) {
+            return;
+        }
         var activeScheduledAnimationId = ACTIVE_SCHEDULED_ANIMATION_IDS.get(player.getUUID());
         if (activeScheduledAnimationId != null && activeScheduledAnimationId == getAnimationId(event.getAnimation())) {
             return;

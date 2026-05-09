@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 
 public final class EpicFightCompat {
     public static final String MOD_ID = "epicfight";
