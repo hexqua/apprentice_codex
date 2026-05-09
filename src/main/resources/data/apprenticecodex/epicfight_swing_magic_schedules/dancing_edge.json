@@ -1,0 +1,17 @@
+{
+  "animation": "epicfight:biped/skill/dancing_edge",
+  "triggers": [
+    {
+      "time": 0.25,
+      "hand": "mainhand"
+    },
+    {
+      "time": 0.4,
+      "hand": "offhand"
+    },
+    {
+      "time": 0.6,
+      "hand": "mainhand"
+    }
+  ]
+}

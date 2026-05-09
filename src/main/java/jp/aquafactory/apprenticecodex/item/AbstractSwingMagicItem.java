@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -194,11 +195,15 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
     }
 
     public final boolean tryTriggerImbuedSpellOnSwing(Player player, boolean bypassChargeCheck) {
+        return tryTriggerImbuedSpellOnSwing(player, InteractionHand.MAIN_HAND, bypassChargeCheck);
+    }
+
+    public final boolean tryTriggerImbuedSpellOnSwing(Player player, InteractionHand hand, boolean bypassChargeCheck) {
         if (player.level().isClientSide) {
             return false;
         }
 
-        var stack = player.getMainHandItem();
+        var stack = player.getItemInHand(hand);
         if (!isSameItem(stack) || (!bypassChargeCheck && !isFullyChargedAttack(player))) {
             return false;
         }
@@ -219,7 +224,7 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
         }
 
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
-        return tryCastSpell(player, stack, spell, spellLevel, magicData);
+        return tryCastSpell(player, stack, spell, spellLevel, magicData, resolveSpellSelectionSlot(hand));
     }
 
     private boolean matchesImbuedSpell(ItemStack stack, @Nullable AbstractSpell spell) {
@@ -256,6 +261,17 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
     }
 
     protected boolean tryCastSpell(Player player, ItemStack stack, AbstractSpell spell, int spellLevel, @Nullable MagicData magicData) {
+        return tryCastSpell(player, stack, spell, spellLevel, magicData, SpellSelectionManager.MAINHAND);
+    }
+
+    protected boolean tryCastSpell(
+            Player player,
+            ItemStack stack,
+            AbstractSpell spell,
+            int spellLevel,
+            @Nullable MagicData magicData,
+            String slotId
+    ) {
         AutoCloseable contextHandle = openSwingTriggeredSpellCastContext(player, stack, spell, spellLevel, magicData);
         try {
             var casted = spell.attemptInitiateCast(
@@ -265,7 +281,7 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
                     player,
                     io.redspace.ironsspellbooks.api.spells.CastSource.SWORD,
                     true,
-                    SpellSelectionManager.MAINHAND
+                    slotId
             );
             if (!casted) {
                 return false;
@@ -276,7 +292,7 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
                     spellLevel,
                     spell,
                     magicData,
-                    SpellSelectionManager.MAINHAND,
+                    slotId,
                     getSwingTriggeredLongCastDurationOverrideTicks(player, stack, spell, spellLevel, magicData)
             );
             return true;
@@ -287,6 +303,10 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
                 throw new IllegalStateException("Failed to close swing-triggered cast context.", e);
             }
         }
+    }
+
+    private static String resolveSpellSelectionSlot(InteractionHand hand) {
+        return hand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
     }
 
     @Override

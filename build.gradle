@@ -150,6 +150,12 @@ dependencies {
     // runtimeOnly "maven.modrinth:cloth-config:DqgODWcH"
     // runtimeOnly "maven.modrinth:better-combat:2NyTus6V"
 
+    // Epic Fight.
+    // 武器関連対応、特殊武器アクション(e.g. 打撃詠唱杖の魔法発動)のコード接続用に参照も含める.
+    // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
+    compileOnly "maven.modrinth:epic-fight:${epicfight_version}"
+    // runtimeOnly "maven.modrinth:epic-fight:${epicfight_version}"
+
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
     compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
@@ -215,6 +221,8 @@ tasks.named('processResources', ProcessResources).configure {
             jade_version           : jade_version,
             lodestone_version      : lodestone_version,
             malum_version          : malum_version,
+            epicfight_version      : epicfight_version,
+            epicfight_mod_version  : epicfight_mod_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

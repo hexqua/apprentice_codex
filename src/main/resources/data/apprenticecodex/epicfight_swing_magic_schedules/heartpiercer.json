@@ -1,0 +1,17 @@
+{
+  "animation": "epicfight:biped/skill/heartpiercer",
+  "triggers": [
+    {
+      "time": 0.3333,
+      "hand": "mainhand"
+    },
+    {
+      "time": 0.5333,
+      "hand": "mainhand"
+    },
+    {
+      "time": 0.75,
+      "hand": "mainhand"
+    }
+  ]
+}

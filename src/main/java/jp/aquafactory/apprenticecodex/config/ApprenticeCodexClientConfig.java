@@ -6,6 +6,7 @@ public final class ApprenticeCodexClientConfig {
     public static final ModConfigSpec SPEC;
     private static final ModConfigSpec.BooleanValue ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION;
     private static final ModConfigSpec.BooleanValue ENABLE_SPELLGUN_AMMO_HUD;
+    private static final ModConfigSpec.BooleanValue ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING;
     private static final ModConfigSpec.BooleanValue DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS;
 
     static {
@@ -17,6 +18,12 @@ public final class ApprenticeCodexClientConfig {
         ENABLE_SPELLGUN_AMMO_HUD = builder
                 .comment("スペルガンの残弾 HUD をクロスヘア付近に表示する")
                 .define("enableSpellgunAmmoHud", true);
+        ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING = builder
+                .comment(
+                        "Render the Mana Force Blade sheath on your hip when the blade is in your hotbar.",
+                        "Always disabled in Epic Fight environments."
+                )
+                .define("enableManaForceBladeHotbarSheathRendering", true);
         builder.pop();
 
         builder.push("Blocks");
@@ -37,6 +44,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean enableSpellgunAmmoHud() {
         return ENABLE_SPELLGUN_AMMO_HUD.get();
+    }
+
+    public static boolean enableManaForceBladeHotbarSheathRendering() {
+        return ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING.get();
     }
 
     public static boolean disableEssenceSmokerParticleTextureAnalysis() {

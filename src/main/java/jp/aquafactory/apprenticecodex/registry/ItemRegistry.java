@@ -47,6 +47,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.NetheriteSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
@@ -263,6 +264,8 @@ public final class ItemRegistry {
             ITEMS.register("charged_twin_blade_staff", ChargedTwinBladeStaff::new);
     public static final DeferredHolder<Item, Item> MANA_FORCE_BLADE =
             ITEMS.register("mana_force_blade", ManaForceBlade::new);
+    public static final DeferredHolder<Item, Item> MANA_FORCE_BLADE_SHEATH =
+            ITEMS.register("mana_force_blade_sheath", ManaForceBladeSheathItem::new);
     public static final DeferredHolder<Item, Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> IRON_SWINGCAST_STAFF =

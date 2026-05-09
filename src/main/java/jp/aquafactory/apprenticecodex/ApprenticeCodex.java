@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.ApprenticeDeskConfigSyncEvents;
@@ -64,6 +65,7 @@ public class ApprenticeCodex
         MenuRegistry.register(modEventBus);
         CreativeTabRegistry.register(modEventBus);
         CreateCompat.register(modEventBus);
+        EpicFightCompat.register(modEventBus);
         ParticleRegistry.PARTICLES.register(modEventBus);
         RecipeRegistry.register(modEventBus);
         RecipeConditionRegistry.register(modEventBus);

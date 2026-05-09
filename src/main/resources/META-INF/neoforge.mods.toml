@@ -91,3 +91,10 @@ config="mixins.apprenticecodex.json"
     versionRange="[${patchouli_version},)"
     ordering="AFTER"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="epicfight"
+    type="optional"
+    versionRange="[${epicfight_mod_version},)"
+    ordering="AFTER"
+    side="BOTH"
