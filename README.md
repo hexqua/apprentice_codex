@@ -78,44 +78,13 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 ## PR 運用
 
 - `1.21.1-main` への取り込みは PR 経由で行い、`PR CI / build-and-gametest` の成功を必須とします。
+- Codex Cloud のスマートトリガーレビューをレビュー補助として使います。人間の判断と CI 通過を置き換えるものではありません。
 - GitHub Actions は `pull_request` でのみ実行し、`pull_request_target` は使いません。
 - CI では secrets を使いません。workflow 権限は read-only に固定します。
 - 通常の PR は `Create a merge commit` を使います。
 - バージョン更新 PR だけは `Rebase and merge` を使ってかまいません。
 - `Squash and merge` は使いません。
 - GitHub 側の設定手順と bootstrap 順序は `docs/github-pr-protection.md` を参照してください。
-
-## データパック調整
-
-- 親和ポーションの素材は、既定では各 school の `focus` を使います。
-- `focus` が他 school と衝突する場合は、`data/apprenticecodex/school_affinity_catalysts/*.json` で school ごとに親和用触媒を別指定できます。
-- 親和用触媒ではレシピ曖昧化を避けるため、`minecraft:redstone` は `minecraft:redstone_block`、`minecraft:glowstone_dust` は `minecraft:glowstone` として扱います。
-- `Rift Hole` でトンネル化させたくないブロックは、`data/apprenticecodex/tags/blocks/rift_hole_tunnel_denylist.json` に追加できます。
-- `Rift Hole` は開始地点が拒否対象なら詠唱失敗し、途中に拒否対象がある場合はその位置だけを残して部分的に通路を作ります。
-- 形式例:
-
-```json
-{
-  "overrides": [
-    {
-      "school": "examplemod:some_school",
-      "item": "minecraft:amethyst_shard"
-    }
-  ]
-}
-```
-
-- 同じ item に複数 school を割り当てた場合、その item を共有する school だけ親和レシピが無効になります。
-- `Rift Hole` 用タグ例:
-
-```json
-{
-  "values": [
-    "minecraft:obsidian",
-    "minecraft:crying_obsidian"
-  ]
-}
-```
 
 ## ライセンスや使用について
 
