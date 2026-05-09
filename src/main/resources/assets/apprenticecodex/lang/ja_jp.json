@@ -702,7 +702,7 @@
   "death.attack.apprenticecodex.shock": "%1$sは%2$sによって分解された",
   "death.attack.apprenticecodex.silent_assassin": "%1$sは%2$sへ依頼の中止を頼むことはできなかった",
   "death.attack.apprenticecodex.tiro_volley": "%1$sは%2$sへ抗う覚悟を持つことができなかった",
-  "death.attack.apprenticecodex.magic_spar": "%1$sは%2$sに撃墜された",
+  "death.attack.apprenticecodex.magic_spear": "%1$sは%2$sに撃墜された",
   "death.attack.apprenticecodex.frost_rune": "%1$sは警戒を怠ったことを後悔した",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",

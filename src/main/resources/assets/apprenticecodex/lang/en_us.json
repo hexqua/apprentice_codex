@@ -689,7 +689,7 @@
   "death.attack.apprenticecodex.shock": "%1$s was disassembled by %2$s's shock.",
   "death.attack.apprenticecodex.silent_assassin": "%1$s could not request cancellation from %2$s",
   "death.attack.apprenticecodex.tiro_volley": "%1$s could not muster the resolve to resist %2$s",
-  "death.attack.apprenticecodex.magic_spar": "%1$s was shot down by %2$s",
+  "death.attack.apprenticecodex.magic_spear": "%1$s was shot down by %2$s",
   "death.attack.apprenticecodex.frost_rune": "%1$s regretted neglecting vigilance",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
