@@ -1,6 +1,6 @@
 # GitHub PR 保護設定（`1.21.1-main`）
 
-このリポジトリでは `1.21.1-main` への反映を PR に統一し、`PR CI / build-and-gametest` が成功しない限りマージしない。
+このリポジトリでは `1.21.1-main` への反映を PR に統一し、`PR CI / build-and-gametest` が成功しない限りマージしない。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
 
 ## 1. Actions セキュリティ設定
 
@@ -50,10 +50,30 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-21-1-main-pr-ci-protection
 - 通常変更は `Create a merge commit` を使う。
 - バージョン更新 PR だけ `Rebase and merge` を使ってよい。
 
-## 4. 受け入れ確認
+必要に応じて次も有効化する。
+
+- Dismiss stale pull request approvals when new commits are pushed
+- Require conversation resolution before merging
+
+## 4. Codex Cloud スマートトリガーレビュー
+
+- PR 作成後、Codex Cloud のスマートトリガーレビューを走らせる。
+- 指摘が出た場合は、修正するか、見送る理由を PR 上で明示する。
+- スマートトリガーレビューは必須 CI の代替にしない。`PR CI / build-and-gametest` と人間のレビューを最終判断に使う。
+- 将来、Codex Cloud 側で安定した check 名を required status check にできる状態になった場合のみ、Ruleset への追加を検討する。
+
+## 5. Merge 運用
+
+- `1.21.1-main` への直接 push は行わず、バージョン更新を含めて PR で流す。
+- このリポジトリでは通常変更は `Create a merge commit` を使う。
+- バージョン更新 PR だけは、`1.21.1-main` 上の見た目を直積みに近づけるため `Rebase merge` を使ってよい。
+- `Squash merge` は無効化し、`Rebase merge` は有効のまま残す。
+
+## 6. 受け入れ確認
 
 1. 軽微な変更で `1.21.1-main` 向け PR を作成し、`PR CI / build-and-gametest` が自動起動することを確認する。
 2. workflow を含む最初の PR では、required check 未設定の状態で CI 成功後に merge できることを確認する。
 3. workflow 反映後に ruleset へ `PR CI / build-and-gametest` を required check として追加する。
 4. 以後の PR では、この check が成功しない限り merge できないことを確認する。
 5. merge 可否まで確認したい場合は、無害な docs 変更を使った検証 PR を 1 本だけ merge してもよい。
+6. Codex Cloud のスマートトリガーレビューが PR 上で確認でき、指摘の対応状況を追えることを確認する。
