@@ -24,6 +24,7 @@ public final class SwingMagicEpicFightEvents {
         }
 
         EpicFightSwingMagicCompat.install(player);
+        EpicFightSwingMagicCompat.tick(player);
     }
 
     @SubscribeEvent
