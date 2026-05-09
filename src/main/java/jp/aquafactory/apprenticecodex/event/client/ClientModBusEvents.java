@@ -26,6 +26,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.renderer.ManaForceBladeSheathLayer;
 import jp.aquafactory.apprenticecodex.renderer.curio.AshenCircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
@@ -416,11 +417,13 @@ public final class ClientModBusEvents {
         var defaultPlayerRenderer = (PlayerRenderer) event.getSkin(PlayerSkin.Model.WIDE);
         if (defaultPlayerRenderer != null) {
             defaultPlayerRenderer.addLayer(new SpectralWingLayer(defaultPlayerRenderer));
+            defaultPlayerRenderer.addLayer(new ManaForceBladeSheathLayer(defaultPlayerRenderer));
         }
 
         var slimPlayerRenderer = (PlayerRenderer) event.getSkin(PlayerSkin.Model.SLIM);
         if (slimPlayerRenderer != null) {
             slimPlayerRenderer.addLayer(new SpectralWingLayer(slimPlayerRenderer));
+            slimPlayerRenderer.addLayer(new ManaForceBladeSheathLayer(slimPlayerRenderer));
         }
     }
 
