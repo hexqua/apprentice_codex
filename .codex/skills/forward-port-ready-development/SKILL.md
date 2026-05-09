@@ -15,7 +15,7 @@ description: Keep 1.20.1 Forge changes easy to forward-port into `1.21.1-main`. 
 2. `references/commit-shaping.md` を読み、1 機能をどの粒度でコミットに分けるか決める。
 3. datagen や JSON 配置変更がある場合は `references/resource-diff-hygiene.md` を読む。
 4. Forge 固有 API や登録コードを触る場合は `references/loader-boundary.md` を読む。
-5. 実装後に `git diff --name-status` と `./gradlew.bat build` で差分と build を確認する。
+5. 実装後に `git diff --name-status` で差分を確認する。コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` も通す。
 
 ## Workflow
 
@@ -40,7 +40,7 @@ description: Keep 1.20.1 Forge changes easy to forward-port into `1.21.1-main`. 
 
 - `git diff --name-status` で無関係差分の混入と削除差分の見落としを確認する。
 - datagen や手置き JSON を触ったら、旧配置が消えているかを差分上で確認する。
-- 最後に `./gradlew.bat build` を通し、レビュー時に「port しやすい差分か」を説明できる状態にする。
+- コード、リソース、依存、datagen に影響する変更では最後に `./gradlew.bat build` を通す。ドキュメントのみの変更では省略してよいが、レビュー時に省略理由を説明できる状態にする。
 
 ## References
 
