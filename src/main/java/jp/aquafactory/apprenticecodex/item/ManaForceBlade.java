@@ -40,6 +40,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +59,9 @@ import java.util.function.Consumer;
 public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem {
     public static final float DISPLAY_ATTACK_DAMAGE = 6.0F;
     public static final int COOLDOWN_TICKS = 40;
+    private static final String EPICFIGHT_MOD_ID = "epicfight";
+    private static final String DESCRIPTION_TRANSLATION_KEY = "item.apprenticecodex.mana_force_blade.desc";
+    private static final String EPICFIGHT_DESCRIPTION_TRANSLATION_KEY = DESCRIPTION_TRANSLATION_KEY + ".epicfight";
 
     private static final int DURABILITY = 2031;
     private static final int USE_DURATION = 72000;
@@ -119,6 +123,10 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
         if (usedHand != InteractionHand.MAIN_HAND) {
             return InteractionResultHolder.pass(stack);
         }
+        if (ModList.get().isLoaded(EPICFIGHT_MOD_ID)) {
+            // Epic Fight では GuardSkill と専用互換 listener 側へ任せる。ここで使用状態に入ると vanilla 由来の防御姿勢が混ざる。
+            return InteractionResultHolder.consume(stack);
+        }
 
         player.startUsingItem(usedHand);
         return InteractionResultHolder.consume(stack);
@@ -155,7 +163,7 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
 
-        lines.add(Component.translatable("item.apprenticecodex.mana_force_blade.desc").withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(resolveDescriptionTranslationKey()).withStyle(ChatFormatting.GRAY));
         if (hasImbuedSpell(stack)) {
             lines.add(Component.translatable(
                     "item.apprenticecodex.mana_force_blade.desc.imbue_help",
@@ -165,6 +173,12 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
             lines.add(Component.translatable("item.apprenticecodex.mana_force_blade.desc.no_imbue")
                     .withStyle(ChatFormatting.GRAY));
         }
+    }
+
+    private static String resolveDescriptionTranslationKey() {
+        return ModList.get().isLoaded(EPICFIGHT_MOD_ID)
+                ? EPICFIGHT_DESCRIPTION_TRANSLATION_KEY
+                : DESCRIPTION_TRANSLATION_KEY;
     }
 
     @Override

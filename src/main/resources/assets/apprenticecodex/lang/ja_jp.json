@@ -137,6 +137,7 @@
   "item.apprenticecodex.charged_twin_blade_staff.desc.channeling.hint": "召雷がエンチャントされると投擲先で魔法を発動できる。",
   "item.apprenticecodex.charged_twin_blade_staff.desc.channeling.not_supported": "%sは杖に適合していないため発動しない。",
   "item.apprenticecodex.mana_force_blade.desc": "使用することで構えを取り、マナを消費して攻撃を防ぐことができる。",
+  "item.apprenticecodex.mana_force_blade.desc.epicfight": "打刀と同じガードスキルが対応しており、通常ガードでもマナを消費して矢を弾くことができる。",
   "item.apprenticecodex.mana_force_blade.desc.no_imbue": "魔法を注入することでその系統に同調して攻撃力を上昇させる。",
   "item.apprenticecodex.mana_force_blade.desc.imbue_help": "攻撃命中時にマナを%d消費する。",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "詠唱が簡単な魔法用の実包",
