@@ -145,7 +145,7 @@ public final class EpicFightSwingMagicCompat {
             return;
         }
 
-        var hand = resolveSwingMagicHand(player, event);
+        var hand = resolveAttackHand(event);
         triggerSwingMagic(player, hand, TriggerSource.ATTACK_PHASE, getAnimationId(event.getAnimation()), event.getPhaseOrder());
     }
 
@@ -192,10 +192,6 @@ public final class EpicFightSwingMagicCompat {
         }
 
         swingMagicItem.tryTriggerImbuedSpellOnSwing(player, hand, true);
-    }
-
-    private static InteractionHand resolveSwingMagicHand(Player player, AttackPhaseEndEvent event) {
-        return resolveAvailableSwingMagicHand(player, resolveAttackHand(event));
     }
 
     private static InteractionHand resolveAvailableSwingMagicHand(Player player, InteractionHand preferredHand) {
