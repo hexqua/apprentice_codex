@@ -133,6 +133,7 @@
   "item.apprenticecodex.charged_twin_blade_staff.desc.channeling.hint": "Channeling Enchantment allows throw casting.",
   "item.apprenticecodex.charged_twin_blade_staff.desc.channeling.not_supported": "%s is not compatible with the staff and will not activate.",
   "item.apprenticecodex.mana_force_blade.desc": "Hold use to guard, spending mana to block attacks.",
+  "item.apprenticecodex.mana_force_blade.desc.epicfight": "Supports Epic Fight guard skills like an uchigatana, and can spend mana to deflect arrows even with a normal guard.",
   "item.apprenticecodex.mana_force_blade.desc.no_imbue": "Imbue a spell to attune this blade to its school and increase attack damage.",
   "item.apprenticecodex.mana_force_blade.desc.imbue_help": "Hits consume %d mana.",
   "item.apprenticecodex.rapid_spellcaster_round.desc": "Ammo for simple casting spells",
