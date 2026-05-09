@@ -1,6 +1,6 @@
 {
   "renderer": "epicfight:uchigatana",
-  "sheath": "epicfight:uchigatana_sheath",
+  "sheath": "apprenticecodex:mana_force_blade_sheath",
   "trail": {
     "color": [
       99,
@@ -25,21 +25,14 @@
   "transforms": {
     "offhand": {
       "Chest": {
-        "translation": [
-          0.155,
-          0.165,
-          0.145
-        ],
-        "rotation": [
-          -50.0,
-          -86.0,
-          3.0
-        ],
-        "scale": [
-          1,
-          1,
-          1
-        ]
+        "translation": [0, 0, 0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [1, 1, 1]
+      },
+      "Tool_L": {
+        "translation": [0, 0.05, 0.15],
+        "rotation": [100.0, 0.0, -10.0],
+        "scale": [1, 1, 1]
       }
     }
   }

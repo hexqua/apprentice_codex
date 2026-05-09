@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
@@ -245,6 +246,8 @@ public final class ItemRegistry {
             ITEMS.register("charged_twin_blade_staff", ChargedTwinBladeStaff::new);
     public static final RegistryObject<Item> MANA_FORCE_BLADE =
             ITEMS.register("mana_force_blade", ManaForceBlade::new);
+    public static final RegistryObject<Item> MANA_FORCE_BLADE_SHEATH =
+            ITEMS.register("mana_force_blade_sheath", ManaForceBladeSheathItem::new);
     public static final RegistryObject<Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
     public static final RegistryObject<Item> IRON_SWINGCAST_STAFF =
