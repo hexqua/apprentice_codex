@@ -1,0 +1,9 @@
+{
+  "type": "epicfight:uchigatana",
+  "attributes": {
+    "common": {
+      "impact": 1.1,
+      "max_strikes": 1
+    }
+  }
+}
