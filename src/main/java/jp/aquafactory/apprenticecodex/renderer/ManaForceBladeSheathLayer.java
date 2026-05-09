@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
@@ -95,6 +96,7 @@ public class ManaForceBladeSheathLayer<T extends LivingEntity, M extends EntityM
     private static boolean shouldRender(AbstractClientPlayer player) {
         var minecraft = Minecraft.getInstance();
         return minecraft.player == player
+                && ApprenticeCodexClientConfig.enableManaForceBladeHotbarSheathRendering()
                 && !player.isInvisible()
                 && !minecraft.options.getCameraType().isFirstPerson()
                 && !ModList.get().isLoaded(EPICFIGHT_MOD_ID);
