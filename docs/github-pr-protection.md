@@ -53,7 +53,6 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 ## 4. Merge 運用
 
 - `main` への直接 push は行わず、バージョン更新を含めて PR で流す。
-- push / PR 作成前にローカルレビューを行う。
 - このリポジトリでは通常変更は `Create a merge commit` を使う。
 - バージョン更新 PR だけは、`main` 上の見た目を直積みに近づけるため `Rebase merge` を使ってよい。
 - `Squash merge` は無効化し、`Rebase merge` は有効のまま残す。

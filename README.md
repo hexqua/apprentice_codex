@@ -80,7 +80,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 
 - `main` への反映は、バージョン更新を含めてすべて PR 経由で行います。
 - PR では GitHub Actions の `PR CI / build-and-gametest` が必須です。`build` と `runGameTestServer` の両方が成功しない限りマージしません。
-- Codex Cloud のスマートトリガーレビューをレビュー補助として使います。人間のローカルレビューと CI 通過を置き換えるものではありません。
+- Codex Cloud のスマートトリガーレビューをレビュー補助として使います。人間の判断と CI 通過を置き換えるものではありません。
 - CI は GitHub-hosted runner 上で `pull_request` イベントだけを使い、repository secrets は使いません。
 - workflow の action はフル SHA pin を前提にし、`GITHUB_TOKEN` は read-only に制限します。
 - 通常のマージ方法は `merge commit` を使います。
