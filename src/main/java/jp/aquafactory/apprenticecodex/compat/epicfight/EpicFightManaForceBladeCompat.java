@@ -75,11 +75,15 @@ public final class EpicFightManaForceBladeCompat {
 
         var player = playerpatch.getOriginal();
         var stack = player.getMainHandItem();
-        var wasBlockedByEpicFight = event.isCanceled();
-        if (!wasBlockedByEpicFight) {
+        var wasAlreadyBlockedByEpicFight = event.isCanceled();
+        var previousResult = event.getResult();
+        var previousParried = event.isParried();
+        var wasBlockedByThisCompat = false;
+        if (!wasAlreadyBlockedByEpicFight) {
             tryGuardWithEpicFight(guardContext, event);
-            wasBlockedByEpicFight = event.isCanceled();
+            wasBlockedByThisCompat = event.isCanceled();
         }
+        var wasBlockedByEpicFight = wasAlreadyBlockedByEpicFight || wasBlockedByThisCompat;
 
         if (!ManaForceBladeGuardLogic.tryHandleGuard(
                 player,
@@ -88,6 +92,12 @@ public final class EpicFightManaForceBladeCompat {
                 event.isParried(),
                 false
         )) {
+            if (wasBlockedByThisCompat) {
+                // Epic Fight の guard は先に event を確定するため、マナ/耐久不足では通常被弾へ戻す。
+                event.setCanceled(false);
+                event.setResult(previousResult);
+                event.setParried(previousParried);
+            }
             return;
         }
 
