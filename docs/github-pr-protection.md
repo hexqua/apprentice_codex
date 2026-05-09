@@ -1,6 +1,6 @@
 # GitHub PR 保護設定
 
-このリポジトリでは `main` への反映を PR に統一し、GitHub Actions の check run `build-and-gametest` が成功しない限りマージしない。
+このリポジトリでは `main` への反映を PR に統一し、GitHub Actions の check run `build-and-gametest` が成功しない限りマージしない。Codex Cloud のスマートトリガーレビューは PR レビュー補助として使い、CI と人間の判断を置き換えない。
 
 ## 1. Actions セキュリティ設定
 
@@ -43,16 +43,24 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `main-pr-ci-protection` を�
 - Dismiss stale pull request approvals when new commits are pushed
 - Require conversation resolution before merging
 
-## 3. Merge 運用
+## 3. Codex Cloud スマートトリガーレビュー
+
+- PR 作成後、Codex Cloud のスマートトリガーレビューを走らせる。
+- 指摘が出た場合は、修正するか、見送る理由を PR 上で明示する。
+- スマートトリガーレビューは必須 CI の代替にしない。`build-and-gametest` と人間のレビューを最終判断に使う。
+- 将来、Codex Cloud 側で安定した check 名を required status check にできる状態になった場合のみ、Ruleset への追加を検討する。
+
+## 4. Merge 運用
 
 - `main` への直接 push は行わず、バージョン更新を含めて PR で流す。
 - このリポジトリでは通常変更は `Create a merge commit` を使う。
 - バージョン更新 PR だけは、`main` 上の見た目を直積みに近づけるため `Rebase merge` を使ってよい。
 - `Squash merge` は無効化し、`Rebase merge` は有効のまま残す。
 
-## 4. 受け入れ確認
+## 5. 受け入れ確認
 
 1. 軽微な変更で PR を作成し、`PR CI / build-and-gametest` の workflow が自動起動し、`build-and-gametest` check run が記録されることを確認する。
 2. 意図的に GameTest を落とした PR で required check failure により merge できないことを確認する。
 3. 修正 push 後に同じ check 名で再実行され、成功時のみ merge 可能になることを確認する。
 4. `main` への直接 push が拒否されることを確認する。
+5. Codex Cloud のスマートトリガーレビューが PR 上で確認でき、指摘の対応状況を追えることを確認する。
