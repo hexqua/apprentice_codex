@@ -934,6 +934,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleRecastSkipsAmmoConsumption(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(helper);
     }

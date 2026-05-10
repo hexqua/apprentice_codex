@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
@@ -36,7 +37,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "22";
+    private static final String PROTOCOL_VERSION = "23";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -105,6 +106,13 @@ public final class Networks {
                 ClientSwingMagicAttackPacket::encode,
                 ClientSwingMagicAttackPacket::decode,
                 ClientSwingMagicAttackPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientMultipurposeStaffrifleCastPacket.class,
+                ClientMultipurposeStaffrifleCastPacket::encode,
+                ClientMultipurposeStaffrifleCastPacket::decode,
+                ClientMultipurposeStaffrifleCastPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

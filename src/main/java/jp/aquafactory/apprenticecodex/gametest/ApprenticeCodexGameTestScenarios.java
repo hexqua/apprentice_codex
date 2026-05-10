@@ -52,6 +52,8 @@ import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
@@ -9136,6 +9138,51 @@ public final class ApprenticeCodexGameTestScenarios {
                     expectedMultipurposeStaffrifleEnchantments(),
                     "Multipurpose Staffrifle"
             );
+        });
+    }
+
+    static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (MultipurposeStaffrifle) ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get();
+            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 10) == 0,
+                    "Multipurpose Staffrifle should remove cooldowns at the default bypass threshold");
+            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 11) == 20 * 10,
+                    "Multipurpose Staffrifle should not reduce longer cooldowns below the default minimum");
+            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 60) == 20 * 30,
+                    "Multipurpose Staffrifle should subtract the default 30 seconds from long cooldowns");
+        });
+    }
+
+    static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_recast_ammo_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            var ammoStack = new ItemStack(ItemRegistry.RAPID_SPELLCASTER_ROUND.get(), 1);
+            player.getInventory().add(ammoStack);
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setPlayerCastingItem(stack);
+            try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, true)) {
+                MultipurposeStaffrifleCastEvent.onSpellCast(new SpellOnCastEvent(
+                        player,
+                        spell.getSpellId(),
+                        1,
+                        spell.getManaCost(1),
+                        spell.getSchoolType(),
+                        CastSource.SWORD
+                ));
+            } catch (Exception exception) {
+                throw new IllegalStateException("Failed to close Multipurpose Staffrifle test context.", exception);
+            }
+
+            helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
+                    player,
+                    player.getInventory(),
+                    item.getAmmoItem(stack)
+            ) == 1, "Multipurpose Staffrifle recast should not consume Rapid Spellcaster Round");
         });
     }
 

@@ -610,6 +610,9 @@
  "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down": "回路过热，无法施法...",
  "ui.apprenticecodex.flask_system.mismatch_flask_type.warning": "%1$s 与 %2$s 不匹配，若直接汲取，使用时消耗量会增加",
  "ui.apprenticecodex.flask_system.drink_with_force_normal": "正常饮用 %s：额外剂量！",
+ "ui.apprenticecodex.multipurpose_staffrifle.not_selected": "(todo:翻訳)魔法が選択されていない",
+ "ui.apprenticecodex.multipurpose_staffrifle.cannot_cast": "(todo:翻訳)%1$sは%2$sから射撃詠唱できない！",
+ "ui.apprenticecodex.multipurpose_staffrifle.deny_list": "(todo:翻訳)%1$sは世界の理から拒絶されている...",
 
  "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "无法移除默认注入法术",
  "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "该物品不允许提取法术",

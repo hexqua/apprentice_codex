@@ -5,26 +5,44 @@ import com.google.common.collect.Multimap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,10 +59,14 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class MultipurposeStaffrifle extends Item
-        implements GeoItem, NonDamageableAnvilMergeItem, IJeiInfoItem, CastAnimationOverrideItem {
+        implements GeoItem, NonDamageableAnvilMergeItem, IJeiInfoItem, CastAnimationOverrideItem, ManaBypassSpellItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.multipurpose_staffrifle.desc_";
     private static final String MAIN_CONTROLLER = "main";
+    private static final String FIRED_ANIMATION = "fired";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation ANIM_FIRED = RawAnimation.begin().thenPlay("fired");
+    private static final int MAX_USE_DURATION = 72000;
+    private static final float ADS_FOV_MODIFIER = 0.85F;
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
@@ -65,6 +87,27 @@ public final class MultipurposeStaffrifle extends Item
     @Override
     public String getJeiInfoTranslationKeyPrefix() {
         return JEI_INFO_KEY_PREFIX;
+    }
+
+    @Override
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
+        var stack = player.getItemInHand(usedHand);
+        if (usedHand != InteractionHand.MAIN_HAND) {
+            return InteractionResultHolder.fail(stack);
+        }
+
+        player.startUsingItem(usedHand);
+        return InteractionResultHolder.consume(stack);
+    }
+
+    @Override
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) {
+        return UseAnim.NONE;
+    }
+
+    @Override
+    public int getUseDuration(@NotNull ItemStack stack) {
+        return MAX_USE_DURATION;
     }
 
     @Override
@@ -132,7 +175,11 @@ public final class MultipurposeStaffrifle extends Item
             public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm,
                                                    ItemStack itemInHand, float partialTick, float equipProcess,
                                                    float swingProcess) {
-                applyChargedCrossbowHandTransform(poseStack, arm, equipProcess, swingProcess);
+                if (MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(player)) {
+                    applyAdsHandTransform(poseStack, arm, equipProcess);
+                } else {
+                    applyChargedCrossbowHandTransform(poseStack, arm, equipProcess, swingProcess);
+                }
                 return true;
             }
         });
@@ -143,7 +190,7 @@ public final class MultipurposeStaffrifle extends Item
         controllerRegistrar.add(new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
             state.setAnimation(ANIM_IDLE);
             return PlayState.CONTINUE;
-        }));
+        }).triggerableAnim(FIRED_ANIMATION, ANIM_FIRED));
     }
 
     @Override
@@ -153,7 +200,7 @@ public final class MultipurposeStaffrifle extends Item
 
     @Override
     public boolean shouldSuppressCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
-        return true;
+        return false;
     }
 
     @Override
@@ -168,7 +215,165 @@ public final class MultipurposeStaffrifle extends Item
 
     @Override
     public boolean shouldSuppressCastFinishAnimation(ItemStack stack, @Nullable AbstractSpell spell) {
+        return false;
+    }
+
+    @Override
+    public boolean supportsManaBypass(@Nullable AbstractSpell spell) {
+        return MultipurposeStaffrifleCastContext.isActiveSpell(spell);
+    }
+
+    public boolean tryTriggerSelectedSpell(ServerPlayer player, boolean adsFullAuto) {
+        if (adsFullAuto && !canAttemptAdsFullAuto(player)) {
+            return false;
+        }
+
+        var stack = player.getMainHandItem();
+        if (stack.isEmpty() || stack.getItem() != this) {
+            return false;
+        }
+
+        var selection = new SpellSelectionManager(player).getSelection();
+        if (selection == null
+                || selection.spellData == SpellData.EMPTY
+                || selection.spellData.getSpell() == SpellRegistry.none()) {
+            sendActionBarError(player, Component.translatable("ui.apprenticecodex.multipurpose_staffrifle.not_selected"));
+            return false;
+        }
+
+        var spellData = selection.spellData;
+        var spell = spellData.getSpell();
+        if (spell.getCastType() == CastType.CONTINUOUS) {
+            sendActionBarError(player, Component.translatable(
+                    "ui.apprenticecodex.multipurpose_staffrifle.cannot_cast",
+                    spell.getDisplayName(player),
+                    stack.getHoverName()
+            ));
+            return false;
+        }
+
+        if (SpellGunSpellListManager.isDenylisted(spell)) {
+            sendActionBarError(player, Component.translatable(
+                    "ui.apprenticecodex.multipurpose_staffrifle.deny_list",
+                    spell.getDisplayName(player)
+            ));
+            return false;
+        }
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        var recast = magicData != null && magicData.getPlayerRecasts().hasRecastForSpell(spell);
+        if (!player.isCreative() && !recast && !SpellGunCastEvent.hasAmmo(player, player.getInventory(), getAmmoItem(stack))) {
+            sendActionBarError(player, Component.translatable(
+                    "ui.apprenticecodex.missing_spell_gun_ammo",
+                    getAmmoItem(stack).getDescription()
+            ));
+            return false;
+        }
+
+        var borrowedMana = magicData == null || player.isCreative()
+                ? 0.0F
+                : Math.max(0.0F, spell.getManaCost(spellLevel) - magicData.getMana());
+        if (borrowedMana > 0.0F) {
+            // Iron's 側の開始判定はマナを要求するため、Spellgun 同様に一時補填して cast event で0消費へ戻す。
+            magicData.addMana(borrowedMana);
+        }
+
+        boolean casted;
+        try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, recast)) {
+            casted = spell.attemptInitiateCast(
+                    stack,
+                    spellLevel,
+                    player.level(),
+                    player,
+                    CastSource.SWORD,
+                    true,
+                    SpellSelectionManager.MAINHAND
+            );
+            if (casted) {
+                if (borrowedMana > 0.0F) {
+                    ItemManaBypassCastEvent.reserveBorrowedMana(player, borrowedMana);
+                }
+                TriggeredSpellCastHelper.applyLongCastDurationOverride(
+                        player,
+                        spellLevel,
+                        spell,
+                        magicData,
+                        SpellSelectionManager.MAINHAND,
+                        0
+                );
+            }
+        } catch (Exception exception) {
+            throw new IllegalStateException("Multipurpose Staffrifle special cast context failed to close.", exception);
+        }
+
+        if (!casted) {
+            if (borrowedMana > 0.0F) {
+                magicData.setMana(Math.max(0.0F, magicData.getMana() - borrowedMana));
+            }
+            return false;
+        }
+
+        triggerFiredAnimation(player, stack);
         return true;
+    }
+
+    public Item getAmmoItem(ItemStack stack) {
+        return ItemRegistry.RAPID_SPELLCASTER_ROUND.get();
+    }
+
+    public boolean shouldReturnEmptyCasing(Player player) {
+        var emptyCasingReturnChance = jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch
+                .applyEmptyCasingReturnChanceBonus(AbstractSpellGunItem.EMPTY_CASING_RETURN_CHANCE, player);
+        return emptyCasingReturnChance > 0.0F
+                && player.getRandom().nextFloat() < emptyCasingReturnChance;
+    }
+
+    public int resolveSpecialCooldownTicks(int originalCooldownTicks) {
+        var cooldown = Math.max(0, originalCooldownTicks);
+        if (cooldown <= ApprenticeCodexServerConfig.multipurposeStaffrifleCooldownBypassThresholdTicks()) {
+            return 0;
+        }
+
+        return Math.max(
+                ApprenticeCodexServerConfig.multipurposeStaffrifleReducedCooldownMinimumTicks(),
+                cooldown - ApprenticeCodexServerConfig.multipurposeStaffrifleCooldownReductionTicks()
+        );
+    }
+
+    public static boolean isAdsUse(@Nullable LivingEntity entity) {
+        if (entity == null || !entity.isUsingItem() || entity.getUsedItemHand() != InteractionHand.MAIN_HAND) {
+            return false;
+        }
+
+        var useItem = entity.getUseItem();
+        return !useItem.isEmpty() && useItem.getItem() instanceof MultipurposeStaffrifle;
+    }
+
+    public static float getAdsFovModifier() {
+        return ADS_FOV_MODIFIER;
+    }
+
+    public void triggerFiredAnimation(ServerPlayer serverPlayer, ItemStack stack) {
+        var instanceId = GeoItem.getOrAssignId(stack, serverPlayer.serverLevel());
+        triggerAnim(serverPlayer, instanceId, MAIN_CONTROLLER, FIRED_ANIMATION);
+    }
+
+    private static boolean canAttemptAdsFullAuto(ServerPlayer player) {
+        var interval = Math.max(1, ApprenticeCodexServerConfig.multipurposeStaffrifleAdsFullAutoIntervalTicks());
+        var tag = player.getPersistentData();
+        var gameTime = player.level().getGameTime();
+        var nextAllowedTick = tag.getLong("ApprenticeCodexMultipurposeStaffrifleNextFullAutoTick");
+        if (gameTime < nextAllowedTick) {
+            return false;
+        }
+
+        tag.putLong("ApprenticeCodexMultipurposeStaffrifleNextFullAutoTick", gameTime + interval);
+        return true;
+    }
+
+    private static void sendActionBarError(ServerPlayer player, Component component) {
+        player.connection.send(new ClientboundSetActionBarTextPacket(component.copy().withStyle(ChatFormatting.RED)));
     }
 
     private Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
@@ -288,5 +493,13 @@ public final class MultipurposeStaffrifle extends Item
         poseStack.mulPose(Axis.ZP.rotationDegrees(side * sinRootSwing * -20.0F));
         poseStack.mulPose(Axis.XP.rotationDegrees(sinRootSwing * -80.0F));
         poseStack.mulPose(Axis.YP.rotationDegrees(side * -45.0F));
+    }
+
+    private static void applyAdsHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        applyItemArmTransform(poseStack, arm, equipProcess);
+        poseStack.translate(side * -0.30F, -0.18F, 0.08F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * -8.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-8.0F));
     }
 }

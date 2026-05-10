@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -180,7 +181,8 @@ public final class EpicFightSwingMagicCompat {
             int triggerIndex
     ) {
         var stack = player.getItemInHand(hand);
-        if (!(stack.getItem() instanceof AbstractSwingMagicItem swingMagicItem)) {
+        if (!(stack.getItem() instanceof AbstractSwingMagicItem)
+                && !(stack.getItem() instanceof MultipurposeStaffrifle)) {
             return;
         }
 
@@ -191,20 +193,31 @@ public final class EpicFightSwingMagicCompat {
             return;
         }
 
-        swingMagicItem.tryTriggerImbuedSpellOnSwing(player, hand, true);
+        if (stack.getItem() instanceof AbstractSwingMagicItem swingMagicItem) {
+            swingMagicItem.tryTriggerImbuedSpellOnSwing(player, hand, true);
+        } else if (hand == InteractionHand.MAIN_HAND
+                && player instanceof ServerPlayer serverPlayer
+                && stack.getItem() instanceof MultipurposeStaffrifle staffrifle) {
+            staffrifle.tryTriggerSelectedSpell(serverPlayer, false);
+        }
     }
 
     private static InteractionHand resolveAvailableSwingMagicHand(Player player, InteractionHand preferredHand) {
-        if (player.getItemInHand(preferredHand).getItem() instanceof AbstractSwingMagicItem) {
+        if (isSupportedAttackTriggeredItem(player.getItemInHand(preferredHand))) {
             return preferredHand;
         }
 
         var fallbackHand = preferredHand == InteractionHand.MAIN_HAND
                 ? InteractionHand.OFF_HAND
                 : InteractionHand.MAIN_HAND;
-        return player.getItemInHand(fallbackHand).getItem() instanceof AbstractSwingMagicItem
+        return isSupportedAttackTriggeredItem(player.getItemInHand(fallbackHand))
                 ? fallbackHand
                 : preferredHand;
+    }
+
+    private static boolean isSupportedAttackTriggeredItem(net.minecraft.world.item.ItemStack stack) {
+        return stack.getItem() instanceof AbstractSwingMagicItem
+                || stack.getItem() instanceof MultipurposeStaffrifle;
     }
 
     private static InteractionHand resolveAttackHand(AttackPhaseEndEvent event) {
