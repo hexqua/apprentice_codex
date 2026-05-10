@@ -7,6 +7,9 @@ import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.api.client.BetterCombatClientEvents;
+import net.bettercombat.client.animation.AnimationRegistry;
+import net.bettercombat.client.animation.PlayerAttackAnimatable;
+import net.bettercombat.logic.AnimatedHand;
 import net.bettercombat.logic.WeaponRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -16,6 +19,9 @@ import java.util.List;
 
 public final class BetterCombatClientCompat {
     public static final String MOD_ID = "bettercombat";
+    private static final String STAFFRIFLE_SHOOT_ANIMATION = "apprenticecodex:staffrifle_shoot";
+    private static final float STAFFRIFLE_SHOOT_DURATION_TICKS = 9.0F;
+    private static final float STAFFRIFLE_SHOOT_UPSWING = 0.5F;
 
     private static boolean registered;
 
@@ -39,6 +45,20 @@ public final class BetterCombatClientCompat {
 
         var attributes = WeaponRegistry.getAttributes(player.getMainHandItem());
         return hasAttackSequence(attributes);
+    }
+
+    public static void playStaffrifleShootAnimation(Entity entity) {
+        var animationLoaded = AnimationRegistry.animations.containsKey(STAFFRIFLE_SHOOT_ANIMATION);
+        if (!(entity instanceof PlayerAttackAnimatable animatable) || !animationLoaded) {
+            return;
+        }
+
+        animatable.playAttackAnimation(
+                STAFFRIFLE_SHOOT_ANIMATION,
+                AnimatedHand.TWO_HANDED,
+                STAFFRIFLE_SHOOT_DURATION_TICKS,
+                STAFFRIFLE_SHOOT_UPSWING
+        );
     }
 
     private static void onAttackHit(LocalPlayer player, AttackHand attackHand, List<Entity> targets, Entity cursorTarget) {

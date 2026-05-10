@@ -1,11 +1,14 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientFireEffectState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -38,9 +41,18 @@ public record SyncMultipurposeStaffrifleFireEffectPacket(int shooterEntityId) {
                 return;
             }
 
-            if (minecraft.level.getEntity(packet.shooterEntityId()) == minecraft.player) {
+            var shooter = minecraft.level.getEntity(packet.shooterEntityId());
+            if (shooter == minecraft.player) {
                 MultipurposeStaffrifleClientFireEffectState.beginRecoil();
             }
+            if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)
+                    && shouldPlayBetterCombatShootAnimation(minecraft, shooter)) {
+                BetterCombatClientCompat.playStaffrifleShootAnimation(shooter);
+            }
+        }
+
+        private static boolean shouldPlayBetterCombatShootAnimation(Minecraft minecraft, Entity shooter) {
+            return shooter != minecraft.player || !minecraft.options.getCameraType().isFirstPerson();
         }
     }
 }
