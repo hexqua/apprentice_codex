@@ -621,6 +621,9 @@
   "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down": "回路が焼き切れそうなため詠唱できない...",
   "ui.apprenticecodex.flask_system.mismatch_flask_type.warning": "%1$sは%2$sには合わないため、このまま汲むと使用時に消費量が増加する",
   "ui.apprenticecodex.flask_system.drink_with_force_normal": "%sを通常化して飲用するため、余分に消費される！",
+  "ui.apprenticecodex.multipurpose_staffrifle.not_selected": "魔法が選択されていない",
+  "ui.apprenticecodex.multipurpose_staffrifle.cannot_cast": "%1$sは%2$sから射撃詠唱できない！",
+  "ui.apprenticecodex.multipurpose_staffrifle.deny_list": "%1$sは世界の理から拒絶されている...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "最初から注入されている魔法は取り出せない",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "このアイテムからは魔法は取り出せない",

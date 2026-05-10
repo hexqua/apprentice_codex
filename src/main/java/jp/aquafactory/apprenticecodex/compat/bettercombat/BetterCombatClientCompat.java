@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.compat.bettercombat;
 
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger;
+import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleInputEvent;
+import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.api.client.BetterCombatClientEvents;
@@ -48,6 +51,10 @@ public final class BetterCombatClientCompat {
             return;
         }
 
+        if (player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle
+                && !MultipurposeStaffrifleClientAdsState.isLocalAdsKeyHeld(player)) {
+            ClientMultipurposeStaffrifleInputEvent.sendSpecialCast(minecraft, false);
+        }
         ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft);
     }
 

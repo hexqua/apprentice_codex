@@ -610,6 +610,9 @@
   "ui.apprenticecodex.circuit_heat_staff.overheat_cool_down": "Circuit is overheating, cannot cast...",
   "ui.apprenticecodex.flask_system.mismatch_flask_type.warning": "Mismatch: extra dose on use",
   "ui.apprenticecodex.flask_system.drink_with_force_normal": "Drink %s normally: extra dose!",
+  "ui.apprenticecodex.multipurpose_staffrifle.not_selected": "No spell selected",
+  "ui.apprenticecodex.multipurpose_staffrifle.cannot_cast": "%1$s cannot be cast from %2$s...",
+  "ui.apprenticecodex.multipurpose_staffrifle.deny_list": "%1$s is denied by the world's reason...",
 
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_default": "Can't remove default imbued spell",
   "ui.apprenticecodex.spellcaster_workbench.cant_remove_not_allow": "This item does not allow spell extraction",
