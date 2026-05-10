@@ -119,7 +119,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
-                ItemRegistry.MANA_FORCE_BLADE.get()
+                ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()
         );
         // Focus Staffbow は StaffItem 継承に依存せず Staff 相当の主手エンチャ面を持たせたいので、
         // sword 系 tag と Malum 互換 tag、個別付与の Wisdom を明示追加する。
@@ -144,6 +145,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaFireAspectEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+
+        // Multipurpose Staffrifle は main hand で射撃攻撃する武器なので、Malum の主手武器 tag へ明示登録する。
+        malumSoulHunterWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
 
         // Charged Twin Blade Staff は剣/トライデント両面の enchant を許可するが、耐久系と超越は除外する。
         malumMagicCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
