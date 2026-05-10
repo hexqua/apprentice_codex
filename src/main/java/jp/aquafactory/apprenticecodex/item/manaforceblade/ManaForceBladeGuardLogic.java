@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.manaforceblade;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
@@ -26,13 +27,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public final class ManaForceBladeGuardLogic {
-    public static final int PERFECT_GUARD_TICKS = 10;
-
     private static final int COST_INTERVAL_TICKS = 20;
     private static final int ACTION_INTERVAL_TICKS = 5;
-    private static final float RANGED_GUARD_MANA_COST = 20.0F;
     private static final int RANGED_GUARD_DURABILITY_COST = 1;
-    private static final float MELEE_GUARD_MANA_COST = 50.0F;
     private static final int MELEE_GUARD_DURABILITY_COST = 2;
     private static final double RANGED_DISTANCE_SQR = 3.0D * 3.0D;
     private static final double PROJECTILE_SPEED = 2.45D;
@@ -67,7 +64,7 @@ public final class ManaForceBladeGuardLogic {
     }
 
     public static boolean isPerfectGuard(int heldTicks) {
-        return heldTicks <= PERFECT_GUARD_TICKS;
+        return heldTicks <= ApprenticeCodexServerConfig.manaForceBladePerfectGuardTicks();
     }
 
     public static boolean tryHandleGuard(
@@ -116,7 +113,7 @@ public final class ManaForceBladeGuardLogic {
                 stack,
                 RANGED_COST_TICK_TAG,
                 now,
-                RANGED_GUARD_MANA_COST,
+                ApprenticeCodexServerConfig.manaForceBladeRangedGuardManaCost(),
                 RANGED_GUARD_DURABILITY_COST
         )) {
             return false;
@@ -149,7 +146,7 @@ public final class ManaForceBladeGuardLogic {
                 stack,
                 MELEE_COST_TICK_TAG,
                 now,
-                MELEE_GUARD_MANA_COST,
+                ApprenticeCodexServerConfig.manaForceBladeMeleeGuardManaCost(),
                 MELEE_GUARD_DURABILITY_COST
         )) {
             return false;
@@ -178,9 +175,11 @@ public final class ManaForceBladeGuardLogic {
             return true;
         }
 
-        var magicData = MagicData.getPlayerMagicData(player);
-        if (!player.getAbilities().instabuild && (magicData == null || magicData.getMana() < manaCost)) {
-            return false;
+        if (manaCost > 0.0F) {
+            var magicData = MagicData.getPlayerMagicData(player);
+            if (!player.getAbilities().instabuild && (magicData == null || magicData.getMana() < manaCost)) {
+                return false;
+            }
         }
 
         ManaForceBlade.spendMana(player, manaCost);
@@ -220,7 +219,7 @@ public final class ManaForceBladeGuardLogic {
     private static void shootGuardProjectile(ServerPlayer player, ItemStack stack, Vec3 origin, boolean perfectGuard) {
         var projectile = new ManaForceBladeProjectileEntity(EntityRegistry.MANA_FORCE_BLADE_PROJECTILE.get(), player.level(), player);
         projectile.setPos(origin);
-        projectile.setDamage(ManaForceBlade.resolveBladeAttackDamage(stack) * (perfectGuard ? 1.5F : 1.0F));
+        projectile.setDamage(ManaForceBlade.resolveFinalAttackDamage(player, stack) * (perfectGuard ? 1.5F : 1.0F));
         projectile.setColor(resolveProjectileColor(stack));
         projectile.setProjectileVelocity(player.getLookAngle().normalize(), PROJECTILE_SPEED);
         player.level().addFreshEntity(projectile);
@@ -311,7 +310,7 @@ public final class ManaForceBladeGuardLogic {
             try {
                 CombatTools.applyDamage(
                         livingTarget,
-                        ManaForceBlade.resolveBladeAttackDamage(stack),
+                        ManaForceBlade.resolveFinalAttackDamage(player, stack),
                         CombatTools.getDamageSource(player.level(), player, DamageTypes.MANA_FORCE_BLADE),
                         null,
                         CombatTools.KnockbackTypes.NO_KNOCKBACK

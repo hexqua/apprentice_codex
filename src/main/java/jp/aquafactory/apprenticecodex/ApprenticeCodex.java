@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.ApprenticeDeskConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IsekaiTravelGuidebookConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -74,6 +75,7 @@ public class ApprenticeCodex
         ModEntityAttributeEvent.register(modEventBus);
         ApprenticeDeskConfigSyncEvents.register(modEventBus);
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
+        ManaForceBladeConfigSyncEvents.register(modEventBus);
         CodexSpellStateTypeRegister.register();
         Networks.register(modEventBus);
 

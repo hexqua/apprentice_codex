@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStateP
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -34,7 +35,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "21";
+    private static final String PROTOCOL_VERSION = "22";
 
     private Networks() {
     }
@@ -84,6 +85,11 @@ public final class Networks {
                 SyncApprenticeDeskConfigPacket.TYPE,
                 SyncApprenticeDeskConfigPacket.STREAM_CODEC,
                 SyncApprenticeDeskConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncManaForceBladeConfigPacket.TYPE,
+                SyncManaForceBladeConfigPacket.STREAM_CODEC,
+                SyncManaForceBladeConfigPacket::handle
         );
         registrar.playToClient(
                 SyncScarletThirstHealthPacket.TYPE,
