@@ -284,6 +284,13 @@
       "apprenticecodex:frozen_rune"
     ]
   },
+  "staffrifle": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.staffrifle",
+    "sounds": [
+      "apprenticecodex:staffrifle"
+    ]
+  },
   "vanilla_summon_weapon": {
     "_apprentice_codex_note": "ベースはSoundEvents.ENDERMAN_TELEPORT",
     "subtitle": "subtitle.apprenticecodex.sound.vanilla_summon_weapon",

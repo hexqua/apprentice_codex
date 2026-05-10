@@ -15,18 +15,27 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientFireEffectState;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -43,6 +52,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,6 +77,12 @@ public final class MultipurposeStaffrifle extends Item
     private static final RawAnimation ANIM_FIRED = RawAnimation.begin().thenPlay("fired");
     private static final int MAX_USE_DURATION = 72000;
     private static final float ADS_FOV_MODIFIER = 0.85F;
+    private static final int MUZZLE_RHOMBUS_COUNT = 4;
+    private static final int MUZZLE_SPARK_COUNT = 7;
+    private static final int MUZZLE_RHOMBUS_WHITEN_TICKS = 2;
+    private static final int MUZZLE_SPARK_WHITEN_TICKS = 3;
+    private static final int MUZZLE_RHOMBUS_LIFETIME = 8;
+    private static final int MUZZLE_SPARK_LIFETIME = 10;
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
@@ -96,7 +112,6 @@ public final class MultipurposeStaffrifle extends Item
             return InteractionResultHolder.fail(stack);
         }
 
-        player.startUsingItem(usedHand);
         return InteractionResultHolder.consume(stack);
     }
 
@@ -175,11 +190,19 @@ public final class MultipurposeStaffrifle extends Item
             public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm,
                                                    ItemStack itemInHand, float partialTick, float equipProcess,
                                                    float swingProcess) {
+                var recoilAmount = MultipurposeStaffrifleClientFireEffectState.getRecoilAmount(partialTick);
                 if (MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(player)) {
                     applyAdsHandTransform(poseStack, arm, equipProcess);
-                } else {
-                    applyChargedCrossbowHandTransform(poseStack, arm, equipProcess, swingProcess);
+                    applyRecoilTransform(poseStack, arm, recoilAmount);
+                    return true;
                 }
+
+                if (recoilAmount <= 0.0F) {
+                    return false;
+                }
+
+                applyNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
+                applyRecoilTransform(poseStack, arm, recoilAmount);
                 return true;
             }
         });
@@ -314,6 +337,7 @@ public final class MultipurposeStaffrifle extends Item
             return false;
         }
 
+        playSuccessfulFireEffects(player, spell, adsFullAuto);
         triggerFiredAnimation(player, stack);
         return true;
     }
@@ -357,6 +381,137 @@ public final class MultipurposeStaffrifle extends Item
     public void triggerFiredAnimation(ServerPlayer serverPlayer, ItemStack stack) {
         var instanceId = GeoItem.getOrAssignId(stack, serverPlayer.serverLevel());
         triggerAnim(serverPlayer, instanceId, MAIN_CONTROLLER, FIRED_ANIMATION);
+    }
+
+    private static void playSuccessfulFireEffects(ServerPlayer player, AbstractSpell spell, boolean adsFullAuto) {
+        player.level().playSound(
+                null,
+                player.getX(),
+                player.getY(),
+                player.getZ(),
+                SoundRegistry.STAFFRIFLE.get(),
+                SoundSource.PLAYERS,
+                0.9F,
+                0.96F + player.getRandom().nextFloat() * 0.08F
+        );
+        Networks.sendToTrackingEntityAndSelf(player, new SyncMultipurposeStaffrifleFireEffectPacket(player.getId()));
+
+        if (!(player.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        var color = MagicTools.resolveSchoolTintColor(spell.getSchoolType());
+        var red = ((color >> 16) & 0xFF) / 255.0F;
+        var green = ((color >> 8) & 0xFF) / 255.0F;
+        var blue = (color & 0xFF) / 255.0F;
+        var muzzlePosition = resolveMuzzlePosition(player, adsFullAuto);
+        var look = player.getLookAngle().normalize();
+        spawnMuzzleFlashParticles(serverLevel, muzzlePosition, look, red, green, blue);
+    }
+
+    private static Vec3 resolveMuzzlePosition(ServerPlayer player, boolean adsFullAuto) {
+        var look = player.getLookAngle().normalize();
+        var right = Vec3.directionFromRotation(0.0F, player.getYRot() + 90.0F).normalize();
+        var side = player.getMainArm() == HumanoidArm.RIGHT ? 1.0D : -1.0D;
+        var sideOffset = adsFullAuto ? 0.0D : 0.22D * side;
+        var downOffset = adsFullAuto ? -0.37D : -0.43D;
+        return player.getEyePosition()
+                .add(look.scale(0.95D))
+                .add(right.scale(sideOffset))
+                .add(0.0D, downOffset, 0.0D);
+    }
+
+    private static void spawnMuzzleFlashParticles(ServerLevel level, Vec3 center, Vec3 look,
+                                                  float red, float green, float blue) {
+        var random = level.getRandom();
+        for (var i = 0; i < MUZZLE_RHOMBUS_COUNT; ++i) {
+            var size = Mth.lerp(random.nextFloat(), 0.16F, 0.28F);
+            var position = center.add(createMuzzleParticleOffset(random, look, 0.08D));
+            var velocity = look.scale(Mth.lerp(random.nextFloat(), 0.03D, 0.08D));
+            level.sendParticles(
+                    createMuzzleRhombusOptions(size, red, green, blue),
+                    position.x,
+                    position.y,
+                    position.z,
+                    0,
+                    velocity.x,
+                    velocity.y,
+                    velocity.z,
+                    0.0D
+            );
+        }
+
+        for (var i = 0; i < MUZZLE_SPARK_COUNT; ++i) {
+            var size = Mth.lerp(random.nextFloat(), 0.06F, 0.12F);
+            var position = center.add(createMuzzleParticleOffset(random, look, 0.14D));
+            var velocity = look.scale(Mth.lerp(random.nextFloat(), 0.05D, 0.13D))
+                    .add(createRandomSpread(random, 0.035D));
+            level.sendParticles(
+                    createMuzzleSparkOptions(size, red, green, blue),
+                    position.x,
+                    position.y,
+                    position.z,
+                    0,
+                    velocity.x,
+                    velocity.y,
+                    velocity.z,
+                    0.0D
+            );
+        }
+    }
+
+    private static Vec3 createMuzzleParticleOffset(net.minecraft.util.RandomSource random, Vec3 look, double radius) {
+        return look.scale(random.nextDouble() * 0.08D).add(createRandomSpread(random, radius));
+    }
+
+    private static Vec3 createRandomSpread(net.minecraft.util.RandomSource random, double radius) {
+        return new Vec3(
+                (random.nextDouble() - 0.5D) * radius,
+                (random.nextDouble() - 0.5D) * radius,
+                (random.nextDouble() - 0.5D) * radius
+        );
+    }
+
+    private static AdditiveGlowParticleOptions createMuzzleRhombusOptions(float size, float red, float green, float blue) {
+        return new AdditiveGlowParticleOptions(
+                ParticleRegistry.ADDITIVE_RHOMBUS.get(),
+                size,
+                red,
+                green,
+                blue,
+                MUZZLE_RHOMBUS_WHITEN_TICKS,
+                MUZZLE_RHOMBUS_LIFETIME,
+                2,
+                0.78F,
+                1.16F,
+                0.82F,
+                1.0F,
+                0.02F,
+                0.62F,
+                0.55F,
+                true
+        );
+    }
+
+    private static AdditiveGlowParticleOptions createMuzzleSparkOptions(float size, float red, float green, float blue) {
+        return new AdditiveGlowParticleOptions(
+                ParticleRegistry.ADDITIVE_SPARK.get(),
+                size,
+                red,
+                green,
+                blue,
+                MUZZLE_SPARK_WHITEN_TICKS,
+                MUZZLE_SPARK_LIFETIME,
+                3,
+                0.9F,
+                1.35F,
+                0.86F,
+                1.0F,
+                0.04F,
+                0.68F,
+                0.62F,
+                true
+        );
     }
 
     private static boolean canAttemptAdsFullAuto(ServerPlayer player) {
@@ -464,20 +619,10 @@ public final class MultipurposeStaffrifle extends Item
                 || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get());
     }
 
-    private static void applyChargedCrossbowHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess,
-                                                          float swingProcess) {
-        var rightHanded = arm == HumanoidArm.RIGHT;
-        var side = rightHanded ? 1 : -1;
-        var xSwing = -0.4F * Mth.sin(Mth.sqrt(swingProcess) * (float)Math.PI);
-        var ySwing = 0.2F * Mth.sin(Mth.sqrt(swingProcess) * ((float)Math.PI * 2F));
-        var zSwing = -0.2F * Mth.sin(swingProcess * (float)Math.PI);
-        poseStack.translate(side * xSwing, ySwing, zSwing);
+    private static void applyNormalHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess,
+                                                 float swingProcess) {
         applyItemArmTransform(poseStack, arm, equipProcess);
         applyItemArmAttackTransform(poseStack, arm, swingProcess);
-        if (swingProcess < 0.001F) {
-            poseStack.translate(side * -0.641864F, 0.0F, 0.0F);
-            poseStack.mulPose(Axis.YP.rotationDegrees(side * 10.0F));
-        }
     }
 
     private static void applyItemArmTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess) {
@@ -498,8 +643,18 @@ public final class MultipurposeStaffrifle extends Item
     private static void applyAdsHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess) {
         var side = arm == HumanoidArm.RIGHT ? 1 : -1;
         applyItemArmTransform(poseStack, arm, equipProcess);
-        poseStack.translate(side * -0.30F, -0.18F, 0.08F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(side * -8.0F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(-8.0F));
+        poseStack.translate(side * -0.56F, 0.15F, 0.22F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * -2.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-4.0F));
+    }
+
+    private static void applyRecoilTransform(PoseStack poseStack, HumanoidArm arm, float recoilAmount) {
+        if (recoilAmount <= 0.0F) {
+            return;
+        }
+
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        poseStack.translate(side * 0.015F * recoilAmount, -0.025F * recoilAmount, 0.18F * recoilAmount);
+        poseStack.mulPose(Axis.XP.rotationDegrees(-7.0F * recoilAmount));
     }
 }

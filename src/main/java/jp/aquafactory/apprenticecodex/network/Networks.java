@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -36,7 +37,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "23";
+    private static final String PROTOCOL_VERSION = "24";
 
     private Networks() {
     }
@@ -166,6 +167,11 @@ public final class Networks {
                 SyncPhotonSiphonCombatStatePacket.TYPE,
                 SyncPhotonSiphonCombatStatePacket.STREAM_CODEC,
                 SyncPhotonSiphonCombatStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncMultipurposeStaffrifleFireEffectPacket.TYPE,
+                SyncMultipurposeStaffrifleFireEffectPacket.STREAM_CODEC,
+                SyncMultipurposeStaffrifleFireEffectPacket::handle
         );
         registrar.playToClient(
                 SenseEvilHighlightsPacket.TYPE,

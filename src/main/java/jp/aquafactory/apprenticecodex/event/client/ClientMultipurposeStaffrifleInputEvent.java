@@ -21,7 +21,7 @@ public final class ClientMultipurposeStaffrifleInputEvent {
 
     @SubscribeEvent
     public static void onInteractionKeyMappingTriggered(InputEvent.InteractionKeyMappingTriggered event) {
-        if (!event.isAttack()) {
+        if (!event.isAttack() && !event.isUseItem()) {
             return;
         }
 
@@ -37,6 +37,10 @@ public final class ClientMultipurposeStaffrifleInputEvent {
 
         event.setCanceled(true);
         event.setSwingHand(false);
+
+        if (event.isUseItem()) {
+            return;
+        }
 
         if (MultipurposeStaffrifleClientAdsState.isLocalAdsKeyHeld(player)) {
             return;
