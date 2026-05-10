@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.Nullable;
@@ -85,6 +86,32 @@ public final class ImbueTooltipHelper {
         }
 
         lines.add(translatableGray(TOOLTIP_PREFIX + "restrict_restrict_no_recast"));
+    }
+
+    public static Component createAmmoTooltipLine(Item item, @Nullable String conditionTranslationKey) {
+        var line = Component.literal("- ").append(item.getDescription());
+        if (conditionTranslationKey != null) {
+            line = line.append(Component.literal(" ("))
+                    .append(Component.translatable(conditionTranslationKey))
+                    .append(Component.literal(")"));
+        }
+        return line.withStyle(ChatFormatting.GRAY);
+    }
+
+    public static Component getAttackKeyName() {
+        var keyName = DistExecutor.safeCallWhenOn(
+                Dist.CLIENT,
+                () -> ImbueTooltipClientHelper::getAttackKeyName
+        );
+        return keyName != null ? keyName : Component.translatable("key.attack");
+    }
+
+    public static Component getUseKeyName() {
+        var keyName = DistExecutor.safeCallWhenOn(
+                Dist.CLIENT,
+                () -> ImbueTooltipClientHelper::getUseKeyName
+        );
+        return keyName != null ? keyName : Component.translatable("key.use");
     }
 
     public static Component translatableGray(String translationKey, Object... args) {

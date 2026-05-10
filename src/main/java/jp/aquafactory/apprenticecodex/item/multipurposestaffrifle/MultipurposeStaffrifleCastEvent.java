@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -37,6 +38,7 @@ public final class MultipurposeStaffrifleCastEvent {
         }
 
         if (MultipurposeStaffrifleCastContext.isActiveRecastFor(player.getUUID(), castingItem, spell)) {
+            MultipurposeStaffrifleCastContext.clearPendingIfMatches(player.getUUID(), castingItem, spell);
             return;
         }
 
@@ -66,5 +68,15 @@ public final class MultipurposeStaffrifleCastEvent {
         }
 
         event.setEffectiveCooldown(staffrifle.resolveSpecialCooldownTicks(event.getEffectiveCooldown()));
+        MultipurposeStaffrifleCastContext.clearPendingIfMatches(player.getUUID(), castingItem, event.getSpell());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)) {
+            return;
+        }
+
+        MultipurposeStaffrifleCastContext.clearExpiredPending(player.getUUID(), player.level().getGameTime());
     }
 }

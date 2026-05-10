@@ -51,6 +51,8 @@ import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
+import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
@@ -9148,6 +9150,37 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var tooltipLines = new ArrayList<Component>();
+            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+
+            helper.assertTrue(tooltipLines.size() >= 4,
+                    "Multipurpose Staffrifle tooltip should include controls, spacer, and shift hint");
+            assertTranslatableKey(
+                    helper,
+                    tooltipLines.get(0),
+                    "item.apprenticecodex.multipurpose_staffrifle.desc_1",
+                    "Multipurpose Staffrifle should show left-click control first"
+            );
+            assertTranslatableKey(
+                    helper,
+                    tooltipLines.get(1),
+                    "item.apprenticecodex.multipurpose_staffrifle.desc_2",
+                    "Multipurpose Staffrifle should show right-click control second"
+            );
+            helper.assertTrue(tooltipLines.get(2).getString().isEmpty(),
+                    "Multipurpose Staffrifle should separate controls from the shift hint with a blank line");
+            assertTranslatableKey(
+                    helper,
+                    tooltipLines.get(3),
+                    "item.apprenticecodex.spellgun.tooltip.hint",
+                    "Multipurpose Staffrifle should show shift hint after controls"
+            );
+        });
+    }
+
     static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (MultipurposeStaffrifle) ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get();
@@ -9212,6 +9245,84 @@ public final class ApprenticeCodexGameTestScenarios {
                     player.getInventory(),
                     item.getAmmoItem(stack)
             ) == 1, "Multipurpose Staffrifle recast should not consume Multi-purpose Spell Round");
+        });
+    }
+
+    static void multipurposeStaffrifleKeepsNormalManaCost(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_mana_policy_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
+                    "Multipurpose Staffrifle should not bypass mana consumption");
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var manaCost = spell.getManaCost(1);
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setPlayerCastingItem(stack);
+
+            try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, false)) {
+                var event = new SpellOnCastEvent(
+                        player,
+                        spell.getSpellId(),
+                        1,
+                        manaCost,
+                        spell.getSchoolType(),
+                        CastSource.SWORD
+                );
+                ItemManaBypassCastEvent.onSpellCast(event);
+                helper.assertTrue(event.getManaCost() == manaCost,
+                        "Multipurpose Staffrifle should keep normal mana cost: " + event.getManaCost());
+            } catch (Exception exception) {
+                throw new IllegalStateException("Failed to close Multipurpose Staffrifle mana policy test context.", exception);
+            }
+        });
+    }
+
+    static void multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_instant_policy_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1));
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setPlayerCastingItem(stack);
+            MultipurposeStaffrifleCastContext.rememberPending(
+                    player.getUUID(),
+                    stack,
+                    spell,
+                    false,
+                    helper.getLevel().getGameTime()
+            );
+
+            MultipurposeStaffrifleCastEvent.onSpellCast(new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    spell.getManaCost(1),
+                    spell.getSchoolType(),
+                    CastSource.SWORD
+            ));
+            helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
+                    player,
+                    player.getInventory(),
+                    item.getAmmoItem(stack)
+            ) == 0, "Multipurpose Staffrifle instant cast should consume Multi-purpose Spell Round");
+
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    20 * 10,
+                    spell,
+                    player,
+                    CastSource.SWORD
+            );
+            MultipurposeStaffrifleCastEvent.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
+                    "Multipurpose Staffrifle instant cast should bypass cooldowns at the threshold: "
+                            + cooldownEvent.getEffectiveCooldown());
         });
     }
 
