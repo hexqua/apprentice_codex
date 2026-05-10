@@ -1,0 +1,30 @@
+{
+  "type": "apprenticecodex:spellcaster_workbench",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:amethyst_shard"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:netherite_ingot"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:gunpowder"
+      }
+    }
+  ],
+  "priority": 1,
+  "results": [
+    {
+      "count": 4,
+      "item": "apprenticecodex:multi_purpose_spell_round"
+    }
+  ]
+}

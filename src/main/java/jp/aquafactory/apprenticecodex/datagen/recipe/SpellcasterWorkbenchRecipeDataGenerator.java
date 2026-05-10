@@ -107,6 +107,16 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                         1
                 ),
                 recipe(
+                        "multi_purpose_spell_round",
+                        List.of(
+                                ingredient(Items.AMETHYST_SHARD, 1),
+                                ingredient(Items.NETHERITE_INGOT, 1),
+                                ingredient(Items.GUNPOWDER, 1)
+                        ),
+                        List.of(result(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 4)),
+                        1
+                ),
+                recipe(
                         "advanced_spellcaster_round_recycle",
                         List.of(
                                 ingredient(Items.AMETHYST_SHARD, 1),
@@ -124,6 +134,16 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
                         List.of(result(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), 10)),
+                        0
+                ),
+                recipe(
+                        "multi_purpose_spell_round_recycle",
+                        List.of(
+                                ingredient(Items.AMETHYST_SHARD, 1),
+                                ingredient(ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(), 4),
+                                ingredient(Items.GUNPOWDER, 1)
+                        ),
+                        List.of(result(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 4)),
                         0
                 )
         );

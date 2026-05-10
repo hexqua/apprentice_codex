@@ -113,6 +113,8 @@ public final class ItemRegistry {
             ITEMS.register("empty_advanced_spellcaster_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_SPELL_DOMINATOR_CASING =
             ITEMS.register("empty_spell_dominator_casing", SpellcasterRoundItem::new);
+    public static final RegistryObject<Item> EMPTY_MULTI_PURPOSE_SPELL_CASING =
+            ITEMS.register("empty_multi_purpose_spell_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> RAPID_SPELLCASTER_ROUND =
             ITEMS.register("rapid_spellcaster_round",
                     () -> new SpellcasterRoundItem(EMPTY_RAPID_SPELLCASTER_CASING));
@@ -128,6 +130,9 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> SPELL_DOMINATOR_ROUND =
             ITEMS.register("spell_dominator_round",
                     () -> new SpellcasterRoundItem(EMPTY_SPELL_DOMINATOR_CASING));
+    public static final RegistryObject<Item> MULTI_PURPOSE_SPELL_ROUND =
+            ITEMS.register("multi_purpose_spell_round",
+                    () -> new SpellcasterRoundItem(EMPTY_MULTI_PURPOSE_SPELL_CASING));
     public static final RegistryObject<Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final RegistryObject<Item> APPRENTICE_MAGE_TORSO =
