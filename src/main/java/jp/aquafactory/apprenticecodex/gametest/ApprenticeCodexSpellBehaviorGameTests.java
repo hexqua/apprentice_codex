@@ -18,6 +18,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
     private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
     private static final String EARTH_FORGE_ISOLATED_BATCH = "apprenticecodex.earth_forge_isolated";
+    private static final String COMPOUND_PHIAL_ISOLATED_BATCH = "apprenticecodex.compound_phial_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
     }
@@ -170,5 +171,10 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = EARTH_FORGE_ISOLATED_BATCH, timeoutTicks = 60)
     public static void earthForgeReplacesWaterButKeepsUnsafeFluidBlocks(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.earthForgeReplacesWaterButKeepsUnsafeFluidBlocks(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMPOUND_PHIAL_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void compoundPhialSplashDamageUsesWeakFalloffAndKeepsSelfHit(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.compoundPhialSplashDamageUsesWeakFalloffAndKeepsSelfHit(helper);
     }
 }

@@ -23,9 +23,13 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
 
 public class CompoundPhialProjectileEntity extends ThrowableProjectile {
+    private static final float FULL_DAMAGE_RADIUS_SCALE = 0.5f;
+    private static final float MIN_SPLASH_DAMAGE_SCALE = 0.6f;
+
     private static final EntityDataAccessor<Integer> POTION_COLOR =
             SynchedEntityData.defineId(CompoundPhialProjectileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> BURST_RADIUS =
@@ -33,8 +37,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
     private static final EntityDataAccessor<ItemStack> POTION_ITEM =
             SynchedEntityData.defineId(CompoundPhialProjectileEntity.class, EntityDataSerializers.ITEM_STACK);
 
-    private float impactDamage;
-    private float splashDamage;
+    private float damage;
     private float splashRadius;
 
     public CompoundPhialProjectileEntity(EntityType<? extends CompoundPhialProjectileEntity> entityType, Level level) {
@@ -55,11 +58,10 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
     @Override
     protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-        if (tag.contains("impactDamage")) {
-            impactDamage = tag.getFloat("impactDamage");
-        }
-        if (tag.contains("splashDamage")) {
-            splashDamage = tag.getFloat("splashDamage");
+        if (tag.contains("damage")) {
+            damage = tag.getFloat("damage");
+        } else if (tag.contains("impactDamage")) {
+            damage = tag.getFloat("impactDamage");
         }
         if (tag.contains("splashRadius")) {
             splashRadius = tag.getFloat("splashRadius");
@@ -69,8 +71,7 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        tag.putFloat("impactDamage", impactDamage);
-        tag.putFloat("splashDamage", splashDamage);
+        tag.putFloat("damage", damage);
         tag.putFloat("splashRadius", splashRadius);
     }
 
@@ -113,12 +114,8 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
         }
     }
 
-    public void setDamage(float impactDamage) {
-        this.impactDamage = impactDamage;
-    }
-
-    public void setSplashDamage(float splashDamage) {
-        this.splashDamage = splashDamage;
+    public void setDamage(float damage) {
+        this.damage = damage;
     }
 
     public void setSplashRadius(float splashRadius) {
@@ -140,43 +137,69 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile {
 
     @Override
     protected void onHitEntity(@NotNull EntityHitResult hit) {
-        onImpact(hit.getEntity(), level());
+        onImpact(level());
         super.onHitEntity(hit);
         discard();
     }
 
     @Override
     protected void onHitBlock(@NotNull BlockHitResult hit) {
-        onImpact(null, level());
+        onImpact(level());
         super.onHitBlock(hit);
         discard();
     }
 
-    private void onImpact(@Nullable Entity entity, Level level) {
+    private void onImpact(Level level) {
         var owner = getOwner();
-
-        if (entity != null && entity.isAlive()) {
-            var target = CombatTools.resolutePartEntity(entity);
-            var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.COMPOUND_PHIAL);
-            CombatTools.applyDamage(target, impactDamage, source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-        }
 
         var color = entityData.get(POTION_COLOR);
         level.levelEvent(2002, BlockPos.containing(position()), color);
         level.broadcastEntityEvent(this, (byte) 3);
 
         var box = new AABB(position(), position()).inflate(splashRadius * 2);
-        var entities = level.getEntitiesOfClass(Entity.class, box, e -> e != entity && CombatTools.isValidCombatTarget(e, null) && e.isAlive());
+        var entities = level.getEntitiesOfClass(Entity.class, box, e -> CombatTools.isValidCombatTarget(e, null) && e.isAlive());
+        var damagedTargets = new HashSet<Entity>();
 
         for (var target : entities) {
-            var center = target.getBoundingBox().getCenter();
-            var distance = position().distanceTo(center) - target.getBbWidth();
+            var resolvedTarget = CombatTools.resolutePartEntity(target);
+            var distance = distanceToBoundingBox(target.getBoundingBox());
             if (distance <= splashRadius) {
-                var scale = 0.5 + 0.5 * (1 - distance / splashRadius);
+                var scale = getSplashDamageScale(distance);
                 var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.COMPOUND_PHIAL);
-                CombatTools.applyDamage(target, Math.round(splashDamage * scale), source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                if (damagedTargets.add(resolvedTarget)) {
+                    CombatTools.applyDamage(resolvedTarget, damage * scale, source, SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                }
             }
         }
+    }
+
+    private float getSplashDamageScale(double distance) {
+        var fullDamageRadius = splashRadius * FULL_DAMAGE_RADIUS_SCALE;
+        if (distance <= fullDamageRadius) {
+            return 1.0f;
+        }
+
+        var falloffRange = Math.max(splashRadius - fullDamageRadius, 0.001f);
+        var falloffProgress = Math.min(1.0, (distance - fullDamageRadius) / falloffRange);
+        return (float) (1.0 - (1.0 - MIN_SPLASH_DAMAGE_SCALE) * falloffProgress);
+    }
+
+    private double distanceToBoundingBox(AABB box) {
+        var p = position();
+        var x = distanceOutsideAxis(p.x, box.minX, box.maxX);
+        var y = distanceOutsideAxis(p.y, box.minY, box.maxY);
+        var z = distanceOutsideAxis(p.z, box.minZ, box.maxZ);
+        return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    private static double distanceOutsideAxis(double point, double min, double max) {
+        if (point < min) {
+            return min - point;
+        }
+        if (point > max) {
+            return point - max;
+        }
+        return 0.0;
     }
 
     private float[] getColorArray() {
