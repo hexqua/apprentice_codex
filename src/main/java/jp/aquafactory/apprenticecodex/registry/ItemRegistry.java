@@ -240,6 +240,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final RegistryObject<Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
+    public static final RegistryObject<Item> MULTIPURPOSE_STAFFRIFLE =
+            ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final RegistryObject<Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final RegistryObject<Item> CHARGED_TWIN_BLADE_STAFF =
