@@ -416,18 +416,21 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
+                ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
                 ItemRegistry.RAPID_SPELLCASTER_ROUND.get(),
                 ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
                 ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
                 ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
-                ItemRegistry.SPELL_DOMINATOR_ROUND.get()
+                ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
+                ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()
         );
         tag(TagRegistry.Items.SPELLCASTER_EMPTY_CASINGS).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
-                ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get()
+                ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
+                ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get()
         );
         tag(TagRegistry.Items.SPELLCASTER_QUIVER_STORABLE).add(
                 net.minecraft.world.item.Items.ARROW,

@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientFireEffectState;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
@@ -84,6 +85,8 @@ public final class MultipurposeStaffrifle extends Item
     private static final int MUZZLE_RHOMBUS_LIFETIME = 8;
     private static final int MUZZLE_SPARK_LIFETIME = 10;
     private static final int ENCHANTMENT_VALUE = 15;
+    private static final float BASE_EMPTY_CASING_RETURN_CHANCE = 0.0F;
+    private static final float EQUIPPED_AMMO_POUCH_EMPTY_CASING_RETURN_CHANCE = 0.2F;
     private static final double SPELL_POWER_BONUS = 0.10D;
     private static final double ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL = 0.02D;
     private static final double REFLUX_MANA_REGEN_PER_LEVEL = 0.05D;
@@ -343,12 +346,17 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     public Item getAmmoItem(ItemStack stack) {
-        return ItemRegistry.RAPID_SPELLCASTER_ROUND.get();
+        return ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
+    }
+
+    public float resolveEmptyCasingReturnChance(Player player) {
+        return SpellcasterAmmoPouch.isEquippedBy(player)
+                ? EQUIPPED_AMMO_POUCH_EMPTY_CASING_RETURN_CHANCE
+                : BASE_EMPTY_CASING_RETURN_CHANCE;
     }
 
     public boolean shouldReturnEmptyCasing(Player player) {
-        var emptyCasingReturnChance = jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch
-                .applyEmptyCasingReturnChanceBonus(AbstractSpellGunItem.EMPTY_CASING_RETURN_CHANCE, player);
+        var emptyCasingReturnChance = resolveEmptyCasingReturnChance(player);
         return emptyCasingReturnChance > 0.0F
                 && player.getRandom().nextFloat() < emptyCasingReturnChance;
     }

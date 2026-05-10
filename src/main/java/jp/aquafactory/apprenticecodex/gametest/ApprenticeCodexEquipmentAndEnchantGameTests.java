@@ -819,6 +819,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.multipurposeStaffrifleRecastSkipsAmmoConsumption(helper);
     }

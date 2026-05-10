@@ -5,10 +5,12 @@
     "apprenticecodex:empty_arcane_spellcaster_casing",
     "apprenticecodex:empty_advanced_spellcaster_casing",
     "apprenticecodex:empty_spell_dominator_casing",
+    "apprenticecodex:empty_multi_purpose_spell_casing",
     "apprenticecodex:rapid_spellcaster_round",
     "apprenticecodex:basic_spellcaster_round",
     "apprenticecodex:arcane_spellcaster_round",
     "apprenticecodex:advanced_spellcaster_round",
-    "apprenticecodex:spell_dominator_round"
+    "apprenticecodex:spell_dominator_round",
+    "apprenticecodex:multi_purpose_spell_round"
   ]
 }

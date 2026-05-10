@@ -61,6 +61,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
@@ -702,6 +703,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     RecipeRegistry.GRIND_RUNNER_SERIALIZER.get(), RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get());
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench/basic_spellcaster_round"),
+                    RecipeRegistry.SPELLCASTER_WORKBENCH_SERIALIZER.get(), RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench/multi_purpose_spell_round"),
+                    RecipeRegistry.SPELLCASTER_WORKBENCH_SERIALIZER.get(), RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench/multi_purpose_spell_round_recycle"),
                     RecipeRegistry.SPELLCASTER_WORKBENCH_SERIALIZER.get(), RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemist_cauldron/brew_isekai_travel_guidebook_to_common_ink"),
@@ -8742,13 +8749,35 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_ammo_policy_test");
+
+            helper.assertTrue(item.getAmmoItem(stack) == ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(),
+                    "Multipurpose Staffrifle should use Multi-purpose Spell Round");
+            helper.assertTrue(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get() instanceof SpellcasterRoundItem,
+                    "Multi-purpose Spell Round should be a SpellcasterRoundItem");
+            var roundItem = (SpellcasterRoundItem) ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
+            helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
+                    "Multi-purpose Spell Round should return Empty Multi-purpose Spell Casing");
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.0F,
+                    "Multipurpose Staffrifle should not return empty casings without Spellcaster Ammo Pouch");
+
+            equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()));
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
+                    "Multipurpose Staffrifle should use 20% empty casing return chance with Spellcaster Ammo Pouch");
+        });
+    }
+
     static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
             var item = (MultipurposeStaffrifle) stack.getItem();
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_recast_ammo_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            var ammoStack = new ItemStack(ItemRegistry.RAPID_SPELLCASTER_ROUND.get(), 1);
+            var ammoStack = new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1);
             player.getInventory().add(ammoStack);
 
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
@@ -8771,7 +8800,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     player,
                     player.getInventory(),
                     item.getAmmoItem(stack)
-            ) == 1, "Multipurpose Staffrifle recast should not consume Rapid Spellcaster Round");
+            ) == 1, "Multipurpose Staffrifle recast should not consume Multi-purpose Spell Round");
         });
     }
 
