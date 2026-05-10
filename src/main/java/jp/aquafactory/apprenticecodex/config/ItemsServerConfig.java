@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
@@ -19,6 +20,7 @@ final class ItemsServerConfig {
     private final ChromaticMagiaDressServerConfig chromaticMagiaDressConfig;
     private final PastelStaffServerConfig pastelStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
+    private final ManaForceBladeServerConfig manaForceBladeConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
@@ -28,7 +30,8 @@ final class ItemsServerConfig {
             MagicArmorServerConfig magicArmorConfig,
             ChromaticMagiaDressServerConfig chromaticMagiaDressConfig,
             PastelStaffServerConfig pastelStaffConfig,
-            IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig
+            IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
+            ManaForceBladeServerConfig manaForceBladeConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -38,6 +41,7 @@ final class ItemsServerConfig {
         this.chromaticMagiaDressConfig = chromaticMagiaDressConfig;
         this.pastelStaffConfig = pastelStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
+        this.manaForceBladeConfig = manaForceBladeConfig;
     }
 
     static ItemsServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -50,6 +54,7 @@ final class ItemsServerConfig {
         var chromaticMagiaDressConfig = ChromaticMagiaDressServerConfig.define(builder);
         var pastelStaffConfig = PastelStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
+        var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -60,7 +65,8 @@ final class ItemsServerConfig {
                 magicArmorConfig,
                 chromaticMagiaDressConfig,
                 pastelStaffConfig,
-                isekaiTravelGuidebookConfig
+                isekaiTravelGuidebookConfig,
+                manaForceBladeConfig
         );
     }
 
@@ -138,5 +144,33 @@ final class ItemsServerConfig {
 
     boolean enableIsekaiTravelGuidebookBonusChestLoot() {
         return isekaiTravelGuidebookConfig.enableBonusChestLoot();
+    }
+
+    float manaForceBladeImbueDamageMultiplierScale() {
+        return manaForceBladeConfig.imbueDamageMultiplierScale();
+    }
+
+    float manaForceBladeAttackManaCostMultiplier() {
+        return manaForceBladeConfig.attackManaCostMultiplier();
+    }
+
+    float manaForceBladeAttackManaSchoolMultiplierScale() {
+        return manaForceBladeConfig.attackManaSchoolMultiplierScale();
+    }
+
+    float manaForceBladeMeleeGuardManaCost() {
+        return manaForceBladeConfig.meleeGuardManaCost();
+    }
+
+    float manaForceBladeRangedGuardManaCost() {
+        return manaForceBladeConfig.rangedGuardManaCost();
+    }
+
+    boolean manaForceBladeDisableManaRecoveryWhileGuarding() {
+        return manaForceBladeConfig.disableManaRecoveryWhileGuarding();
+    }
+
+    int manaForceBladePerfectGuardTicks() {
+        return manaForceBladeConfig.perfectGuardTicks();
     }
 }

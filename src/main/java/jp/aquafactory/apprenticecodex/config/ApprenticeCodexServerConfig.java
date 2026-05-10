@@ -129,6 +129,34 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.enableIsekaiTravelGuidebookBonusChestLoot();
     }
 
+    public static float manaForceBladeImbueDamageMultiplierScale() {
+        return ITEMS_CONFIG.manaForceBladeImbueDamageMultiplierScale();
+    }
+
+    public static float manaForceBladeAttackManaCostMultiplier() {
+        return ITEMS_CONFIG.manaForceBladeAttackManaCostMultiplier();
+    }
+
+    public static float manaForceBladeAttackManaSchoolMultiplierScale() {
+        return ITEMS_CONFIG.manaForceBladeAttackManaSchoolMultiplierScale();
+    }
+
+    public static float manaForceBladeMeleeGuardManaCost() {
+        return ITEMS_CONFIG.manaForceBladeMeleeGuardManaCost();
+    }
+
+    public static float manaForceBladeRangedGuardManaCost() {
+        return ITEMS_CONFIG.manaForceBladeRangedGuardManaCost();
+    }
+
+    public static boolean manaForceBladeDisableManaRecoveryWhileGuarding() {
+        return ITEMS_CONFIG.manaForceBladeDisableManaRecoveryWhileGuarding();
+    }
+
+    public static int manaForceBladePerfectGuardTicks() {
+        return ITEMS_CONFIG.manaForceBladePerfectGuardTicks();
+    }
+
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
     }

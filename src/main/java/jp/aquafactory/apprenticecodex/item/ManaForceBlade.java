@@ -10,6 +10,8 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeConfigState;
 import jp.aquafactory.apprenticecodex.renderer.item.ManaForceBladeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
@@ -151,7 +153,7 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
 
     @Override
     public boolean hurtEnemy(@NotNull ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {
-        if (hasImbuedSpell(stack) && !attacker.level().isClientSide && attacker instanceof Player player) {
+        if (shouldSpendAttackMana(stack) && !attacker.level().isClientSide && attacker instanceof Player player) {
             trySpendAttackManaOncePerTick(player, stack);
         }
 
@@ -164,14 +166,28 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
         super.appendHoverText(stack, level, lines, flag);
 
         lines.add(Component.translatable(resolveDescriptionTranslationKey()).withStyle(ChatFormatting.GRAY));
-        if (hasImbuedSpell(stack)) {
-            lines.add(Component.translatable(
-                    "item.apprenticecodex.mana_force_blade.desc.imbue_help",
-                    Mth.ceil(resolveBladeAttackManaCost(stack))
-            ).withStyle(ChatFormatting.AQUA));
-        } else {
+        if (!isImbueDamageChangeEnabled(ManaForceBladeConfigState.imbueDamageMultiplierScale())) {
+            return;
+        }
+
+        if (!hasImbuedSpell(stack)) {
             lines.add(Component.translatable("item.apprenticecodex.mana_force_blade.desc.no_imbue")
                     .withStyle(ChatFormatting.GRAY));
+            return;
+        }
+
+        var manaCost = resolveBladeAttackManaCost(
+                null,
+                stack,
+                ManaForceBladeConfigState.attackManaCostMultiplier(),
+                ManaForceBladeConfigState.attackManaSchoolMultiplierScale(),
+                ManaForceBladeConfigState.imbueDamageMultiplierScale()
+        );
+        if (manaCost > 0.0F) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.mana_force_blade.desc.imbue_help",
+                    Mth.ceil(manaCost)
+            ).withStyle(ChatFormatting.AQUA));
         }
     }
 
@@ -282,7 +298,36 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
     }
 
     public static float resolveBladeAttackManaCost(ItemStack stack) {
-        return resolveBladeAttackDamage(stack) * 3.0F;
+        return resolveBladeAttackManaCost(null, stack);
+    }
+
+    public static float resolveBladeAttackManaCost(@Nullable LivingEntity attacker, ItemStack stack) {
+        return resolveBladeAttackManaCost(
+                attacker,
+                stack,
+                ApprenticeCodexServerConfig.manaForceBladeAttackManaCostMultiplier(),
+                ApprenticeCodexServerConfig.manaForceBladeAttackManaSchoolMultiplierScale(),
+                ApprenticeCodexServerConfig.manaForceBladeImbueDamageMultiplierScale()
+        );
+    }
+
+    public static float resolveBladeAttackManaCost(
+            @Nullable LivingEntity attacker,
+            ItemStack stack,
+            float attackManaCostMultiplier,
+            float attackManaSchoolMultiplierScale,
+            float imbueDamageMultiplierScale
+    ) {
+        if (attackManaCostMultiplier <= 0.0F || !isImbueDamageChangeEnabled(imbueDamageMultiplierScale)
+                || !hasImbuedSpell(stack)) {
+            return 0.0F;
+        }
+
+        var damageMultiplier = attacker == null
+                ? 1.0F
+                : resolveDamageMultiplier(attacker, stack, imbueDamageMultiplierScale);
+        var schoolManaFactor = 1.0F + (damageMultiplier - 1.0F) * attackManaSchoolMultiplierScale;
+        return resolveBladeAttackDamage(stack) * attackManaCostMultiplier * Math.max(0.0F, schoolManaFactor);
     }
 
     public static boolean hasImbuedSpell(ItemStack stack) {
@@ -293,7 +338,23 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
         return resolveBladeAttackDamage(stack) * resolveDamageMultiplier(attacker, stack);
     }
 
+    public static float resolveFinalAttackDamage(LivingEntity attacker, ItemStack stack, float imbueDamageMultiplierScale) {
+        return resolveBladeAttackDamage(stack) * resolveDamageMultiplier(attacker, stack, imbueDamageMultiplierScale);
+    }
+
     public static float resolveDamageMultiplier(LivingEntity attacker, ItemStack stack) {
+        return resolveDamageMultiplier(
+                attacker,
+                stack,
+                ApprenticeCodexServerConfig.manaForceBladeImbueDamageMultiplierScale()
+        );
+    }
+
+    public static float resolveDamageMultiplier(LivingEntity attacker, ItemStack stack, float imbueDamageMultiplierScale) {
+        if (!isImbueDamageChangeEnabled(imbueDamageMultiplierScale)) {
+            return 1.0F;
+        }
+
         var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
         if (imbuedSchool == null) {
             return 1.0F;
@@ -302,7 +363,7 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
         var spellPower = (float) attacker.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
         Attribute schoolPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
         var schoolSpellPower = schoolPowerAttribute == null ? 1.0F : (float) attacker.getAttributeValue(schoolPowerAttribute);
-        return spellPower * schoolSpellPower;
+        return spellPower * schoolSpellPower * imbueDamageMultiplierScale;
     }
 
     public static void spendMana(Player player, float manaCost) {
@@ -330,7 +391,17 @@ public class ManaForceBlade extends SwordItem implements GeoItem, IPresetSpellCo
 
         // BetterCombat は複数対象を同一 tick 内で個別に攻撃処理するため、攻撃 1 回分の消費に揃える。
         tag.putLong(ATTACK_MANA_SPENT_TICK_TAG, now);
-        spendMana(player, resolveBladeAttackManaCost(stack));
+        spendMana(player, resolveBladeAttackManaCost(player, stack));
+    }
+
+    public static boolean isImbueDamageChangeEnabled(float imbueDamageMultiplierScale) {
+        return imbueDamageMultiplierScale > 0.0F;
+    }
+
+    private static boolean shouldSpendAttackMana(ItemStack stack) {
+        return hasImbuedSpell(stack)
+                && isImbueDamageChangeEnabled(ApprenticeCodexServerConfig.manaForceBladeImbueDamageMultiplierScale())
+                && ApprenticeCodexServerConfig.manaForceBladeAttackManaCostMultiplier() > 0.0F;
     }
 
     private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers() {

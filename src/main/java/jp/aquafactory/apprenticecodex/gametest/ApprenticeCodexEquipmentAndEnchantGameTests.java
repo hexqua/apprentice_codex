@@ -294,6 +294,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeConfigScalesDamageAndManaFormulas(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaForceBladeConfigScalesDamageAndManaFormulas(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(helper);
     }
