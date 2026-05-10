@@ -8733,7 +8733,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
-                    expectedMultipurposeStaffrifleEnchantments(),
+                    expectedMultipurposeStaffrifleEnchantments(stack),
                     "Multipurpose Staffrifle"
             );
         });
@@ -11836,8 +11836,8 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
-    private static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments() {
-        return registryIdSet(
+    private static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
+        var expectedEnchantments = registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
                 EnchantmentRegistry.RESERVOIR,
@@ -11846,6 +11846,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER
         );
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
     }
 
     private static void assertChargedTwinBladeStaffThrownDamage(
