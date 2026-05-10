@@ -97,6 +97,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.craftsmansDelightFortuneLevel();
     }
 
+    public static double chromaticMagiaDressSchoolSpellPowerBonusPerHistory() {
+        return ITEMS_CONFIG.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
+    }
+
     public static double pastelStaffAmplifyTintedMagicMultiplier() {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
     }

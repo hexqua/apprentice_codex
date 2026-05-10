@@ -32,6 +32,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellVa
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
@@ -8701,29 +8702,32 @@ public final class ApprenticeCodexGameTestScenarios {
             player.setItemSlot(EquipmentSlot.CHEST, chestplate);
             player.setItemSlot(EquipmentSlot.LEGS, leggings);
             player.setItemSlot(EquipmentSlot.FEET, boots);
+            var schoolSpellPowerBonusPerHistory =
+                    ApprenticeCodexServerConfig.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
 
             var longSpell = SpellRegistry.COMPOUND_PHIAL.get();
             for (int i = 0; i < 21; ++i) {
                 postSpellOnCast(player, longSpell, 1);
             }
-            assertSchoolSpellPowerBonus(helper, helmet, EquipmentSlot.HEAD, longSpell, 0.20D,
+            assertSchoolSpellPowerBonus(helper, helmet, EquipmentSlot.HEAD, longSpell,
+                    20.0D * schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress helmet should keep only the latest 20 LONG histories");
             assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, longSpell, 0.0D,
                     "Chromatic Magia Dress chestplate should ignore non-recast LONG spells");
 
             var continuousSpell = SpellRegistry.FORCE_FIELD.get();
             postSpellOnCast(player, continuousSpell, 1);
-            assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, 0.01D,
+            assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress leggings should record CONTINUOUS spells");
 
             var instantSpell = SpellRegistry.MANA_SLASH.get();
             postSpellOnCast(player, instantSpell, 1);
-            assertSchoolSpellPowerBonus(helper, boots, EquipmentSlot.FEET, instantSpell, 0.01D,
+            assertSchoolSpellPowerBonus(helper, boots, EquipmentSlot.FEET, instantSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress boots should record INSTANT spells");
 
             var recastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
             postSpellOnCast(player, recastSpell, 1);
-            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, 0.01D,
+            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress chestplate should record initial recast-capable casts");
 
             magicData.getPlayerRecasts().addRecast(new RecastInstance(
@@ -8735,7 +8739,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     null
             ), magicData);
             postSpellOnCast(player, recastSpell, 1);
-            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, 0.01D,
+            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress chestplate should ignore casts while the same spell is in Recast");
         });
     }
