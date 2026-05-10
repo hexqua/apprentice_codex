@@ -1,9 +1,11 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 public final class MultipurposeStaffrifleClientAdsState {
@@ -25,7 +27,13 @@ public final class MultipurposeStaffrifleClientAdsState {
                 && player == minecraft.player
                 && minecraft.screen == null
                 && !player.isSpectator()
+                && !isEpicFightBattleMode()
                 && minecraft.options.keyUse.isDown()
                 && player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle;
+    }
+
+    private static boolean isEpicFightBattleMode() {
+        return ModList.get().isLoaded(EpicFightClientCompat.MOD_ID)
+                && EpicFightClientCompat.isBattleMode();
     }
 }

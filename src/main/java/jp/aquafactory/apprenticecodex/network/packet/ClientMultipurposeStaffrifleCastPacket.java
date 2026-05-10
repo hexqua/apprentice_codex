@@ -1,7 +1,9 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -25,7 +27,10 @@ public record ClientMultipurposeStaffrifleCastPacket(boolean adsFullAuto) {
 
             var mainHandItem = sender.getMainHandItem().getItem();
             if (mainHandItem instanceof MultipurposeStaffrifle staffrifle) {
-                staffrifle.tryTriggerSelectedSpell(sender, packet.adsFullAuto());
+                var casted = staffrifle.tryTriggerSelectedSpell(sender, packet.adsFullAuto());
+                if (casted && ModList.get().isLoaded(EpicFightSwingMagicCompat.MOD_ID)) {
+                    EpicFightSwingMagicCompat.playStaffrifleShotAnimation(sender);
+                }
             }
         });
         context.setPacketHandled(true);
