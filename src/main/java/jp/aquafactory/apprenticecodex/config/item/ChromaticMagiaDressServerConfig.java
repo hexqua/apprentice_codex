@@ -1,15 +1,15 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class ChromaticMagiaDressServerConfig {
-    private final ForgeConfigSpec.DoubleValue schoolSpellPowerBonusPerHistory;
+    private final ModConfigSpec.DoubleValue schoolSpellPowerBonusPerHistory;
 
-    private ChromaticMagiaDressServerConfig(ForgeConfigSpec.DoubleValue schoolSpellPowerBonusPerHistory) {
+    private ChromaticMagiaDressServerConfig(ModConfigSpec.DoubleValue schoolSpellPowerBonusPerHistory) {
         this.schoolSpellPowerBonusPerHistory = schoolSpellPowerBonusPerHistory;
     }
 
-    public static ChromaticMagiaDressServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static ChromaticMagiaDressServerConfig define(ModConfigSpec.Builder builder) {
         builder.comment("Spell power attribute modifier amount per recorded school history. 0.01 = +1%.")
                 .push("ChromaticMagiaDress");
 

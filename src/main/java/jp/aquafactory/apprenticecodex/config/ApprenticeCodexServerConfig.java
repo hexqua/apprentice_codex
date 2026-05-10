@@ -96,6 +96,22 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.craftsmansDelightFortuneLevel();
     }
 
+    public static double apprenticeMageRobeSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.apprenticeMageRobeSpellPowerBonusPerPiece();
+    }
+
+    public static double enchantressRobeSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.enchantressRobeSpellPowerBonusPerPiece();
+    }
+
+    public static double chromaticMagiaDressSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.chromaticMagiaDressSpellPowerBonusPerPiece();
+    }
+
+    public static double stealthRuneArmorSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.stealthRuneArmorSpellPowerBonusPerPiece();
+    }
+
     public static double chromaticMagiaDressSchoolSpellPowerBonusPerHistory() {
         return ITEMS_CONFIG.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
     }
