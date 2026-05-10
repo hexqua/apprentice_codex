@@ -36,8 +36,7 @@ public final class ChromaticMagiaDressStats {
     );
 
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
-            new AttributeBonus(AttributeRegistry.MAX_MANA, 125.0D, AttributeModifier.Operation.ADD_VALUE, "max_mana"),
-            new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.15D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE, "spell_power")
+            new AttributeBonus(AttributeRegistry.MAX_MANA, 125.0D, AttributeModifier.Operation.ADD_VALUE, "max_mana")
     );
 
     public static final ArmorMaterial MATERIAL = new ArmorMaterial(
@@ -86,6 +85,21 @@ public final class ChromaticMagiaDressStats {
             );
         }
         return builder.build();
+    }
+
+    static void addSpellPowerModifier(
+            ItemAttributeModifiers.Builder builder,
+            ArmorItem.Type type,
+            double amount
+    ) {
+        MagicArmorAttributeHelper.addModifier(
+                builder,
+                AttributeRegistry.SPELL_POWER,
+                amount,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                EquipmentSlotGroup.bySlot(type.getSlot()),
+                "chromatic_magia_dress_" + typeToken(type) + "_spell_power_config"
+        );
     }
 
     static String typeToken(ArmorItem.Type type) {

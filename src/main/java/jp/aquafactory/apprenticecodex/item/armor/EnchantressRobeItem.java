@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.armor;
 
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.armor.EnchantressRobeRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -87,6 +88,11 @@ public class EnchantressRobeItem extends ArmorItem implements GeoItem, IPresetSp
         for (var entry : robeAttributeModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
+        EnchantressRobeStats.addSpellPowerModifier(
+                builder,
+                getType(),
+                ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece()
+        );
         addImbuedSchoolSpellPowerModifier(builder, stack);
         return builder.build();
     }

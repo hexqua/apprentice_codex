@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.armor;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.armor.StealthRuneArmorRenderer;
 import net.minecraft.ChatFormatting;
@@ -94,10 +95,6 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
         var baseModifiers = super.getDefaultAttributeModifiers(stack);
-        if (armorAttributeModifiers.modifiers().isEmpty()) {
-            return baseModifiers;
-        }
-
         var builder = ItemAttributeModifiers.builder();
         for (var entry : baseModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
@@ -105,6 +102,11 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         for (var entry : armorAttributeModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
+        StealthRuneArmorStats.addSpellPowerModifier(
+                builder,
+                getType(),
+                ApprenticeCodexServerConfig.stealthRuneArmorSpellPowerBonusPerPiece()
+        );
         return builder.build();
     }
 

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.armor;
 
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -68,10 +69,6 @@ public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPrese
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
         var baseModifiers = super.getDefaultAttributeModifiers(stack);
-        if (robeAttributeModifiers.modifiers().isEmpty()) {
-            return baseModifiers;
-        }
-
         var builder = ItemAttributeModifiers.builder();
         for (var entry : baseModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
@@ -79,6 +76,11 @@ public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPrese
         for (var entry : robeAttributeModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
+        ApprenticeMageRobeStats.addSpellPowerModifier(
+                builder,
+                getType(),
+                ApprenticeCodexServerConfig.apprenticeMageRobeSpellPowerBonusPerPiece()
+        );
         return builder.build();
     }
 

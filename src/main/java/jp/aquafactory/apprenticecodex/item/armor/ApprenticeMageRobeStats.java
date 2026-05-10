@@ -37,8 +37,7 @@ public final class ApprenticeMageRobeStats {
     );
 
     private static final List<AttributeBonus> DEFAULT_ATTRIBUTE_BONUSES = List.of(
-            new AttributeBonus(AttributeRegistry.MAX_MANA, 50.0D, AttributeModifier.Operation.ADD_VALUE, "max_mana"),
-            new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.05D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE, "spell_power")
+            new AttributeBonus(AttributeRegistry.MAX_MANA, 50.0D, AttributeModifier.Operation.ADD_VALUE, "max_mana")
     );
 
     private static final Map<ArmorItem.Type, List<AttributeBonus>> ATTRIBUTE_BONUSES = Map.of(
@@ -100,6 +99,21 @@ public final class ApprenticeMageRobeStats {
         }
 
         return builder.build();
+    }
+
+    static void addSpellPowerModifier(
+            ItemAttributeModifiers.Builder builder,
+            ArmorItem.Type type,
+            double amount
+    ) {
+        MagicArmorAttributeHelper.addModifier(
+                builder,
+                AttributeRegistry.SPELL_POWER,
+                amount,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                EquipmentSlotGroup.bySlot(type.getSlot()),
+                "apprentice_mage_robe_" + typeToken(type) + "_spell_power_config"
+        );
     }
 
     private static String typeToken(ArmorItem.Type type) {

@@ -40,7 +40,6 @@ public final class EnchantressRobeStats {
 
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
             new AttributeBonus(AttributeRegistry.MAX_MANA, MAX_MANA_BONUS_PER_PIECE, AttributeModifier.Operation.ADD_VALUE, "max_mana"),
-            new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.10D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE, "spell_power"),
             new AttributeBonus(
                     ApprenticeAttributeRegistry.MAX_ENCHANTMENT_TABLE_LEVEL,
                     ENCHANTING_TABLE_LEVEL_BONUS_PER_PIECE,
@@ -108,6 +107,21 @@ public final class EnchantressRobeStats {
         }
 
         return builder.build();
+    }
+
+    static void addSpellPowerModifier(
+            ItemAttributeModifiers.Builder builder,
+            ArmorItem.Type type,
+            double amount
+    ) {
+        MagicArmorAttributeHelper.addModifier(
+                builder,
+                AttributeRegistry.SPELL_POWER,
+                amount,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                EquipmentSlotGroup.bySlot(type.getSlot()),
+                "enchantress_robe_" + typeToken(type) + "_spell_power_config"
+        );
     }
 
     private static String typeToken(ArmorItem.Type type) {

@@ -299,6 +299,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaForceBladeConfigScalesDamageAndManaFormulas(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaForceBladeConfigScalesDamageAndManaFormulas(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.betterCombatSpellbreakerIsTwoHandedAndAmplifierHasOffhandSpellPower(helper);
     }
@@ -759,6 +764,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.apprenticeMageRobeKeepsExpectedAttributeBonuses(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(helper);
     }
@@ -771,6 +781,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(helper);
     }
 
     @GameTest(template = TEMPLATE)
