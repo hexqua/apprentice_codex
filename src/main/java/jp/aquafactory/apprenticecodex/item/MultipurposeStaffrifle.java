@@ -28,15 +28,18 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -56,6 +59,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -77,6 +81,13 @@ public final class MultipurposeStaffrifle extends Item
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.multipurpose_staffrifle.desc_";
     private static final String MAIN_CONTROLLER = "main";
     private static final String FIRED_ANIMATION = "fired";
+    private static final String MALUM_NAMESPACE = "malum";
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
+    );
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_FIRED = RawAnimation.begin().thenPlay("fired");
     private static final int MAX_USE_DURATION = 72000;
@@ -153,7 +164,7 @@ public final class MultipurposeStaffrifle extends Item
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return isSupportedStaffrifleEnchantment(enchantment);
+        return isSupportedStaffrifleEnchantment(stack, enchantment);
     }
 
     @Override
@@ -164,12 +175,12 @@ public final class MultipurposeStaffrifle extends Item
 
         var enchantments = EnchantmentHelper.getEnchantments(book);
         return enchantments.isEmpty() || enchantments.keySet().stream()
-                .allMatch(MultipurposeStaffrifle::isSupportedStaffrifleEnchantment);
+                .allMatch(enchantment -> isSupportedStaffrifleEnchantment(stack, enchantment));
     }
 
     @Override
     public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
-        return isSupportedStaffrifleEnchantment(enchantment);
+        return isSupportedStaffrifleEnchantment(stack, enchantment);
     }
 
     @Override
@@ -669,7 +680,14 @@ public final class MultipurposeStaffrifle extends Item
         return enchantment.isPresent() ? stack.getEnchantmentLevel(enchantment.get()) : 0;
     }
 
-    private static boolean isSupportedStaffrifleEnchantment(Enchantment enchantment) {
+    private static boolean isSupportedStaffrifleEnchantment(ItemStack stack, Enchantment enchantment) {
+        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        if (enchantmentId != null
+                && MALUM_SPIRIT_PLUNDER.equals(enchantmentId)
+                && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
+            return true;
+        }
+
         return (EnchantmentRegistry.ALACRITY.isPresent() && enchantment == EnchantmentRegistry.ALACRITY.get())
                 || (EnchantmentRegistry.REFLUX.isPresent() && enchantment == EnchantmentRegistry.REFLUX.get())
                 || (EnchantmentRegistry.RESERVOIR.isPresent() && enchantment == EnchantmentRegistry.RESERVOIR.get())
