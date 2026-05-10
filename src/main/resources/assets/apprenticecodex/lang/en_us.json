@@ -262,6 +262,7 @@
   "jei.apprenticecodex.reflectcast_shield.desc_2": "If you block an attack immediately after raising it, the imbued spell is cast instantly without consuming mana.",
   "jei.apprenticecodex.reflectcast_shield.desc_3": "However, when the shield is glowing red, the spell is still on cooldown and will not activate even if the block succeeds.",
   "jei.apprenticecodex.reflectcast_shield.desc_4": "The spells it can accept can be checked in item details and JEI.",
+  "jei.apprenticecodex.multipurpose_staffrifle.desc_1": "todo:機能実装後に説明追加(英語翻訳含め)",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",

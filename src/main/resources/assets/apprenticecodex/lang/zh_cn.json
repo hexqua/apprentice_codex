@@ -262,6 +262,7 @@
   "jei.apprenticecodex.reflectcast_shield.desc_2": "举起后立即格挡攻击时，会无消耗瞬发注入的法术。",
   "jei.apprenticecodex.reflectcast_shield.desc_3": "但盾牌发红光时表示法术仍在冷却，即使格挡成功也无法激活。",
   "jei.apprenticecodex.reflectcast_shield.desc_4": "兼容的法术可在物品详情和JEI中查看。",
+  "jei.apprenticecodex.multipurpose_staffrifle.desc_1": "todo:機能実装後に説明追加(簡体中国語翻訳含め)",
 
   "enchantment.apprenticecodex.reflux": "回流",
   "enchantment.apprenticecodex.reservoir": "蓄能",

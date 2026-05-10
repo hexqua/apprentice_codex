@@ -54,6 +54,7 @@ import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffRightClickItemEvent;
 import jp.aquafactory.apprenticecodex.item.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
@@ -8657,6 +8658,76 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+
+            helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
+                    "Multipurpose Staffrifle should not add attack damage modifiers");
+            helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
+                    "Multipurpose Staffrifle should not add attack speed modifiers");
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.10D,
+                    "Multipurpose Staffrifle spell power modifier changed"
+            );
+
+            var enchantedStack = stack.copy();
+            enchantedStack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
+            enchantedStack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
+            enchantedStack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            enchantedStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            enchantedStack.enchant(EnchantmentRegistry.TENSE.get(), 1);
+            var enchantedModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, enchantedStack);
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.02D,
+                    "Multipurpose Staffrifle Alacrity modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Multipurpose Staffrifle Reflux modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
+                    AttributeModifier.Operation.ADDITION,
+                    20.0D,
+                    "Multipurpose Staffrifle Reservoir modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.12D,
+                    "Multipurpose Staffrifle base + Surge spell power modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Multipurpose Staffrifle Tense modifier changed"
+            );
+
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedMultipurposeStaffrifleEnchantments(),
+                    "Multipurpose Staffrifle"
+            );
+        });
+    }
+
     static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var baseManaCost = 100;
@@ -11576,6 +11647,18 @@ public final class ApprenticeCodexGameTestScenarios {
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments() {
+        return registryIdSet(
+                EnchantmentRegistry.ALACRITY,
+                EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.RESERVOIR,
+                EnchantmentRegistry.SURGE,
+                EnchantmentRegistry.TENSE,
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.PLUNDER
+        );
     }
 
     private static void assertChargedTwinBladeStaffThrownDamage(

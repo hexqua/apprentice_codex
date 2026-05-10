@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
@@ -258,6 +259,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final DeferredHolder<Item, Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
+    public static final DeferredHolder<Item, Item> MULTIPURPOSE_STAFFRIFLE =
+            ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final DeferredHolder<Item, Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final DeferredHolder<Item, Item> CHARGED_TWIN_BLADE_STAFF =

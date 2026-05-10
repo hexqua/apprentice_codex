@@ -2,7 +2,36 @@
 	"format_version": "1.8.0",
 	"animations": {
 		"idle": {
-			"loop": true
+			"loop": true,
+			"animation_length": 4,
+			"bones": {
+				"muzzle": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"4.0": {
+							"vector": [0, 0, 360]
+						}
+					}
+				}
+			}
+		},
+		"fired": {
+			"animation_length": 1,
+			"bones": {
+				"muzzle": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 1080]
+						},
+						"1.0": {
+							"vector": [0, 0, 0],
+							"easing": "easeOutSine"
+						}
+					}
+				}
+			}
 		}
 	}
 }

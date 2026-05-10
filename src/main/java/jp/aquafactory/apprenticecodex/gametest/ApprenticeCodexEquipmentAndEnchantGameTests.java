@@ -809,6 +809,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(helper);
     }

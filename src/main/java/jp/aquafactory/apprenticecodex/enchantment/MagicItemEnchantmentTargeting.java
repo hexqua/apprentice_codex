@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -23,7 +24,7 @@ final class MagicItemEnchantmentTargeting {
     }
 
     static boolean isSupportedSurgeMagicItem(Item item) {
-        return isSupportedMagicItem(item) || item instanceof ManaForceBlade;
+        return isSupportedMagicItem(item) || item instanceof ManaForceBlade || item instanceof MultipurposeStaffrifle;
     }
 
     static boolean isSupportedOffhandMagicItem(Item item) {
@@ -60,6 +61,7 @@ final class MagicItemEnchantmentTargeting {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
+                || item instanceof MultipurposeStaffrifle
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask
                 || item instanceof EnchantressRobeItem
@@ -72,12 +74,14 @@ final class MagicItemEnchantmentTargeting {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
+                || item instanceof MultipurposeStaffrifle
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask;
     }
 
     static boolean isSupportedLootingMagicItem(Item item) {
         return item instanceof AbstractSpellGunItem
-                || item instanceof ElementalBow;
+                || item instanceof ElementalBow
+                || item instanceof MultipurposeStaffrifle;
     }
 }

@@ -266,6 +266,7 @@
   "jei.apprenticecodex.reflectcast_shield.desc_2": "構えた直後に攻撃をブロックすると、注入されている魔法をマナを消費せずに即座に詠唱できる。",
   "jei.apprenticecodex.reflectcast_shield.desc_3": "ただし、盾が赤く光っている時は魔法がクールダウン途中となり、この時はブロックが成立しても魔法が発動しない。",
   "jei.apprenticecodex.reflectcast_shield.desc_4": "注入できる魔法の種類はアイテムの詳細及びJEI上で確認が可能。",
+  "jei.apprenticecodex.multipurpose_staffrifle.desc_1": "todo:機能実装後に説明追加",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
