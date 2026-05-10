@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -70,13 +71,18 @@ public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPrese
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != armorType.getSlot() || robeAttributeModifiers.isEmpty()) {
+        if (slot != armorType.getSlot()) {
             return baseModifiers;
         }
 
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         builder.putAll(baseModifiers);
         builder.putAll(robeAttributeModifiers);
+        ApprenticeMageRobeStats.addSpellPowerModifier(
+                builder,
+                armorType,
+                ApprenticeCodexServerConfig.apprenticeMageRobeSpellPowerBonusPerPiece()
+        );
         return builder.build();
     }
 
@@ -86,7 +92,7 @@ public class ApprenticeMageRobeItem extends ArmorItem implements GeoItem, IPrese
     }
 
     @Override
-    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
+    public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
         return ApprenticeMageRobeStats.isRepairIngredient(repair) || super.isValidRepairItem(toRepair, repair);
     }
 

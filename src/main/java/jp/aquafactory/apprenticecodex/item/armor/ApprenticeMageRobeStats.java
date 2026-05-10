@@ -50,23 +50,19 @@ public final class ApprenticeMageRobeStats {
     private static final Map<ArmorItem.Type, List<AttributeBonus>> ATTRIBUTE_BONUSES = Map.of(
             ArmorItem.Type.HELMET,
             List.of(
-                    new AttributeBonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION, "max_mana"),
-                    new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.05D, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
+                    new AttributeBonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION, "max_mana")
             ),
             ArmorItem.Type.CHESTPLATE,
             List.of(
-                    new AttributeBonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION, "max_mana"),
-                    new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.05D, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
+                    new AttributeBonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION, "max_mana")
             ),
             ArmorItem.Type.LEGGINGS,
             List.of(
-                    new AttributeBonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION, "max_mana"),
-                    new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.05D, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
+                    new AttributeBonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION, "max_mana")
             ),
             ArmorItem.Type.BOOTS,
             List.of(
-                    new AttributeBonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION, "max_mana"),
-                    new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.05D, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
+                    new AttributeBonus(AttributeRegistry.MAX_MANA, 50, AttributeModifier.Operation.ADDITION, "max_mana")
             )
     );
 
@@ -104,6 +100,20 @@ public final class ApprenticeMageRobeStats {
             );
         }
         return builder.build();
+    }
+
+    static void addSpellPowerModifier(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ArmorItem.Type type,
+            double amount
+    ) {
+        MagicArmorAttributeHelper.addModifier(
+                builder,
+                AttributeRegistry.SPELL_POWER.get(),
+                amount,
+                AttributeModifier.Operation.MULTIPLY_BASE,
+                "apprenticecodex.apprentice_mage_robe." + typeToken(type) + ".spell_power.1"
+        );
     }
 
     private static int durabilityFor(ArmorItem.Type type) {

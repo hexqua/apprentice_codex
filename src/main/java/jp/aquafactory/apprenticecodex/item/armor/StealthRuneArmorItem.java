@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.StealthRuneArmorRenderer;
 import net.minecraft.ChatFormatting;
@@ -136,13 +137,18 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
         var baseModifiers = super.getAttributeModifiers(slot, stack);
-        if (slot != armorType.getSlot() || armorAttributeModifiers.isEmpty()) {
+        if (slot != armorType.getSlot()) {
             return baseModifiers;
         }
 
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         builder.putAll(baseModifiers);
         builder.putAll(armorAttributeModifiers);
+        StealthRuneArmorStats.addSpellPowerModifier(
+                builder,
+                armorType,
+                ApprenticeCodexServerConfig.stealthRuneArmorSpellPowerBonusPerPiece()
+        );
         return builder.build();
     }
 

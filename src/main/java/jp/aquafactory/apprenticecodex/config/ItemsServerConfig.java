@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.config;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
@@ -14,6 +15,7 @@ final class ItemsServerConfig {
     private final AbsorptionAmplifyAmuletServerConfig absorptionAmplifyAmuletConfig;
     private final ScarletThirstServerConfig scarletThirstConfig;
     private final CraftsmansDelightServerConfig craftsmansDelightConfig;
+    private final MagicArmorServerConfig magicArmorConfig;
     private final ChromaticMagiaDressServerConfig chromaticMagiaDressConfig;
     private final PastelStaffServerConfig pastelStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
@@ -23,6 +25,7 @@ final class ItemsServerConfig {
             AbsorptionAmplifyAmuletServerConfig absorptionAmplifyAmuletConfig,
             ScarletThirstServerConfig scarletThirstConfig,
             CraftsmansDelightServerConfig craftsmansDelightConfig,
+            MagicArmorServerConfig magicArmorConfig,
             ChromaticMagiaDressServerConfig chromaticMagiaDressConfig,
             PastelStaffServerConfig pastelStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig
@@ -31,6 +34,7 @@ final class ItemsServerConfig {
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
         this.scarletThirstConfig = scarletThirstConfig;
         this.craftsmansDelightConfig = craftsmansDelightConfig;
+        this.magicArmorConfig = magicArmorConfig;
         this.chromaticMagiaDressConfig = chromaticMagiaDressConfig;
         this.pastelStaffConfig = pastelStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
@@ -42,6 +46,7 @@ final class ItemsServerConfig {
         var absorptionAmplifyAmuletConfig = AbsorptionAmplifyAmuletServerConfig.define(builder);
         var scarletThirstConfig = ScarletThirstServerConfig.define(builder);
         var craftsmansDelightConfig = CraftsmansDelightServerConfig.define(builder);
+        var magicArmorConfig = MagicArmorServerConfig.define(builder);
         var chromaticMagiaDressConfig = ChromaticMagiaDressServerConfig.define(builder);
         var pastelStaffConfig = PastelStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
@@ -52,6 +57,7 @@ final class ItemsServerConfig {
                 absorptionAmplifyAmuletConfig,
                 scarletThirstConfig,
                 craftsmansDelightConfig,
+                magicArmorConfig,
                 chromaticMagiaDressConfig,
                 pastelStaffConfig,
                 isekaiTravelGuidebookConfig
@@ -100,6 +106,22 @@ final class ItemsServerConfig {
 
     int craftsmansDelightFortuneLevel() {
         return craftsmansDelightConfig.fortuneLevel();
+    }
+
+    double apprenticeMageRobeSpellPowerBonusPerPiece() {
+        return magicArmorConfig.apprenticeMageRobeSpellPowerBonusPerPiece();
+    }
+
+    double enchantressRobeSpellPowerBonusPerPiece() {
+        return magicArmorConfig.enchantressRobeSpellPowerBonusPerPiece();
+    }
+
+    double chromaticMagiaDressSpellPowerBonusPerPiece() {
+        return magicArmorConfig.chromaticMagiaDressSpellPowerBonusPerPiece();
+    }
+
+    double stealthRuneArmorSpellPowerBonusPerPiece() {
+        return magicArmorConfig.stealthRuneArmorSpellPowerBonusPerPiece();
     }
 
     double chromaticMagiaDressSchoolSpellPowerBonusPerHistory() {

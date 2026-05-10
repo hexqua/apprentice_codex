@@ -141,6 +141,11 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
 
         var extraBuilder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         extraBuilder.putAll(armorAttributeModifiers);
+        ChromaticMagiaDressStats.addSpellPowerModifier(
+                extraBuilder,
+                armorType,
+                ApprenticeCodexServerConfig.chromaticMagiaDressSpellPowerBonusPerPiece()
+        );
         addHistorySpellPowerModifiers(extraBuilder, stack);
 
         var mergedExtraModifiers = MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(

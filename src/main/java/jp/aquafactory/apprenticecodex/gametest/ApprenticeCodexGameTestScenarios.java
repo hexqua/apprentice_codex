@@ -95,6 +95,7 @@ import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
+import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -8566,11 +8567,45 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+    static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.apprenticeMageRobeSpellPowerBonusPerPiece();
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
+                    ArmorItem.Type.CHESTPLATE, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
+                    ArmorItem.Type.LEGGINGS, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
+                    ArmorItem.Type.BOOTS, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
+                helper.assertTrue(Math.abs(maxManaBonus - 50.0D) < 1.0e-9D,
+                        "Apprentice Mage Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Apprentice Mage Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
+
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == (armorType == ArmorItem.Type.CHESTPLATE),
+                        "Apprentice Mage Robe " + armorType + " imbue surface regression");
+            }
+        });
+    }
+
     static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
             var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
             var lightningSpellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_HAT.get(),
                     ArmorItem.Type.CHESTPLATE, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get(),
@@ -8590,8 +8625,8 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Enchantress Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
 
                 var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - 0.10D) < 1.0e-9D,
-                        "Enchantress Robe " + armorType + " spell power regression: " + describeModifiers(modifiers));
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Enchantress Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
 
                 helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
                         "Enchantress Robe " + armorType + " imbue surface regression: hasImbueSlot="
@@ -8627,8 +8662,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
-            helper.assertTrue(Math.abs(globalSpellPowerBonus - 0.10D) < 1.0e-9D,
-                    "Enchantress Robe chestplate should keep +0.10 spell power after imbue: " + describeModifiers(modifiers));
+            var expectedGlobalSpellPower = ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece();
+            helper.assertTrue(Math.abs(globalSpellPowerBonus - expectedGlobalSpellPower) < 1.0e-9D,
+                    "Enchantress Robe chestplate should keep configured spell power after imbue: " + describeModifiers(modifiers));
 
             var imbuedSchoolSpellPowerBonus = sumModifierAmount(
                     modifiers.get(imbuedSpellPowerAttribute),
@@ -8642,6 +8678,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
             var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.chromaticMagiaDressSpellPowerBonusPerPiece();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
                     ArmorItem.Type.CHESTPLATE, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
@@ -8673,8 +8710,8 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Chromatic Magia Dress " + armorType + " max mana regression: " + describeModifiers(modifiers));
 
                 var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - 0.15D) < 1.0e-9D,
-                        "Chromatic Magia Dress " + armorType + " spell power regression: " + describeModifiers(modifiers));
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Chromatic Magia Dress " + armorType + " spell power config regression: " + describeModifiers(modifiers));
 
                 helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
                         "Chromatic Magia Dress " + armorType + " imbue surface regression");
@@ -8688,6 +8725,46 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+    static void stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.stealthRuneArmorSpellPowerBonusPerPiece();
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
+                    ArmorItem.Type.CHESTPLATE, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
+                    ArmorItem.Type.LEGGINGS, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
+                    ArmorItem.Type.BOOTS, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
+                helper.assertTrue(Math.abs(maxManaBonus - 50.0D) < 1.0e-9D,
+                        "Stealth Rune Armor " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Stealth Rune Armor " + armorType + " spell power config regression: " + describeModifiers(modifiers));
+
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
+                        "Stealth Rune Armor " + armorType + " imbue surface regression");
+
+                var tooltipLines = new ArrayList<Component>();
+                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+                helper.assertTrue(tooltipLines.stream().anyMatch(line ->
+                                line.getContents() instanceof TranslatableContents contents
+                                        && ("item." + ApprenticeCodex.MODID + ".stealth_rune_armor.desc").equals(contents.getKey())),
+                        "Stealth Rune Armor " + armorType + " should show its lang desc key");
+            }
+        });
+    }
+
     static void chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "chromatic_magia_dress_history_test");
