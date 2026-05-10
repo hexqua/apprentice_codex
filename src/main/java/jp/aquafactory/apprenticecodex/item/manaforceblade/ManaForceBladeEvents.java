@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.events.ChangeManaEvent;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightManaForceBladeCompat;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.CommonComponents;
@@ -29,6 +30,7 @@ public final class ManaForceBladeEvents {
     private static final String EPICFIGHT_MOD_ID = "epicfight";
     private static final String MAIN_HAND_MODIFIER_KEY = "item.modifiers.mainhand";
     private static final String ATTACK_DAMAGE_MODIFIER_KEY = "attribute.modifier.equals.0";
+    private static final String IMBUE_HELP_KEY = "item.apprenticecodex.mana_force_blade.desc.imbue_help";
 
     private ManaForceBladeEvents() {
     }
@@ -93,13 +95,15 @@ public final class ManaForceBladeEvents {
         }
 
         if (ModList.get().isLoaded(EPICFIGHT_MOD_ID)) {
-            if (player instanceof ServerPlayer serverPlayer && EpicFightManaForceBladeCompat.isGuarding(serverPlayer)) {
+            if (ApprenticeCodexServerConfig.manaForceBladeDisableManaRecoveryWhileGuarding()
+                    && player instanceof ServerPlayer serverPlayer && EpicFightManaForceBladeCompat.isGuarding(serverPlayer)) {
                 event.setNewMana(event.getOldMana());
             }
             return;
         }
 
-        if (player.isUsingItem() && ManaForceBlade.isManaForceBlade(player.getUseItem())) {
+        if (ApprenticeCodexServerConfig.manaForceBladeDisableManaRecoveryWhileGuarding()
+                && player.isUsingItem() && ManaForceBlade.isManaForceBlade(player.getUseItem())) {
             // Iron's 1.20.1 の ChangeManaEvent は回復源を区別しないため、構え中の正の変化をまとめて抑制する。
             event.setNewMana(event.getOldMana());
         }
@@ -112,8 +116,13 @@ public final class ManaForceBladeEvents {
             return;
         }
 
-        var damage = ManaForceBlade.resolveFinalAttackDamage(event.getEntity(), stack);
+        var damage = ManaForceBlade.resolveFinalAttackDamage(
+                event.getEntity(),
+                stack,
+                ManaForceBladeConfigState.imbueDamageMultiplierScale()
+        );
         replaceMainHandAttackDamageTooltip(event.getToolTip(), damage);
+        replaceAttackManaCostTooltip(event.getToolTip(), event.getEntity(), stack);
     }
 
     private static void replaceMainHandAttackDamageTooltip(List<Component> tooltip, float damage) {
@@ -170,6 +179,30 @@ public final class ManaForceBladeEvents {
                 Utils.stringTruncation(damage, 2),
                 Component.translatable(Attributes.ATTACK_DAMAGE.getDescriptionId())
         )).withStyle(ChatFormatting.DARK_GREEN);
+    }
+
+    private static void replaceAttackManaCostTooltip(List<Component> tooltip, LivingEntity entity, net.minecraft.world.item.ItemStack stack) {
+        var manaCost = ManaForceBlade.resolveBladeAttackManaCost(
+                entity,
+                stack,
+                ManaForceBladeConfigState.attackManaCostMultiplier(),
+                ManaForceBladeConfigState.attackManaSchoolMultiplierScale(),
+                ManaForceBladeConfigState.imbueDamageMultiplierScale()
+        );
+        for (var i = 0; i < tooltip.size(); i++) {
+            var translatableContents = findFirstTranslatableContents(tooltip.get(i));
+            if (translatableContents == null || !IMBUE_HELP_KEY.equals(translatableContents.getKey())) {
+                continue;
+            }
+
+            if (manaCost <= 0.0F) {
+                tooltip.remove(i);
+            } else {
+                tooltip.set(i, Component.translatable(IMBUE_HELP_KEY, net.minecraft.util.Mth.ceil(manaCost))
+                        .withStyle(ChatFormatting.AQUA));
+            }
+            return;
+        }
     }
 
     public static void playBlueGuardEffect(ServerPlayer player, Vec3 position, int sparkCount) {

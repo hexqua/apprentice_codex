@@ -32,6 +32,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserSpellVa
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
@@ -94,6 +95,7 @@ import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackJob;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
+import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressStats;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -4790,11 +4792,75 @@ public final class ApprenticeCodexGameTestScenarios {
             item.hurtEnemy(stack, secondTarget, player);
 
             var expectedMana = 100.0F
-                    - jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(stack);
+                    - jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(player, stack);
             helper.assertTrue(Math.abs(magicData.getMana() - expectedMana) < 1.0e-4F,
                     "Mana Force Blade should spend attack mana once per tick even when multiple targets are hit"
                             + " expected=" + expectedMana
                             + " actual=" + magicData.getMana());
+        });
+    }
+
+    static void manaForceBladeConfigScalesDamageAndManaFormulas(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (jp.aquafactory.apprenticecodex.item.ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
+            var stack = new ItemStack(item);
+            item.initializeSpellContainer(stack);
+            setSingleUnlockedSpell(helper, stack,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "mana_force_blade_config_formula_test");
+            var spellPower = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
+            helper.assertTrue(spellPower != null,
+                    "Mana Force Blade config formula test could not resolve spell power attribute");
+            if (spellPower != null) {
+                spellPower.setBaseValue(1.5D);
+            }
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Mana Force Blade config formula test could not resolve imbued school");
+            var schoolPowerAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(schoolPowerAttribute != null,
+                    "Mana Force Blade config formula test could not resolve school power attribute");
+            var schoolPower = schoolPowerAttribute == null ? null : player.getAttribute(schoolPowerAttribute);
+            helper.assertTrue(schoolPower != null,
+                    "Mana Force Blade config formula test could not resolve player school power instance");
+            if (schoolPower != null) {
+                schoolPower.setBaseValue(1.2D);
+            }
+
+            var baseDamage = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackDamage(stack);
+            var damageMultiplier = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 1.0F);
+            helper.assertTrue(Math.abs(damageMultiplier - 1.8F) < 1.0e-4F,
+                    "Mana Force Blade should multiply spell power and school power for imbued damage but got "
+                            + damageMultiplier);
+            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.5F) - 0.9F) < 1.0e-4F,
+                    "Mana Force Blade imbue damage scale should directly scale the final school multiplier");
+            helper.assertTrue(Math.abs(jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveDamageMultiplier(player, stack, 0.0F) - 1.0F) < 1.0e-4F,
+                    "Mana Force Blade imbue damage scale 0 should disable imbued damage changes");
+
+            var fullManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+                    player, stack, 3.0F, 1.0F, 1.0F);
+            helper.assertTrue(Math.abs(fullManaCost - baseDamage * 3.0F * 1.8F) < 1.0e-4F,
+                    "Mana Force Blade full school mana scale should follow final imbued damage: " + fullManaCost);
+
+            var halfSchoolManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+                    player, stack, 3.0F, 0.5F, 1.0F);
+            helper.assertTrue(Math.abs(halfSchoolManaCost - baseDamage * 3.0F * 1.4F) < 1.0e-4F,
+                    "Mana Force Blade half school mana scale should only halve the school-derived increase: "
+                            + halfSchoolManaCost);
+
+            var noSchoolManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+                    player, stack, 3.0F, 0.0F, 1.0F);
+            helper.assertTrue(Math.abs(noSchoolManaCost - baseDamage * 3.0F) < 1.0e-4F,
+                    "Mana Force Blade school mana scale 0 should ignore school multiplier for mana cost: "
+                            + noSchoolManaCost);
+
+            var disabledManaCost = jp.aquafactory.apprenticecodex.item.ManaForceBlade.resolveBladeAttackManaCost(
+                    player, stack, 3.0F, 1.0F, 0.0F);
+            helper.assertTrue(disabledManaCost == 0.0F,
+                    "Mana Force Blade imbue damage scale 0 should also disable hit mana cost");
         });
     }
 
@@ -8565,11 +8631,45 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+    static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.apprenticeMageRobeSpellPowerBonusPerPiece();
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
+                    ArmorItem.Type.CHESTPLATE, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
+                    ArmorItem.Type.LEGGINGS, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
+                    ArmorItem.Type.BOOTS, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_BOOTS.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
+                helper.assertTrue(Math.abs(maxManaBonus - 50.0D) < 1.0e-9D,
+                        "Apprentice Mage Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Apprentice Mage Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
+
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == (armorType == ArmorItem.Type.CHESTPLATE),
+                        "Apprentice Mage Robe " + armorType + " imbue surface regression");
+            }
+        });
+    }
+
     static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
             var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
             var lightningSpellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_HAT.get(),
                     ArmorItem.Type.CHESTPLATE, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_ROBE.get(),
@@ -8589,8 +8689,8 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Enchantress Robe " + armorType + " max mana regression: " + describeModifiers(modifiers));
 
                 var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - 0.10D) < 1.0e-9D,
-                        "Enchantress Robe " + armorType + " spell power regression: " + describeModifiers(modifiers));
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Enchantress Robe " + armorType + " spell power config regression: " + describeModifiers(modifiers));
 
                 helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
                         "Enchantress Robe " + armorType + " imbue surface regression: hasImbueSlot="
@@ -8626,8 +8726,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
-            helper.assertTrue(Math.abs(globalSpellPowerBonus - 0.10D) < 1.0e-9D,
-                    "Enchantress Robe chestplate should keep +0.10 spell power after imbue: " + describeModifiers(modifiers));
+            var expectedGlobalSpellPower = ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece();
+            helper.assertTrue(Math.abs(globalSpellPowerBonus - expectedGlobalSpellPower) < 1.0e-9D,
+                    "Enchantress Robe chestplate should keep configured spell power after imbue: " + describeModifiers(modifiers));
 
             var imbuedSchoolSpellPowerBonus = sumModifierAmount(
                     modifiers.get(imbuedSpellPowerAttribute),
@@ -8641,6 +8742,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
             var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.chromaticMagiaDressSpellPowerBonusPerPiece();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
                     ArmorItem.Type.CHESTPLATE, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
@@ -8672,8 +8774,8 @@ public final class ApprenticeCodexGameTestScenarios {
                         "Chromatic Magia Dress " + armorType + " max mana regression: " + describeModifiers(modifiers));
 
                 var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
-                helper.assertTrue(Math.abs(spellPowerBonus - 0.15D) < 1.0e-9D,
-                        "Chromatic Magia Dress " + armorType + " spell power regression: " + describeModifiers(modifiers));
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Chromatic Magia Dress " + armorType + " spell power config regression: " + describeModifiers(modifiers));
 
                 helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
                         "Chromatic Magia Dress " + armorType + " imbue surface regression");
@@ -8687,6 +8789,46 @@ public final class ApprenticeCodexGameTestScenarios {
             }
         });
     }
+    static void stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var expectedSpellPower = ApprenticeCodexServerConfig.stealthRuneArmorSpellPowerBonusPerPiece();
+            var pieces = Map.of(
+                    ArmorItem.Type.HELMET, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),
+                    ArmorItem.Type.CHESTPLATE, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
+                    ArmorItem.Type.LEGGINGS, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get(),
+                    ArmorItem.Type.BOOTS, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_FOOT.get()
+            );
+
+            for (var entry : pieces.entrySet()) {
+                var armorType = entry.getKey();
+                var item = entry.getValue();
+                var stack = new ItemStack(item);
+                item.initializeSpellContainer(stack);
+
+                var modifiers = item.getAttributeModifiers(armorType.getSlot(), stack);
+                var maxManaBonus = sumModifierAmount(modifiers.get(maxManaAttribute), AttributeModifier.Operation.ADDITION);
+                helper.assertTrue(Math.abs(maxManaBonus - 50.0D) < 1.0e-9D,
+                        "Stealth Rune Armor " + armorType + " max mana regression: " + describeModifiers(modifiers));
+
+                var spellPowerBonus = sumModifierAmount(modifiers.get(spellPowerAttribute), AttributeModifier.Operation.MULTIPLY_BASE);
+                helper.assertTrue(Math.abs(spellPowerBonus - expectedSpellPower) < 1.0e-9D,
+                        "Stealth Rune Armor " + armorType + " spell power config regression: " + describeModifiers(modifiers));
+
+                helper.assertTrue(ISpellContainer.isSpellContainer(stack) == item.hasImbueSlot(),
+                        "Stealth Rune Armor " + armorType + " imbue surface regression");
+
+                var tooltipLines = new ArrayList<Component>();
+                item.appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+                helper.assertTrue(tooltipLines.stream().anyMatch(line ->
+                                line.getContents() instanceof TranslatableContents contents
+                                        && ("item." + ApprenticeCodex.MODID + ".stealth_rune_armor.desc").equals(contents.getKey())),
+                        "Stealth Rune Armor " + armorType + " should show its lang desc key");
+            }
+        });
+    }
+
     static void chromaticMagiaDressRecordsCastHistoryByArmorTypeAndIgnoresRecasts(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "chromatic_magia_dress_history_test");
@@ -8701,29 +8843,32 @@ public final class ApprenticeCodexGameTestScenarios {
             player.setItemSlot(EquipmentSlot.CHEST, chestplate);
             player.setItemSlot(EquipmentSlot.LEGS, leggings);
             player.setItemSlot(EquipmentSlot.FEET, boots);
+            var schoolSpellPowerBonusPerHistory =
+                    ApprenticeCodexServerConfig.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
 
             var longSpell = SpellRegistry.COMPOUND_PHIAL.get();
             for (int i = 0; i < 21; ++i) {
                 postSpellOnCast(player, longSpell, 1);
             }
-            assertSchoolSpellPowerBonus(helper, helmet, EquipmentSlot.HEAD, longSpell, 0.20D,
+            assertSchoolSpellPowerBonus(helper, helmet, EquipmentSlot.HEAD, longSpell,
+                    20.0D * schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress helmet should keep only the latest 20 LONG histories");
             assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, longSpell, 0.0D,
                     "Chromatic Magia Dress chestplate should ignore non-recast LONG spells");
 
             var continuousSpell = SpellRegistry.FORCE_FIELD.get();
             postSpellOnCast(player, continuousSpell, 1);
-            assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, 0.01D,
+            assertSchoolSpellPowerBonus(helper, leggings, EquipmentSlot.LEGS, continuousSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress leggings should record CONTINUOUS spells");
 
             var instantSpell = SpellRegistry.MANA_SLASH.get();
             postSpellOnCast(player, instantSpell, 1);
-            assertSchoolSpellPowerBonus(helper, boots, EquipmentSlot.FEET, instantSpell, 0.01D,
+            assertSchoolSpellPowerBonus(helper, boots, EquipmentSlot.FEET, instantSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress boots should record INSTANT spells");
 
             var recastSpell = SpellRegistry.ARCHER_MULTIPLE.get();
             postSpellOnCast(player, recastSpell, 1);
-            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, 0.01D,
+            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress chestplate should record initial recast-capable casts");
 
             magicData.getPlayerRecasts().addRecast(new RecastInstance(
@@ -8735,7 +8880,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     null
             ), magicData);
             postSpellOnCast(player, recastSpell, 1);
-            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, 0.01D,
+            assertSchoolSpellPowerBonus(helper, chestplate, EquipmentSlot.CHEST, recastSpell, schoolSpellPowerBonusPerHistory,
                     "Chromatic Magia Dress chestplate should ignore casts while the same spell is in Recast");
         });
     }

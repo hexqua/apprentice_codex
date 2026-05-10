@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ChromaticMagiaDressRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -41,7 +42,6 @@ import java.util.function.Consumer;
 public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/chromatic_magia_dress.png");
-    private static final double SCHOOL_SPELL_POWER_BONUS_PER_HISTORY = 0.01D;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Type armorType;
@@ -141,6 +141,11 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
 
         var extraBuilder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         extraBuilder.putAll(armorAttributeModifiers);
+        ChromaticMagiaDressStats.addSpellPowerModifier(
+                extraBuilder,
+                armorType,
+                ApprenticeCodexServerConfig.chromaticMagiaDressSpellPowerBonusPerPiece()
+        );
         addHistorySpellPowerModifiers(extraBuilder, stack);
 
         var mergedExtraModifiers = MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(
@@ -186,12 +191,14 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
             ItemStack stack
     ) {
         var schools = ChromaticMagiaDressHistory.readSchools(stack);
+        var schoolSpellPowerBonusPerHistory =
+                ApprenticeCodexServerConfig.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
         for (int i = 0; i < schools.size(); ++i) {
             var schoolPowerAttribute = MagicTools.resolveSchoolPowerAttribute(schools.get(i));
             MagicArmorAttributeHelper.addModifier(
                     builder,
                     schoolPowerAttribute,
-                    SCHOOL_SPELL_POWER_BONUS_PER_HISTORY,
+                    schoolSpellPowerBonusPerHistory,
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "apprenticecodex.chromatic_magia_dress."
                             + ChromaticMagiaDressStats.typeToken(armorType)

@@ -44,8 +44,7 @@ public final class StealthRuneArmorStats {
     );
 
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
-            new AttributeBonus(AttributeRegistry.MAX_MANA, 50.0D, AttributeModifier.Operation.ADDITION, "max_mana"),
-            new AttributeBonus(AttributeRegistry.SPELL_POWER, 0.05D, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
+            new AttributeBonus(AttributeRegistry.MAX_MANA, 50.0D, AttributeModifier.Operation.ADDITION, "max_mana")
     );
 
     private static final Map<ArmorItem.Type, List<AttributeBonus>> ATTRIBUTE_BONUSES = Map.of(
@@ -85,6 +84,20 @@ public final class StealthRuneArmorStats {
             );
         }
         return builder.build();
+    }
+
+    static void addSpellPowerModifier(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ArmorItem.Type type,
+            double amount
+    ) {
+        MagicArmorAttributeHelper.addModifier(
+                builder,
+                AttributeRegistry.SPELL_POWER.get(),
+                amount,
+                AttributeModifier.Operation.MULTIPLY_BASE,
+                "apprenticecodex.stealth_rune_armor." + typeToken(type) + ".spell_power.1"
+        );
     }
 
     private static int durabilityFor(ArmorItem.Type type) {

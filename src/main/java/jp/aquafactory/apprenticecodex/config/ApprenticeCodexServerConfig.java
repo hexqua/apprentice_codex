@@ -97,6 +97,26 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.craftsmansDelightFortuneLevel();
     }
 
+    public static double apprenticeMageRobeSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.apprenticeMageRobeSpellPowerBonusPerPiece();
+    }
+
+    public static double enchantressRobeSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.enchantressRobeSpellPowerBonusPerPiece();
+    }
+
+    public static double chromaticMagiaDressSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.chromaticMagiaDressSpellPowerBonusPerPiece();
+    }
+
+    public static double stealthRuneArmorSpellPowerBonusPerPiece() {
+        return ITEMS_CONFIG.stealthRuneArmorSpellPowerBonusPerPiece();
+    }
+
+    public static double chromaticMagiaDressSchoolSpellPowerBonusPerHistory() {
+        return ITEMS_CONFIG.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
+    }
+
     public static double pastelStaffAmplifyTintedMagicMultiplier() {
         return ITEMS_CONFIG.pastelStaffAmplifyTintedMagicMultiplier();
     }
@@ -107,6 +127,34 @@ public final class ApprenticeCodexServerConfig {
 
     public static boolean enableIsekaiTravelGuidebookBonusChestLoot() {
         return ITEMS_CONFIG.enableIsekaiTravelGuidebookBonusChestLoot();
+    }
+
+    public static float manaForceBladeImbueDamageMultiplierScale() {
+        return ITEMS_CONFIG.manaForceBladeImbueDamageMultiplierScale();
+    }
+
+    public static float manaForceBladeAttackManaCostMultiplier() {
+        return ITEMS_CONFIG.manaForceBladeAttackManaCostMultiplier();
+    }
+
+    public static float manaForceBladeAttackManaSchoolMultiplierScale() {
+        return ITEMS_CONFIG.manaForceBladeAttackManaSchoolMultiplierScale();
+    }
+
+    public static float manaForceBladeMeleeGuardManaCost() {
+        return ITEMS_CONFIG.manaForceBladeMeleeGuardManaCost();
+    }
+
+    public static float manaForceBladeRangedGuardManaCost() {
+        return ITEMS_CONFIG.manaForceBladeRangedGuardManaCost();
+    }
+
+    public static boolean manaForceBladeDisableManaRecoveryWhileGuarding() {
+        return ITEMS_CONFIG.manaForceBladeDisableManaRecoveryWhileGuarding();
+    }
+
+    public static int manaForceBladePerfectGuardTicks() {
+        return ITEMS_CONFIG.manaForceBladePerfectGuardTicks();
     }
 
     public static float forceFieldDrainManaBasePerHit() {
