@@ -49,6 +49,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -66,11 +67,13 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class MultipurposeStaffrifle extends Item
-        implements GeoItem, NonDamageableAnvilMergeItem, IJeiInfoItem, CastAnimationOverrideItem, ManaBypassSpellItem {
+        implements GeoItem, NonDamageableAnvilMergeItem, IJeiInfoItem, CastAnimationOverrideItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.multipurpose_staffrifle.desc_";
     private static final String MAIN_CONTROLLER = "main";
     private static final String FIRED_ANIMATION = "fired";
@@ -244,16 +247,7 @@ public final class MultipurposeStaffrifle extends Item
         return false;
     }
 
-    @Override
-    public boolean supportsManaBypass(@Nullable AbstractSpell spell) {
-        return MultipurposeStaffrifleCastContext.isActiveSpell(spell);
-    }
-
     public boolean tryTriggerSelectedSpell(ServerPlayer player, boolean adsFullAuto) {
-        if (adsFullAuto && !canAttemptAdsFullAuto(player)) {
-            return false;
-        }
-
         var stack = player.getMainHandItem();
         if (stack.isEmpty() || stack.getItem() != this) {
             return false;
@@ -297,12 +291,8 @@ public final class MultipurposeStaffrifle extends Item
             return false;
         }
 
-        var borrowedMana = magicData == null || player.isCreative()
-                ? 0.0F
-                : Math.max(0.0F, spell.getManaCost(spellLevel) - magicData.getMana());
-        if (borrowedMana > 0.0F) {
-            // Iron's 側の開始判定はマナを要求するため、Spellgun 同様に一時補填して cast event で0消費へ戻す。
-            magicData.addMana(borrowedMana);
+        if (adsFullAuto && !canAttemptAdsFullAuto(player)) {
+            return false;
         }
 
         boolean casted;
@@ -317,9 +307,6 @@ public final class MultipurposeStaffrifle extends Item
                     SpellSelectionManager.MAINHAND
             );
             if (casted) {
-                if (borrowedMana > 0.0F) {
-                    ItemManaBypassCastEvent.reserveBorrowedMana(player, borrowedMana);
-                }
                 TriggeredSpellCastHelper.applyLongCastDurationOverride(
                         player,
                         spellLevel,
@@ -334,12 +321,10 @@ public final class MultipurposeStaffrifle extends Item
         }
 
         if (!casted) {
-            if (borrowedMana > 0.0F) {
-                magicData.setMana(Math.max(0.0F, magicData.getMana() - borrowedMana));
-            }
             return false;
         }
 
+        MultipurposeStaffrifleCastContext.rememberPending(player.getUUID(), stack, spell, recast, player.level().getGameTime());
         playSuccessfulFireEffects(player, spell, adsFullAuto);
         triggerFiredAnimation(player, stack);
         return true;
@@ -347,6 +332,10 @@ public final class MultipurposeStaffrifle extends Item
 
     public Item getAmmoItem(ItemStack stack) {
         return ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
+    }
+
+    public Item getDisplayedAmmoItem(ItemStack stack) {
+        return getAmmoItem(stack);
     }
 
     public float resolveEmptyCasingReturnChance(Player player) {
@@ -389,6 +378,13 @@ public final class MultipurposeStaffrifle extends Item
     public void triggerFiredAnimation(ServerPlayer serverPlayer, ItemStack stack) {
         var instanceId = GeoItem.getOrAssignId(stack, serverPlayer.serverLevel());
         triggerAnim(serverPlayer, instanceId, MAIN_CONTROLLER, FIRED_ANIMATION);
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+                                @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, level, lines, flag);
+        appendMultipurposeStaffrifleHelpTooltip(stack, lines);
     }
 
     private static void playSuccessfulFireEffects(ServerPlayer player, AbstractSpell spell, boolean adsFullAuto) {
@@ -537,6 +533,60 @@ public final class MultipurposeStaffrifle extends Item
 
     private static void sendActionBarError(ServerPlayer player, Component component) {
         player.connection.send(new ClientboundSetActionBarTextPacket(component.copy().withStyle(ChatFormatting.RED)));
+    }
+
+    private void appendMultipurposeStaffrifleHelpTooltip(ItemStack stack, List<Component> lines) {
+        appendMultipurposeStaffrifleDescription(lines);
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
+            return;
+        }
+
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                collectMultipurposeStaffrifleAbilityTooltipSection(),
+                "item.apprenticecodex.spellgun.tooltip.ability_multipurpose_title",
+                "item.apprenticecodex.spellgun.tooltip.ability_none"
+        );
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                List.of(ImbueTooltipHelper.translatableGray(
+                        "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous"
+                )),
+                "item.apprenticecodex.spellgun.tooltip.restrict_multipurpose_title",
+                "item.apprenticecodex.spellgun.tooltip.restrict_none"
+        );
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                List.of(ImbueTooltipHelper.createAmmoTooltipLine(getDisplayedAmmoItem(stack), null)),
+                "item.apprenticecodex.spellgun.tooltip.ammo_title",
+                "item.apprenticecodex.spellgun.tooltip.ammo_none"
+        );
+    }
+
+    private static List<Component> collectMultipurposeStaffrifleAbilityTooltipSection() {
+        var translatedLines = new ArrayList<Component>();
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item.apprenticecodex.spellgun.tooltip.ability_skip_cooldown",
+                ImbueTooltipHelper.formatTooltipSeconds(ApprenticeCodexServerConfig.multipurposeStaffrifleCooldownBypassThresholdTicks())
+        ));
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item.apprenticecodex.spellgun.tooltip.ability_subtract_cooldown",
+                ImbueTooltipHelper.formatTooltipSeconds(ApprenticeCodexServerConfig.multipurposeStaffrifleCooldownReductionTicks()),
+                ImbueTooltipHelper.formatTooltipSeconds(ApprenticeCodexServerConfig.multipurposeStaffrifleReducedCooldownMinimumTicks())
+        ));
+        return translatedLines;
+    }
+
+    private static void appendMultipurposeStaffrifleDescription(List<Component> lines) {
+        lines.add(Component.translatable(
+                "item.apprenticecodex.multipurpose_staffrifle.desc_1",
+                ImbueTooltipHelper.getAttackKeyName()
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(
+                "item.apprenticecodex.multipurpose_staffrifle.desc_2",
+                ImbueTooltipHelper.getUseKeyName()
+        ).withStyle(ChatFormatting.GRAY));
     }
 
     private Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
