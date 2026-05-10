@@ -42,30 +42,21 @@ public class CompoundPhial extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getSplashRadius(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.splash_reduce", Utils.stringTruncation(getSplashReducedPercent(spellLevel, caster), 2))
+                Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getSplashRadius(spellLevel), 2))
         );
     }
 
     private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 2 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
+        var rawDamage = 4 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.COMPOUND_PHIAL);
     }
 
-    private int getSplashReducedPercent(int spellLevel, LivingEntity entity) {
-        return 50 + Math.min(50 , Math.round(15 * getSpellPower(spellLevel, entity) / 100.0f));
-    }
-
-    private float getSplashRadius(int spellLevel, LivingEntity entity) {
-        return 1.5f * getSpellPower(spellLevel, entity) / 100.0f;
+    private float getSplashRadius(int spellLevel) {
+        return 1.75f + Math.max(0, spellLevel - 1) / 9.0f;
     }
 
     private float getSpeed() {
         return 1.0f;
-    }
-
-    private float getSplashDamage(int spellLevel, LivingEntity entity) {
-        return getDamage(spellLevel, entity) * getSplashReducedPercent(spellLevel, entity) / 100.0f;
     }
 
     @Override
@@ -109,8 +100,7 @@ public class CompoundPhial extends AbstractSpell {
         projectile.setPos(entity.getX(), entity.getEyeY() - 0.1, entity.getZ());
         projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0.0f, getSpeed(), 0.0f);
         projectile.setDamage(getDamage(spellLevel, entity));
-        projectile.setSplashDamage(getSplashDamage(spellLevel, entity));
-        projectile.setSplashRadius(getSplashRadius(spellLevel, entity));
+        projectile.setSplashRadius(getSplashRadius(spellLevel));
         projectile.setPotionColorRandom(level);
         level.addFreshEntity(projectile);
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
