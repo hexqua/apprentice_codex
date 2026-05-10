@@ -23,6 +23,7 @@ import net.minecraftforge.fml.common.Mod;
 public final class ClientMultipurposeStaffrifleInputEvent {
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.0001F;
     private static boolean adsManaShortageLocked;
+    private static boolean nonAdsAttackLocked;
 
     private ClientMultipurposeStaffrifleInputEvent() {
     }
@@ -36,12 +37,12 @@ public final class ClientMultipurposeStaffrifleInputEvent {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (minecraft.screen != null || player == null || player.isSpectator()) {
-            clearAdsManaShortageLock();
+            clearInputLocks();
             return;
         }
 
         if (!(player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle)) {
-            clearAdsManaShortageLock();
+            clearInputLocks();
             return;
         }
 
@@ -61,7 +62,7 @@ public final class ClientMultipurposeStaffrifleInputEvent {
             return;
         }
 
-        sendSpecialCast(minecraft, false);
+        trySendNonAdsSpecialCast(minecraft);
     }
 
     @SubscribeEvent
@@ -73,13 +74,17 @@ public final class ClientMultipurposeStaffrifleInputEvent {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (minecraft.screen != null || player == null || player.isSpectator()) {
-            clearAdsManaShortageLock();
+            clearInputLocks();
             return;
         }
 
         if (!(player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle)) {
-            clearAdsManaShortageLock();
+            clearInputLocks();
             return;
+        }
+
+        if (!minecraft.options.keyAttack.isDown()) {
+            nonAdsAttackLocked = false;
         }
 
         if (!MultipurposeStaffrifleClientAdsState.isLocalAdsKeyHeld(player)) {
@@ -123,6 +128,15 @@ public final class ClientMultipurposeStaffrifleInputEvent {
         Networks.sendToServer(new ClientMultipurposeStaffrifleCastPacket(adsFullAuto));
     }
 
+    public static void trySendNonAdsSpecialCast(Minecraft minecraft) {
+        if (nonAdsAttackLocked) {
+            return;
+        }
+
+        nonAdsAttackLocked = true;
+        sendSpecialCast(minecraft, false);
+    }
+
     private static boolean shouldLockAdsManaShortage(LocalPlayer player) {
         if (player.getAbilities().instabuild) {
             return false;
@@ -154,5 +168,10 @@ public final class ClientMultipurposeStaffrifleInputEvent {
 
     private static void clearAdsManaShortageLock() {
         adsManaShortageLocked = false;
+    }
+
+    private static void clearInputLocks() {
+        adsManaShortageLocked = false;
+        nonAdsAttackLocked = false;
     }
 }

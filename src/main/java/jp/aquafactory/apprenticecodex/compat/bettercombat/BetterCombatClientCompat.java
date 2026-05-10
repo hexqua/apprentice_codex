@@ -53,7 +53,7 @@ public final class BetterCombatClientCompat {
 
         if (player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle
                 && !MultipurposeStaffrifleClientAdsState.isLocalAdsKeyHeld(player)) {
-            ClientMultipurposeStaffrifleInputEvent.sendSpecialCast(minecraft, false);
+            ClientMultipurposeStaffrifleInputEvent.trySendNonAdsSpecialCast(minecraft);
         }
         ClientSwingMagicAttackTrigger.trySendForBetterCombat(minecraft);
     }

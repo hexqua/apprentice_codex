@@ -81,6 +81,7 @@ public final class MultipurposeStaffrifle extends Item
     private static final RawAnimation ANIM_FIRED = RawAnimation.begin().thenPlay("fired");
     private static final int MAX_USE_DURATION = 72000;
     private static final float ADS_FOV_MODIFIER = 0.85F;
+    private static final String NEXT_SPECIAL_CAST_TICK_TAG = "ApprenticeCodexMultipurposeStaffrifleNextSpecialCastTick";
     private static final int MUZZLE_RHOMBUS_COUNT = 4;
     private static final int MUZZLE_SPARK_COUNT = 7;
     private static final int MUZZLE_RHOMBUS_WHITEN_TICKS = 2;
@@ -291,7 +292,7 @@ public final class MultipurposeStaffrifle extends Item
             return false;
         }
 
-        if (adsFullAuto && !canAttemptAdsFullAuto(player)) {
+        if (!canAttemptSpecialCast(player)) {
             return false;
         }
 
@@ -518,16 +519,17 @@ public final class MultipurposeStaffrifle extends Item
         );
     }
 
-    private static boolean canAttemptAdsFullAuto(ServerPlayer player) {
+    private static boolean canAttemptSpecialCast(ServerPlayer player) {
         var interval = Math.max(1, ApprenticeCodexServerConfig.multipurposeStaffrifleAdsFullAutoIntervalTicks());
         var tag = player.getPersistentData();
         var gameTime = player.level().getGameTime();
-        var nextAllowedTick = tag.getLong("ApprenticeCodexMultipurposeStaffrifleNextFullAutoTick");
+        var nextAllowedTick = tag.getLong(NEXT_SPECIAL_CAST_TICK_TAG);
         if (gameTime < nextAllowedTick) {
             return false;
         }
 
-        tag.putLong("ApprenticeCodexMultipurposeStaffrifleNextFullAutoTick", gameTime + interval);
+        // クライアント入力経路や連携MODの差に関係なく、専用詠唱はADS連射設定より速く通さない。
+        tag.putLong(NEXT_SPECIAL_CAST_TICK_TAG, gameTime + interval);
         return true;
     }
 
