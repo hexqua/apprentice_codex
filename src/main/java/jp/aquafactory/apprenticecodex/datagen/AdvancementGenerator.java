@@ -360,7 +360,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("crafted_gold_spellcaster_gun", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.GOLD_SPELLCASTER_GUN.getId()))
                 .save(saver, advancementId("craft_gold_spellcaster_gun"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var diamondGun = Advancement.Builder.advancement()
                 .parent(goldGun)
                 .display(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.title"),
@@ -373,6 +373,18 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("crafted_diamond_spellcaster_gun", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.DIAMOND_SPELLCASTER_GUN.getId()))
                 .save(saver, advancementId("craft_diamond_spellcaster_gun"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(diamondGun)
+                .display(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_multipurpose_staffrifle", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.getId()))
+                .save(saver, advancementId("craft_multipurpose_staffrifle"), existingFileHelper);
 
         var spellcaster = Advancement.Builder.advancement()
                 .parent(ironGun)
