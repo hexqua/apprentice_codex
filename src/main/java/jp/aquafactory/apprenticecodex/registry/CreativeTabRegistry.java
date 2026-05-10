@@ -57,6 +57,8 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get());
         output.accept(ItemRegistry.SPELL_DOMINATOR_ROUND.get());
         output.accept(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get());
+        output.accept(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get());
+        output.accept(ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get());
         output.accept(ItemRegistry.IRON_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.COPPER_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.GOLD_SPELLCASTER_GUN.get());
@@ -79,6 +81,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ALCHEMISTS_FLASK.get());
         output.accept(ItemRegistry.PASTEL_STAFF.get());
         output.accept(ItemRegistry.FOCUS_STAFFBOW.get());
+        output.accept(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         output.accept(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         output.accept(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         output.accept(ItemRegistry.MANA_FORCE_BLADE.get());

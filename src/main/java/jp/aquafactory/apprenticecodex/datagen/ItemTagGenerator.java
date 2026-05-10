@@ -73,7 +73,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
-                ItemRegistry.MANA_FORCE_BLADE.get()
+                ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()
         );
 
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
@@ -83,6 +84,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 // Malum の soul_hunter_weapon 実発動判定は main hand を見るため、
                 // offhand 専用品はタグ対象から外し、main hand で攻撃成立する盾だけ明示的に残す。
                 ItemRegistry.REFLECTCAST_SHIELD.get()
@@ -154,18 +156,21 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
+                ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
                 ItemRegistry.RAPID_SPELLCASTER_ROUND.get(),
                 ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
                 ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
                 ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
-                ItemRegistry.SPELL_DOMINATOR_ROUND.get()
+                ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
+                ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()
         );
         tag(TagRegistry.Items.SPELLCASTER_EMPTY_CASINGS).add(
                 ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
-                ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get()
+                ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
+                ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get()
         );
         tag(TagRegistry.Items.SPELLCASTER_QUIVER_STORABLE).add(
                 net.minecraft.world.item.Items.ARROW,

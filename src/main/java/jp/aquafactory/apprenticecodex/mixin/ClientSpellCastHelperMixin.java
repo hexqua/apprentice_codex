@@ -8,9 +8,11 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.player.ClientSpellCastHelper;
 import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
+import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPresentationState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
@@ -58,6 +60,7 @@ public abstract class ClientSpellCastHelperMixin {
         var focusStaffbowRightClickPresentation =
                 FocusStaffbowClientPresentationState.activatePending(castingEntityId, spellId);
         ClientSwingcastStaffCastContext.tryActivate(castingEntityId, castingStack, spell);
+        ClientMultipurposeStaffrifleCastContext.tryActivate(castingEntityId, castingStack, spell);
         if (player == minecraft.player && castingStack.getItem() instanceof ReflectcastShield) {
             ReflectcastShieldClientEffectState.beginLocalSuccessFlash(
                     apprentice_codex$resolveCastingHand(castingSlot),
@@ -175,6 +178,7 @@ public abstract class ClientSpellCastHelperMixin {
     )
     private static void handleClientBoundOnCastFinishedReturn(UUID castingEntityId, String spellId, boolean cancelled, CallbackInfo ci) {
         ClientSwingcastStaffCastContext.clearFinished(castingEntityId, spellId);
+        ClientMultipurposeStaffrifleCastContext.clearFinished(castingEntityId, spellId);
         FocusStaffbowClientPresentationState.clear(castingEntityId);
     }
 
@@ -346,6 +350,9 @@ public abstract class ClientSpellCastHelperMixin {
         if (stack.getItem() instanceof AbstractSwingcastStaffItem) {
             return ClientSwingcastStaffCastContext.matches(player.getUUID(), stack, spell);
         }
+        if (stack.getItem() instanceof MultipurposeStaffrifle) {
+            return ClientMultipurposeStaffrifleCastContext.matches(player.getUUID(), stack, spell);
+        }
 
         return animationOverrideItem.shouldSuppressCastStartAnimation(stack, spell);
     }
@@ -358,6 +365,9 @@ public abstract class ClientSpellCastHelperMixin {
 
         if (stack.getItem() instanceof AbstractSwingcastStaffItem) {
             return ClientSwingcastStaffCastContext.matches(player.getUUID(), stack, spell);
+        }
+        if (stack.getItem() instanceof MultipurposeStaffrifle) {
+            return ClientMultipurposeStaffrifleCastContext.matches(player.getUUID(), stack, spell);
         }
 
         return animationOverrideItem.shouldSuppressCastFinishAnimation(stack, spell);

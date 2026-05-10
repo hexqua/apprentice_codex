@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEnti
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
@@ -161,6 +162,11 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> {
             if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)) {
                 BetterCombatClientCompat.register();
+            }
+        });
+        event.enqueueWork(() -> {
+            if (ModList.get().isLoaded(EpicFightClientCompat.MOD_ID)) {
+                EpicFightClientCompat.register();
             }
         });
     }

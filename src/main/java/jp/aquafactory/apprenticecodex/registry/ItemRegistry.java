@@ -113,6 +113,8 @@ public final class ItemRegistry {
             ITEMS.register("empty_advanced_spellcaster_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> EMPTY_SPELL_DOMINATOR_CASING =
             ITEMS.register("empty_spell_dominator_casing", SpellcasterRoundItem::new);
+    public static final RegistryObject<Item> EMPTY_MULTI_PURPOSE_SPELL_CASING =
+            ITEMS.register("empty_multi_purpose_spell_casing", SpellcasterRoundItem::new);
     public static final RegistryObject<Item> RAPID_SPELLCASTER_ROUND =
             ITEMS.register("rapid_spellcaster_round",
                     () -> new SpellcasterRoundItem(EMPTY_RAPID_SPELLCASTER_CASING));
@@ -128,6 +130,9 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> SPELL_DOMINATOR_ROUND =
             ITEMS.register("spell_dominator_round",
                     () -> new SpellcasterRoundItem(EMPTY_SPELL_DOMINATOR_CASING));
+    public static final RegistryObject<Item> MULTI_PURPOSE_SPELL_ROUND =
+            ITEMS.register("multi_purpose_spell_round",
+                    () -> new SpellcasterRoundItem(EMPTY_MULTI_PURPOSE_SPELL_CASING));
     public static final RegistryObject<Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final RegistryObject<Item> APPRENTICE_MAGE_TORSO =
@@ -240,6 +245,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final RegistryObject<Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
+    public static final RegistryObject<Item> MULTIPURPOSE_STAFFRIFLE =
+            ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final RegistryObject<Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final RegistryObject<Item> CHARGED_TWIN_BLADE_STAFF =

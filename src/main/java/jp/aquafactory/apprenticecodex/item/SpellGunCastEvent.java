@@ -85,19 +85,27 @@ public final class SpellGunCastEvent {
                 + countAmmo(inventory.offhand, ammoItem);
     }
 
-    private static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, AbstractSpellGunItem spellGunItem) {
+    public static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, AbstractSpellGunItem spellGunItem) {
+        consumeAmmo(player, inventory, ammoItem, spellGunItem::shouldReturnEmptyCasing);
+    }
+
+    public static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, MultipurposeStaffrifle staffrifle) {
+        consumeAmmo(player, inventory, ammoItem, staffrifle::shouldReturnEmptyCasing);
+    }
+
+    private static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, EmptyCasingReturnPolicy returnPolicy) {
         if (SpellcasterAmmoPouch.consumeAmmoFromAccessiblePouches(player, ammoItem)) {
-            tryGiveEmptyCasing(player, inventory, ammoItem, spellGunItem);
+            tryGiveEmptyCasing(player, inventory, ammoItem, returnPolicy);
             return;
         }
 
         if (consumeOne(inventory.items, ammoItem)) {
-            tryGiveEmptyCasing(player, inventory, ammoItem, spellGunItem);
+            tryGiveEmptyCasing(player, inventory, ammoItem, returnPolicy);
             return;
         }
 
         if (consumeOne(inventory.offhand, ammoItem)) {
-            tryGiveEmptyCasing(player, inventory, ammoItem, spellGunItem);
+            tryGiveEmptyCasing(player, inventory, ammoItem, returnPolicy);
         }
     }
 
@@ -124,13 +132,13 @@ public final class SpellGunCastEvent {
         return false;
     }
 
-    private static void tryGiveEmptyCasing(ServerPlayer player, Inventory inventory, Item ammoItem, AbstractSpellGunItem spellGunItem) {
+    private static void tryGiveEmptyCasing(ServerPlayer player, Inventory inventory, Item ammoItem, EmptyCasingReturnPolicy returnPolicy) {
         if (!(ammoItem instanceof SpellcasterRoundItem roundItem)) {
             return;
         }
 
         var emptyCasingItem = roundItem.getEmptyCasingItem();
-        if (emptyCasingItem == null || !spellGunItem.shouldReturnEmptyCasing(player)) {
+        if (emptyCasingItem == null || !returnPolicy.shouldReturnEmptyCasing(player)) {
             return;
         }
 
@@ -139,5 +147,10 @@ public final class SpellGunCastEvent {
         if (!inventory.add(emptyCasingStack) && !emptyCasingStack.isEmpty()) {
             player.drop(emptyCasingStack, false);
         }
+    }
+
+    @FunctionalInterface
+    private interface EmptyCasingReturnPolicy {
+        boolean shouldReturnEmptyCasing(Player player);
     }
 }

@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
@@ -21,6 +22,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -36,7 +38,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "22";
+    private static final String PROTOCOL_VERSION = "24";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -105,6 +107,13 @@ public final class Networks {
                 ClientSwingMagicAttackPacket::encode,
                 ClientSwingMagicAttackPacket::decode,
                 ClientSwingMagicAttackPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientMultipurposeStaffrifleCastPacket.class,
+                ClientMultipurposeStaffrifleCastPacket::encode,
+                ClientMultipurposeStaffrifleCastPacket::decode,
+                ClientMultipurposeStaffrifleCastPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
@@ -210,6 +219,13 @@ public final class Networks {
                 SyncPhotonSiphonCombatStatePacket::encode,
                 SyncPhotonSiphonCombatStatePacket::decode,
                 SyncPhotonSiphonCombatStatePacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncMultipurposeStaffrifleFireEffectPacket.class,
+                SyncMultipurposeStaffrifleFireEffectPacket::encode,
+                SyncMultipurposeStaffrifleFireEffectPacket::decode,
+                SyncMultipurposeStaffrifleFireEffectPacket::handle
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

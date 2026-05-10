@@ -1,0 +1,32 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_diamond_spellcaster_gun",
+  "criteria": {
+    "crafted_multipurpose_staffrifle": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:multipurpose_staffrifle"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.description"
+    },
+    "frame": "challenge",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:multipurpose_staffrifle"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_multipurpose_staffrifle"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

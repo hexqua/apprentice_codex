@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -67,19 +68,27 @@ public final class SpellgunAmmoHudRenderEvent {
 
     @Nullable
     private static AmmoHudEntry resolveAmmoDisplay(ItemStack weaponStack, net.minecraft.world.entity.player.Player player) {
-        if (!(weaponStack.getItem() instanceof AbstractSpellGunItem spellGunItem)) {
-            return null;
+        if (weaponStack.getItem() instanceof AbstractSpellGunItem spellGunItem) {
+            var ammoItem = spellGunItem.getDisplayedAmmoItem(weaponStack);
+            if (ammoItem == null) {
+                return null;
+            }
+
+            return new AmmoHudEntry(
+                    new ItemStack(ammoItem),
+                    SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), ammoItem)
+            );
         }
 
-        var ammoItem = spellGunItem.getDisplayedAmmoItem(weaponStack);
-        if (ammoItem == null) {
-            return null;
+        if (weaponStack.getItem() instanceof MultipurposeStaffrifle staffrifle) {
+            var ammoItem = staffrifle.getDisplayedAmmoItem(weaponStack);
+            return new AmmoHudEntry(
+                    new ItemStack(ammoItem),
+                    SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), ammoItem)
+            );
         }
 
-        return new AmmoHudEntry(
-                new ItemStack(ammoItem),
-                SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), ammoItem)
-        );
+        return null;
     }
 
     private static void renderAmmoPanel(GuiGraphics guiGraphics, Font font, AmmoHudEntry entry, int x, int y) {

@@ -157,6 +157,22 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladePerfectGuardTicks();
     }
 
+    public static int multipurposeStaffrifleCooldownBypassThresholdTicks() {
+        return ITEMS_CONFIG.multipurposeStaffrifleCooldownBypassThresholdTicks();
+    }
+
+    public static int multipurposeStaffrifleCooldownReductionTicks() {
+        return ITEMS_CONFIG.multipurposeStaffrifleCooldownReductionTicks();
+    }
+
+    public static int multipurposeStaffrifleReducedCooldownMinimumTicks() {
+        return ITEMS_CONFIG.multipurposeStaffrifleReducedCooldownMinimumTicks();
+    }
+
+    public static int multipurposeStaffrifleAdsFullAutoIntervalTicks() {
+        return ITEMS_CONFIG.multipurposeStaffrifleAdsFullAutoIntervalTicks();
+    }
+
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
     }

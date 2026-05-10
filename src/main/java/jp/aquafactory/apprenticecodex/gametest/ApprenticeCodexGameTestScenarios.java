@@ -51,10 +51,16 @@ import jp.aquafactory.apprenticecodex.item.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.CircuitHeatStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
+import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
@@ -616,6 +622,12 @@ public final class ApprenticeCodexGameTestScenarios {
                     RecipeRegistry.GRIND_RUNNER_SERIALIZER.get(), RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get());
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench/basic_spellcaster_round"),
+                    RecipeRegistry.SPELLCASTER_WORKBENCH_SERIALIZER.get(), RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench/multi_purpose_spell_round"),
+                    RecipeRegistry.SPELLCASTER_WORKBENCH_SERIALIZER.get(), RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench/multi_purpose_spell_round_recycle"),
                     RecipeRegistry.SPELLCASTER_WORKBENCH_SERIALIZER.get(), RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemist_cauldron/brew_isekai_travel_guidebook_to_common_ink"),
@@ -9068,6 +9080,252 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+
+            helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
+                    "Multipurpose Staffrifle should not add attack damage modifiers");
+            helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
+                    "Multipurpose Staffrifle should not add attack speed modifiers");
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.10D,
+                    "Multipurpose Staffrifle spell power modifier changed"
+            );
+
+            var enchantedStack = stack.copy();
+            enchantedStack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
+            enchantedStack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
+            enchantedStack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            enchantedStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            enchantedStack.enchant(EnchantmentRegistry.TENSE.get(), 1);
+            var enchantedModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, enchantedStack);
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.02D,
+                    "Multipurpose Staffrifle Alacrity modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Multipurpose Staffrifle Reflux modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
+                    AttributeModifier.Operation.ADDITION,
+                    20.0D,
+                    "Multipurpose Staffrifle Reservoir modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.12D,
+                    "Multipurpose Staffrifle base + Surge spell power modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Multipurpose Staffrifle Tense modifier changed"
+            );
+
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedMultipurposeStaffrifleEnchantments(stack),
+                    "Multipurpose Staffrifle"
+            );
+        });
+    }
+
+    static void multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var tooltipLines = new ArrayList<Component>();
+            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+
+            helper.assertTrue(tooltipLines.size() >= 4,
+                    "Multipurpose Staffrifle tooltip should include controls, spacer, and shift hint");
+            assertTranslatableKey(
+                    helper,
+                    tooltipLines.get(0),
+                    "item.apprenticecodex.multipurpose_staffrifle.desc_1",
+                    "Multipurpose Staffrifle should show left-click control first"
+            );
+            assertTranslatableKey(
+                    helper,
+                    tooltipLines.get(1),
+                    "item.apprenticecodex.multipurpose_staffrifle.desc_2",
+                    "Multipurpose Staffrifle should show right-click control second"
+            );
+            helper.assertTrue(tooltipLines.get(2).getString().isEmpty(),
+                    "Multipurpose Staffrifle should separate controls from the shift hint with a blank line");
+            assertTranslatableKey(
+                    helper,
+                    tooltipLines.get(3),
+                    "item.apprenticecodex.spellgun.tooltip.hint",
+                    "Multipurpose Staffrifle should show shift hint after controls"
+            );
+        });
+    }
+
+    static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (MultipurposeStaffrifle) ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get();
+            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 10) == 0,
+                    "Multipurpose Staffrifle should remove cooldowns at the default bypass threshold");
+            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 11) == 20 * 10,
+                    "Multipurpose Staffrifle should not reduce longer cooldowns below the default minimum");
+            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 60) == 20 * 30,
+                    "Multipurpose Staffrifle should subtract the default 30 seconds from long cooldowns");
+        });
+    }
+
+    static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_ammo_policy_test");
+
+            helper.assertTrue(item.getAmmoItem(stack) == ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(),
+                    "Multipurpose Staffrifle should use Multi-purpose Spell Round");
+            helper.assertTrue(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get() instanceof SpellcasterRoundItem,
+                    "Multi-purpose Spell Round should be a SpellcasterRoundItem");
+            var roundItem = (SpellcasterRoundItem) ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
+            helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
+                    "Multi-purpose Spell Round should return Empty Multi-purpose Spell Casing");
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.0F,
+                    "Multipurpose Staffrifle should not return empty casings without Spellcaster Ammo Pouch");
+
+            equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()));
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
+                    "Multipurpose Staffrifle should use 20% empty casing return chance with Spellcaster Ammo Pouch");
+        });
+    }
+
+    static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_recast_ammo_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            var ammoStack = new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1);
+            player.getInventory().add(ammoStack);
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setPlayerCastingItem(stack);
+            try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, true)) {
+                MultipurposeStaffrifleCastEvent.onSpellCast(new SpellOnCastEvent(
+                        player,
+                        spell.getSpellId(),
+                        1,
+                        spell.getManaCost(1),
+                        spell.getSchoolType(),
+                        CastSource.SWORD
+                ));
+            } catch (Exception exception) {
+                throw new IllegalStateException("Failed to close Multipurpose Staffrifle test context.", exception);
+            }
+
+            helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
+                    player,
+                    player.getInventory(),
+                    item.getAmmoItem(stack)
+            ) == 1, "Multipurpose Staffrifle recast should not consume Multi-purpose Spell Round");
+        });
+    }
+
+    static void multipurposeStaffrifleKeepsNormalManaCost(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_mana_policy_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
+                    "Multipurpose Staffrifle should not bypass mana consumption");
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var manaCost = spell.getManaCost(1);
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setPlayerCastingItem(stack);
+
+            try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, false)) {
+                var event = new SpellOnCastEvent(
+                        player,
+                        spell.getSpellId(),
+                        1,
+                        manaCost,
+                        spell.getSchoolType(),
+                        CastSource.SWORD
+                );
+                ItemManaBypassCastEvent.onSpellCast(event);
+                helper.assertTrue(event.getManaCost() == manaCost,
+                        "Multipurpose Staffrifle should keep normal mana cost: " + event.getManaCost());
+            } catch (Exception exception) {
+                throw new IllegalStateException("Failed to close Multipurpose Staffrifle mana policy test context.", exception);
+            }
+        });
+    }
+
+    static void multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_instant_policy_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1));
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setPlayerCastingItem(stack);
+            MultipurposeStaffrifleCastContext.rememberPending(
+                    player.getUUID(),
+                    stack,
+                    spell,
+                    false,
+                    helper.getLevel().getGameTime()
+            );
+
+            MultipurposeStaffrifleCastEvent.onSpellCast(new SpellOnCastEvent(
+                    player,
+                    spell.getSpellId(),
+                    1,
+                    spell.getManaCost(1),
+                    spell.getSchoolType(),
+                    CastSource.SWORD
+            ));
+            helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
+                    player,
+                    player.getInventory(),
+                    item.getAmmoItem(stack)
+            ) == 0, "Multipurpose Staffrifle instant cast should consume Multi-purpose Spell Round");
+
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    20 * 10,
+                    spell,
+                    player,
+                    CastSource.SWORD
+            );
+            MultipurposeStaffrifleCastEvent.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
+                    "Multipurpose Staffrifle instant cast should bypass cooldowns at the threshold: "
+                            + cooldownEvent.getEffectiveCooldown());
+        });
+    }
+
     static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var baseManaCost = 100;
@@ -11042,6 +11300,20 @@ public final class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.PLUNDER
         ));
         addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
+        var expectedEnchantments = registryIdSet(
+                EnchantmentRegistry.ALACRITY,
+                EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.RESERVOIR,
+                EnchantmentRegistry.SURGE,
+                EnchantmentRegistry.TENSE,
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.PLUNDER
+        );
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;
     }
