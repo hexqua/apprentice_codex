@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -9,9 +10,14 @@ import yesman.epicfight.api.event.IdentifierProvider;
 import yesman.epicfight.api.event.types.animation.AnimationBeginEvent;
 import yesman.epicfight.api.event.types.animation.AnimationEndEvent;
 import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
+import yesman.epicfight.api.event.types.player.ComboAttackEvent;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
+import yesman.epicfight.gameasset.Animations;
+import yesman.epicfight.network.EpicFightNetworkManager;
+import yesman.epicfight.network.common.AbstractAnimatorControl;
+import yesman.epicfight.network.server.SPAnimatorControl;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
@@ -45,6 +51,11 @@ public final class EpicFightSwingMagicCompat {
             playerpatch.getEventListener().registerEvent(
                     EpicFightEventHooks.Animation.ATTACK_PHASE_END,
                     EpicFightSwingMagicCompat::onAttackPhaseEnd,
+                    IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
+            );
+            playerpatch.getEventListener().registerContextAwareEvent(
+                    EpicFightEventHooks.Player.COMBO_ATTACK,
+                    (event, context) -> onBasicAttack(event),
                     IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
             );
             playerpatch.getEventListener().registerEvent(
@@ -158,6 +169,22 @@ public final class EpicFightSwingMagicCompat {
         triggerSwingMagic(player, hand, TriggerSource.ATTACK_PHASE, getAnimationId(event.getAnimation()), event.getPhaseOrder());
     }
 
+    private static void onBasicAttack(ComboAttackEvent event) {
+        var playerpatch = event.getPlayerPatch();
+        var player = playerpatch.getOriginal();
+        var stack = player.getMainHandItem();
+        if (!(stack.getItem() instanceof MultipurposeStaffrifle staffrifle)) {
+            return;
+        }
+
+        // Staffrifle は近接武器ではないため、Epic Fight の基本攻撃を射撃詠唱へ差し替える。
+        // 1.21.1 側では ComboAttackEvent の発火順が変わる可能性があるため、この接続点は再確認する。
+        event.cancel();
+        if (staffrifle.tryTriggerSelectedSpell(player, false)) {
+            playStaffrifleShotAnimation(playerpatch);
+        }
+    }
+
     private static void processTimedTriggers(ServerPlayer player) {
         var playerId = player.getUUID();
         var triggers = TIMED_TRIGGERS.get(playerId);
@@ -189,7 +216,8 @@ public final class EpicFightSwingMagicCompat {
             int triggerIndex
     ) {
         var stack = player.getItemInHand(hand);
-        if (!(stack.getItem() instanceof AbstractSwingMagicItem swingMagicItem)) {
+        if (!(stack.getItem() instanceof AbstractSwingMagicItem)
+                && !(stack.getItem() instanceof MultipurposeStaffrifle)) {
             return;
         }
 
@@ -200,20 +228,57 @@ public final class EpicFightSwingMagicCompat {
             return;
         }
 
-        swingMagicItem.tryTriggerImbuedSpellOnSwing(player, hand, true);
+        if (stack.getItem() instanceof AbstractSwingMagicItem swingMagicItem) {
+            swingMagicItem.tryTriggerImbuedSpellOnSwing(player, hand, true);
+        } else if (hand == InteractionHand.MAIN_HAND
+                && player instanceof ServerPlayer serverPlayer
+                && stack.getItem() instanceof MultipurposeStaffrifle staffrifle) {
+            if (staffrifle.tryTriggerSelectedSpell(serverPlayer, false)) {
+                playStaffrifleShotAnimation(serverPlayer);
+            }
+        }
+    }
+
+    public static void playStaffrifleShotAnimation(ServerPlayer player) {
+        EpicFightCapabilities.getUnparameterizedEntityPatch(player, ServerPlayerPatch.class)
+                .filter(ServerPlayerPatch::isEpicFightMode)
+                .ifPresent(EpicFightSwingMagicCompat::playStaffrifleShotAnimation);
+    }
+
+    private static void playStaffrifleShotAnimation(ServerPlayerPatch playerpatch) {
+        var player = playerpatch.getOriginal();
+        if (!(player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle)) {
+            return;
+        }
+
+        playerpatch.getAnimator().playAnimation(Animations.BIPED_CROSSBOW_SHOT, 0.0F);
+        var packet = new SPAnimatorControl(
+                AbstractAnimatorControl.Action.PLAY_CLIENT,
+                Animations.BIPED_CROSSBOW_SHOT,
+                playerpatch,
+                0.0F,
+                AbstractAnimatorControl.Layer.COMPOSITE_LAYER,
+                AbstractAnimatorControl.Priority.HIGHEST
+        );
+        EpicFightNetworkManager.sendToAllPlayerTrackingThisEntityWithSelf(packet, player);
     }
 
     private static InteractionHand resolveAvailableSwingMagicHand(Player player, InteractionHand preferredHand) {
-        if (player.getItemInHand(preferredHand).getItem() instanceof AbstractSwingMagicItem) {
+        if (isSupportedAttackTriggeredItem(player.getItemInHand(preferredHand))) {
             return preferredHand;
         }
 
         var fallbackHand = preferredHand == InteractionHand.MAIN_HAND
                 ? InteractionHand.OFF_HAND
                 : InteractionHand.MAIN_HAND;
-        return player.getItemInHand(fallbackHand).getItem() instanceof AbstractSwingMagicItem
+        return isSupportedAttackTriggeredItem(player.getItemInHand(fallbackHand))
                 ? fallbackHand
                 : preferredHand;
+    }
+
+    private static boolean isSupportedAttackTriggeredItem(net.minecraft.world.item.ItemStack stack) {
+        return stack.getItem() instanceof AbstractSwingMagicItem
+                || stack.getItem() instanceof MultipurposeStaffrifle;
     }
 
     private static InteractionHand resolveAttackHand(AttackPhaseEndEvent event) {

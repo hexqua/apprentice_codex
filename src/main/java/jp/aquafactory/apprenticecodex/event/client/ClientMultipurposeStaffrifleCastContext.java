@@ -1,0 +1,95 @@
+package jp.aquafactory.apprenticecodex.event.client;
+
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.UUID;
+
+public final class ClientMultipurposeStaffrifleCastContext {
+    private static final long PENDING_EXPIRE_TICKS = 5L;
+
+    @Nullable
+    private static PendingContext pendingContext;
+    @Nullable
+    private static ActiveContext activeContext;
+
+    private ClientMultipurposeStaffrifleCastContext() {
+    }
+
+    public static void beginPending(UUID playerId, ItemStack stack) {
+        if (stack.isEmpty()) {
+            clear();
+            return;
+        }
+
+        pendingContext = new PendingContext(playerId, stack.getItem(), resolveGameTime());
+    }
+
+    public static void tryActivate(UUID playerId, ItemStack stack, @Nullable AbstractSpell spell) {
+        if (spell == null || stack.isEmpty()) {
+            return;
+        }
+
+        var pending = pendingContext;
+        if (pending == null || !pending.playerId().equals(playerId) || pending.item() != stack.getItem()) {
+            return;
+        }
+
+        var gameTime = resolveGameTime();
+        if (gameTime < 0L || gameTime - pending.gameTime() > PENDING_EXPIRE_TICKS) {
+            pendingContext = null;
+            return;
+        }
+
+        activeContext = new ActiveContext(playerId, stack.getItem(), spell.getSpellId());
+        pendingContext = null;
+    }
+
+    public static boolean matches(UUID playerId, ItemStack stack, @Nullable AbstractSpell spell) {
+        if (spell == null || stack.isEmpty()) {
+            return false;
+        }
+
+        var active = activeContext;
+        return active != null
+                && active.playerId().equals(playerId)
+                && active.item() == stack.getItem()
+                && active.spellId().equals(spell.getSpellId());
+    }
+
+    public static void clearFinished(UUID playerId, String spellId) {
+        var active = activeContext;
+        if (active != null && active.playerId().equals(playerId) && active.spellId().equals(spellId)) {
+            activeContext = null;
+        }
+    }
+
+    public static void clear() {
+        pendingContext = null;
+        activeContext = null;
+    }
+
+    private static long resolveGameTime() {
+        var minecraft = Minecraft.getInstance();
+        return minecraft.level != null ? minecraft.level.getGameTime() : -1L;
+    }
+
+    private record PendingContext(UUID playerId, Item item, long gameTime) {
+        private PendingContext {
+            Objects.requireNonNull(playerId);
+            Objects.requireNonNull(item);
+        }
+    }
+
+    private record ActiveContext(UUID playerId, Item item, String spellId) {
+        private ActiveContext {
+            Objects.requireNonNull(playerId);
+            Objects.requireNonNull(item);
+            Objects.requireNonNull(spellId);
+        }
+    }
+}

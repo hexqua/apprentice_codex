@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
@@ -131,6 +132,8 @@ public final class ItemRegistry {
             ITEMS.register("empty_advanced_spellcaster_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> EMPTY_SPELL_DOMINATOR_CASING =
             ITEMS.register("empty_spell_dominator_casing", () -> new SpellcasterRoundItem());
+    public static final DeferredHolder<Item, Item> EMPTY_MULTI_PURPOSE_SPELL_CASING =
+            ITEMS.register("empty_multi_purpose_spell_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> RAPID_SPELLCASTER_ROUND =
             ITEMS.register("rapid_spellcaster_round",
                     () -> new SpellcasterRoundItem(() -> EMPTY_RAPID_SPELLCASTER_CASING.get()));
@@ -146,6 +149,9 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> SPELL_DOMINATOR_ROUND =
             ITEMS.register("spell_dominator_round",
                     () -> new SpellcasterRoundItem(() -> EMPTY_SPELL_DOMINATOR_CASING.get()));
+    public static final DeferredHolder<Item, Item> MULTI_PURPOSE_SPELL_ROUND =
+            ITEMS.register("multi_purpose_spell_round",
+                    () -> new SpellcasterRoundItem(() -> EMPTY_MULTI_PURPOSE_SPELL_CASING.get()));
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_SCARF =
             armor("apprentice_mage_scarf", ArmorItem.Type.HELMET);
     public static final DeferredHolder<Item, Item> APPRENTICE_MAGE_TORSO =
@@ -258,6 +264,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final DeferredHolder<Item, Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
+    public static final DeferredHolder<Item, Item> MULTIPURPOSE_STAFFRIFLE =
+            ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final DeferredHolder<Item, Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final DeferredHolder<Item, Item> CHARGED_TWIN_BLADE_STAFF =

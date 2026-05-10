@@ -563,6 +563,18 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get())
+                .pattern("MWL")
+                .pattern(" MR")
+                .pattern(" BM")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get())
+                .define('W', io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get())
+                .define('L', io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_UPGRADE_ORB.get())
+                .define('R', Items.REDSTONE)
+                .define('B', ItemTags.BUTTONS)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GOLD_SPELLCASTER_GUN.get())
                 .pattern("GAC")
                 .pattern(" GR")

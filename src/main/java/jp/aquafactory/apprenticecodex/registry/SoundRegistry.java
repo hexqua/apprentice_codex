@@ -57,7 +57,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_IMPACT = reg("stellar_impact");
     public static final DeferredHolder<SoundEvent, SoundEvent> STELLAR_EXPLODE = reg("stellar_explode");
     public static final DeferredHolder<SoundEvent, SoundEvent> FROZEN_RUNE = reg("frozen_rune");
-
+    public static final DeferredHolder<SoundEvent, SoundEvent> STAFFRIFLE = reg("staffrifle");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_SUMMON_WEAPON = reg("vanilla_summon_weapon");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_SUMMON_MAGICAL_ENTITY = reg("vanilla_summon_magical_entity");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_DISAPPEAR_MAGICAL_ENTITY = reg("vanilla_disappear_magical_entity");

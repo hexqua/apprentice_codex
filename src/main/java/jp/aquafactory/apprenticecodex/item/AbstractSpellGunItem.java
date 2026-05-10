@@ -745,6 +745,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     private List<Component> collectSpellGunAbilityTooltipSection() {
         var translatedLines = new ArrayList<Component>();
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_no_mana"
+        ));
+
         var overriddenCooldownTicks = getOverriddenCooldownTicks();
         if (overriddenCooldownTicks != null) {
             translatedLines.add(ImbueTooltipHelper.translatableGray(
@@ -786,13 +790,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private List<Component> collectSpellGunAmmoTooltipSection(ItemStack stack) {
         var translatedLines = new ArrayList<Component>();
         for (var entry : getAmmoTooltipEntries(stack)) {
-            var line = Component.literal("- ").append(entry.item().getDescription());
-            if (entry.conditionTranslationKey() != null) {
-                line = line.append(Component.literal(" ("))
-                        .append(Component.translatable(entry.conditionTranslationKey()))
-                        .append(Component.literal(")"));
-            }
-            translatedLines.add(line.withStyle(ChatFormatting.GRAY));
+            translatedLines.add(ImbueTooltipHelper.createAmmoTooltipLine(entry.item(), entry.conditionTranslationKey()));
         }
         return translatedLines;
     }

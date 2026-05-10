@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
@@ -20,6 +21,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
@@ -35,7 +37,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "22";
+    private static final String PROTOCOL_VERSION = "24";
 
     private Networks() {
     }
@@ -70,6 +72,11 @@ public final class Networks {
                 ClientSwingMagicAttackPacket.TYPE,
                 ClientSwingMagicAttackPacket.STREAM_CODEC,
                 ClientSwingMagicAttackPacket::handle
+        );
+        registrar.playToServer(
+                ClientMultipurposeStaffrifleCastPacket.TYPE,
+                ClientMultipurposeStaffrifleCastPacket.STREAM_CODEC,
+                ClientMultipurposeStaffrifleCastPacket::handle
         );
         registrar.playToClient(
                 SyncEnderGrimoireSpellbookPacket.TYPE,
@@ -160,6 +167,11 @@ public final class Networks {
                 SyncPhotonSiphonCombatStatePacket.TYPE,
                 SyncPhotonSiphonCombatStatePacket.STREAM_CODEC,
                 SyncPhotonSiphonCombatStatePacket::handle
+        );
+        registrar.playToClient(
+                SyncMultipurposeStaffrifleFireEffectPacket.TYPE,
+                SyncMultipurposeStaffrifleFireEffectPacket.STREAM_CODEC,
+                SyncMultipurposeStaffrifleFireEffectPacket::handle
         );
         registrar.playToClient(
                 SenseEvilHighlightsPacket.TYPE,

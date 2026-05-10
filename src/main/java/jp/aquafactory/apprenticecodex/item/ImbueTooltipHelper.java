@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
@@ -85,6 +86,30 @@ public final class ImbueTooltipHelper {
         }
 
         lines.add(translatableGray(TOOLTIP_PREFIX + "restrict_restrict_no_recast"));
+    }
+
+    public static Component createAmmoTooltipLine(Item item, @Nullable String conditionTranslationKey) {
+        var line = Component.literal("- ").append(item.getDescription());
+        if (conditionTranslationKey != null) {
+            line = line.append(Component.literal(" ("))
+                    .append(Component.translatable(conditionTranslationKey))
+                    .append(Component.literal(")"));
+        }
+        return line.withStyle(ChatFormatting.GRAY);
+    }
+
+    public static Component getAttackKeyName() {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            return ImbueTooltipClientHelper.getAttackKeyName();
+        }
+        return Component.translatable("key.attack");
+    }
+
+    public static Component getUseKeyName() {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            return ImbueTooltipClientHelper.getUseKeyName();
+        }
+        return Component.translatable("key.use");
     }
 
     public static Component translatableGray(String translationKey, Object... args) {

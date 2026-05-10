@@ -809,6 +809,41 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleKeepsExpectedStatsAndEnchantingRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleRecastSkipsAmmoConsumption(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleKeepsNormalManaCost(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleKeepsNormalManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.circuitHeatStaffAdditionalManaScalesWithSkippedCooldown(helper);
     }
