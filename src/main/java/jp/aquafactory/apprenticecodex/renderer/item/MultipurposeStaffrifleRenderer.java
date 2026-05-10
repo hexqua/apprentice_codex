@@ -19,7 +19,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<MultipurposeStaffrifle> {
     private static final String RUNE_BARREL_BONE = "rune_barrel";
@@ -42,9 +42,9 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
     @Override
     public void postRender(PoseStack poseStack, MultipurposeStaffrifle animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                           int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
@@ -53,23 +53,23 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
         float runeBrightness = resolveRuneBarrelBrightness(partialTick);
         var runeColor = resolveRuneBarrelColor();
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.RUNE_BARREL, RUNE_BARREL_RENDER_TYPE,
-                partialTick, runeColor.red() * runeBrightness, runeColor.green() * runeBrightness,
-                runeColor.blue() * runeBrightness, 1.0F);
+                partialTick, rgba(runeColor.red() * runeBrightness, runeColor.green() * runeBrightness,
+                        runeColor.blue() * runeBrightness, 1.0F));
 
         float emitterBrightness = resolveEmitterBrightness(partialTick);
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.EMITTER, EMITTER_RENDER_TYPE,
-                partialTick, emitterBrightness, emitterBrightness, emitterBrightness, alpha);
+                partialTick, multiplyRgb(colour, emitterBrightness));
 
         float chamberBrightness = resolveChamberBrightness(partialTick);
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.CHAMBER, CHAMBER_RENDER_TYPE,
-                partialTick, chamberBrightness, chamberBrightness, chamberBrightness, 1.0F);
+                partialTick, rgba(chamberBrightness, chamberBrightness, chamberBrightness, 1.0F));
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, MultipurposeStaffrifle animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var runeBarrelBone = isBoneOrChildOf(bone, RUNE_BARREL_BONE);
         var emitterBone = isBoneOrChildOf(bone, EMITTER_BONE);
         var chamberBone = isBoneOrChildOf(bone, CHAMBER_BONE);
@@ -78,7 +78,7 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
         if (this.glowPass == GlowPass.NONE && specialBone) {
             renderChildBonesOnly(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -86,7 +86,7 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
         if (this.glowPass == GlowPass.RUNE_BARREL) {
             renderGlowPassBone(
                     poseStack, animatable, bone, runeBarrelBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
@@ -94,7 +94,7 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
         if (this.glowPass == GlowPass.EMITTER) {
             renderGlowPassBone(
                     poseStack, animatable, bone, emitterBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
@@ -102,14 +102,14 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
         if (this.glowPass == GlowPass.CHAMBER) {
             renderGlowPassBone(
                     poseStack, animatable, bone, chamberBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -121,7 +121,7 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
 
     private void renderGlowPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                 MultipurposeStaffrifle animatable, GlowPass pass, RenderType renderType,
-                                float partialTick, float red, float green, float blue, float alpha) {
+                                float partialTick, int colour) {
         this.glowPass = pass;
         try {
             // 特殊ボーンは通常パスと glint から切り離し、発光用パスだけで描画する。
@@ -135,10 +135,7 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.glowPass = GlowPass.NONE;
@@ -148,34 +145,34 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
     private void renderGlowPassBone(PoseStack poseStack, MultipurposeStaffrifle animatable, GeoBone bone,
                                     boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                     VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
-                                    int packedOverlay, float red, float green, float blue, float alpha) {
+                                    int packedOverlay, int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, MultipurposeStaffrifle animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -187,10 +184,7 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
@@ -224,7 +218,7 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
             return 1.0F;
         }
 
-        float maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
+        float maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA);
         if (maxMana <= 0.0F) {
             return 1.0F;
         }
@@ -245,6 +239,21 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
         }
 
         return false;
+    }
+
+    private static int multiplyRgb(int colour, float multiplier) {
+        int alpha = colour & 0xFF000000;
+        int red = Math.round(((colour >> 16) & 0xFF) * multiplier);
+        int green = Math.round(((colour >> 8) & 0xFF) * multiplier);
+        int blue = Math.round((colour & 0xFF) * multiplier);
+        return alpha | (Mth.clamp(red, 0, 255) << 16) | (Mth.clamp(green, 0, 255) << 8) | Mth.clamp(blue, 0, 255);
+    }
+
+    private static int rgba(float red, float green, float blue, float alpha) {
+        return (Mth.clamp(Math.round(alpha * 255.0F), 0, 255) << 24)
+                | (Mth.clamp(Math.round(red * 255.0F), 0, 255) << 16)
+                | (Mth.clamp(Math.round(green * 255.0F), 0, 255) << 8)
+                | Mth.clamp(Math.round(blue * 255.0F), 0, 255);
     }
 
     private record GlowColor(float red, float green, float blue) {

@@ -213,7 +213,7 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem {
         }
 
         return CuriosApi.getCuriosInventory(entity)
-                .map(inventory -> inventory.isEquipped(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()))
+                .map(inventory -> inventory.findFirstCurio(stack -> stack.is(ItemRegistry.SPELLCASTER_AMMO_POUCH.get())).isPresent())
                 .orElse(false);
     }
 

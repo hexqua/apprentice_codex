@@ -16,7 +16,7 @@ import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.network.EpicFightNetworkManager;
-import yesman.epicfight.network.common.AnimatorControlPacket;
+import yesman.epicfight.network.common.AbstractAnimatorControl;
 import yesman.epicfight.network.server.SPAnimatorControl;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
@@ -253,12 +253,12 @@ public final class EpicFightSwingMagicCompat {
 
         playerpatch.getAnimator().playAnimation(Animations.BIPED_CROSSBOW_SHOT, 0.0F);
         var packet = new SPAnimatorControl(
-                AnimatorControlPacket.Action.PLAY_CLIENT,
+                AbstractAnimatorControl.Action.PLAY_CLIENT,
                 Animations.BIPED_CROSSBOW_SHOT,
-                0.0F,
                 playerpatch,
-                AnimatorControlPacket.Layer.COMPOSITE_LAYER,
-                AnimatorControlPacket.Priority.HIGHEST
+                0.0F,
+                AbstractAnimatorControl.Layer.COMPOSITE_LAYER,
+                AbstractAnimatorControl.Priority.HIGHEST
         );
         EpicFightNetworkManager.sendToAllPlayerTrackingThisEntityWithSelf(packet, player);
     }

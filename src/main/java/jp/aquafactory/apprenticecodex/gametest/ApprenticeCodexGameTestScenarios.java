@@ -8673,7 +8673,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
             var item = (MultipurposeStaffrifle) stack.getItem();
-            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+            var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
 
             helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
                     "Multipurpose Staffrifle should not add attack damage modifiers");
@@ -8681,51 +8681,52 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Multipurpose Staffrifle should not add attack speed modifiers");
             assertSingleModifierAmount(
                     helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.10D,
                     "Multipurpose Staffrifle spell power modifier changed"
             );
 
             var enchantedStack = stack.copy();
-            enchantedStack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
-            enchantedStack.enchant(EnchantmentRegistry.TENSE.get(), 1);
-            var enchantedModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, enchantedStack);
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            enchantedStack.enchant(enchantmentLookup.getOrThrow(Enchantments.ALACRITY), 1);
+            enchantedStack.enchant(enchantmentLookup.getOrThrow(Enchantments.REFLUX), 1);
+            enchantedStack.enchant(enchantmentLookup.getOrThrow(Enchantments.RESERVOIR), 1);
+            enchantedStack.enchant(enchantmentLookup.getOrThrow(Enchantments.SURGE), 1);
+            enchantedStack.enchant(enchantmentLookup.getOrThrow(Enchantments.TENSE), 1);
+            var enchantedModifiers = toModifierMultimap(item.getDefaultAttributeModifiers(enchantedStack));
             assertSingleModifierAmount(
                     helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.02D,
                     "Multipurpose Staffrifle Alacrity modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.05D,
                     "Multipurpose Staffrifle Reflux modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
-                    AttributeModifier.Operation.ADDITION,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA),
+                    AttributeModifier.Operation.ADD_VALUE,
                     20.0D,
                     "Multipurpose Staffrifle Reservoir modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.12D,
                     "Multipurpose Staffrifle base + Surge spell power modifier changed"
             );
             assertSingleModifierAmount(
                     helper,
-                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    enchantedModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.05D,
                     "Multipurpose Staffrifle Tense modifier changed"
             );
@@ -8743,7 +8744,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
             var tooltipLines = new ArrayList<Component>();
-            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+            stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
 
             helper.assertTrue(tooltipLines.size() >= 4,
                     "Multipurpose Staffrifle tooltip should include controls, spacer, and shift hint");
@@ -11838,13 +11839,13 @@ public final class ApprenticeCodexGameTestScenarios {
 
     private static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
         var expectedEnchantments = registryIdSet(
-                EnchantmentRegistry.ALACRITY,
-                EnchantmentRegistry.REFLUX,
-                EnchantmentRegistry.RESERVOIR,
-                EnchantmentRegistry.SURGE,
-                EnchantmentRegistry.TENSE,
-                EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER
+                Enchantments.ALACRITY,
+                Enchantments.REFLUX,
+                Enchantments.RESERVOIR,
+                Enchantments.SURGE,
+                Enchantments.TENSE,
+                Enchantments.WISDOM,
+                Enchantments.PLUNDER
         );
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         return expectedEnchantments;

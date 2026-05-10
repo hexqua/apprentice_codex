@@ -7,7 +7,6 @@ import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.api.client.BetterCombatClientEvents;
-import net.bettercombat.client.animation.AnimationRegistry;
 import net.bettercombat.client.animation.PlayerAttackAnimatable;
 import net.bettercombat.logic.AnimatedHand;
 import net.bettercombat.logic.WeaponRegistry;
@@ -48,8 +47,7 @@ public final class BetterCombatClientCompat {
     }
 
     public static void playStaffrifleShootAnimation(Entity entity) {
-        var animationLoaded = AnimationRegistry.animations.containsKey(STAFFRIFLE_SHOOT_ANIMATION);
-        if (!(entity instanceof PlayerAttackAnimatable animatable) || !animationLoaded) {
+        if (!(entity instanceof PlayerAttackAnimatable animatable)) {
             return;
         }
 

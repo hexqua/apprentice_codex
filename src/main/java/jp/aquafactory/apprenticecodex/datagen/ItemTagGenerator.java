@@ -147,6 +147,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
 
         // Multipurpose Staffrifle は main hand で射撃攻撃する武器なので、Malum の主手武器 tag へ明示登録する。
+        tag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE).add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        surgeEnchantableTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        wisdomEnchantableTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        plunderEnchantableTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         malumSoulHunterWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
 

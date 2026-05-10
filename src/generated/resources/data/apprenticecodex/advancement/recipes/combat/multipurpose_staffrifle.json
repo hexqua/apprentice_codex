@@ -11,9 +11,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:weapon_parts"
-            ]
+            "items": "irons_spellbooks:weapon_parts"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_weapon_parts",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_weapon_parts"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:multipurpose_staffrifle"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

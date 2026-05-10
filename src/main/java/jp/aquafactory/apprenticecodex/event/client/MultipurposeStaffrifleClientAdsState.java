@@ -5,7 +5,7 @@ import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 public final class MultipurposeStaffrifleClientAdsState {

@@ -1,18 +1,18 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class MultipurposeStaffrifleServerConfig {
-    private final ForgeConfigSpec.IntValue cooldownBypassThresholdTicks;
-    private final ForgeConfigSpec.IntValue cooldownReductionTicks;
-    private final ForgeConfigSpec.IntValue reducedCooldownMinimumTicks;
-    private final ForgeConfigSpec.IntValue adsFullAutoIntervalTicks;
+    private final ModConfigSpec.IntValue cooldownBypassThresholdTicks;
+    private final ModConfigSpec.IntValue cooldownReductionTicks;
+    private final ModConfigSpec.IntValue reducedCooldownMinimumTicks;
+    private final ModConfigSpec.IntValue adsFullAutoIntervalTicks;
 
     private MultipurposeStaffrifleServerConfig(
-            ForgeConfigSpec.IntValue cooldownBypassThresholdTicks,
-            ForgeConfigSpec.IntValue cooldownReductionTicks,
-            ForgeConfigSpec.IntValue reducedCooldownMinimumTicks,
-            ForgeConfigSpec.IntValue adsFullAutoIntervalTicks
+            ModConfigSpec.IntValue cooldownBypassThresholdTicks,
+            ModConfigSpec.IntValue cooldownReductionTicks,
+            ModConfigSpec.IntValue reducedCooldownMinimumTicks,
+            ModConfigSpec.IntValue adsFullAutoIntervalTicks
     ) {
         this.cooldownBypassThresholdTicks = cooldownBypassThresholdTicks;
         this.cooldownReductionTicks = cooldownReductionTicks;
@@ -20,7 +20,7 @@ public final class MultipurposeStaffrifleServerConfig {
         this.adsFullAutoIntervalTicks = adsFullAutoIntervalTicks;
     }
 
-    public static MultipurposeStaffrifleServerConfig define(ForgeConfigSpec.Builder builder) {
+    public static MultipurposeStaffrifleServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("MultipurposeStaffrifle");
         var cooldownBypassThresholdTicks = builder
                 .comment("Cooldowns at or below this value are removed for Multipurpose Staffrifle special casts. 200 ticks = 10 seconds.")

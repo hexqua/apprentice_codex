@@ -12,7 +12,7 @@ import yesman.epicfight.world.capabilities.item.RangedWeaponCapability;
 import yesman.epicfight.world.capabilities.item.Style;
 
 public final class EpicFightMultipurposeStaffrifleCapability extends RangedWeaponCapability {
-    public EpicFightMultipurposeStaffrifleCapability(CapabilityItem.Builder builder) {
+    public EpicFightMultipurposeStaffrifleCapability(RangedWeaponCapability.Builder builder) {
         super(builder);
     }
 

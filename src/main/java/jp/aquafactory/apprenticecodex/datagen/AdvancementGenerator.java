@@ -404,7 +404,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.description"),
                         null,
-                        FrameType.CHALLENGE,
+                        AdvancementType.CHALLENGE,
                         true,
                         true,
                         false)

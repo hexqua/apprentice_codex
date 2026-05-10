@@ -9,16 +9,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.description"
     },
     "frame": "challenge",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:multipurpose_staffrifle"
+      "count": 1,
+      "id": "apprenticecodex:multipurpose_staffrifle"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.title"
     }

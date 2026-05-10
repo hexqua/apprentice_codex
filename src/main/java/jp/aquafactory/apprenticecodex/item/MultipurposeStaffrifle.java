@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -13,40 +11,41 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientFireEffectState;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Holder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -54,26 +53,24 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class MultipurposeStaffrifle extends Item
@@ -81,13 +78,6 @@ public final class MultipurposeStaffrifle extends Item
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.multipurpose_staffrifle.desc_";
     private static final String MAIN_CONTROLLER = "main";
     private static final String FIRED_ANIMATION = "fired";
-    private static final String MALUM_NAMESPACE = "malum";
-    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
-            Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
-    );
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_FIRED = RawAnimation.begin().thenPlay("fired");
     private static final int MAX_USE_DURATION = 72000;
@@ -108,10 +98,11 @@ public final class MultipurposeStaffrifle extends Item
     private static final double RESERVOIR_MAX_MANA_PER_LEVEL = 20.0D;
     private static final double SURGE_SPELL_POWER_PER_LEVEL = 0.02D;
     private static final double TENSE_CAST_TIME_REDUCTION_PER_LEVEL = 0.05D;
-    private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("06ad0fe5-4dc8-4d4b-933c-d0d0e6675a39");
+    private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "multipurpose_staffrifle.mainhand.spell_power");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Multimap<Attribute, AttributeModifier> baseMainhandModifiers = buildBaseMainhandModifiers();
+    private final ItemAttributeModifiers baseMainhandModifiers = buildBaseMainhandModifiers();
 
     public MultipurposeStaffrifle() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
@@ -139,16 +130,12 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack) {
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
         return MAX_USE_DURATION;
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        if (slot != EquipmentSlot.MAINHAND) {
-            return super.getAttributeModifiers(slot, stack);
-        }
-
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         return buildMainhandModifiers(stack);
     }
 
@@ -163,24 +150,29 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return isSupportedStaffrifleEnchantment(stack, enchantment);
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return super.supportsEnchantment(stack, enchantment) || isSupportedStaffrifleEnchantment(stack, enchantment);
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
+    }
+
+    @Override
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         if (!super.isBookEnchantable(stack, book)) {
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantments(book);
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         return enchantments.isEmpty() || enchantments.keySet().stream()
-                .allMatch(enchantment -> isSupportedStaffrifleEnchantment(stack, enchantment));
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
-        return isSupportedStaffrifleEnchantment(stack, enchantment);
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
+        return supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -393,9 +385,9 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
         appendMultipurposeStaffrifleHelpTooltip(stack, lines);
     }
 
@@ -602,99 +594,99 @@ public final class MultipurposeStaffrifle extends Item
         ).withStyle(ChatFormatting.GRAY));
     }
 
-    private Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
+    private ItemAttributeModifiers buildMainhandModifiers(ItemStack stack) {
         if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
             return baseMainhandModifiers;
         }
 
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        var builder = ItemAttributeModifiers.builder();
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.SPELL_POWER.get(),
-                SPELL_POWER_BONUS + getEnchantmentLevel(stack, EnchantmentRegistry.SURGE) * SURGE_SPELL_POWER_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
+                AttributeRegistry.SPELL_POWER,
+                SPELL_POWER_BONUS + getEnchantmentLevel(stack, Enchantments.SURGE) * SURGE_SPELL_POWER_PER_LEVEL,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 "apprenticecodex.multipurpose_staffrifle.mainhand.spell_power"
         );
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.COOLDOWN_REDUCTION.get(),
-                getEnchantmentLevel(stack, EnchantmentRegistry.ALACRITY) * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
+                AttributeRegistry.COOLDOWN_REDUCTION,
+                getEnchantmentLevel(stack, Enchantments.ALACRITY) * ALACRITY_COOLDOWN_REDUCTION_PER_LEVEL,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 "apprenticecodex.multipurpose_staffrifle.mainhand.enchant.alacrity.cooldown_reduction"
         );
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.MANA_REGEN.get(),
-                getEnchantmentLevel(stack, EnchantmentRegistry.REFLUX) * REFLUX_MANA_REGEN_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
+                AttributeRegistry.MANA_REGEN,
+                getEnchantmentLevel(stack, Enchantments.REFLUX) * REFLUX_MANA_REGEN_PER_LEVEL,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 "apprenticecodex.multipurpose_staffrifle.mainhand.enchant.reflux.mana_regen"
         );
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.MAX_MANA.get(),
-                getEnchantmentLevel(stack, EnchantmentRegistry.RESERVOIR) * RESERVOIR_MAX_MANA_PER_LEVEL,
-                AttributeModifier.Operation.ADDITION,
+                AttributeRegistry.MAX_MANA,
+                getEnchantmentLevel(stack, Enchantments.RESERVOIR) * RESERVOIR_MAX_MANA_PER_LEVEL,
+                AttributeModifier.Operation.ADD_VALUE,
                 "apprenticecodex.multipurpose_staffrifle.mainhand.enchant.reservoir.max_mana"
         );
         addEnchantmentModifier(
                 builder,
-                AttributeRegistry.CAST_TIME_REDUCTION.get(),
-                getEnchantmentLevel(stack, EnchantmentRegistry.TENSE) * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
-                AttributeModifier.Operation.MULTIPLY_BASE,
+                AttributeRegistry.CAST_TIME_REDUCTION,
+                getEnchantmentLevel(stack, Enchantments.TENSE) * TENSE_CAST_TIME_REDUCTION_PER_LEVEL,
+                AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                 "apprenticecodex.multipurpose_staffrifle.mainhand.enchant.tense.cast_time_reduction"
         );
         return builder.build();
     }
 
-    private static Multimap<Attribute, AttributeModifier> buildBaseMainhandModifiers() {
-        return ImmutableMultimap.of(
-                AttributeRegistry.SPELL_POWER.get(),
+    private static ItemAttributeModifiers buildBaseMainhandModifiers() {
+        return ItemAttributeModifiers.builder().add(
+                AttributeRegistry.SPELL_POWER,
                 new AttributeModifier(
                         SPELL_POWER_MODIFIER_ID,
-                        "apprenticecodex.multipurpose_staffrifle.mainhand.spell_power",
                         SPELL_POWER_BONUS,
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
-        );
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                ),
+                EquipmentSlotGroup.MAINHAND
+        ).build();
     }
 
-    private static void addEnchantmentModifier(ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
-                                               Attribute attribute, double amount, AttributeModifier.Operation operation,
+    private static void addEnchantmentModifier(ItemAttributeModifiers.Builder builder,
+                                               Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute,
+                                               double amount,
+                                               AttributeModifier.Operation operation,
                                                String modifierIdSeed) {
         if (amount == 0.0D) {
             return;
         }
 
-        builder.put(
+        builder.add(
                 attribute,
                 new AttributeModifier(
-                        UUID.nameUUIDFromBytes(modifierIdSeed.getBytes(StandardCharsets.UTF_8)),
-                        modifierIdSeed,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, modifierIdSeed),
                         amount,
                         operation
-                )
+                ),
+                EquipmentSlotGroup.MAINHAND
         );
     }
 
-    private static int getEnchantmentLevel(ItemStack stack, net.minecraftforge.registries.RegistryObject<Enchantment> enchantment) {
-        return enchantment.isPresent() ? stack.getEnchantmentLevel(enchantment.get()) : 0;
+    private static int getEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantment) {
+        return Enchantments.getLevel(stack, enchantment);
     }
 
-    private static boolean isSupportedStaffrifleEnchantment(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId != null
-                && MALUM_SPIRIT_PLUNDER.equals(enchantmentId)
-                && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
+    private static boolean isSupportedStaffrifleEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
+        if (MalumCompatibility.isSpiritPlunderSupported(stack, enchantmentId)) {
             return true;
         }
 
-        return (EnchantmentRegistry.ALACRITY.isPresent() && enchantment == EnchantmentRegistry.ALACRITY.get())
-                || (EnchantmentRegistry.REFLUX.isPresent() && enchantment == EnchantmentRegistry.REFLUX.get())
-                || (EnchantmentRegistry.RESERVOIR.isPresent() && enchantment == EnchantmentRegistry.RESERVOIR.get())
-                || (EnchantmentRegistry.SURGE.isPresent() && enchantment == EnchantmentRegistry.SURGE.get())
-                || (EnchantmentRegistry.TENSE.isPresent() && enchantment == EnchantmentRegistry.TENSE.get())
-                || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
-                || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get());
+        return enchantment.is(Enchantments.ALACRITY)
+                || enchantment.is(Enchantments.REFLUX)
+                || enchantment.is(Enchantments.RESERVOIR)
+                || enchantment.is(Enchantments.SURGE)
+                || enchantment.is(Enchantments.TENSE)
+                || enchantment.is(Enchantments.WISDOM)
+                || enchantment.is(Enchantments.PLUNDER);
     }
 
     private static void applyNormalHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess,

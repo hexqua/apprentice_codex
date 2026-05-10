@@ -573,7 +573,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .define('B', ItemTags.BUTTONS)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GOLD_SPELLCASTER_GUN.get())
                 .pattern("GAC")
