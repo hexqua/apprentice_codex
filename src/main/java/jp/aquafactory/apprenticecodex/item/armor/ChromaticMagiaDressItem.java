@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.armor;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.armor.ChromaticMagiaDressRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -36,8 +37,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPresetSpellContainer {
-    private static final double SCHOOL_SPELL_POWER_BONUS_PER_HISTORY = 0.01D;
-
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers armorAttributeModifiers;
 
@@ -161,6 +160,8 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
 
     private void addHistorySpellPowerModifiers(ItemAttributeModifiers.Builder builder, ItemStack stack) {
         var schools = ChromaticMagiaDressHistory.readSchools(stack);
+        var schoolSpellPowerBonusPerHistory =
+                ApprenticeCodexServerConfig.chromaticMagiaDressSchoolSpellPowerBonusPerHistory();
         for (int i = 0; i < schools.size(); ++i) {
             var schoolPowerAttribute = MagicTools.resolveSchoolPowerAttribute(schools.get(i));
             if (schoolPowerAttribute == null) {
@@ -170,7 +171,7 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
             MagicArmorAttributeHelper.addModifier(
                     builder,
                     BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolPowerAttribute),
-                    SCHOOL_SPELL_POWER_BONUS_PER_HISTORY,
+                    schoolSpellPowerBonusPerHistory,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     EquipmentSlotGroup.bySlot(getType().getSlot()),
                     "chromatic_magia_dress_" + ChromaticMagiaDressStats.typeToken(getType()) + "_history_spell_power_" + i
