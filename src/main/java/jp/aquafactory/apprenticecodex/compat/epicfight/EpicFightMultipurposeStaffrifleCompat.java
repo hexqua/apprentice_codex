@@ -4,8 +4,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
+import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.api.event.types.registry.WeaponCapabilityPresetRegistryEvent;
+import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.item.RangedWeaponCapability;
 
 // リフレクションで参照するため、IDE側の未使用検知を無効化.
@@ -30,6 +32,16 @@ public final class EpicFightMultipurposeStaffrifleCompat {
 
     private static RangedWeaponCapability.Builder buildCapability(Item item) {
         return RangedWeaponCapability.builder()
+                .addAnimationsModifier(LivingMotions.IDLE, Animations.BIPED_HOLD_CROSSBOW)
+                .addAnimationsModifier(LivingMotions.KNEEL, Animations.BIPED_HOLD_CROSSBOW)
+                .addAnimationsModifier(LivingMotions.WALK, Animations.BIPED_HOLD_CROSSBOW)
+                .addAnimationsModifier(LivingMotions.RUN, Animations.BIPED_HOLD_CROSSBOW)
+                .addAnimationsModifier(LivingMotions.SWIM, Animations.BIPED_HOLD_CROSSBOW)
+                .addAnimationsModifier(LivingMotions.FALL, Animations.BIPED_HOLD_CROSSBOW)
+                .addAnimationsModifier(LivingMotions.FLOAT, Animations.BIPED_HOLD_CROSSBOW)
+                .addAnimationsModifier(LivingMotions.SNEAK, Animations.BIPED_HOLD_CROSSBOW)
+                .addAnimationsModifier(LivingMotions.AIM, Animations.BIPED_CROSSBOW_AIM)
+                .addAnimationsModifier(LivingMotions.SHOT, Animations.BIPED_CROSSBOW_SHOT)
                 .constructor(EpicFightMultipurposeStaffrifleCapability::new);
     }
 }
