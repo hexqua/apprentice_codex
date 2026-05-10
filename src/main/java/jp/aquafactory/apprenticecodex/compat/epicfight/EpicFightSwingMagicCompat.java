@@ -10,9 +10,14 @@ import yesman.epicfight.api.event.IdentifierProvider;
 import yesman.epicfight.api.event.types.animation.AnimationBeginEvent;
 import yesman.epicfight.api.event.types.animation.AnimationEndEvent;
 import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
+import yesman.epicfight.api.event.types.player.ComboAttackEvent;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
+import yesman.epicfight.gameasset.Animations;
+import yesman.epicfight.network.EpicFightNetworkManager;
+import yesman.epicfight.network.common.AnimatorControlPacket;
+import yesman.epicfight.network.server.SPAnimatorControl;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
@@ -46,6 +51,11 @@ public final class EpicFightSwingMagicCompat {
             playerpatch.getEventListener().registerEvent(
                     EpicFightEventHooks.Animation.ATTACK_PHASE_END,
                     EpicFightSwingMagicCompat::onAttackPhaseEnd,
+                    IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
+            );
+            playerpatch.getEventListener().registerContextAwareEvent(
+                    EpicFightEventHooks.Player.COMBO_ATTACK,
+                    (event, context) -> onBasicAttack(event),
                     IdentifierProvider.constant(SWING_MAGIC_EVENT_ID)
             );
             playerpatch.getEventListener().registerEvent(
@@ -159,6 +169,22 @@ public final class EpicFightSwingMagicCompat {
         triggerSwingMagic(player, hand, TriggerSource.ATTACK_PHASE, getAnimationId(event.getAnimation()), event.getPhaseOrder());
     }
 
+    private static void onBasicAttack(ComboAttackEvent event) {
+        var playerpatch = event.getPlayerPatch();
+        var player = playerpatch.getOriginal();
+        var stack = player.getMainHandItem();
+        if (!(stack.getItem() instanceof MultipurposeStaffrifle staffrifle)) {
+            return;
+        }
+
+        // Staffrifle は近接武器ではないため、Epic Fight の基本攻撃を射撃詠唱へ差し替える。
+        // 1.21.1 側では ComboAttackEvent の発火順が変わる可能性があるため、この接続点は再確認する。
+        event.cancel();
+        if (staffrifle.tryTriggerSelectedSpell(player, false)) {
+            playStaffrifleShotAnimation(playerpatch);
+        }
+    }
+
     private static void processTimedTriggers(ServerPlayer player) {
         var playerId = player.getUUID();
         var triggers = TIMED_TRIGGERS.get(playerId);
@@ -207,8 +233,34 @@ public final class EpicFightSwingMagicCompat {
         } else if (hand == InteractionHand.MAIN_HAND
                 && player instanceof ServerPlayer serverPlayer
                 && stack.getItem() instanceof MultipurposeStaffrifle staffrifle) {
-            staffrifle.tryTriggerSelectedSpell(serverPlayer, false);
+            if (staffrifle.tryTriggerSelectedSpell(serverPlayer, false)) {
+                playStaffrifleShotAnimation(serverPlayer);
+            }
         }
+    }
+
+    public static void playStaffrifleShotAnimation(ServerPlayer player) {
+        EpicFightCapabilities.getUnparameterizedEntityPatch(player, ServerPlayerPatch.class)
+                .filter(ServerPlayerPatch::isEpicFightMode)
+                .ifPresent(EpicFightSwingMagicCompat::playStaffrifleShotAnimation);
+    }
+
+    private static void playStaffrifleShotAnimation(ServerPlayerPatch playerpatch) {
+        var player = playerpatch.getOriginal();
+        if (!(player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle)) {
+            return;
+        }
+
+        playerpatch.getAnimator().playAnimation(Animations.BIPED_CROSSBOW_SHOT, 0.0F);
+        var packet = new SPAnimatorControl(
+                AnimatorControlPacket.Action.PLAY_CLIENT,
+                Animations.BIPED_CROSSBOW_SHOT,
+                0.0F,
+                playerpatch,
+                AnimatorControlPacket.Layer.COMPOSITE_LAYER,
+                AnimatorControlPacket.Priority.HIGHEST
+        );
+        EpicFightNetworkManager.sendToAllPlayerTrackingThisEntityWithSelf(packet, player);
     }
 
     private static InteractionHand resolveAvailableSwingMagicHand(Player player, InteractionHand preferredHand) {

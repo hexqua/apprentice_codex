@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -8,6 +9,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ClientMultipurposeStaffrifleCastPacket(boolean adsFullAuto) implements CustomPacketPayload {
@@ -37,7 +39,10 @@ public record ClientMultipurposeStaffrifleCastPacket(boolean adsFullAuto) implem
 
             var mainHandItem = sender.getMainHandItem().getItem();
             if (mainHandItem instanceof MultipurposeStaffrifle staffrifle) {
-                staffrifle.tryTriggerSelectedSpell(sender, packet.adsFullAuto());
+                var casted = staffrifle.tryTriggerSelectedSpell(sender, packet.adsFullAuto());
+                if (casted && ModList.get().isLoaded(EpicFightSwingMagicCompat.MOD_ID)) {
+                    EpicFightSwingMagicCompat.playStaffrifleShotAnimation(sender);
+                }
             }
         });
     }

@@ -9,6 +9,8 @@ import yesman.epicfight.api.event.types.registry.WeaponCapabilityPresetRegistryE
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
 
+// リフレクションで参照するため、IDE側の未使用検知を無効化.
+@SuppressWarnings("unused")
 public final class EpicFightChargedTwinBladeStaffCompat {
     public static final ResourceLocation WEAPON_TYPE_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "charged_twin_blade_staff");
