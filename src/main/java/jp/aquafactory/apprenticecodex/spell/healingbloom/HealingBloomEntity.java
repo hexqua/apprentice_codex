@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.healingbloom;
 
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
-import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -379,35 +378,20 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public void die(@NotNull DamageSource damageSource) {
-        if (!level().isClientSide && level() instanceof ServerLevel serverLevel) {
-            handleDeathDrops(serverLevel);
+        if (!level().isClientSide && level() instanceof ServerLevel) {
+            handleDeathDrops();
         }
         super.die(damageSource);
     }
 
-    private void handleDeathDrops(ServerLevel level) {
+    private void handleDeathDrops() {
         if (deathHandled) {
             return;
         }
 
         deathHandled = true;
-        var droppedFruit = getFruitCount();
-        if (!placeComfortBerryBush(level)) {
-            ++droppedFruit;
-        }
-        dropComfortBerries(droppedFruit);
+        dropComfortBerries(getFruitCount());
         setFruitCount(0);
-    }
-
-    private boolean placeComfortBerryBush(ServerLevel level) {
-        var bushState = BlockRegistry.COMFORT_BERRY_BUSH.get()
-                .defaultBlockState()
-                .setValue(ComfortBerryBushBlock.AGE, ComfortBerryBushBlock.MAX_AGE);
-        if (!bushState.canSurvive(level, anchorPos) || !level.getBlockState(anchorPos).canBeReplaced()) {
-            return false;
-        }
-
-        return level.setBlock(anchorPos, bushState, 3);
     }
 
     private void dropComfortBerries(int count) {
