@@ -44,7 +44,7 @@ public class HealingBloom extends AbstractSpell implements IClientBlockTargeting
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.NATURE_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(60)
+            .setCooldownSeconds(300)
             .build();
 
     public HealingBloom() {
