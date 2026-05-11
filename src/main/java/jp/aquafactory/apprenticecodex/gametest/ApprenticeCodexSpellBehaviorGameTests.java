@@ -84,6 +84,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
+    public static void healingBloomOfflineDeathDoesNotBlockRecast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.healingBloomOfflineDeathDoesNotBlockRecast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
+    public static void healingBloomSneakCastRecoversOfflineDeathState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.healingBloomSneakCastRecoversOfflineDeathState(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
     public static void healingBloomSneakCastReplacesOnlyOwnersPreviousBloom(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.healingBloomSneakCastReplacesOnlyOwnersPreviousBloom(helper);
     }
