@@ -10054,6 +10054,48 @@ public final class ApprenticeCodexGameTestScenarios {
                     "A missing managed Healing Bloom should not block recasting for the same owner");
         });
     }
+    static void healingBloomOfflineDeathDoesNotBlockRecast(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_offline_death_recast_test");
+            var firstAnchor = new BlockPos(0, 2, 0);
+            var secondAnchor = new BlockPos(2, 2, 0);
+            helper.setBlock(firstAnchor.below(), Blocks.STONE);
+            helper.setBlock(secondAnchor.below(), Blocks.STONE);
+
+            var deadBloomUuid = prepareHealingBloomDeadWhileOwnerOffline(helper, owner, firstAnchor);
+
+            castHealingBloom(helper, owner, 1, secondAnchor, false);
+
+            var currentBloom = getSingleLivingHealingBloom(helper, owner);
+            helper.assertTrue(currentBloom.blockPosition().equals(helper.absolutePos(secondAnchor)),
+                    "A Healing Bloom that died while its owner was offline should not block normal recasting");
+            assertManagedHealingBloomUuid(helper, owner, currentBloom.getUUID(),
+                    "Healing Bloom stale state should be replaced by the newly placed bloom");
+            helper.assertTrue(!deadBloomUuid.equals(currentBloom.getUUID()),
+                    "The recast Healing Bloom should not reuse the dead bloom UUID");
+        });
+    }
+    static void healingBloomSneakCastRecoversOfflineDeathState(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_offline_death_sneak_test");
+            var firstAnchor = new BlockPos(0, 2, 0);
+            var replacementAnchor = new BlockPos(2, 2, 0);
+            helper.setBlock(firstAnchor.below(), Blocks.STONE);
+            helper.setBlock(replacementAnchor.below(), Blocks.STONE);
+
+            var deadBloomUuid = prepareHealingBloomDeadWhileOwnerOffline(helper, owner, firstAnchor);
+
+            castHealingBloom(helper, owner, 1, replacementAnchor, true);
+
+            var currentBloom = getSingleLivingHealingBloom(helper, owner);
+            helper.assertTrue(currentBloom.blockPosition().equals(helper.absolutePos(replacementAnchor)),
+                    "Sneak casting should recover a stale Healing Bloom state left by offline death");
+            assertManagedHealingBloomUuid(helper, owner, currentBloom.getUUID(),
+                    "Sneak casting should replace the stale Healing Bloom UUID with the new bloom UUID");
+            helper.assertTrue(!deadBloomUuid.equals(currentBloom.getUUID()),
+                    "The replacement Healing Bloom should not reuse the dead bloom UUID");
+        });
+    }
     static void healingBloomSneakCastReplacesOnlyOwnersPreviousBloom(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var firstOwner = createHealingBloomPlayer(helper, new BlockPos(0, 2, 0), "healing_bloom_force_owner_a_test");
@@ -10089,6 +10131,34 @@ public final class ApprenticeCodexGameTestScenarios {
         bloom.addAdditionalSaveData(tag);
         tag.putInt("FruitCount", fruitCount);
         bloom.readAdditionalSaveData(tag);
+    }
+
+    private static UUID prepareHealingBloomDeadWhileOwnerOffline(GameTestHelper helper, FakePlayer owner, BlockPos anchorPos) {
+        castHealingBloom(helper, owner, 1, anchorPos, false);
+        var bloom = getSingleLivingHealingBloom(helper, owner);
+        var bloomUuid = bloom.getUUID();
+        assertManagedHealingBloomUuid(helper, owner, bloomUuid,
+                "Healing Bloom offline-death setup should start with a managed bloom");
+
+        // オフライン中の死亡では owner を ServerPlayer として引けず、即時解除されない state が残る。
+        clearHealingBloomCachedOwner(bloom);
+        killHealingBloom(helper.getLevel(), bloom);
+        assertManagedHealingBloomUuid(helper, owner, bloomUuid,
+                "Healing Bloom state should still contain the dead bloom UUID until the owner recasts");
+        return bloomUuid;
+    }
+
+    private static void clearHealingBloomCachedOwner(HealingBloomEntity bloom) {
+        var tag = new CompoundTag();
+        bloom.addAdditionalSaveData(tag);
+        bloom.readAdditionalSaveData(tag);
+    }
+
+    private static void assertManagedHealingBloomUuid(GameTestHelper helper, FakePlayer owner, UUID expectedUuid, String message) {
+        var spellData = Capabilities.getSpellDataOrNull(owner);
+        helper.assertTrue(spellData != null, "Healing Bloom state assertion could not resolve spell data capability");
+        helper.assertTrue(expectedUuid.equals(spellData.get(CodexSpellStateTypeRegister.HEALING_BLOOM_STATE).getBloomUuid()),
+                message);
     }
 
     private static void killHealingBloom(ServerLevel level, HealingBloomEntity bloom) {
