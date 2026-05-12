@@ -13,19 +13,51 @@
 						"4.0": {
 							"vector": [0, -360, 0]
 						}
+					},
+					"scale": {
+						"0.0": {
+							"vector": [0.75, 0.75, 0.75]
+						},
+						"4.0": {
+							"vector": [0.75, 0.75, 0.75]
+						}
+					}
+				}
+			}
+		},
+		"ready": {
+			"loop": true,
+			"animation_length": 0.5,
+			"bones": {
+				"rune": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.5": {
+							"vector": [0, 360, 0]
+						}
+					},
+					"scale": {
+						"0.0": {
+							"vector": [1.1, 1.1, 1.1]
+						},
+						"0.5": {
+							"vector": [1.1, 1.1, 1.1]
+						}
 					}
 				}
 			}
 		},
 		"smash": {
-			"animation_length": 0.5,
+			"animation_length": 1,
 			"bones": {
 				"shell": {
 					"rotation": {
 						"0.0": {
-							"vector": [0, -360, 0]
+							"vector": [0, -1080, 0]
 						},
-						"0.5": {
+						"1.0": {
 							"vector": [0, 0, 0],
 							"easing": "easeOutSine"
 						}
@@ -36,7 +68,7 @@
 						"0.0": {
 							"vector": [0, 360, 0]
 						},
-						"0.5": {
+						"1.0": {
 							"vector": [0, 0, 0],
 							"easing": "easeOutSine"
 						}

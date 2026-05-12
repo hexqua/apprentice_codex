@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -36,6 +37,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
@@ -60,6 +62,9 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
 
     private static final String ITEM_KEY = "smashcast_scepter";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.smashcast_scepter.desc_";
+    private static final String IDLE_CONTROLLER = "idle";
+    private static final String SMASH_CONTROLLER = "smash";
+    private static final String SMASH_ANIMATION = "smash";
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double MAX_SMASH_SPELL_POWER_MULTIPLIER = 10.0D;
     private static final double LOW_FALL_SPELL_POWER_PER_BLOCK = 0.10D;
@@ -72,6 +77,8 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
             UUID.fromString("f8cb06ee-20d8-46f9-bc53-69f5a7452abf");
     private static final String SMASH_SPELL_POWER_MODIFIER_NAME = "apprenticecodex.smashcast_scepter.smash_spell_power";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation ANIM_READY = RawAnimation.begin().thenLoop("ready");
+    private static final RawAnimation ANIM_SMASH = RawAnimation.begin().thenPlay("smash");
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath("malum", "spirit_plunder");
@@ -164,6 +171,15 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
             initializeSpellContainer(stack);
         }
         return true;
+    }
+
+    public void triggerSmashAnimation(ServerPlayer player, ItemStack stack) {
+        if (!isSameItem(stack)) {
+            return;
+        }
+
+        var instanceId = GeoItem.getOrAssignId(stack, player.serverLevel());
+        triggerAnim(player, instanceId, SMASH_CONTROLLER, SMASH_ANIMATION);
     }
 
     public boolean tryCastSmashSpell(Player player, ItemStack stack, float fallDistance) {
@@ -370,11 +386,22 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
+    public boolean isPerspectiveAware() {
+        return true;
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
-        controllerRegistrar.add(new AnimationController<>(this, "main", 0, state -> {
-            state.setAnimation(ANIM_IDLE);
+        controllerRegistrar.add(new AnimationController<>(this, IDLE_CONTROLLER, 0, state -> {
+            var stack = state.getData(DataTickets.ITEMSTACK);
+            var perspective = state.getData(DataTickets.ITEM_RENDER_PERSPECTIVE);
+            state.setAnimation(SmashcastScepterClientRenderState.shouldPlayReadyAnimation(stack, perspective)
+                    ? ANIM_READY
+                    : ANIM_IDLE);
             return PlayState.CONTINUE;
         }));
+        controllerRegistrar.add(new AnimationController<>(this, SMASH_CONTROLLER, 0, state -> PlayState.STOP)
+                .triggerableAnim(SMASH_ANIMATION, ANIM_SMASH));
     }
 
     @Override

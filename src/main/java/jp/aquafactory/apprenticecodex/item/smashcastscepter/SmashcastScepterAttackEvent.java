@@ -96,6 +96,7 @@ public final class SmashcastScepterAttackEvent {
         }
 
         var stack = player.getMainHandItem();
+        scepter.triggerSmashAnimation(player, stack);
         scepter.tryCastSmashSpell(player, stack, pending.fallDistance());
 
         event.getEntity().invulnerableTime = 0;
