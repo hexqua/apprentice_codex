@@ -2,7 +2,10 @@ package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,6 +25,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -29,6 +33,10 @@ import java.util.WeakHashMap;
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SmashcastScepterAttackEvent {
     private static final Map<ServerLevel, Map<UUID, PendingSmash>> PENDING_SMASHES = new WeakHashMap<>();
+    private static final int TREMOR_BLOCK_LIMIT = 16;
+    private static final double SMASH_TREMOR_RADIUS = 3.0D;
+    // メイス粉塵を 1.21 寄せで強めたため、tremor も見劣りしない振れ幅へ寄せる。
+    private static final float TREMOR_IMPULSE_MULTIPLIER = 1.75F;
 
     private SmashcastScepterAttackEvent() {
     }
@@ -94,6 +102,7 @@ public final class SmashcastScepterAttackEvent {
         player.fallDistance = 0.0F;
         applyAreaKnockback(player, event.getEntity());
         applyReleaseBounce(player, stack);
+        playSmashVisualEffects(player.serverLevel(), event.getEntity(), pending.fallDistance());
         playSmashSound(player, pending.fallDistance());
     }
 
@@ -178,6 +187,94 @@ public final class SmashcastScepterAttackEvent {
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(serverPlayer));
         }
+    }
+
+    private static void playSmashVisualEffects(ServerLevel level, LivingEntity impactTarget, float fallDistance) {
+        var center = impactTarget.position();
+        spawnMaceLikeBlockDust(level, center);
+        spawnTremorBlocks(level, center, fallDistance);
+    }
+
+    private static void spawnMaceLikeBlockDust(ServerLevel level, Vec3 center) {
+        var impactBlock = findVisibleGroundBlock(level, center.x, center.y + 1.0D, center.z, 4);
+        if (impactBlock == null) {
+            return;
+        }
+
+        var impactState = level.getBlockState(impactBlock);
+        level.sendParticles(new SmashcastDustPillarParticleOptions(impactState),
+                impactBlock.getX() + 0.5D,
+                impactBlock.getY() + 1.0D,
+                impactBlock.getZ() + 0.5D,
+                0,
+                0.0D,
+                0.0D,
+                0.0D,
+                0.0D);
+    }
+
+    private static void spawnTremorBlocks(ServerLevel level, Vec3 center, float fallDistance) {
+        var blocks = new LinkedHashSet<BlockPos>();
+        for (int i = 0; i < TREMOR_BLOCK_LIMIT * 2 && blocks.size() < TREMOR_BLOCK_LIMIT; i++) {
+            var angle = level.random.nextDouble() * Math.PI * 2.0D;
+            var radius = SMASH_TREMOR_RADIUS * Math.sqrt(level.random.nextDouble());
+            var x = center.x + Math.cos(angle) * radius;
+            var z = center.z + Math.sin(angle) * radius;
+            var blockPos = findVisibleGroundBlock(level, x, center.y + 1.0D, z, 4);
+            if (blockPos != null) {
+                blocks.add(blockPos);
+            }
+        }
+
+        var impulseBase = fallDistance >= SmashcastScepter.HEAVY_SMASH_SOUND_FALL_DISTANCE_THRESHOLD ? 0.32F : 0.24F;
+        for (var blockPos : blocks) {
+            spawnTremorBlock(level, blockPos, (impulseBase + level.random.nextFloat() * 0.10F) * TREMOR_IMPULSE_MULTIPLIER);
+        }
+    }
+
+    private static void spawnTremorBlock(ServerLevel level, BlockPos blockPos, float impulseStrength) {
+        var above = blockPos.above();
+        if (!level.getBlockState(above).isAir() && !level.getBlockState(above.above()).isAir()) {
+            return;
+        }
+
+        sendTremorParticle(level, blockPos, blockPos, impulseStrength);
+        if (!level.getBlockState(above).isAir()) {
+            sendTremorParticle(level, above, above, impulseStrength);
+        }
+    }
+
+    private static void sendTremorParticle(ServerLevel level, BlockPos statePos, BlockPos particlePos, float impulseStrength) {
+        var state = level.getBlockState(statePos);
+        if (state.isAir()) {
+            return;
+        }
+
+        level.sendParticles(
+                new SmashcastTremorBlockParticleOptions(state, new Vec3(0.0D, impulseStrength, 0.0D)),
+                particlePos.getX() + 0.5D,
+                particlePos.getY(),
+                particlePos.getZ() + 0.5D,
+                1,
+                0.0D,
+                0.0D,
+                0.0D,
+                0.0D
+        );
+    }
+
+    private static BlockPos findVisibleGroundBlock(ServerLevel level, double x, double startY, double z, int searchDepth) {
+        var start = BlockPos.containing(x, startY, z);
+        for (int offset = 0; offset <= searchDepth; offset++) {
+            var pos = start.below(offset);
+            var state = level.getBlockState(pos);
+            if (!state.isAir()
+                    && state.getRenderShape() == net.minecraft.world.level.block.RenderShape.MODEL
+                    && !state.getCollisionShape(level, pos).isEmpty()) {
+                return pos;
+            }
+        }
+        return null;
     }
 
     private static void playSmashSound(ServerPlayer player, float fallDistance) {
