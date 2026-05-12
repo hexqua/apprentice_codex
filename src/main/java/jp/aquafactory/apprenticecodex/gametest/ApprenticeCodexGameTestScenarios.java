@@ -58,6 +58,8 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
@@ -270,6 +272,18 @@ public final class ApprenticeCodexGameTestScenarios {
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
+    );
+    private static final TagKey<Item> IRONS_STAFF = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "staff")
+    );
+    private static final TagKey<Item> SPELLCASTER_WORKBENCH_EXTRACTABLE = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench_extractable")
+    );
+    private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("traveloptics", "can_cast_reversal")
     );
     private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = TagKey.create(
             Registries.ITEM,
@@ -5958,15 +5972,134 @@ public final class ApprenticeCodexGameTestScenarios {
                 // 1.20.1 では StaffItem にしていない武器でも、1.21.1 側では StaffItem 化する場合がある。
                 // ここは 1.20.1 の AbstractRightClickMagicWeaponItem 系の付与面を固定し、
                 // port 時に StaffItem へ寄せた結果の差分を意図的に見えるようにしておく。
-                item -> item instanceof AbstractRightClickMagicWeaponItem,
+                item -> item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof SmashcastScepter),
                 ApprenticeCodexGameTestScenarios::expectedRightClickMagicWeaponEnchantments
         ));
+    }
+
+    static void smashcastScepterKeepsExpectedStatsImbueAndEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
+            var item = (SmashcastScepter) stack.getItem();
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
+
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_DAMAGE),
+                    AttributeModifier.Operation.ADDITION,
+                    SmashcastScepter.ATTACK_DAMAGE_MODIFIER,
+                    "Smashcast Scepter attack damage modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_SPEED),
+                    AttributeModifier.Operation.ADDITION,
+                    SmashcastScepter.ATTACK_SPEED_MODIFIER,
+                    "Smashcast Scepter attack speed modifier changed"
+            );
+            helper.assertTrue(stack.getMaxDamage() == 0,
+                    "Smashcast Scepter should stay non-damageable");
+            helper.assertTrue(stack.is(SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Smashcast Scepter should be extractable at the Spellcaster Workbench");
+            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Smashcast Scepter should join Malum soul hunter weapon tag");
+            helper.assertTrue(stack.is(TOMAGIC_REVERSAL_WEAPON),
+                    "Smashcast Scepter should join Travel Optics reversal tag");
+            helper.assertFalse(stack.is(IRONS_STAFF),
+                    "Smashcast Scepter should not join Iron's staff tag");
+            helper.assertFalse(stack.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+                    "Smashcast Scepter should not block external imbue as a UniqueItem");
+
+            item.initializeSpellContainer(stack);
+            helper.assertTrue(Utils.canImbue(stack),
+                    "Smashcast Scepter should be accepted by Iron's imbuement checks after initialization");
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Smashcast Scepter spell container is null");
+            helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
+                    "Smashcast Scepter should expose exactly one imbue slot");
+            helper.assertTrue(spellContainer != null && spellContainer.isSpellWheel(),
+                    "Smashcast Scepter imbue slot should be visible to the spell wheel");
+            var removableMutable = ISpellContainer.create(1, true, false).mutableCopy();
+            helper.assertTrue(removableMutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1, 0, false),
+                    "Smashcast Scepter removable imbue test setup failed");
+            ISpellContainer.set(stack, removableMutable.toImmutable());
+            var removableContainer = ISpellContainer.get(stack);
+            var removableSpellData = removableContainer == null ? SpellData.EMPTY : removableContainer.getSpellAtIndex(0);
+            helper.assertTrue(removableContainer != null && item.canRemoveWorkbenchSpell(stack, removableContainer, 0, removableSpellData),
+                    "Smashcast Scepter imbue slot should be removable at the Spellcaster Workbench");
+            helper.assertTrue(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1),
+                    "Smashcast Scepter should accept non-continuous imbues");
+            var arcaneBlastResult = item.createArcaneAnvilImbueResult(stack, new SpellData(SpellRegistry.ARCANE_BLAST.get(), 1));
+            var arcaneBlastContainer = ISpellContainer.get(arcaneBlastResult);
+            helper.assertTrue(arcaneBlastContainer != null,
+                    "Smashcast Scepter Arcane Blast imbue result should keep a spell container");
+            assertSpellData(helper, arcaneBlastContainer, 0, SpellRegistry.ARCANE_BLAST.get(), 1, false,
+                    "Smashcast Scepter should accept Arcane Blast as a removable imbue");
+            helper.assertTrue(arcaneBlastContainer != null
+                            && item.canRemoveWorkbenchSpell(arcaneBlastResult, arcaneBlastContainer, 0, arcaneBlastContainer.getSpellAtIndex(0)),
+                    "Smashcast Scepter Arcane Blast imbue should remain extractable");
+            helper.assertFalse(item.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
+                    "Smashcast Scepter should reject CONTINUOUS imbues");
+
+            var mutable = ISpellContainer.create(1, true, false).mutableCopy();
+            helper.assertTrue(mutable.addSpellAtIndex(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1, 0, false),
+                    "Smashcast Scepter continuous imbue test setup failed");
+            ISpellContainer.set(stack, mutable.toImmutable());
+            item.normalizeImbuedSpellContainer(stack);
+            var normalizedContainer = ISpellContainer.get(stack);
+            helper.assertTrue(normalizedContainer != null && normalizedContainer.getSpellAtIndex(0) == SpellData.EMPTY,
+                    "Smashcast Scepter should clear rejected CONTINUOUS imbues during normalization");
+            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(0),
+                    0.0D, 1.0E-6D, "Smashcast Scepter Release level 0 should not launch");
+            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(1),
+                    1.2D, 1.0E-6D, "Smashcast Scepter Release level 1 should match Wind Burst");
+            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(2),
+                    1.75D, 1.0E-6D, "Smashcast Scepter Release level 2 should match Wind Burst");
+            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(3),
+                    2.2D, 1.0E-6D, "Smashcast Scepter Release level 3 should match Wind Burst");
+            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(4),
+                    2.55D, 1.0E-6D, "Smashcast Scepter Release should use Wind Burst fallback above level 3");
+            assertClose(helper, SmashcastScepter.calculateReleaseBounceImpulse(5),
+                    2.9D, 1.0E-6D, "Smashcast Scepter Release should not clamp above level 3");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 4, 0), "smashcast_scepter_pending_test");
+            player.setOnGround(false);
+            player.fallDistance = SmashcastScepter.SMASH_ATTACK_FALL_DISTANCE_THRESHOLD + 1.0F;
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            helper.assertFalse(SmashcastScepterAttackEvent.canRegisterSmashcast(player, stack),
+                    "Smashcast Scepter should not register a smashcast without an imbued spell");
+            player.setItemInHand(InteractionHand.MAIN_HAND, arcaneBlastResult);
+            helper.assertTrue(SmashcastScepterAttackEvent.canRegisterSmashcast(player, arcaneBlastResult),
+                    "Smashcast Scepter should register a smashcast when a valid spell is imbued");
+
+            var compressedStack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
+            compressedStack.enchant(EnchantmentRegistry.COMPRESS.get(), 2);
+            assertClose(helper, SmashcastScepter.calculateSmashBonusDamage(new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()), 5.0F),
+                    16.0D, 1.0E-6D, "Smashcast Scepter mace-like smash damage changed");
+            assertClose(helper, SmashcastScepter.calculateSmashBonusDamage(compressedStack, 5.0F),
+                    21.0D, 1.0E-6D, "Smashcast Scepter Compress damage bonus changed");
+            assertClose(helper, SmashcastScepter.calculateSmashSpellPowerMultiplier(new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()), 15.0F),
+                    2.25D, 1.0E-6D, "Smashcast Scepter spell power falloff changed");
+            assertClose(helper, SmashcastScepter.calculateSmashSpellPowerMultiplier(compressedStack, 15.0F),
+                    2.85D, 1.0E-6D, "Smashcast Scepter Compress spell power bonus changed");
+            assertClose(helper, SmashcastScepter.calculateSmashSpellPowerMultiplier(compressedStack, 200.0F),
+                    11.0D, 1.0E-6D, "Smashcast Scepter spell power cap changed");
+
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()),
+                    expectedSmashcastScepterEnchantingTableEnchantments(stack),
+                    expectedSmashcastScepterBookEnchantments(stack),
+                    expectedSmashcastScepterBookEnchantments(stack),
+                    "Smashcast Scepter"
+            );
+        });
     }
 
     static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var rightClickMagicWeapons = ForgeRegistries.ITEMS.getValues().stream()
-                    .filter(item -> item instanceof AbstractRightClickMagicWeaponItem)
+                    .filter(item -> item instanceof AbstractRightClickMagicWeaponItem && !(item instanceof SmashcastScepter))
                     .toList();
             helper.assertTrue(!rightClickMagicWeapons.isEmpty(),
                     "Right Click Magic Weapon tooltip test found no target items");
@@ -8642,6 +8775,8 @@ public final class ApprenticeCodexGameTestScenarios {
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SHELL, false, false, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNCHRONIZATION, false, false, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.NEUTRALIZATION, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.COMPRESS, false, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RELEASE, true, false, true);
         });
     }
     static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
@@ -11393,6 +11528,28 @@ public final class ApprenticeCodexGameTestScenarios {
         return expectedEnchantments;
     }
 
+    private static Set<ResourceLocation> expectedSmashcastScepterEnchantingTableEnchantments(ItemStack stack) {
+        var expectedEnchantments = new LinkedHashSet<ResourceLocation>();
+        expectedEnchantments.add(ResourceLocation.withDefaultNamespace("smite"));
+        expectedEnchantments.add(ResourceLocation.withDefaultNamespace("bane_of_arthropods"));
+        expectedEnchantments.add(ResourceLocation.withDefaultNamespace("fire_aspect"));
+        expectedEnchantments.addAll(registryIdSet(
+                EnchantmentRegistry.COMPRESS,
+                EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.PLUNDER,
+                EnchantmentRegistry.TRANSCENDENCE
+        ));
+        addExpectedMalumHauntedIfPresent(stack, expectedEnchantments);
+        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
+        return expectedEnchantments;
+    }
+
+    private static Set<ResourceLocation> expectedSmashcastScepterBookEnchantments(ItemStack stack) {
+        var expectedEnchantments = new LinkedHashSet<>(expectedSmashcastScepterEnchantingTableEnchantments(stack));
+        expectedEnchantments.addAll(registryIdSet(EnchantmentRegistry.RELEASE));
+        return expectedEnchantments;
+    }
+
     private static Set<ResourceLocation> expectedChargedTwinBladeStaffEnchantments(ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 new ItemStack(Items.DIAMOND_SWORD),
@@ -11534,7 +11691,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.TENSE,
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER
+                EnchantmentRegistry.PLUNDER,
+                EnchantmentRegistry.RELEASE
         );
     }
 
@@ -11698,6 +11856,17 @@ public final class ApprenticeCodexGameTestScenarios {
             ++count;
         }
         return count;
+    }
+
+    private static void assertClose(
+            GameTestHelper helper,
+            double actual,
+            double expected,
+            double tolerance,
+            String failureMessage
+    ) {
+        helper.assertTrue(Math.abs(actual - expected) <= tolerance,
+                failureMessage + ": expected=" + expected + ", actual=" + actual);
     }
 
     private static Set<ResourceLocation> registryIdSet(RegistryObject<Enchantment>... enchantments) {

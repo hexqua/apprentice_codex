@@ -245,6 +245,8 @@ public final class ItemRegistry {
             ITEMS.register("pastel_staff", PastelStaff::new);
     public static final RegistryObject<Item> FOCUS_STAFFBOW =
             ITEMS.register("focus_staffbow", FocusStaffbow::new);
+    public static final RegistryObject<Item> SMASHCAST_SCEPTER =
+            ITEMS.register("smashcast_scepter", SmashcastScepter::new);
     public static final RegistryObject<Item> MULTIPURPOSE_STAFFRIFLE =
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
     public static final RegistryObject<Item> CIRCUIT_HEAT_STAFF =

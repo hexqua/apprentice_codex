@@ -3,11 +3,13 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.AlacrityEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.AttunementEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.CompressEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.GlowEnergyEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.GuzzleEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.LargeMugEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.NeutralizationEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderEnchantment;
+import jp.aquafactory.apprenticecodex.enchantment.ReleaseEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.RedEnergyEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.RefluxEnchantment;
 import jp.aquafactory.apprenticecodex.enchantment.ReservoirEnchantment;
@@ -48,6 +50,10 @@ public final class EnchantmentRegistry {
             ENCHANTMENTS.register("wisdom", WisdomEnchantment::new);
     public static final RegistryObject<Enchantment> PLUNDER =
             ENCHANTMENTS.register("plunder", PlunderEnchantment::new);
+    public static final RegistryObject<Enchantment> COMPRESS =
+            ENCHANTMENTS.register("compress", CompressEnchantment::new);
+    public static final RegistryObject<Enchantment> RELEASE =
+            ENCHANTMENTS.register("release", ReleaseEnchantment::new);
     public static final RegistryObject<Enchantment> GUZZLE =
             ENCHANTMENTS.register("guzzle", GuzzleEnchantment::new);
     public static final RegistryObject<Enchantment> LARGE_MUG =

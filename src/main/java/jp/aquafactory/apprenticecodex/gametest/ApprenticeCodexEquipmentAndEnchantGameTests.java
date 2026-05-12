@@ -654,6 +654,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void smashcastScepterKeepsExpectedStatsImbueAndEnchantingRules(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.smashcastScepterKeepsExpectedStatsImbueAndEnchantingRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.rightClickMagicWeaponTooltipsStartWithShieldHint(helper);
     }
