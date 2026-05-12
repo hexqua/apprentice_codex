@@ -92,8 +92,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get()
         );
-        // Iron's Spells の JEI は Imbue 候補収集時に spell_container 未初期化スタックを落とすため、
-        // Autocast Amulet は whitelist へ明示登録して JEI 上でも Arcane Anvil 対象として拾わせる。
+        // Iron's Spells 縺ｮ JEI 縺ｯ Imbue 蛟呵｣懷庶髮・凾縺ｫ spell_container 譛ｪ蛻晄悄蛹悶せ繧ｿ繝・け繧定誠縺ｨ縺吶◆繧√・
+        // Autocast Amulet 縺ｯ whitelist 縺ｸ譏守､ｺ逋ｻ骭ｲ縺励※ JEI 荳翫〒繧・Arcane Anvil 蟇ｾ雎｡縺ｨ縺励※諡ｾ繧上○繧九・
         tag(IRONS_IMBUE_WHITELIST).add(ItemRegistry.AUTOCAST_AMULET.get());
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
@@ -118,12 +118,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()
         );
-        // Focus Staffbow は StaffItem 継承に依存せず Staff 相当の主手エンチャ面を持たせたいので、
-        // sword 系 tag と Malum 互換 tag、個別付与の Wisdom を明示追加する。
+        // Focus Staffbow 縺ｯ StaffItem 邯呎価縺ｫ萓晏ｭ倥○縺・Staff 逶ｸ蠖薙・荳ｻ謇九お繝ｳ繝√Ε髱｢繧呈戟縺溘○縺溘＞縺ｮ縺ｧ縲・
+        // sword 邉ｻ tag 縺ｨ Malum 莠呈鋤 tag縲∝句挨莉倅ｸ弱・ Wisdom 繧呈・遉ｺ霑ｽ蜉縺吶ｋ縲・
         malumMagicCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         malumSoulHunterWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
@@ -135,7 +136,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
 
-        // Circuit Heat Staff は剣相当の主手杖として扱い、耐久系を除いた近接武器 enchant と互換 tag を通す。
+        malumSoulHunterWeaponTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
+        wisdomEnchantableTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
+        plunderEnchantableTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
+
+        // Circuit Heat Staff 縺ｯ蜑｣逶ｸ蠖薙・荳ｻ謇区摶縺ｨ縺励※謇ｱ縺・∬蝉ｹ・ｳｻ繧帝勁縺・◆霑第磁豁ｦ蝎ｨ enchant 縺ｨ莠呈鋤 tag 繧帝壹☆縲・
         malumMagicCapableWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         malumSoulHunterWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
@@ -146,7 +153,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
 
-        // Multipurpose Staffrifle は main hand で射撃攻撃する武器なので、Malum の主手武器 tag へ明示登録する。
+        // Multipurpose Staffrifle 縺ｯ main hand 縺ｧ蟆・茶謾ｻ謦・☆繧区ｭｦ蝎ｨ縺ｪ縺ｮ縺ｧ縲｀alum 縺ｮ荳ｻ謇区ｭｦ蝎ｨ tag 縺ｸ譏守､ｺ逋ｻ骭ｲ縺吶ｋ縲・
         tag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE).add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         surgeEnchantableTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
@@ -155,7 +162,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumSoulHunterWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
 
-        // Charged Twin Blade Staff は剣/トライデント両面の enchant を許可するが、耐久系と超越は除外する。
+        // Charged Twin Blade Staff 縺ｯ蜑｣/繝医Λ繧､繝・Φ繝井ｸ｡髱｢縺ｮ enchant 繧定ｨｱ蜿ｯ縺吶ｋ縺後∬蝉ｹ・ｳｻ縺ｨ雜・ｶ翫・髯､螟悶☆繧九・
         malumMagicCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         malumSoulHunterWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
@@ -167,7 +174,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaWeaponEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         vanillaTridentEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
 
-        // Mana Force Blade は耐久値を持つ剣として扱い、専用魔法 enchant も JSON/tag 面で通す。
+        // Mana Force Blade 縺ｯ閠蝉ｹ・､繧呈戟縺､蜑｣縺ｨ縺励※謇ｱ縺・∝ｰら畑鬲疲ｳ・enchant 繧・JSON/tag 髱｢縺ｧ騾壹☆縲・
         malumMagicCapableWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         malumSoulHunterWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
@@ -181,15 +188,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaDurabilityEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
-        // Iron's 側の upgrade 判定タグは実アイテム列挙なので、抽象基底クラス継承分を自動収集して取りこぼしを防ぐ。
+        // Iron's 蛛ｴ縺ｮ upgrade 蛻､螳壹ち繧ｰ縺ｯ螳溘い繧､繝・Β蛻玲嫌縺ｪ縺ｮ縺ｧ縲∵歓雎｡蝓ｺ蠎輔け繝ｩ繧ｹ邯呎価蛻・ｒ閾ｪ蜍募庶髮・＠縺ｦ蜿悶ｊ縺薙⊂縺励ｒ髦ｲ縺舌・
         for (var itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
             if (item instanceof AbstractOffhandMagicItem
                     || item instanceof AbstractSpellGunItem
                     || item instanceof AbstractRightClickMagicWeaponItem) {
 
-                // Iron's 側で upgrade 判定を見るタグは実アイテム列挙しかできないため、
-                // ここで抽象クラス継承アイテムを自動収集して追加漏れを防ぐ。
+                // Iron's 蛛ｴ縺ｧ upgrade 蛻､螳壹ｒ隕九ｋ繧ｿ繧ｰ縺ｯ螳溘い繧､繝・Β蛻玲嫌縺励°縺ｧ縺阪↑縺・◆繧√・
+                // 縺薙％縺ｧ謚ｽ雎｡繧ｯ繝ｩ繧ｹ邯呎価繧｢繧､繝・Β繧定・蜍募庶髮・＠縺ｦ霑ｽ蜉貍上ｌ繧帝亟縺舌・
                 ironsUpgradeWhitelist.add(item);
 
                 tomagicReversalWeaponTag.add(item);
@@ -197,15 +204,15 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
             if (item instanceof AbstractSpellGunItem
                     || item instanceof AbstractRightClickMagicWeaponItem) {
-                // 他の武器互換系も登録する.
+                // 莉悶・豁ｦ蝎ｨ莠呈鋤邉ｻ繧ら匳骭ｲ縺吶ｋ.
                 malumSoulHunterWeaponTag.add(item);
                 malumSoulShatterCapableWeaponTag.add(item);
 
-                // 1.21.1 では Wisdom / Transcendence の適用可否が enchantment JSON 側の item tag で決まる。
-                // 右クリック魔法武器は Java 側で両エンチャを許可しているため、tag 側も同じ面に揃える。
+                // 1.21.1 縺ｧ縺ｯ Wisdom / Transcendence 縺ｮ驕ｩ逕ｨ蜿ｯ蜷ｦ縺・enchantment JSON 蛛ｴ縺ｮ item tag 縺ｧ豎ｺ縺ｾ繧九・
+                // 蜿ｳ繧ｯ繝ｪ繝・け鬲疲ｳ墓ｭｦ蝎ｨ縺ｯ Java 蛛ｴ縺ｧ荳｡繧ｨ繝ｳ繝√Ε繧定ｨｱ蜿ｯ縺励※縺・ｋ縺溘ａ縲》ag 蛛ｴ繧ょ酔縺倬擇縺ｫ謠・∴繧九・
                 if (item instanceof AbstractRightClickMagicWeaponItem) {
-                    // 1.21.1 の Haunted / Animated は magic_capable_weapon タグ基準なので、
-                    // 主手用魔法武器は tag と Java 側判定を同じ面に揃える。
+                    // 1.21.1 縺ｮ Haunted / Animated 縺ｯ magic_capable_weapon 繧ｿ繧ｰ蝓ｺ貅悶↑縺ｮ縺ｧ縲・
+                    // 荳ｻ謇狗畑鬲疲ｳ墓ｭｦ蝎ｨ縺ｯ tag 縺ｨ Java 蛛ｴ蛻､螳壹ｒ蜷後§髱｢縺ｫ謠・∴繧九・
                     malumMagicCapableWeaponTag.add(item);
                     transcendenceEnchantableTag.add(item);
                     wisdomEnchantableTag.add(item);
@@ -223,7 +230,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get(),
                 ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get()
         );
-        // 1.21.1 のバニラ防具 enchant は item tag 基準になったため、通常防具相当の分類へ入れる.
+        // 1.21.1 縺ｮ繝舌ル繝ｩ髦ｲ蜈ｷ enchant 縺ｯ item tag 蝓ｺ貅悶↓縺ｪ縺｣縺溘◆繧√・壼ｸｸ髦ｲ蜈ｷ逶ｸ蠖薙・蛻・｡槭∈蜈･繧後ｋ.
         tag(MINECRAFT_HEAD_ARMOR).add(
                 ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                 ItemRegistry.ENCHANTRESS_HAT.get(),
@@ -306,25 +313,23 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
-        // Elemental Bow は bow tag に参加させ、バニラ弓と同じ enchantment JSON 面を使う。
+        // Elemental Bow 縺ｯ bow tag 縺ｫ蜿ょ刈縺輔○縲√ヰ繝九Λ蠑薙→蜷後§ enchantment JSON 髱｢繧剃ｽｿ縺・・
         tag(MINECRAFT_ENCHANTABLE_BOW).add(ItemRegistry.ELEMENTAL_BOW.get());
-        // Elemental Bow は 1.21.1 でも Wisdom / Transcendence / Plunder / Synthesis を個別許可したいが、
-        // spell_gun_enchantable に混ぜると Attunement まで通ってしまうため専用タグ側へ明示追加する。
+        // Elemental Bow 縺ｯ 1.21.1 縺ｧ繧・Wisdom / Transcendence / Plunder / Synthesis 繧貞句挨險ｱ蜿ｯ縺励◆縺・′縲・
+        // spell_gun_enchantable 縺ｫ豺ｷ縺懊ｋ縺ｨ Attunement 縺ｾ縺ｧ騾壹▲縺ｦ縺励∪縺・◆繧∝ｰら畑繧ｿ繧ｰ蛛ｴ縺ｸ譏守､ｺ霑ｽ蜉縺吶ｋ縲・
         transcendenceEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
         wisdomEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
         plunderEnchantableTag.addTag(SPELL_GUN_ENCHANTABLE).add(ItemRegistry.ELEMENTAL_BOW.get());
         synthesisEnchantableTag.add(ItemRegistry.ELEMENTAL_BOW.get());
-        // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
+        // 1.21.1 縺ｮ繝舌ル繝ｩ enchantment JSON 縺ｯ Fortune / Silk Touch 繧・mining_loot 繧ｿ繧ｰ縺ｧ蛻､螳壹☆繧・
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         malumMagicCapableWeaponTag.add(ItemRegistry.PASTEL_STAFF.get());
-        // Malum の soul_hunter_weapon は main hand 前提なので、
-        // offhand 専用品を巻き込まず個別互換が必要な staff / shield だけ明示登録する。
         tag(MALUM_SOUL_HUNTER_WEAPON).add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
         );
-        // 1.21.1 の Spirit Plunder は soul_hunter_weapon ではなく soul_shatter_capable_weapon 経由で supported_items を見ている。
-        // Java 側の許可だけでは definition 判定を通らないため、Malum 側 tag も同じ面へ揃える。
+        // 1.21.1 縺ｮ Spirit Plunder 縺ｯ soul_hunter_weapon 縺ｧ縺ｯ縺ｪ縺・soul_shatter_capable_weapon 邨檎罰縺ｧ supported_items 繧定ｦ九※縺・ｋ縲・
+        // Java 蛛ｴ縺ｮ險ｱ蜿ｯ縺縺代〒縺ｯ definition 蛻､螳壹ｒ騾壹ｉ縺ｪ縺・◆繧√｀alum 蛛ｴ tag 繧ょ酔縺倬擇縺ｸ謠・∴繧九・
         tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON).add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.REFLECTCAST_SHIELD.get()
@@ -345,18 +350,17 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EXPLORERS_CANE.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
-        // spell gun 専用 enchant は offhand 補助具を巻き込まないように個別タグで分離する.
         tag(SPELL_GUN_ENCHANTABLE).add(
                 ItemRegistry.IRON_SPELLCASTER_GUN.get(),
                 ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
                 ItemRegistry.GOLD_SPELLCASTER_GUN.get(),
                 ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()
         );
-        // 1.21.1 の enchantment JSON は supported_items tag を直接参照するため、
-        // 飲用専用の Guzzle と共通 flask enchant 群を分離して誤適用を防ぐ。
+        // 1.21.1 縺ｮ enchantment JSON 縺ｯ supported_items tag 繧堤峩謗･蜿ら・縺吶ｋ縺溘ａ縲・
+        // 鬟ｲ逕ｨ蟆ら畑縺ｮ Guzzle 縺ｨ蜈ｱ騾・flask enchant 鄒､繧貞・髮｢縺励※隱､驕ｩ逕ｨ繧帝亟縺舌・
         tag(DRINKABLE_FLASK_ENCHANTABLE).add(ItemRegistry.SPELLCASTERS_FLASK.get());
-        // 錬金術師のフラスコは Large/Red/Glow/Transcendence のみを許可したいので、
-        // spell container 系や Wisdom と混線しない専用タグで分離する。
+        // 骭ｬ驥題｡灘ｸｫ縺ｮ繝輔Λ繧ｹ繧ｳ縺ｯ Large/Red/Glow/Transcendence 縺ｮ縺ｿ繧定ｨｱ蜿ｯ縺励◆縺・・縺ｧ縲・
+        // spell container 邉ｻ繧・Wisdom 縺ｨ豺ｷ邱壹＠縺ｪ縺・ｰら畑繧ｿ繧ｰ縺ｧ蛻・屬縺吶ｋ縲・
         tag(ALCHEMISTS_FLASK_ENCHANTABLE).add(ItemRegistry.ALCHEMISTS_FLASK.get());
         tag(FLASK_ENCHANTABLE)
                 .addTag(DRINKABLE_FLASK_ENCHANTABLE)
@@ -388,7 +392,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EXPLORERS_CANE.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
-        // 付呪魔女防具は 1.20.1 と同様に叡智のみを許可し、専用エンチャ系タグから外す.
+        // 莉伜測鬲泌･ｳ髦ｲ蜈ｷ縺ｯ 1.20.1 縺ｨ蜷梧ｧ倥↓蜿｡譎ｺ縺ｮ縺ｿ繧定ｨｱ蜿ｯ縺励∝ｰら畑繧ｨ繝ｳ繝√Ε邉ｻ繧ｿ繧ｰ縺九ｉ螟悶☆.
         tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE)
                 .addTag(OFFHAND_MAGIC_ENCHANTABLE);
         tag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
@@ -400,7 +404,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 .addTag(SPELL_CONTAINER_MAGIC_ENCHANTABLE)
                 .addTag(ALCHEMISTS_FLASK_ENCHANTABLE);
 
-        // 指輪.
+        // 謖・ｼｪ.
         tag(CURIOS_RING).add(
                 ItemRegistry.SCARLET_THIRST.get(),
                 ItemRegistry.CRAFTSMANS_DELIGHT.get()
@@ -448,10 +452,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 net.minecraft.world.item.Items.TIPPED_ARROW
         );
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
-                ItemRegistry.ENCHANTED_CIRCLET.get()
+                ItemRegistry.ENCHANTED_CIRCLET.get(),
+                ItemRegistry.SMASHCAST_SCEPTER.get()
         );
 
-        // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
+        // 鬲疲ｳ募小蝟壽ｭｦ蝎ｨ縺ｯ繝繝溘・逕ｨ騾斐・縺溘ａ縲゛EI縺ｪ縺ｩ縺ｮ繝ｬ繧ｷ繝斐ン繝･繝ｼ繧｢縺九ｉ髯､螟悶☆繧・
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
                 ItemRegistry.SKY_EDGE_SWORD.get(),
                 ItemRegistry.COMMENCE_FIRE_RIFLE.get(),
