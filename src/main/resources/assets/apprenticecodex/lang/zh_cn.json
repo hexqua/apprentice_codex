@@ -71,6 +71,7 @@
   "item.apprenticecodex.illuminate_stellar_staff": "辉耀星法杖",
   "item.apprenticecodex.unite_luna_staff": "月华凝聚法杖",
   "item.apprenticecodex.mana_force_blade": "魔力源力刃",
+  "item.apprenticecodex.smashcast_scepter": "(todo:翻訳)強打詠唱の笏杖",
   "item.apprenticecodex.reflectcast_shield": "反射施法盾",
   "item.apprenticecodex.explorers_cane": "探险者手杖",
   "item.apprenticecodex.spellcasters_flask": "施法者烧瓶",
@@ -203,6 +204,8 @@
   "item.apprenticecodex.reflectcast_shield.cast_hint": "释放后立即格挡攻击时，会释放注入的法术。",
   "item.apprenticecodex.multipurpose_staffrifle.desc_1": "按[%1$s]射击施放所选法术。",
   "item.apprenticecodex.multipurpose_staffrifle.desc_2": "按[%1$s]瞄准并启用连射。",
+  "item.apprenticecodex.smashcast_scepter.desc_1": "(todo:翻訳)高所からの落下攻撃命中時に注入した魔法を高度に応じて強化して詠唱する。",
+  "item.apprenticecodex.smashcast_scepter.desc_2": "(todo:翻訳)魔法が詠唱できれば落下ダメージを無効化できる。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "作为熔炉、高炉、烟熏炉燃料时，可提升加工速度。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "在其他机器中无效果。",
@@ -276,6 +279,7 @@
   "jei.apprenticecodex.multipurpose_staffrifle.desc_1": "一种枪型法杖，可用专用弹药直接施放所选法术，无需注入法术。",
   "jei.apprenticecodex.multipurpose_staffrifle.desc_2": "不同于法枪，它会同时消耗魔力和弹药，但瞄准后可以高速连续施法。",
   "jei.apprenticecodex.multipurpose_staffrifle.desc_3": "由于机构精密，不能作为打击武器使用，空弹壳返还率也非常低。",
+  "jei.apprenticecodex.smashcast_scepter.desc_1": "(todo:機能実装後に合うテキスト+翻訳)",
 
   "enchantment.apprenticecodex.reflux": "回流",
   "enchantment.apprenticecodex.reservoir": "蓄能",
@@ -294,6 +298,9 @@
   "enchantment.apprenticecodex.shell": "外壳",
   "enchantment.apprenticecodex.synchronization": "同步",
   "enchantment.apprenticecodex.neutralization": "中和",
+  "enchantment.apprenticecodex.compress": "(todo:翻訳)圧縮",
+  "enchantment.apprenticecodex.release": "(todo:翻訳)解放",
+
   "enchantment.apprenticecodex.reflux.desc": "提升魔力恢复速度。",
   "enchantment.apprenticecodex.reservoir.desc": "提升最大魔力值。",
   "enchantment.apprenticecodex.alacrity.desc": "减少法术冷却时间。",
@@ -311,6 +318,9 @@
   "enchantment.apprenticecodex.shell.desc": "魔力屏障获得穿戴者护甲的防御值，但受击时护甲会受损。",
   "enchantment.apprenticecodex.synchronization.desc": "魔力屏障获得穿戴者护甲的附魔效果，但魔力消耗增加。",
   "enchantment.apprenticecodex.neutralization.desc": "当魔力屏障承受无视防御的攻击时，会完全抵消该攻击并将其转化为魔力。",
+  "enchantment.apprenticecodex.compress.desc": "(todo:翻訳)高所からの強打成功時のダメージと魔法力の上昇率が上昇します。",
+  "enchantment.apprenticecodex.release.desc": "(todo:翻訳)高所からの強打による詠唱が成功時、使用者を上空へ打ち上げます。",
+
   "entity.apprenticecodex.sky_edge_projectile": "天际刃",
   "entity.apprenticecodex.archer_multiple_bow": "多重射手弓",
   "entity.apprenticecodex.commence_fire_rifle": "魔法精确射手步枪",

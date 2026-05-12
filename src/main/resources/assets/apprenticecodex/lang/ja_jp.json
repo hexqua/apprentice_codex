@@ -73,6 +73,7 @@
   "item.apprenticecodex.illuminate_stellar_staff": "星照らしの杖",
   "item.apprenticecodex.unite_luna_staff": "月結びの杖",
   "item.apprenticecodex.mana_force_blade": "魔力の刀",
+  "item.apprenticecodex.smashcast_scepter": "強打詠唱の笏杖",
   "item.apprenticecodex.reflectcast_shield": "反射詠唱の盾",
   "item.apprenticecodex.explorers_cane": "探索者のステッキ",
   "item.apprenticecodex.spellcasters_flask": "詠唱者のフラスコ",
@@ -207,6 +208,8 @@
   "item.apprenticecodex.reflectcast_shield.cast_hint": "構えた直後に攻撃をブロックすると注入した魔法を詠唱する。",
   "item.apprenticecodex.multipurpose_staffrifle.desc_1": "[%1$s]で魔法を射撃詠唱する。",
   "item.apprenticecodex.multipurpose_staffrifle.desc_2": "[%1$s]で構えることができ、連射ができるようになる。",
+  "item.apprenticecodex.smashcast_scepter.desc_1": "高所からの落下攻撃命中時に注入した魔法を高度に応じて強化して詠唱する。",
+  "item.apprenticecodex.smashcast_scepter.desc_2": "魔法が詠唱できれば落下ダメージを無効化できる。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -280,6 +283,7 @@
   "jei.apprenticecodex.multipurpose_staffrifle.desc_1": "専用の実包を使うことで魔法を注入せずに選択した魔法を詠唱できる銃型の杖。",
   "jei.apprenticecodex.multipurpose_staffrifle.desc_2": "詠唱銃とは異なりマナと実包の両方を消費するが、構えることで高速で連続詠唱が行える。",
   "jei.apprenticecodex.multipurpose_staffrifle.desc_3": "繊細な装置のため打撃武器として使うことはできず、空薬莢が返ってくる確率も著しく低い。",
+  "jei.apprenticecodex.smashcast_scepter.desc_1": "(todo:機能実装後に合うテキスト)",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
@@ -298,6 +302,8 @@
   "enchantment.apprenticecodex.shell": "外殻",
   "enchantment.apprenticecodex.synchronization": "同期",
   "enchantment.apprenticecodex.neutralization": "中和",
+  "enchantment.apprenticecodex.compress": "圧縮",
+  "enchantment.apprenticecodex.release": "解放",
 
   "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
   "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",
@@ -316,6 +322,8 @@
   "enchantment.apprenticecodex.shell.desc": "マナ障壁が装備者の防具の防御力を得ますが、被弾時に防具が損傷するようになります。",
   "enchantment.apprenticecodex.synchronization.desc": "マナ障壁が装備者の防具のエンチャントの効果を得ますが、消費マナが増えます。",
   "enchantment.apprenticecodex.neutralization.desc": "マナ障壁が防御力を無視する攻撃を受けた際に完全に無効化し、代わりにマナとして吸収します。",
+  "enchantment.apprenticecodex.compress.desc": "高所からの強打成功時のダメージと魔法力の上昇率が上昇します。",
+  "enchantment.apprenticecodex.release.desc": "高所からの強打による詠唱が成功時、使用者を上空へ打ち上げます。",
 
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
   "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",
