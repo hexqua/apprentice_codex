@@ -6066,8 +6066,10 @@ public final class ApprenticeCodexGameTestScenarios {
             player.setOnGround(false);
             player.fallDistance = SmashcastScepter.SMASH_ATTACK_FALL_DISTANCE_THRESHOLD + 1.0F;
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            helper.assertFalse(SmashcastScepterAttackEvent.canRegisterSmashcast(player, stack),
-                    "Smashcast Scepter should not register a smashcast without an imbued spell");
+            helper.assertTrue(SmashcastScepterAttackEvent.canRegisterSmashcast(player, stack),
+                    "Smashcast Scepter should register a smash without an imbued spell");
+            helper.assertFalse(item.tryCastSmashSpell(player, stack, player.fallDistance),
+                    "Smashcast Scepter should skip spell casting without an imbued spell");
             player.setItemInHand(InteractionHand.MAIN_HAND, arcaneBlastResult);
             helper.assertTrue(SmashcastScepterAttackEvent.canRegisterSmashcast(player, arcaneBlastResult),
                     "Smashcast Scepter should register a smashcast when a valid spell is imbued");

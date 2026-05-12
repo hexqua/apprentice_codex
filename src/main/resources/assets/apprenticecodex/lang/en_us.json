@@ -204,8 +204,8 @@
   "item.apprenticecodex.reflectcast_shield.cast_hint": "When blocking an attack immediately after casting, imbued spells will be cast.",
   "item.apprenticecodex.multipurpose_staffrifle.desc_1": "Cast the selected spell with [%1$s].",
   "item.apprenticecodex.multipurpose_staffrifle.desc_2": "Aim with [%1$s] to enable rapid fire.",
-  "item.apprenticecodex.smashcast_scepter.desc_1": "(todo:翻訳)高所からの落下攻撃命中時に注入した魔法を高度に応じて強化して詠唱する。",
-  "item.apprenticecodex.smashcast_scepter.desc_2": "If the spell can be cast, it will negate fall damage.",
+  "item.apprenticecodex.smashcast_scepter.desc_1": "Smashes on falling attack hits. If the imbued spell can be cast, it is empowered by fall distance and cast.",
+  "item.apprenticecodex.smashcast_scepter.desc_2": "Falling attack hits negate fall damage regardless of whether the spell casts.",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "Using it as fuel in a furnace, blast furnace, or smoker increases processing speed.",
   "jei.apprenticecodex.arcane_cinder.desc_2": "It has no effect in other machines.",
@@ -318,8 +318,8 @@
   "enchantment.apprenticecodex.shell.desc": "Mana Barrier gains the defense value of the wearer's armor, but the armor will be damaged when the wearer is hit.",
   "enchantment.apprenticecodex.synchronization.desc": "Mana Barrier gains the effects of the enchantments on the wearer's armor, but mana consumption increases.",
   "enchantment.apprenticecodex.neutralization.desc": "When Mana Barrier takes an attack that ignores defense, it completely nullifies the attack and absorbs it as mana instead.",
-  "enchantment.apprenticecodex.compress.desc": "(todo:翻訳)高所からの強打成功時のダメージと魔法力の上昇率が上昇します。",
-  "enchantment.apprenticecodex.release.desc": "(todo:翻訳)高所からの強打による詠唱が成功時、使用者を上空へ打ち上げます。",
+  "enchantment.apprenticecodex.compress.desc": "Increases smash damage and the spell power scaling when a falling smash casts its imbued spell.",
+  "enchantment.apprenticecodex.release.desc": "Launches the user upward when a falling smash succeeds.",
 
   "entity.apprenticecodex.sky_edge_projectile": "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow": "Archer Multiple Bow",

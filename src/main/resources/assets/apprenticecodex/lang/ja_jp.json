@@ -208,8 +208,8 @@
   "item.apprenticecodex.reflectcast_shield.cast_hint": "構えた直後に攻撃をブロックすると注入した魔法を詠唱する。",
   "item.apprenticecodex.multipurpose_staffrifle.desc_1": "[%1$s]で魔法を射撃詠唱する。",
   "item.apprenticecodex.multipurpose_staffrifle.desc_2": "[%1$s]で構えることができ、連射ができるようになる。",
-  "item.apprenticecodex.smashcast_scepter.desc_1": "高所からの落下攻撃命中時に注入した魔法を高度に応じて強化して詠唱する。",
-  "item.apprenticecodex.smashcast_scepter.desc_2": "魔法が詠唱できれば落下ダメージを無効化できる。",
+  "item.apprenticecodex.smashcast_scepter.desc_1": "高所からの落下攻撃命中時に強打し、注入した魔法が詠唱可能なら高度に応じて強化して詠唱する。",
+  "item.apprenticecodex.smashcast_scepter.desc_2": "落下攻撃命中時は、魔法の詠唱成否に関係なく落下ダメージを無効化できる。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -322,8 +322,8 @@
   "enchantment.apprenticecodex.shell.desc": "マナ障壁が装備者の防具の防御力を得ますが、被弾時に防具が損傷するようになります。",
   "enchantment.apprenticecodex.synchronization.desc": "マナ障壁が装備者の防具のエンチャントの効果を得ますが、消費マナが増えます。",
   "enchantment.apprenticecodex.neutralization.desc": "マナ障壁が防御力を無視する攻撃を受けた際に完全に無効化し、代わりにマナとして吸収します。",
-  "enchantment.apprenticecodex.compress.desc": "高所からの強打成功時のダメージと魔法力の上昇率が上昇します。",
-  "enchantment.apprenticecodex.release.desc": "高所からの強打による詠唱が成功時、使用者を上空へ打ち上げます。",
+  "enchantment.apprenticecodex.compress.desc": "高所からの強打成功時のダメージと、注入魔法を詠唱できた時の魔法力上昇率が上昇します。",
+  "enchantment.apprenticecodex.release.desc": "高所からの強打成功時、使用者を上空へ打ち上げます。",
 
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
   "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",
