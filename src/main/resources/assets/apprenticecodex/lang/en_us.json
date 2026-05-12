@@ -71,6 +71,7 @@
   "item.apprenticecodex.illuminate_stellar_staff": "Illuminate Stellar Staff",
   "item.apprenticecodex.unite_luna_staff": "Unite Luna Staff",
   "item.apprenticecodex.mana_force_blade": "Mana Force Blade",
+  "item.apprenticecodex.smashcast_scepter": "Smashcast Scepter",
   "item.apprenticecodex.reflectcast_shield": "Reflectcast Shield",
   "item.apprenticecodex.explorers_cane": "Explorer's Cane",
   "item.apprenticecodex.spellcasters_flask": "Spellcaster's Flask",
@@ -203,6 +204,8 @@
   "item.apprenticecodex.reflectcast_shield.cast_hint": "When blocking an attack immediately after casting, imbued spells will be cast.",
   "item.apprenticecodex.multipurpose_staffrifle.desc_1": "Cast the selected spell with [%1$s].",
   "item.apprenticecodex.multipurpose_staffrifle.desc_2": "Aim with [%1$s] to enable rapid fire.",
+  "item.apprenticecodex.smashcast_scepter.desc_1": "(todo:翻訳)高所からの落下攻撃命中時に注入した魔法を高度に応じて強化して詠唱する。",
+  "item.apprenticecodex.smashcast_scepter.desc_2": "If the spell can be cast, it will negate fall damage.",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "Using it as fuel in a furnace, blast furnace, or smoker increases processing speed.",
   "jei.apprenticecodex.arcane_cinder.desc_2": "It has no effect in other machines.",
@@ -276,6 +279,7 @@
   "jei.apprenticecodex.multipurpose_staffrifle.desc_1": "A gun-shaped staff that uses dedicated rounds to cast the selected spell without imbuing it.",
   "jei.apprenticecodex.multipurpose_staffrifle.desc_2": "Unlike spellguns, it consumes both mana and rounds, but aiming enables rapid consecutive casts.",
   "jei.apprenticecodex.multipurpose_staffrifle.desc_3": "Its delicate mechanism prevents melee use, and empty casings are rarely returned.",
+  "jei.apprenticecodex.smashcast_scepter.desc_1": "(todo:機能実装後に合うテキスト+翻訳)",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
@@ -294,6 +298,9 @@
   "enchantment.apprenticecodex.shell": "Shell",
   "enchantment.apprenticecodex.synchronization": "Synchronization",
   "enchantment.apprenticecodex.neutralization": "Neutralization",
+  "enchantment.apprenticecodex.compress": "Compress",
+  "enchantment.apprenticecodex.release": "Release",
+
   "enchantment.apprenticecodex.reflux.desc": "Increases mana regeneration rate.",
   "enchantment.apprenticecodex.reservoir.desc": "Increases maximum mana.",
   "enchantment.apprenticecodex.alacrity.desc": "Reduces spell cooldown time.",
@@ -311,6 +318,9 @@
   "enchantment.apprenticecodex.shell.desc": "Mana Barrier gains the defense value of the wearer's armor, but the armor will be damaged when the wearer is hit.",
   "enchantment.apprenticecodex.synchronization.desc": "Mana Barrier gains the effects of the enchantments on the wearer's armor, but mana consumption increases.",
   "enchantment.apprenticecodex.neutralization.desc": "When Mana Barrier takes an attack that ignores defense, it completely nullifies the attack and absorbs it as mana instead.",
+  "enchantment.apprenticecodex.compress.desc": "(todo:翻訳)高所からの強打成功時のダメージと魔法力の上昇率が上昇します。",
+  "enchantment.apprenticecodex.release.desc": "(todo:翻訳)高所からの強打による詠唱が成功時、使用者を上空へ打ち上げます。",
+
   "entity.apprenticecodex.sky_edge_projectile": "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow": "Archer Multiple Bow",
   "entity.apprenticecodex.commence_fire_rifle": "Magic DMR",
