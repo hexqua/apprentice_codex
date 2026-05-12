@@ -163,6 +163,16 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         if (!ISpellContainer.isSpellContainer(stack)) {
             initializeSpellContainer(stack);
         }
+        return true;
+    }
+
+    public boolean tryCastSmashSpell(Player player, ItemStack stack, float fallDistance) {
+        if (!isSameItem(stack)) {
+            return false;
+        }
+        if (!ISpellContainer.isSpellContainer(stack)) {
+            initializeSpellContainer(stack);
+        }
 
         var spellData = getImbuedSpellData(stack);
         if (spellData == null || !canImbueSpell(spellData)) {
@@ -170,23 +180,12 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         }
 
         var spell = spellData.getSpell();
-        var magicData = MagicData.getPlayerMagicData(player);
-        return magicData == null || (!magicData.isCasting() && !magicData.getPlayerCooldowns().isOnCooldown(spell));
-    }
-
-    public boolean tryCastSmashSpell(Player player, ItemStack stack, float fallDistance) {
-        if (!canStartSmashcast(player, stack)) {
-            return false;
-        }
-
-        var spellData = getImbuedSpellData(stack);
-        if (spellData == null) {
-            return false;
-        }
-
-        var spell = spellData.getSpell();
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData != null && (magicData.isCasting() || magicData.getPlayerCooldowns().isOnCooldown(spell))) {
+            return false;
+        }
+
         var borrowedMana = borrowRequiredMana(player, magicData, spell, spellLevel);
         var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (spellPowerAttribute != null) {

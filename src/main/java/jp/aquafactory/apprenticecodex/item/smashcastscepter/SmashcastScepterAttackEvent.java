@@ -88,10 +88,7 @@ public final class SmashcastScepterAttackEvent {
         }
 
         var stack = player.getMainHandItem();
-        if (!scepter.tryCastSmashSpell(player, stack, pending.fallDistance())) {
-            event.setCanceled(true);
-            return;
-        }
+        scepter.tryCastSmashSpell(player, stack, pending.fallDistance());
 
         event.getEntity().invulnerableTime = 0;
         player.fallDistance = 0.0F;
