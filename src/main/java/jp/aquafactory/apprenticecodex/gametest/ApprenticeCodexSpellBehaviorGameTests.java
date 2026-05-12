@@ -49,6 +49,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
+    public static void healingBloomDeathDropsOnlyStoredFruitWithoutPlantingBush(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.healingBloomDeathDropsOnlyStoredFruitWithoutPlantingBush(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
+    public static void healingBloomImmediateDeathDropsNothingAndPlantsNoBush(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.healingBloomImmediateDeathDropsNothingAndPlantsNoBush(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
     public static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(helper);
     }
@@ -71,6 +81,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
     public static void healingBloomMissingManagedBloomDoesNotBlockRecast(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.healingBloomMissingManagedBloomDoesNotBlockRecast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
+    public static void healingBloomOfflineDeathDoesNotBlockRecast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.healingBloomOfflineDeathDoesNotBlockRecast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
+    public static void healingBloomSneakCastRecoversOfflineDeathState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.healingBloomSneakCastRecoversOfflineDeathState(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = HEALING_BLOOM_ISOLATED_BATCH)
