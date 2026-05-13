@@ -100,8 +100,8 @@ public final class SmashcastScepterAttackEvent {
         scepter.tryCastSmashSpell(player, stack, pending.fallDistance());
 
         event.getEntity().invulnerableTime = 0;
-        player.fallDistance = 0.0F;
         applyAreaKnockback(player, event.getEntity());
+        SmashcastScepterFallProtectionEvent.register(player);
         applyReleaseBounce(player, stack);
         playSmashVisualEffects(player.serverLevel(), event.getEntity(), pending.fallDistance());
         playSmashSound(player, pending.fallDistance());

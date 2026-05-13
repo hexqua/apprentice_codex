@@ -659,6 +659,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void smashcastScepterFallProtectionKeepsFallDistanceAndCancelsNextFall(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.smashcastScepterFallProtectionKeepsFallDistanceAndCancelsNextFall(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void smashcastScepterFallProtectionExpiresAfterGracePeriod(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.smashcastScepterFallProtectionExpiresAfterGracePeriod(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.rightClickMagicWeaponTooltipsStartWithShieldHint(helper);
     }
