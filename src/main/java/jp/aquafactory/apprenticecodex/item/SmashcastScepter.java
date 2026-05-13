@@ -51,7 +51,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
-        implements GeoItem, RestrictedSpellImbuableItem, ManaBypassSpellItem, IJeiInfoItem {
+        implements GeoItem, RestrictedSpellImbuableItem, IJeiInfoItem {
     public static final double ATTACK_DAMAGE_MODIFIER = 5.0D;
     public static final double ATTACK_SPEED_MODIFIER = -3.4D;
     public static final float SMASH_ATTACK_FALL_DISTANCE_THRESHOLD = 1.5F;
@@ -202,7 +202,6 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
             return false;
         }
 
-        var borrowedMana = borrowRequiredMana(player, magicData, spell, spellLevel);
         var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (spellPowerAttribute != null) {
             spellPowerAttribute.removeModifier(SMASH_SPELL_POWER_MODIFIER_ID);
@@ -228,13 +227,9 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
                     SpellSelectionManager.MAINHAND
             );
             if (!casted) {
-                releaseBorrowedMana(magicData, borrowedMana);
                 return false;
             }
 
-            if (borrowedMana > 0.0F) {
-                ItemManaBypassCastEvent.reserveBorrowedMana(player, borrowedMana);
-            }
             TriggeredSpellCastHelper.applyLongCastDurationOverride(
                     player,
                     spellLevel,
@@ -310,11 +305,6 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         ISpellContainer.set(stack, normalized.toImmutable());
         PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
         return true;
-    }
-
-    @Override
-    public boolean supportsManaBypass(@Nullable AbstractSpell spell) {
-        return spell != null && spell != SpellRegistry.none();
     }
 
     @Override
@@ -430,21 +420,4 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         return EnchantmentRegistry.COMPRESS.isPresent() ? stack.getEnchantmentLevel(EnchantmentRegistry.COMPRESS.get()) : 0;
     }
 
-    private static float borrowRequiredMana(Player player, @Nullable MagicData magicData, AbstractSpell spell, int spellLevel) {
-        if (magicData == null || player.getAbilities().instabuild) {
-            return 0.0F;
-        }
-
-        var borrowedMana = Math.max(0.0F, spell.getManaCost(spellLevel) - magicData.getMana());
-        if (borrowedMana > 0.0F) {
-            magicData.addMana(borrowedMana);
-        }
-        return borrowedMana;
-    }
-
-    private static void releaseBorrowedMana(@Nullable MagicData magicData, float borrowedMana) {
-        if (magicData != null && borrowedMana > 0.0F) {
-            magicData.setMana(Math.max(0.0F, magicData.getMana() - borrowedMana));
-        }
-    }
 }
