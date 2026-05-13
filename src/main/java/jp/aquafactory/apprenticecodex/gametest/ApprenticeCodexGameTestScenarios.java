@@ -523,6 +523,31 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Exhausted only-jump casts should discard the existing Assist Wings wing");
         });
     }
+    static void smashcastScepterWindBurstUsesVanillaPostAttackEffect(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "smashcast_wind_burst_test"));
+            player.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 3, 0))));
+            player.setOnGround(false);
+            player.fallDistance = 4.0F;
+            player.setDeltaMovement(Vec3.ZERO);
+            level.addFreshEntity(player);
+
+            var target = EntityType.ARMOR_STAND.create(level);
+            helper.assertTrue(target != null, "Armor Stand target could not be created for Smashcast Wind Burst test");
+            target.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 1, 0))));
+            level.addFreshEntity(target);
+
+            var stack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
+            var windBurst = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.WIND_BURST);
+            stack.enchant(windBurst, 1);
+
+            EnchantmentHelper.doPostAttackEffectsWithItemSource(level, target, player.damageSources().playerAttack(player), stack);
+            helper.assertTrue(player.getDeltaMovement().y > 0.1D,
+                    "Smashcast Scepter Wind Burst should trigger vanilla wind burst upward motion but got " + player.getDeltaMovement());
+        });
+    }
     static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var unknownMarker = new SearchBeaconState.StructureMarker(

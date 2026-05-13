@@ -213,4 +213,9 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     public static void assistWingsSmashcastExhaustedAirCastOnlyDropsWing(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.assistWingsSmashcastExhaustedAirCastOnlyDropsWing(helper);
     }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void smashcastScepterWindBurstUsesVanillaPostAttackEffect(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.smashcastScepterWindBurstUsesVanillaPostAttackEffect(helper);
+    }
 }
