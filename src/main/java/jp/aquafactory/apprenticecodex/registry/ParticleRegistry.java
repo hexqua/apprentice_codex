@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.registries.DeferredRegister;
@@ -48,6 +50,24 @@ public final class ParticleRegistry {
                 @Override
                 public com.mojang.serialization.@NotNull Codec<MuzzleFlashParticleOptions> codec() {
                     return MuzzleFlashParticleOptions.CODEC;
+                }
+            });
+
+    public static final RegistryObject<ParticleType<SmashcastTremorBlockParticleOptions>> SMASHCAST_TREMOR_BLOCK =
+            PARTICLES.register("smashcast_tremor_block", () -> new ParticleType<>(true,
+                    SmashcastTremorBlockParticleOptions.DESERIALIZER) {
+                @Override
+                public com.mojang.serialization.@NotNull Codec<SmashcastTremorBlockParticleOptions> codec() {
+                    return SmashcastTremorBlockParticleOptions.CODEC;
+                }
+            });
+
+    public static final RegistryObject<ParticleType<SmashcastDustPillarParticleOptions>> SMASHCAST_DUST_PILLAR =
+            PARTICLES.register("smashcast_dust_pillar", () -> new ParticleType<>(true,
+                    SmashcastDustPillarParticleOptions.DESERIALIZER) {
+                @Override
+                public com.mojang.serialization.@NotNull Codec<SmashcastDustPillarParticleOptions> codec() {
+                    return SmashcastDustPillarParticleOptions.CODEC;
                 }
             });
 }

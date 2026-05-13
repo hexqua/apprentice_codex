@@ -358,6 +358,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PYRIUM_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PYRIUM_INGOT.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SMASHCAST_SCEPTER.get())
+                .pattern(" MI")
+                .pattern(" WM")
+                .pattern("D  ")
+                .define('I', Items.IRON_BLOCK) // 申し送り:1.21.1ではヘビーコアにしたい.
+                .define('W', io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()) // 申し送り:1.21.1ではブリーズロッドにしたい.
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .define('D', Items.DIAMOND)
+                .unlockedBy(getHasName(Items.IRON_BLOCK), has(Items.IRON_BLOCK))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())
                 .pattern("AGA")
                 .pattern("DSD")

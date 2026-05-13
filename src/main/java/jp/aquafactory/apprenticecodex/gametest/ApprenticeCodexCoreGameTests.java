@@ -25,6 +25,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void assistWingsOnlyJumpItemsTagIncludesSmashcastScepter(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsOnlyJumpItemsTagIncludesSmashcastScepter(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(helper);
     }

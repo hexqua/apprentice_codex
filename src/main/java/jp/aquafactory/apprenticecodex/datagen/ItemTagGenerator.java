@@ -72,6 +72,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
                 ItemRegistry.ELEMENTAL_BOW.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()
@@ -81,6 +82,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         malumSoulHunterWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
@@ -94,6 +96,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tomagicReversalWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.FOCUS_STAFFBOW.get(),
+                ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get()
@@ -179,6 +182,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
                 ItemRegistry.ENCHANTED_CIRCLET.get()
+        );
+        tag(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS).add(
+                ItemRegistry.SMASHCAST_SCEPTER.get()
         );
 
         // 魔法召喚武器はアイテムとして性能を持たずダミーにしか使っていないため、JEIでも表示しないようにする.
