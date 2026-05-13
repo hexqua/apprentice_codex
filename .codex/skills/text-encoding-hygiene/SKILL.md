@@ -61,6 +61,6 @@ $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 ## Mojibake Handling
 
 - The Gradle check catches only obvious cases to avoid false positives.
-- `src/main/resources/assets/apprenticecodex/lang/zh_cn.json` is excluded because simplified Chinese translation text is more likely to collide with simple CJK heuristics.
+- `src/main/resources/assets/apprenticecodex/lang/zh_cn.json` is still checked for UTF-8 BOMs and invalid UTF-8, but skips the simple mojibake fragment heuristic because simplified Chinese translation text can collide with simple CJK heuristics.
 - If the Gradle task reports a file, re-open that file as UTF-8 and fix the source text rather than suppressing the check.
 - Do not add broad exclusions. Add a narrow path exclusion only when a legitimate file is demonstrably unavoidable.

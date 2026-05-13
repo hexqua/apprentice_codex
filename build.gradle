@@ -268,9 +268,12 @@ def textEncodingHygieneExcludes = [
         'out/**',
         'run/**',
         'run-data/**',
-        // 中国語は文字化けか正しいのかチェックできなさそうなので意図的に除外.
-        'src/main/resources/assets/apprenticecodex/lang/zh_cn.json',
 ]
+
+def textEncodingMojibakeHeuristicSkips = [
+        // 中国語本文は単純な CJK 断片ヒューリスティックと衝突しやすいため、BOM/UTF-8 検査だけ行う.
+        'src/main/resources/assets/apprenticecodex/lang/zh_cn.json',
+] as Set
 
 def textEncodingHygieneRootDir = layout.projectDirectory.asFile
 def textEncodingHygieneRootPath = textEncodingHygieneRootDir.toPath()
@@ -321,9 +324,11 @@ tasks.register('checkTextEncodingHygiene') {
             }
 
             text.readLines().eachWithIndex { line, index ->
+                boolean skipMojibakeHeuristic = textEncodingMojibakeHeuristicSkips.contains(relativePath)
                 boolean hasReplacementCharacter = line.indexOf('\uFFFD') >= 0
                 int fragmentHitCount = suspiciousFragments.count { fragment -> line.contains(fragment) }
-                boolean hasLikelyMojibake = fragmentHitCount >= 2 || (fragmentHitCount >= 1 && line ==~ halfwidthKatakana)
+                boolean hasLikelyMojibake = !skipMojibakeHeuristic
+                        && (fragmentHitCount >= 2 || (fragmentHitCount >= 1 && line ==~ halfwidthKatakana))
 
                 if (hasReplacementCharacter || hasLikelyMojibake) {
                     String excerpt = line.trim()
