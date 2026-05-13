@@ -5,6 +5,8 @@ import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -84,6 +86,7 @@ public final class SmashcastScepterAttackEvent {
         scepter.tryCastSmashSpell(player, stack, pending.fallDistance());
 
         event.getEntity().invulnerableTime = 0;
+        applyImpulseFallDamageProtection(player);
         applyAreaKnockback(player, event.getEntity());
         playSmashVisualEffects(player, event.getEntity(), pending.fallDistance());
         playSmashSound(player, pending.fallDistance());
@@ -125,6 +128,20 @@ public final class SmashcastScepterAttackEvent {
             PENDING_SMASHES.remove(player.serverLevel());
         }
         return pending;
+    }
+
+    public static void applyImpulseFallDamageProtection(ServerPlayer player) {
+        if (player.isIgnoringFallDamageFromCurrentImpulse() && player.currentImpulseImpactPos != null) {
+            if (player.currentImpulseImpactPos.y > player.position().y) {
+                player.currentImpulseImpactPos = player.position();
+            }
+        } else {
+            player.currentImpulseImpactPos = player.position();
+        }
+
+        player.setIgnoreFallDamageFromCurrentImpulse(true);
+        player.setDeltaMovement(player.getDeltaMovement().with(Direction.Axis.Y, SmashcastScepter.WIND_BURST_MOTION_EPSILON));
+        player.connection.send(new ClientboundSetEntityMotionPacket(player));
     }
 
     private static void applyAreaKnockback(ServerPlayer player, LivingEntity impactTarget) {

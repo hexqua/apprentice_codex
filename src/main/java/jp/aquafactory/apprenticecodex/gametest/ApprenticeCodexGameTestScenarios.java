@@ -61,6 +61,8 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
@@ -235,8 +237,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
@@ -538,6 +543,37 @@ public final class ApprenticeCodexGameTestScenarios {
             EnchantmentHelper.doPostAttackEffectsWithItemSource(level, target, player.damageSources().playerAttack(player), stack);
             helper.assertTrue(player.getDeltaMovement().y > 0.1D,
                     "Smashcast Scepter Wind Burst should trigger vanilla wind burst upward motion but got " + player.getDeltaMovement());
+        });
+    }
+    static void smashcastScepterSmashSetsVanillaImpulseFallProtection(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "smashcast_impulse_fall_test"));
+            player.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 3, 0))));
+            player.setOnGround(false);
+            player.fallDistance = 6.0F;
+            player.setDeltaMovement(0.12D, -0.8D, -0.08D);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
+            level.addFreshEntity(player);
+
+            var target = EntityType.ARMOR_STAND.create(level);
+            helper.assertTrue(target != null, "Armor Stand target could not be created for Smashcast impulse fall test");
+            target.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 1, 0))));
+            level.addFreshEntity(target);
+
+            SmashcastScepterAttackEvent.onAttackEntity(new AttackEntityEvent(player, target));
+            var damage = new DamageContainer(player.damageSources().playerAttack(player), 1.0F);
+            SmashcastScepterAttackEvent.onLivingDamage(new LivingDamageEvent.Post(target, damage));
+
+            helper.assertTrue(player.fallDistance == 6.0F,
+                    "Smashcast Scepter smash should preserve fall distance for vanilla impulse handling");
+            helper.assertTrue(Math.abs(player.getDeltaMovement().y - SmashcastScepter.WIND_BURST_MOTION_EPSILON) < 1.0E-6D,
+                    "Smashcast Scepter smash should apply vanilla Mace landing motion");
+            helper.assertTrue(player.isIgnoringFallDamageFromCurrentImpulse(),
+                    "Smashcast Scepter smash should enable vanilla impulse fall damage protection");
+            helper.assertTrue(player.currentImpulseImpactPos != null
+                            && player.currentImpulseImpactPos.distanceTo(player.position()) < 1.0E-6D,
+                    "Smashcast Scepter smash should record the current impulse impact position");
         });
     }
     static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
