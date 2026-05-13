@@ -184,6 +184,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.SMASHCAST_SCEPTER.get()
         );
+        tag(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS).add(
+                ItemRegistry.SMASHCAST_SCEPTER.get()
+        );
 
         // 魔法召喚武器はアイテムとして性能を持たずダミーにしか使っていないため、JEIでも表示しないようにする.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(

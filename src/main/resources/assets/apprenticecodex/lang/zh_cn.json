@@ -496,7 +496,7 @@
   "spell.apprenticecodex.personal_shelf.guide": "具象化一个限时魔法储物箱。一段时间后或你远离时会消失。该储物箱仅为个人私人空间的交互界面。潜行时使用可尝试将其内容物转移到箱子等容器中。",
   "spell.apprenticecodex.rift_hole.guide": "在方块表面打开一个异界孔洞，在墙壁中开辟一条临时通道。再次施法或等待片刻即可封闭通道。",
   "spell.apprenticecodex.fly_swatter.guide": "召唤一个魔法发射器，攻击你视线内锁定的目标。发射的弹药会自动追踪敌人。",
-  "spell.apprenticecodex.assist_wings.guide": "召唤魔法之翼，振翅跳跃。基于你的魔力值，可在空中有限次激活。使用后，你会获得缓落效果直至落地，且不会受到摔落伤害。",
+  "spell.apprenticecodex.assist_wings.guide": "召唤魔法之翼，振翅跳跃。基于你的魔力值，可在空中有限次激活。使用后，你会获得缓落效果直至落地，且不会受到摔落伤害。如果手持会利用坠落的武器，翅膀会在跳跃后立刻自动崩解，使你会受到摔落伤害。",
   "spell.apprenticecodex.world_flatter.guide": "召唤一把魔法钻头，穿透你视线内目标的护甲。将其挥向地面可快速挖出一个大洞。",
   "spell.apprenticecodex.slash_blade.guide": "召唤一把魔法武士刀，向前方快速斩击。该施法过程无法被打断。",
   "spell.apprenticecodex.manifestation_grimoire.guide": "召唤一本与施法者领域绑定的魔导书。储存在其中的法术，可通过该法术召唤的任意魔导书使用。",
@@ -619,6 +619,7 @@
   "ui.apprenticecodex.extract.empty_flask": "炼金师烧瓶为空！",
   "ui.apprenticecodex.extract.effect_use": "使用 %s",
   "ui.apprenticecodex.extract.effect_use_with_force_splash": "强制喷溅 %s：额外剂量！",
+  "ui.apprenticecodex.assist_wings.only_jump_warning": "手中的%s使翅膀无法维持！",
 
  "ui.apprenticecodex.elemental_bow.mode_switched": "已切换发射模式为 %s",
  "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "过热导致魔力消耗提升至 %s！",
