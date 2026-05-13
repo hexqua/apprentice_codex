@@ -10,6 +10,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -33,6 +34,7 @@ import java.util.WeakHashMap;
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SmashcastScepterAttackEvent {
     private static final Map<ServerLevel, Map<UUID, PendingSmash>> PENDING_SMASHES = new WeakHashMap<>();
+    private static final Map<ServerLevel, Map<UUID, Long>> EPIC_FIGHT_SMASHCAST_IMPACT_TICKS = new WeakHashMap<>();
     private static final int MACE_SMASH_LEVEL_EVENT = 2013;
     private static final int MACE_SMASH_LEVEL_EVENT_DATA = 750;
     private static final int TREMOR_BLOCK_LIMIT = 16;
@@ -69,6 +71,45 @@ public final class SmashcastScepterAttackEvent {
         return stack.getItem() instanceof SmashcastScepter scepter && scepter.canStartSmashcast(player, stack);
     }
 
+    public static float registerEpicFightSmashcastImpact(
+            ServerPlayer player,
+            LivingEntity target,
+            DamageSource source,
+            float fallDistance
+    ) {
+        var stack = player.getMainHandItem();
+        if (!(stack.getItem() instanceof SmashcastScepter scepter)) {
+            return 0.0F;
+        }
+
+        var effectiveFallDistance = Math.max(0.0F, fallDistance);
+        var bonusDamage = SmashcastScepter.calculateSmashBonusDamage(
+                stack,
+                effectiveFallDistance,
+                player.serverLevel(),
+                target,
+                source
+        );
+
+        var level = player.serverLevel();
+        var gameTime = level.getGameTime();
+        var lastImpactTick = EPIC_FIGHT_SMASHCAST_IMPACT_TICKS
+                .computeIfAbsent(level, ignored -> new HashMap<>())
+                .put(player.getUUID(), gameTime);
+        if (lastImpactTick != null && lastImpactTick == gameTime) {
+            return bonusDamage;
+        }
+
+        scepter.triggerSmashAnimation(player, stack);
+        scepter.tryCastSmashSpell(player, stack, effectiveFallDistance);
+        target.invulnerableTime = 0;
+        applyImpulseFallDamageProtection(player);
+        applyAreaKnockback(player, target);
+        playSmashVisualEffects(player, target, effectiveFallDistance);
+        playSmashSound(player, effectiveFallDistance);
+        return bonusDamage;
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onLivingDamage(LivingDamageEvent.Post event) {
         var player = resolveDirectPlayerAttack(event.getSource());
@@ -97,6 +138,7 @@ public final class SmashcastScepterAttackEvent {
         var serverLevel = event.getLevel();
         var smashes = PENDING_SMASHES.get(serverLevel);
         if (smashes == null || smashes.isEmpty()) {
+            cleanupEpicFightSmashcastImpacts(serverLevel);
             return;
         }
 
@@ -104,6 +146,20 @@ public final class SmashcastScepterAttackEvent {
         smashes.entrySet().removeIf(uuidPendingSmashEntry -> uuidPendingSmashEntry.getValue().gameTime() < expireBefore);
         if (smashes.isEmpty()) {
             PENDING_SMASHES.remove(serverLevel);
+        }
+        cleanupEpicFightSmashcastImpacts(serverLevel);
+    }
+
+    private static void cleanupEpicFightSmashcastImpacts(ServerLevel serverLevel) {
+        var impacts = EPIC_FIGHT_SMASHCAST_IMPACT_TICKS.get(serverLevel);
+        if (impacts == null || impacts.isEmpty()) {
+            return;
+        }
+
+        var expireBefore = serverLevel.getGameTime() - 1L;
+        impacts.entrySet().removeIf(entry -> entry.getValue() < expireBefore);
+        if (impacts.isEmpty()) {
+            EPIC_FIGHT_SMASHCAST_IMPACT_TICKS.remove(serverLevel);
         }
     }
 
