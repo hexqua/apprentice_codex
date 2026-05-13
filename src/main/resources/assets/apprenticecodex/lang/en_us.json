@@ -429,6 +429,8 @@
   "jade.apprenticecodex.healing_bloom.next_fruit": "Next fruit in: %1$d s",
   "jade.apprenticecodex.remaining_ammo": "Remaining ammo: %1$d",
   "jade.apprenticecodex.search_beacon.targets": "Targets: %1$s",
+  "skill.apprenticecodex.wind_leap": "Wind Leap",
+  "skill.apprenticecodex.wind_leap.tooltip": "Leap high enough to prepare a smash, then strike just before landing. The leap itself does not protect you from falling.",
   "spell.apprenticecodex.sky_edge": "Sky Edge",
   "spell.apprenticecodex.archer_multiple": "Archer Multiple",
   "spell.apprenticecodex.commence_fire": "Commence Fire",

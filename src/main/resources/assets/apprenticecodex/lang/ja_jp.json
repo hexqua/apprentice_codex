@@ -437,6 +437,9 @@
   "jade.apprenticecodex.remaining_ammo": "残り弾数: %1$d",
   "jade.apprenticecodex.search_beacon.targets": "探索対象: %1$s",
 
+  "skill.apprenticecodex.wind_leap": "ウィンドリープ",
+  "skill.apprenticecodex.wind_leap.tooltip": "強打を行えるほど高く跳躍し、着地寸前に殴打を行う。この跳躍自体が落下を保護することはない。",
+
   "spell.apprenticecodex.sky_edge": "スカイエッジ",
   "spell.apprenticecodex.archer_multiple": "アーチャーオプション",
   "spell.apprenticecodex.commence_fire": "コメンスファイア",
