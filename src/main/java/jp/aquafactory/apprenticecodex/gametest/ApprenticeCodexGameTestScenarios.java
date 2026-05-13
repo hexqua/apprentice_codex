@@ -60,6 +60,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterReadyStateSyncEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
@@ -6068,8 +6069,21 @@ public final class ApprenticeCodexGameTestScenarios {
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             helper.assertTrue(SmashcastScepterAttackEvent.canRegisterSmashcast(player, stack),
                     "Smashcast Scepter should register a smash without an imbued spell");
+            helper.assertTrue(SmashcastScepterReadyStateSyncEvent.resolveReadyState(player),
+                    "Smashcast Scepter server ready state should match a valid smash attack");
             helper.assertFalse(item.tryCastSmashSpell(player, stack, player.fallDistance),
                     "Smashcast Scepter should skip spell casting without an imbued spell");
+            player.fallDistance = 0.0F;
+            helper.assertFalse(SmashcastScepterReadyStateSyncEvent.resolveReadyState(player),
+                    "Smashcast Scepter server ready state should reject reset fall distance");
+            player.fallDistance = SmashcastScepter.SMASH_ATTACK_FALL_DISTANCE_THRESHOLD + 1.0F;
+            player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 20, 0));
+            helper.assertFalse(SmashcastScepterReadyStateSyncEvent.resolveReadyState(player),
+                    "Smashcast Scepter server ready state should reject Slow Falling");
+            player.removeEffect(MobEffects.SLOW_FALLING);
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            helper.assertFalse(SmashcastScepterReadyStateSyncEvent.resolveReadyState(player),
+                    "Smashcast Scepter server ready state should require mainhand Smashcast Scepter");
             player.setItemInHand(InteractionHand.MAIN_HAND, arcaneBlastResult);
             helper.assertTrue(SmashcastScepterAttackEvent.canRegisterSmashcast(player, arcaneBlastResult),
                     "Smashcast Scepter should register a smashcast when a valid spell is imbued");
