@@ -3934,16 +3934,16 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(armoredMana != null && unarmoredMana != null && bypassMana != null,
                 "Mana Shield Charm Shell test could not resolve player mana data");
 
-        armoredMana.setMana(50.0F);
-        unarmoredMana.setMana(50.0F);
-        bypassMana.setMana(50.0F);
-        armored.invulnerableTime = 0;
-        unarmored.invulnerableTime = 0;
-        bypassArmor.invulnerableTime = 0;
-        var armoredInitialHealth = armored.getHealth();
-        var unarmoredInitialHealth = unarmored.getHealth();
-        var bypassInitialHealth = bypassArmor.getHealth();
         helper.runAtTickTime(1, () -> {
+            armoredMana.setMana(50.0F);
+            unarmoredMana.setMana(50.0F);
+            bypassMana.setMana(50.0F);
+            armored.invulnerableTime = 0;
+            unarmored.invulnerableTime = 0;
+            bypassArmor.invulnerableTime = 0;
+            var armoredInitialHealth = armored.getHealth();
+            var unarmoredInitialHealth = unarmored.getHealth();
+            var bypassInitialHealth = bypassArmor.getHealth();
             var armoredEvent = postLivingAttackEventForGameTest(armored, helper.getLevel().damageSources().lava(), 3.0F);
             var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, helper.getLevel().damageSources().lava(), 3.0F);
             var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
