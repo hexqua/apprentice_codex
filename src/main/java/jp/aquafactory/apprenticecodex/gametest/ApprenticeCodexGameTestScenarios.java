@@ -6010,6 +6010,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Smashcast Scepter should not join Iron's staff tag");
             helper.assertFalse(stack.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
                     "Smashcast Scepter should not block external imbue as a UniqueItem");
+            helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
+                    "Smashcast Scepter should consume normal spell mana");
 
             item.initializeSpellContainer(stack);
             helper.assertTrue(Utils.canImbue(stack),
@@ -6087,6 +6089,20 @@ public final class ApprenticeCodexGameTestScenarios {
             player.setItemInHand(InteractionHand.MAIN_HAND, arcaneBlastResult);
             helper.assertTrue(SmashcastScepterAttackEvent.canRegisterSmashcast(player, arcaneBlastResult),
                     "Smashcast Scepter should register a smashcast when a valid spell is imbued");
+            var arcaneBlastSpell = SpellRegistry.ARCANE_BLAST.get();
+            var arcaneBlastManaCost = arcaneBlastSpell.getManaCost(1);
+            MagicData.getPlayerMagicData(player).setPlayerCastingItem(arcaneBlastResult);
+            var arcaneBlastManaEvent = new SpellOnCastEvent(
+                    player,
+                    arcaneBlastSpell.getSpellId(),
+                    1,
+                    arcaneBlastManaCost,
+                    arcaneBlastSpell.getSchoolType(),
+                    CastSource.SWORD
+            );
+            ItemManaBypassCastEvent.onSpellCast(arcaneBlastManaEvent);
+            helper.assertTrue(arcaneBlastManaEvent.getManaCost() == arcaneBlastManaCost,
+                    "Smashcast Scepter should keep normal spell mana cost: " + arcaneBlastManaEvent.getManaCost());
 
             var compressedStack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
             compressedStack.enchant(EnchantmentRegistry.COMPRESS.get(), 2);
