@@ -26,8 +26,9 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatState
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -172,6 +173,11 @@ public final class Networks {
                 SyncMultipurposeStaffrifleFireEffectPacket.TYPE,
                 SyncMultipurposeStaffrifleFireEffectPacket.STREAM_CODEC,
                 SyncMultipurposeStaffrifleFireEffectPacket::handle
+        );
+        registrar.playToClient(
+                SyncSmashcastScepterReadyStatePacket.TYPE,
+                SyncSmashcastScepterReadyStatePacket.STREAM_CODEC,
+                SyncSmashcastScepterReadyStatePacket::handle
         );
         registrar.playToClient(
                 SenseEvilHighlightsPacket.TYPE,

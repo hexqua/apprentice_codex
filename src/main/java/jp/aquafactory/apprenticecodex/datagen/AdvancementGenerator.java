@@ -270,6 +270,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
 
         Advancement.Builder.advancement()
                 .parent(root)
+                .display(ItemRegistry.SMASHCAST_SCEPTER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_smashcast_scepter.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_smashcast_scepter.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_smashcast_scepter", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SMASHCAST_SCEPTER.getId()))
+                .save(saver, advancementId("craft_smashcast_scepter"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
                 .display(ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_circuit_heat_staff.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_circuit_heat_staff.description"),

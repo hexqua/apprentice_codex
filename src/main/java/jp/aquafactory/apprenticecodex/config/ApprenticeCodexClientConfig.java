@@ -7,6 +7,7 @@ public final class ApprenticeCodexClientConfig {
     private static final ModConfigSpec.BooleanValue ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION;
     private static final ModConfigSpec.BooleanValue ENABLE_SPELLGUN_AMMO_HUD;
     private static final ModConfigSpec.BooleanValue ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING;
+    private static final ModConfigSpec.BooleanValue ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING;
     private static final ModConfigSpec.BooleanValue DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS;
 
     static {
@@ -24,6 +25,9 @@ public final class ApprenticeCodexClientConfig {
                         "Always disabled in Epic Fight environments."
                 )
                 .define("enableManaForceBladeHotbarSheathRendering", true);
+        ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING = builder
+                .comment("スマッシュキャストの錫杖のスマッシュ攻撃命中時に一時的なブロック揺れを描画する")
+                .define("enableSmashcastScepterTremorBlockRendering", true);
         builder.pop();
 
         builder.push("Blocks");
@@ -48,6 +52,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean enableManaForceBladeHotbarSheathRendering() {
         return ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING.get();
+    }
+
+    public static boolean enableSmashcastScepterTremorBlockRendering() {
+        return ENABLE_SMASHCAST_SCEPTER_TREMOR_BLOCK_RENDERING.get();
     }
 
     public static boolean disableEssenceSmokerParticleTextureAnalysis() {

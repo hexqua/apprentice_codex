@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -67,6 +68,19 @@ public final class ParticleRegistry {
                 @Override
                 public @NotNull StreamCodec<? super RegistryFriendlyByteBuf, MuzzleFlashParticleOptions> streamCodec() {
                     return MuzzleFlashParticleOptions.STREAM_CODEC;
+                }
+            });
+
+    public static final DeferredHolder<ParticleType<?>, ParticleType<SmashcastTremorBlockParticleOptions>> SMASHCAST_TREMOR_BLOCK =
+            PARTICLES.register("smashcast_tremor_block", () -> new ParticleType<>(true) {
+                @Override
+                public com.mojang.serialization.@NotNull MapCodec<SmashcastTremorBlockParticleOptions> codec() {
+                    return SmashcastTremorBlockParticleOptions.mapCodec(this);
+                }
+
+                @Override
+                public @NotNull StreamCodec<? super RegistryFriendlyByteBuf, SmashcastTremorBlockParticleOptions> streamCodec() {
+                    return SmashcastTremorBlockParticleOptions.streamCodec(this);
                 }
             });
 }

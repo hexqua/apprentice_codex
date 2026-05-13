@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsG
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
+import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticle;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -217,6 +218,7 @@ public final class ClientModBusEvents {
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_SPARK.get(),
                 sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.SPARK));
         event.registerSpriteSet(ParticleRegistry.MUZZLE_FLASH.get(), MuzzleFlashParticle.Provider::new);
+        event.registerSpecial(ParticleRegistry.SMASHCAST_TREMOR_BLOCK.get(), new SmashcastTremorBlockParticle.Provider());
     }
 
     private static void registerClientExtensions(RegisterClientExtensionsEvent event) {

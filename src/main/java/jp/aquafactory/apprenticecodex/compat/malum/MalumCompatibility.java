@@ -52,10 +52,6 @@ public final class MalumCompatibility {
             ResourceLocation.fromNamespaceAndPath(MOD_ID, "revealed_soulwood_log");
     private static final ResourceLocation BLIGHTED_SOULWOOD =
             ResourceLocation.fromNamespaceAndPath(MOD_ID, "blighted_soulwood");
-    public static final TagKey<Item> SOUL_HUNTER_WEAPON = TagKey.create(
-            Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MOD_ID, "soul_hunter_weapon")
-    );
     public static final TagKey<Item> SOUL_SHATTER_CAPABLE_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MOD_ID, "soul_shatter_capable_weapon")
@@ -88,7 +84,7 @@ public final class MalumCompatibility {
     public static boolean isSpiritPlunderSupported(ItemStack stack, @Nullable ResourceLocation enchantmentId) {
         return enchantmentId != null
                 && SPIRIT_PLUNDER.equals(enchantmentId)
-                && (stack.is(SOUL_SHATTER_CAPABLE_WEAPON) || stack.is(SOUL_HUNTER_WEAPON));
+                && stack.is(SOUL_SHATTER_CAPABLE_WEAPON);
     }
 
     public static boolean isMagicCapableWeaponEnchantment(ItemStack stack, @Nullable ResourceLocation enchantmentId) {

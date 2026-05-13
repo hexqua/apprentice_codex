@@ -4,9 +4,11 @@ import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
+import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
@@ -82,6 +84,15 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedLootingMagicItem(Item item) {
         return item instanceof AbstractSpellGunItem
                 || item instanceof ElementalBow
-                || item instanceof MultipurposeStaffrifle;
+                || item instanceof MultipurposeStaffrifle
+                || item instanceof SmashcastScepter;
+    }
+
+    static boolean isSupportedSynthesisEnchantingItem(Item item) {
+        return item instanceof FocusStaffbow || item instanceof ElementalBow;
+    }
+
+    static boolean isSupportedSmashcastScepterItem(Item item) {
+        return item instanceof SmashcastScepter;
     }
 }

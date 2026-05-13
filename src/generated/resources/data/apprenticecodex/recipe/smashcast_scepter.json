@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "I": {
+      "item": "minecraft:heavy_core"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "W": {
+      "item": "minecraft:breeze_rod"
+    }
+  },
+  "pattern": [
+    " MI",
+    " WM",
+    "D  "
+  ],
+  "result": {
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:smashcast_scepter"
+  }
+}
