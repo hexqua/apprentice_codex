@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -410,6 +411,31 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         lines.add(Component.translatable(getDescriptionId() + ".desc_1").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(getDescriptionId() + ".desc_2").withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, level, lines, flag);
+        appendSmashcastScepterTooltip(lines);
+    }
+
+    private void appendSmashcastScepterTooltip(List<Component> lines) {
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
+            return;
+        }
+
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                List.of(ImbueTooltipHelper.translatableGray(
+                        "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
+                )),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_smashcast_title",
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_none"
+        );
+        ImbueTooltipHelper.appendTooltipSection(
+                lines,
+                List.of(ImbueTooltipHelper.translatableGray(
+                        "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_restrict_not_continuous"
+                )),
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_title",
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.restrict_none"
+        );
     }
 
     private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {

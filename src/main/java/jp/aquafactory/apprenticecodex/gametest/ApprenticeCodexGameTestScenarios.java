@@ -6085,8 +6085,8 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(stack.getMaxDamage() == 0,
                     "Smashcast Scepter should stay non-damageable");
-            helper.assertTrue(stack.is(SPELLCASTER_WORKBENCH_EXTRACTABLE),
-                    "Smashcast Scepter should be extractable at the Spellcaster Workbench");
+            helper.assertFalse(stack.is(SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Smashcast Scepter should not need the legacy Spellcaster Workbench extraction tag");
             helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
                     "Smashcast Scepter should join Malum soul hunter weapon tag");
             helper.assertTrue(stack.is(TOMAGIC_REVERSAL_WEAPON),
