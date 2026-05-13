@@ -272,14 +272,18 @@ def textEncodingHygieneExcludes = [
         'src/main/resources/assets/apprenticecodex/lang/zh_cn.json',
 ]
 
+def textEncodingHygieneRootDir = layout.projectDirectory.asFile
+def textEncodingHygieneRootPath = textEncodingHygieneRootDir.toPath()
+def textEncodingHygieneFiles = fileTree(textEncodingHygieneRootDir) {
+    include textEncodingHygieneIncludes
+    exclude textEncodingHygieneExcludes
+}
+
 tasks.register('checkTextEncodingHygiene') {
     group = 'verification'
     description = 'Fails on UTF-8 BOMs or obvious mojibake in repository text files.'
 
-    inputs.files(fileTree(projectDir) {
-        include textEncodingHygieneIncludes
-        exclude textEncodingHygieneExcludes
-    })
+    inputs.files(textEncodingHygieneFiles)
 
     doLast {
         def failures = []
@@ -294,12 +298,9 @@ tasks.register('checkTextEncodingHygiene') {
         ]
         def halfwidthKatakana = ~/.*[\uFF66-\uFF9F].*/
 
-        fileTree(projectDir) {
-            include textEncodingHygieneIncludes
-            exclude textEncodingHygieneExcludes
-        }.files.findAll { it.isFile() }.sort { it.path }.each { file ->
+        textEncodingHygieneFiles.files.findAll { it.isFile() }.sort { it.path }.each { file ->
             byte[] bytes = file.bytes
-            String relativePath = projectDir.toPath().relativize(file.toPath()).toString().replace(File.separator, '/')
+            String relativePath = textEncodingHygieneRootPath.relativize(file.toPath()).toString().replace(File.separator, '/')
 
             if (bytes.length >= 3
                     && (bytes[0] & 0xFF) == 0xEF
