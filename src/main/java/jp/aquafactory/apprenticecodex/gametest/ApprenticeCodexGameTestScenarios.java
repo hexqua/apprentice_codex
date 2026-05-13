@@ -2993,7 +2993,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
             var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
-            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("蜀呎悽邯呎価遒ｺ隱・));
+            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("陷蜻取た驍ｯ蜻惹ｾ｡驕抵ｽｺ髫ｱ繝ｻ));
             explorersCodexStack.set(DataComponents.REPAIR_COST, 7);
             var unbreaking = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                     .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
@@ -3016,7 +3016,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var result = recipe.assemble(craftingInput, helper.getLevel().registryAccess());
             helper.assertTrue(result.is(ItemRegistry.EXPLORERS_CODEX.get()),
                     "Transfer recipe should return Explorer's Codex but got " + BuiltInRegistries.ITEM.getKey(result.getItem()));
-            helper.assertTrue("蜀呎悽邯呎価遒ｺ隱・.equals(result.getHoverName().getString()),
+            helper.assertTrue("陷蜻取た驍ｯ蜻惹ｾ｡驕抵ｽｺ髫ｱ繝ｻ.equals(result.getHoverName().getString()),
                     "Explorer's Codex custom name was not preserved: " + result.getHoverName().getString());
             helper.assertTrue(result.getOrDefault(DataComponents.REPAIR_COST, 0) == 7,
                     "Explorer's Codex repair cost was not preserved: " + result.getOrDefault(DataComponents.REPAIR_COST, 0));
@@ -3324,7 +3324,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
             helper.assertTrue(imbuedSchool != null, "Copper Spell Amplifier imbued school could not be resolved");
 
-            // school ID 縺ｮ蜴ｳ蟇・ｸ閾ｴ縺ｧ縺ｯ縺ｪ縺上∬ｧ｣豎ｺ縺輔ｌ縺・spell power 螻樊ｧ縺ｫ陬懈ｭ｣縺檎ｩ阪∪繧後ｋ縺薙→繧堤｢ｺ隱阪☆繧・
+            // school ID 邵ｺ・ｮ陷ｴ・ｳ陝・・・ｸﾂ髢ｾ・ｴ邵ｺ・ｧ邵ｺ・ｯ邵ｺ・ｪ邵ｺ荳環竏ｬ・ｧ・｣雎趣ｽｺ邵ｺ霈費ｽ檎ｸｺ繝ｻspell power 陞ｻ讓環・ｧ邵ｺ・ｫ髯ｬ諛茨ｽｭ・｣邵ｺ讙趣ｽｩ髦ｪ竏ｪ郢ｧ蠕鯉ｽ狗ｸｺ阮吮・郢ｧ蝣､・｢・ｺ髫ｱ髦ｪ笘・ｹｧ繝ｻ
             var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(resolvedSpellPower != null,
                     "Copper Spell Amplifier could not resolve spell power attribute for stacking: " + imbuedSchool.getId());
@@ -4095,7 +4095,6 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Mana Shield Charm Shell test could not resolve player mana data");
 
         helper.runAtTickTime(1, () -> {
-            // tracked player 縺ｯ 1tick 逶ｮ縺ｾ縺ｧ縺ｫ閾ｪ辟ｶ蝗槫ｾｩ縺瑚ｵｰ繧九％縺ｨ縺後≠繧翫∝・縺ｫ mana 繧貞・繧後ｋ縺ｨ burn-out 譚｡莉ｶ縺後・繧後ｋ縲・
             armoredMana.setMana(50.0F);
             unarmoredMana.setMana(50.0F);
             bypassMana.setMana(50.0F);
@@ -4974,8 +4973,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
 
             for (var stack : stacks) {
-                // Malum 縺ｮ soul_hunter_weapon 縺ｯ main hand 蜑肴署縺ｪ縺ｮ縺ｧ縲・
-                // offhand 邉ｻ縺ｯ 1.21.1 縺ｧ繧ょｾ捺擂縺ｮ enchant 髱｢繧堤ｶｭ謖√☆繧句燕謠舌〒蝗ｺ螳壹☆繧九・
+                // Malum 邵ｺ・ｮ soul_hunter_weapon 邵ｺ・ｯ main hand 陷題ざ鄂ｲ邵ｺ・ｪ邵ｺ・ｮ邵ｺ・ｧ邵ｲ繝ｻ
+                // offhand 驍会ｽｻ邵ｺ・ｯ 1.21.1 邵ｺ・ｧ郢ｧ繧・ｽｾ謐ｺ謫らｸｺ・ｮ enchant 鬮ｱ・｢郢ｧ蝣､・ｶ・ｭ隰問・笘・ｹｧ蜿･辯戊ｬ闊後定摎・ｺ陞ｳ螢ｹ笘・ｹｧ荵敖繝ｻ
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
@@ -5772,7 +5771,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow vanilla mode selection should not show an ammo badge");
             helper.assertTrue(views.get(1).iconStack().is(Items.ARROW),
                     "Elemental Bow arrow-only selection should render as an arrow icon");
-            helper.assertTrue("竏・.equals(views.get(1).badgeText()),
+            helper.assertTrue("遶上・.equals(views.get(1).badgeText()),
                     "Elemental Bow arrow-only selection should show infinity while Infinity is enchanted: " + views.get(1).badgeText());
 
             var fireView = views.stream()
@@ -10203,7 +10202,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertManagedHealingBloomUuid(helper, owner, bloomUuid,
                 "Healing Bloom offline-death setup should start with a managed bloom");
 
-        // 繧ｪ繝輔Λ繧､繝ｳ荳ｭ縺ｮ豁ｻ莠｡縺ｧ縺ｯ owner 繧・ServerPlayer 縺ｨ縺励※蠑輔￠縺壹∝叉譎りｧ｣髯､縺輔ｌ縺ｪ縺・state 縺梧ｮ九ｋ縲・
+        // 郢ｧ・ｪ郢晁ｼ釆帷ｹｧ・､郢晢ｽｳ闕ｳ・ｭ邵ｺ・ｮ雎・ｽｻ闔・｡邵ｺ・ｧ邵ｺ・ｯ owner 郢ｧ繝ｻServerPlayer 邵ｺ・ｨ邵ｺ蜉ｱ窶ｻ陟題ｼ費ｿ邵ｺ螢ｹﾂ竏晏初隴弱ｊ・ｧ・｣鬮ｯ・､邵ｺ霈費ｽ檎ｸｺ・ｪ邵ｺ繝ｻstate 邵ｺ譴ｧ・ｮ荵晢ｽ狗ｸｲ繝ｻ
         clearHealingBloomCachedOwner(bloom);
         killHealingBloom(helper.getLevel(), bloom);
         assertManagedHealingBloomUuid(helper, owner, bloomUuid,
@@ -10829,9 +10828,9 @@ public final class ApprenticeCodexGameTestScenarios {
         var casterPos = new BlockPos(0, 3, 0);
         var matureCropPos = new BlockPos(3, 2, 0);
         var immatureCropPos = new BlockPos(4, 2, 0);
-        // age 繝ｪ繧ｻ繝・ヨ蜿守ｩｫ縺ｮ讀懆ｨｼ縺檎岼逧・・
-        // 蟆城ｺｦ邉ｻ縺ｯ GameTest/FakePlayer 迺ｰ蠅・□縺ｨ譏弱ｋ縺輔・閠募慍邯ｭ謖√・譖ｴ譁ｰ鬆・・繝弱う繧ｺ繧貞女縺代ｄ縺吶＞縺溘ａ縲・
-        // 縺薙％縺ｧ縺ｯ Soul Sand 縺縺代〒逕溷ｭ俶擅莉ｶ繧呈ｺ縺溘○繧九ロ繧ｶ繝ｼ繧ｦ繧ｩ繝ｼ繝医〒蜿守ｩｫ繝ｭ繧ｸ繝・け閾ｪ菴薙ｒ讀懆ｨｼ縺吶ｋ縲・
+        // age 郢晢ｽｪ郢ｧ・ｻ郢昴・繝ｨ陷ｿ螳茨ｽｩ・ｫ邵ｺ・ｮ隶諛・ｽｨ・ｼ邵ｺ讙主ｲｼ騾ｧ繝ｻﾂ繝ｻ
+        // 陝・沁・ｺ・ｦ驍会ｽｻ邵ｺ・ｯ GameTest/FakePlayer 霑ｺ・ｰ陟・・笆｡邵ｺ・ｨ隴丞ｼｱ・狗ｸｺ霈斐・髢蜍滓・驍ｯ・ｭ隰問・繝ｻ隴厄ｽｴ隴・ｽｰ鬯・・繝ｻ郢晏ｼｱ縺・ｹｧ・ｺ郢ｧ雋槫･ｳ邵ｺ莉｣・・ｸｺ蜷ｶ・樒ｸｺ貅假ｽ∫ｸｲ繝ｻ
+        // 邵ｺ阮呻ｼ・ｸｺ・ｧ邵ｺ・ｯ Soul Sand 邵ｺ・ｰ邵ｺ莉｣縲帝墓ｺｷ・ｭ菫ｶ謫・脂・ｶ郢ｧ蜻茨ｽｺﾂ邵ｺ貅倪雷郢ｧ荵昴Ο郢ｧ・ｶ郢晢ｽｼ郢ｧ・ｦ郢ｧ・ｩ郢晢ｽｼ郢晏現縲定愾螳茨ｽｩ・ｫ郢晢ｽｭ郢ｧ・ｸ郢昴・縺鷹明・ｪ闖ｴ阮呻ｽ定ｮ諛・ｽｨ・ｼ邵ｺ蜷ｶ・狗ｸｲ繝ｻ
         helper.setBlock(matureCropPos.below(), Blocks.SOUL_SAND);
         helper.setBlock(immatureCropPos.below(), Blocks.SOUL_SAND);
         helper.setBlock(matureCropPos, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, NetherWartBlock.MAX_AGE));
@@ -10888,7 +10887,7 @@ public final class ApprenticeCodexGameTestScenarios {
         var tomatoItem = requireForgeItem(helper, FARMERS_DELIGHT_TOMATO_ITEM);
         var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
         helper.setBlock(baseTomatoPos.below(), Blocks.FARMLAND);
-        // rope 莉倥″繝医・繝医・荳頑ｮｵ縺ｧ螟ｩ莠墓桶縺・↓縺ｪ繧翫ｄ縺吶＞縺溘ａ縲；ameTest 縺ｧ繧り｣懷勧蜈峨ｒ鄂ｮ縺上・
+        // rope 闔牙･窶ｳ郢晏現繝ｻ郢晏現繝ｻ闕ｳ鬆托ｽｮ・ｵ邵ｺ・ｧ陞滂ｽｩ闔蠅捺｡ｶ邵ｺ繝ｻ竊鍋ｸｺ・ｪ郢ｧ鄙ｫ・・ｸｺ蜷ｶ・樒ｸｺ貅假ｽ∫ｸｲ・嫗meTest 邵ｺ・ｧ郢ｧ繧奇ｽ｣諛ｷ蜍ｧ陷亥ｳｨ・帝р・ｮ邵ｺ荳環繝ｻ
         helper.setBlock(baseTomatoPos.east(), Blocks.GLOWSTONE);
         helper.setBlock(baseTomatoPos, withIntegerProperty(helper, tomatoBlock.defaultBlockState(), "age", 0));
         helper.setBlock(
@@ -10901,8 +10900,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         );
 
-        // HarvestMoon 縺御ｾ晏ｭ倥＠縺ｦ縺・ｋ蜿ｳ繧ｯ繝ｪ繝・け邨瑚ｷｯ縺昴・繧ゅ・繧堤峩謗･騾壹＠縲・
-        // 謌千・縺励◆ rope 莉倥″荳頑ｮｵ繝医・繝医ｒ蜿守ｩｫ縺励※繧・rope 迥ｶ諷九′螢翫ｌ縺ｪ縺・％縺ｨ繧呈､懆ｨｼ縺吶ｋ縲・
+        // HarvestMoon 邵ｺ蠕｡・ｾ譎擾ｽｭ蛟･・邵ｺ・ｦ邵ｺ繝ｻ・玖愾・ｳ郢ｧ・ｯ郢晢ｽｪ郢昴・縺鷹お迹夲ｽｷ・ｯ邵ｺ譏ｴ繝ｻ郢ｧ繧・・郢ｧ蝣､蟲ｩ隰暦ｽ･鬨ｾ螢ｹ・邵ｲ繝ｻ
+        // 隰悟鴻繝ｻ邵ｺ蜉ｱ笳・rope 闔牙･窶ｳ闕ｳ鬆托ｽｮ・ｵ郢晏現繝ｻ郢晏現・定愾螳茨ｽｩ・ｫ邵ｺ蜉ｱ窶ｻ郢ｧ繝ｻrope 霑･・ｶ隲ｷ荵昶ｲ陞｢鄙ｫ・檎ｸｺ・ｪ邵ｺ繝ｻ・・ｸｺ・ｨ郢ｧ蜻茨ｽ､諛・ｽｨ・ｼ邵ｺ蜷ｶ・狗ｸｲ繝ｻ
         var result = BlockTools.useBlockByPlayerMainHand(helper.getLevel(), player, helper.absolutePos(ropeTomatoPos), new ItemStack(Items.STICK));
         helper.assertTrue(result.consumesAction(), "Farmer's Delight rope tomato block use should consume the action but got " + result);
 
@@ -10948,8 +10947,8 @@ public final class ApprenticeCodexGameTestScenarios {
         }
 
         var cropPositions = new ArrayList<BlockPos>();
-        // GameTest 縺ｮ runAtTickTime 縺九ｉ譛蛻昴・隕ｳ貂ｬ縺ｾ縺ｧ縺ｫ HarvestMoonJob 縺瑚､・焚 tick 騾ｲ繧迺ｰ蠅・′縺ゅｋ縺溘ａ縲・
-        // 3・・ tick 蛻・ｲ繧薙〒繧よ悴蜃ｦ逅・′谿九ｋ縺縺代・菴懃黄謨ｰ繧堤ｽｮ縺・※ false negative 繧帝∩縺代ｋ縲・
+        // GameTest 邵ｺ・ｮ runAtTickTime 邵ｺ荵晢ｽ芽ｭ崢陋ｻ譏ｴ繝ｻ髫包ｽｳ雋ゑｽｬ邵ｺ・ｾ邵ｺ・ｧ邵ｺ・ｫ HarvestMoonJob 邵ｺ迹夲ｽ､繝ｻ辟・tick 鬨ｾ・ｲ郢ｧﾂ霑ｺ・ｰ陟・・窶ｲ邵ｺ繧・ｽ狗ｸｺ貅假ｽ∫ｸｲ繝ｻ
+        // 3繝ｻ繝ｻ tick 陋ｻ繝ｻﾂ・ｲ郢ｧ阮吶堤ｹｧ繧域ざ陷・ｽｦ騾・・窶ｲ隹ｿ荵晢ｽ狗ｸｺ・ｰ邵ｺ莉｣繝ｻ闖ｴ諛・ｻ・ｬｨ・ｰ郢ｧ蝣､・ｽ・ｮ邵ｺ繝ｻ窶ｻ false negative 郢ｧ蟶昶茜邵ｺ莉｣・狗ｸｲ繝ｻ
         for (var x = 1; x <= 9; ++x) {
             for (var z = -8; z <= 8; ++z) {
                 var pos = new BlockPos(x, 3, z);
@@ -11287,8 +11286,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
 
-        // Better Combat 縺ｫ遨ｺ謇ｱ縺・＆繧後※繧・inventory.offhand[0] 閾ｪ菴薙・菫晄戟縺輔ｌ繧九◆繧√・
-        // 謨第ｸ育ｳｻ繝・せ繝医・螳溘せ繝ｭ繝・ヨ縺ｸ逶ｴ謗･遨阪ｓ縺ｧ髫阡ｽ蜑肴署繧貞・迴ｾ縺吶ｋ縲・
+        // Better Combat 邵ｺ・ｫ驕ｨ・ｺ隰・ｽｱ邵ｺ繝ｻ・・ｹｧ蠕娯ｻ郢ｧ繝ｻinventory.offhand[0] 髢ｾ・ｪ闖ｴ阮吶・闖ｫ譎・亜邵ｺ霈費ｽ檎ｹｧ荵昶螺郢ｧ竏堋繝ｻ
+        // 隰ｨ隨ｬ・ｸ閧ｲ・ｳ・ｻ郢昴・縺帷ｹ晏現繝ｻ陞ｳ貅倥○郢晢ｽｭ郢昴・繝ｨ邵ｺ・ｸ騾ｶ・ｴ隰暦ｽ･驕ｨ髦ｪ・鍋ｸｺ・ｧ鬮ｫ・ｰ髦｡・ｽ陷題ざ鄂ｲ郢ｧ雋槭・霑ｴ・ｾ邵ｺ蜷ｶ・狗ｸｲ繝ｻ
         player.getInventory().offhand.set(0, offhandStack.copy());
         return player;
     }
@@ -11461,8 +11460,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
-        // SummonManager 縺ｯ owner 繧・level lookup 縺ｧ蠑輔″逶ｴ縺励※ recast cleanup 縺吶ｋ縺溘ａ縲・
-        // Archer Multiple 縺ｮ summon 豸域ｻ・ユ繧ｹ繝医〒縺ｯ FakePlayer 繧ゅΡ繝ｼ繝ｫ繝峨∈蜿ょ刈縺輔○繧九・
+        // SummonManager 邵ｺ・ｯ owner 郢ｧ繝ｻlevel lookup 邵ｺ・ｧ陟題ｼ披ｳ騾ｶ・ｴ邵ｺ蜉ｱ窶ｻ recast cleanup 邵ｺ蜷ｶ・狗ｸｺ貅假ｽ∫ｸｲ繝ｻ
+        // Archer Multiple 邵ｺ・ｮ summon 雎ｸ蝓滂ｽｻ繝ｻ繝ｦ郢ｧ・ｹ郢晏現縲堤ｸｺ・ｯ FakePlayer 郢ｧ繧・｡郢晢ｽｼ郢晢ｽｫ郢晏ｳｨ竏郁愾繧・・邵ｺ霈披雷郢ｧ荵敖繝ｻ
         helper.getLevel().addFreshEntity(player);
         return player;
     }
@@ -11514,8 +11513,8 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static void prepareElevatedStonePlatform(GameTestHelper helper, BlockPos centerPos) {
-        // basic_floor 縺ｯ 5x3x5 縺ｨ蟆上＆縺上｜atch 霑第磁驟咲ｽｮ縺ｮ蝨ｰ蠖｢縺ｸ謗｢邏｢繧・Ξ繧､縺悟精繧上ｌ繧・☆縺・・
-        // 雜ｳ蝣ｴ繧帝ｫ俶園縺ｸ閾ｪ蜑阪〒菴懊▲縺ｦ縲∝推繝・せ繝医′閾ｪ蛻・・ 5x5 鬆伜沺縺縺代ｒ蜿ら・縺吶ｋ繧医≧縺ｫ蝗ｺ螳壹☆繧九・
+        // basic_floor 邵ｺ・ｯ 5x3x5 邵ｺ・ｨ陝・ｸ奇ｼ・ｸｺ荳環・彗tch 髴醍ｬｬ逎・ｩ溷調・ｽ・ｮ邵ｺ・ｮ陜ｨ・ｰ陟厄ｽ｢邵ｺ・ｸ隰暦ｽ｢驍擾ｽ｢郢ｧ繝ｻﾎ樒ｹｧ・､邵ｺ謔溽ｲｾ郢ｧ荳奇ｽ檎ｹｧ繝ｻ笘・ｸｺ繝ｻﾂ繝ｻ
+        // 髮懶ｽｳ陜｣・ｴ郢ｧ蟶晢ｽｫ菫ｶ蝨堤ｸｺ・ｸ髢ｾ・ｪ陷鷹亂縲定抄諛岩夢邵ｺ・ｦ邵ｲ竏晄耳郢昴・縺帷ｹ晏現窶ｲ髢ｾ・ｪ陋ｻ繝ｻ繝ｻ 5x5 鬯・ｼ懈ｲｺ邵ｺ・ｰ邵ｺ莉｣・定愾繧峨・邵ｺ蜷ｶ・狗ｹｧ蛹ｻ竕ｧ邵ｺ・ｫ陜暦ｽｺ陞ｳ螢ｹ笘・ｹｧ荵敖繝ｻ
         var floorY = centerPos.getY() - 1;
         for (var x = -2; x <= 2; ++x) {
             for (var z = -2; z <= 2; ++z) {
@@ -11558,8 +11557,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
-        // owner lookup 縺ｨ openers 縺ｮ close 蟇ｾ雎｡謗｢邏｢縺・server 蛛ｴ縺ｮ player list / level lookup 繧剃ｽｿ縺・◆繧√・
-        // Personal Shelf 縺ｮ GameTest 縺ｧ縺ｯ FakePlayer 繧ゅΡ繝ｼ繝ｫ繝峨∈蜿ょ刈縺輔○繧九・
+        // owner lookup 邵ｺ・ｨ openers 邵ｺ・ｮ close 陝・ｽｾ髮趣ｽ｡隰暦ｽ｢驍擾ｽ｢邵ｺ繝ｻserver 陋幢ｽｴ邵ｺ・ｮ player list / level lookup 郢ｧ蜑・ｽｽ・ｿ邵ｺ繝ｻ笳・ｹｧ竏堋繝ｻ
+        // Personal Shelf 邵ｺ・ｮ GameTest 邵ｺ・ｧ邵ｺ・ｯ FakePlayer 郢ｧ繧・｡郢晢ｽｼ郢晢ｽｫ郢晏ｳｨ竏郁愾繧・・邵ｺ霈披雷郢ｧ荵敖繝ｻ
         helper.getLevel().addFreshEntity(player);
         return player;
     }
@@ -13444,7 +13443,7 @@ public final class ApprenticeCodexGameTestScenarios {
             return false;
         }
 
-        // optional 萓晏ｭ倥・ absent 迺ｰ蠅・〒縺ｯ Create 蟆ら畑繝・せ繝医ｒ謌仙粥謇ｱ縺・〒謚懊￠縲・壼ｸｸ讀懆ｨｼ縺ｮ襍ｷ蜍墓ｧ繧貞━蜈医☆繧九・
+        // optional 關捺剌・ｭ蛟･繝ｻ absent 霑ｺ・ｰ陟・・縲堤ｸｺ・ｯ Create 陝・ｉ逡醍ｹ昴・縺帷ｹ晏現・定ｬ御ｻ咏ｲ･隰・ｽｱ邵ｺ繝ｻ縲定ｬ壽㈱・邵ｲ繝ｻﾂ螢ｼ・ｸ・ｸ隶諛・ｽｨ・ｼ邵ｺ・ｮ隘搾ｽｷ陷榊｢督・ｧ郢ｧ雋樞煤陷亥現笘・ｹｧ荵敖繝ｻ
         helper.succeed();
         return true;
     }
