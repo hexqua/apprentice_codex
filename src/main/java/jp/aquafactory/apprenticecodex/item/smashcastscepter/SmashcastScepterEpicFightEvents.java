@@ -24,6 +24,7 @@ public final class SmashcastScepterEpicFightEvents {
         }
 
         EpicFightSmashcastScepterCompat.install(player);
+        EpicFightSmashcastScepterCompat.tick(player);
     }
 
     @SubscribeEvent
