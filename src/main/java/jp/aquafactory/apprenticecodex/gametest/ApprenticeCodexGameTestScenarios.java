@@ -60,6 +60,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
+import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterFallProtectionEvent;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterReadyStateSyncEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
@@ -6213,6 +6214,49 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void smashcastScepterFallProtectionKeepsFallDistanceAndCancelsNextFall(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 4, 0),
+                    "smashcast_scepter_fall_protection_test");
+            player.fallDistance = 6.0F;
+            player.setDeltaMovement(0.12D, -0.8D, -0.08D);
+
+            SmashcastScepterFallProtectionEvent.register(player);
+
+            helper.assertTrue(player.fallDistance == 6.0F,
+                    "Smashcast Scepter fall protection should not reset fall distance");
+            helper.assertTrue(Math.abs(player.getDeltaMovement().y - SmashcastScepter.WIND_BURST_MOTION_EPSILON) < 1.0E-6D,
+                    "Smashcast Scepter fall protection should mimic vanilla Mace landing motion");
+
+            var protectedFall = postLivingFallEventForGameTest(player, 6.0F, 1.0F);
+            helper.assertTrue(protectedFall.isCanceled(),
+                    "Smashcast Scepter fall protection should cancel the next fall damage event");
+
+            var repeatedFall = postLivingFallEventForGameTest(player, 6.0F, 1.0F);
+            helper.assertFalse(repeatedFall.isCanceled(),
+                    "Smashcast Scepter fall protection should be consumed after one fall event");
+
+            var unprotectedPlayer = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 4, 0),
+                    "smashcast_scepter_unprotected_fall_test");
+            var unprotectedFall = postLivingFallEventForGameTest(unprotectedPlayer, 6.0F, 1.0F);
+            helper.assertFalse(unprotectedFall.isCanceled(),
+                    "Smashcast Scepter fall protection should not cancel unrelated player falls");
+        });
+    }
+
+    static void smashcastScepterFallProtectionExpiresAfterGracePeriod(GameTestHelper helper) {
+        var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 4, 0),
+                "smashcast_scepter_fall_protection_expire_test");
+        SmashcastScepterFallProtectionEvent.register(player);
+
+        helper.runAfterDelay(45, () -> {
+            var expiredFall = postLivingFallEventForGameTest(player, 6.0F, 1.0F);
+            helper.assertFalse(expiredFall.isCanceled(),
+                    "Smashcast Scepter fall protection should expire before late fall damage");
+            helper.succeed();
+        });
+    }
+
     static void rightClickMagicWeaponTooltipsStartWithShieldHint(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var rightClickMagicWeapons = ForgeRegistries.ITEMS.getValues().stream()
@@ -10980,6 +11024,16 @@ public final class ApprenticeCodexGameTestScenarios {
             float amount
     ) {
         var event = new net.minecraftforge.event.entity.living.LivingAttackEvent(player, source, amount);
+        MinecraftForge.EVENT_BUS.post(event);
+        return event;
+    }
+
+    private static net.minecraftforge.event.entity.living.LivingFallEvent postLivingFallEventForGameTest(
+            ServerPlayer player,
+            float distance,
+            float damageMultiplier
+    ) {
+        var event = new net.minecraftforge.event.entity.living.LivingFallEvent(player, distance, damageMultiplier);
         MinecraftForge.EVENT_BUS.post(event);
         return event;
     }
