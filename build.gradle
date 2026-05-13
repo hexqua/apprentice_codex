@@ -154,7 +154,7 @@ dependencies {
     // 武器関連対応、特殊武器アクション(e.g. 打撃詠唱杖の魔法発動)のコード接続用に参照も含める.
     // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
     compileOnly "maven.modrinth:epic-fight:${epicfight_version}"
-    runtimeOnly "maven.modrinth:epic-fight:${epicfight_version}"
+    // runtimeOnly "maven.modrinth:epic-fight:${epicfight_version}"
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
