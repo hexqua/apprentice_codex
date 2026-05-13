@@ -21,7 +21,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastScepter> {
     private static final String HIP_CORE_BONE = "hip_core";
@@ -42,10 +42,10 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
 
     @Override
     public void postRender(PoseStack poseStack, SmashcastScepter animatable, BakedGeoModel model,
-                           MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
+                            int packedLight, int packedOverlay, int colour) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
 
         if (isReRender) {
             return;
@@ -53,27 +53,26 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
 
         float hipCoreBrightness = resolvePulseBrightness(partialTick, 0.5F, 0.1F, 60.0F);
         renderEmissivePass(model, poseStack, bufferSource, animatable, RenderPass.HIP_CORE, partialTick,
-                hipCoreBrightness, hipCoreBrightness, hipCoreBrightness, alpha);
+                rgba(hipCoreBrightness, hipCoreBrightness, hipCoreBrightness, alpha(colour)));
 
         float headBrightness = resolvePulseBrightness(partialTick, 0.9F, 0.1F, 50.0F);
         renderEmissivePass(model, poseStack, bufferSource, animatable, RenderPass.HEAD_EMISSIVE, partialTick,
-                headBrightness, headBrightness, headBrightness, alpha);
+                rgba(headBrightness, headBrightness, headBrightness, alpha(colour)));
 
         var imbueCoreColor = resolveImbueCoreColor(animatable, partialTick);
         renderEmissivePass(model, poseStack, bufferSource, animatable, RenderPass.IMBUE_CORE, partialTick,
-                imbueCoreColor.red(), imbueCoreColor.green(), imbueCoreColor.blue(), alpha);
+                rgba(imbueCoreColor.red(), imbueCoreColor.green(), imbueCoreColor.blue(), alpha(colour)));
 
         renderCutoutPass(model, poseStack, bufferSource, animatable, RenderPass.RUNE, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
         renderCutoutPass(model, poseStack, bufferSource, animatable, RenderPass.SHELL, partialTick, packedLight,
-                packedOverlay, red, green, blue, alpha);
+                packedOverlay, colour);
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, SmashcastScepter animatable, GeoBone bone, RenderType renderType,
-                                  MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
-                                  float partialTick, int packedLight, int packedOverlay, float red, float green,
-                                  float blue, float alpha) {
+                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
+                                   float partialTick, int packedLight, int packedOverlay, int colour) {
         var hipCoreBone = isBoneOrChildOf(bone, HIP_CORE_BONE);
         var headEmissiveBone = isBoneOrChildOf(bone, HEAD_EMISSIVE_BONE);
         var runeBone = isBoneOrChildOf(bone, RUNE_BONE);
@@ -84,7 +83,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
         if (this.renderPass == RenderPass.NONE && specialBone) {
             renderChildBonesOnly(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -92,7 +91,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
         if (this.renderPass == RenderPass.HIP_CORE) {
             renderPassBone(
                     poseStack, animatable, bone, hipCoreBone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -100,7 +99,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
         if (this.renderPass == RenderPass.HEAD_EMISSIVE) {
             renderPassBone(
                     poseStack, animatable, bone, headEmissiveBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
+                    partialTick, packedLight, packedOverlay, colour
             );
             return;
         }
@@ -108,7 +107,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
         if (this.renderPass == RenderPass.RUNE) {
             renderPassBone(
                     poseStack, animatable, bone, runeBone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -116,7 +115,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
         if (this.renderPass == RenderPass.SHELL) {
             renderPassBone(
                     poseStack, animatable, bone, shellBone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
@@ -124,14 +123,14 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
         if (this.renderPass == RenderPass.IMBUE_CORE) {
             renderPassBone(
                     poseStack, animatable, bone, imbueCoreBone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
@@ -143,7 +142,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
 
     private void renderEmissivePass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                     SmashcastScepter animatable, RenderPass pass, float partialTick,
-                                    float red, float green, float blue, float alpha) {
+                                    int colour) {
         this.renderPass = pass;
         try {
             // emissive は通常パスと glint から切り離し、FULL_BRIGHT の専用パスだけで描画する。
@@ -157,10 +156,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.renderPass = RenderPass.NONE;
@@ -169,7 +165,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
 
     private void renderCutoutPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                   SmashcastScepter animatable, RenderPass pass, float partialTick,
-                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+                                  int packedLight, int packedOverlay, int colour) {
         this.renderPass = pass;
         try {
             var currentStack = this.currentItemStack != null ? this.currentItemStack : ItemStack.EMPTY;
@@ -189,10 +185,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
                     partialTick,
                     packedLight,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
         } finally {
             this.renderPass = RenderPass.NONE;
@@ -202,34 +195,34 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
     private void renderPassBone(PoseStack poseStack, SmashcastScepter animatable, GeoBone bone, boolean targetBone,
                                 RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                 boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                float red, float green, float blue, float alpha) {
+                                int colour) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, red, green, blue, alpha
+                    packedLight, packedOverlay, colour
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, SmashcastScepter animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      float red, float green, float blue, float alpha) {
+                                      int colour) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtils.prepMatrixForBone(poseStack, bone);
+        RenderUtil.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -241,10 +234,7 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
                 partialTick,
                 packedLight,
                 packedOverlay,
-                red,
-                green,
-                blue,
-                alpha
+                colour
         );
         poseStack.popPose();
     }
@@ -292,6 +282,17 @@ public final class SmashcastScepterRenderer extends GeoItemRenderer<SmashcastSce
         }
 
         return false;
+    }
+
+    private static float alpha(int colour) {
+        return ((colour >>> 24) & 0xFF) / 255.0F;
+    }
+
+    private static int rgba(float red, float green, float blue, float alpha) {
+        return (Mth.clamp(Math.round(alpha * 255.0F), 0, 255) << 24)
+                | (Mth.clamp(Math.round(red * 255.0F), 0, 255) << 16)
+                | (Mth.clamp(Math.round(green * 255.0F), 0, 255) << 8)
+                | Mth.clamp(Math.round(blue * 255.0F), 0, 255);
     }
 
     private record GlowColor(float red, float green, float blue) {

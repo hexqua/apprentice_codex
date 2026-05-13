@@ -4,18 +4,17 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SmashcastScepterReadyStateSyncEvent {
     private static final Map<UUID, Boolean> LAST_SYNCED_READY_STATES = new HashMap<>();
 
@@ -23,13 +22,12 @@ public final class SmashcastScepterReadyStateSyncEvent {
     }
 
     @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel serverLevel)) {
-            return;
-        }
-
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        var serverLevel = event.getLevel();
         for (var player : serverLevel.players()) {
-            syncIfChanged(player);
+            if (player instanceof ServerPlayer serverPlayer) {
+                syncIfChanged(serverPlayer);
+            }
         }
     }
 

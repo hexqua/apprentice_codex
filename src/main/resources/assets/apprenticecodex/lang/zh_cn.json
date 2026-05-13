@@ -301,8 +301,6 @@
   "enchantment.apprenticecodex.shell": "外壳",
   "enchantment.apprenticecodex.synchronization": "同步",
   "enchantment.apprenticecodex.neutralization": "中和",
-  "enchantment.apprenticecodex.compress": "压缩",
-  "enchantment.apprenticecodex.release": "释放",
 
   "enchantment.apprenticecodex.reflux.desc": "提升魔力恢复速度。",
   "enchantment.apprenticecodex.reservoir.desc": "提升最大魔力值。",
@@ -321,8 +319,6 @@
   "enchantment.apprenticecodex.shell.desc": "魔力屏障获得穿戴者护甲的防御值，但受击时护甲会受损。",
   "enchantment.apprenticecodex.synchronization.desc": "魔力屏障获得穿戴者护甲的附魔效果，但魔力消耗增加。",
   "enchantment.apprenticecodex.neutralization.desc": "当魔力屏障承受无视防御的攻击时，会完全抵消该攻击并将其转化为魔力。",
-  "enchantment.apprenticecodex.compress.desc": "高处强打成功时的伤害，以及可释放注入法术时的法术强度提升率会提高。",
-  "enchantment.apprenticecodex.release.desc": "高处强打成功时，将使用者击向空中。",
 
   "entity.apprenticecodex.sky_edge_projectile": "天际刃",
   "entity.apprenticecodex.archer_multiple_bow": "多重射手弓",

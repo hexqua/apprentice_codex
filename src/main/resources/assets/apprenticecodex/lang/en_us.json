@@ -301,8 +301,6 @@
   "enchantment.apprenticecodex.shell": "Shell",
   "enchantment.apprenticecodex.synchronization": "Synchronization",
   "enchantment.apprenticecodex.neutralization": "Neutralization",
-  "enchantment.apprenticecodex.compress": "Compress",
-  "enchantment.apprenticecodex.release": "Release",
 
   "enchantment.apprenticecodex.reflux.desc": "Increases mana regeneration rate.",
   "enchantment.apprenticecodex.reservoir.desc": "Increases maximum mana.",
@@ -321,8 +319,6 @@
   "enchantment.apprenticecodex.shell.desc": "Mana Barrier gains the defense value of the wearer's armor, but the armor will be damaged when the wearer is hit.",
   "enchantment.apprenticecodex.synchronization.desc": "Mana Barrier gains the effects of the enchantments on the wearer's armor, but mana consumption increases.",
   "enchantment.apprenticecodex.neutralization.desc": "When Mana Barrier takes an attack that ignores defense, it completely nullifies the attack and absorbs it as mana instead.",
-  "enchantment.apprenticecodex.compress.desc": "Increases smash damage and the spell power scaling when a falling smash casts its imbued spell.",
-  "enchantment.apprenticecodex.release.desc": "Launches the user upward when a falling smash succeeds.",
 
   "entity.apprenticecodex.sky_edge_projectile": "Sky Edge Sword",
   "entity.apprenticecodex.archer_multiple_bow": "Archer Multiple Bow",

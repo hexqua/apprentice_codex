@@ -2,11 +2,9 @@ package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
-import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -14,15 +12,15 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -30,12 +28,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SmashcastScepterAttackEvent {
     private static final Map<ServerLevel, Map<UUID, PendingSmash>> PENDING_SMASHES = new WeakHashMap<>();
+    private static final int MACE_SMASH_LEVEL_EVENT = 2013;
+    private static final int MACE_SMASH_LEVEL_EVENT_DATA = 750;
     private static final int TREMOR_BLOCK_LIMIT = 16;
     private static final double SMASH_TREMOR_RADIUS = 3.0D;
-    // メイス粉塵を 1.21 寄せで強めたため、tremor も見劣りしない振れ幅へ寄せる。
     private static final float TREMOR_IMPULSE_MULTIPLIER = 1.75F;
 
     private SmashcastScepterAttackEvent() {
@@ -68,23 +67,8 @@ public final class SmashcastScepterAttackEvent {
         return stack.getItem() instanceof SmashcastScepter scepter && scepter.canStartSmashcast(player, stack);
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void onLivingHurt(LivingHurtEvent event) {
-        var player = resolveDirectPlayerAttack(event.getSource());
-        if (player == null || !(player.getMainHandItem().getItem() instanceof SmashcastScepter)) {
-            return;
-        }
-
-        var pending = getPending(player);
-        if (pending == null || !pending.matches(event.getEntity(), player.serverLevel().getGameTime())) {
-            return;
-        }
-
-        event.setAmount(event.getAmount() + SmashcastScepter.calculateSmashBonusDamage(player.getMainHandItem(), pending.fallDistance()));
-    }
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingDamage(LivingDamageEvent event) {
+    public static void onLivingDamage(LivingDamageEvent.Post event) {
         var player = resolveDirectPlayerAttack(event.getSource());
         if (player == null || !(player.getMainHandItem().getItem() instanceof SmashcastScepter scepter)) {
             return;
@@ -102,17 +86,13 @@ public final class SmashcastScepterAttackEvent {
         event.getEntity().invulnerableTime = 0;
         player.fallDistance = 0.0F;
         applyAreaKnockback(player, event.getEntity());
-        applyReleaseBounce(player, stack);
-        playSmashVisualEffects(player.serverLevel(), event.getEntity(), pending.fallDistance());
+        playSmashVisualEffects(player, event.getEntity(), pending.fallDistance());
         playSmashSound(player, pending.fallDistance());
     }
 
     @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel serverLevel)) {
-            return;
-        }
-
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        var serverLevel = event.getLevel();
         var smashes = PENDING_SMASHES.get(serverLevel);
         if (smashes == null || smashes.isEmpty()) {
             return;
@@ -133,11 +113,6 @@ public final class SmashcastScepterAttackEvent {
             return null;
         }
         return player;
-    }
-
-    private static PendingSmash getPending(ServerPlayer player) {
-        var smashes = PENDING_SMASHES.get(player.serverLevel());
-        return smashes == null ? null : smashes.get(player.getUUID());
     }
 
     private static PendingSmash removePending(ServerPlayer player) {
@@ -174,44 +149,12 @@ public final class SmashcastScepterAttackEvent {
         }
     }
 
-    private static void applyReleaseBounce(Player player, ItemStack stack) {
-        var releaseLevel = SmashcastScepter.getReleaseLevel(stack);
-        var releaseImpulse = SmashcastScepter.calculateReleaseBounceImpulse(releaseLevel);
-        if (releaseImpulse <= 0.0D) {
-            return;
+    private static void playSmashVisualEffects(ServerPlayer player, LivingEntity impactTarget, float fallDistance) {
+        if (impactTarget.onGround()) {
+            player.setSpawnExtraParticlesOnFall(true);
         }
-
-        var movement = player.getDeltaMovement();
-        player.setDeltaMovement(movement.x, SmashcastScepter.WIND_BURST_MOTION_EPSILON + releaseImpulse, movement.z);
-        player.hasImpulse = true;
-        player.hurtMarked = true;
-        if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(serverPlayer));
-        }
-    }
-
-    private static void playSmashVisualEffects(ServerLevel level, LivingEntity impactTarget, float fallDistance) {
-        var center = impactTarget.position();
-        spawnMaceLikeBlockDust(level, center);
-        spawnTremorBlocks(level, center, fallDistance);
-    }
-
-    private static void spawnMaceLikeBlockDust(ServerLevel level, Vec3 center) {
-        var impactBlock = findVisibleGroundBlock(level, center.x, center.y + 1.0D, center.z, 4);
-        if (impactBlock == null) {
-            return;
-        }
-
-        var impactState = level.getBlockState(impactBlock);
-        level.sendParticles(new SmashcastDustPillarParticleOptions(impactState),
-                impactBlock.getX() + 0.5D,
-                impactBlock.getY() + 1.0D,
-                impactBlock.getZ() + 0.5D,
-                0,
-                0.0D,
-                0.0D,
-                0.0D,
-                0.0D);
+        player.serverLevel().levelEvent(MACE_SMASH_LEVEL_EVENT, impactTarget.getOnPos(), MACE_SMASH_LEVEL_EVENT_DATA);
+        spawnTremorBlocks(player.serverLevel(), impactTarget.position(), fallDistance);
     }
 
     private static void spawnTremorBlocks(ServerLevel level, Vec3 center, float fallDistance) {
@@ -270,7 +213,7 @@ public final class SmashcastScepterAttackEvent {
             var pos = start.below(offset);
             var state = level.getBlockState(pos);
             if (!state.isAir()
-                    && state.getRenderShape() == net.minecraft.world.level.block.RenderShape.MODEL
+                    && state.getRenderShape() == RenderShape.MODEL
                     && !state.getCollisionShape(level, pos).isEmpty()) {
                 return pos;
             }

@@ -292,53 +292,32 @@
     ]
   },
   "smashcast_scepter_smash_air": {
-    "_apprentice_codex_note": "ベースはSoundEvents.PLAYER_ATTACK_CRIT",
+    "_apprentice_codex_note": "ベースはSoundEvents.MACE_SMASH_AIR",
     "category": "player",
     "subtitle": "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air",
     "sounds": [
-      "minecraft:entity/player/attack/crit1",
-      "minecraft:entity/player/attack/crit2",
-      "minecraft:entity/player/attack/crit3"
+      "minecraft:item/mace/smash_air1",
+      "minecraft:item/mace/smash_air2",
+      "minecraft:item/mace/smash_air3"
     ]
   },
   "smashcast_scepter_smash_ground": {
-    "_apprentice_codex_note": "ベースはSoundEvents.ANVIL_LAND",
+    "_apprentice_codex_note": "ベースはSoundEvents.MACE_SMASH_GROUND",
     "category": "player",
     "subtitle": "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground",
     "sounds": [
-      "minecraft:random/anvil_land"
+      "minecraft:item/mace/smash_ground1",
+      "minecraft:item/mace/smash_ground2",
+      "minecraft:item/mace/smash_ground3",
+      "minecraft:item/mace/smash_ground4"
     ]
   },
   "smashcast_scepter_smash_ground_heavy": {
-    "_apprentice_codex_note": "ベースはSoundEvents.GENERIC_EXPLODE",
+    "_apprentice_codex_note": "ベースはSoundEvents.MACE_SMASH_GROUND_HEAVY",
     "category": "player",
     "subtitle": "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy",
     "sounds": [
-      {
-        "name": "minecraft:random/explode1",
-        "pitch": 0.75,
-        "volume": 0.8
-      },
-      {
-        "name": "minecraft:random/explode2",
-        "pitch": 0.75,
-        "volume": 0.8
-      },
-      {
-        "name": "minecraft:random/explode3",
-        "pitch": 0.75,
-        "volume": 0.8
-      },
-      {
-        "name": "minecraft:random/explode4",
-        "pitch": 0.75,
-        "volume": 0.8
-      },
-      {
-        "name": "minecraft:random/anvil_land",
-        "pitch": 0.8,
-        "volume": 0.9
-      }
+      "minecraft:item/mace/smash_ground_heavy"
     ]
   },
   "vanilla_summon_weapon": {

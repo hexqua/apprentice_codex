@@ -292,6 +292,14 @@ public final class ApprenticeCodexGameTestScenarios {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "magic_capable_weapon")
     );
+    private static final TagKey<Item> MALUM_ENCHANTABLE_ANIMATED = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "enchantable/animated")
+    );
+    private static final TagKey<Item> MALUM_ENCHANTABLE_SPIRIT_PLUNDER = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "enchantable/spirit_plunder")
+    );
     private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("create", "contraption_controlled")
@@ -2993,7 +3001,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
             var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
-            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("陷蜻取た驍ｯ蜻惹ｾ｡驕抵ｽｺ髫ｱ繝ｻ));
+            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("写本継承確認"));
             explorersCodexStack.set(DataComponents.REPAIR_COST, 7);
             var unbreaking = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                     .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
@@ -3016,7 +3024,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var result = recipe.assemble(craftingInput, helper.getLevel().registryAccess());
             helper.assertTrue(result.is(ItemRegistry.EXPLORERS_CODEX.get()),
                     "Transfer recipe should return Explorer's Codex but got " + BuiltInRegistries.ITEM.getKey(result.getItem()));
-            helper.assertTrue("陷蜻取た驍ｯ蜻惹ｾ｡驕抵ｽｺ髫ｱ繝ｻ.equals(result.getHoverName().getString()),
+            helper.assertTrue("写本継承確認".equals(result.getHoverName().getString()),
                     "Explorer's Codex custom name was not preserved: " + result.getHoverName().getString());
             helper.assertTrue(result.getOrDefault(DataComponents.REPAIR_COST, 0) == 7,
                     "Explorer's Codex repair cost was not preserved: " + result.getOrDefault(DataComponents.REPAIR_COST, 0));
@@ -3324,7 +3332,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
             helper.assertTrue(imbuedSchool != null, "Copper Spell Amplifier imbued school could not be resolved");
 
-            // school ID 邵ｺ・ｮ陷ｴ・ｳ陝・・・ｸﾂ髢ｾ・ｴ邵ｺ・ｧ邵ｺ・ｯ邵ｺ・ｪ邵ｺ荳環竏ｬ・ｧ・｣雎趣ｽｺ邵ｺ霈費ｽ檎ｸｺ繝ｻspell power 陞ｻ讓環・ｧ邵ｺ・ｫ髯ｬ諛茨ｽｭ・｣邵ｺ讙趣ｽｩ髦ｪ竏ｪ郢ｧ蠕鯉ｽ狗ｸｺ阮吮・郢ｧ蝣､・｢・ｺ髫ｱ髦ｪ笘・ｹｧ繝ｻ
+            // school ID の厳密一致ではなく、解決された spell power 属性に補正が積まれることを確認する.
             var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(resolvedSpellPower != null,
                     "Copper Spell Amplifier could not resolve spell power attribute for stacking: " + imbuedSchool.getId());
@@ -4973,8 +4981,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
 
             for (var stack : stacks) {
-                // Malum 邵ｺ・ｮ soul_hunter_weapon 邵ｺ・ｯ main hand 陷題ざ鄂ｲ邵ｺ・ｪ邵ｺ・ｮ邵ｺ・ｧ邵ｲ繝ｻ
-                // offhand 驍会ｽｻ邵ｺ・ｯ 1.21.1 邵ｺ・ｧ郢ｧ繧・ｽｾ謐ｺ謫らｸｺ・ｮ enchant 鬮ｱ・｢郢ｧ蝣､・ｶ・ｭ隰問・笘・ｹｧ蜿･辯戊ｬ闊後定摎・ｺ陞ｳ螢ｹ笘・ｹｧ荵敖繝ｻ
+                // Malum の soul_hunter_weapon は main hand 前提なので、
+                // offhand 系は 1.21.1 でも従来の enchant 面を維持する前提で固定する。
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
@@ -5771,7 +5779,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow vanilla mode selection should not show an ammo badge");
             helper.assertTrue(views.get(1).iconStack().is(Items.ARROW),
                     "Elemental Bow arrow-only selection should render as an arrow icon");
-            helper.assertTrue("遶上・.equals(views.get(1).badgeText()),
+            helper.assertTrue("∞".equals(views.get(1).badgeText()),
                     "Elemental Bow arrow-only selection should show infinity while Infinity is enchanted: " + views.get(1).badgeText());
 
             var fireView = views.stream()
@@ -10202,7 +10210,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertManagedHealingBloomUuid(helper, owner, bloomUuid,
                 "Healing Bloom offline-death setup should start with a managed bloom");
 
-        // 郢ｧ・ｪ郢晁ｼ釆帷ｹｧ・､郢晢ｽｳ闕ｳ・ｭ邵ｺ・ｮ雎・ｽｻ闔・｡邵ｺ・ｧ邵ｺ・ｯ owner 郢ｧ繝ｻServerPlayer 邵ｺ・ｨ邵ｺ蜉ｱ窶ｻ陟題ｼ費ｿ邵ｺ螢ｹﾂ竏晏初隴弱ｊ・ｧ・｣鬮ｯ・､邵ｺ霈費ｽ檎ｸｺ・ｪ邵ｺ繝ｻstate 邵ｺ譴ｧ・ｮ荵晢ｽ狗ｸｲ繝ｻ
+        // オフライン中の死亡では owner を ServerPlayer として引けず、即時解除されない state が残る。
         clearHealingBloomCachedOwner(bloom);
         killHealingBloom(helper.getLevel(), bloom);
         assertManagedHealingBloomUuid(helper, owner, bloomUuid,
@@ -10828,9 +10836,9 @@ public final class ApprenticeCodexGameTestScenarios {
         var casterPos = new BlockPos(0, 3, 0);
         var matureCropPos = new BlockPos(3, 2, 0);
         var immatureCropPos = new BlockPos(4, 2, 0);
-        // age 郢晢ｽｪ郢ｧ・ｻ郢昴・繝ｨ陷ｿ螳茨ｽｩ・ｫ邵ｺ・ｮ隶諛・ｽｨ・ｼ邵ｺ讙主ｲｼ騾ｧ繝ｻﾂ繝ｻ
-        // 陝・沁・ｺ・ｦ驍会ｽｻ邵ｺ・ｯ GameTest/FakePlayer 霑ｺ・ｰ陟・・笆｡邵ｺ・ｨ隴丞ｼｱ・狗ｸｺ霈斐・髢蜍滓・驍ｯ・ｭ隰問・繝ｻ隴厄ｽｴ隴・ｽｰ鬯・・繝ｻ郢晏ｼｱ縺・ｹｧ・ｺ郢ｧ雋槫･ｳ邵ｺ莉｣・・ｸｺ蜷ｶ・樒ｸｺ貅假ｽ∫ｸｲ繝ｻ
-        // 邵ｺ阮呻ｼ・ｸｺ・ｧ邵ｺ・ｯ Soul Sand 邵ｺ・ｰ邵ｺ莉｣縲帝墓ｺｷ・ｭ菫ｶ謫・脂・ｶ郢ｧ蜻茨ｽｺﾂ邵ｺ貅倪雷郢ｧ荵昴Ο郢ｧ・ｶ郢晢ｽｼ郢ｧ・ｦ郢ｧ・ｩ郢晢ｽｼ郢晏現縲定愾螳茨ｽｩ・ｫ郢晢ｽｭ郢ｧ・ｸ郢昴・縺鷹明・ｪ闖ｴ阮呻ｽ定ｮ諛・ｽｨ・ｼ邵ｺ蜷ｶ・狗ｸｲ繝ｻ
+        // age リセット収穫の検証が目的。
+        // 小麦系は GameTest/FakePlayer 環境だと明るさ・耕地維持・更新順のノイズを受けやすいため、
+        // ここでは Soul Sand だけで生存条件を満たせるネザーウォートで収穫ロジック自体を検証する。
         helper.setBlock(matureCropPos.below(), Blocks.SOUL_SAND);
         helper.setBlock(immatureCropPos.below(), Blocks.SOUL_SAND);
         helper.setBlock(matureCropPos, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, NetherWartBlock.MAX_AGE));
@@ -10887,7 +10895,7 @@ public final class ApprenticeCodexGameTestScenarios {
         var tomatoItem = requireForgeItem(helper, FARMERS_DELIGHT_TOMATO_ITEM);
         var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
         helper.setBlock(baseTomatoPos.below(), Blocks.FARMLAND);
-        // rope 闔牙･窶ｳ郢晏現繝ｻ郢晏現繝ｻ闕ｳ鬆托ｽｮ・ｵ邵ｺ・ｧ陞滂ｽｩ闔蠅捺｡ｶ邵ｺ繝ｻ竊鍋ｸｺ・ｪ郢ｧ鄙ｫ・・ｸｺ蜷ｶ・樒ｸｺ貅假ｽ∫ｸｲ・嫗meTest 邵ｺ・ｧ郢ｧ繧奇ｽ｣諛ｷ蜍ｧ陷亥ｳｨ・帝р・ｮ邵ｺ荳環繝ｻ
+        // rope 付きトマトは上段で天井扱いになりやすいため、GameTest でも補助光を置く。
         helper.setBlock(baseTomatoPos.east(), Blocks.GLOWSTONE);
         helper.setBlock(baseTomatoPos, withIntegerProperty(helper, tomatoBlock.defaultBlockState(), "age", 0));
         helper.setBlock(
@@ -10900,8 +10908,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         );
 
-        // HarvestMoon 邵ｺ蠕｡・ｾ譎擾ｽｭ蛟･・邵ｺ・ｦ邵ｺ繝ｻ・玖愾・ｳ郢ｧ・ｯ郢晢ｽｪ郢昴・縺鷹お迹夲ｽｷ・ｯ邵ｺ譏ｴ繝ｻ郢ｧ繧・・郢ｧ蝣､蟲ｩ隰暦ｽ･鬨ｾ螢ｹ・邵ｲ繝ｻ
-        // 隰悟鴻繝ｻ邵ｺ蜉ｱ笳・rope 闔牙･窶ｳ闕ｳ鬆托ｽｮ・ｵ郢晏現繝ｻ郢晏現・定愾螳茨ｽｩ・ｫ邵ｺ蜉ｱ窶ｻ郢ｧ繝ｻrope 霑･・ｶ隲ｷ荵昶ｲ陞｢鄙ｫ・檎ｸｺ・ｪ邵ｺ繝ｻ・・ｸｺ・ｨ郢ｧ蜻茨ｽ､諛・ｽｨ・ｼ邵ｺ蜷ｶ・狗ｸｲ繝ｻ
+        // HarvestMoon が依存している右クリック経路そのものを直接通し、
+        // 成熟した rope 付き上段トマトを収穫しても rope 状態が壊れないことを検証する。
         var result = BlockTools.useBlockByPlayerMainHand(helper.getLevel(), player, helper.absolutePos(ropeTomatoPos), new ItemStack(Items.STICK));
         helper.assertTrue(result.consumesAction(), "Farmer's Delight rope tomato block use should consume the action but got " + result);
 
@@ -10947,8 +10955,8 @@ public final class ApprenticeCodexGameTestScenarios {
         }
 
         var cropPositions = new ArrayList<BlockPos>();
-        // GameTest 邵ｺ・ｮ runAtTickTime 邵ｺ荵晢ｽ芽ｭ崢陋ｻ譏ｴ繝ｻ髫包ｽｳ雋ゑｽｬ邵ｺ・ｾ邵ｺ・ｧ邵ｺ・ｫ HarvestMoonJob 邵ｺ迹夲ｽ､繝ｻ辟・tick 鬨ｾ・ｲ郢ｧﾂ霑ｺ・ｰ陟・・窶ｲ邵ｺ繧・ｽ狗ｸｺ貅假ｽ∫ｸｲ繝ｻ
-        // 3繝ｻ繝ｻ tick 陋ｻ繝ｻﾂ・ｲ郢ｧ阮吶堤ｹｧ繧域ざ陷・ｽｦ騾・・窶ｲ隹ｿ荵晢ｽ狗ｸｺ・ｰ邵ｺ莉｣繝ｻ闖ｴ諛・ｻ・ｬｨ・ｰ郢ｧ蝣､・ｽ・ｮ邵ｺ繝ｻ窶ｻ false negative 郢ｧ蟶昶茜邵ｺ莉｣・狗ｸｲ繝ｻ
+        // GameTest の runAtTickTime から最初の観測までに HarvestMoonJob が複数 tick 進む環境があるため、
+        // 3～4 tick 分進んでも未処理が残るだけの作物数を置いて false negative を避ける。
         for (var x = 1; x <= 9; ++x) {
             for (var z = -8; z <= 8; ++z) {
                 var pos = new BlockPos(x, 3, z);
@@ -11286,8 +11294,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
 
-        // Better Combat 邵ｺ・ｫ驕ｨ・ｺ隰・ｽｱ邵ｺ繝ｻ・・ｹｧ蠕娯ｻ郢ｧ繝ｻinventory.offhand[0] 髢ｾ・ｪ闖ｴ阮吶・闖ｫ譎・亜邵ｺ霈費ｽ檎ｹｧ荵昶螺郢ｧ竏堋繝ｻ
-        // 隰ｨ隨ｬ・ｸ閧ｲ・ｳ・ｻ郢昴・縺帷ｹ晏現繝ｻ陞ｳ貅倥○郢晢ｽｭ郢昴・繝ｨ邵ｺ・ｸ騾ｶ・ｴ隰暦ｽ･驕ｨ髦ｪ・鍋ｸｺ・ｧ鬮ｫ・ｰ髦｡・ｽ陷題ざ鄂ｲ郢ｧ雋槭・霑ｴ・ｾ邵ｺ蜷ｶ・狗ｸｲ繝ｻ
+        // Better Combat に空扱いされても inventory.offhand[0] 自体は保持されるため、
+        // 救済系テストは実スロットへ直接積んで隠蔽前提を再現する。
         player.getInventory().offhand.set(0, offhandStack.copy());
         return player;
     }
@@ -11460,8 +11468,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
-        // SummonManager 邵ｺ・ｯ owner 郢ｧ繝ｻlevel lookup 邵ｺ・ｧ陟題ｼ披ｳ騾ｶ・ｴ邵ｺ蜉ｱ窶ｻ recast cleanup 邵ｺ蜷ｶ・狗ｸｺ貅假ｽ∫ｸｲ繝ｻ
-        // Archer Multiple 邵ｺ・ｮ summon 雎ｸ蝓滂ｽｻ繝ｻ繝ｦ郢ｧ・ｹ郢晏現縲堤ｸｺ・ｯ FakePlayer 郢ｧ繧・｡郢晢ｽｼ郢晢ｽｫ郢晏ｳｨ竏郁愾繧・・邵ｺ霈披雷郢ｧ荵敖繝ｻ
+        // SummonManager は owner を level lookup で引き直して recast cleanup するため、
+        // Archer Multiple の summon 消滅テストでは FakePlayer もワールドへ参加させる。
         helper.getLevel().addFreshEntity(player);
         return player;
     }
@@ -11513,8 +11521,8 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static void prepareElevatedStonePlatform(GameTestHelper helper, BlockPos centerPos) {
-        // basic_floor 邵ｺ・ｯ 5x3x5 邵ｺ・ｨ陝・ｸ奇ｼ・ｸｺ荳環・彗tch 髴醍ｬｬ逎・ｩ溷調・ｽ・ｮ邵ｺ・ｮ陜ｨ・ｰ陟厄ｽ｢邵ｺ・ｸ隰暦ｽ｢驍擾ｽ｢郢ｧ繝ｻﾎ樒ｹｧ・､邵ｺ謔溽ｲｾ郢ｧ荳奇ｽ檎ｹｧ繝ｻ笘・ｸｺ繝ｻﾂ繝ｻ
-        // 髮懶ｽｳ陜｣・ｴ郢ｧ蟶晢ｽｫ菫ｶ蝨堤ｸｺ・ｸ髢ｾ・ｪ陷鷹亂縲定抄諛岩夢邵ｺ・ｦ邵ｲ竏晄耳郢昴・縺帷ｹ晏現窶ｲ髢ｾ・ｪ陋ｻ繝ｻ繝ｻ 5x5 鬯・ｼ懈ｲｺ邵ｺ・ｰ邵ｺ莉｣・定愾繧峨・邵ｺ蜷ｶ・狗ｹｧ蛹ｻ竕ｧ邵ｺ・ｫ陜暦ｽｺ陞ｳ螢ｹ笘・ｹｧ荵敖繝ｻ
+        // basic_floor は 5x3x5 と小さく、batch 近接配置の地形へ探索やレイが吸われやすい。
+        // 足場を高所へ自前で作って、各テストが自分の 5x5 領域だけを参照するように固定する。
         var floorY = centerPos.getY() - 1;
         for (var x = -2; x <= 2; ++x) {
             for (var z = -2; z <= 2; ++z) {
@@ -11557,8 +11565,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
-        // owner lookup 邵ｺ・ｨ openers 邵ｺ・ｮ close 陝・ｽｾ髮趣ｽ｡隰暦ｽ｢驍擾ｽ｢邵ｺ繝ｻserver 陋幢ｽｴ邵ｺ・ｮ player list / level lookup 郢ｧ蜑・ｽｽ・ｿ邵ｺ繝ｻ笳・ｹｧ竏堋繝ｻ
-        // Personal Shelf 邵ｺ・ｮ GameTest 邵ｺ・ｧ邵ｺ・ｯ FakePlayer 郢ｧ繧・｡郢晢ｽｼ郢晢ｽｫ郢晏ｳｨ竏郁愾繧・・邵ｺ霈披雷郢ｧ荵敖繝ｻ
+        // owner lookup と openers の close 対象探索が server 側の player list / level lookup を使うため、
+        // Personal Shelf の GameTest では FakePlayer もワールドへ参加させる。
         helper.getLevel().addFreshEntity(player);
         return player;
     }
@@ -12042,6 +12050,21 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedRightClickMagicWeaponEnchantments(RegistryAccess registryAccess, ItemStack stack) {
+        if (stack.is(ItemRegistry.SMASHCAST_SCEPTER.get())) {
+            var expectedEnchantments = collectAllowedEnchantments(
+                    registryAccess,
+                    enchantment -> enchantment.value().canEnchant(new ItemStack(Items.MACE))
+                            && !isDurabilityTargetEnchantment(enchantment)
+            );
+            expectedEnchantments.addAll(registryIdSet(
+                    Enchantments.TRANSCENDENCE,
+                    Enchantments.WISDOM,
+                    Enchantments.PLUNDER
+            ));
+            addExpectedMalumSmashcastScepterEnchantmentsIfPresent(stack, expectedEnchantments);
+            return expectedEnchantments;
+        }
+
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
@@ -12550,6 +12573,18 @@ public final class ApprenticeCodexGameTestScenarios {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_MAGIC_CAPABLE_WEAPON)) {
             expectedEnchantments.add(MALUM_HAUNTED);
             expectedEnchantments.add(MALUM_ANIMATED);
+        }
+    }
+
+    private static void addExpectedMalumSmashcastScepterEnchantmentsIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+        if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+            return;
+        }
+        if (stack.is(MALUM_ENCHANTABLE_ANIMATED)) {
+            expectedEnchantments.add(MALUM_ANIMATED);
+        }
+        if (stack.is(MALUM_ENCHANTABLE_SPIRIT_PLUNDER)) {
+            expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
         }
     }
 
@@ -13443,7 +13478,7 @@ public final class ApprenticeCodexGameTestScenarios {
             return false;
         }
 
-        // optional 關捺剌・ｭ蛟･繝ｻ absent 霑ｺ・ｰ陟・・縲堤ｸｺ・ｯ Create 陝・ｉ逡醍ｹ昴・縺帷ｹ晏現・定ｬ御ｻ咏ｲ･隰・ｽｱ邵ｺ繝ｻ縲定ｬ壽㈱・邵ｲ繝ｻﾂ螢ｼ・ｸ・ｸ隶諛・ｽｨ・ｼ邵ｺ・ｮ隘搾ｽｷ陷榊｢督・ｧ郢ｧ雋樞煤陷亥現笘・ｹｧ荵敖繝ｻ
+        // optional 依存の absent 環境では Create 専用テストを成功扱いで抜け、通常検証の起動性を優先する。
         helper.succeed();
         return true;
     }

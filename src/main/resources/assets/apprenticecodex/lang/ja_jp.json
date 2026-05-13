@@ -305,8 +305,6 @@
   "enchantment.apprenticecodex.shell": "外殻",
   "enchantment.apprenticecodex.synchronization": "同期",
   "enchantment.apprenticecodex.neutralization": "中和",
-  "enchantment.apprenticecodex.compress": "圧縮",
-  "enchantment.apprenticecodex.release": "解放",
 
   "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
   "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",
@@ -325,8 +323,6 @@
   "enchantment.apprenticecodex.shell.desc": "マナ障壁が装備者の防具の防御力を得ますが、被弾時に防具が損傷するようになります。",
   "enchantment.apprenticecodex.synchronization.desc": "マナ障壁が装備者の防具のエンチャントの効果を得ますが、消費マナが増えます。",
   "enchantment.apprenticecodex.neutralization.desc": "マナ障壁が防御力を無視する攻撃を受けた際に完全に無効化し、代わりにマナとして吸収します。",
-  "enchantment.apprenticecodex.compress.desc": "高所からの強打成功時のダメージと、注入魔法を詠唱できた時の魔法力上昇率が上昇します。",
-  "enchantment.apprenticecodex.release.desc": "高所からの強打成功時、使用者を上空へ打ち上げます。",
 
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
   "entity.apprenticecodex.archer_multiple_bow" : "アーチャーオプションボウ",

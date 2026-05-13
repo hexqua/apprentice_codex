@@ -11,44 +11,43 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.renderer.item.SmashcastScepterRenderer;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
@@ -70,28 +69,13 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
     private static final double MAX_SMASH_SPELL_POWER_MULTIPLIER = 10.0D;
     private static final double LOW_FALL_SPELL_POWER_PER_BLOCK = 0.10D;
     private static final double HIGH_FALL_SPELL_POWER_PER_BLOCK = 0.05D;
-    private static final double COMPRESS_SPELL_POWER_PER_LEVEL_PER_BLOCK = 0.02D;
-    private static final float COMPRESS_DAMAGE_PER_LEVEL_PER_BLOCK = 0.5F;
-    private static final double WIND_BURST_FALLBACK_BASE = 1.5D;
-    private static final double WIND_BURST_FALLBACK_PER_LEVEL_ABOVE_FIRST = 0.35D;
-    private static final UUID SMASH_SPELL_POWER_MODIFIER_ID =
-            UUID.fromString("f8cb06ee-20d8-46f9-bc53-69f5a7452abf");
-    private static final String SMASH_SPELL_POWER_MODIFIER_NAME = "apprenticecodex.smashcast_scepter.smash_spell_power";
+    private static final ResourceLocation SMASH_SPELL_POWER_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "smashcast_scepter_smash_spell_power");
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_READY = RawAnimation.begin().thenLoop("ready");
     private static final RawAnimation ANIM_SMASH = RawAnimation.begin().thenPlay("smash");
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
-    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
-            ResourceLocation.fromNamespaceAndPath("malum", "spirit_plunder");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
-            Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_weapon")
-    );
-    private static final Set<ResourceLocation> ALLOWED_VANILLA_ENCHANTMENTS = Set.of(
-            ResourceLocation.withDefaultNamespace("smite"),
-            ResourceLocation.withDefaultNamespace("bane_of_arthropods"),
-            ResourceLocation.withDefaultNamespace("fire_aspect")
-    );
+    private static final ItemStack VANILLA_MACE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.MACE);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -203,16 +187,15 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
             return false;
         }
 
-        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
+        var spellPowerAttribute = player.getAttribute(AttributeRegistry.SPELL_POWER);
         if (spellPowerAttribute != null) {
             spellPowerAttribute.removeModifier(SMASH_SPELL_POWER_MODIFIER_ID);
             var spellPowerMultiplier = calculateSmashSpellPowerMultiplier(stack, fallDistance);
             if (spellPowerMultiplier > 1.0D) {
                 spellPowerAttribute.addTransientModifier(new AttributeModifier(
                         SMASH_SPELL_POWER_MODIFIER_ID,
-                        SMASH_SPELL_POWER_MODIFIER_NAME,
                         spellPowerMultiplier - 1.0D,
-                        AttributeModifier.Operation.MULTIPLY_TOTAL
+                        AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                 ));
             }
         }
@@ -247,23 +230,32 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         }
     }
 
-    public static boolean isSmashAttack(Player player) {
-        return player != null
-                && player.fallDistance > SMASH_ATTACK_FALL_DISTANCE_THRESHOLD
-                && !player.onGround()
-                && !player.isFallFlying()
-                && !player.isInWater()
-                && !player.hasEffect(net.minecraft.world.effect.MobEffects.SLOW_FALLING);
+    public static boolean isSmashAttack(LivingEntity entity) {
+        return entity != null
+                && entity.fallDistance > SMASH_ATTACK_FALL_DISTANCE_THRESHOLD
+                && !entity.onGround()
+                && !entity.isFallFlying()
+                && !entity.isInWater()
+                && !entity.hasEffect(net.minecraft.world.effect.MobEffects.SLOW_FALLING);
     }
 
     public static float calculateSmashBonusDamage(ItemStack stack, float fallDistance) {
+        return calculateBaseSmashBonusDamage(fallDistance);
+    }
+
+    public static float calculateSmashBonusDamage(ItemStack stack, float fallDistance, ServerLevel level,
+                                                  Entity target, DamageSource source) {
+        return calculateBaseSmashBonusDamage(fallDistance)
+                + EnchantmentHelper.modifyFallBasedDamage(level, stack, target, source, 0.0F) * Math.max(0.0F, fallDistance);
+    }
+
+    private static float calculateBaseSmashBonusDamage(float fallDistance) {
         var clampedFallDistance = Math.max(0.0F, fallDistance);
-        var maceBonus = clampedFallDistance <= 3.0F
+        return clampedFallDistance <= 3.0F
                 ? 4.0F * clampedFallDistance
                 : clampedFallDistance <= 8.0F
                 ? 12.0F + 2.0F * (clampedFallDistance - 3.0F)
                 : 22.0F + clampedFallDistance - 8.0F;
-        return maceBonus + getCompressLevel(stack) * clampedFallDistance * COMPRESS_DAMAGE_PER_LEVEL_PER_BLOCK;
     }
 
     public static double calculateSmashSpellPowerMultiplier(ItemStack stack, float fallDistance) {
@@ -272,23 +264,9 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
                 ? clampedFallDistance * LOW_FALL_SPELL_POWER_PER_BLOCK
                 : 10.0D * LOW_FALL_SPELL_POWER_PER_BLOCK
                 + (clampedFallDistance - 10.0D) * HIGH_FALL_SPELL_POWER_PER_BLOCK;
-        var compressBonus = clampedFallDistance * getCompressLevel(stack) * COMPRESS_SPELL_POWER_PER_LEVEL_PER_BLOCK;
-        return 1.0D + Math.min(MAX_SMASH_SPELL_POWER_MULTIPLIER, baseBonus + compressBonus);
-    }
-
-    public static int getReleaseLevel(ItemStack stack) {
-        return EnchantmentRegistry.RELEASE.isPresent() ? stack.getEnchantmentLevel(EnchantmentRegistry.RELEASE.get()) : 0;
-    }
-
-    public static double calculateReleaseBounceImpulse(int releaseLevel) {
-        return switch (releaseLevel) {
-            case 1 -> 1.2D;
-            case 2 -> 1.75D;
-            case 3 -> 2.2D;
-            default -> releaseLevel <= 0
-                    ? 0.0D
-                    : WIND_BURST_FALLBACK_BASE + WIND_BURST_FALLBACK_PER_LEVEL_ABOVE_FIRST * (releaseLevel - 1);
-        };
+        var densityBonus = clampedFallDistance * getVanillaEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.DENSITY)
+                * 0.02D;
+        return 1.0D + Math.min(MAX_SMASH_SPELL_POWER_MULTIPLIER, baseBonus + densityBonus);
     }
 
     @Override
@@ -309,64 +287,63 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+    public float getAttackDamageBonus(@NotNull Entity target, float damage, @NotNull DamageSource source) {
+        if (!(source.getDirectEntity() instanceof LivingEntity attacker) || !isSmashAttack(attacker)) {
+            return 0.0F;
+        }
+
+        var stack = attacker.getWeaponItem();
+        if (!(stack.getItem() instanceof SmashcastScepter)) {
+            return 0.0F;
+        }
+
+        return attacker.level() instanceof ServerLevel serverLevel
+                ? calculateSmashBonusDamage(stack, attacker.fallDistance, serverLevel, target, source)
+                : calculateSmashBonusDamage(stack, attacker.fallDistance);
+    }
+
+    @Override
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
             return false;
         }
 
-        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)) {
-            return false;
-        }
-
-        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
-                && MalumHauntedCompat.isSupportedHauntedMainhandItem(stack)) {
+        if (MalumCompatibility.ANIMATED.equals(enchantmentId)
+                || MalumCompatibility.SPIRIT_PLUNDER.equals(enchantmentId)) {
             return true;
         }
 
-        if (MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
-            return true;
-        }
-
-        if (EnchantmentRegistry.COMPRESS.isPresent() && enchantment == EnchantmentRegistry.COMPRESS.get()) {
-            return true;
-        }
-
-        if (EnchantmentRegistry.RELEASE.isPresent() && enchantment == EnchantmentRegistry.RELEASE.get()) {
-            return false;
-        }
-
-        return (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
-                || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get())
-                || (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
-                || ALLOWED_VANILLA_ENCHANTMENTS.contains(enchantmentId);
+        return enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)
+                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.PLUNDER)
+                || enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE)
+                || enchantment.value().canEnchant(VANILLA_MACE_ENCHANTMENT_PROBE_STACK);
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        var enchantments = EnchantmentHelper.getEnchantments(book);
-        if (enchantments.isEmpty()) {
-            return false;
-        }
-
-        return enchantments.keySet().stream()
-                .allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment)
-                        || (EnchantmentRegistry.RELEASE.isPresent() && enchantment == EnchantmentRegistry.RELEASE.get()));
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        return supportsEnchantment(stack, enchantment);
     }
 
     @Override
-    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
-        return canApplyAtEnchantingTable(stack, enchantment)
-                || (EnchantmentRegistry.RELEASE.isPresent() && enchantment == EnchantmentRegistry.RELEASE.get());
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
+        return enchantments.isEmpty() || enchantments.keySet().stream()
+                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
+        return supportsEnchantment(stack, enchantment);
+    }
+
+    @Override
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
             private SmashcastScepterRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (renderer == null) {
                     renderer = new SmashcastScepterRenderer();
                 }
@@ -406,11 +383,11 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(getDescriptionId() + ".desc_1").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(getDescriptionId() + ".desc_2").withStyle(ChatFormatting.GRAY));
-        super.appendHoverText(stack, level, lines, flag);
         appendSmashcastScepterTooltip(lines);
     }
 
@@ -438,12 +415,22 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         );
     }
 
-    private static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK);
+    private static boolean isDurabilityTargetEnchantment(Holder<Enchantment> enchantment) {
+        return enchantment.value().canEnchant(DURABILITY_ENCHANTMENT_PROBE_STACK);
     }
 
-    private static int getCompressLevel(ItemStack stack) {
-        return EnchantmentRegistry.COMPRESS.isPresent() ? stack.getEnchantmentLevel(EnchantmentRegistry.COMPRESS.get()) : 0;
+    private static int getVanillaEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
+        if (stack == null || stack.isEmpty()) {
+            return 0;
+        }
+
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        for (var holder : enchantments.keySet()) {
+            if (holder.is(enchantmentKey)) {
+                return enchantments.getLevel(holder);
+            }
+        }
+        return 0;
     }
 
 }

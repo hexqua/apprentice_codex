@@ -6,13 +6,13 @@
       "item": "minecraft:diamond"
     },
     "I": {
-      "item": "minecraft:iron_block"
+      "item": "minecraft:heavy_core"
     },
     "M": {
       "item": "irons_spellbooks:mithril_scrap"
     },
     "W": {
-      "item": "irons_spellbooks:weapon_parts"
+      "item": "minecraft:breeze_rod"
     }
   },
   "pattern": [
@@ -21,7 +21,15 @@
     "D  "
   ],
   "result": {
-    "item": "apprenticecodex:smashcast_scepter"
-  },
-  "show_notification": true
+    "components": {
+      "irons_spellbooks:spell_container": {
+        "data": [],
+        "maxSpells": 1,
+        "mustEquip": false,
+        "spellWheel": true
+      }
+    },
+    "count": 1,
+    "id": "apprenticecodex:smashcast_scepter"
+  }
 }

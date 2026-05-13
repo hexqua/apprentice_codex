@@ -357,12 +357,12 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern(" MI")
                 .pattern(" WM")
                 .pattern("D  ")
-                .define('I', Items.IRON_BLOCK) // 申し送り:1.21.1ではヘビーコアにしたい.
-                .define('W', io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()) // 申し送り:1.21.1ではブリーズロッドにしたい.
+                .define('I', Items.HEAVY_CORE)
+                .define('W', Items.BREEZE_ROD)
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .define('D', Items.DIAMOND)
-                .unlockedBy(getHasName(Items.IRON_BLOCK), has(Items.IRON_BLOCK))
-                .save(recipeWriter);
+                .unlockedBy(getHasName(Items.HEAVY_CORE), has(Items.HEAVY_CORE))
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())
                 .pattern("AGA")

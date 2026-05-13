@@ -7,13 +7,13 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jetbrains.annotations.Nullable;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class SmashcastScepterClientRenderState {
     private static boolean syncedReadyState;
 
@@ -25,11 +25,7 @@ public final class SmashcastScepterClientRenderState {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null) {
             syncedReadyState = false;
@@ -61,7 +57,7 @@ public final class SmashcastScepterClientRenderState {
                                                    @Nullable ItemDisplayContext perspective) {
         var renderedHand = resolveRenderedHand(player, perspective);
         return renderedHand == InteractionHand.MAIN_HAND
-                && ItemStack.isSameItemSameTags(player.getMainHandItem(), renderingStack);
+                && ItemStack.isSameItemSameComponents(player.getMainHandItem(), renderingStack);
     }
 
     @Nullable

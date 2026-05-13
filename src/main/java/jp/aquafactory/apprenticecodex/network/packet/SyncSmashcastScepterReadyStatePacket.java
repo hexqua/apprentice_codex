@@ -1,35 +1,47 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.item.SmashcastScepterClientRenderState;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class SyncSmashcastScepterReadyStatePacket implements CustomPacketPayload {
+    public static final Type<SyncSmashcastScepterReadyStatePacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(jp.aquafactory.apprenticecodex.ApprenticeCodex.MODID, "sync_smashcast_scepter_ready_state"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncSmashcastScepterReadyStatePacket> STREAM_CODEC =
+            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncSmashcastScepterReadyStatePacket::decode);
 
-public class SyncSmashcastScepterReadyStatePacket {
     private final boolean ready;
 
     public SyncSmashcastScepterReadyStatePacket(boolean ready) {
         this.ready = ready;
     }
 
-    public static void encode(SyncSmashcastScepterReadyStatePacket packet, FriendlyByteBuf buffer) {
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    private static void encode(SyncSmashcastScepterReadyStatePacket packet, FriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.ready);
     }
 
-    public static SyncSmashcastScepterReadyStatePacket decode(FriendlyByteBuf buffer) {
+    private static SyncSmashcastScepterReadyStatePacket decode(FriendlyByteBuf buffer) {
         return new SyncSmashcastScepterReadyStatePacket(buffer.readBoolean());
     }
 
-    public static void handle(SyncSmashcastScepterReadyStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        var context = contextSupplier.get();
-        context.enqueueWork(() ->
-                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
-        );
-        context.setPacketHandled(true);
+    public static void handle(SyncSmashcastScepterReadyStatePacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) {
+                ClientHandler.handle(packet);
+            }
+        });
     }
 
     @OnlyIn(Dist.CLIENT)
