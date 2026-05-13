@@ -89,6 +89,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Sear
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
+import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
 import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
@@ -428,6 +429,90 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertBlockPresent(BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get(), potPos);
             helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty(),
                     "Potted Comfort Berries should consume one berry item outside creative mode");
+        });
+    }
+    static void assistWingsOnlyJumpItemsTagIncludesSmashcastScepter(GameTestHelper helper) {
+        helper.succeedIf(() -> helper.assertTrue(
+                new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()).is(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS),
+                "Smashcast Scepter should be tagged as an Assist Wings only-jump item"
+        ));
+    }
+    static void assistWingsSmashcastGroundCastJumpsWithoutKeepingWing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 2, 0), "assist_wings_smashcast_ground_test");
+            player.setOnGround(true);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
+            player.fallDistance = 5.0F;
+
+            var spell = SpellRegistry.ASSIST_WINGS.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Assist Wings should allow a ground cast with Smashcast Scepter");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            helper.assertTrue(player.getDeltaMovement().y > 0.59D,
+                    "Assist Wings should still apply the initial jump with Smashcast Scepter");
+            helper.assertTrue(player.fallDistance == 0.0F,
+                    "Assist Wings should reset fall distance at the only-jump takeoff");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 0,
+                    "Ground only-jump casts should not consume an air jump");
+            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
+                    "Assist Wings should not keep a wing entity for Smashcast Scepter ground casts");
+        });
+    }
+    static void assistWingsSmashcastAirCastConsumesJumpAndDropsWing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_smashcast_air_test");
+            player.setOnGround(false);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
+            player.fallDistance = 7.0F;
+            setAssistWingsState(player, 0, -1);
+
+            var spell = SpellRegistry.ASSIST_WINGS.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Assist Wings should allow a Smashcast Scepter air jump while jumps remain");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            helper.assertTrue(player.getDeltaMovement().y > 0.59D,
+                    "Assist Wings should still jump in only-jump air casts while jumps remain");
+            helper.assertTrue(player.fallDistance == 0.0F,
+                    "Assist Wings should reset fall distance when the only-jump air jump occurs");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 1,
+                    "Only-jump air casts should consume one Assist Wings air jump");
+            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
+                    "Assist Wings should not keep a wing entity after a Smashcast Scepter air jump");
+        });
+    }
+    static void assistWingsSmashcastExhaustedAirCastOnlyDropsWing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_smashcast_exhausted_test");
+            player.setOnGround(false);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
+            player.setDeltaMovement(0.12D, -0.2D, -0.08D);
+            player.fallDistance = 8.0F;
+
+            var wing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), player);
+            helper.getLevel().addFreshEntity(wing);
+            setAssistWingsState(player, 2, wing.getId());
+
+            var spell = SpellRegistry.ASSIST_WINGS.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Assist Wings should allow a Smashcast Scepter cast after air jumps are exhausted");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            var movement = player.getDeltaMovement();
+            helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
+                            && Math.abs(movement.y + 0.2D) < 0.0001D
+                            && Math.abs(movement.z + 0.08D) < 0.0001D,
+                    "Exhausted only-jump casts should not change player movement");
+            helper.assertTrue(player.fallDistance == 8.0F,
+                    "Exhausted only-jump casts should not reset fall distance");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 2,
+                    "Exhausted only-jump casts should not consume another air jump");
+            helper.assertTrue(wing.isRemoved(),
+                    "Exhausted only-jump casts should discard the existing Assist Wings wing");
         });
     }
     static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
@@ -2908,7 +2993,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
             var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
-            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("写本継承確認"));
+            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("蜀呎悽邯呎価遒ｺ隱・));
             explorersCodexStack.set(DataComponents.REPAIR_COST, 7);
             var unbreaking = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                     .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
@@ -2931,7 +3016,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var result = recipe.assemble(craftingInput, helper.getLevel().registryAccess());
             helper.assertTrue(result.is(ItemRegistry.EXPLORERS_CODEX.get()),
                     "Transfer recipe should return Explorer's Codex but got " + BuiltInRegistries.ITEM.getKey(result.getItem()));
-            helper.assertTrue("写本継承確認".equals(result.getHoverName().getString()),
+            helper.assertTrue("蜀呎悽邯呎価遒ｺ隱・.equals(result.getHoverName().getString()),
                     "Explorer's Codex custom name was not preserved: " + result.getHoverName().getString());
             helper.assertTrue(result.getOrDefault(DataComponents.REPAIR_COST, 0) == 7,
                     "Explorer's Codex repair cost was not preserved: " + result.getOrDefault(DataComponents.REPAIR_COST, 0));
@@ -3239,7 +3324,7 @@ public final class ApprenticeCodexGameTestScenarios {
             var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
             helper.assertTrue(imbuedSchool != null, "Copper Spell Amplifier imbued school could not be resolved");
 
-            // school ID の厳密一致ではなく、解決された spell power 属性に補正が積まれることを確認する.
+            // school ID 縺ｮ蜴ｳ蟇・ｸ閾ｴ縺ｧ縺ｯ縺ｪ縺上∬ｧ｣豎ｺ縺輔ｌ縺・spell power 螻樊ｧ縺ｫ陬懈ｭ｣縺檎ｩ阪∪繧後ｋ縺薙→繧堤｢ｺ隱阪☆繧・
             var resolvedSpellPower = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(resolvedSpellPower != null,
                     "Copper Spell Amplifier could not resolve spell power attribute for stacking: " + imbuedSchool.getId());
@@ -4010,7 +4095,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 "Mana Shield Charm Shell test could not resolve player mana data");
 
         helper.runAtTickTime(1, () -> {
-            // tracked player は 1tick 目までに自然回復が走ることがあり、先に mana を入れると burn-out 条件がぶれる。
+            // tracked player 縺ｯ 1tick 逶ｮ縺ｾ縺ｧ縺ｫ閾ｪ辟ｶ蝗槫ｾｩ縺瑚ｵｰ繧九％縺ｨ縺後≠繧翫∝・縺ｫ mana 繧貞・繧後ｋ縺ｨ burn-out 譚｡莉ｶ縺後・繧後ｋ縲・
             armoredMana.setMana(50.0F);
             unarmoredMana.setMana(50.0F);
             bypassMana.setMana(50.0F);
@@ -4889,8 +4974,8 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
 
             for (var stack : stacks) {
-                // Malum の soul_hunter_weapon は main hand 前提なので、
-                // offhand 系は 1.21.1 でも従来の enchant 面を維持する前提で固定する。
+                // Malum 縺ｮ soul_hunter_weapon 縺ｯ main hand 蜑肴署縺ｪ縺ｮ縺ｧ縲・
+                // offhand 邉ｻ縺ｯ 1.21.1 縺ｧ繧ょｾ捺擂縺ｮ enchant 髱｢繧堤ｶｭ謖√☆繧句燕謠舌〒蝗ｺ螳壹☆繧九・
                 assertExactEnchantmentSurfaces(
                         helper,
                         stack,
@@ -5687,7 +5772,7 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Elemental Bow vanilla mode selection should not show an ammo badge");
             helper.assertTrue(views.get(1).iconStack().is(Items.ARROW),
                     "Elemental Bow arrow-only selection should render as an arrow icon");
-            helper.assertTrue("∞".equals(views.get(1).badgeText()),
+            helper.assertTrue("竏・.equals(views.get(1).badgeText()),
                     "Elemental Bow arrow-only selection should show infinity while Infinity is enchanted: " + views.get(1).badgeText());
 
             var fireView = views.stream()
@@ -10118,7 +10203,7 @@ public final class ApprenticeCodexGameTestScenarios {
         assertManagedHealingBloomUuid(helper, owner, bloomUuid,
                 "Healing Bloom offline-death setup should start with a managed bloom");
 
-        // オフライン中の死亡では owner を ServerPlayer として引けず、即時解除されない state が残る。
+        // 繧ｪ繝輔Λ繧､繝ｳ荳ｭ縺ｮ豁ｻ莠｡縺ｧ縺ｯ owner 繧・ServerPlayer 縺ｨ縺励※蠑輔￠縺壹∝叉譎りｧ｣髯､縺輔ｌ縺ｪ縺・state 縺梧ｮ九ｋ縲・
         clearHealingBloomCachedOwner(bloom);
         killHealingBloom(helper.getLevel(), bloom);
         assertManagedHealingBloomUuid(helper, owner, bloomUuid,
@@ -10744,9 +10829,9 @@ public final class ApprenticeCodexGameTestScenarios {
         var casterPos = new BlockPos(0, 3, 0);
         var matureCropPos = new BlockPos(3, 2, 0);
         var immatureCropPos = new BlockPos(4, 2, 0);
-        // age リセット収穫の検証が目的。
-        // 小麦系は GameTest/FakePlayer 環境だと明るさ・耕地維持・更新順のノイズを受けやすいため、
-        // ここでは Soul Sand だけで生存条件を満たせるネザーウォートで収穫ロジック自体を検証する。
+        // age 繝ｪ繧ｻ繝・ヨ蜿守ｩｫ縺ｮ讀懆ｨｼ縺檎岼逧・・
+        // 蟆城ｺｦ邉ｻ縺ｯ GameTest/FakePlayer 迺ｰ蠅・□縺ｨ譏弱ｋ縺輔・閠募慍邯ｭ謖√・譖ｴ譁ｰ鬆・・繝弱う繧ｺ繧貞女縺代ｄ縺吶＞縺溘ａ縲・
+        // 縺薙％縺ｧ縺ｯ Soul Sand 縺縺代〒逕溷ｭ俶擅莉ｶ繧呈ｺ縺溘○繧九ロ繧ｶ繝ｼ繧ｦ繧ｩ繝ｼ繝医〒蜿守ｩｫ繝ｭ繧ｸ繝・け閾ｪ菴薙ｒ讀懆ｨｼ縺吶ｋ縲・
         helper.setBlock(matureCropPos.below(), Blocks.SOUL_SAND);
         helper.setBlock(immatureCropPos.below(), Blocks.SOUL_SAND);
         helper.setBlock(matureCropPos, Blocks.NETHER_WART.defaultBlockState().setValue(NetherWartBlock.AGE, NetherWartBlock.MAX_AGE));
@@ -10803,7 +10888,7 @@ public final class ApprenticeCodexGameTestScenarios {
         var tomatoItem = requireForgeItem(helper, FARMERS_DELIGHT_TOMATO_ITEM);
         var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
         helper.setBlock(baseTomatoPos.below(), Blocks.FARMLAND);
-        // rope 付きトマトは上段で天井扱いになりやすいため、GameTest でも補助光を置く。
+        // rope 莉倥″繝医・繝医・荳頑ｮｵ縺ｧ螟ｩ莠墓桶縺・↓縺ｪ繧翫ｄ縺吶＞縺溘ａ縲；ameTest 縺ｧ繧り｣懷勧蜈峨ｒ鄂ｮ縺上・
         helper.setBlock(baseTomatoPos.east(), Blocks.GLOWSTONE);
         helper.setBlock(baseTomatoPos, withIntegerProperty(helper, tomatoBlock.defaultBlockState(), "age", 0));
         helper.setBlock(
@@ -10816,8 +10901,8 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         );
 
-        // HarvestMoon が依存している右クリック経路そのものを直接通し、
-        // 成熟した rope 付き上段トマトを収穫しても rope 状態が壊れないことを検証する。
+        // HarvestMoon 縺御ｾ晏ｭ倥＠縺ｦ縺・ｋ蜿ｳ繧ｯ繝ｪ繝・け邨瑚ｷｯ縺昴・繧ゅ・繧堤峩謗･騾壹＠縲・
+        // 謌千・縺励◆ rope 莉倥″荳頑ｮｵ繝医・繝医ｒ蜿守ｩｫ縺励※繧・rope 迥ｶ諷九′螢翫ｌ縺ｪ縺・％縺ｨ繧呈､懆ｨｼ縺吶ｋ縲・
         var result = BlockTools.useBlockByPlayerMainHand(helper.getLevel(), player, helper.absolutePos(ropeTomatoPos), new ItemStack(Items.STICK));
         helper.assertTrue(result.consumesAction(), "Farmer's Delight rope tomato block use should consume the action but got " + result);
 
@@ -10863,8 +10948,8 @@ public final class ApprenticeCodexGameTestScenarios {
         }
 
         var cropPositions = new ArrayList<BlockPos>();
-        // GameTest の runAtTickTime から最初の観測までに HarvestMoonJob が複数 tick 進む環境があるため、
-        // 3～4 tick 分進んでも未処理が残るだけの作物数を置いて false negative を避ける。
+        // GameTest 縺ｮ runAtTickTime 縺九ｉ譛蛻昴・隕ｳ貂ｬ縺ｾ縺ｧ縺ｫ HarvestMoonJob 縺瑚､・焚 tick 騾ｲ繧迺ｰ蠅・′縺ゅｋ縺溘ａ縲・
+        // 3・・ tick 蛻・ｲ繧薙〒繧よ悴蜃ｦ逅・′谿九ｋ縺縺代・菴懃黄謨ｰ繧堤ｽｮ縺・※ false negative 繧帝∩縺代ｋ縲・
         for (var x = 1; x <= 9; ++x) {
             for (var z = -8; z <= 8; ++z) {
                 var pos = new BlockPos(x, 3, z);
@@ -11151,6 +11236,37 @@ public final class ApprenticeCodexGameTestScenarios {
         ).isEmpty();
     }
 
+    private static FakePlayer createAssistWingsPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static int getAssistWingsDoneJump(Player player) {
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            return -1;
+        }
+        return spellData.get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE).doneJump;
+    }
+
+    private static void setAssistWingsState(Player player, int doneJump, int localEntityId) {
+        Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, state -> {
+            state.doneJump = doneJump;
+            state.localEntityId = localEntityId;
+        }));
+    }
+
+    private static int countActiveAssistWingsWings(GameTestHelper helper, Player player) {
+        return helper.getLevel().getEntitiesOfClass(
+                AssistWingsWingEntity.class,
+                new AABB(player.position(), player.position()).inflate(16.0D),
+                wing -> !wing.isRemoved()
+        ).size();
+    }
+
     private static FakePlayer createSpellDispenserPlacer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
@@ -11171,8 +11287,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
 
-        // Better Combat に空扱いされても inventory.offhand[0] 自体は保持されるため、
-        // 救済系テストは実スロットへ直接積んで隠蔽前提を再現する。
+        // Better Combat 縺ｫ遨ｺ謇ｱ縺・＆繧後※繧・inventory.offhand[0] 閾ｪ菴薙・菫晄戟縺輔ｌ繧九◆繧√・
+        // 謨第ｸ育ｳｻ繝・せ繝医・螳溘せ繝ｭ繝・ヨ縺ｸ逶ｴ謗･遨阪ｓ縺ｧ髫阡ｽ蜑肴署繧貞・迴ｾ縺吶ｋ縲・
         player.getInventory().offhand.set(0, offhandStack.copy());
         return player;
     }
@@ -11345,8 +11461,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
-        // SummonManager は owner を level lookup で引き直して recast cleanup するため、
-        // Archer Multiple の summon 消滅テストでは FakePlayer もワールドへ参加させる。
+        // SummonManager 縺ｯ owner 繧・level lookup 縺ｧ蠑輔″逶ｴ縺励※ recast cleanup 縺吶ｋ縺溘ａ縲・
+        // Archer Multiple 縺ｮ summon 豸域ｻ・ユ繧ｹ繝医〒縺ｯ FakePlayer 繧ゅΡ繝ｼ繝ｫ繝峨∈蜿ょ刈縺輔○繧九・
         helper.getLevel().addFreshEntity(player);
         return player;
     }
@@ -11398,8 +11514,8 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static void prepareElevatedStonePlatform(GameTestHelper helper, BlockPos centerPos) {
-        // basic_floor は 5x3x5 と小さく、batch 近接配置の地形へ探索やレイが吸われやすい。
-        // 足場を高所へ自前で作って、各テストが自分の 5x5 領域だけを参照するように固定する。
+        // basic_floor 縺ｯ 5x3x5 縺ｨ蟆上＆縺上｜atch 霑第磁驟咲ｽｮ縺ｮ蝨ｰ蠖｢縺ｸ謗｢邏｢繧・Ξ繧､縺悟精繧上ｌ繧・☆縺・・
+        // 雜ｳ蝣ｴ繧帝ｫ俶園縺ｸ閾ｪ蜑阪〒菴懊▲縺ｦ縲∝推繝・せ繝医′閾ｪ蛻・・ 5x5 鬆伜沺縺縺代ｒ蜿ら・縺吶ｋ繧医≧縺ｫ蝗ｺ螳壹☆繧九・
         var floorY = centerPos.getY() - 1;
         for (var x = -2; x <= 2; ++x) {
             for (var z = -2; z <= 2; ++z) {
@@ -11442,8 +11558,8 @@ public final class ApprenticeCodexGameTestScenarios {
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
-        // owner lookup と openers の close 対象探索が server 側の player list / level lookup を使うため、
-        // Personal Shelf の GameTest では FakePlayer もワールドへ参加させる。
+        // owner lookup 縺ｨ openers 縺ｮ close 蟇ｾ雎｡謗｢邏｢縺・server 蛛ｴ縺ｮ player list / level lookup 繧剃ｽｿ縺・◆繧√・
+        // Personal Shelf 縺ｮ GameTest 縺ｧ縺ｯ FakePlayer 繧ゅΡ繝ｼ繝ｫ繝峨∈蜿ょ刈縺輔○繧九・
         helper.getLevel().addFreshEntity(player);
         return player;
     }
@@ -13328,7 +13444,7 @@ public final class ApprenticeCodexGameTestScenarios {
             return false;
         }
 
-        // optional 依存の absent 環境では Create 専用テストを成功扱いで抜け、通常検証の起動性を優先する。
+        // optional 萓晏ｭ倥・ absent 迺ｰ蠅・〒縺ｯ Create 蟆ら畑繝・せ繝医ｒ謌仙粥謇ｱ縺・〒謚懊￠縲・壼ｸｸ讀懆ｨｼ縺ｮ襍ｷ蜍墓ｧ繧貞━蜈医☆繧九・
         helper.succeed();
         return true;
     }

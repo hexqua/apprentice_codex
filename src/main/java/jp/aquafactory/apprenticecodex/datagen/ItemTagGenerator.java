@@ -455,6 +455,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.SMASHCAST_SCEPTER.get()
         );
+        tag(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS).add(
+                ItemRegistry.SMASHCAST_SCEPTER.get()
+        );
 
         // 鬲疲ｳ募小蝟壽ｭｦ蝎ｨ縺ｯ繝繝溘・逕ｨ騾斐・縺溘ａ縲゛EI縺ｪ縺ｩ縺ｮ繝ｬ繧ｷ繝斐ン繝･繝ｼ繧｢縺九ｉ髯､螟悶☆繧・
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(

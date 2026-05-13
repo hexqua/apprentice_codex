@@ -504,7 +504,7 @@
   "spell.apprenticecodex.personal_shelf.guide": "魔法の保管庫を一定時間顕現化させる。保管庫は一定時間経過するか離れると消失する。保管庫は個々人の空間のインターフェースに過ぎない。スニークしながら使用すると使用したチェストなどに搬出しようとする。",
   "spell.apprenticecodex.rift_hole.guide": "ブロックに対して異界への穴を開き、一時的に壁の中へ通路を作る。もう一度使うか、しばらくすると穴は閉じる。",
   "spell.apprenticecodex.fly_swatter.guide": "魔法のランチャーを召喚し、視線先に捕捉した対象に向かって攻撃する。攻撃は敵を追尾する。",
-  "spell.apprenticecodex.assist_wings.guide": "魔法の翼を召喚し、羽ばたいてジャンプする。空中でも魔法力に応じて一定回数のみ発動可能。発動後、着地するまで低速落下となり、落下ダメージを受けない。",
+  "spell.apprenticecodex.assist_wings.guide": "魔法の翼を召喚し、羽ばたいてジャンプする。空中でも魔法力に応じて一定回数のみ発動可能。発動後、着地するまで低速落下となり、落下ダメージを受けない。落下を利用する武器を手に持っている場合は跳躍直後に翼が自動的に崩壊してしまい、落下ダメージを受けるようになってしまう。",
   "spell.apprenticecodex.world_flatter.guide": "魔法のドリルを召喚し、視線の先の対象を防具ごと穿つ。大地に向かって振るうことで素早く大穴を開けることもできる。",
   "spell.apprenticecodex.slash_blade.guide": "魔法の刀を召喚して目の前を一閃する。発動が阻止されることはない。",
   "spell.apprenticecodex.manifestation_grimoire.guide": "術者の領域と繋がっている魔導書を召喚する。その魔導書に入れた魔法はこの魔法で呼び出すどの魔導書でも扱える。",
@@ -628,6 +628,7 @@
   "ui.apprenticecodex.extract.empty_flask": "錬金術師のフラスコの中身がない！",
   "ui.apprenticecodex.extract.effect_use": "%s として使用する",
   "ui.apprenticecodex.extract.effect_use_with_force_splash": "%s をスプラッシュ化して使用するため、余分に消費される！",
+  "ui.apprenticecodex.assist_wings.only_jump_warning": "手に持っている%sの影響で翼を維持できない！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",

@@ -496,7 +496,7 @@
   "spell.apprenticecodex.personal_shelf.guide": "Materializes a magical vault for a limited time. It vanishes after a while or if you move away. The vault is merely an interface to each person's private space. Use while sneaking to attempt to transfer its contents to a chest or similar container.",
   "spell.apprenticecodex.rift_hole.guide": "Open an otherworldly hole on a block face and carve a temporary tunnel through the wall. Cast it again, or wait a short while, to seal the passage.",
   "spell.apprenticecodex.fly_swatter.guide": "Summons a magical launcher that attacks a target you lock onto in your line of sight. Its shots home in on the enemy.",
-  "spell.apprenticecodex.assist_wings.guide": "Summons magical wings and leaps with a flap. It can also be activated midair a limited number of times based on your mana. After use, you gain Slow Falling until you land and take no fall damage.",
+  "spell.apprenticecodex.assist_wings.guide": "Summons magical wings and leaps with a flap. It can also be activated midair a limited number of times based on your mana. After use, you gain Slow Falling until you land and take no fall damage. If you are holding a weapon that uses falling, the wings automatically collapse right after the leap, allowing you to take fall damage.",
   "spell.apprenticecodex.world_flatter.guide": "Summons a magical drill that pierces the target in your line of sight through their armor. Swing it into the ground to quickly carve out a large hole.",
   "spell.apprenticecodex.slash_blade.guide": "Summons a magical katana and delivers a swift slash in front of you. The cast cannot be interrupted.",
   "spell.apprenticecodex.manifestation_grimoire.guide": "Summons a grimoire linked to the caster's domain. Spells stored within it can be used from any grimoire called forth by this spell.",
@@ -619,6 +619,7 @@
   "ui.apprenticecodex.extract.empty_flask": "Alchemist's Flask is empty!",
   "ui.apprenticecodex.extract.effect_use": "%s to use",
   "ui.apprenticecodex.extract.effect_use_with_force_splash": "Force-splash %s: extra dose!",
+  "ui.apprenticecodex.assist_wings.only_jump_warning": "The %s in your hand prevents the wings from holding!",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
