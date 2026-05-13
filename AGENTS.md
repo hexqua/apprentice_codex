@@ -67,13 +67,14 @@ Get-ChildItem build\libs\*.jar
 - データ駆動で表現できる内容は `src/generated/resources` と datagen を優先し、ハードコードを最小化する。
 - コメントは「何をしているか」より「なぜそうするか」を優先する。外部 MOD 仕様依存、ワークアラウンド、クライアント/サーバー差分、実行順依存、魔法値には日本語コメントを残す。
 - テキストファイルは UTF-8（BOM なし）を原則とする。
+- 日本語を含むファイルや文字化けが疑われるファイルを扱う場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認する。
 - 依存関係の追加・更新は `gradle.properties` に集約し、必須依存を追加する場合は `neoforge.mods.toml` も更新する。外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を確認する。
 
 ## 5. 変更フロー
 1. 変更内容を 1〜2 文で決める（何を、なぜ変えるか）。
 2. 実装する。
 3. `git diff` / `git diff --name-status` で、依頼範囲外の整形、rename、コメント削除、文字化け差分が混ざっていないことを確認する。
-4. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
+4. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。このビルドには明らかな文字化けと UTF-8 BOM の検査も含める。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
 5. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
 6. `main` から `1.21.1-main` への forward-port では、実装内容に関係なく `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 7. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
@@ -127,9 +128,16 @@ Get-ChildItem build\libs\*.jar
 - bootstrap 詰まりを避けるため、workflow を target branch に載せる前に required check を有効化しない。手順は `docs/github-pr-protection.md` に従う。
 
 ## 9. Codex運用上の注意
+- PowerShell 5.1 などの環境では、UTF-8 の日本語ファイルでも既定の `Get-Content` 表示が文字化けすることがある。この環境差は完全には解消できないため、運用でカバーする。
 - 日本語を含むファイルは UTF-8 として読み書きし、文字化け表示が出た状態では編集しない。
+- 日本語を含むファイルを PowerShell で読む前に `[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)` を設定し、`Get-Content -Encoding UTF8` または `[System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)` を使う。
+- PowerShell 5.1 では `Set-Content` / `Out-File` の既定エンコーディング書き込みを使わない。シェル経由で保存が必要な場合は UTF-8 BOM なしを明示する。
+- Python などの検証ツールが既定エンコーディングで日本語ファイルを読めない場合は、`PYTHONUTF8=1` を一時設定して UTF-8 読みを強制する。
+- 文字化け表示（例: `縺`）が見えた場合は編集を中断し、UTF-8 指定で再読込して正常表示を確認してから作業する。
+- 文字化けが疑われる場合や日本語コメント・翻訳・ドキュメントを広く触る場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認する。
 - 編集は必要最小限の差分に限定し、ファイル全体の再書き込みや無関係なコメント整理を避ける。
 - 変更後は `git diff` を確認し、依頼範囲外のコメント削除や日本語の文字化け差分があれば修正してから完了する。
+- コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を通し、`checkTextEncodingHygiene` による明らかな文字化け検査も成功させる。
 - ユーザーが事前確認やローカルレビューを明示した作業では、明示指示があるまで push、PR 作成、リモート操作を行わない。
 
 ## 10. 直近の注意傾向
