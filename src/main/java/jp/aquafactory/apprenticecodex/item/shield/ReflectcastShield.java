@@ -34,9 +34,9 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+    private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = TagKey.create(
             Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_shatter_capable_weapon")
     );
     private static final float MINIMUM_DURABILITY_DAMAGE = 3.0F;
     private static final int ENCHANTMENT_VALUE = 1;
@@ -147,6 +147,6 @@ public class ReflectcastShield extends AbstractImbueShieldItem implements GeoIte
     }
 
     private static boolean isMalumSpiritPlunder(ItemStack stack, ResourceLocation enchantmentId) {
-        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON);
+        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
     }
 }

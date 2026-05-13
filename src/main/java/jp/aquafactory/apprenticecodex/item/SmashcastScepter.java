@@ -309,8 +309,8 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
             return false;
         }
 
-        if (MalumCompatibility.ANIMATED.equals(enchantmentId)
-                || MalumCompatibility.SPIRIT_PLUNDER.equals(enchantmentId)) {
+        if (MalumCompatibility.isMagicCapableWeaponEnchantment(stack, enchantmentId)
+                || MalumCompatibility.isSpiritPlunderSupported(stack, enchantmentId)) {
             return true;
         }
 

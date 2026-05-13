@@ -284,21 +284,13 @@ public final class ApprenticeCodexGameTestScenarios {
             Registries.DAMAGE_TYPE,
             ResourceLocation.fromNamespaceAndPath("c", "is_magic")
     );
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+    private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = TagKey.create(
             Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_hunter_weapon")
+            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "soul_shatter_capable_weapon")
     );
     private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "magic_capable_weapon")
-    );
-    private static final TagKey<Item> MALUM_ENCHANTABLE_ANIMATED = TagKey.create(
-            Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "enchantable/animated")
-    );
-    private static final TagKey<Item> MALUM_ENCHANTABLE_SPIRIT_PLUNDER = TagKey.create(
-            Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "enchantable/spirit_plunder")
     );
     private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = TagKey.create(
             Registries.ITEM,
@@ -5006,7 +4998,7 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(stacks.isEmpty(), "No items matched enchantment test category: Offhand Magic Item");
 
             for (var stack : stacks) {
-                // Malum の soul_hunter_weapon は main hand 前提なので、
+                // Malum の soul_shatter_capable_weapon は main hand 前提なので、
                 // offhand 系は 1.21.1 でも従来の enchant 面を維持する前提で固定する。
                 assertExactEnchantmentSurfaces(
                         helper,
@@ -8325,8 +8317,8 @@ public final class ApprenticeCodexGameTestScenarios {
     static void reflectcastShieldKeepsExpectedEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
-                    "Reflectcast Shield is missing malum:soul_hunter_weapon");
+            helper.assertTrue(stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON),
+                    "Reflectcast Shield is missing malum:soul_shatter_capable_weapon");
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
@@ -12086,7 +12078,8 @@ public final class ApprenticeCodexGameTestScenarios {
                     Enchantments.WISDOM,
                     Enchantments.PLUNDER
             ));
-            addExpectedMalumSmashcastScepterEnchantmentsIfPresent(stack, expectedEnchantments);
+            addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
+            addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
             return expectedEnchantments;
         }
 
@@ -12589,7 +12582,7 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
-        if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON)) {
             expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
         }
     }
@@ -12598,18 +12591,6 @@ public final class ApprenticeCodexGameTestScenarios {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_MAGIC_CAPABLE_WEAPON)) {
             expectedEnchantments.add(MALUM_HAUNTED);
             expectedEnchantments.add(MALUM_ANIMATED);
-        }
-    }
-
-    private static void addExpectedMalumSmashcastScepterEnchantmentsIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
-        if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
-            return;
-        }
-        if (stack.is(MALUM_ENCHANTABLE_ANIMATED)) {
-            expectedEnchantments.add(MALUM_ANIMATED);
-        }
-        if (stack.is(MALUM_ENCHANTABLE_SPIRIT_PLUNDER)) {
-            expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
         }
     }
 

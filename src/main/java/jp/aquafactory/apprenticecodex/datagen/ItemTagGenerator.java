@@ -53,10 +53,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
     private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = createTag("malum", "magic_capable_weapon");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
-    private static final TagKey<Item> MALUM_ENCHANTABLE_ANIMATED = createTag("malum", "enchantable/animated");
-    private static final TagKey<Item> MALUM_ENCHANTABLE_SPIRIT_PLUNDER = createTag("malum", "enchantable/spirit_plunder");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
     private static final TagKey<Item> MAGIC_ITEM_ENCHANTABLE = Enchantments.MAGIC_ITEM_ENCHANTABLE;
@@ -101,7 +98,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumMagicCapableWeaponTag = tag(MALUM_MAGIC_CAPABLE_WEAPON);
-        var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
         var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
@@ -117,8 +113,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var vanillaMaceEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MACE);
         var vanillaTridentEnchantableTag = tag(MINECRAFT_ENCHANTABLE_TRIDENT);
         var vanillaDurabilityEnchantableTag = tag(MINECRAFT_ENCHANTABLE_DURABILITY);
-        var malumAnimatedEnchantableTag = tag(MALUM_ENCHANTABLE_ANIMATED);
-        var malumSpiritPlunderEnchantableTag = tag(MALUM_ENCHANTABLE_SPIRIT_PLUNDER);
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
                 ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
@@ -132,7 +126,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // Focus Staffbow は StaffItem 継承に依存せず Staff 相当の主手エンチャ面を持たせたいので、
         // sword 系 tag と Malum 互換 tag、個別付与の Wisdom を明示追加する。
         malumMagicCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
-        malumSoulHunterWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         tomagicReversalWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         wisdomEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
@@ -150,12 +143,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaMaceEnchantableTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
-        malumAnimatedEnchantableTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
-        malumSpiritPlunderEnchantableTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
+        malumMagicCapableWeaponTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.SMASHCAST_SCEPTER.get());
 
         // Circuit Heat Staff は剣相当の主手杖として扱い、耐久系を除いた近接武器 enchant と互換 tag を通す。
         malumMagicCapableWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-        malumSoulHunterWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         wisdomEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
@@ -170,12 +162,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         surgeEnchantableTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         wisdomEnchantableTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         plunderEnchantableTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-        malumSoulHunterWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
 
         // Charged Twin Blade Staff は剣/トライデント両面の enchant を許可するが、耐久系と超越は除外する。
         malumMagicCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-        malumSoulHunterWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         tomagicReversalWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         wisdomEnchantableTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
@@ -187,7 +177,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
         // Mana Force Blade は耐久値を持つ剣として扱い、専用魔法 enchant も JSON/tag 面で通す。
         malumMagicCapableWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
-        malumSoulHunterWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         tomagicReversalWeaponTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         surgeEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
@@ -216,7 +205,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
             if (item instanceof AbstractSpellGunItem || (item instanceof AbstractRightClickMagicWeaponItem && !isSmashcastScepter)) {
                 // 他の武器互換系も登録する.
-                malumSoulHunterWeaponTag.add(item);
                 malumSoulShatterCapableWeaponTag.add(item);
 
                 // 1.21.1 では Wisdom / Transcendence の適用可否が enchantment JSON 側の item tag で決まる。
@@ -335,13 +323,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // 1.21.1 のバニラ enchantment JSON は Fortune / Silk Touch を mining_loot タグで判定する.
         tag(MINECRAFT_ENCHANTABLE_MINING_LOOT).add(ItemRegistry.PASTEL_STAFF.get());
         malumMagicCapableWeaponTag.add(ItemRegistry.PASTEL_STAFF.get());
-        // Malum の soul_hunter_weapon は main hand 前提なので、
-        // offhand 専用品を巻き込まず個別互換が必要な staff / shield だけ明示登録する。
-        tag(MALUM_SOUL_HUNTER_WEAPON).add(
-                ItemRegistry.PASTEL_STAFF.get(),
-                ItemRegistry.REFLECTCAST_SHIELD.get()
-        );
-        // 1.21.1 の Spirit Plunder は soul_hunter_weapon ではなく soul_shatter_capable_weapon 経由で supported_items を見ている。
+        // 1.21.1 の Spirit Plunder は soul_shatter_capable_weapon 経由で supported_items を見ている。
         // Java 側の許可だけでは definition 判定を通らないため、Malum 側 tag も同じ面へ揃える。
         tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON).add(
                 ItemRegistry.PASTEL_STAFF.get(),
@@ -469,6 +451,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
         tag(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS).add(
+                net.minecraft.world.item.Items.MACE,
                 ItemRegistry.SMASHCAST_SCEPTER.get()
         );
 
