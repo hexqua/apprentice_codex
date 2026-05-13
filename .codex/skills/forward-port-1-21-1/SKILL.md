@@ -12,9 +12,10 @@ description: Standard workflow for forward-porting selected `main` commits from 
 ## Quick Start
 
 1. 取り込み対象の非 `merge` コミットを洗い出し、取り込む SHA を確定する。
-2. `references/port-checklist.md` を読み、`cherry-pick`、cleanup、検証までの順序を固定する。
-3. datagen、resource 移動、削除・改名、旧書式移行を含む場合は `references/generated-cleanup.md` を読む。
-4. 装備、武器、特殊アイテム、修理素材変更が含まれる場合は `references/enchant-repair.md` を読む。
+2. 日本語ファイルや文字化けが疑われる差分を扱う場合は、先に `.codex/skills/text-encoding-hygiene` を読む。
+3. `references/port-checklist.md` を読み、`cherry-pick`、cleanup、検証までの順序を固定する。
+4. datagen、resource 移動、削除・改名、旧書式移行を含む場合は `references/generated-cleanup.md` を読む。
+5. 装備、武器、特殊アイテム、修理素材変更が含まれる場合は `references/enchant-repair.md` を読む。
 
 ## Workflow
 
@@ -40,7 +41,7 @@ description: Standard workflow for forward-porting selected `main` commits from 
 
 - `./gradlew.bat runData` 後に `git diff --name-status -- src/generated/resources` を確認する。
 - 必要に応じて `rg -n "forge:conditions|canApplyAtEnchantingTable|isBookEnchantable|supportsEnchantment|isValidRepairItem" src/generated/resources src/main/resources` を実行する。
-- 最後に `./gradlew.bat build` を成功させる。
+- 最後に `./gradlew.bat build` を成功させ、文字化け検査も通す。
 
 ## References
 
