@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "W": {
+      "item": "irons_spellbooks:weapon_parts"
+    }
+  },
+  "pattern": [
+    " MI",
+    " WM",
+    "D  "
+  ],
+  "result": {
+    "item": "apprenticecodex:smashcast_scepter"
+  },
+  "show_notification": true
+}

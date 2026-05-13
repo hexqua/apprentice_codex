@@ -1,0 +1,33 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_smashcast_scepter": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:smashcast_scepter"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_smashcast_scepter.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:smashcast_scepter",
+      "nbt": "{\"irons_spellbooks:spell_container\":{data:[],maxSpells:1,mustEquip:0b,spellWheel:1b}}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_smashcast_scepter.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_smashcast_scepter"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -452,8 +452,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 net.minecraft.world.item.Items.TIPPED_ARROW
         );
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
-                ItemRegistry.ENCHANTED_CIRCLET.get(),
-                ItemRegistry.SMASHCAST_SCEPTER.get()
+                ItemRegistry.ENCHANTED_CIRCLET.get()
         );
         tag(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS).add(
                 ItemRegistry.SMASHCAST_SCEPTER.get()
