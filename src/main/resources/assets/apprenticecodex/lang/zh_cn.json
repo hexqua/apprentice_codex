@@ -425,6 +425,8 @@
   "jade.apprenticecodex.healing_bloom.next_fruit": "下次结果：%1$d 秒",
   "jade.apprenticecodex.remaining_ammo": "剩余弹药：%1$d",
   "jade.apprenticecodex.search_beacon.targets": "目标：%1$s",
+  "skill.apprenticecodex.wind_leap": "风跃",
+  "skill.apprenticecodex.wind_leap.tooltip": "高高跃起以准备强打，并在即将落地时进行殴打。此次跳跃本身不会保护你免受坠落伤害。",
   "spell.apprenticecodex.sky_edge": "天穹之刃",
   "spell.apprenticecodex.archer_multiple": "多重魔弓",
   "spell.apprenticecodex.commence_fire": "开火指令",
