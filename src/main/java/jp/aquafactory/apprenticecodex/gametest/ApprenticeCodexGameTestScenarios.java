@@ -535,6 +535,11 @@ public final class ApprenticeCodexGameTestScenarios {
             target.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 1, 0))));
             level.addFreshEntity(target);
 
+            var secondTarget = EntityType.ARMOR_STAND.create(level);
+            helper.assertTrue(secondTarget != null, "Second Armor Stand target could not be created for Smashcast Wind Burst test");
+            secondTarget.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(1, 1, 0))));
+            level.addFreshEntity(secondTarget);
+
             var stack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
             var windBurst = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                     .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.WIND_BURST);
@@ -547,16 +552,36 @@ public final class ApprenticeCodexGameTestScenarios {
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.fallDistance = 0.0F;
             player.setDeltaMovement(Vec3.ZERO);
-            SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
+            var firstEpicFightBonus = SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
                     player,
                     target,
                     player.damageSources().playerAttack(player),
                     4.0F
             );
+            helper.assertTrue(firstEpicFightBonus > 0.0F,
+                    "Epic Fight Smashcast should apply bonus damage to the first target");
             helper.assertTrue(player.fallDistance == 0.0F,
                     "Epic Fight Smashcast Wind Burst should restore the player's original fall distance");
             helper.assertTrue(player.getDeltaMovement().y > 0.1D,
                     "Epic Fight Smashcast Wind Burst should use the stored fall distance but got " + player.getDeltaMovement());
+
+            var duplicateEpicFightBonus = SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
+                    player,
+                    target,
+                    player.damageSources().playerAttack(player),
+                    4.0F
+            );
+            helper.assertTrue(duplicateEpicFightBonus == 0.0F,
+                    "Epic Fight Smashcast should not apply duplicate bonus damage to the same target in one tick");
+
+            var secondEpicFightBonus = SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
+                    player,
+                    secondTarget,
+                    player.damageSources().playerAttack(player),
+                    4.0F
+            );
+            helper.assertTrue(secondEpicFightBonus > 0.0F,
+                    "Epic Fight Smashcast should keep bonus damage for a different target in the same tick");
         });
     }
     static void smashcastScepterSmashSetsVanillaImpulseFallProtection(GameTestHelper helper) {
