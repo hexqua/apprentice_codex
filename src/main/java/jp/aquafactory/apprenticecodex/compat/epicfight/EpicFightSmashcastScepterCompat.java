@@ -341,7 +341,7 @@ public final class EpicFightSmashcastScepterCompat {
 
     public static boolean shouldAllowDescendingBasicAttack(SkillContainer skillContainer, Player player) {
         return skillContainer != null
-                && skillContainer.getSlot() == SkillSlots.BASIC_ATTACK
+                && skillContainer.getSlot() == SkillSlots.COMBO_ATTACKS
                 && isDescendingSmashcastAttack(player);
     }
 

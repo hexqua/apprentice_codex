@@ -135,7 +135,10 @@ public final class SmashcastScepterAttackEvent {
 
     @SubscribeEvent
     public static void onLevelTick(LevelTickEvent.Post event) {
-        var serverLevel = event.getLevel();
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
         var smashes = PENDING_SMASHES.get(serverLevel);
         if (smashes == null || smashes.isEmpty()) {
             cleanupEpicFightSmashcastImpacts(serverLevel);

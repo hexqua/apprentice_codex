@@ -22,7 +22,7 @@ public final class EpicFightWindLeapSkill extends WeaponInnateSkill implements C
     static final double TARGET_DISTANCE = 2.0D;
     static final double TARGET_RAYCAST_DISTANCE = 8.0D;
     static final double MIN_UPWARD_IMPULSE = 1.0D;
-    static final double MAX_UPWARD_IMPULSE = SmashcastScepter.calculateReleaseBounceImpulse(1);
+    static final double MAX_UPWARD_IMPULSE = 1.2D;
 
     public EpicFightWindLeapSkill(WeaponInnateSkill.Builder<?> builder) {
         super(builder);
