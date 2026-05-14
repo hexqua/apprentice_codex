@@ -543,6 +543,20 @@ public final class ApprenticeCodexGameTestScenarios {
             EnchantmentHelper.doPostAttackEffectsWithItemSource(level, target, player.damageSources().playerAttack(player), stack);
             helper.assertTrue(player.getDeltaMovement().y > 0.1D,
                     "Smashcast Scepter Wind Burst should trigger vanilla wind burst upward motion but got " + player.getDeltaMovement());
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.fallDistance = 0.0F;
+            player.setDeltaMovement(Vec3.ZERO);
+            SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
+                    player,
+                    target,
+                    player.damageSources().playerAttack(player),
+                    4.0F
+            );
+            helper.assertTrue(player.fallDistance == 0.0F,
+                    "Epic Fight Smashcast Wind Burst should restore the player's original fall distance");
+            helper.assertTrue(player.getDeltaMovement().y > 0.1D,
+                    "Epic Fight Smashcast Wind Burst should use the stored fall distance but got " + player.getDeltaMovement());
         });
     }
     static void smashcastScepterSmashSetsVanillaImpulseFallProtection(GameTestHelper helper) {

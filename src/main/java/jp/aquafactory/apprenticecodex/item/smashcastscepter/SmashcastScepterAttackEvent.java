@@ -15,6 +15,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -104,6 +105,7 @@ public final class SmashcastScepterAttackEvent {
         scepter.tryCastSmashSpell(player, stack, effectiveFallDistance);
         target.invulnerableTime = 0;
         applyImpulseFallDamageProtection(player);
+        applyEpicFightPostAttackEnchantmentEffects(player, target, source, stack, effectiveFallDistance);
         applyAreaKnockback(player, target);
         playSmashVisualEffects(player, target, effectiveFallDistance);
         playSmashSound(player, effectiveFallDistance);
@@ -201,6 +203,22 @@ public final class SmashcastScepterAttackEvent {
         player.setIgnoreFallDamageFromCurrentImpulse(true);
         player.setDeltaMovement(player.getDeltaMovement().with(Direction.Axis.Y, SmashcastScepter.WIND_BURST_MOTION_EPSILON));
         player.connection.send(new ClientboundSetEntityMotionPacket(player));
+    }
+
+    private static void applyEpicFightPostAttackEnchantmentEffects(
+            ServerPlayer player,
+            LivingEntity target,
+            DamageSource source,
+            ItemStack stack,
+            float fallDistance
+    ) {
+        var originalFallDistance = player.fallDistance;
+        player.fallDistance = Math.max(originalFallDistance, fallDistance);
+        try {
+            EnchantmentHelper.doPostAttackEffectsWithItemSource(player.serverLevel(), target, source, stack);
+        } finally {
+            player.fallDistance = originalFallDistance;
+        }
     }
 
     private static void applyAreaKnockback(ServerPlayer player, LivingEntity impactTarget) {
