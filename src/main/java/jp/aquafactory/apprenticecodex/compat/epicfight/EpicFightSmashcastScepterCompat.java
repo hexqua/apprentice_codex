@@ -318,13 +318,14 @@ public final class EpicFightSmashcastScepterCompat {
             );
 
             // Wind Leap はスマッシュ成立のお膳立てに留め、スマッシュ効果は onDealDamage の既存条件でだけ発火させる。
+            // SWORD_AIR_SLASH は縦移動を持つ ActionAnimation のため、再生すると Wind Leap / Wind Burst の打ち上げを上書きする。
+            // 1.21.1 へ移植する際も、DamageSource の属性付けと攻撃モーション再生を分けて扱う。
             var damageSource = playerpatch.getDamageSource(Animations.SWORD_AIR_SLASH, InteractionHand.MAIN_HAND)
                     .attachArmorNegationModifier(ValueModifier.adder(50.0F))
                     .attachImpactModifier(ValueModifier.multiplier(1.6F))
                     .setStunType(StunType.NONE)
                     .addRuntimeTag(EpicFightDamageTypeTags.WEAPON_INNATE);
             playerpatch.attack(damageSource, target, InteractionHand.MAIN_HAND);
-            playerpatch.playAnimationSynchronized(Animations.SWORD_AIR_SLASH, 0.0F);
         });
     }
 
