@@ -33,7 +33,8 @@ import java.util.WeakHashMap;
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SmashcastScepterAttackEvent {
     private static final Map<ServerLevel, Map<UUID, PendingSmash>> PENDING_SMASHES = new WeakHashMap<>();
-    private static final Map<ServerLevel, Map<UUID, Long>> EPIC_FIGHT_SMASHCAST_IMPACT_TICKS = new WeakHashMap<>();
+    private static final Map<ServerLevel, Map<UUID, Long>> EPIC_FIGHT_SMASHCAST_EFFECT_TICKS = new WeakHashMap<>();
+    private static final Map<ServerLevel, Map<EpicFightSmashcastImpactKey, Long>> EPIC_FIGHT_SMASHCAST_DAMAGE_TICKS = new WeakHashMap<>();
     private static final int TREMOR_BLOCK_LIMIT = 16;
     private static final double SMASH_TREMOR_RADIUS = 3.0D;
     // メイス粉塵を 1.21 寄せで強めたため、tremor も見劣りしない振れ幅へ寄せる。
@@ -81,14 +82,23 @@ public final class SmashcastScepterAttackEvent {
         }
 
         var effectiveFallDistance = Math.max(0.0F, fallDistance);
-        event.setAmount(event.getAmount() + SmashcastScepter.calculateSmashBonusDamage(stack, effectiveFallDistance));
 
         var level = player.serverLevel();
         var gameTime = level.getGameTime();
-        var lastImpactTick = EPIC_FIGHT_SMASHCAST_IMPACT_TICKS
+        var impactKey = new EpicFightSmashcastImpactKey(player.getUUID(), target.getUUID());
+        var lastDamageTick = EPIC_FIGHT_SMASHCAST_DAMAGE_TICKS
+                .computeIfAbsent(level, ignored -> new HashMap<>())
+                .put(impactKey, gameTime);
+        if (lastDamageTick != null && lastDamageTick == gameTime) {
+            return;
+        }
+
+        event.setAmount(event.getAmount() + SmashcastScepter.calculateSmashBonusDamage(stack, effectiveFallDistance));
+
+        var lastEffectTick = EPIC_FIGHT_SMASHCAST_EFFECT_TICKS
                 .computeIfAbsent(level, ignored -> new HashMap<>())
                 .put(player.getUUID(), gameTime);
-        if (lastImpactTick != null && lastImpactTick == gameTime) {
+        if (lastEffectTick != null && lastEffectTick == gameTime) {
             return;
         }
 
@@ -162,15 +172,20 @@ public final class SmashcastScepterAttackEvent {
     }
 
     private static void cleanupEpicFightSmashcastImpacts(ServerLevel serverLevel) {
-        var impacts = EPIC_FIGHT_SMASHCAST_IMPACT_TICKS.get(serverLevel);
-        if (impacts == null || impacts.isEmpty()) {
+        var expireBefore = serverLevel.getGameTime() - 1L;
+        cleanupTickMap(EPIC_FIGHT_SMASHCAST_EFFECT_TICKS, serverLevel, expireBefore);
+        cleanupTickMap(EPIC_FIGHT_SMASHCAST_DAMAGE_TICKS, serverLevel, expireBefore);
+    }
+
+    private static <T> void cleanupTickMap(Map<ServerLevel, Map<T, Long>> tickMaps, ServerLevel serverLevel, long expireBefore) {
+        var ticks = tickMaps.get(serverLevel);
+        if (ticks == null || ticks.isEmpty()) {
             return;
         }
 
-        var expireBefore = serverLevel.getGameTime() - 1L;
-        impacts.entrySet().removeIf(entry -> entry.getValue() < expireBefore);
-        if (impacts.isEmpty()) {
-            EPIC_FIGHT_SMASHCAST_IMPACT_TICKS.remove(serverLevel);
+        ticks.entrySet().removeIf(entry -> entry.getValue() < expireBefore);
+        if (ticks.isEmpty()) {
+            tickMaps.remove(serverLevel);
         }
     }
 
@@ -341,5 +356,8 @@ public final class SmashcastScepterAttackEvent {
         private boolean matches(LivingEntity target, long currentGameTime) {
             return target.getUUID().equals(targetUuid) && currentGameTime - gameTime <= 1L;
         }
+    }
+
+    private record EpicFightSmashcastImpactKey(UUID playerUuid, UUID targetUuid) {
     }
 }

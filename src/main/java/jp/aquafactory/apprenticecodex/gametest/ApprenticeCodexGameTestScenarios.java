@@ -6203,6 +6203,50 @@ public final class ApprenticeCodexGameTestScenarios {
             assertClose(helper, SmashcastScepter.calculateSmashSpellPowerMultiplier(compressedStack, 200.0F),
                     11.0D, 1.0E-6D, "Smashcast Scepter spell power cap changed");
 
+            var epicFightStack = new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, epicFightStack);
+            var target = EntityType.ARMOR_STAND.create(helper.getLevel());
+            helper.assertTrue(target != null, "Armor Stand target could not be created for Epic Fight Smashcast test");
+            target.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 1, 0))));
+            helper.getLevel().addFreshEntity(target);
+            var secondTarget = EntityType.ARMOR_STAND.create(helper.getLevel());
+            helper.assertTrue(secondTarget != null, "Second Armor Stand target could not be created for Epic Fight Smashcast test");
+            secondTarget.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(1, 1, 0))));
+            helper.getLevel().addFreshEntity(secondTarget);
+
+            var epicFightFallDistance = 4.0F;
+            var expectedEpicFightBonus = SmashcastScepter.calculateSmashBonusDamage(epicFightStack, epicFightFallDistance);
+            var damageSource = player.damageSources().playerAttack(player);
+            var firstEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(target, damageSource, 1.0F);
+            SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
+                    player,
+                    target,
+                    firstEpicFightDamage,
+                    epicFightFallDistance
+            );
+            assertClose(helper, firstEpicFightDamage.getAmount(), 1.0F + expectedEpicFightBonus, 1.0E-6D,
+                    "Epic Fight Smashcast should apply bonus damage to the first target");
+
+            var duplicateEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(target, damageSource, 1.0F);
+            SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
+                    player,
+                    target,
+                    duplicateEpicFightDamage,
+                    epicFightFallDistance
+            );
+            assertClose(helper, duplicateEpicFightDamage.getAmount(), 1.0F, 1.0E-6D,
+                    "Epic Fight Smashcast should not apply duplicate bonus damage to the same target in one tick");
+
+            var secondEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(secondTarget, damageSource, 1.0F);
+            SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
+                    player,
+                    secondTarget,
+                    secondEpicFightDamage,
+                    epicFightFallDistance
+            );
+            assertClose(helper, secondEpicFightDamage.getAmount(), 1.0F + expectedEpicFightBonus, 1.0E-6D,
+                    "Epic Fight Smashcast should keep bonus damage for a different target in the same tick");
+
             assertExactEnchantmentSurfaces(
                     helper,
                     new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()),
