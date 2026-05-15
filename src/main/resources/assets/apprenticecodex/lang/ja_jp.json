@@ -15,6 +15,7 @@
   "block.apprenticecodex.potted_comfort_berry_bush" : "鉢植えの安楽の果実の低木",
   "block.apprenticecodex.spell_dispenser" : "スペルディスペンサー",
   "block.apprenticecodex.frost_rune_trap" : "氷のルーン",
+  "block.apprenticecodex.spell_calibration_bench" : "術式調整台",
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.comfort_berries": "安楽の果実",
@@ -80,6 +81,7 @@
   "item.apprenticecodex.spellcasters_flask": "詠唱者のフラスコ",
   "item.apprenticecodex.alchemists_flask": "錬金術師のフラスコ",
   "item.apprenticecodex.elemental_bow": "エレメンタルボウ",
+  "item.apprenticecodex.scrollcaster_gauntlet": "術式装填ガントレット",
   "item.apprenticecodex.apprentice_mage_scarf": "見習い魔術師のスカーフ",
   "item.apprenticecodex.apprentice_mage_torso": "見習い魔術師のローブ",
   "item.apprenticecodex.apprentice_mage_leggings": "見習い魔術師のズボン",
