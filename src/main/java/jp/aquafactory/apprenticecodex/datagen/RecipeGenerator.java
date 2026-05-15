@@ -113,6 +113,12 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.BOW), has(Items.BOW))
                 .save(recipeOutput);
 
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ItemRegistry.COMFORT_SANDWICH.get())
+                .requires(Items.BREAD)
+                .requires(ItemRegistry.COMFORT_BERRIES.get(), 2)
+                .unlockedBy(getHasName(ItemRegistry.COMFORT_BERRIES.get()), has(ItemRegistry.COMFORT_BERRIES.get()))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")
                 .pattern("IMI")
