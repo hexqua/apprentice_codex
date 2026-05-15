@@ -339,6 +339,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void comfortSandwichProvidesManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.comfortSandwichProvidesManaRegenerationAndExpectedFoodValues(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(helper);
     }

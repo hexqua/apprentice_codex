@@ -92,16 +92,26 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> THERMAL_PROCESS_THROWER = simple("thermal_process_thrower");
     public static final RegistryObject<Item> FLY_SWATTER_LAUNCHER = simple("fly_swatter_launcher");
     public static final RegistryObject<Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
+
     public static final RegistryObject<Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
                     BlockRegistry.COMFORT_BERRY_BUSH.get(),
                     new Item.Properties().food(new FoodProperties.Builder()
-                            .nutrition(4)
+                            .nutrition(1)
                             .saturationMod(1.2f)
                             .alwaysEat()
-                            .effect(() -> new MobEffectInstance(EffectRegistry.MANA_REGENERATION.get(), 20 * 30), 1.0f)
+                            .effect(() -> new MobEffectInstance(EffectRegistry.MANA_REGENERATION.get(), 20 * 10, 2), 1.0f)
                             .build())
             ));
+
+    public static final RegistryObject<Item> COMFORT_SANDWICH =
+            ITEMS.register("comfort_sandwich", () -> new Item(new Item.Properties().food(new FoodProperties.Builder()
+                    .nutrition(7)
+                    .saturationMod(1.6f)
+                    .alwaysEat()
+                    .effect(() -> new MobEffectInstance(EffectRegistry.MANA_REGENERATION.get(), 20 * 60), 1.0f)
+                    .build())));
+
     public static final RegistryObject<Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
     public static final RegistryObject<Item> EMPTY_RAPID_SPELLCASTER_CASING =
             ITEMS.register("empty_rapid_spellcaster_casing", SpellcasterRoundItem::new);
