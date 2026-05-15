@@ -1,0 +1,77 @@
+{
+	"format_version": "1.21.110",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.scrollcaster_gauntlet",
+				"texture_width": 32,
+				"texture_height": 32,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 1.5,
+				"visible_bounds_offset": [0, 0.25, 0]
+			},
+			"bones": [
+				{
+					"name": "root",
+					"pivot": [1.5, 0, 0]
+				},
+				{
+					"name": "bracer",
+					"parent": "root",
+					"pivot": [-1.3625, 3.125, 0.525],
+					"cubes": [
+						{"origin": [-2, 0, -3], "size": [4.5, 5, 8], "inflate": 0.1, "uv": [0, 0]}
+					]
+				},
+				{
+					"name": "core",
+					"parent": "bracer",
+					"pivot": [-2.125, 2.5, -0.9],
+					"cubes": [
+						{"origin": [-2.5, 0.5, -2.9], "size": [1, 4, 4], "uv": [12, 13]}
+					]
+				},
+				{
+					"name": "core_main",
+					"parent": "core",
+					"pivot": [-2.25, 2.5, -0.9],
+					"cubes": [
+						{"origin": [-2.75, 1.5, -1.9], "size": [1, 2, 2], "uv": [22, 13]}
+					]
+				},
+				{
+					"name": "bolt",
+					"parent": "bracer",
+					"pivot": [-1.25, 4.75, -0.5],
+					"cubes": [
+						{"origin": [-2.25, 4, -1.5], "size": [2, 1.5, 2], "pivot": [-1.25, 4.75, -0.5], "rotation": [0, -45, 0], "uv": [16, 21]}
+					]
+				},
+				{
+					"name": "scroll_socket",
+					"parent": "bracer",
+					"pivot": [-1.825, 2.5, 3],
+					"cubes": [
+						{"origin": [-2.25, 1.25, 1.25], "size": [1, 2.5, 3.5], "uv": [0, 20]}
+					]
+				},
+				{
+					"name": "scroll_main",
+					"parent": "scroll_socket",
+					"pivot": [-1.9, 2.5, 3],
+					"cubes": [
+						{"origin": [-2.4, 1.5, 1.5], "size": [1, 2, 3], "uv": [8, 21]}
+					]
+				},
+				{
+					"name": "finger",
+					"parent": "root",
+					"pivot": [0.25, 2.5, -4.25],
+					"cubes": [
+						{"origin": [-2, 0, -5.5], "size": [4.5, 5, 2.5], "uv": [0, 13]}
+					]
+				}
+			]
+		}
+	]
+}
