@@ -72,6 +72,10 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     private static final double FOLLOW_VERTICAL_GAP_DISTANCE = 0.75;
     private static final double FOLLOW_VERTICAL_JUMP_HORIZONTAL_DISTANCE_SQR = 0.25;
     private static final int JUMP_COOLDOWN_TICK = 10;
+    private static final int JUMP_SOUND_MIN_INTERVAL_TICK = 30;
+    private static final float JUMP_SOUND_VOLUME = 0.75f;
+    private static final float JUMP_SOUND_PITCH_MIN = 0.85f;
+    private static final float JUMP_SOUND_PITCH_VARIATION = 0.1f;
     private static final int HEAL_INTERVAL_TICK = 80;
     private static final double GROUND_HORIZONTAL_DAMPING = 0.08;
     private static final int JUMP_MAIN_DURATION_TICK = 15;
@@ -110,6 +114,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     private int voidRescueCooldownTick;
     private int lidAnimationTick;
     private int bodyAnimationTick;
+    private long lastJumpSoundGameTime = Long.MIN_VALUE;
     private boolean removalHandled;
     private int clientLastLidAnimationSerial;
     private int clientLastBodyAnimationSerial;
@@ -275,13 +280,27 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         );
         hasImpulse = true;
         jumpCooldownTick = JUMP_COOLDOWN_TICK;
-        level().playSound(null, blockPosition(), SoundRegistry.VANILLA_CHEST_JUMP.get(), SoundSource.BLOCKS, 0.75f, 1.0f);
+        playFollowJumpSound();
 
         // ラッチは open と排他なので、誰かが開いている間は open 姿勢を優先する.
         if (openers.isEmpty()) {
             playLidJumpAnimation();
         }
         startBodyJumpAnimation();
+    }
+
+    private void playFollowJumpSound() {
+        var level = level();
+        var gameTime = level.getGameTime();
+        if (lastJumpSoundGameTime != Long.MIN_VALUE
+                && gameTime - lastJumpSoundGameTime < JUMP_SOUND_MIN_INTERVAL_TICK) {
+            return;
+        }
+
+        lastJumpSoundGameTime = gameTime;
+        var pitch = JUMP_SOUND_PITCH_MIN + level.random.nextFloat() * JUMP_SOUND_PITCH_VARIATION;
+        level.playSound(null, blockPosition(), SoundRegistry.VANILLA_CHEST_JUMP.get(), SoundSource.NEUTRAL,
+                JUMP_SOUND_VOLUME, pitch);
     }
 
     private void dampGroundMotion() {
