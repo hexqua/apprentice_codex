@@ -7,13 +7,15 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import yesman.epicfight.api.forgeevent.WeaponCapabilityPresetRegistryEvent;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
-import yesman.epicfight.world.capabilities.item.WeaponCapabilityPresets;
+import yesman.epicfight.world.capabilities.item.WeaponTypeReloadListener;
 
 // リフレクションで参照するため、IDE側の未使用検知を無効化.
 @SuppressWarnings("unused")
 public final class EpicFightChargedTwinBladeStaffCompat {
     public static final ResourceLocation WEAPON_TYPE_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "charged_twin_blade_staff");
+    private static final ResourceLocation SPEAR_PRESET_ID =
+            ResourceLocation.fromNamespaceAndPath(EpicFightCompat.MOD_ID, "spear");
 
     private EpicFightChargedTwinBladeStaffCompat() {
     }
@@ -23,11 +25,14 @@ public final class EpicFightChargedTwinBladeStaffCompat {
     }
 
     private static void onWeaponCapabilityPresetRegistry(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(WEAPON_TYPE_ID, EpicFightChargedTwinBladeStaffCompat::buildCapability);
+        event.getTypeEntry().put(
+                WEAPON_TYPE_ID,
+                item -> EpicFightChargedTwinBladeStaffCompat.buildCapability(item, SPEAR_PRESET_ID)
+        );
     }
 
-    private static CapabilityItem.Builder buildCapability(Item item) {
-        var builder = (WeaponCapability.Builder) WeaponCapabilityPresets.SPEAR.apply(item);
+    private static CapabilityItem.Builder buildCapability(Item item, ResourceLocation basePresetId) {
+        var builder = (WeaponCapability.Builder) WeaponTypeReloadListener.getOrThrow(basePresetId.toString()).apply(item);
 
         builder.zoomInType(CapabilityItem.ZoomInType.USE_TICK);
         builder.constructor(EpicFightChargedTwinBladeStaffCapability::new);

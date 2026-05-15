@@ -159,8 +159,8 @@ dependencies {
     // Epic Fight.
     // 武器関連対応、特殊武器アクション(e.g. 打撃詠唱杖の魔法発動)のコード接続用に参照も含める.
     // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
-    compileOnly fg.deobf("curse.maven:epic-fight-mod-405076:8049910")
-    // runtimeOnly fg.deobf("curse.maven:epic-fight-mod-405076:8049910")
+    compileOnly fg.deobf("curse.maven:epic-fight-mod-405076:7919289")
+    // runtimeOnly fg.deobf("curse.maven:epic-fight-mod-405076:7919289")
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
