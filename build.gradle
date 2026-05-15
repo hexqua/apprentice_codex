@@ -157,10 +157,10 @@ dependencies {
     // runtimeOnly fg.deobf("maven.modrinth:better-combat:rnhiaw3t")
 
     // Epic Fight.
-    // 武器関連対応、特殊武器アクション(e.g. 打撃詠唱杖の魔法発動)のコード接続用に参照も含める.
-    // 必要に応じてON、デフォルトは入れない(必須前提にはしないため)
-    compileOnly fg.deobf("curse.maven:epic-fight-mod-405076:7919289")
-    // runtimeOnly fg.deobf("curse.maven:epic-fight-mod-405076:7919289")
+    // コンパイルは最低対応版に固定し、新しいAPIの誤使用を検出する.
+    // ランタイムは20.14系最新を使い、通常の起動確認では最新側の挙動を見る.
+    compileOnly "maven.modrinth:epic-fight:${epicfight_compile_version}"
+    // runtimeOnly fg.deobf("curse.maven:epic-fight-mod-405076:${epicfight_runtime_file_id}")
 
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
