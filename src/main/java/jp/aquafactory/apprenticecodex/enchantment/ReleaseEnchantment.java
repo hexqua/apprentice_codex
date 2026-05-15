@@ -42,7 +42,7 @@ public final class ReleaseEnchantment extends Enchantment {
 
     @Override
     public boolean isTreasureOnly() {
-        return true;
+        return false;
     }
 
     @Override

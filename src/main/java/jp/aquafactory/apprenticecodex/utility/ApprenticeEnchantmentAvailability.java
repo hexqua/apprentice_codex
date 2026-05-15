@@ -19,6 +19,7 @@ public final class ApprenticeEnchantmentAvailability {
         return isFlaskExclusiveEnchantment(enchantment)
                 || matches(enchantment, EnchantmentRegistry.SYNTHESIS)
                 || matches(enchantment, EnchantmentRegistry.COMPRESS)
+                || matches(enchantment, EnchantmentRegistry.RELEASE)
                 || matches(enchantment, EnchantmentRegistry.SHELL)
                 || matches(enchantment, EnchantmentRegistry.SYNCHRONIZATION)
                 || matches(enchantment, EnchantmentRegistry.NEUTRALIZATION);
