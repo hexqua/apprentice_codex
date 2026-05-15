@@ -121,7 +121,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
-                ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()
+                ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
+                ItemRegistry.SCROLLCASTER_GAUNTLET.get()
         );
         // Focus Staffbow は StaffItem 継承に依存せず Staff 相当の主手エンチャ面を持たせたいので、
         // sword 系 tag と Malum 互換 tag、個別付与の Wisdom を明示追加する。

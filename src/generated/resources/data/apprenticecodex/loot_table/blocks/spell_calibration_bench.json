@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:spell_calibration_bench"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "apprenticecodex:blocks/spell_calibration_bench"
+}
