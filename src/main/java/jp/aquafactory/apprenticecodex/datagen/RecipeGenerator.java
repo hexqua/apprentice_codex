@@ -117,7 +117,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .requires(Items.BREAD)
                 .requires(ItemRegistry.COMFORT_BERRIES.get(), 2)
                 .unlockedBy(getHasName(ItemRegistry.COMFORT_BERRIES.get()), has(ItemRegistry.COMFORT_BERRIES.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCARLET_THIRST.get())
                 .pattern("VI ")
