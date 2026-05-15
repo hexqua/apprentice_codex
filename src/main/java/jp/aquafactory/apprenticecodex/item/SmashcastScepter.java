@@ -333,7 +333,7 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
         }
 
         if (EnchantmentRegistry.RELEASE.isPresent() && enchantment == EnchantmentRegistry.RELEASE.get()) {
-            return false;
+            return true;
         }
 
         return (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())

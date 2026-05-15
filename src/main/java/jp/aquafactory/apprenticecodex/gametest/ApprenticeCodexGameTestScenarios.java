@@ -8981,7 +8981,7 @@ public final class ApprenticeCodexGameTestScenarios {
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.SYNCHRONIZATION, false, false, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.NEUTRALIZATION, false, false, true);
             assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.COMPRESS, false, false, true);
-            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RELEASE, true, false, true);
+            assertApprenticeEnchantmentFlags(helper, EnchantmentRegistry.RELEASE, false, false, true);
         });
     }
     static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
@@ -11781,6 +11781,7 @@ public final class ApprenticeCodexGameTestScenarios {
         expectedEnchantments.add(ResourceLocation.withDefaultNamespace("fire_aspect"));
         expectedEnchantments.addAll(registryIdSet(
                 EnchantmentRegistry.COMPRESS,
+                EnchantmentRegistry.RELEASE,
                 EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER,
                 EnchantmentRegistry.TRANSCENDENCE
@@ -11937,8 +11938,7 @@ public final class ApprenticeCodexGameTestScenarios {
                 EnchantmentRegistry.TENSE,
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM,
-                EnchantmentRegistry.PLUNDER,
-                EnchantmentRegistry.RELEASE
+                EnchantmentRegistry.PLUNDER
         );
     }
 
