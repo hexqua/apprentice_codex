@@ -28,7 +28,7 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
-import yesman.epicfight.world.capabilities.item.WeaponCapabilityPresets;
+import yesman.epicfight.world.capabilities.item.WeaponTypeReloadListener;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.BasicAttackEvent;
@@ -49,6 +49,8 @@ public final class EpicFightSmashcastScepterCompat {
     public static final String MOD_ID = "epicfight";
     public static final ResourceLocation WEAPON_TYPE_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "smashcast_scepter");
+    private static final ResourceLocation SWORD_PRESET_ID =
+            ResourceLocation.fromNamespaceAndPath(MOD_ID, "sword");
 
     static Skill WIND_LEAP;
 
@@ -84,11 +86,14 @@ public final class EpicFightSmashcastScepterCompat {
     }
 
     private static void onWeaponCapabilityPresetRegistry(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(WEAPON_TYPE_ID, EpicFightSmashcastScepterCompat::buildCapability);
+        event.getTypeEntry().put(
+                WEAPON_TYPE_ID,
+                item -> EpicFightSmashcastScepterCompat.buildCapability(item, SWORD_PRESET_ID)
+        );
     }
 
-    private static CapabilityItem.Builder buildCapability(Item item) {
-        var builder = (WeaponCapability.Builder) WeaponCapabilityPresets.SWORD.apply(item);
+    private static CapabilityItem.Builder buildCapability(Item item, ResourceLocation basePresetId) {
+        var builder = (WeaponCapability.Builder) WeaponTypeReloadListener.getOrThrow(basePresetId.toString()).apply(item);
 
         builder.constructor(EpicFightSmashcastScepterCapability::new);
         builder.styleProvider(entityPatch -> CapabilityItem.Styles.ONE_HAND);
