@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:bread"
+    },
+    {
+      "item": "apprenticecodex:comfort_berries"
+    },
+    {
+      "item": "apprenticecodex:comfort_berries"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:comfort_sandwich"
+  }
+}

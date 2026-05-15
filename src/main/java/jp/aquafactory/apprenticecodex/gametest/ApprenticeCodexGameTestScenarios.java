@@ -878,6 +878,10 @@ public final class ApprenticeCodexGameTestScenarios {
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_codex_guidebook_transfer"),
                     RecipeRegistry.EXPLORERS_CODEX_GUIDEBOOK_TRANSFER_SERIALIZER.get(), null);
+            assertRecipeLoaded(helper, recipeManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "comfort_sandwich"),
+                    net.minecraft.world.item.crafting.RecipeSerializer.SHAPELESS_RECIPE,
+                    net.minecraft.world.item.crafting.RecipeType.CRAFTING);
             var guidebookRecipeId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "isekai_travel_guidebook");
             helper.assertTrue(recipeManager.byKey(guidebookRecipeId).isEmpty(),
                     "Isekai Travel Guidebook crafting recipe should not be loaded: " + guidebookRecipeId);
@@ -9876,9 +9880,9 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var foodProperties = new ItemStack(ItemRegistry.COMFORT_BERRIES.get()).getFoodProperties(null);
             helper.assertTrue(foodProperties != null, "Comfort Berries should remain edible");
-            helper.assertTrue(foodProperties != null && foodProperties.nutrition() == 4,
+            helper.assertTrue(foodProperties != null && foodProperties.nutrition() == 1,
                     "Comfort Berries nutrition regression: " + (foodProperties == null ? "null" : foodProperties.nutrition()));
-            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.saturation() - 9.6f) < 1.0e-6F,
+            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.saturation() - 2.4f) < 1.0e-6F,
                     "Comfort Berries saturation regression: "
                             + (foodProperties == null ? "null" : foodProperties.saturation()));
             helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
@@ -9892,14 +9896,45 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Comfort Berries should grant exactly one mana regeneration effect but got " + matchingEffects.size());
 
             var effectPair = matchingEffects.isEmpty() ? null : matchingEffects.get(0);
-            helper.assertTrue(effectPair != null && effectPair.effect().getDuration() == 20 * 30,
+            helper.assertTrue(effectPair != null && effectPair.effect().getDuration() == 20 * 10,
                     "Comfort Berries mana regeneration duration regression: "
                             + (effectPair == null ? "missing" : effectPair.effect().getDuration()));
-            helper.assertTrue(effectPair != null && effectPair.effect().getAmplifier() == 0,
+            helper.assertTrue(effectPair != null && effectPair.effect().getAmplifier() == 2,
                     "Comfort Berries mana regeneration level regression: "
                             + (effectPair == null ? "missing" : effectPair.effect().getAmplifier()));
             helper.assertTrue(effectPair != null && Math.abs(effectPair.probability() - 1.0f) < 1.0e-6F,
                     "Comfort Berries mana regeneration chance regression: "
+                            + (effectPair == null ? "missing" : effectPair.probability()));
+        });
+    }
+    static void comfortSandwichProvidesManaRegenerationAndExpectedFoodValues(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var foodProperties = new ItemStack(ItemRegistry.COMFORT_SANDWICH.get()).getFoodProperties(null);
+            helper.assertTrue(foodProperties != null, "Comfort Sandwich should be edible");
+            helper.assertTrue(foodProperties != null && foodProperties.nutrition() == 7,
+                    "Comfort Sandwich nutrition regression: " + (foodProperties == null ? "null" : foodProperties.nutrition()));
+            helper.assertTrue(foodProperties != null && Math.abs(foodProperties.saturation() - 22.4f) < 1.0e-6F,
+                    "Comfort Sandwich saturation regression: "
+                            + (foodProperties == null ? "null" : foodProperties.saturation()));
+            helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
+                    "Comfort Sandwich should remain edible even when full");
+
+            var matchingEffects = foodProperties == null ? List.<net.minecraft.world.food.FoodProperties.PossibleEffect>of()
+                    : foodProperties.effects().stream()
+                    .filter(effectPair -> effectPair.effect().getEffect() == EffectRegistry.MANA_REGENERATION)
+                    .toList();
+            helper.assertTrue(matchingEffects.size() == 1,
+                    "Comfort Sandwich should grant exactly one mana regeneration effect but got " + matchingEffects.size());
+
+            var effectPair = matchingEffects.isEmpty() ? null : matchingEffects.get(0);
+            helper.assertTrue(effectPair != null && effectPair.effect().getDuration() == 20 * 60,
+                    "Comfort Sandwich mana regeneration duration regression: "
+                            + (effectPair == null ? "missing" : effectPair.effect().getDuration()));
+            helper.assertTrue(effectPair != null && effectPair.effect().getAmplifier() == 0,
+                    "Comfort Sandwich mana regeneration level regression: "
+                            + (effectPair == null ? "missing" : effectPair.effect().getAmplifier()));
+            helper.assertTrue(effectPair != null && Math.abs(effectPair.probability() - 1.0f) < 1.0e-6F,
+                    "Comfort Sandwich mana regeneration chance regression: "
                             + (effectPair == null ? "missing" : effectPair.probability()));
         });
     }
