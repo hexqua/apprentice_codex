@@ -181,6 +181,8 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> SPELLCASTER_WORKBENCH =
             ITEMS.register("spellcaster_workbench",
                     () -> new SpellcasterWorkbenchItem(BlockRegistry.SPELLCASTER_WORKBENCH.get(), new Item.Properties()));
+    public static final RegistryObject<Item> SPELL_CALIBRATION_BENCH =
+            block("spell_calibration_bench", BlockRegistry.SPELL_CALIBRATION_BENCH);
     public static final RegistryObject<Item> SPELL_DISPENSER =
             ITEMS.register("spell_dispenser",
                     () -> new SpellDispenserItem(BlockRegistry.SPELL_DISPENSER.get(), new Item.Properties()));
@@ -259,6 +261,8 @@ public final class ItemRegistry {
             ITEMS.register("smashcast_scepter", SmashcastScepter::new);
     public static final RegistryObject<Item> MULTIPURPOSE_STAFFRIFLE =
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
+    public static final RegistryObject<Item> SCROLLCASTER_GAUNTLET =
+            ITEMS.register("scrollcaster_gauntlet", ScrollcasterGauntlet::new);
     public static final RegistryObject<Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final RegistryObject<Item> CHARGED_TWIN_BLADE_STAFF =
