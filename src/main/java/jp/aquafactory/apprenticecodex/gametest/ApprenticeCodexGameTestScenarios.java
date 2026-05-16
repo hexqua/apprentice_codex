@@ -134,6 +134,7 @@ import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
@@ -2695,6 +2696,10 @@ public final class ApprenticeCodexGameTestScenarios {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             helper.assertTrue(gauntlet.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
                     "Scrollcaster Gauntlet should be a UniqueItem to block Arcane Anvil imbue tooltips and normal imbue");
+            assertTooltipKeyAt(helper, gauntlet, 0, "item.apprenticecodex.scrollcaster_gauntlet.desc_1",
+                    "Scrollcaster Gauntlet should show shield priority tooltip first");
+            assertTooltipKeyAt(helper, gauntlet, 1, "item.apprenticecodex.scrollcaster_gauntlet.desc_2",
+                    "Scrollcaster Gauntlet should show selected spell cast tooltip second");
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
             helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet),
                     "Empty Scrollcaster Gauntlet should not expose a spell container");
@@ -2738,6 +2743,16 @@ public final class ApprenticeCodexGameTestScenarios {
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 1);
             assertSpellData(helper, ISpellContainer.get(gauntlet), 0, heal, 1, false,
                     "Changing Scrollcaster Gauntlet index should change the exposed spell");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_gauntlet_right_click_resolver_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
+            var resolvedRightClickSpell = RightClickSpellResolver.resolve(player);
+            helper.assertTrue(resolvedRightClickSpell.isPresent(),
+                    "Scrollcaster Gauntlet right-click resolver should find the selected gauntlet spell");
+            helper.assertTrue(resolvedRightClickSpell.get().spellData().getSpell() == heal,
+                    "Scrollcaster Gauntlet right-click resolver should use the gauntlet-selected spell");
+            helper.assertTrue("scrollcaster_gauntlet_selected".equals(resolvedRightClickSpell.get().resolutionPath()),
+                    "Scrollcaster Gauntlet right-click resolver should expose its dedicated resolution path");
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 1, ItemStack.EMPTY);
             helper.assertTrue(ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet) == 3,

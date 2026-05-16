@@ -210,6 +210,8 @@
   "item.apprenticecodex.multipurpose_staffrifle.desc_2": "Aim with [%1$s] to enable rapid fire.",
   "item.apprenticecodex.smashcast_scepter.desc_1": "Smashes on falling attack hits. If the imbued spell can be cast, it is empowered by fall distance and cast.",
   "item.apprenticecodex.smashcast_scepter.desc_2": "Falling attack hits negate fall damage regardless of whether the spell casts.",
+  "item.apprenticecodex.scrollcaster_gauntlet.desc_1": "This gauntlet prioritizes shield usage.",
+  "item.apprenticecodex.scrollcaster_gauntlet.desc_2": "When casting with [%1$s], it always casts the spell selected on this gauntlet.",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "Using it as fuel in a furnace, blast furnace, or smoker increases processing speed.",
   "jei.apprenticecodex.arcane_cinder.desc_2": "It has no effect in other machines.",
