@@ -4,6 +4,13 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.item.Scroll;
+import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
+import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
@@ -11,8 +18,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -20,8 +29,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -30,12 +41,16 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class ScrollcasterGauntlet extends Item implements GeoItem {
+public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 10;
+    public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
+    public static final int CALIBRATION_SCROLL_SLOTS_PER_UPGRADE = 2;
 
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";
@@ -44,6 +59,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
     private static final String SLOT_TAG = "Slot";
     private static final String ITEM_TAG = "Item";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
+    private static final String SELECTED_SCROLL_INDEX_TAG = "SelectedScrollIndex";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final double ATTACK_DAMAGE_BONUS = 5.0D;
     private static final double ATTACK_SPEED_BONUS = -2.2D;
@@ -81,6 +97,19 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
         return false;
+    }
+
+    @Override
+    public void initializeSpellContainer(ItemStack stack) {
+        refreshSelectedSpellContainer(stack);
+    }
+
+    @Override
+    public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        if (hasAnyCalibrationScroll(stack) && !isCurrentSelectedSpellContainer(stack)) {
+            refreshSelectedSpellContainer(stack);
+        }
     }
 
     @Override
@@ -177,6 +206,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
     public static void setCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
         refreshResolvedCalibrationSchool(gauntletStack);
+        refreshSelectedSpellContainer(gauntletStack);
     }
 
     public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack gauntletStack, int slot) {
@@ -185,6 +215,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
 
     public static void setCalibrationScroll(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(gauntletStack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, stack);
+        refreshSelectedSpellContainer(gauntletStack);
     }
 
     public static boolean hasAnyCalibrationItem(@NotNull ItemStack gauntletStack) {
@@ -197,6 +228,172 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
             if (!getCalibrationScroll(gauntletStack, slot).isEmpty()) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    public static boolean hasAnyCalibrationScroll(@NotNull ItemStack gauntletStack) {
+        return findFirstValidScrollIndex(gauntletStack) >= 0;
+    }
+
+    public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack gauntletStack) {
+        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
+            return 0;
+        }
+
+        var upgradeCount = 0;
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (getCalibrationAdjustment(gauntletStack, slot).getItem() instanceof SpellSlotUpgradeItem) {
+                ++upgradeCount;
+            }
+        }
+
+        return Math.min(
+                CALIBRATION_SCROLL_SLOT_COUNT,
+                BASE_CALIBRATION_SCROLL_SLOT_COUNT + upgradeCount * CALIBRATION_SCROLL_SLOTS_PER_UPGRADE
+        );
+    }
+
+    public static int getSelectedScrollIndex(@NotNull ItemStack gauntletStack) {
+        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
+            return -1;
+        }
+
+        var calibrationTag = gauntletStack.getTagElement(CALIBRATION_TAG);
+        if (calibrationTag == null || !calibrationTag.contains(SELECTED_SCROLL_INDEX_TAG, Tag.TAG_INT)) {
+            return -1;
+        }
+
+        var index = calibrationTag.getInt(SELECTED_SCROLL_INDEX_TAG);
+        return index >= 0 && index < CALIBRATION_SCROLL_SLOT_COUNT ? index : -1;
+    }
+
+    public static void setSelectedScrollIndex(@NotNull ItemStack gauntletStack, int selectedScrollIndex) {
+        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
+            return;
+        }
+
+        if (!isSelectableScrollIndex(gauntletStack, selectedScrollIndex)) {
+            refreshSelectedSpellContainer(gauntletStack);
+            return;
+        }
+
+        setStoredSelectedScrollIndex(gauntletStack, selectedScrollIndex);
+        refreshSelectedSpellContainer(gauntletStack);
+    }
+
+    public static boolean isSelectableScrollIndex(@NotNull ItemStack gauntletStack, int selectedScrollIndex) {
+        return isValidCalibrationAccess(gauntletStack, 0, 1)
+                && selectedScrollIndex >= 0
+                && selectedScrollIndex < getEnabledCalibrationScrollSlotCount(gauntletStack)
+                && isValidScrollSpell(getCalibrationScroll(gauntletStack, selectedScrollIndex));
+    }
+
+    public static int normalizeSelectedScrollIndex(@NotNull ItemStack gauntletStack) {
+        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
+            return -1;
+        }
+
+        var selectedIndex = getSelectedScrollIndex(gauntletStack);
+        if (isSelectableScrollIndex(gauntletStack, selectedIndex)) {
+            return selectedIndex;
+        }
+
+        var firstValidIndex = findFirstValidScrollIndex(gauntletStack);
+        if (firstValidIndex < 0) {
+            clearSelectedScrollIndex(gauntletStack);
+            ISpellContainer.remove(gauntletStack);
+            return -1;
+        }
+
+        setStoredSelectedScrollIndex(gauntletStack, firstValidIndex);
+        return firstValidIndex;
+    }
+
+    public static @NotNull SpellData getSelectedSpellData(@NotNull ItemStack gauntletStack) {
+        var selectedIndex = normalizeSelectedScrollIndex(gauntletStack);
+        if (selectedIndex < 0) {
+            return SpellData.EMPTY;
+        }
+
+        return getScrollSpellData(getCalibrationScroll(gauntletStack, selectedIndex));
+    }
+
+    public static @NotNull List<ScrollSelectionView> getSelectionViews(@NotNull ItemStack gauntletStack) {
+        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
+            return List.of();
+        }
+
+        var selectedIndex = normalizeSelectedScrollIndex(gauntletStack);
+        if (selectedIndex < 0) {
+            return List.of();
+        }
+
+        var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack);
+        var views = new ArrayList<ScrollSelectionView>();
+        for (var slot = 0; slot < enabledSlotCount; ++slot) {
+            var spellData = getScrollSpellData(getCalibrationScroll(gauntletStack, slot));
+            views.add(new ScrollSelectionView(
+                    slot,
+                    spellData,
+                    createSelectionDisplayName(spellData),
+                    spellData == SpellData.EMPTY || spellData.getSpell() == null
+                            ? null
+                            : spellData.getSpell().getSpellIconResource(),
+                    slot == selectedIndex
+            ));
+        }
+        return List.copyOf(views);
+    }
+
+    private static @NotNull Component createSelectionDisplayName(@NotNull SpellData spellData) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return Component.empty();
+        }
+
+        var spell = spellData.getSpell();
+        return spell.getDisplayName(null)
+                .copy()
+                .append(" ")
+                .append(Integer.toString(spellData.getLevel()))
+                .withStyle(spell.getSchoolType().getDisplayName().getStyle());
+    }
+
+    public static void refreshSelectedSpellContainer(@NotNull ItemStack gauntletStack) {
+        var spellData = getSelectedSpellData(gauntletStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            ISpellContainer.remove(gauntletStack);
+            return;
+        }
+
+        if (isCurrentSelectedSpellContainer(gauntletStack, spellData)) {
+            return;
+        }
+
+        // Iron's のショートカット選択とクールダウン表示に乗せるため、内部スクロールをGauntlet本体のSpell Wheelへ投影する。
+        var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
+        spellContainer.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
+        ISpellContainer.set(gauntletStack, spellContainer.toImmutable());
+    }
+
+    private static boolean isCurrentSelectedSpellContainer(@NotNull ItemStack gauntletStack) {
+        var spellData = getSelectedSpellData(gauntletStack);
+        return spellData != SpellData.EMPTY
+                && spellData.getSpell() != null
+                && isCurrentSelectedSpellContainer(gauntletStack, spellData);
+    }
+
+    private static boolean isCurrentSelectedSpellContainer(@NotNull ItemStack gauntletStack, @NotNull SpellData spellData) {
+        var current = ISpellContainer.get(gauntletStack);
+        if (current != null) {
+            var currentSpell = current.getSpellAtIndex(0);
+            return current.getMaxSpellCount() == 1
+                    && current.isSpellWheel()
+                    && !current.mustEquip()
+                    && currentSpell != SpellData.EMPTY
+                    && currentSpell.getSpell() == spellData.getSpell()
+                    && currentSpell.getLevel() == spellData.getLevel()
+                    && !currentSpell.isLocked();
         }
         return false;
     }
@@ -270,6 +467,57 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
         }
     }
 
+    private static int findFirstValidScrollIndex(@NotNull ItemStack gauntletStack) {
+        var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack);
+        for (var slot = 0; slot < enabledSlotCount; ++slot) {
+            if (isValidScrollSpell(getCalibrationScroll(gauntletStack, slot))) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean isValidScrollSpell(@NotNull ItemStack scrollStack) {
+        return getScrollSpellData(scrollStack) != SpellData.EMPTY;
+    }
+
+    private static @NotNull SpellData getScrollSpellData(@NotNull ItemStack scrollStack) {
+        if (scrollStack.isEmpty() || !(scrollStack.getItem() instanceof Scroll)) {
+            return SpellData.EMPTY;
+        }
+
+        var scrollContainer = ISpellContainer.get(scrollStack);
+        if (scrollContainer == null) {
+            return SpellData.EMPTY;
+        }
+
+        var spellData = scrollContainer.getSpellAtIndex(0);
+        // 直近調査した不具合で@NotNullからnullが返ってきてクラッシュしている不具合を見た記憶があるので冗長だがnullチェックを行っておく.
+        //noinspection ConstantValue
+        return spellData == null ? SpellData.EMPTY : spellData;
+    }
+
+    private static void setStoredSelectedScrollIndex(@NotNull ItemStack gauntletStack, int selectedScrollIndex) {
+        if (selectedScrollIndex < 0 || selectedScrollIndex >= CALIBRATION_SCROLL_SLOT_COUNT) {
+            clearSelectedScrollIndex(gauntletStack);
+            return;
+        }
+
+        gauntletStack.getOrCreateTagElement(CALIBRATION_TAG).putInt(SELECTED_SCROLL_INDEX_TAG, selectedScrollIndex);
+    }
+
+    private static void clearSelectedScrollIndex(@NotNull ItemStack gauntletStack) {
+        var calibrationTag = gauntletStack.getTagElement(CALIBRATION_TAG);
+        if (calibrationTag == null) {
+            return;
+        }
+
+        calibrationTag.remove(SELECTED_SCROLL_INDEX_TAG);
+        if (calibrationTag.isEmpty()) {
+            gauntletStack.removeTagKey(CALIBRATION_TAG);
+        }
+    }
+
     private static boolean hasResolvedCalibrationSchool(ItemStack stack) {
         return getResolvedCalibrationSchoolId(stack) != null;
     }
@@ -316,5 +564,21 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
                 && gauntletStack.getItem() instanceof ScrollcasterGauntlet
                 && slot >= 0
                 && slot < slotCount;
+    }
+
+    public record ScrollSelectionView(
+            int scrollIndex,
+            SpellData spellData,
+            Component displayName,
+            @Nullable ResourceLocation spellIcon,
+            boolean currentSelection
+    ) {
+        public boolean hasSpell() {
+            return spellData != SpellData.EMPTY && spellData.getSpell() != null;
+        }
+
+        public AbstractSpell spell() {
+            return spellData.getSpell();
+        }
     }
 }
