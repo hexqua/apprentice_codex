@@ -62,7 +62,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem {
+public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem, WeaponImbueCooldownPolicyItem {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 10;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
@@ -124,6 +124,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
         return false;
+    }
+
+    @Override
+    public boolean ignoresWeaponImbueCooldownMultiplier(ItemStack stack, @Nullable AbstractSpell spell, CastSource castSource) {
+        // 右クリック詠唱の接着は剣 Imbue 扱いを使うが、Scrollcaster Gauntlet 自体の調整は剣用 cooldown 倍率へ寄せない。
+        return castSource == CastSource.SWORD;
     }
 
     @Override
