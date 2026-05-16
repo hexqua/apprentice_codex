@@ -67,6 +67,7 @@ import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
@@ -2757,6 +2758,37 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet right-click resolver should use the gauntlet-selected spell");
             helper.assertTrue("scrollcaster_gauntlet_selected".equals(resolvedRightClickSpell.get().resolutionPath()),
                     "Scrollcaster Gauntlet right-click resolver should expose its dedicated resolution path");
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Scrollcaster Gauntlet cooldown test could not resolve player mana data");
+            magicData.setPlayerCastingItem(gauntlet.copy());
+            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                    heal,
+                    player,
+                    CastSource.SWORD,
+                    gauntlet
+            );
+            var cooldownEvent = new SpellCooldownAddedEvent.Pre(
+                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
+                    heal,
+                    player,
+                    CastSource.SWORD
+            );
+            ScrollcasterGauntletCastEvent.onSpellCooldownAdded(cooldownEvent);
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
+                    "Scrollcaster Gauntlet cooldown event should use the helper cooldown amount but got "
+                            + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
+
+            magicData.setPlayerCastingItem(ItemStack.EMPTY);
+            var controlEvent = new SpellCooldownAddedEvent.Pre(
+                    160,
+                    heal,
+                    player,
+                    CastSource.SWORD
+            );
+            ScrollcasterGauntletCastEvent.onSpellCooldownAdded(controlEvent);
+            helper.assertTrue(controlEvent.getEffectiveCooldown() == 160,
+                    "Scrollcaster Gauntlet cooldown event should not affect non-gauntlet casts");
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 1, ItemStack.EMPTY);
             helper.assertTrue(ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet) == 3,
