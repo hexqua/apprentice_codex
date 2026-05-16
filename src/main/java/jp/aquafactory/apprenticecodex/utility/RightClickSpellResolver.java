@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -30,6 +31,13 @@ public final class RightClickSpellResolver {
         }
         if (mainHandStack.getItem() instanceof Scroll) {
             return resolveContainerSpell(mainHandStack, player, "scroll");
+        }
+        if (mainHandStack.getItem() instanceof ScrollcasterGauntlet) {
+            return createResolvedSpell(
+                    ScrollcasterGauntlet.getSelectedSpellData(mainHandStack),
+                    player,
+                    "scrollcaster_gauntlet_selected"
+            );
         }
         // 独自右クリック武器は CastingItem 継承ではないが、右クリック時は選択 spell を使う。
         if (mainHandStack.getItem() instanceof AbstractRightClickMagicWeaponItem) {
