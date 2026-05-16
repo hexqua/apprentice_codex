@@ -400,6 +400,10 @@
   "container.apprenticecodex.atelier_station.fluid.count": "(%d uses)",
   "container.apprenticecodex.companion_trunk.default": "Companion Trunk",
   "container.apprenticecodex.archivists_grimoire.default": "Archivist's Grimoire",
+  "container.apprenticecodex.spell_calibration_bench": "Spell Calibration Bench",
+  "container.apprenticecodex.spell_calibration_bench.scroll_label": "Scroll Slots",
+  "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.empty": "Set %s to unlock more slots",
+  "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.scroll": "The scroll in this slot is unavailable",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "A nearby Spell Dispenser failed to cast a spell.",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "Reason: No spell scroll is set.",

@@ -75,6 +75,16 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchStoresScrollsOnGauntlet(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchStoresScrollsOnGauntlet(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchAdjustmentSlotsValidateInputs(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchAdjustmentSlotsValidateInputs(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void arcanumInAJarComparatorOutputMatchesStoredEssence(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.arcanumInAJarComparatorOutputMatchesStoredEssence(helper);
     }

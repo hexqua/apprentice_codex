@@ -405,6 +405,10 @@
   "container.apprenticecodex.atelier_station.fluid.count": "(%d回分)",
   "container.apprenticecodex.companion_trunk.default": "コンパニオントランク",
   "container.apprenticecodex.archivists_grimoire.default": "司書の魔導書",
+  "container.apprenticecodex.spell_calibration_bench": "術式調整台",
+  "container.apprenticecodex.spell_calibration_bench.scroll_label": "スクロールスロット",
+  "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.empty": "%sをセットしてスロットを増やせる",
+  "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.scroll": "このスロットのスクロールは使用できない",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "近くのスペルディスペンサーが魔法詠唱に失敗した",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "理由: 魔法のスクロールが設定されていない",

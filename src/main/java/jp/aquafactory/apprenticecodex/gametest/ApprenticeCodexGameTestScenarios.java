@@ -22,6 +22,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
@@ -66,6 +67,7 @@ import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAtta
 import jp.aquafactory.apprenticecodex.item.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletAutoCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellListManager;
@@ -2840,12 +2842,77 @@ public final class ApprenticeCodexGameTestScenarios {
             placeAndAssertBlockEntity(helper, new BlockPos(0, 1, 1), BlockRegistry.ESSENCE_SMOKER.get(), BlockEntityRegistry.ESSENCE_SMOKER.get());
             placeAndAssertBlockEntity(helper, new BlockPos(1, 1, 1), BlockRegistry.ATELIER_STATION.get(), BlockEntityRegistry.ATELIER_STATION.get());
             placeAndAssertBlockEntity(helper, new BlockPos(2, 1, 1), BlockRegistry.SPELL_DISPENSER.get(), BlockEntityRegistry.SPELL_DISPENSER.get());
-
             var level = helper.getLevel();
             for (var entityEntry : EntityRegistry.ENTITIES.getEntries()) {
                 var entity = entityEntry.get().create(level);
                 helper.assertTrue(entity != null, "Entity instantiation failed: " + entityEntry.getId());
             }
+        });
+    }
+
+    static void spellCalibrationBenchStoresScrollsOnGauntlet(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_storage_test");
+            var menu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(0, 1, 0));
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var lesserUpgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+            var firstScroll = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+            helper.assertTrue(menu.getSlot(0).mayPlace(gauntlet), "Scrollcaster Gauntlet should be accepted in the gauntlet slot");
+            helper.assertTrue(!menu.getSlot(0).mayPlace(new ItemStack(Items.STICK)), "Non-gauntlet items should be rejected from the gauntlet slot");
+            helper.assertTrue(!menu.getSlot(1).mayPlace(lesserUpgrade), "Adjustment slots should be disabled without a gauntlet");
+
+            menu.getSlot(0).set(gauntlet);
+            helper.assertTrue(menu.isScrollSlotEnabled(0), "Scroll slot 0 should be enabled by default");
+            helper.assertTrue(menu.isScrollSlotEnabled(3), "Scroll slot 3 should be enabled by default");
+            helper.assertTrue(!menu.isScrollSlotEnabled(4), "Scroll slot 4 should be locked before adding an upgrade");
+            helper.assertTrue(!menu.getSlot(8).mayPlace(firstScroll.copy()), "Locked scroll slots should reject insertion");
+
+            menu.getSlot(1).set(lesserUpgrade);
+            helper.assertTrue(menu.isScrollSlotEnabled(5), "One lesser slot upgrade should unlock six scroll slots");
+            helper.assertTrue(!menu.isScrollSlotEnabled(6), "One lesser slot upgrade should not unlock the seventh scroll slot");
+            helper.assertTrue(menu.getSlot(9).mayPlace(firstScroll.copy()), "Newly unlocked scroll slot should accept scrolls");
+            menu.getSlot(9).set(firstScroll);
+
+            menu.getSlot(1).set(ItemStack.EMPTY);
+            helper.assertTrue(!menu.isScrollSlotEnabled(5), "Removing an upgrade should disable its extra scroll slots");
+            helper.assertTrue(menu.getSlot(9).hasItem(), "Disabled scroll slot should keep its existing scroll");
+            helper.assertTrue(menu.getSlot(9).mayPickup(player), "Disabled scroll slot should still allow pickup");
+            helper.assertTrue(!menu.getSlot(9).mayPlace(createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get())),
+                    "Disabled scroll slot should reject new scroll insertion");
+            helper.assertTrue(!ScrollcasterGauntlet.getCalibrationScroll(gauntlet, 5).isEmpty(),
+                    "Scroll should be stored on the gauntlet NBT");
+
+            menu.removed(player);
+            helper.assertTrue(player.getInventory().contains(gauntlet),
+                    "Closing the Spell Calibration Bench should return the gauntlet to the player");
+        });
+    }
+
+    static void spellCalibrationBenchAdjustmentSlotsValidateInputs(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_adjustment_test");
+            var menu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(0, 1, 0));
+            var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+            var iceRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get());
+            var arcaneRuneItem = ForgeRegistries.ITEMS.getValue(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "arcane_rune"));
+            helper.assertTrue(arcaneRuneItem != null, "irons_spellbooks:arcane_rune is not registered");
+            var arcaneRune = new ItemStack(arcaneRuneItem);
+            var enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
+            var lesserUpgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+
+            menu.getSlot(0).set(gauntlet);
+            helper.assertTrue(menu.getSlot(1).mayPlace(fireRune), "School rune should be accepted as a calibration adjustment");
+            helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Enchanted book should be accepted as a calibration adjustment");
+            helper.assertTrue(menu.getSlot(3).mayPlace(lesserUpgrade), "Lesser spell slot upgrade should be accepted as a calibration adjustment");
+            helper.assertTrue(!menu.getSlot(1).mayPlace(arcaneRune), "Arcane rune should not be treated as a scrollcaster school rune");
+
+            menu.getSlot(1).set(fireRune);
+            helper.assertTrue(!menu.getSlot(2).mayPlace(iceRune), "Only one school rune should be accepted at a time");
+            helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Non-rune adjustments should remain accepted after a rune is present");
+            helper.assertTrue(!ScrollcasterGauntlet.getCalibrationAdjustment(gauntlet, 0).isEmpty(),
+                    "Adjustment item should be stored on the gauntlet NBT");
         });
     }
 
@@ -13702,6 +13769,16 @@ public final class ApprenticeCodexGameTestScenarios {
         menu.getSlot(0).set(first);
         menu.getSlot(1).set(second);
         return menu;
+    }
+
+    private static SpellCalibrationBenchMenu createSpellCalibrationBenchMenu(GameTestHelper helper, Player player,
+                                                                             BlockPos pos) {
+        helper.setBlock(pos, BlockRegistry.SPELL_CALIBRATION_BENCH.get());
+        return new SpellCalibrationBenchMenu(
+                0,
+                player.getInventory(),
+                net.minecraft.world.inventory.ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos))
+        );
     }
 
     private static void assertStackHasSpell(
