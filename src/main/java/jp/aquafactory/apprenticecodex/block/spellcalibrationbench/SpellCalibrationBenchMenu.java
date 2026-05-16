@@ -48,7 +48,12 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     private static final int HOTBAR_SLOT_END = HOTBAR_SLOT_START + HOTBAR_SLOT_COUNT;
 
     private final ContainerLevelAccess access;
-    private final ItemStackHandler gauntletInventory = new ItemStackHandler(1);
+    private final ItemStackHandler gauntletInventory = new ItemStackHandler(1) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            refreshGauntletCalibration();
+        }
+    };
 
     public SpellCalibrationBenchMenu(int containerId, Inventory playerInventory) {
         this(containerId, playerInventory, ContainerLevelAccess.NULL);
@@ -196,6 +201,13 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private @NotNull ItemStack getScroll(int slot) {
         return hasGauntlet() ? ScrollcasterGauntlet.getCalibrationScroll(getGauntletStack(), slot) : ItemStack.EMPTY;
+    }
+
+    private void refreshGauntletCalibration() {
+        var gauntletStack = getGauntletStack();
+        if (!gauntletStack.isEmpty()) {
+            ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack);
+        }
     }
 
     private void setScroll(int slot, @NotNull ItemStack stack) {
