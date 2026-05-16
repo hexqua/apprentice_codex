@@ -5,7 +5,7 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -227,7 +227,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     static boolean isSchoolRune(@NotNull ItemStack stack) {
-        return !stack.isEmpty() && stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SCHOOL_RUNES);
+        return ScrollcasterSchoolRuneResolver.isSchoolRune(stack);
     }
 
     static boolean isSpellSlotUpgrade(@NotNull ItemStack stack) {

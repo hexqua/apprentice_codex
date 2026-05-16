@@ -455,16 +455,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 net.minecraft.world.item.Items.MACE,
                 ItemRegistry.SMASHCAST_SCEPTER.get()
         );
-        tag(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SCHOOL_RUNES).add(
-                io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get(),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE.get(),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.LIGHTNING_RUNE.get(),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.HOLY_RUNE.get(),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.ENDER_RUNE.get(),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.BLOOD_RUNE.get(),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get(),
-                io.redspace.ironsspellbooks.registries.ItemRegistry.NATURE_RUNE.get()
-        );
+        tag(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SCHOOL_RUNE_DENYLIST);
 
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
