@@ -135,6 +135,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.worldgen.ErrandMageVillageAddition;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.RegistryAccess;
@@ -2698,11 +2699,37 @@ public final class ApprenticeCodexGameTestScenarios {
             var arcaneRuneItem = ForgeRegistries.ITEMS.getValue(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "arcane_rune"));
             helper.assertTrue(arcaneRuneItem != null, "irons_spellbooks:arcane_rune is not registered");
             var arcaneRune = new ItemStack(arcaneRuneItem);
+            var fireRuneId = ForgeRegistries.ITEMS.getKey(fireRune.getItem());
+            var arcaneRuneId = ForgeRegistries.ITEMS.getKey(arcaneRune.getItem());
+            helper.assertTrue(fireRuneId != null, "irons_spellbooks:fire_rune should have a registry id");
+            helper.assertTrue(arcaneRuneId != null, "irons_spellbooks:arcane_rune should have a registry id");
             var enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
             var lesserUpgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
 
             menu.getSlot(0).set(gauntlet);
+            helper.assertTrue(
+                    ScrollcasterSchoolRuneResolver.resolveSchool(fireRune)
+                            .filter(school -> SchoolRegistry.FIRE_RESOURCE.equals(school.getId()))
+                            .isPresent(),
+                    "Fire rune should resolve to the fire school without a whitelist entry"
+            );
+            helper.assertTrue(
+                    ScrollcasterSchoolRuneResolver.resolveSchool(arcaneRune).isEmpty(),
+                    "Non-school runes should not resolve to a scrollcaster school"
+            );
+            helper.assertTrue(
+                    ScrollcasterSchoolRuneResolver.resolveSchool(arcaneRuneId, Map.of(arcaneRuneId, SchoolRegistry.FIRE_RESOURCE))
+                            .filter(school -> SchoolRegistry.FIRE_RESOURCE.equals(school.getId()))
+                            .isPresent(),
+                    "Manual rune override should resolve a rune that automatic lookup cannot resolve"
+            );
+            helper.assertTrue(
+                    ScrollcasterSchoolRuneResolver.resolveSchool(fireRuneId, Map.of(fireRuneId, SchoolRegistry.ICE_RESOURCE))
+                            .filter(school -> SchoolRegistry.ICE_RESOURCE.equals(school.getId()))
+                            .isPresent(),
+                    "Manual rune override should take precedence over automatic rune lookup"
+            );
             helper.assertTrue(menu.getSlot(1).mayPlace(fireRune), "School rune should be accepted as a calibration adjustment");
             helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Enchanted book should be accepted as a calibration adjustment");
             helper.assertTrue(menu.getSlot(3).mayPlace(lesserUpgrade), "Lesser spell slot upgrade should be accepted as a calibration adjustment");
