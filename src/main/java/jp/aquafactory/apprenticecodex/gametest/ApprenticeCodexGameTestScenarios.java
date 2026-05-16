@@ -307,6 +307,10 @@ public final class ApprenticeCodexGameTestScenarios {
     private static final UUID FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = UUID.fromString("a7dc54b6-a83c-4a5f-ae93-0cb49780fc8f");
     private static final UUID CASTING_MOVESPEED_DYNAMIC_TEST_EXTERNAL_MODIFIER_ID =
             UUID.fromString("04a46352-a09b-44fb-b504-92ab5f69f969");
+    private static final UUID VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID =
+            UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
+    private static final UUID VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID =
+            UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
     private static final ResourceLocation MALUM_HAUNTED = MalumHauntedCompat.hauntedEnchantmentId();
     private static final ResourceLocation MALUM_ANIMATED = MalumHauntedCompat.animatedEnchantmentId();
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
@@ -2851,6 +2855,58 @@ public final class ApprenticeCodexGameTestScenarios {
             refreshMenu.getSlot(0).set(staleGauntlet);
             assertScrollcasterGauntletSpellPower(helper, staleGauntlet, 0.0D, 0.10D, 0.0D,
                     "Placing the gauntlet on the bench should refresh the stored rune school");
+        });
+    }
+
+    static void spellCalibrationBenchSyncsGauntletEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_enchantment_test");
+            var menu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(0, 1, 0));
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            gauntlet.enchant(Enchantments.MENDING, 1);
+
+            menu.getSlot(0).set(gauntlet);
+            helper.assertTrue(EnchantmentHelper.getEnchantments(gauntlet).isEmpty(),
+                    "Bench-owned gauntlet enchantments should be rebuilt and clear external enchantments");
+
+            menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)));
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 1,
+                    "Sharpness book should enchant the Scrollcaster Gauntlet");
+
+            menu.getSlot(2).set(createEnchantedBook(new EnchantmentInstance(Enchantments.UNBREAKING, 1)));
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.UNBREAKING) == 0,
+                    "Durability-target enchantments should not transfer from Bench books");
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 1,
+                    "Invalid Bench books should not remove compatible left-slot enchantments");
+
+            menu.getSlot(1).set(createEnchantedBook(
+                    new EnchantmentInstance(Enchantments.UNBREAKING, 1),
+                    new EnchantmentInstance(Enchantments.BLOCK_FORTUNE, 3)
+            ));
+            menu.getSlot(2).set(ItemStack.EMPTY);
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 0,
+                    "Only the first stored enchantment on a multi-enchanted book should be considered");
+
+            menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(EnchantmentRegistry.WISDOM.get(), 1)));
+            helper.assertTrue(gauntlet.getEnchantmentLevel(EnchantmentRegistry.WISDOM.get()) == 1,
+                    "Explicitly supported Apprentice enchantments should transfer from Bench books");
+
+            menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)));
+            menu.getSlot(2).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 4)));
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 4,
+                    "Duplicate Bench enchantments should keep the highest level");
+
+            menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 2)));
+            menu.getSlot(2).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SMITE, 5)));
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 2,
+                    "Left Bench slot should win incompatible enchantments");
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SMITE) == 0,
+                    "Right-slot incompatible enchantments should be skipped");
+
+            menu.getSlot(1).set(ItemStack.EMPTY);
+            menu.getSlot(2).set(ItemStack.EMPTY);
+            helper.assertTrue(EnchantmentHelper.getEnchantments(gauntlet).isEmpty(),
+                    "Removing Bench books should clear gauntlet enchantments");
         });
     }
 
@@ -9280,6 +9336,99 @@ public final class ApprenticeCodexGameTestScenarios {
             );
         });
     }
+
+    static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    Set.of(),
+                    "Scrollcaster Gauntlet"
+            );
+
+            ScrollcasterGauntlet.setCalibrationScroll(
+                    stack,
+                    0,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get())
+            );
+            stack.enchant(EnchantmentRegistry.ALACRITY.get(), 1);
+            stack.enchant(EnchantmentRegistry.REFLUX.get(), 1);
+            stack.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
+            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
+            stack.enchant(EnchantmentRegistry.TENSE.get(), 1);
+
+            var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
+            assertModifierWithId(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_DAMAGE),
+                    VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                    AttributeModifier.Operation.ADDITION,
+                    5.0D,
+                    "Scrollcaster Gauntlet attack damage modifier should keep vanilla weapon tooltip UUID"
+            );
+            assertModifierWithId(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_SPEED),
+                    VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID,
+                    AttributeModifier.Operation.ADDITION,
+                    -2.2D,
+                    "Scrollcaster Gauntlet attack speed modifier should keep vanilla weapon tooltip UUID"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.02D,
+                    "Scrollcaster Gauntlet Alacrity modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Scrollcaster Gauntlet Reflux modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
+                    AttributeModifier.Operation.ADDITION,
+                    20.0D,
+                    "Scrollcaster Gauntlet Reservoir modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.07D,
+                    "Scrollcaster Gauntlet base + Surge spell power modifier changed"
+            );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Scrollcaster Gauntlet Tense modifier changed"
+            );
+
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Scrollcaster Gauntlet test could not resolve the selected spell school");
+            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
+                    .resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(attunementAttribute != null,
+                    "Scrollcaster Gauntlet test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(attunementAttribute),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.04D,
+                    "Scrollcaster Gauntlet Attunement modifier changed"
+            );
+        });
+    }
+
     static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
@@ -12511,8 +12660,14 @@ public final class ApprenticeCodexGameTestScenarios {
     }
 
     private static ItemStack createEnchantedBook(Enchantment enchantment) {
+        return createEnchantedBook(new EnchantmentInstance(enchantment, 1));
+    }
+
+    private static ItemStack createEnchantedBook(EnchantmentInstance... enchantments) {
         var book = new ItemStack(Items.ENCHANTED_BOOK);
-        EnchantedBookItem.addEnchantment(book, new EnchantmentInstance(enchantment, 1));
+        for (var enchantment : enchantments) {
+            EnchantedBookItem.addEnchantment(book, enchantment);
+        }
         return book;
     }
 
@@ -12761,6 +12916,25 @@ public final class ApprenticeCodexGameTestScenarios {
         var actualAmount = matchingModifiers.get(0).getAmount();
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected " + expectedAmount + " but got " + actualAmount);
+    }
+
+    private static void assertModifierWithId(
+            GameTestHelper helper,
+            Collection<AttributeModifier> modifiers,
+            UUID expectedId,
+            AttributeModifier.Operation operation,
+            double expectedAmount,
+            String message
+    ) {
+        var matchingModifier = modifiers.stream()
+                .filter(modifier -> expectedId.equals(modifier.getId()))
+                .findFirst();
+        helper.assertTrue(matchingModifier.isPresent(),
+                message + ": missing modifier " + expectedId + " in " + modifiers);
+        var modifier = matchingModifier.get();
+        helper.assertTrue(modifier.getOperation() == operation
+                        && Math.abs(modifier.getAmount() - expectedAmount) < 1.0e-9D,
+                message + ": expected " + operation + " " + expectedAmount + " but got " + modifier);
     }
 
     private static void postSpellOnCast(ServerPlayer player, AbstractSpell spell, int spellLevel) {

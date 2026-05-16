@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.item.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
@@ -22,7 +23,8 @@ final class MagicItemEnchantmentTargeting {
     static boolean isSupportedMagicItem(Item item) {
         return isSupportedOffhandMagicItem(item)
                 || isSupportedSpellGunItem(item)
-                || isSupportedMagicArmorItem(item);
+                || isSupportedMagicArmorItem(item)
+                || item instanceof ScrollcasterGauntlet;
     }
 
     static boolean isSupportedSurgeMagicItem(Item item) {
@@ -42,7 +44,7 @@ final class MagicItemEnchantmentTargeting {
     }
 
     static boolean isSupportedOffhandOrArmorMagicItem(Item item) {
-        return isSupportedOffhandMagicItem(item) || isSupportedMagicArmorItem(item);
+        return isSupportedOffhandMagicItem(item) || isSupportedMagicArmorItem(item) || item instanceof ScrollcasterGauntlet;
     }
 
     static boolean isSupportedSpellContainerMagicItem(Item item) {
@@ -50,6 +52,7 @@ final class MagicItemEnchantmentTargeting {
                 || isSupportedSpellGunItem(item)
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
+                || item instanceof ScrollcasterGauntlet
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask
                 || isSupportedSpellContainerArmorItem(item);
@@ -64,6 +67,7 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
                 || item instanceof MultipurposeStaffrifle
+                || item instanceof ScrollcasterGauntlet
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask
                 || item instanceof EnchantressRobeItem
@@ -77,6 +81,7 @@ final class MagicItemEnchantmentTargeting {
                 || item instanceof ElementalBow
                 || item instanceof ManaForceBlade
                 || item instanceof MultipurposeStaffrifle
+                || item instanceof ScrollcasterGauntlet
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AlchemistsFlask;
     }

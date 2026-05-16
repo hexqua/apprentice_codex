@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
@@ -34,11 +35,15 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -50,7 +55,9 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -68,12 +75,19 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final String ITEM_TAG = "Item";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
     private static final String SELECTED_SCROLL_INDEX_TAG = "SelectedScrollIndex";
+    private static final String VANILLA_ENCHANTMENTS_TAG = "Enchantments";
+    private static final String STORED_ENCHANTMENTS_TAG = "StoredEnchantments";
+    private static final String ENCHANTMENT_ID_TAG = "id";
+    private static final String ENCHANTMENT_LEVEL_TAG = "lvl";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final double ATTACK_DAMAGE_BONUS = 5.0D;
     private static final double ATTACK_SPEED_BONUS = -2.2D;
     private static final double SPELL_POWER_BONUS = 0.05D;
     private static final double SCHOOL_SPELL_POWER_BONUS = 0.10D;
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("be797f84-cdc5-41fd-871f-685cebb23f5c");
+    private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
+    private static final ItemStack PICKAXE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_PICKAXE);
+    private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -84,7 +98,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        return slot == EquipmentSlot.MAINHAND ? buildMainhandModifiers(stack) : super.getAttributeModifiers(slot, stack);
+        return slot == EquipmentSlot.MAINHAND
+                ? OffhandMagicModifierHelper.buildEquippedModifiers(buildMainhandModifiers(stack), stack, "scrollcaster_gauntlet")
+                : super.getAttributeModifiers(slot, stack);
     }
 
     @Override
@@ -247,6 +263,70 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return stack != null && !stack.isEmpty() && !hasResolvedCalibrationSchool(stack);
     }
 
+    private static boolean isCompatibleWithResolvedEnchantments(
+            Enchantment enchantment,
+            Map<Enchantment, Integer> resolvedEnchantments
+    ) {
+        for (var resolvedEnchantment : resolvedEnchantments.keySet()) {
+            if (!enchantment.isCompatibleWith(resolvedEnchantment)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isSupportedCalibrationEnchantment(Enchantment enchantment) {
+        return isExplicitlySupportedMagicEnchantment(enchantment)
+                || ((enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK)
+                        || enchantment.canApplyAtEnchantingTable(PICKAXE_ENCHANTMENT_PROBE_STACK))
+                && !enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK));
+    }
+
+    private static boolean isExplicitlySupportedMagicEnchantment(Enchantment enchantment) {
+        return matches(enchantment, EnchantmentRegistry.ALACRITY)
+                || matches(enchantment, EnchantmentRegistry.REFLUX)
+                || matches(enchantment, EnchantmentRegistry.RESERVOIR)
+                || matches(enchantment, EnchantmentRegistry.TENSE)
+                || matches(enchantment, EnchantmentRegistry.SURGE)
+                || matches(enchantment, EnchantmentRegistry.ATTUNEMENT)
+                || matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
+                || matches(enchantment, EnchantmentRegistry.WISDOM);
+    }
+
+    private static boolean matches(Enchantment enchantment, RegistryObject<Enchantment> registryObject) {
+        return registryObject.isPresent() && enchantment == registryObject.get();
+    }
+
+    private static @Nullable CalibrationEnchantmentCandidate readFirstBookEnchantment(ItemStack stack) {
+        if (stack.isEmpty() || !stack.is(Items.ENCHANTED_BOOK)) {
+            return null;
+        }
+
+        var tag = stack.getTag();
+        if (tag == null || !tag.contains(STORED_ENCHANTMENTS_TAG, Tag.TAG_LIST)) {
+            return null;
+        }
+
+        var storedEnchantments = tag.getList(STORED_ENCHANTMENTS_TAG, Tag.TAG_COMPOUND);
+        if (storedEnchantments.isEmpty()) {
+            return null;
+        }
+
+        // tooltipをソートするMODに左右されないよう、エンチャント本の保存順で先頭だけを読む。
+        var firstEnchantmentTag = storedEnchantments.getCompound(0);
+        var enchantmentId = ResourceLocation.tryParse(firstEnchantmentTag.getString(ENCHANTMENT_ID_TAG));
+        if (enchantmentId == null) {
+            return null;
+        }
+
+        var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(enchantmentId);
+        var level = firstEnchantmentTag.getInt(ENCHANTMENT_LEVEL_TAG);
+        if (enchantment == null || level <= 0) {
+            return null;
+        }
+        return new CalibrationEnchantmentCandidate(enchantment, level);
+    }
+
     private static Attribute getResolvedSchoolPowerAttribute(ItemStack stack) {
         var schoolId = getResolvedCalibrationSchoolId(stack);
         if (schoolId == null) {
@@ -262,6 +342,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     public static void setCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
+        refreshCalibrationEnchantments(gauntletStack);
         refreshResolvedCalibrationSchool(gauntletStack);
         refreshSelectedSpellContainer(gauntletStack);
     }
@@ -291,6 +372,39 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     public static boolean hasAnyCalibrationScroll(@NotNull ItemStack gauntletStack) {
         return findFirstValidScrollIndex(gauntletStack) >= 0;
+    }
+
+    public static void refreshCalibrationEnchantments(@NotNull ItemStack gauntletStack) {
+        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
+            return;
+        }
+
+        var candidatesByEnchantment = new LinkedHashMap<Enchantment, CalibrationEnchantmentCandidate>();
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            var candidate = readFirstBookEnchantment(getCalibrationAdjustment(gauntletStack, slot));
+            if (candidate == null || !isSupportedCalibrationEnchantment(candidate.enchantment())) {
+                continue;
+            }
+
+            var existing = candidatesByEnchantment.get(candidate.enchantment());
+            if (existing == null || candidate.level() > existing.level()) {
+                candidatesByEnchantment.put(candidate.enchantment(), candidate);
+            }
+        }
+
+        var resolvedEnchantments = new LinkedHashMap<Enchantment, Integer>();
+        for (var candidate : candidatesByEnchantment.values()) {
+            if (isCompatibleWithResolvedEnchantments(candidate.enchantment(), resolvedEnchantments)) {
+                resolvedEnchantments.put(candidate.enchantment(), candidate.level());
+            }
+        }
+
+        if (resolvedEnchantments.isEmpty()) {
+            gauntletStack.removeTagKey(VANILLA_ENCHANTMENTS_TAG);
+            return;
+        }
+
+        EnchantmentHelper.setEnchantments(resolvedEnchantments, gauntletStack);
     }
 
     public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack gauntletStack) {
@@ -637,5 +751,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         public AbstractSpell spell() {
             return spellData.getSpell();
         }
+    }
+
+    private record CalibrationEnchantmentCandidate(
+            Enchantment enchantment,
+            int level
+    ) {
     }
 }

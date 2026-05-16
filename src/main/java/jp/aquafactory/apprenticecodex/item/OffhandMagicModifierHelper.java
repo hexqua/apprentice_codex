@@ -175,8 +175,9 @@ public final class OffhandMagicModifierHelper {
             var modifier = entry.getValue();
             var operation = modifier.getOperation();
             // MULTIPLY_TOTAL は線形合算できないため、挙動維持のためそのまま残す.
-            if (operation != AttributeModifier.Operation.ADDITION
-                    && operation != AttributeModifier.Operation.MULTIPLY_BASE) {
+            if (!isMergeableMagicAttribute(entry.getKey())
+                    || (operation != AttributeModifier.Operation.ADDITION
+                    && operation != AttributeModifier.Operation.MULTIPLY_BASE)) {
                 passthrough.add(entry);
                 continue;
             }
@@ -207,6 +208,23 @@ public final class OffhandMagicModifierHelper {
             builder.put(entry);
         }
         return builder.build();
+    }
+
+    private static boolean isMergeableMagicAttribute(Attribute attribute) {
+        return attribute == AttributeRegistry.COOLDOWN_REDUCTION.get()
+                || attribute == AttributeRegistry.MANA_REGEN.get()
+                || attribute == AttributeRegistry.MAX_MANA.get()
+                || attribute == AttributeRegistry.SPELL_POWER.get()
+                || attribute == AttributeRegistry.CAST_TIME_REDUCTION.get()
+                || attribute == AttributeRegistry.CASTING_MOVESPEED.get()
+                || attribute == AttributeRegistry.FIRE_SPELL_POWER.get()
+                || attribute == AttributeRegistry.ICE_SPELL_POWER.get()
+                || attribute == AttributeRegistry.LIGHTNING_SPELL_POWER.get()
+                || attribute == AttributeRegistry.HOLY_SPELL_POWER.get()
+                || attribute == AttributeRegistry.ENDER_SPELL_POWER.get()
+                || attribute == AttributeRegistry.BLOOD_SPELL_POWER.get()
+                || attribute == AttributeRegistry.EVOCATION_SPELL_POWER.get()
+                || attribute == AttributeRegistry.NATURE_SPELL_POWER.get();
     }
 
     private static String resolveAttributeToken(Attribute attribute) {
