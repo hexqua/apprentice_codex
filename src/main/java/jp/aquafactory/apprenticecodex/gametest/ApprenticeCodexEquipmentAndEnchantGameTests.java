@@ -764,6 +764,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.apprenticeMageRobeKeepsExpectedAttributeBonuses(helper);
     }

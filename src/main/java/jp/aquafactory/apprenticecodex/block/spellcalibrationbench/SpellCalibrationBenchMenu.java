@@ -20,9 +20,6 @@ import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
-    public static final int BASE_SCROLL_SLOT_COUNT = ScrollcasterGauntlet.BASE_CALIBRATION_SCROLL_SLOT_COUNT;
-    public static final int SCROLL_SLOTS_PER_UPGRADE = ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOTS_PER_UPGRADE;
-
     static final int GAUNTLET_SLOT_X = 26;
     static final int GAUNTLET_SLOT_Y = 27;
     static final int ADJUSTMENT_SLOT_X = 8;
@@ -196,6 +193,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     private void refreshGauntletCalibration() {
         var gauntletStack = getGauntletStack();
         if (!gauntletStack.isEmpty()) {
+            ScrollcasterGauntlet.refreshCalibrationEnchantments(gauntletStack);
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack);
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack);
         }
