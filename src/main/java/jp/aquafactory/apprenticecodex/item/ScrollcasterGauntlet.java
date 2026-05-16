@@ -25,6 +25,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -79,7 +80,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final String STORED_ENCHANTMENTS_TAG = "StoredEnchantments";
     private static final String ENCHANTMENT_ID_TAG = "id";
     private static final String ENCHANTMENT_LEVEL_TAG = "lvl";
+    private static final String CAST_ANIMATION = "cast";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final RawAnimation ANIM_CAST = RawAnimation.begin().thenPlay("cast");
     private static final double ATTACK_DAMAGE_BONUS = 5.0D;
     private static final double ATTACK_SPEED_BONUS = -2.2D;
     private static final double SPELL_POWER_BONUS = 0.05D;
@@ -147,6 +150,10 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 SpellSelectionManager.MAINHAND
         );
 
+        if (casted && player instanceof ServerPlayer serverPlayer) {
+            triggerCastAnimation(serverPlayer, stack);
+        }
+
         return casted
                 ? InteractionResultHolder.sidedSuccess(stack, level.isClientSide)
                 : InteractionResultHolder.fail(stack);
@@ -198,7 +205,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         controllerRegistrar.add(new AnimationController<>(this, MAIN_CONTROLLER, 0, state -> {
             state.setAnimation(ANIM_IDLE);
             return PlayState.CONTINUE;
-        }));
+        }).triggerableAnim(CAST_ANIMATION, ANIM_CAST));
     }
 
     @Override
@@ -212,6 +219,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         // 1.21.1 へ forward-port する時も、盾優先と右クリック詠唱だけを個別に移す意図を維持する。
         return offhandStack.getItem() instanceof AbstractSpellGunItem
                 || AbstractRightClickMagicWeaponItem.isShieldLikeOffhandItem(offhandStack);
+    }
+
+    private void triggerCastAnimation(ServerPlayer player, ItemStack stack) {
+        var instanceId = GeoItem.getOrAssignId(stack, player.serverLevel());
+        triggerAnim(player, instanceId, MAIN_CONTROLLER, CAST_ANIMATION);
     }
 
     private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
