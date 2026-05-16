@@ -2890,6 +2890,69 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void scrollcasterGauntletSelectedScrollDrivesImbuedSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            helper.assertTrue(gauntlet.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+                    "Scrollcaster Gauntlet should be a UniqueItem to block Arcane Anvil imbue tooltips and normal imbue");
+            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
+            helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet),
+                    "Empty Scrollcaster Gauntlet should not expose a spell container");
+
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 3, createSpellScroll(magicMissile));
+
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet) == 3,
+                    "First inserted scroll should become the selected gauntlet scroll");
+            var selectionViews = ScrollcasterGauntlet.getSelectionViews(gauntlet);
+            helper.assertTrue(selectionViews.size() == ScrollcasterGauntlet.BASE_CALIBRATION_SCROLL_SLOT_COUNT,
+                    "Scrollcaster Gauntlet selection UI should expose every enabled slot");
+            helper.assertTrue(!selectionViews.get(0).hasSpell() && selectionViews.get(3).hasSpell(),
+                    "Scrollcaster Gauntlet selection UI should keep empty slots visible");
+            helper.assertTrue(selectionViews.get(3).displayName().getString().endsWith(" 1"),
+                    "Scrollcaster Gauntlet selection label should append the spell level number");
+            helper.assertTrue(Objects.equals(
+                            selectionViews.get(3).displayName().getStyle().getColor(),
+                            magicMissile.getSchoolType().getDisplayName().getStyle().getColor()
+                    ),
+                    "Scrollcaster Gauntlet selection label should use the spell school color");
+            var spellContainer = ISpellContainer.get(gauntlet);
+            helper.assertTrue(spellContainer != null, "Selected Scrollcaster Gauntlet spell container is null");
+            helper.assertTrue(spellContainer.isSpellWheel(), "Selected Scrollcaster Gauntlet spell should be visible to Iron's spell wheel");
+            helper.assertFalse(spellContainer.mustEquip(), "Held Scrollcaster Gauntlet spell should not require an armor/curio slot");
+            assertSpellData(helper, spellContainer, 0, magicMissile, 1, false,
+                    "Selected Scrollcaster Gauntlet spell mismatch");
+            helper.assertFalse(Utils.canImbue(gauntlet),
+                    "Scrollcaster Gauntlet should not be treated as Arcane Anvil imbue equipment");
+            helper.assertTrue(Utils.handleShriving(gauntlet).isEmpty(),
+                    "Scrollcaster Gauntlet exposed spell should not be removable through Shriving Stone");
+            ISpellContainer.createImbuedContainer(magicMissile, 1, gauntlet);
+            helper.assertTrue(ISpellContainer.get(gauntlet).getSpellAtIndex(0).isLocked(),
+                    "Legacy Scrollcaster Gauntlet projection setup should create a locked spell for this test");
+            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
+            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, magicMissile, 1, false,
+                    "Scrollcaster Gauntlet should repair legacy locked projection spells");
+
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 1, createSpellScroll(heal));
+            ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 1);
+            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, heal, 1, false,
+                    "Changing Scrollcaster Gauntlet index should change the exposed spell");
+
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 1, ItemStack.EMPTY);
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet) == 3,
+                    "Removing the selected scroll should normalize to the first remaining scroll");
+            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, magicMissile, 1, false,
+                    "Normalized Scrollcaster Gauntlet spell mismatch");
+
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 3, ItemStack.EMPTY);
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet) == -1,
+                    "Removing every scroll should clear the selected gauntlet index");
+            helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet),
+                    "Removing every scroll should clear the exposed gauntlet spell container");
+        });
+    }
+
     static void spellCalibrationBenchAdjustmentSlotsValidateInputs(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_adjustment_test");

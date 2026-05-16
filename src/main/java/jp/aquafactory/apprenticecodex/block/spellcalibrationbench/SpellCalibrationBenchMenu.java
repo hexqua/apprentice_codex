@@ -20,8 +20,8 @@ import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
-    public static final int BASE_SCROLL_SLOT_COUNT = 4;
-    public static final int SCROLL_SLOTS_PER_UPGRADE = 2;
+    public static final int BASE_SCROLL_SLOT_COUNT = ScrollcasterGauntlet.BASE_CALIBRATION_SCROLL_SLOT_COUNT;
+    public static final int SCROLL_SLOTS_PER_UPGRADE = ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOTS_PER_UPGRADE;
 
     static final int GAUNTLET_SLOT_X = 26;
     static final int GAUNTLET_SLOT_Y = 27;
@@ -143,17 +143,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public int getEnabledScrollSlotCount() {
-        var upgradeCount = 0;
-        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (getAdjustment(slot).getItem() instanceof io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem) {
-                ++upgradeCount;
-            }
-        }
-
-        return Math.min(
-                ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT,
-                BASE_SCROLL_SLOT_COUNT + upgradeCount * SCROLL_SLOTS_PER_UPGRADE
-        );
+        return ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(getGauntletStack());
     }
 
     public boolean isScrollSlotEnabled(int slot) {
@@ -207,6 +197,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         var gauntletStack = getGauntletStack();
         if (!gauntletStack.isEmpty()) {
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack);
+            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack);
         }
     }
 

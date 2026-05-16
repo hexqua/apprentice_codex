@@ -80,6 +80,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletSelectedScrollDrivesImbuedSpell(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletSelectedScrollDrivesImbuedSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchAdjustmentSlotsValidateInputs(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellCalibrationBenchAdjustmentSlotsValidateInputs(helper);
     }
