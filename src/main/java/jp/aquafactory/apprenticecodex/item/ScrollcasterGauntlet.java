@@ -3,11 +3,15 @@ package jp.aquafactory.apprenticecodex.item;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -39,10 +43,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
     private static final String SCROLLS_TAG = "Scrolls";
     private static final String SLOT_TAG = "Slot";
     private static final String ITEM_TAG = "Item";
+    private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final double ATTACK_DAMAGE_BONUS = 5.0D;
     private static final double ATTACK_SPEED_BONUS = -2.2D;
     private static final double SPELL_POWER_BONUS = 0.05D;
+    private static final double SCHOOL_SPELL_POWER_BONUS = 0.10D;
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("be797f84-cdc5-41fd-871f-685cebb23f5c");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -126,7 +132,18 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
                         AttributeModifier.Operation.ADDITION
                 )
         );
-        if (shouldApplyBaseSpellPowerBonus(stack)) {
+        var schoolPowerAttribute = getResolvedSchoolPowerAttribute(stack);
+        if (schoolPowerAttribute != null) {
+            builder.put(
+                    schoolPowerAttribute,
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            "apprenticecodex.scrollcaster_gauntlet.mainhand.school_spell_power",
+                            SCHOOL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.MULTIPLY_BASE
+                    )
+            );
+        } else if (shouldApplyBaseSpellPowerBonus(stack)) {
             builder.put(
                     AttributeRegistry.SPELL_POWER.get(),
                     new AttributeModifier(
@@ -141,7 +158,16 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
     }
 
     private static boolean shouldApplyBaseSpellPowerBonus(ItemStack stack) {
-        return stack != null && !stack.isEmpty();
+        return stack != null && !stack.isEmpty() && !hasResolvedCalibrationSchool(stack);
+    }
+
+    private static Attribute getResolvedSchoolPowerAttribute(ItemStack stack) {
+        var schoolId = getResolvedCalibrationSchoolId(stack);
+        if (schoolId == null) {
+            return null;
+        }
+
+        return MagicTools.resolveSchoolPowerAttribute(SchoolRegistry.getSchool(schoolId));
     }
 
     public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot) {
@@ -150,6 +176,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
 
     public static void setCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
+        refreshResolvedCalibrationSchool(gauntletStack);
     }
 
     public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack gauntletStack, int slot) {
@@ -172,6 +199,22 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
             }
         }
         return false;
+    }
+
+    public static void refreshResolvedCalibrationSchool(@NotNull ItemStack gauntletStack) {
+        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
+            return;
+        }
+
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(gauntletStack, slot));
+            if (school.isPresent()) {
+                setResolvedCalibrationSchoolId(gauntletStack, school.get().getId());
+                return;
+            }
+        }
+
+        clearResolvedCalibrationSchool(gauntletStack);
     }
 
     private static @NotNull ItemStack getCalibrationItem(@NotNull ItemStack gauntletStack, String listName,
@@ -224,6 +267,39 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem {
         }
         if (calibrationTag.isEmpty()) {
             gauntletStack.removeTagKey(CALIBRATION_TAG);
+        }
+    }
+
+    private static boolean hasResolvedCalibrationSchool(ItemStack stack) {
+        return getResolvedCalibrationSchoolId(stack) != null;
+    }
+
+    private static ResourceLocation getResolvedCalibrationSchoolId(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+
+        var calibrationTag = stack.getTagElement(CALIBRATION_TAG);
+        if (calibrationTag == null || !calibrationTag.contains(SCHOOL_POWER_SCHOOL_TAG, Tag.TAG_STRING)) {
+            return null;
+        }
+
+        return ResourceLocation.tryParse(calibrationTag.getString(SCHOOL_POWER_SCHOOL_TAG));
+    }
+
+    private static void setResolvedCalibrationSchoolId(ItemStack stack, ResourceLocation schoolId) {
+        stack.getOrCreateTagElement(CALIBRATION_TAG).putString(SCHOOL_POWER_SCHOOL_TAG, schoolId.toString());
+    }
+
+    private static void clearResolvedCalibrationSchool(ItemStack stack) {
+        var calibrationTag = stack.getTagElement(CALIBRATION_TAG);
+        if (calibrationTag == null) {
+            return;
+        }
+
+        calibrationTag.remove(SCHOOL_POWER_SCHOOL_TAG);
+        if (calibrationTag.isEmpty()) {
+            stack.removeTagKey(CALIBRATION_TAG);
         }
     }
 

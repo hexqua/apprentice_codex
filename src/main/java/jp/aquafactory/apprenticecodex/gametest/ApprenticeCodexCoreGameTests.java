@@ -75,6 +75,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchSchoolRuneRetunesGauntletSpellPower(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchSchoolRuneRetunesGauntletSpellPower(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void arcanumInAJarComparatorOutputMatchesStoredEssence(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.arcanumInAJarComparatorOutputMatchesStoredEssence(helper);
     }

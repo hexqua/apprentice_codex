@@ -2743,6 +2743,39 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void spellCalibrationBenchSchoolRuneRetunesGauntletSpellPower(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_school_power_test");
+            var menu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(0, 1, 0));
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+
+            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.05D, 0.0D, 0.0D,
+                    "Uncalibrated Scrollcaster Gauntlet should keep its base spell power");
+
+            menu.getSlot(0).set(gauntlet);
+            menu.getSlot(1).set(fireRune);
+            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.0D, 0.10D, 0.0D,
+                    "Fire rune should replace base spell power with fire spell power");
+
+            menu.getSlot(1).set(ItemStack.EMPTY);
+            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.05D, 0.0D, 0.0D,
+                    "Removing the school rune should restore base spell power");
+
+            var staleGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            ScrollcasterGauntlet.setCalibrationAdjustment(staleGauntlet, 0, fireRune);
+            staleGauntlet.getOrCreateTagElement("SpellCalibration")
+                    .putString("SchoolPowerSchool", SchoolRegistry.ICE_RESOURCE.toString());
+            assertScrollcasterGauntletSpellPower(helper, staleGauntlet, 0.0D, 0.0D, 0.10D,
+                    "Stale school power should reflect the stored school before bench refresh");
+
+            var refreshMenu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(1, 1, 0));
+            refreshMenu.getSlot(0).set(staleGauntlet);
+            assertScrollcasterGauntletSpellPower(helper, staleGauntlet, 0.0D, 0.10D, 0.0D,
+                    "Placing the gauntlet on the bench should refresh the stored rune school");
+        });
+    }
+
     static void arcanumInAJarComparatorOutputMatchesStoredEssence(GameTestHelper helper) {
         helper.succeedIf(() -> {
             assertArcanumInAJarComparatorOutput(helper, new BlockPos(0, 1, 0), 0, 0, 0);
@@ -12508,6 +12541,39 @@ public final class ApprenticeCodexGameTestScenarios {
         var actualAmount = sumModifierAmount(modifiers.get(attribute), operation);
         helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
                 message + ": expected stacked amount " + expectedAmount + " but got " + actualAmount
+                        + " modifiers=" + describeModifiers(modifiers));
+    }
+
+    private static void assertScrollcasterGauntletSpellPower(
+            GameTestHelper helper,
+            ItemStack stack,
+            double expectedGlobalSpellPower,
+            double expectedFireSpellPower,
+            double expectedIceSpellPower,
+            String message
+    ) {
+        var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
+        var globalSpellPower = sumModifierAmount(
+                modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                AttributeModifier.Operation.MULTIPLY_BASE
+        );
+        var fireSpellPower = sumModifierAmount(
+                modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()),
+                AttributeModifier.Operation.MULTIPLY_BASE
+        );
+        var iceSpellPower = sumModifierAmount(
+                modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get()),
+                AttributeModifier.Operation.MULTIPLY_BASE
+        );
+
+        helper.assertTrue(Math.abs(globalSpellPower - expectedGlobalSpellPower) < 1.0e-9D
+                        && Math.abs(fireSpellPower - expectedFireSpellPower) < 1.0e-9D
+                        && Math.abs(iceSpellPower - expectedIceSpellPower) < 1.0e-9D,
+                message
+                        + ": expected global/fire/ice="
+                        + expectedGlobalSpellPower + "/" + expectedFireSpellPower + "/" + expectedIceSpellPower
+                        + " but got "
+                        + globalSpellPower + "/" + fireSpellPower + "/" + iceSpellPower
                         + " modifiers=" + describeModifiers(modifiers));
     }
 
