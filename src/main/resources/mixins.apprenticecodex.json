@@ -49,6 +49,7 @@
     "GuiGraphicsElementalBowOverlayMixin",
     "ItemRendererFocusStaffbowContextMixin",
     "QuickCastPacketAccessor",
+    "SpellWheelOverlayMixin",
     "TooltipsUtilsMixin"
   ],
   "injectors": {
