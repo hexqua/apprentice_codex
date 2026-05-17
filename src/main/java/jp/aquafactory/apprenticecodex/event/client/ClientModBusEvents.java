@@ -22,7 +22,6 @@ import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticle;
 import jp.aquafactory.apprenticecodex.particle.SmashcastTremorBlockParticle;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
-import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
@@ -86,8 +85,6 @@ import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchor
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -116,7 +113,6 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::registerItemColors);
     }
 
-    @SuppressWarnings("removal")
     private static void onClientSetup(FMLClientSetupEvent event) {
         if (ModList.get().isLoaded("patchouli")) {
             event.enqueueWork(PatchouliBuiltinTemplateSupport::registerBuiltinTemplates);
@@ -137,30 +133,29 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_QUIVER.get(), SpellcasterQuiverCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ASHEN_CIRCLET.get(), AshenCircletCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENCHANTED_CIRCLET.get(), CircletCurioRenderer::new));
-        event.enqueueWork(() -> ItemBlockRenderTypes.setRenderLayer(BlockRegistry.ESSENCE_SMOKER.get(), RenderType.cutout()));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.REFLECTCAST_SHIELD.get(),
-                new ResourceLocation("blocking"),
+                ResourceLocation.withDefaultNamespace("blocking"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0f : 0.0f
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.MANA_FORCE_BLADE.get(),
-                new ResourceLocation("blocking"),
+                ResourceLocation.withDefaultNamespace("blocking"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0f : 0.0f
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.SPELLCASTERS_FLASK.get(),
-                new ResourceLocation("filled"),
+                ResourceLocation.withDefaultNamespace("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.ALCHEMISTS_FLASK.get(),
-                new ResourceLocation("filled"),
+                ResourceLocation.withDefaultNamespace("filled"),
                 (stack, level, living, seed) -> SpellcastersFlask.isFilled(stack) ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
-                new ResourceLocation("throwing"),
+                ResourceLocation.withDefaultNamespace("throwing"),
                 (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
         ));
         event.enqueueWork(() -> {
