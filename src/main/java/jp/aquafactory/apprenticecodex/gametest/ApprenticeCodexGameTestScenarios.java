@@ -2868,11 +2868,16 @@ public final class ApprenticeCodexGameTestScenarios {
 
             assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.05D, 0.0D, 0.0D,
                     "Uncalibrated Scrollcaster Gauntlet should keep its base spell power");
+            helper.assertTrue(ScrollcasterGauntlet.getInventoryOverlayIconStack(gauntlet).isEmpty(),
+                    "Uncalibrated Scrollcaster Gauntlet should not expose an inventory rune overlay");
 
             menu.getSlot(0).set(gauntlet);
             menu.getSlot(1).set(fireRune);
             assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.0D, 0.10D, 0.0D,
                     "Fire rune should replace base spell power with fire spell power");
+            helper.assertTrue(ScrollcasterGauntlet.getInventoryOverlayIconStack(gauntlet)
+                            .is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
+                    "Fire-calibrated Scrollcaster Gauntlet should expose the Fire rune inventory overlay");
             var fireSchool = SchoolRegistry.getSchool(SchoolRegistry.FIRE_RESOURCE);
             helper.assertTrue(fireSchool != null, "Fire school should be registered");
             assertTooltipKeyArgumentUsesColor(
@@ -2887,6 +2892,8 @@ public final class ApprenticeCodexGameTestScenarios {
             menu.getSlot(1).set(ItemStack.EMPTY);
             assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.05D, 0.0D, 0.0D,
                     "Removing the school rune should restore base spell power");
+            helper.assertTrue(ScrollcasterGauntlet.getInventoryOverlayIconStack(gauntlet).isEmpty(),
+                    "Removing the school rune should remove the inventory rune overlay");
             assertTooltipKeyAbsent(helper, gauntlet, "item.apprenticecodex.scrollcaster_gauntlet.school_rune",
                     "Removing the school rune should remove the school rune tooltip");
 

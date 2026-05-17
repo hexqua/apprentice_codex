@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -373,6 +374,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         return SchoolRegistry.getSchool(schoolId);
+    }
+
+    public static @NotNull ItemStack getInventoryOverlayIconStack(ItemStack stack) {
+        var school = getResolvedCalibrationSchool(stack);
+        return school == null ? ItemStack.EMPTY : SchoolAffinityRegistry.createIconStack(school);
     }
 
     public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot) {
