@@ -377,6 +377,44 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.compilerArgs.addAll(['-Xlint:removal', '-Werror'])
+}
+
+def removalWarningSuppressionFiles = fileTree(layout.projectDirectory.dir('src/main/java')) {
+    include '**/*.java'
+}
+def removalWarningSuppressionRootPath = layout.projectDirectory.asFile.toPath()
+
+tasks.register('checkRemovalWarningSuppressions') {
+    group = 'verification'
+    description = 'Fails when @SuppressWarnings("removal") hides forRemoval deprecation warnings.'
+
+    inputs.files(removalWarningSuppressionFiles)
+
+    doLast {
+        def failures = []
+        def removalSuppressionPattern = ~/@SuppressWarnings\s*\([^)]*["']removal["'][^)]*\)/
+
+        removalWarningSuppressionFiles.files.findAll { it.isFile() }.sort { it.path }.each { file ->
+            file.getText('UTF-8').readLines().eachWithIndex { line, index ->
+                if (line =~ removalSuppressionPattern) {
+                    def relativePath = removalWarningSuppressionRootPath.relativize(file.toPath()).toString().replace(File.separator, '/')
+                    failures << "${relativePath}:${index + 1} @SuppressWarnings(\"removal\") is not allowed"
+                }
+            }
+        }
+
+        if (!failures.isEmpty()) {
+            throw new GradleException(
+                    "@Deprecated(forRemoval = true) warnings must be fixed instead of suppressed:\n" +
+                            failures.join('\n')
+            )
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn tasks.named('checkRemovalWarningSuppressions')
 }
 
 def validateItemModelLoaders = tasks.register('validateItemModelLoaders') {
