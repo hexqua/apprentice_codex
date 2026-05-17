@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "C": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "F": {
+      "tag": "minecraft:wooden_fences"
+    },
+    "I": {
+      "item": "irons_spellbooks:scroll"
+    },
+    "S": {
+      "tag": "minecraft:wooden_slabs"
+    }
+  },
+  "pattern": [
+    "ACI",
+    "SSS",
+    "F F"
+  ],
+  "result": {
+    "item": "apprenticecodex:spell_calibration_bench"
+  },
+  "show_notification": true
+}

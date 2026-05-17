@@ -157,6 +157,21 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
 
+        // Scrollcaster Gauntlet は術式調整台でのみ enchant を同期するが、
+        // 互換 MOD と 1.21.1 の enchantment JSON が見る item tag は主手武器相当へ揃える。
+        malumMagicCapableWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        tomagicReversalWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        surgeEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        attunementEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        transcendenceEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        wisdomEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        plunderEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+
         // Multipurpose Staffrifle は main hand で射撃攻撃する武器なので、Malum の主手武器 tag へ明示登録する。
         tag(MAGIC_ITEM_ENCHANTABLE).add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         tag(OFFHAND_OR_ARMOR_MAGIC_ENCHANTABLE).add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
