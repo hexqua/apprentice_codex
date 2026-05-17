@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.api.animation.AnimationManager.AnimationAccessor;
 import yesman.epicfight.api.animation.types.StaticAnimation;
@@ -42,6 +44,11 @@ public final class EpicFightScrollcasterGauntletOffhandBridge {
         var livingEntity = entityPatch.getOriginal();
         var mainHandStack = livingEntity.getMainHandItem();
         var offhandStack = livingEntity.getOffhandItem();
+        if (isOffhandVisualDisabledByMainhandItem(mainHandStack)
+                || isOffhandVisualDisabledByMainhandCategory(mainHandStack)) {
+            return ItemStack.EMPTY;
+        }
+
         if (mainHandStack.getItem() instanceof ScrollcasterGauntlet && offhandStack.isEmpty()) {
             return mainHandStack;
         }
@@ -51,6 +58,27 @@ public final class EpicFightScrollcasterGauntletOffhandBridge {
         }
 
         return ItemStack.EMPTY;
+    }
+
+    private static boolean isOffhandVisualDisabledByMainhandItem(ItemStack mainHandStack) {
+        var mainHandItemId = ForgeRegistries.ITEMS.getKey(mainHandStack.getItem());
+        return mainHandItemId != null
+                && ApprenticeCodexClientConfig.isScrollcasterGauntletOffhandVisualDisabledForMainhandItem(
+                        mainHandItemId.toString()
+                );
+    }
+
+    private static boolean isOffhandVisualDisabledByMainhandCategory(ItemStack mainHandStack) {
+        var mainHandCapability = EpicFightCapabilities.getItemStackCapability(mainHandStack);
+        if (mainHandCapability.isEmpty()) {
+            return false;
+        }
+
+        var weaponCategory = mainHandCapability.getWeaponCategory();
+        return weaponCategory != null
+                && ApprenticeCodexClientConfig.isScrollcasterGauntletOffhandVisualDisabledForMainhandCategory(
+                        weaponCategory.toString()
+                );
     }
 
     public static float getMirroredAttackSpeed(PlayerPatch<?> playerPatch) {
