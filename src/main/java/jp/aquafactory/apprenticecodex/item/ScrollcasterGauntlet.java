@@ -62,7 +62,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem, WeaponImbueCooldownPolicyItem {
+public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
+        WeaponImbueCooldownPolicyItem, ItemTransformPreservingCastAnimationItem {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 10;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
