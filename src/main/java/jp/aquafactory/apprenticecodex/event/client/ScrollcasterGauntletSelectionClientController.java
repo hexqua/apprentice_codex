@@ -141,7 +141,7 @@ public final class ScrollcasterGauntletSelectionClientController {
 
     private static void openSelection(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
-        var views = ScrollcasterGauntlet.getSelectionViews(stack);
+        var views = ScrollcasterGauntlet.getSelectionViews(stack, player.level().registryAccess());
         if (views.isEmpty()) {
             return;
         }
@@ -155,7 +155,10 @@ public final class ScrollcasterGauntletSelectionClientController {
         }
 
         var selectedScrollIndex = activeState.selectedView().scrollIndex();
-        var refreshedViews = ScrollcasterGauntlet.getSelectionViews(player.getItemInHand(activeState.hand()));
+        var refreshedViews = ScrollcasterGauntlet.getSelectionViews(
+                player.getItemInHand(activeState.hand()),
+                player.level().registryAccess()
+        );
         if (refreshedViews.isEmpty()) {
             clearState();
             return;

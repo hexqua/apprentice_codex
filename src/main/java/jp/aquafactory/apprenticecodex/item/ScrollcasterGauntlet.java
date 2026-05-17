@@ -438,23 +438,57 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot) {
-        return getCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+        return getCalibrationAdjustment(gauntletStack, slot, serializationLookup());
+    }
+
+    public static @NotNull ItemStack getCalibrationAdjustment(
+            @NotNull ItemStack gauntletStack,
+            int slot,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        return getCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookupProvider);
     }
 
     public static void setCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
-        setCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
-        refreshCalibrationEnchantments(gauntletStack);
-        refreshResolvedCalibrationSchool(gauntletStack);
-        refreshSelectedSpellContainer(gauntletStack);
+        setCalibrationAdjustment(gauntletStack, slot, stack, serializationLookup());
+    }
+
+    public static void setCalibrationAdjustment(
+            @NotNull ItemStack gauntletStack,
+            int slot,
+            @NotNull ItemStack stack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        setCalibrationItem(gauntletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack, lookupProvider);
+        refreshCalibrationEnchantments(gauntletStack, lookupProvider);
+        refreshResolvedCalibrationSchool(gauntletStack, lookupProvider);
+        refreshSelectedSpellContainer(gauntletStack, lookupProvider);
     }
 
     public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack gauntletStack, int slot) {
-        return getCalibrationItem(gauntletStack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT);
+        return getCalibrationScroll(gauntletStack, slot, serializationLookup());
+    }
+
+    public static @NotNull ItemStack getCalibrationScroll(
+            @NotNull ItemStack gauntletStack,
+            int slot,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        return getCalibrationItem(gauntletStack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, lookupProvider);
     }
 
     public static void setCalibrationScroll(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
-        setCalibrationItem(gauntletStack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, stack);
-        refreshSelectedSpellContainer(gauntletStack);
+        setCalibrationScroll(gauntletStack, slot, stack, serializationLookup());
+    }
+
+    public static void setCalibrationScroll(
+            @NotNull ItemStack gauntletStack,
+            int slot,
+            @NotNull ItemStack stack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        setCalibrationItem(gauntletStack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, stack, lookupProvider);
+        refreshSelectedSpellContainer(gauntletStack, lookupProvider);
     }
 
     public static boolean hasAnyCalibrationItem(@NotNull ItemStack gauntletStack) {
@@ -476,13 +510,20 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public static void refreshCalibrationEnchantments(@NotNull ItemStack gauntletStack) {
+        refreshCalibrationEnchantments(gauntletStack, serializationLookup());
+    }
+
+    public static void refreshCalibrationEnchantments(
+            @NotNull ItemStack gauntletStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
         if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
             return;
         }
 
         var candidatesByEnchantment = new LinkedHashMap<Holder<Enchantment>, CalibrationEnchantmentCandidate>();
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            var candidate = readFirstBookEnchantment(getCalibrationAdjustment(gauntletStack, slot));
+            var candidate = readFirstBookEnchantment(getCalibrationAdjustment(gauntletStack, slot, lookupProvider));
             if (candidate == null || !isSupportedCalibrationEnchantment(gauntletStack, candidate.enchantment())) {
                 continue;
             }
@@ -513,13 +554,20 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack gauntletStack) {
+        return getEnabledCalibrationScrollSlotCount(gauntletStack, serializationLookup());
+    }
+
+    public static int getEnabledCalibrationScrollSlotCount(
+            @NotNull ItemStack gauntletStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
         if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
             return 0;
         }
 
         var upgradeCount = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (getCalibrationAdjustment(gauntletStack, slot).getItem() instanceof SpellSlotUpgradeItem) {
+            if (getCalibrationAdjustment(gauntletStack, slot, lookupProvider).getItem() instanceof SpellSlotUpgradeItem) {
                 ++upgradeCount;
             }
         }
@@ -559,23 +607,38 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public static boolean isSelectableScrollIndex(@NotNull ItemStack gauntletStack, int selectedScrollIndex) {
+        return isSelectableScrollIndex(gauntletStack, selectedScrollIndex, serializationLookup());
+    }
+
+    public static boolean isSelectableScrollIndex(
+            @NotNull ItemStack gauntletStack,
+            int selectedScrollIndex,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
         return isValidCalibrationAccess(gauntletStack, 0, 1)
                 && selectedScrollIndex >= 0
-                && selectedScrollIndex < getEnabledCalibrationScrollSlotCount(gauntletStack)
-                && isValidScrollSpell(getCalibrationScroll(gauntletStack, selectedScrollIndex));
+                && selectedScrollIndex < getEnabledCalibrationScrollSlotCount(gauntletStack, lookupProvider)
+                && isValidScrollSpell(getCalibrationScroll(gauntletStack, selectedScrollIndex, lookupProvider));
     }
 
     public static int normalizeSelectedScrollIndex(@NotNull ItemStack gauntletStack) {
+        return normalizeSelectedScrollIndex(gauntletStack, serializationLookup());
+    }
+
+    public static int normalizeSelectedScrollIndex(
+            @NotNull ItemStack gauntletStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
         if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
             return -1;
         }
 
         var selectedIndex = getSelectedScrollIndex(gauntletStack);
-        if (isSelectableScrollIndex(gauntletStack, selectedIndex)) {
+        if (isSelectableScrollIndex(gauntletStack, selectedIndex, lookupProvider)) {
             return selectedIndex;
         }
 
-        var firstValidIndex = findFirstValidScrollIndex(gauntletStack);
+        var firstValidIndex = findFirstValidScrollIndex(gauntletStack, lookupProvider);
         if (firstValidIndex < 0) {
             clearSelectedScrollIndex(gauntletStack);
             ISpellContainer.remove(gauntletStack);
@@ -587,28 +650,42 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public static @NotNull SpellData getSelectedSpellData(@NotNull ItemStack gauntletStack) {
-        var selectedIndex = normalizeSelectedScrollIndex(gauntletStack);
+        return getSelectedSpellData(gauntletStack, serializationLookup());
+    }
+
+    public static @NotNull SpellData getSelectedSpellData(
+            @NotNull ItemStack gauntletStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        var selectedIndex = normalizeSelectedScrollIndex(gauntletStack, lookupProvider);
         if (selectedIndex < 0) {
             return SpellData.EMPTY;
         }
 
-        return getScrollSpellData(getCalibrationScroll(gauntletStack, selectedIndex));
+        return getScrollSpellData(getCalibrationScroll(gauntletStack, selectedIndex, lookupProvider));
     }
 
     public static @NotNull List<ScrollSelectionView> getSelectionViews(@NotNull ItemStack gauntletStack) {
+        return getSelectionViews(gauntletStack, serializationLookup());
+    }
+
+    public static @NotNull List<ScrollSelectionView> getSelectionViews(
+            @NotNull ItemStack gauntletStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
         if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
             return List.of();
         }
 
-        var selectedIndex = normalizeSelectedScrollIndex(gauntletStack);
+        var selectedIndex = normalizeSelectedScrollIndex(gauntletStack, lookupProvider);
         if (selectedIndex < 0) {
             return List.of();
         }
 
-        var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack);
+        var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack, lookupProvider);
         var views = new ArrayList<ScrollSelectionView>();
         for (var slot = 0; slot < enabledSlotCount; ++slot) {
-            var spellData = getScrollSpellData(getCalibrationScroll(gauntletStack, slot));
+            var spellData = getScrollSpellData(getCalibrationScroll(gauntletStack, slot, lookupProvider));
             views.add(new ScrollSelectionView(
                     slot,
                     spellData,
@@ -636,7 +713,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public static void refreshSelectedSpellContainer(@NotNull ItemStack gauntletStack) {
-        var spellData = getSelectedSpellData(gauntletStack);
+        refreshSelectedSpellContainer(gauntletStack, serializationLookup());
+    }
+
+    public static void refreshSelectedSpellContainer(
+            @NotNull ItemStack gauntletStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        var spellData = getSelectedSpellData(gauntletStack, lookupProvider);
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             ISpellContainer.remove(gauntletStack);
             return;
@@ -675,12 +759,19 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public static void refreshResolvedCalibrationSchool(@NotNull ItemStack gauntletStack) {
+        refreshResolvedCalibrationSchool(gauntletStack, serializationLookup());
+    }
+
+    public static void refreshResolvedCalibrationSchool(
+            @NotNull ItemStack gauntletStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
         if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
             return;
         }
 
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(gauntletStack, slot));
+            var school = ScrollcasterSchoolRuneResolver.resolveSchool(getCalibrationAdjustment(gauntletStack, slot, lookupProvider));
             if (school.isPresent()) {
                 setResolvedCalibrationSchoolId(gauntletStack, school.get().getId());
                 return;
@@ -691,7 +782,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static @NotNull ItemStack getCalibrationItem(@NotNull ItemStack gauntletStack, String listName,
-                                                         int slot, int slotCount) {
+                                                         int slot, int slotCount,
+                                                         @NotNull HolderLookup.Provider lookupProvider) {
         if (!isValidCalibrationAccess(gauntletStack, slot, slotCount)) {
             return ItemStack.EMPTY;
         }
@@ -707,13 +799,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             if (entry.getInt(SLOT_TAG) != slot || !entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
                 continue;
             }
-            return ItemStack.parseOptional(serializationLookup(), entry.getCompound(ITEM_TAG));
+            return ItemStack.parseOptional(lookupProvider, entry.getCompound(ITEM_TAG));
         }
         return ItemStack.EMPTY;
     }
 
     private static void setCalibrationItem(@NotNull ItemStack gauntletStack, String listName, int slot, int slotCount,
-                                           @NotNull ItemStack stack) {
+                                           @NotNull ItemStack stack,
+                                           @NotNull HolderLookup.Provider lookupProvider) {
         if (!isValidCalibrationAccess(gauntletStack, slot, slotCount)) {
             return;
         }
@@ -729,7 +822,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 storedStack.setCount(1);
                 var entry = new CompoundTag();
                 entry.putInt(SLOT_TAG, slot);
-                entry.put(ITEM_TAG, storedStack.saveOptional(serializationLookup()));
+                entry.put(ITEM_TAG, storedStack.saveOptional(lookupProvider));
                 list.add(entry);
             }
 
@@ -742,9 +835,16 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static int findFirstValidScrollIndex(@NotNull ItemStack gauntletStack) {
-        var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack);
+        return findFirstValidScrollIndex(gauntletStack, serializationLookup());
+    }
+
+    private static int findFirstValidScrollIndex(
+            @NotNull ItemStack gauntletStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack, lookupProvider);
         for (var slot = 0; slot < enabledSlotCount; ++slot) {
-            if (isValidScrollSpell(getCalibrationScroll(gauntletStack, slot))) {
+            if (isValidScrollSpell(getCalibrationScroll(gauntletStack, slot, lookupProvider))) {
                 return slot;
             }
         }
