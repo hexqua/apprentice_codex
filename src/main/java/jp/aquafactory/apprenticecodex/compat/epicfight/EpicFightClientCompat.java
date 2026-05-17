@@ -9,6 +9,7 @@ import yesman.epicfight.api.event.IdentifierProvider;
 import yesman.epicfight.api.event.types.player.SkillCastEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.screen.config.ItemsPreferenceScreen;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 public final class EpicFightClientCompat {
     public static final String MOD_ID = "epicfight";
@@ -42,10 +43,8 @@ public final class EpicFightClientCompat {
         return matchesKey(EpicFightInputAction.ATTACK.keyMapping(), type, value);
     }
 
-    @SuppressWarnings("removal")
     private static void installSmashcastScepterEvents() {
-        var clientEngine = ClientEngine.getInstance();
-        var playerpatch = clientEngine != null ? clientEngine.getPlayerPatch() : null;
+        var playerpatch = EpicFightCapabilities.getCachedLocalPlayerPatch();
         if (playerpatch == null || playerpatch.getOriginal() == null || !playerpatch.getOriginal().isAlive()) {
             installedSmashcastScepterPlayerId = null;
             return;

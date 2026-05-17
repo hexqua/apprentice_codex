@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
@@ -45,9 +47,11 @@ import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PhotonSiphonRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.UniteLunaStaffRenderer;
@@ -100,6 +104,8 @@ import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawRend
 import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolleyMusketRenderer;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorRenderer;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -108,6 +114,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
@@ -412,6 +423,57 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.REFLECTCAST_SHIELD.get());
+        event.registerItem(new IClientItemExtensions() {
+            private ScrollcasterGauntletRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new ScrollcasterGauntletRenderer();
+                }
+
+                return renderer;
+            }
+        }, ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        event.registerItem(new IClientItemExtensions() {
+            private MultipurposeStaffrifleRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new MultipurposeStaffrifleRenderer();
+                }
+
+                return renderer;
+            }
+
+            @Override
+            public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
+                return hand == InteractionHand.MAIN_HAND
+                        ? HumanoidModel.ArmPose.CROSSBOW_HOLD
+                        : HumanoidModel.ArmPose.ITEM;
+            }
+
+            @Override
+            public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm,
+                                                   ItemStack itemInHand, float partialTick, float equipProcess,
+                                                   float swingProcess) {
+                var recoilAmount = MultipurposeStaffrifleClientFireEffectState.getRecoilAmount(partialTick);
+                if (MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(player)) {
+                    applyMultipurposeStaffrifleAdsHandTransform(poseStack, arm, equipProcess);
+                    applyMultipurposeStaffrifleRecoilTransform(poseStack, arm, recoilAmount);
+                    return true;
+                }
+
+                if (recoilAmount <= 0.0F) {
+                    return false;
+                }
+
+                applyMultipurposeStaffrifleNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
+                applyMultipurposeStaffrifleRecoilTransform(poseStack, arm, recoilAmount);
+                return true;
+            }
+        }, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
     }
 
     private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
@@ -420,6 +482,49 @@ public final class ClientModBusEvents {
 
     private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
         event.register(SpellcastersFlask::getItemTintColor, ItemRegistry.SPELLCASTERS_FLASK.get(), ItemRegistry.ALCHEMISTS_FLASK.get());
+    }
+
+    private static void applyMultipurposeStaffrifleNormalHandTransform(PoseStack poseStack, HumanoidArm arm,
+                                                                       float equipProcess, float swingProcess) {
+        applyMultipurposeStaffrifleItemArmTransform(poseStack, arm, equipProcess);
+        applyMultipurposeStaffrifleItemArmAttackTransform(poseStack, arm, swingProcess);
+    }
+
+    private static void applyMultipurposeStaffrifleItemArmTransform(PoseStack poseStack, HumanoidArm arm,
+                                                                    float equipProcess) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        poseStack.translate(side * 0.56F, -0.52F + equipProcess * -0.6F, -0.72F);
+    }
+
+    private static void applyMultipurposeStaffrifleItemArmAttackTransform(PoseStack poseStack, HumanoidArm arm,
+                                                                          float swingProcess) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        var sinSwing = Mth.sin(swingProcess * swingProcess * (float)Math.PI);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * (45.0F + sinSwing * -20.0F)));
+        var sinRootSwing = Mth.sin(Mth.sqrt(swingProcess) * (float)Math.PI);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(side * sinRootSwing * -20.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(sinRootSwing * -80.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * -45.0F));
+    }
+
+    private static void applyMultipurposeStaffrifleAdsHandTransform(PoseStack poseStack, HumanoidArm arm,
+                                                                    float equipProcess) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        applyMultipurposeStaffrifleItemArmTransform(poseStack, arm, equipProcess);
+        poseStack.translate(side * -0.56F, 0.15F, 0.22F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * -2.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-4.0F));
+    }
+
+    private static void applyMultipurposeStaffrifleRecoilTransform(PoseStack poseStack, HumanoidArm arm,
+                                                                   float recoilAmount) {
+        if (recoilAmount <= 0.0F) {
+            return;
+        }
+
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        poseStack.translate(side * 0.015F * recoilAmount, -0.025F * recoilAmount, 0.18F * recoilAmount);
+        poseStack.mulPose(Axis.XP.rotationDegrees(-7.0F * recoilAmount));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
