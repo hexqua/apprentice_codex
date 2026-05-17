@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.armor.EnchantressRobeItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
@@ -59,7 +60,8 @@ public final class TranscendenceSpellLevelEvent {
                 (isOffhandSlot && item instanceof AbstractOffhandMagicItem)
                         || item instanceof AbstractSpellGunItem
                         || item instanceof AlchemistsFlask
-                        || (!isOffhandSlot && item instanceof AbstractRightClickMagicWeaponItem);
+                        || (!isOffhandSlot && (item instanceof AbstractRightClickMagicWeaponItem
+                                || item instanceof ScrollcasterGauntlet));
         if (!isSupportedSlot) {
             return 0;
         }

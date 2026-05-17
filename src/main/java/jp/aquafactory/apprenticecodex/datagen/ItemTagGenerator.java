@@ -75,7 +75,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
-                ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get()
+                ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
+                ItemRegistry.SCROLLCASTER_GAUNTLET.get()
         );
 
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
@@ -87,6 +88,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ItemRegistry.MANA_FORCE_BLADE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
+                ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
                 // Malum の soul_hunter_weapon 実発動判定は main hand を見るため、
                 // offhand 専用品はタグ対象から外し、main hand で攻撃成立する盾だけ明示的に残す。
                 ItemRegistry.REFLECTCAST_SHIELD.get()
@@ -99,7 +101,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SMASHCAST_SCEPTER.get(),
                 ItemRegistry.CIRCUIT_HEAT_STAFF.get(),
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
-                ItemRegistry.MANA_FORCE_BLADE.get()
+                ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.SCROLLCASTER_GAUNTLET.get()
         );
 
         // 所謂魔法武器全般を自動で登録するようにする.
@@ -186,6 +189,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS).add(
                 ItemRegistry.SMASHCAST_SCEPTER.get()
         );
+        tag(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SCHOOL_RUNE_DENYLIST);
 
         // 魔法召喚武器はアイテムとして性能を持たずダミーにしか使っていないため、JEIでも表示しないようにする.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(

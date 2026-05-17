@@ -46,9 +46,10 @@
     "MouseHandlerMixin",
     "MinecraftMixin",
     "EntityMixin",
-    "GuiGraphicsElementalBowOverlayMixin",
+    "GuiGraphicsItemInventoryOverlayMixin",
     "ItemRendererFocusStaffbowContextMixin",
     "QuickCastPacketAccessor",
+    "SpellWheelOverlayMixin",
     "TooltipsUtilsMixin"
   ],
   "injectors": {

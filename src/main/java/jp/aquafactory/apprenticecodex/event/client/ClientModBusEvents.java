@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
+import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchScreen;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
@@ -122,6 +123,7 @@ public final class ClientModBusEvents {
         }
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.APPRENTICE_DESK.get(), ApprenticeDeskScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELLCASTER_WORKBENCH.get(), SpellcasterWorkbenchScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELL_CALIBRATION_BENCH.get(), SpellCalibrationBenchScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELL_DISPENSER.get(), SpellDispenserScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ATELIER_STATION.get(), AtelierStationScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new));

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.registry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationMenu;
+import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireMenu;
@@ -29,6 +30,9 @@ public final class MenuRegistry {
 
     public static final RegistryObject<MenuType<AtelierStationMenu>> ATELIER_STATION =
             MENUS.register("atelier_station", () -> IForgeMenuType.create((windowId, inv, data) -> new AtelierStationMenu(windowId, inv, data.readBlockPos())));
+
+    public static final RegistryObject<MenuType<SpellCalibrationBenchMenu>> SPELL_CALIBRATION_BENCH =
+            MENUS.register("spell_calibration_bench", () -> IForgeMenuType.create((windowId, inv, data) -> new SpellCalibrationBenchMenu(windowId, inv)));
 
     public static final RegistryObject<MenuType<EnderGrimoireInscriptionMenu>> ENDER_GRIMOIRE_INSCRIPTION =
             MENUS.register("ender_grimoire_inscription", () -> IForgeMenuType.create((windowId, inv, data) -> new EnderGrimoireInscriptionMenu(windowId, inv)));
