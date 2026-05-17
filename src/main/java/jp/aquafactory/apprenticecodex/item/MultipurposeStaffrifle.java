@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
@@ -16,8 +14,6 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
-import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientFireEffectState;
-import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -26,13 +22,9 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
-import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceKey;
@@ -58,7 +50,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -71,7 +62,6 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public final class MultipurposeStaffrifle extends Item
         implements GeoItem, NonDamageableAnvilMergeItem, IJeiInfoItem, CastAnimationOverrideItem {
@@ -173,49 +163,6 @@ public final class MultipurposeStaffrifle extends Item
     @Override
     public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
         return supportsEnchantment(stack, enchantment);
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private MultipurposeStaffrifleRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new MultipurposeStaffrifleRenderer();
-                }
-
-                return renderer;
-            }
-
-            @Override
-            public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
-                return hand == InteractionHand.MAIN_HAND
-                        ? HumanoidModel.ArmPose.CROSSBOW_HOLD
-                        : HumanoidModel.ArmPose.ITEM;
-            }
-
-            @Override
-            public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm,
-                                                   ItemStack itemInHand, float partialTick, float equipProcess,
-                                                   float swingProcess) {
-                var recoilAmount = MultipurposeStaffrifleClientFireEffectState.getRecoilAmount(partialTick);
-                if (MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(player)) {
-                    applyAdsHandTransform(poseStack, arm, equipProcess);
-                    applyRecoilTransform(poseStack, arm, recoilAmount);
-                    return true;
-                }
-
-                if (recoilAmount <= 0.0F) {
-                    return false;
-                }
-
-                applyNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
-                applyRecoilTransform(poseStack, arm, recoilAmount);
-                return true;
-            }
-        });
     }
 
     @Override
@@ -689,42 +636,4 @@ public final class MultipurposeStaffrifle extends Item
                 || enchantment.is(Enchantments.PLUNDER);
     }
 
-    private static void applyNormalHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess,
-                                                 float swingProcess) {
-        applyItemArmTransform(poseStack, arm, equipProcess);
-        applyItemArmAttackTransform(poseStack, arm, swingProcess);
-    }
-
-    private static void applyItemArmTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess) {
-        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
-        poseStack.translate(side * 0.56F, -0.52F + equipProcess * -0.6F, -0.72F);
-    }
-
-    private static void applyItemArmAttackTransform(PoseStack poseStack, HumanoidArm arm, float swingProcess) {
-        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
-        var sinSwing = Mth.sin(swingProcess * swingProcess * (float)Math.PI);
-        poseStack.mulPose(Axis.YP.rotationDegrees(side * (45.0F + sinSwing * -20.0F)));
-        var sinRootSwing = Mth.sin(Mth.sqrt(swingProcess) * (float)Math.PI);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(side * sinRootSwing * -20.0F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(sinRootSwing * -80.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(side * -45.0F));
-    }
-
-    private static void applyAdsHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess) {
-        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
-        applyItemArmTransform(poseStack, arm, equipProcess);
-        poseStack.translate(side * -0.56F, 0.15F, 0.22F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(side * -2.0F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(-4.0F));
-    }
-
-    private static void applyRecoilTransform(PoseStack poseStack, HumanoidArm arm, float recoilAmount) {
-        if (recoilAmount <= 0.0F) {
-            return;
-        }
-
-        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
-        poseStack.translate(side * 0.015F * recoilAmount, -0.025F * recoilAmount, 0.18F * recoilAmount);
-        poseStack.mulPose(Axis.XP.rotationDegrees(-7.0F * recoilAmount));
-    }
 }
