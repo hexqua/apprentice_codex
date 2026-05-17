@@ -149,7 +149,10 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
-        if (usedHand != InteractionHand.MAIN_HAND || shouldPrioritizeOffhandUse(player)) {
+        if (usedHand == InteractionHand.MAIN_HAND && shouldPrioritizeOffhandUse(player)) {
+            return InteractionResultHolder.pass(stack);
+        }
+        if (usedHand == InteractionHand.OFF_HAND && shouldDeferToMainhandSpellUse(player)) {
             return InteractionResultHolder.pass(stack);
         }
 
@@ -167,7 +170,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 player,
                 CastSource.SWORD,
                 true,
-                SpellSelectionManager.MAINHAND
+                usedHand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND
         );
 
         if (casted && player instanceof ServerPlayer serverPlayer) {
@@ -234,6 +237,15 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         // 1.21.1 へ forward-port する時も、盾優先と右クリック詠唱だけを個別に移す意図を維持する。
         return offhandStack.getItem() instanceof AbstractSpellGunItem
                 || AbstractRightClickMagicWeaponItem.isShieldLikeOffhandItem(offhandStack);
+    }
+
+    private static boolean shouldDeferToMainhandSpellUse(Player player) {
+        var mainHandStack = player.getMainHandItem();
+        var mainHandItem = mainHandStack.getItem();
+        return RightClickSpellItemHelper.isRightClickSpellItem(mainHandStack)
+                || mainHandItem instanceof AbstractSpellGunItem
+                || mainHandItem instanceof AbstractRightClickMagicWeaponItem
+                || mainHandItem instanceof ScrollcasterGauntlet;
     }
 
     private void triggerCastAnimation(ServerPlayer player, ItemStack stack) {
