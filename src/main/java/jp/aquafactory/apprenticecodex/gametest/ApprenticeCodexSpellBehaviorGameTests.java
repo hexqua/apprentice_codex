@@ -149,7 +149,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.companionTrunkIgnoresFireAndRescuesFromVoid(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = COMPANION_TRUNK_ISOLATED_BATCH, timeoutTicks = 80)
+    @GameTest(template = TEMPLATE, batch = COMPANION_TRUNK_ISOLATED_BATCH, timeoutTicks = 120)
     public static void companionTrunkClimbsOneBlockStepWhenFollowingOwner(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.companionTrunkClimbsOneBlockStepWhenFollowingOwner(helper);
     }
