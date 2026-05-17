@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "irons_spellbooks:mithril_scrap"
-            ]
+            "items": "irons_spellbooks:mithril_scrap"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_mithril_scrap",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_mithril_scrap"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:scrollcaster_gauntlet"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

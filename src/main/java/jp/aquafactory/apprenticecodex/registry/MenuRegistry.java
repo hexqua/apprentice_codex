@@ -32,7 +32,7 @@ public final class MenuRegistry {
             MENUS.register("atelier_station", () -> IMenuTypeExtension.create((windowId, inv, data) -> new AtelierStationMenu(windowId, inv, data.readBlockPos())));
 
     public static final DeferredHolder<MenuType<?>, MenuType<SpellCalibrationBenchMenu>> SPELL_CALIBRATION_BENCH =
-            MENUS.register("spell_calibration_bench", () -> IMenuTypeExtension.create(SpellCalibrationBenchMenu::new));
+            MENUS.register("spell_calibration_bench", () -> IMenuTypeExtension.create((windowId, inv, data) -> new SpellCalibrationBenchMenu(windowId, inv)));
 
     public static final DeferredHolder<MenuType<?>, MenuType<EnderGrimoireInscriptionMenu>> ENDER_GRIMOIRE_INSCRIPTION =
             MENUS.register("ender_grimoire_inscription", () -> IMenuTypeExtension.create((windowId, inv, data) -> new EnderGrimoireInscriptionMenu(windowId, inv)));

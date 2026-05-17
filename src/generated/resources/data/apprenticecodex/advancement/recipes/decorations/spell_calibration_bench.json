@@ -5,9 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "apprenticecodex:scrollcaster_gauntlet"
-            ]
+            "items": "apprenticecodex:scrollcaster_gauntlet"
           }
         ]
       },
@@ -22,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_scrollcaster_gauntlet",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_scrollcaster_gauntlet"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:spell_calibration_bench"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

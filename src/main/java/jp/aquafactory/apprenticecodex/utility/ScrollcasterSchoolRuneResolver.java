@@ -3,9 +3,9 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -22,7 +22,7 @@ public final class ScrollcasterSchoolRuneResolver {
             return Optional.empty();
         }
 
-        var itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemId == null) {
             return Optional.empty();
         }

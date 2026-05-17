@@ -24,7 +24,7 @@
     "F F"
   ],
   "result": {
-    "item": "apprenticecodex:spell_calibration_bench"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:spell_calibration_bench"
+  }
 }

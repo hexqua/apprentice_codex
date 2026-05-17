@@ -3,13 +3,13 @@ package jp.aquafactory.apprenticecodex.event;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.GrindstoneEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.GrindstoneEvent;
 import org.jetbrains.annotations.NotNull;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ScrollcasterGauntletGrindstoneEvent {
     private ScrollcasterGauntletGrindstoneEvent() {
     }

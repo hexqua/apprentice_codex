@@ -10,17 +10,18 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RenderGuiEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ScrollcasterGauntletSelectionClientController {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/scrollcaster_gauntlet.png");
@@ -49,11 +50,7 @@ public final class ScrollcasterGauntletSelectionClientController {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         var level = minecraft.level;
@@ -96,11 +93,11 @@ public final class ScrollcasterGauntletSelectionClientController {
         }
 
         event.setCanceled(true);
-        if (event.getScrollDelta() == 0.0D || activeState.selectableViewCount() <= 1) {
+        if (event.getScrollDeltaY() == 0.0D || activeState.selectableViewCount() <= 1) {
             return;
         }
 
-        var direction = event.getScrollDelta() > 0.0D ? -1 : 1;
+        var direction = event.getScrollDeltaY() > 0.0D ? -1 : 1;
         moveSelection(direction);
     }
 
@@ -120,8 +117,11 @@ public final class ScrollcasterGauntletSelectionClientController {
     }
 
     @SubscribeEvent
-    public static void onRenderGui(RenderGuiEvent.Post event) {
+    public static void onRenderGui(RenderGuiLayerEvent.Post event) {
         if (activeState == null) {
+            return;
+        }
+        if (!VanillaGuiLayers.CROSSHAIR.equals(event.getName())) {
             return;
         }
 
@@ -133,8 +133,8 @@ public final class ScrollcasterGauntletSelectionClientController {
         renderSelectionHud(
                 event.getGuiGraphics(),
                 minecraft.font,
-                event.getWindow().getGuiScaledWidth(),
-                event.getWindow().getGuiScaledHeight(),
+                minecraft.getWindow().getGuiScaledWidth(),
+                minecraft.getWindow().getGuiScaledHeight(),
                 activeState
         );
     }

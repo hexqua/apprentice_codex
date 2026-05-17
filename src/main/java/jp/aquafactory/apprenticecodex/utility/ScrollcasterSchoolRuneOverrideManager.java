@@ -6,15 +6,15 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -22,7 +22,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ScrollcasterSchoolRuneOverrideManager extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = "scrollcaster_gauntlet_school_runes";
 
@@ -84,7 +84,7 @@ public final class ScrollcasterSchoolRuneOverrideManager extends SimpleJsonResou
     }
 
     private static boolean isResolvableOverride(ResourceLocation resourceId, ScrollcasterSchoolRuneOverrides.Entry entry) {
-        var item = ForgeRegistries.ITEMS.getValue(entry.item());
+        var item = BuiltInRegistries.ITEM.get(entry.item());
         if (item == null || item == Items.AIR) {
             ApprenticeCodex.LOGGER.warn(
                     "Scrollcaster Gauntlet school rune override {} skipped missing item {}.",

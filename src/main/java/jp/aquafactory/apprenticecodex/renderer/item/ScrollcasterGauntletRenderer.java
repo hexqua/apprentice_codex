@@ -30,7 +30,7 @@ public final class ScrollcasterGauntletRenderer extends GeoItemRenderer<Scrollca
     public void renderRecursively(PoseStack poseStack, ScrollcasterGauntlet animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  float red, float green, float blue, float alpha) {
+                                  int colour) {
         var stack = getCurrentItemStack();
         if (SCROLL_SOCKET_BONE.equals(bone.getName()) && !hasVisibleScrollSocket(stack)) {
             return;
@@ -46,10 +46,7 @@ public final class ScrollcasterGauntletRenderer extends GeoItemRenderer<Scrollca
                     partialTick,
                     packedLight,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha,
+                    colour,
                     stack
             );
             return;
@@ -57,14 +54,13 @@ public final class ScrollcasterGauntletRenderer extends GeoItemRenderer<Scrollca
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, red, green, blue, alpha
+                packedLight, packedOverlay, colour
         );
     }
 
     private void renderCoreMain(PoseStack poseStack, ScrollcasterGauntlet animatable, GeoBone bone,
                                 RenderType renderType, MultiBufferSource bufferSource, float partialTick,
-                                int packedLight, int packedOverlay, float red, float green, float blue, float alpha,
-                                ItemStack stack) {
+                                int packedLight, int packedOverlay, int colour, ItemStack stack) {
         var school = hasVisibleScrollSocket(stack) ? MagicTools.getImbuedSpellSchool(stack) : null;
         if (school == null) {
             var normalBuffer = bufferSource.getBuffer(renderType);
@@ -79,10 +75,7 @@ public final class ScrollcasterGauntletRenderer extends GeoItemRenderer<Scrollca
                     partialTick,
                     packedLight,
                     packedOverlay,
-                    red,
-                    green,
-                    blue,
-                    alpha
+                    colour
             );
             return;
         }
@@ -103,10 +96,7 @@ public final class ScrollcasterGauntletRenderer extends GeoItemRenderer<Scrollca
                 partialTick,
                 LightTexture.FULL_BRIGHT,
                 packedOverlay,
-                red(tintColor) * brightness,
-                green(tintColor) * brightness,
-                blue(tintColor) * brightness,
-                alpha
+                makeColor(red(tintColor) * brightness, green(tintColor) * brightness, blue(tintColor) * brightness, alpha(colour))
         );
     }
 
@@ -138,5 +128,17 @@ public final class ScrollcasterGauntletRenderer extends GeoItemRenderer<Scrollca
 
     private static float blue(int color) {
         return (color & 0xFF) / 255.0F;
+    }
+
+    private static float alpha(int argb) {
+        return ((argb >>> 24) & 0xFF) / 255.0F;
+    }
+
+    private static int makeColor(float red, float green, float blue, float alpha) {
+        var safeAlpha = Math.round(Mth.clamp(alpha, 0.0F, 1.0F) * 255.0F);
+        var safeRed = Math.round(Mth.clamp(red, 0.0F, 1.0F) * 255.0F);
+        var safeGreen = Math.round(Mth.clamp(green, 0.0F, 1.0F) * 255.0F);
+        var safeBlue = Math.round(Mth.clamp(blue, 0.0F, 1.0F) * 255.0F);
+        return (safeAlpha << 24) | (safeRed << 16) | (safeGreen << 8) | safeBlue;
     }
 }

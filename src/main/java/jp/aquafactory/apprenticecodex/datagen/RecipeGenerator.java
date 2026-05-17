@@ -123,7 +123,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('S', ItemTags.WOODEN_SLABS)
                 .define('F', ItemTags.WOODEN_FENCES)
                 .unlockedBy(getHasName(ItemRegistry.SCROLLCASTER_GAUNTLET.get()), has(ItemRegistry.SCROLLCASTER_GAUNTLET.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ItemRegistry.COMFORT_SANDWICH.get())
                 .requires(Items.BREAD)
@@ -391,7 +391,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('L', Items.LEATHER)
                 .define('B', Items.CHISELED_BOOKSHELF)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
-                .save(recipeWriter);
+                .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())
                 .pattern("AGA")

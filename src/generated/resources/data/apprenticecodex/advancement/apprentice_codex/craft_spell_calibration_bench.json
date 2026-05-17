@@ -9,16 +9,14 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.description"
     },
     "frame": "goal",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:spell_calibration_bench"
+      "count": 1,
+      "id": "apprenticecodex:spell_calibration_bench"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.title"
     }

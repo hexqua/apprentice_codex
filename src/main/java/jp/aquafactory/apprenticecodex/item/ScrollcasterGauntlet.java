@@ -16,24 +16,30 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -44,27 +50,28 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
@@ -79,10 +86,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
-    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+    private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = TagKey.create(
             Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_shatter_capable_weapon")
     );
+    private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String ADJUSTMENTS_TAG = "Adjustments";
@@ -91,10 +100,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final String ITEM_TAG = "Item";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
     private static final String SELECTED_SCROLL_INDEX_TAG = "SelectedScrollIndex";
-    private static final String VANILLA_ENCHANTMENTS_TAG = "Enchantments";
-    private static final String STORED_ENCHANTMENTS_TAG = "StoredEnchantments";
-    private static final String ENCHANTMENT_ID_TAG = "id";
-    private static final String ENCHANTMENT_LEVEL_TAG = "lvl";
     private static final String CAST_ANIMATION = "cast";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_CAST = RawAnimation.begin().thenPlay("cast");
@@ -102,7 +107,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final double ATTACK_SPEED_BONUS = -2.2D;
     private static final double SPELL_POWER_BONUS = 0.05D;
     private static final double SCHOOL_SPELL_POWER_BONUS = 0.10D;
-    private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("be797f84-cdc5-41fd-871f-685cebb23f5c");
+    private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "scrollcaster_gauntlet.mainhand_spell_power");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack PICKAXE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_PICKAXE);
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
@@ -120,10 +126,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-        return slot == EquipmentSlot.MAINHAND
-                ? OffhandMagicModifierHelper.buildEquippedModifiers(buildMainhandModifiers(stack), stack, "scrollcaster_gauntlet")
-                : super.getAttributeModifiers(slot, stack);
+    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+        // Iron's の upgrade 処理は同 Attribute/Operation の既存補正 1 本を置換するため、表示前に自前補正を合算しておく。
+        var modifiers = OffhandMagicModifierHelper.buildEquippedModifiers(
+                buildMainhandModifiers(stack),
+                stack,
+                "scrollcaster_gauntlet"
+        );
+        return buildMergedMainhandAttributeModifiers(modifiers);
     }
 
     @Override
@@ -134,11 +144,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 0;
-    }
-
-    @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return false;
     }
 
     @Override
@@ -199,8 +204,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
-                                @NotNull TooltipFlag flag) {
+    public void appendHoverText(
+            @NotNull ItemStack stack,
+            @NotNull Item.TooltipContext context,
+            @NotNull List<Component> lines,
+            @NotNull TooltipFlag flag
+    ) {
         lines.add(Component.translatable("item.apprenticecodex.scrollcaster_gauntlet.desc_1")
                 .withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(
@@ -214,7 +223,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     resolvedSchool.getDisplayName()
             ).withStyle(ChatFormatting.GRAY));
         }
-        super.appendHoverText(stack, level, lines, flag);
+        super.appendHoverText(stack, context, lines, flag);
     }
 
     @Override
@@ -259,24 +268,22 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         triggerAnim(player, instanceId, MAIN_CONTROLLER, CAST_ANIMATION);
     }
 
-    private static Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
-        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+    private static Multimap<Holder<Attribute>, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         builder.put(
                 Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_DAMAGE_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_DAMAGE_ID,
                         ATTACK_DAMAGE_BONUS,
-                        AttributeModifier.Operation.ADDITION
+                        AttributeModifier.Operation.ADD_VALUE
                 )
         );
         builder.put(
                 Attributes.ATTACK_SPEED,
                 new AttributeModifier(
-                        Item.BASE_ATTACK_SPEED_UUID,
-                        "Weapon modifier",
+                        Item.BASE_ATTACK_SPEED_ID,
                         ATTACK_SPEED_BONUS,
-                        AttributeModifier.Operation.ADDITION
+                        AttributeModifier.Operation.ADD_VALUE
                 )
         );
         var schoolPowerAttribute = getResolvedSchoolPowerAttribute(stack);
@@ -285,20 +292,59 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     schoolPowerAttribute,
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
-                            "apprenticecodex.scrollcaster_gauntlet.mainhand.school_spell_power",
                             SCHOOL_SPELL_POWER_BONUS,
-                            AttributeModifier.Operation.MULTIPLY_BASE
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                     )
             );
         } else if (shouldApplyBaseSpellPowerBonus(stack)) {
             builder.put(
-                    AttributeRegistry.SPELL_POWER.get(),
+                    AttributeRegistry.SPELL_POWER,
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
-                            "apprenticecodex.scrollcaster_gauntlet.mainhand.spell_power",
                             SPELL_POWER_BONUS,
-                            AttributeModifier.Operation.MULTIPLY_BASE
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                     )
+            );
+        }
+        return builder.build();
+    }
+
+    private static ItemAttributeModifiers buildMergedMainhandAttributeModifiers(
+            Multimap<Holder<Attribute>, AttributeModifier> modifiers
+    ) {
+        var grouped = new LinkedHashMap<MergeTarget, List<AttributeModifier>>();
+        for (var entry : modifiers.entries()) {
+            grouped.computeIfAbsent(
+                    new MergeTarget(entry.getKey(), entry.getValue().operation()),
+                    ignored -> new ArrayList<>()
+            ).add(entry.getValue());
+        }
+
+        var builder = ItemAttributeModifiers.builder();
+        var mergedIndex = 0;
+        for (var entry : grouped.entrySet()) {
+            var target = entry.getKey();
+            var targetModifiers = entry.getValue();
+            if (targetModifiers.size() == 1) {
+                builder.add(target.attribute(), targetModifiers.getFirst(), EquipmentSlotGroup.MAINHAND);
+                continue;
+            }
+
+            var amount = targetModifiers.stream().mapToDouble(AttributeModifier::amount).sum();
+            if (amount == 0.0D) {
+                continue;
+            }
+            builder.add(
+                    target.attribute(),
+                    new AttributeModifier(
+                            ResourceLocation.fromNamespaceAndPath(
+                                    "apprenticecodex",
+                                    "scrollcaster_gauntlet/mainhand_merged_" + mergedIndex++
+                            ),
+                            amount,
+                            target.operation()
+                    ),
+                    EquipmentSlotGroup.MAINHAND
             );
         }
         return builder.build();
@@ -309,43 +355,43 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static boolean isCompatibleWithResolvedEnchantments(
-            Enchantment enchantment,
-            Map<Enchantment, Integer> resolvedEnchantments
+            Holder<Enchantment> enchantment,
+            Map<Holder<Enchantment>, Integer> resolvedEnchantments
     ) {
         for (var resolvedEnchantment : resolvedEnchantments.keySet()) {
-            if (!enchantment.isCompatibleWith(resolvedEnchantment)) {
+            if (!Enchantment.areCompatible(enchantment, resolvedEnchantment)) {
                 return false;
             }
         }
         return true;
     }
 
-    private static boolean isSupportedCalibrationEnchantment(ItemStack gauntletStack, Enchantment enchantment) {
+    private static boolean isSupportedCalibrationEnchantment(ItemStack gauntletStack, Holder<Enchantment> enchantment) {
         return isExplicitlySupportedMagicEnchantment(enchantment)
                 || isMalumSpiritPlunder(gauntletStack, enchantment)
-                || ((enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK)
-                        || enchantment.canApplyAtEnchantingTable(PICKAXE_ENCHANTMENT_PROBE_STACK))
-                && !enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK));
+                || ((SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)
+                        || PICKAXE_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment))
+                && !DURABILITY_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment));
     }
 
-    private static boolean isExplicitlySupportedMagicEnchantment(Enchantment enchantment) {
-        return matches(enchantment, EnchantmentRegistry.ALACRITY)
-                || matches(enchantment, EnchantmentRegistry.REFLUX)
-                || matches(enchantment, EnchantmentRegistry.RESERVOIR)
-                || matches(enchantment, EnchantmentRegistry.TENSE)
-                || matches(enchantment, EnchantmentRegistry.SURGE)
-                || matches(enchantment, EnchantmentRegistry.ATTUNEMENT)
-                || matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
-                || matches(enchantment, EnchantmentRegistry.WISDOM);
+    private static boolean isExplicitlySupportedMagicEnchantment(Holder<Enchantment> enchantment) {
+        return matches(enchantment, Enchantments.ALACRITY)
+                || matches(enchantment, Enchantments.REFLUX)
+                || matches(enchantment, Enchantments.RESERVOIR)
+                || matches(enchantment, Enchantments.TENSE)
+                || matches(enchantment, Enchantments.SURGE)
+                || matches(enchantment, Enchantments.ATTUNEMENT)
+                || matches(enchantment, Enchantments.TRANSCENDENCE)
+                || matches(enchantment, Enchantments.WISDOM);
     }
 
-    private static boolean isMalumSpiritPlunder(ItemStack gauntletStack, Enchantment enchantment) {
-        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && gauntletStack.is(MALUM_SOUL_HUNTER_WEAPON);
+    private static boolean isMalumSpiritPlunder(ItemStack gauntletStack, Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
+        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && gauntletStack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
     }
 
-    private static boolean matches(Enchantment enchantment, RegistryObject<Enchantment> registryObject) {
-        return registryObject.isPresent() && enchantment == registryObject.get();
+    private static boolean matches(Holder<Enchantment> enchantment, ResourceKey<Enchantment> key) {
+        return enchantment.is(key);
     }
 
     private static @Nullable CalibrationEnchantmentCandidate readFirstBookEnchantment(ItemStack stack) {
@@ -353,33 +399,28 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return null;
         }
 
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(STORED_ENCHANTMENTS_TAG, Tag.TAG_LIST)) {
-            return null;
-        }
-
-        var storedEnchantments = tag.getList(STORED_ENCHANTMENTS_TAG, Tag.TAG_COMPOUND);
-        if (storedEnchantments.isEmpty()) {
-            return null;
-        }
-
         // tooltipをソートするMODに左右されないよう、エンチャント本の保存順で先頭だけを読む。
-        var firstEnchantmentTag = storedEnchantments.getCompound(0);
-        var enchantmentId = ResourceLocation.tryParse(firstEnchantmentTag.getString(ENCHANTMENT_ID_TAG));
-        if (enchantmentId == null) {
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        var iterator = enchantments.entrySet().iterator();
+        if (!iterator.hasNext()) {
             return null;
         }
 
-        var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(enchantmentId);
-        var level = firstEnchantmentTag.getInt(ENCHANTMENT_LEVEL_TAG);
-        if (enchantment == null || level <= 0) {
+        var firstEntry = iterator.next();
+        if (iterator.hasNext()) {
+            // 1.21.1 の ItemEnchantments は保存順を安定して扱えないため、複数エンチャント本は任意の 1 件を拾わない。
             return null;
         }
-        return new CalibrationEnchantmentCandidate(enchantment, level);
+        var level = firstEntry.getIntValue();
+        if (level <= 0) {
+            return null;
+        }
+        return new CalibrationEnchantmentCandidate(firstEntry.getKey(), level);
     }
 
-    private static Attribute getResolvedSchoolPowerAttribute(ItemStack stack) {
-        return MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
+    private static @Nullable Holder<Attribute> getResolvedSchoolPowerAttribute(ItemStack stack) {
+        var attribute = MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
+        return attribute == null ? null : BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute);
     }
 
     public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
@@ -439,7 +480,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return;
         }
 
-        var candidatesByEnchantment = new LinkedHashMap<Enchantment, CalibrationEnchantmentCandidate>();
+        var candidatesByEnchantment = new LinkedHashMap<Holder<Enchantment>, CalibrationEnchantmentCandidate>();
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             var candidate = readFirstBookEnchantment(getCalibrationAdjustment(gauntletStack, slot));
             if (candidate == null || !isSupportedCalibrationEnchantment(gauntletStack, candidate.enchantment())) {
@@ -452,7 +493,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             }
         }
 
-        var resolvedEnchantments = new LinkedHashMap<Enchantment, Integer>();
+        var resolvedEnchantments = new LinkedHashMap<Holder<Enchantment>, Integer>();
         for (var candidate : candidatesByEnchantment.values()) {
             if (isCompatibleWithResolvedEnchantments(candidate.enchantment(), resolvedEnchantments)) {
                 resolvedEnchantments.put(candidate.enchantment(), candidate.level());
@@ -460,11 +501,15 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         if (resolvedEnchantments.isEmpty()) {
-            gauntletStack.removeTagKey(VANILLA_ENCHANTMENTS_TAG);
+            EnchantmentHelper.setEnchantments(gauntletStack, ItemEnchantments.EMPTY);
             return;
         }
 
-        EnchantmentHelper.setEnchantments(resolvedEnchantments, gauntletStack);
+        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        for (var entry : resolvedEnchantments.entrySet()) {
+            enchantments.set(entry.getKey(), entry.getValue());
+        }
+        EnchantmentHelper.setEnchantments(gauntletStack, enchantments.toImmutable());
     }
 
     public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack gauntletStack) {
@@ -490,7 +535,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return -1;
         }
 
-        var calibrationTag = gauntletStack.getTagElement(CALIBRATION_TAG);
+        var calibrationTag = getCalibrationTag(gauntletStack);
         if (calibrationTag == null || !calibrationTag.contains(SELECTED_SCROLL_INDEX_TAG, Tag.TAG_INT)) {
             return -1;
         }
@@ -651,7 +696,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return ItemStack.EMPTY;
         }
 
-        var calibrationTag = gauntletStack.getTagElement(CALIBRATION_TAG);
+        var calibrationTag = getCalibrationTag(gauntletStack);
         if (calibrationTag == null || !calibrationTag.contains(listName, Tag.TAG_LIST)) {
             return ItemStack.EMPTY;
         }
@@ -662,7 +707,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             if (entry.getInt(SLOT_TAG) != slot || !entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
                 continue;
             }
-            return ItemStack.of(entry.getCompound(ITEM_TAG));
+            return ItemStack.parseOptional(serializationLookup(), entry.getCompound(ITEM_TAG));
         }
         return ItemStack.EMPTY;
     }
@@ -673,29 +718,27 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return;
         }
 
-        var calibrationTag = gauntletStack.getOrCreateTagElement(CALIBRATION_TAG);
-        var list = calibrationTag.contains(listName, Tag.TAG_LIST)
-                ? calibrationTag.getList(listName, Tag.TAG_COMPOUND)
-                : new ListTag();
-        removeCalibrationItem(list, slot);
+        updateCalibrationTag(gauntletStack, calibrationTag -> {
+            var list = calibrationTag.contains(listName, Tag.TAG_LIST)
+                    ? calibrationTag.getList(listName, Tag.TAG_COMPOUND)
+                    : new ListTag();
+            removeCalibrationItem(list, slot);
 
-        if (!stack.isEmpty()) {
-            var storedStack = stack.copy();
-            storedStack.setCount(1);
-            var entry = new CompoundTag();
-            entry.putInt(SLOT_TAG, slot);
-            entry.put(ITEM_TAG, storedStack.save(new CompoundTag()));
-            list.add(entry);
-        }
+            if (!stack.isEmpty()) {
+                var storedStack = stack.copy();
+                storedStack.setCount(1);
+                var entry = new CompoundTag();
+                entry.putInt(SLOT_TAG, slot);
+                entry.put(ITEM_TAG, storedStack.saveOptional(serializationLookup()));
+                list.add(entry);
+            }
 
-        if (list.isEmpty()) {
-            calibrationTag.remove(listName);
-        } else {
-            calibrationTag.put(listName, list);
-        }
-        if (calibrationTag.isEmpty()) {
-            gauntletStack.removeTagKey(CALIBRATION_TAG);
-        }
+            if (list.isEmpty()) {
+                calibrationTag.remove(listName);
+            } else {
+                calibrationTag.put(listName, list);
+            }
+        });
     }
 
     private static int findFirstValidScrollIndex(@NotNull ItemStack gauntletStack) {
@@ -734,19 +777,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return;
         }
 
-        gauntletStack.getOrCreateTagElement(CALIBRATION_TAG).putInt(SELECTED_SCROLL_INDEX_TAG, selectedScrollIndex);
+        updateCalibrationTag(gauntletStack, tag -> tag.putInt(SELECTED_SCROLL_INDEX_TAG, selectedScrollIndex));
     }
 
     private static void clearSelectedScrollIndex(@NotNull ItemStack gauntletStack) {
-        var calibrationTag = gauntletStack.getTagElement(CALIBRATION_TAG);
-        if (calibrationTag == null) {
-            return;
-        }
-
-        calibrationTag.remove(SELECTED_SCROLL_INDEX_TAG);
-        if (calibrationTag.isEmpty()) {
-            gauntletStack.removeTagKey(CALIBRATION_TAG);
-        }
+        updateCalibrationTag(gauntletStack, tag -> tag.remove(SELECTED_SCROLL_INDEX_TAG));
     }
 
     private static boolean hasResolvedCalibrationSchool(ItemStack stack) {
@@ -758,7 +793,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return null;
         }
 
-        var calibrationTag = stack.getTagElement(CALIBRATION_TAG);
+        var calibrationTag = getCalibrationTag(stack);
         if (calibrationTag == null || !calibrationTag.contains(SCHOOL_POWER_SCHOOL_TAG, Tag.TAG_STRING)) {
             return null;
         }
@@ -767,19 +802,51 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static void setResolvedCalibrationSchoolId(ItemStack stack, ResourceLocation schoolId) {
-        stack.getOrCreateTagElement(CALIBRATION_TAG).putString(SCHOOL_POWER_SCHOOL_TAG, schoolId.toString());
+        updateCalibrationTag(stack, tag -> tag.putString(SCHOOL_POWER_SCHOOL_TAG, schoolId.toString()));
     }
 
     private static void clearResolvedCalibrationSchool(ItemStack stack) {
-        var calibrationTag = stack.getTagElement(CALIBRATION_TAG);
-        if (calibrationTag == null) {
+        updateCalibrationTag(stack, tag -> tag.remove(SCHOOL_POWER_SCHOOL_TAG));
+    }
+
+    private static @Nullable CompoundTag getCalibrationTag(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return null;
+        }
+
+        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return null;
+        }
+
+        var rootTag = customData.copyTag();
+        if (!rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)) {
+            return null;
+        }
+        return rootTag.getCompound(CALIBRATION_TAG);
+    }
+
+    private static void updateCalibrationTag(ItemStack stack, Consumer<CompoundTag> updater) {
+        if (stack == null || stack.isEmpty()) {
             return;
         }
 
-        calibrationTag.remove(SCHOOL_POWER_SCHOOL_TAG);
-        if (calibrationTag.isEmpty()) {
-            stack.removeTagKey(CALIBRATION_TAG);
-        }
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, rootTag -> {
+            var calibrationTag = rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)
+                    ? rootTag.getCompound(CALIBRATION_TAG)
+                    : new CompoundTag();
+            updater.accept(calibrationTag);
+            if (calibrationTag.isEmpty()) {
+                rootTag.remove(CALIBRATION_TAG);
+            } else {
+                rootTag.put(CALIBRATION_TAG, calibrationTag);
+            }
+        });
+    }
+
+    private static HolderLookup.Provider serializationLookup() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? FALLBACK_SERIALIZATION_LOOKUP : server.registryAccess();
     }
 
     private static void removeCalibrationItem(ListTag list, int slot) {
@@ -814,8 +881,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private record CalibrationEnchantmentCandidate(
-            Enchantment enchantment,
+            Holder<Enchantment> enchantment,
             int level
+    ) {
+    }
+
+    private record MergeTarget(
+            Holder<Attribute> attribute,
+            AttributeModifier.Operation operation
     ) {
     }
 }

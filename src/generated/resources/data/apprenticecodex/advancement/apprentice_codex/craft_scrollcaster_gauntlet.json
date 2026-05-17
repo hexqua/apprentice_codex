@@ -9,16 +9,13 @@
     }
   },
   "display": {
-    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.description"
     },
-    "frame": "task",
-    "hidden": false,
     "icon": {
-      "item": "apprenticecodex:scrollcaster_gauntlet"
+      "count": 1,
+      "id": "apprenticecodex:scrollcaster_gauntlet"
     },
-    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.title"
     }

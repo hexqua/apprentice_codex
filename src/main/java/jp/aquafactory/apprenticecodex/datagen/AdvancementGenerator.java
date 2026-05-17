@@ -287,7 +287,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.description"),
                         null,
-                        FrameType.TASK,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)
@@ -300,7 +300,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.description"),
                         null,
-                        FrameType.GOAL,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)
