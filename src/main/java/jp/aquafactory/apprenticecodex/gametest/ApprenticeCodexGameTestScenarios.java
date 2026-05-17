@@ -2944,6 +2944,14 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(gauntlet.getEnchantmentLevel(EnchantmentRegistry.WISDOM.get()) == 1,
                     "Explicitly supported Apprentice enchantments should transfer from Bench books");
 
+            if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+                var spiritPlunder = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_SPIRIT_PLUNDER);
+                helper.assertTrue(spiritPlunder != null, "Malum Spirit Plunder enchantment should be registered");
+                menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(spiritPlunder, 1)));
+                helper.assertTrue(gauntlet.getEnchantmentLevel(spiritPlunder) == 1,
+                        "Malum Spirit Plunder should transfer when the Scrollcaster Gauntlet is a soul hunter weapon");
+            }
+
             menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)));
             menu.getSlot(2).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 4)));
             helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 4,

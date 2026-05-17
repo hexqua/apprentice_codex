@@ -27,8 +27,10 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -74,6 +76,13 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int CALIBRATION_SCROLL_SLOTS_PER_UPGRADE = 2;
 
+    private static final String MALUM_NAMESPACE = "malum";
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
+    );
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String ADJUSTMENTS_TAG = "Adjustments";
@@ -311,8 +320,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return true;
     }
 
-    private static boolean isSupportedCalibrationEnchantment(Enchantment enchantment) {
+    private static boolean isSupportedCalibrationEnchantment(ItemStack gauntletStack, Enchantment enchantment) {
         return isExplicitlySupportedMagicEnchantment(enchantment)
+                || isMalumSpiritPlunder(gauntletStack, enchantment)
                 || ((enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK)
                         || enchantment.canApplyAtEnchantingTable(PICKAXE_ENCHANTMENT_PROBE_STACK))
                 && !enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK));
@@ -327,6 +337,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 || matches(enchantment, EnchantmentRegistry.ATTUNEMENT)
                 || matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
                 || matches(enchantment, EnchantmentRegistry.WISDOM);
+    }
+
+    private static boolean isMalumSpiritPlunder(ItemStack gauntletStack, Enchantment enchantment) {
+        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && gauntletStack.is(MALUM_SOUL_HUNTER_WEAPON);
     }
 
     private static boolean matches(Enchantment enchantment, RegistryObject<Enchantment> registryObject) {
@@ -427,7 +442,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var candidatesByEnchantment = new LinkedHashMap<Enchantment, CalibrationEnchantmentCandidate>();
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             var candidate = readFirstBookEnchantment(getCalibrationAdjustment(gauntletStack, slot));
-            if (candidate == null || !isSupportedCalibrationEnchantment(candidate.enchantment())) {
+            if (candidate == null || !isSupportedCalibrationEnchantment(gauntletStack, candidate.enchantment())) {
                 continue;
             }
 
