@@ -914,6 +914,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.apprenticeMageRobeKeepsExpectedAttributeBonuses(helper);
     }

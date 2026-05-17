@@ -2806,6 +2806,46 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+
+            assertScrollcasterGauntletOffhandUseCasts(
+                    helper,
+                    ItemStack.EMPTY,
+                    spell,
+                    "scrollcaster_gauntlet_offhand_empty_mainhand_test"
+            );
+            assertScrollcasterGauntletOffhandUseCasts(
+                    helper,
+                    new ItemStack(Items.STONE_SWORD),
+                    spell,
+                    "scrollcaster_gauntlet_offhand_stone_sword_test"
+            );
+            assertScrollcasterGauntletOffhandUseDefersToMainhandSpellItem(
+                    helper,
+                    new ItemStack(ItemRegistry.PASTEL_STAFF.get()),
+                    spell,
+                    "scrollcaster_gauntlet_offhand_mainhand_staff_test"
+            );
+            assertScrollcasterGauntletOffhandUseDefersToMainhandSpellItem(
+                    helper,
+                    new ItemStack(ItemRegistry.FOCUS_STAFFBOW.get()),
+                    spell,
+                    "scrollcaster_gauntlet_offhand_mainhand_casting_item_test"
+            );
+
+            var emptyGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var emptyPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_gauntlet_offhand_empty_selection_test");
+            emptyPlayer.setItemInHand(InteractionHand.OFF_HAND, emptyGauntlet);
+            var emptyResult = emptyGauntlet.getItem().use(helper.getLevel(), emptyPlayer, InteractionHand.OFF_HAND);
+            helper.assertTrue(emptyResult.getResult() == net.minecraft.world.InteractionResult.PASS,
+                    "Scrollcaster Gauntlet offhand use without a selected scroll should pass but got "
+                            + emptyResult.getResult());
+        });
+    }
+
     static void spellCalibrationBenchAdjustmentSlotsValidateInputs(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_adjustment_test");
@@ -13427,6 +13467,59 @@ public final class ApprenticeCodexGameTestScenarios {
         var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, stack);
         return stack;
+    }
+
+    private static void assertScrollcasterGauntletOffhandUseCasts(
+            GameTestHelper helper,
+            ItemStack mainHandStack,
+            AbstractSpell spell,
+            String profileName
+    ) {
+        var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(spell));
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
+        player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
+        player.setItemInHand(InteractionHand.OFF_HAND, gauntlet);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Scrollcaster Gauntlet offhand use test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        var result = gauntlet.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
+        helper.assertTrue(result.getResult().consumesAction(),
+                "Scrollcaster Gauntlet offhand use should cast through the offhand when main hand does not consume use but got "
+                        + result.getResult());
+        helper.assertTrue(magicData.isCasting(), "Scrollcaster Gauntlet offhand use should start casting");
+        helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND.equals(magicData.getCastingEquipmentSlot()),
+                "Scrollcaster Gauntlet offhand use should mark the offhand casting slot but got "
+                        + magicData.getCastingEquipmentSlot());
+        helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
+                "Scrollcaster Gauntlet offhand use should cast with the offhand gauntlet stack");
+    }
+
+    private static void assertScrollcasterGauntletOffhandUseDefersToMainhandSpellItem(
+            GameTestHelper helper,
+            ItemStack mainHandStack,
+            AbstractSpell gauntletSpell,
+            String profileName
+    ) {
+        var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(gauntletSpell));
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
+        player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
+        player.setItemInHand(InteractionHand.OFF_HAND, gauntlet);
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null,
+                "Scrollcaster Gauntlet offhand defer test could not resolve player mana data");
+        magicData.setMana(100.0F);
+
+        var result = gauntlet.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
+        helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.PASS,
+                "Scrollcaster Gauntlet offhand use should defer when main hand is a spell item but got "
+                        + result.getResult());
+        helper.assertFalse(magicData.isCasting(),
+                "Scrollcaster Gauntlet offhand use should not start a second cast while main hand owns spell use");
+        helper.assertTrue(magicData.getPlayerCastingItem().isEmpty(),
+                "Scrollcaster Gauntlet offhand defer should not set a casting item");
     }
 
     private static void assertArchivistsGrimoireInscribeHintTooltip(
