@@ -1,0 +1,11 @@
+{
+  "type": "apprenticecodex:scrollcaster_gauntlet",
+  "hit_particle": "epicfight:hit_blunt",
+  "hit_sound": "epicfight:entity.hit.blunt",
+  "swing_sound": "epicfight:entity.weapon.whoosh",
+  "attributes": {
+    "common": {
+      "impact": 0.7
+    }
+  }
+}

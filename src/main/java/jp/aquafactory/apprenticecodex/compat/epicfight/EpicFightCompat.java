@@ -12,6 +12,8 @@ public final class EpicFightCompat {
             "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightMultipurposeStaffrifleCompat";
     private static final String SMASHCAST_SCEPTER_COMPAT_CLASS =
             "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSmashcastScepterCompat";
+    private static final String SCROLLCASTER_GAUNTLET_COMPAT_CLASS =
+            "jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightScrollcasterGauntletCompat";
 
     private EpicFightCompat() {
     }
@@ -25,6 +27,7 @@ public final class EpicFightCompat {
             registerCompat(CHARGED_TWIN_BLADE_STAFF_COMPAT_CLASS, modEventBus);
             registerCompat(MULTIPURPOSE_STAFFRIFLE_COMPAT_CLASS, modEventBus);
             registerCompat(SMASHCAST_SCEPTER_COMPAT_CLASS, modEventBus);
+            registerCompat(SCROLLCASTER_GAUNTLET_COMPAT_CLASS, modEventBus);
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Epic Fight 互換の初期化に失敗しました", exception);
         }
