@@ -16,6 +16,7 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -33,10 +34,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -83,13 +82,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int CALIBRATION_SCROLL_SLOTS_PER_UPGRADE = 2;
 
-    private static final String MALUM_NAMESPACE = "malum";
-    private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
-    private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = TagKey.create(
-            Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_shatter_capable_weapon")
-    );
     private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String MAIN_CONTROLLER = "main";
@@ -367,8 +359,10 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static boolean isSupportedCalibrationEnchantment(ItemStack gauntletStack, Holder<Enchantment> enchantment) {
+        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return isExplicitlySupportedMagicEnchantment(enchantment)
-                || isMalumSpiritPlunder(gauntletStack, enchantment)
+                || MalumCompatibility.isSpiritPlunderSupported(gauntletStack, enchantmentId)
+                || MalumCompatibility.isMagicCapableWeaponEnchantment(gauntletStack, enchantmentId)
                 || ((SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)
                         || PICKAXE_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment))
                 && !DURABILITY_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment));
@@ -383,11 +377,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 || matches(enchantment, Enchantments.ATTUNEMENT)
                 || matches(enchantment, Enchantments.TRANSCENDENCE)
                 || matches(enchantment, Enchantments.WISDOM);
-    }
-
-    private static boolean isMalumSpiritPlunder(ItemStack gauntletStack, Holder<Enchantment> enchantment) {
-        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
-        return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && gauntletStack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
     }
 
     private static boolean matches(Holder<Enchantment> enchantment, ResourceKey<Enchantment> key) {

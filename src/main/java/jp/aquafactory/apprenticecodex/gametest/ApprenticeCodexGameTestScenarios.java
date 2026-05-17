@@ -3160,6 +3160,22 @@ public final class ApprenticeCodexGameTestScenarios {
                 menu.getSlot(1).set(createEnchantedBook(spiritPlunder, 1));
                 helper.assertTrue(getEnchantmentLevel(gauntlet, spiritPlunder) == 1,
                         "Malum Spirit Plunder should transfer when the Scrollcaster Gauntlet is a soul hunter weapon");
+
+                var haunted = enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, MALUM_HAUNTED)).orElse(null);
+                helper.assertTrue(haunted != null, "Malum Haunted enchantment should be registered");
+                if (haunted != null) {
+                    menu.getSlot(1).set(createEnchantedBook(haunted, 1));
+                    helper.assertTrue(getEnchantmentLevel(gauntlet, haunted) == 1,
+                            "Malum Haunted should transfer when the Scrollcaster Gauntlet is a magic capable weapon");
+                }
+
+                var animated = enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, MALUM_ANIMATED)).orElse(null);
+                helper.assertTrue(animated != null, "Malum Animated enchantment should be registered");
+                if (animated != null) {
+                    menu.getSlot(1).set(createEnchantedBook(animated, 1));
+                    helper.assertTrue(getEnchantmentLevel(gauntlet, animated) == 1,
+                            "Malum Animated should transfer when the Scrollcaster Gauntlet is a magic capable weapon");
+                }
             }
 
             menu.getSlot(1).set(createEnchantedBook(sharpness, 1));
@@ -8858,7 +8874,7 @@ public final class ApprenticeCodexGameTestScenarios {
     static void scrollcasterGauntletKeepsExpectedStatsAndBenchEnchantingRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            var expectedTaggedEnchantments = Set.of(
+            var expectedTaggedEnchantments = new LinkedHashSet<>(Set.of(
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "attunement"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "plunder"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "surge"),
@@ -8871,7 +8887,9 @@ public final class ApprenticeCodexGameTestScenarios {
                     ResourceLocation.withDefaultNamespace("sharpness"),
                     ResourceLocation.withDefaultNamespace("smite"),
                     ResourceLocation.withDefaultNamespace("sweeping_edge")
-            );
+            ));
+            addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedTaggedEnchantments);
+            addExpectedMalumSpiritPlunderIfPresent(stack, expectedTaggedEnchantments);
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
