@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "minecraft:chiseled_bookshelf"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  },
+  "pattern": [
+    " M ",
+    "MDM",
+    "LBL"
+  ],
+  "result": {
+    "item": "apprenticecodex:scrollcaster_gauntlet"
+  },
+  "show_notification": true
+}

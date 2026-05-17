@@ -118,6 +118,18 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.BOW), has(Items.BOW))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.SPELL_CALIBRATION_BENCH.get())
+                .pattern("ACI")
+                .pattern("SSS")
+                .pattern("F F")
+                .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())
+                .define('C', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
+                .define('A', Items.AMETHYST_SHARD)
+                .define('S', ItemTags.WOODEN_SLABS)
+                .define('F', ItemTags.WOODEN_FENCES)
+                .unlockedBy(getHasName(ItemRegistry.SCROLLCASTER_GAUNTLET.get()), has(ItemRegistry.SCROLLCASTER_GAUNTLET.get()))
+                .save(recipeWriter);
+
         ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, ItemRegistry.COMFORT_SANDWICH.get())
                 .requires(Items.BREAD)
                 .requires(ItemRegistry.COMFORT_BERRIES.get(), 2)
@@ -373,6 +385,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .define('D', Items.DIAMOND)
                 .unlockedBy(getHasName(Items.IRON_BLOCK), has(Items.IRON_BLOCK))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCROLLCASTER_GAUNTLET.get())
+                .pattern(" M ")
+                .pattern("MDM")
+                .pattern("LBL")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .define('D', Items.DIAMOND)
+                .define('L', Items.LEATHER)
+                .define('B', Items.CHISELED_BOOKSHELF)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.REFLECTCAST_SHIELD.get())

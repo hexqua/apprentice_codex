@@ -1,0 +1,32 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_scrollcaster_gauntlet",
+  "criteria": {
+    "crafted_spell_calibration_bench": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:spell_calibration_bench"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:spell_calibration_bench"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_spell_calibration_bench"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
