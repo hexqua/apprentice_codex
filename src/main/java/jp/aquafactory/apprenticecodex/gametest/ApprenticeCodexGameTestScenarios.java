@@ -3004,6 +3004,25 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void scrollcasterGauntletStopsCreativeBlockAttackLikeVanillaSword(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var state = Blocks.STONE.defaultBlockState();
+            var pos = new BlockPos(0, 1, 0);
+            var survivalPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_gauntlet_survival_block_attack_test");
+            var creativePlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_gauntlet_creative_block_attack_test");
+
+            creativePlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+
+            helper.assertTrue(gauntlet.getItem().canAttackBlock(state, helper.getLevel(), pos, survivalPlayer),
+                    "Scrollcaster Gauntlet should keep normal block attacks outside creative mode");
+            helper.assertFalse(gauntlet.getItem().canAttackBlock(state, helper.getLevel(), pos, creativePlayer),
+                    "Scrollcaster Gauntlet should block creative mode block attacks like vanilla swords");
+        });
+    }
+
     static void scrollcasterGauntletOffhandUseCastsSelectedScrollWhenMainHandDoesNotConsumeUse(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();

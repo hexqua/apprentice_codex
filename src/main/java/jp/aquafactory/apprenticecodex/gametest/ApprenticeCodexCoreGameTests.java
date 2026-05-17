@@ -85,6 +85,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletStopsCreativeBlockAttackLikeVanillaSword(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletStopsCreativeBlockAttackLikeVanillaSword(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchAdjustmentSlotsValidateInputs(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellCalibrationBenchAdjustmentSlotsValidateInputs(helper);
     }
