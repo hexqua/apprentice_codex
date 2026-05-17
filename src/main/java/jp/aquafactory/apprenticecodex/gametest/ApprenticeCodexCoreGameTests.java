@@ -90,6 +90,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletGrindstoneDoesNotExposeOutput(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletGrindstoneDoesNotExposeOutput(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void arcanumInAJarComparatorOutputMatchesStoredEssence(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.arcanumInAJarComparatorOutputMatchesStoredEssence(helper);
     }

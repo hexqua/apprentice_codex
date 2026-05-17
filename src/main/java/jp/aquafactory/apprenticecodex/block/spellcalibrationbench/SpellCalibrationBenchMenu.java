@@ -151,6 +151,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return getScroll(slot);
     }
 
+    public @NotNull ItemStack getAdjustmentItem(int slot) {
+        return getAdjustment(slot);
+    }
+
     @Override
     public void removed(@NotNull Player player) {
         super.removed(player);

@@ -10,10 +10,12 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -63,7 +65,9 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
-        WeaponImbueCooldownPolicyItem, ItemTransformPreservingCastAnimationItem {
+        WeaponImbueCooldownPolicyItem, ItemTransformPreservingCastAnimationItem, IJeiInfoItem {
+    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
+
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 10;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
@@ -98,6 +102,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     public ScrollcasterGauntlet() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE));
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
@@ -188,6 +197,13 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 "item.apprenticecodex.scrollcaster_gauntlet.desc_2",
                 ImbueTooltipHelper.getUseKeyName()
         ).withStyle(ChatFormatting.GRAY));
+        var resolvedSchool = getResolvedCalibrationSchool(stack);
+        if (resolvedSchool != null) {
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.scrollcaster_gauntlet.school_rune",
+                    resolvedSchool.getDisplayName()
+            ).withStyle(ChatFormatting.GRAY));
+        }
         super.appendHoverText(stack, level, lines, flag);
     }
 
@@ -347,12 +363,16 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     private static Attribute getResolvedSchoolPowerAttribute(ItemStack stack) {
+        return MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
+    }
+
+    public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
         var schoolId = getResolvedCalibrationSchoolId(stack);
         if (schoolId == null) {
             return null;
         }
 
-        return MagicTools.resolveSchoolPowerAttribute(SchoolRegistry.getSchool(schoolId));
+        return SchoolRegistry.getSchool(schoolId);
     }
 
     public static @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack gauntletStack, int slot) {

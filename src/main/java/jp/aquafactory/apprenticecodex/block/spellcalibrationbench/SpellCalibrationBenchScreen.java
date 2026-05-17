@@ -8,7 +8,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<SpellCalibrationBenchMenu> {
     private static final ResourceLocation TEXTURE =
@@ -62,6 +65,11 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             return;
         }
 
+        if (findHoveredEmptyAdjustmentSlot(mouseX, mouseY) >= 0) {
+            gui.renderComponentTooltip(font, createAdjustmentItemHintTooltip(), mouseX, mouseY);
+            return;
+        }
+
         super.renderTooltip(gui, mouseX, mouseY);
     }
 
@@ -110,5 +118,40 @@ public final class SpellCalibrationBenchScreen extends AbstractContainerScreen<S
             }
         }
         return -1;
+    }
+
+    private int findHoveredEmptyAdjustmentSlot(int mouseX, int mouseY) {
+        if (!menu.hasGauntlet()) {
+            return -1;
+        }
+
+        for (var slot = 0; slot < ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (!menu.getAdjustmentItem(slot).isEmpty()) {
+                continue;
+            }
+
+            var slotX = leftPos + SpellCalibrationBenchMenu.ADJUSTMENT_SLOT_X + slot * SLOT_SPACING;
+            var slotY = topPos + SpellCalibrationBenchMenu.ADJUSTMENT_SLOT_Y;
+            if (mouseX >= slotX && mouseX < slotX + SLOT_SIZE
+                    && mouseY >= slotY && mouseY < slotY + SLOT_SIZE) {
+                return slot;
+            }
+        }
+        return -1;
+    }
+
+    private List<Component> createAdjustmentItemHintTooltip() {
+        return List.of(
+                Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_title"),
+                Component.translatable(
+                        "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_specific_item",
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()).getHoverName()
+                ),
+                Component.translatable(
+                        "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_specific_item",
+                        new ItemStack(Items.ENCHANTED_BOOK).getHoverName()
+                ),
+                Component.translatable("container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_runes")
+        );
     }
 }

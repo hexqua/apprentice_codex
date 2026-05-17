@@ -41,6 +41,7 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
+import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.item.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractImbueShieldItem;
@@ -231,6 +232,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.event.GrindstoneEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
@@ -2871,10 +2873,22 @@ public final class ApprenticeCodexGameTestScenarios {
             menu.getSlot(1).set(fireRune);
             assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.0D, 0.10D, 0.0D,
                     "Fire rune should replace base spell power with fire spell power");
+            var fireSchool = SchoolRegistry.getSchool(SchoolRegistry.FIRE_RESOURCE);
+            helper.assertTrue(fireSchool != null, "Fire school should be registered");
+            assertTooltipKeyArgumentUsesColor(
+                    helper,
+                    gauntlet,
+                    "item.apprenticecodex.scrollcaster_gauntlet.school_rune",
+                    0,
+                    fireSchool.getDisplayName().getStyle().getColor(),
+                    "School rune tooltip should keep the resolved school color"
+            );
 
             menu.getSlot(1).set(ItemStack.EMPTY);
             assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.05D, 0.0D, 0.0D,
                     "Removing the school rune should restore base spell power");
+            assertTooltipKeyAbsent(helper, gauntlet, "item.apprenticecodex.scrollcaster_gauntlet.school_rune",
+                    "Removing the school rune should remove the school rune tooltip");
 
             var staleGauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             ScrollcasterGauntlet.setCalibrationAdjustment(staleGauntlet, 0, fireRune);
@@ -2939,6 +2953,28 @@ public final class ApprenticeCodexGameTestScenarios {
             menu.getSlot(2).set(ItemStack.EMPTY);
             helper.assertTrue(EnchantmentHelper.getEnchantments(gauntlet).isEmpty(),
                     "Removing Bench books should clear gauntlet enchantments");
+        });
+    }
+
+    static void scrollcasterGauntletGrindstoneDoesNotExposeOutput(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            gauntlet.enchant(Enchantments.SHARPNESS, 1);
+            var event = new GrindstoneEvent.OnPlaceItem(gauntlet, ItemStack.EMPTY, -1);
+            ScrollcasterGauntletGrindstoneEvent.onGrindstonePlaceItem(event);
+            helper.assertTrue(event.isCanceled(),
+                    "Scrollcaster Gauntlet grindstone placement should be canceled");
+            helper.assertTrue(event.getOutput().isEmpty(),
+                    "Canceled Scrollcaster Gauntlet grindstone placement should not expose an output");
+
+            var normalBookEvent = new GrindstoneEvent.OnPlaceItem(
+                    createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)),
+                    ItemStack.EMPTY,
+                    -1
+            );
+            ScrollcasterGauntletGrindstoneEvent.onGrindstonePlaceItem(normalBookEvent);
+            helper.assertFalse(normalBookEvent.isCanceled(),
+                    "Non-gauntlet grindstone placement should stay available for vanilla handling");
         });
     }
 
@@ -12664,6 +12700,43 @@ public final class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(Objects.equals(expectedTextColor, matchingLine.get().getStyle().getColor()),
                     message + " (expected=" + expectedTextColor + ", actual="
                             + matchingLine.get().getStyle().getColor() + ")");
+        }
+    }
+
+    private static void assertTooltipKeyArgumentUsesColor(
+            GameTestHelper helper,
+            ItemStack stack,
+            String expectedKey,
+            int argumentIndex,
+            @Nullable TextColor expectedColor,
+            String message
+    ) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
+        var matchingLine = tooltipLines.stream()
+                .filter(component -> component.getContents() instanceof TranslatableContents contents
+                        && expectedKey.equals(contents.getKey()))
+                .findFirst();
+        helper.assertTrue(matchingLine.isPresent(),
+                message + " (missing tooltip key=" + expectedKey + ")");
+        if (matchingLine.isEmpty()) {
+            return;
+        }
+
+        var contents = (TranslatableContents) matchingLine.get().getContents();
+        var args = contents.getArgs();
+        helper.assertTrue(args.length > argumentIndex,
+                message + " (argument count=" + args.length + ")");
+        if (args.length <= argumentIndex) {
+            return;
+        }
+
+        helper.assertTrue(args[argumentIndex] instanceof Component,
+                message + " (argument was not a component: " + args[argumentIndex] + ")");
+        if (args[argumentIndex] instanceof Component component) {
+            helper.assertTrue(Objects.equals(expectedColor, component.getStyle().getColor()),
+                    message + " (expected=" + expectedColor + ", actual="
+                            + component.getStyle().getColor() + ")");
         }
     }
 
