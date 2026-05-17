@@ -393,13 +393,18 @@ tasks.register('checkRemovalWarningSuppressions') {
 
     doLast {
         def failures = []
-        def removalSuppressionPattern = ~/@SuppressWarnings\s*\([^)]*["']removal["'][^)]*\)/
+        def suppressWarningsPattern = ~/(?s)@(?:[A-Za-z_$][\w$]*\.)*SuppressWarnings\s*\((.*?)\)/
+        def removalLiteralPattern = ~/["']removal["']/
 
         removalWarningSuppressionFiles.files.findAll { it.isFile() }.sort { it.path }.each { file ->
-            file.getText('UTF-8').readLines().eachWithIndex { line, index ->
-                if (line =~ removalSuppressionPattern) {
+            def text = file.getText('UTF-8')
+            def matcher = suppressWarningsPattern.matcher(text)
+
+            while (matcher.find()) {
+                if (removalLiteralPattern.matcher(matcher.group(1)).find()) {
                     def relativePath = removalWarningSuppressionRootPath.relativize(file.toPath()).toString().replace(File.separator, '/')
-                    failures << "${relativePath}:${index + 1} @SuppressWarnings(\"removal\") is not allowed"
+                    def lineNumber = text.substring(0, matcher.start()).count('\n') + 1
+                    failures << "${relativePath}:${lineNumber} @SuppressWarnings(\"removal\") is not allowed"
                 }
             }
         }
