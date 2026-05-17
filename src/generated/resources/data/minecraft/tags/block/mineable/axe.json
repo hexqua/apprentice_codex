@@ -2,6 +2,7 @@
   "values": [
     "apprenticecodex:apprentice_desk",
     "apprenticecodex:spellcaster_workbench",
+    "apprenticecodex:spell_calibration_bench",
     "apprenticecodex:spell_dispenser"
   ]
 }

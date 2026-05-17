@@ -41,6 +41,7 @@ public final class CreativeTabRegistry {
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
         output.accept(ItemRegistry.APPRENTICE_DESK.get());
         output.accept(ItemRegistry.SPELLCASTER_WORKBENCH.get());
+        output.accept(ItemRegistry.SPELL_CALIBRATION_BENCH.get());
         output.accept(ItemRegistry.SPELL_DISPENSER.get());
         output.accept(ItemRegistry.ARCANUM_IN_A_JAR.get());
         output.accept(ItemRegistry.ESSENCE_SMOKER.get());
@@ -84,6 +85,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.FOCUS_STAFFBOW.get());
         output.accept(ItemRegistry.SMASHCAST_SCEPTER.get());
         output.accept(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        output.accept(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         output.accept(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         output.accept(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
         output.accept(ItemRegistry.MANA_FORCE_BLADE.get());

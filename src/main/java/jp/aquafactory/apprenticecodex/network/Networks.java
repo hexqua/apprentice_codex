@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmScrollcasterGauntletIndexPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -38,7 +39,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "24";
+    private static final String PROTOCOL_VERSION = "26";
 
     private Networks() {
     }
@@ -63,6 +64,11 @@ public final class Networks {
                 ClientConfirmElementalBowModePacket.TYPE,
                 ClientConfirmElementalBowModePacket.STREAM_CODEC,
                 ClientConfirmElementalBowModePacket::handle
+        );
+        registrar.playToServer(
+                ClientConfirmScrollcasterGauntletIndexPacket.TYPE,
+                ClientConfirmScrollcasterGauntletIndexPacket.STREAM_CODEC,
+                ClientConfirmScrollcasterGauntletIndexPacket::handle
         );
         registrar.playToServer(
                 ClientChangeArchivistsGrimoireRowPacket.TYPE,

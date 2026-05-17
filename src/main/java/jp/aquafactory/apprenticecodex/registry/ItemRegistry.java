@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
 import jp.aquafactory.apprenticecodex.item.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
@@ -200,6 +201,8 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> SPELLCASTER_WORKBENCH =
             ITEMS.register("spellcaster_workbench",
                     () -> new SpellcasterWorkbenchItem(BlockRegistry.SPELLCASTER_WORKBENCH.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, Item> SPELL_CALIBRATION_BENCH =
+            block("spell_calibration_bench", BlockRegistry.SPELL_CALIBRATION_BENCH);
     public static final DeferredHolder<Item, Item> SPELL_DISPENSER =
             ITEMS.register("spell_dispenser",
                     () -> new SpellDispenserItem(BlockRegistry.SPELL_DISPENSER.get(), new Item.Properties()));
@@ -278,6 +281,8 @@ public final class ItemRegistry {
             ITEMS.register("smashcast_scepter", SmashcastScepter::new);
     public static final DeferredHolder<Item, Item> MULTIPURPOSE_STAFFRIFLE =
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
+    public static final DeferredHolder<Item, Item> SCROLLCASTER_GAUNTLET =
+            ITEMS.register("scrollcaster_gauntlet", ScrollcasterGauntlet::new);
     public static final DeferredHolder<Item, Item> CIRCUIT_HEAT_STAFF =
             ITEMS.register("circuit_heat_staff", CircuitHeatStaff::new);
     public static final DeferredHolder<Item, Item> CHARGED_TWIN_BLADE_STAFF =

@@ -47,7 +47,7 @@
     "MouseHandlerMixin",
     "MinecraftMixin",
     "EntityMixin",
-    "GuiGraphicsElementalBowOverlayMixin",
+    "GuiGraphicsItemInventoryOverlayMixin",
     "ItemRendererFocusStaffbowContextMixin",
     "QuickCastPacketAccessor",
     "TooltipsUtilsMixin"

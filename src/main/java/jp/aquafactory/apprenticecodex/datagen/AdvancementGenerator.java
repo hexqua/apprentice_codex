@@ -281,6 +281,32 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_smashcast_scepter", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SMASHCAST_SCEPTER.getId()))
                 .save(saver, advancementId("craft_smashcast_scepter"), existingFileHelper);
 
+        var gauntlet = Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_scrollcaster_gauntlet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SCROLLCASTER_GAUNTLET.getId()))
+                .save(saver, advancementId("craft_scrollcaster_gauntlet"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(gauntlet)
+                .display(ItemRegistry.SPELL_CALIBRATION_BENCH.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_spell_calibration_bench", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELL_CALIBRATION_BENCH.getId()))
+                .save(saver, advancementId("craft_spell_calibration_bench"), existingFileHelper);
+
         Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.CIRCUIT_HEAT_STAFF.get(),

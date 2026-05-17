@@ -75,6 +75,36 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchStoresScrollsOnGauntlet(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchStoresScrollsOnGauntlet(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletSelectedScrollDrivesImbuedSpell(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletSelectedScrollDrivesImbuedSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchAdjustmentSlotsValidateInputs(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchAdjustmentSlotsValidateInputs(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchSchoolRuneRetunesGauntletSpellPower(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchSchoolRuneRetunesGauntletSpellPower(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellCalibrationBenchSyncsGauntletEnchantments(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.spellCalibrationBenchSyncsGauntletEnchantments(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletGrindstoneDoesNotExposeOutput(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletGrindstoneDoesNotExposeOutput(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void arcanumInAJarComparatorOutputMatchesStoredEssence(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.arcanumInAJarComparatorOutputMatchesStoredEssence(helper);
     }

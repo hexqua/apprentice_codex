@@ -54,6 +54,8 @@ public final class TagRegistry {
                 createItemTag("spellcaster_workbench_extractable");
         public static final TagKey<Item> ASSIST_WINGS_ONLY_JUMP_ITEMS =
                 createItemTag("assist_wings_only_jump_items");
+        public static final TagKey<Item> SCROLLCASTER_GAUNTLET_SCHOOL_RUNE_DENYLIST =
+                createItemTag("scrollcaster_gauntlet_school_rune_denylist");
     }
 
     public static final class EntityTypes {

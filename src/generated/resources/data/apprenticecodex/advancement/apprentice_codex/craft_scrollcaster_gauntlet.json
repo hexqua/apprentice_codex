@@ -1,0 +1,29 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_scrollcaster_gauntlet": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:scrollcaster_gauntlet"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:scrollcaster_gauntlet"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_scrollcaster_gauntlet"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
