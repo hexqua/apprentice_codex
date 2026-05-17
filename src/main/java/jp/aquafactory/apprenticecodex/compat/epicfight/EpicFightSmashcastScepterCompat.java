@@ -44,7 +44,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 // リフレクションで参照するため、IDE側の未使用検知を無効化.
-@SuppressWarnings({"unused", "removal"})
+@SuppressWarnings("unused")
 public final class EpicFightSmashcastScepterCompat {
     public static final String MOD_ID = "epicfight";
     public static final ResourceLocation WEAPON_TYPE_ID =

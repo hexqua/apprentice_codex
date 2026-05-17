@@ -3,9 +3,11 @@ package jp.aquafactory.apprenticecodex.compat.epicfight;
 import com.mojang.blaze3d.platform.InputConstants;
 import jp.aquafactory.apprenticecodex.item.MultipurposeStaffrifle;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import yesman.epicfight.api.client.input.action.EpicFightInputAction;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.screen.config.ItemsPreferenceScreen;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType;
 import yesman.epicfight.world.entity.eventlistener.SkillCastEvent;
 
@@ -42,10 +44,9 @@ public final class EpicFightClientCompat {
         return matchesKey(EpicFightInputAction.ATTACK.keyMapping(), type, value);
     }
 
-    @SuppressWarnings("removal")
     private static void installSmashcastScepterEvents() {
-        var clientEngine = ClientEngine.getInstance();
-        var playerpatch = clientEngine != null ? clientEngine.getPlayerPatch() : null;
+        var player = Minecraft.getInstance().player;
+        var playerpatch = player != null ? EpicFightCapabilities.getLocalPlayerPatch(player) : null;
         if (playerpatch == null || playerpatch.getOriginal() == null || !playerpatch.getOriginal().isAlive()) {
             installedSmashcastScepterPlayerId = null;
             return;
