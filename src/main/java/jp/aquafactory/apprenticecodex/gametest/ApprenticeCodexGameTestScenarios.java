@@ -11182,12 +11182,15 @@ public final class ApprenticeCodexGameTestScenarios {
 
     static void companionTrunkClimbsOneBlockStepWhenFollowingOwner(GameTestHelper helper) {
         var trunkPos = new BlockPos(-2, 12, 0);
-        var ownerPos = new BlockPos(2, 13, 0);
+        var ownerPos = new BlockPos(3, 13, 0);
         prepareSummonedEntityIsolationArea(helper, trunkPos);
-        for (var x = 0; x <= 2; ++x) {
-            helper.setBlock(new BlockPos(x, 12, 0), Blocks.STONE);
-            helper.setBlock(new BlockPos(x, 13, 0), Blocks.AIR);
-            helper.setBlock(new BlockPos(x, 14, 0), Blocks.AIR);
+        for (var x = 0; x <= 4; ++x) {
+            for (var z = -1; z <= 1; ++z) {
+                helper.setBlock(new BlockPos(x, 12, z), Blocks.STONE);
+                helper.setBlock(new BlockPos(x, 13, z), Blocks.AIR);
+                helper.setBlock(new BlockPos(x, 14, z), Blocks.AIR);
+                helper.setBlock(new BlockPos(x, 15, z), Blocks.AIR);
+            }
         }
 
         var owner = createCompanionTrunkPlayer(helper, ownerPos);
@@ -11196,9 +11199,11 @@ public final class ApprenticeCodexGameTestScenarios {
 
         helper.succeedWhen(() -> {
             helper.assertTrue(trunk.onGround(),
-                    "Companion Trunk should land on the raised step after following its owner");
+                    "Companion Trunk should land on the raised step after following its owner: "
+                            + describeCompanionTrunkMovement(trunk));
             helper.assertTrue(trunk.blockPosition().getY() >= absoluteOwnerPos.getY(),
-                    "Companion Trunk should climb onto the one block step while following its owner");
+                    "Companion Trunk should climb onto the one block step while following its owner: "
+                            + describeCompanionTrunkMovement(trunk));
         });
     }
 
@@ -11999,6 +12004,14 @@ public final class ApprenticeCodexGameTestScenarios {
         trunk.moveTo(absolutePos.x, absolutePos.y, absolutePos.z, 0.0f, 0.0f);
         helper.getLevel().addFreshEntity(trunk);
         return trunk;
+    }
+
+    private static String describeCompanionTrunkMovement(CompanionTrunkEntity trunk) {
+        return "blockPos=" + trunk.blockPosition()
+                + ", position=" + trunk.position()
+                + ", delta=" + trunk.getDeltaMovement()
+                + ", onGround=" + trunk.onGround()
+                + ", tickCount=" + trunk.tickCount;
     }
 
     private static CompanionTrunkEntity getSingleCompanionTrunk(GameTestHelper helper, FakePlayer owner) {
