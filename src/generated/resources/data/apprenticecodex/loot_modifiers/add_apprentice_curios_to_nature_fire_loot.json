@@ -15,8 +15,8 @@
       ]
     },
     {
-      "chance": 0.09230769230769233,
-      "condition": "minecraft:random_chance"
+      "base_chance": 0.09230769230769233,
+      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
   "key": "apprenticecodex:chests/nature_fire_curio_bonus"

@@ -7,6 +7,7 @@ public final class ApprenticeCodexServerConfig {
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
     private static final BlocksServerConfig BLOCKS_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
+    private static final LootServerConfig LOOT_CONFIG;
     private static final SpellsServerConfig SPELLS_CONFIG;
 
     static {
@@ -14,6 +15,7 @@ public final class ApprenticeCodexServerConfig {
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
         BLOCKS_CONFIG = BlocksServerConfig.define(builder);
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
+        LOOT_CONFIG = LootServerConfig.define(builder);
         SPELLS_CONFIG = SpellsServerConfig.define(builder);
         SPEC = builder.build();
     }
@@ -127,6 +129,14 @@ public final class ApprenticeCodexServerConfig {
 
     public static boolean enableIsekaiTravelGuidebookBonusChestLoot() {
         return ITEMS_CONFIG.enableIsekaiTravelGuidebookBonusChestLoot();
+    }
+
+    public static boolean enableApprenticeCurioLoot() {
+        return LOOT_CONFIG.enableApprenticeCurioLoot();
+    }
+
+    public static double apprenticeCurioLootChanceMultiplier() {
+        return LOOT_CONFIG.apprenticeCurioLootChanceMultiplier();
     }
 
     public static float manaForceBladeImbueDamageMultiplierScale() {

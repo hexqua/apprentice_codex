@@ -15,8 +15,8 @@
       ]
     },
     {
-      "chance": 0.18461538461538465,
-      "condition": "minecraft:random_chance"
+      "base_chance": 0.18461538461538465,
+      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
   "key": "apprenticecodex:chests/treasure_curio_bonus"
