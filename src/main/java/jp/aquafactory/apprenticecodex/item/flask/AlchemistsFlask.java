@@ -43,7 +43,7 @@ public class AlchemistsFlask extends AbstractPotionFlaskItem
         }
 
         var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
-        InitialSpellContainerHelper.addInitialSpellIfEnabled(spellContainer, SpellRegistry.EXTRACT.get(), 1, 0, true);
+        InitialSpellContainerHelper.addInitialSpellIfEnabled(spellContainer, SpellRegistry.EXTRACT, 1, 0, true);
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }
 

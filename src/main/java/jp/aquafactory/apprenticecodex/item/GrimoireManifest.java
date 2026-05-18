@@ -35,7 +35,7 @@ public class GrimoireManifest extends Item implements IPresetSpellContainer, Uni
                 1,
                 true,
                 false,
-                SpellRegistry.MANIFESTATION_GRIMOIRE.get(),
+                SpellRegistry.MANIFESTATION_GRIMOIRE,
                 1
         );
     }

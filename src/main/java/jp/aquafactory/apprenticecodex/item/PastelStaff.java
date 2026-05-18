@@ -82,13 +82,8 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
             return;
         }
 
-        // Datagen時はSpellRegistry未バインドのため、初期呪文の注入をスキップする.
-        if (!SpellRegistry.PALETTE_SHIFT.isBound()) {
-            return;
-        }
-
         var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
-        InitialSpellContainerHelper.addInitialSpellIfEnabled(spellContainer, SpellRegistry.PALETTE_SHIFT.get(), 1, 0, true);
+        InitialSpellContainerHelper.addInitialSpellIfEnabled(spellContainer, SpellRegistry.PALETTE_SHIFT, 1, 0, true);
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }
 

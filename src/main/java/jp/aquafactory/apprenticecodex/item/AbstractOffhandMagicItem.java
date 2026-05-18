@@ -140,7 +140,7 @@ public abstract class AbstractOffhandMagicItem extends Item
                     1,
                     true,
                     false,
-                    configuredSpell.get(),
+                    configuredSpell,
                     configuredSpellLevel
             );
             return;
