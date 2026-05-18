@@ -401,6 +401,8 @@
   "container.apprenticecodex.spell_dispenser.spell.tooltip.owner_missing": "スペルディスペンサーを設置したプレイヤーの情報が存在しない",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.unsupported_cast": "対象の魔法の詠唱タイプが未対応",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.has_recast": "対象の魔法は再詠唱できるタイプのため使用できない",
+  "container.apprenticecodex.spell_dispenser.spell.tooltip.server_disabled": "サーバー設定でスペルディスペンサーの使用が許可されていない",
+  "container.apprenticecodex.spell_dispenser.spell.tooltip.not_allowlisted": "サーバー設定でこの魔法はスペルディスペンサーに許可されていない",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.not_profiled": "スペルディスペンサーの設定に対象の魔法が存在しないため使用できない",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.denylisted": "スペルディスペンサーの禁止リスト設定に入っているため使用できない",
   "container.apprenticecodex.spell_dispenser.spell.tooltip.general_error": "この魔法は利用できない",
@@ -431,6 +433,8 @@
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.insufficient_mana": "理由: スペルディスペンサーのマナが不足している(必要マナ%1$d、現在マナ%2$d)",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.pre_cast": "理由: %sの魔法の使用条件を満たしていない",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.owner_missing": "理由: スペルディスペンサーを設置したプレイヤーの情報が存在しない",
+  "chat.apprenticecodex.spell_dispenser.cast_failed.reason.server_disabled": "理由: サーバー設定でスペルディスペンサーの使用が許可されていない",
+  "chat.apprenticecodex.spell_dispenser.cast_failed.reason.server_allowlist": "理由: %sはサーバー設定でスペルディスペンサーに許可されていない",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.pre_cast.action_bar": "詳細: \"%s\"",
 
   "config.jade.plugin_apprenticecodex.arcanum_in_a_jar": "瓶詰めの神秘",
