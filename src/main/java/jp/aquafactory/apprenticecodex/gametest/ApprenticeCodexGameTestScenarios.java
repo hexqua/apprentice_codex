@@ -14128,7 +14128,7 @@ public final class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND.equals(magicData.getCastingEquipmentSlot()),
                 "Scrollcaster Gauntlet offhand use should mark the offhand casting slot but got "
                         + magicData.getCastingEquipmentSlot());
-        helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
+        helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), gauntlet),
                 "Scrollcaster Gauntlet offhand use should cast with the offhand gauntlet stack");
     }
 

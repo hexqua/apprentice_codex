@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.api.utils.math.OpenMatrix4f;
-import yesman.epicfight.client.ClientEngine;
+import yesman.epicfight.client.events.engine.RenderEngine;
 import yesman.epicfight.client.renderer.patched.layer.PatchedItemInHandLayer;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
@@ -46,7 +46,7 @@ public abstract class EpicFightPatchedItemInHandLayerMixin {
             return;
         }
 
-        var renderEngine = ClientEngine.getInstance().renderEngine;
+        var renderEngine = RenderEngine.getInstance();
         renderEngine.getItemRenderer(offhandVisualStack).renderItemInHand(
                 offhandVisualStack,
                 entitypatch,

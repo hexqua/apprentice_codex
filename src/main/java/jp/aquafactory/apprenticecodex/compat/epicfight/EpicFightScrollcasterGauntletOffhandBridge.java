@@ -84,7 +84,7 @@ public final class EpicFightScrollcasterGauntletOffhandBridge {
     public static float getMirroredAttackSpeed(PlayerPatch<?> playerPatch) {
         var player = (Player) playerPatch.getOriginal();
         var baseAttackSpeed = (float) player.getAttributeValue(Attributes.ATTACK_SPEED);
-        return playerPatch.getModifiedAttackSpeed(
+        return playerPatch.getModifiedAttackSpeedOfItem(
                 playerPatch.getAdvancedHoldingItemCapability(InteractionHand.MAIN_HAND),
                 baseAttackSpeed
         );
