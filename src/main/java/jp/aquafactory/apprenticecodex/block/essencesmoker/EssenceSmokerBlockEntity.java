@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -652,7 +653,9 @@ public class EssenceSmokerBlockEntity extends BlockEntity implements WorldlyCont
         var recipeManager = level.getRecipeManager();
         if (cachedRecipeManager != recipeManager) {
             cachedRecipeManager = recipeManager;
-            cachedRecipes = List.copyOf(recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()));
+            cachedRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).stream()
+                    .filter(ProcessingRecipeDenylist::isAllowed)
+                    .toList();
             invalidateMaterialRecipeCache();
         }
 

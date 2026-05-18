@@ -8,9 +8,12 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import net.minecraft.ChatFormatting;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -65,6 +68,16 @@ public class RemoteEye extends AbstractSpell {
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        if (!level.isClientSide && !ApprenticeCodexServerConfig.isRemoteEyeDimensionAllowed(level.dimension().location())) {
+            sendDimensionNotAllowedMessage(entity);
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
     public Optional<SoundEvent> getCastFinishSound() {
         return Optional.of(SoundRegistry.REMOTE_PREPARE.get());
     }
@@ -86,5 +99,13 @@ public class RemoteEye extends AbstractSpell {
             }
         });
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private void sendDimensionNotAllowedMessage(LivingEntity entity) {
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.spell.dimension_not_allowed").withStyle(ChatFormatting.RED)
+            ));
+        }
     }
 }

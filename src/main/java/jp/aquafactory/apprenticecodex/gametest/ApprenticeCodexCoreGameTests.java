@@ -10,6 +10,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexCoreGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    private static final String PROCESSING_RECIPE_DENYLIST_CONFIG_BATCH = "processing_recipe_denylist_config";
 
     private ApprenticeCodexCoreGameTests() {
     }
@@ -57,6 +58,11 @@ public final class ApprenticeCodexCoreGameTests {
     @GameTest(template = TEMPLATE)
     public static void customRecipeDataIsLoaded(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.customRecipeDataIsLoaded(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = PROCESSING_RECIPE_DENYLIST_CONFIG_BATCH)
+    public static void processingRecipeDenylistsRejectConfiguredRecipeIds(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.processingRecipeDenylistsRejectConfiguredRecipeIds(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -127,11 +133,6 @@ public final class ApprenticeCodexCoreGameTests {
     @GameTest(template = TEMPLATE)
     public static void ironsStructureLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.ironsStructureLootIncludesApprenticeCurioBonusDrops(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void catacombsLootIncludesScarletThirstBonusDrop(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.catacombsLootIncludesScarletThirstBonusDrop(helper);
     }
 
     @GameTest(template = TEMPLATE)

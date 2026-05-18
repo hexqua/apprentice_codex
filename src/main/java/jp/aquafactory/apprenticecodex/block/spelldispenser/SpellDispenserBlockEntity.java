@@ -187,12 +187,20 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         var source = getSpellSource();
         var validation = SpellDispenserSpellValidator.validate(source);
 
+        if (validation.failureReason() == SpellDispenserSpellValidator.FailureReason.SERVER_DISABLED) {
+            return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.validationFailure(validation));
+        }
+
         if (isCoolingDown()) {
             return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.cooldownBlocked(validation, remainingCooldownTicks));
         }
 
         if (source.isEmpty()) {
             return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.noScroll(validation));
+        }
+
+        if (!validation.isSupported()) {
+            return notifyActivationFailure(serverLevel, SpellDispenserCastHelper.CastResult.validationFailure(validation));
         }
 
         if (requiresOwnerProfile(validation) && !hasOwnerProfile()) {
@@ -280,6 +288,13 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         if (source.isEmpty()
                 || source.getCount() != activeContinuousCast.spellSource().getCount()
                 || !ItemStack.isSameItemSameTags(source, activeContinuousCast.spellSource())) {
+            stopContinuousCast(true);
+            return;
+        }
+
+        var currentValidation = SpellDispenserSpellValidator.validate(source);
+        if (currentValidation.failureReason() == SpellDispenserSpellValidator.FailureReason.SERVER_DISABLED
+                || currentValidation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_ALLOWLISTED) {
             stopContinuousCast(true);
             return;
         }

@@ -58,7 +58,36 @@ final class BlocksServerConfig {
         return arcanumInAJarConfig.ticksPerStoredParameter();
     }
 
+    boolean spellDispenserEnable() {
+        return spellDispenserConfig.enable();
+    }
+
+    boolean spellDispenserIsSpellAllowedByServerAllowlist(net.minecraft.resources.ResourceLocation spellId) {
+        return spellDispenserConfig.isSpellAllowedByServerAllowlist(spellId);
+    }
+
+    double spellDispenserCooldownMultiplier() {
+        return spellDispenserConfig.cooldownMultiplier();
+    }
+
     boolean spellDispenserIgnoreSpellProfileAndDenylistFiles() {
         return spellDispenserConfig.ignoreSpellProfileAndDenylistFiles();
+    }
+
+    java.util.List<String> spellDispenserSpellAllowlist() {
+        return spellDispenserConfig.spellAllowlist();
+    }
+
+    boolean spellDispenserEnableSpellAllowlist() {
+        return spellDispenserConfig.enableSpellAllowlist();
+    }
+
+    void setSpellDispenserConfigForGameTest(
+            boolean enable,
+            boolean enableSpellAllowlist,
+            java.util.List<String> spellAllowlist,
+            double cooldownMultiplier
+    ) {
+        spellDispenserConfig.setForGameTest(enable, enableSpellAllowlist, spellAllowlist, cooldownMultiplier);
     }
 }

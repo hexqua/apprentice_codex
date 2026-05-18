@@ -27,8 +27,8 @@
       ]
     },
     {
-      "chance": 0.017307692307692305,
-      "condition": "minecraft:random_chance"
+      "base_chance": 0.017307692307692305,
+      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
   "key": "apprenticecodex:chests/nether_and_trial_curio_bonus"

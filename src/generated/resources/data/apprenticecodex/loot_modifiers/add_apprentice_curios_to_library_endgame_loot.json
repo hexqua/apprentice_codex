@@ -19,8 +19,8 @@
       ]
     },
     {
-      "chance": 0.11538461538461539,
-      "condition": "minecraft:random_chance"
+      "base_chance": 0.11538461538461539,
+      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
   "key": "apprenticecodex:chests/library_endgame_curio_bonus"

@@ -26,8 +26,8 @@ public final class CurioLootDataGenerator implements DataProvider {
 
     private static final ResourceLocation BASIC_CURIOS_BONUS =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/basic_curios_bonus");
-    private static final ResourceLocation SCARLET_THIRST_CATACOMBS_BONUS =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/scarlet_thirst_catacombs_bonus");
+    private static final ResourceLocation APPRENTICE_CURIO_LOOT_CHANCE_CONDITION =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_curio_loot_chance");
 
     private final PackOutput.PathProvider lootTablePathProvider;
     private final PackOutput.PathProvider lootModifierPathProvider;
@@ -42,8 +42,6 @@ public final class CurioLootDataGenerator implements DataProvider {
         var futures = new ArrayList<CompletableFuture<?>>();
 
         futures.add(saveLootTable(cachedOutput, BASIC_CURIOS_BONUS, createBasicCuriosBonusTable()));
-        futures.add(saveLootTable(cachedOutput, SCARLET_THIRST_CATACOMBS_BONUS,
-                createSingleItemTable(ItemRegistry.SCARLET_THIRST.getId())));
 
         futures.add(saveLootModifier(cachedOutput,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_generic_loot"),
@@ -182,16 +180,6 @@ public final class CurioLootDataGenerator implements DataProvider {
                         createChanceWrappedLootTableId("catacombs_wall"),
                         basicCurioEquivalentChance(0.35D)
                 )));
-        futures.add(saveLootModifier(cachedOutput,
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_scarlet_thirst_to_catacombs"),
-                createAppendLootModifier(List.of(
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/coffin_loot"),
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/crypt_loot"),
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/wall_loot")
-                        ),
-                        SCARLET_THIRST_CATACOMBS_BONUS,
-                        0.075D
-                )));
         futures.add(DataProvider.saveStable(cachedOutput, createGlobalLootModifierList(), lootModifierPathProvider.json(
                 ResourceLocation.fromNamespaceAndPath("forge", "global_loot_modifiers")
         )));
@@ -243,8 +231,7 @@ public final class CurioLootDataGenerator implements DataProvider {
                 "apprenticecodex:add_apprentice_curios_to_mountain_tower",
                 "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
                 "apprenticecodex:add_apprentice_curios_to_catacombs_crypt",
-                "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
-                "apprenticecodex:add_scarlet_thirst_to_catacombs"
+                "apprenticecodex:add_apprentice_curios_to_catacombs_wall"
         )) {
             entries.add(id);
         }
@@ -254,10 +241,6 @@ public final class CurioLootDataGenerator implements DataProvider {
 
     private static JsonObject createBasicCuriosBonusTable() {
         return createItemTable(APPRENTICE_BASIC_CURIO_ITEM_IDS, 1.0D);
-    }
-
-    private static JsonObject createSingleItemTable(ResourceLocation itemId) {
-        return createItemTable(List.of(itemId), 1.0D);
     }
 
     private static JsonObject createItemTable(List<ResourceLocation> itemIds, double rolls) {
@@ -304,7 +287,7 @@ public final class CurioLootDataGenerator implements DataProvider {
         root.addProperty("type", "irons_spellbooks:append_loot");
         var conditions = new JsonArray();
         conditions.add(createLootTableCondition(lootTableIds));
-        conditions.add(createRandomChanceCondition(chance));
+        conditions.add(createApprenticeCurioLootChanceCondition(chance));
         root.add("conditions", conditions);
         root.addProperty("key", key.toString());
         return root;
@@ -331,10 +314,10 @@ public final class CurioLootDataGenerator implements DataProvider {
         return condition;
     }
 
-    private static JsonObject createRandomChanceCondition(double chance) {
+    private static JsonObject createApprenticeCurioLootChanceCondition(double chance) {
         var condition = new JsonObject();
-        condition.addProperty("condition", "minecraft:random_chance");
-        condition.addProperty("chance", chance);
+        condition.addProperty("condition", APPRENTICE_CURIO_LOOT_CHANCE_CONDITION.toString());
+        condition.addProperty("base_chance", chance);
         return condition;
     }
 
