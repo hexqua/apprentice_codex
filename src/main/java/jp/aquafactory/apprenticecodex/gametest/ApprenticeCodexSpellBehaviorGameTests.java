@@ -16,6 +16,8 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String PERSONAL_SHELF_ISOLATED_BATCH = "apprenticecodex.personal_shelf_isolated";
     private static final String COMPANION_TRUNK_ISOLATED_BATCH = "apprenticecodex.companion_trunk_isolated";
     private static final String RIFT_HOLE_ISOLATED_BATCH = "apprenticecodex.rift_hole_isolated";
+    private static final String DEMICREATOR_WINGS_ISOLATED_BATCH = "apprenticecodex.demicreator_wings_isolated";
+    private static final String REMOTE_EYE_ISOLATED_BATCH = "apprenticecodex.remote_eye_isolated";
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
     private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
     private static final String EARTH_FORGE_ISOLATED_BATCH = "apprenticecodex.earth_forge_isolated";
@@ -168,6 +170,41 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = RIFT_HOLE_ISOLATED_BATCH)
     public static void riftHoleDimensionDenylistOverridesAllowlist(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.riftHoleDimensionDenylistOverridesAllowlist(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = DEMICREATOR_WINGS_ISOLATED_BATCH)
+    public static void demicreatorWingsDimensionDenylistRejectsCurrentDimension(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.demicreatorWingsDimensionDenylistRejectsCurrentDimension(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = DEMICREATOR_WINGS_ISOLATED_BATCH)
+    public static void demicreatorWingsDimensionAllowlistRequiresCurrentDimension(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.demicreatorWingsDimensionAllowlistRequiresCurrentDimension(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = DEMICREATOR_WINGS_ISOLATED_BATCH)
+    public static void demicreatorWingsDimensionDenylistOverridesAllowlist(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.demicreatorWingsDimensionDenylistOverridesAllowlist(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = DEMICREATOR_WINGS_ISOLATED_BATCH)
+    public static void demicreatorWingsDimensionRestrictionAllowsCloseCast(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.demicreatorWingsDimensionRestrictionAllowsCloseCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = REMOTE_EYE_ISOLATED_BATCH)
+    public static void remoteEyeDimensionDenylistRejectsCurrentDimension(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.remoteEyeDimensionDenylistRejectsCurrentDimension(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = REMOTE_EYE_ISOLATED_BATCH)
+    public static void remoteEyeDimensionAllowlistRequiresCurrentDimension(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.remoteEyeDimensionAllowlistRequiresCurrentDimension(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = REMOTE_EYE_ISOLATED_BATCH)
+    public static void remoteEyeDimensionDenylistOverridesAllowlist(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.remoteEyeDimensionDenylistOverridesAllowlist(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)

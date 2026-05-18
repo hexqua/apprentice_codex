@@ -357,7 +357,7 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
     private void sendDimensionNotAllowedMessage(LivingEntity entity) {
         if (entity instanceof ServerPlayer serverPlayer) {
             serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                    Component.translatable("ui.apprenticecodex.rift_hole.dimension_not_allowed").withStyle(ChatFormatting.RED)
+                    Component.translatable("ui.apprenticecodex.spell.dimension_not_allowed").withStyle(ChatFormatting.RED)
             ));
         }
     }
