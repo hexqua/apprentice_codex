@@ -1444,6 +1444,63 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Spell Dispenser validator resolved the wrong LONG spell: " + validation.spellData().getSpell().getSpellResource());
         });
     }
+    static void spellDispenserValidatorRejectsWhenServerDisabled(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    false,
+                    false,
+                    List.of(),
+                    1.0D
+            )) {
+                var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+
+                var validation = SpellDispenserSpellValidator.validate(scrollStack);
+                helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a scroll while server-disabled");
+                helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.SERVER_DISABLED,
+                        "Spell Dispenser validator returned the wrong failure reason while server-disabled: " + validation.failureReason());
+            }
+        });
+    }
+    static void spellDispenserValidatorRequiresServerAllowlist(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicMissileStack = createSpellScroll(magicMissile);
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    true,
+                    List.of(),
+                    1.0D
+            )) {
+                var validation = SpellDispenserSpellValidator.validate(magicMissileStack);
+                helper.assertTrue(!validation.isSupported(), "Spell Dispenser validator accepted a scroll with an empty server allowlist");
+                helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_ALLOWLISTED,
+                        "Spell Dispenser validator returned the wrong failure reason for an empty server allowlist: " + validation.failureReason());
+            }
+
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    true,
+                    List.of(magicMissile.getSpellResource().toString()),
+                    1.0D
+            )) {
+                var validation = SpellDispenserSpellValidator.validate(magicMissileStack);
+                helper.assertTrue(validation.isSupported(), "Spell Dispenser validator rejected an allowlisted profiled spell");
+            }
+
+            var denylistedSpell = SpellRegistry.ASSIST_WINGS.get();
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    true,
+                    List.of(denylistedSpell.getSpellResource().toString()),
+                    1.0D
+            )) {
+                var validation = SpellDispenserSpellValidator.validate(createSpellScroll(denylistedSpell));
+                helper.assertTrue(!validation.isSupported(), "Spell Dispenser server allowlist bypassed the datapack denylist");
+                helper.assertTrue(validation.failureReason() == SpellDispenserSpellValidator.FailureReason.DENYLISTED,
+                        "Spell Dispenser validator returned the wrong allowlist + datapack denylist failure: " + validation.failureReason());
+            }
+        });
+    }
     static void spellDispenserValidatorRejectsDenylistedSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var scrollStack = createSpellScroll(SpellRegistry.ASSIST_WINGS.get());
@@ -1850,6 +1907,62 @@ public final class ApprenticeCodexGameTestScenarios {
             }
 
             helper.assertFalse(spellDispenser.isCoolingDown(), "Spell Dispenser cooldown did not expire after the expected number of ticks");
+        });
+    }
+    static void spellDispenserBlockEntityReportsServerDisabledActivation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    false,
+                    false,
+                    List.of(),
+                    1.0D
+            )) {
+                var pos = new BlockPos(0, 1, 0);
+                helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+                var blockEntity = helper.getBlockEntity(pos);
+                helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+                var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+                spellDispenser.getInventory().setStackInSlot(
+                        0,
+                        createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+                );
+
+                var result = spellDispenser.tryActivate();
+                helper.assertTrue(!result.succeeded(), "Spell Dispenser activated while disabled by server config");
+                helper.assertTrue(result.failureType() == SpellDispenserCastHelper.FailureType.SERVER_DISABLED,
+                        "Spell Dispenser returned the wrong server-disabled activation failure: " + result.failureType());
+                helper.assertFalse(spellDispenser.isCoolingDown(),
+                        "Spell Dispenser entered cooldown despite server-disabled activation");
+            }
+        });
+    }
+    static void spellDispenserBlockEntityAppliesCooldownMultiplier(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    false,
+                    List.of(),
+                    0.1D
+            )) {
+                var pos = new BlockPos(0, 1, 0);
+                helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+
+                var blockEntity = helper.getBlockEntity(pos);
+                helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
+                var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+                var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+                spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(spell));
+                spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_cooldown_multiplier_test"));
+
+                var result = spellDispenser.tryActivate();
+                var expectedCooldown = Math.max(1, (int) Math.ceil(spell.getSpellCooldown() * 0.1D));
+                helper.assertTrue(result.succeeded(), "Spell Dispenser failed to activate for cooldown multiplier test");
+                helper.assertTrue(result.cooldownTicks() == expectedCooldown,
+                        "Spell Dispenser returned the wrong scaled cooldown: " + result.cooldownTicks() + " / expected " + expectedCooldown);
+                helper.assertTrue(spellDispenser.getRemainingCooldownTicks() == expectedCooldown,
+                        "Spell Dispenser stored the wrong scaled cooldown: " + spellDispenser.getRemainingCooldownTicks());
+            }
         });
     }
     static void spellDispenserAutomationOnlyAcceptsManaContainers(GameTestHelper helper) {
@@ -2346,6 +2459,43 @@ public final class ApprenticeCodexGameTestScenarios {
             var thirdProjectileCount = level.getEntitiesOfClass(CompoundPhialProjectileEntity.class, projectileBox).size();
             helper.assertTrue(thirdProjectileCount > secondProjectileCount,
                     "Create-mounted Spell Dispenser did not fire again after cooldown expired");
+        });
+    }
+    static void spellDispenserCreateAppliesCooldownMultiplier(GameTestHelper helper) {
+        if (skipWhenCreateMissing(helper)) {
+            return;
+        }
+
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellDispenserConfigOverrideForGameTest(
+                    true,
+                    false,
+                    List.of(),
+                    0.1D
+            )) {
+                var level = (ServerLevel) helper.getLevel();
+                var castPos = new BlockPos(0, 1, 0);
+                var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+                var scrollStack = createSpellScroll(spell);
+                var mountedInventory = new ItemStackHandler(1);
+                mountedInventory.setStackInSlot(0, scrollStack.copy());
+                var harness = createSpellDispenserMovementHarness(level, castPos, mountedInventory, null);
+
+                startCreateSpellDispenserMovement(harness);
+                visitCreateSpellDispenserPosition(harness, castPos);
+                helper.assertTrue(createSpellDispenserIsCoolingDown(harness),
+                        "Create-mounted Spell Dispenser did not enter cooldown after a scaled-cooldown cast");
+
+                var expectedCooldown = Math.max(1, (int) Math.ceil(spell.getSpellCooldown() * 0.1D));
+                for (var tick = 0; tick < expectedCooldown && createSpellDispenserIsCoolingDown(harness); tick++) {
+                    tickCreateSpellDispenserMovement(harness);
+                }
+
+                helper.assertFalse(createSpellDispenserIsCoolingDown(harness),
+                        "Create-mounted Spell Dispenser cooldown did not expire after the scaled cooldown ticks");
+                assertNoSpellDispenserProxy(helper, castPos, scrollStack,
+                        "Create-mounted Spell Dispenser cooldown multiplier test left proxy state behind");
+            }
         });
     }
     static void spellDispenserCreateAllowsOwnerOptionalSpellWithoutOwnerProfile(GameTestHelper helper) {

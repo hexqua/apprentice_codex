@@ -92,6 +92,43 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.spellDispenserIgnoreSpellProfileAndDenylistFiles();
     }
 
+    public static boolean spellDispenserEnable() {
+        return BLOCKS_CONFIG.spellDispenserEnable();
+    }
+
+    public static boolean isSpellDispenserSpellAllowedByServerAllowlist(ResourceLocation spellId) {
+        return BLOCKS_CONFIG.spellDispenserIsSpellAllowedByServerAllowlist(spellId);
+    }
+
+    public static double spellDispenserCooldownMultiplier() {
+        return BLOCKS_CONFIG.spellDispenserCooldownMultiplier();
+    }
+
+    public static GameTestConfigOverride useSpellDispenserConfigOverrideForGameTest(
+            boolean enable,
+            boolean enableSpellAllowlist,
+            List<String> spellAllowlist,
+            double cooldownMultiplier
+    ) {
+        var previousEnable = BLOCKS_CONFIG.spellDispenserEnable();
+        var previousEnableSpellAllowlist = BLOCKS_CONFIG.spellDispenserEnableSpellAllowlist();
+        var previousSpellAllowlist = BLOCKS_CONFIG.spellDispenserSpellAllowlist();
+        var previousCooldownMultiplier = BLOCKS_CONFIG.spellDispenserCooldownMultiplier();
+
+        BLOCKS_CONFIG.setSpellDispenserConfigForGameTest(
+                enable,
+                enableSpellAllowlist,
+                spellAllowlist,
+                cooldownMultiplier
+        );
+        return () -> BLOCKS_CONFIG.setSpellDispenserConfigForGameTest(
+                previousEnable,
+                previousEnableSpellAllowlist,
+                previousSpellAllowlist,
+                previousCooldownMultiplier
+        );
+    }
+
     public static boolean apprenticeDeskEnableSpellCraftBlacklist() {
         return BLOCKS_CONFIG.apprenticeDeskEnableSpellCraftBlacklist();
     }

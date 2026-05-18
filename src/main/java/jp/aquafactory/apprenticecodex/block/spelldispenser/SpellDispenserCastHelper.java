@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.entity.spells.AbstractConeProjectile;
 import io.redspace.ironsspellbooks.spells.EntityCastData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.ChatFormatting;
@@ -766,7 +767,19 @@ public final class SpellDispenserCastHelper {
         if (spell.getCastType() == CastType.LONG) {
             cooldownTicks += Math.max(0, spell.getEffectiveCastTime(spellData.getLevel(), spellCaster));
         }
-        return cooldownTicks;
+        return scaleCooldownTicks(cooldownTicks);
+    }
+
+    public static int scaleCooldownTicks(int cooldownTicks) {
+        if (cooldownTicks <= 0) {
+            return 0;
+        }
+
+        var scaled = Math.ceil(cooldownTicks * Math.max(0.1D, ApprenticeCodexServerConfig.spellDispenserCooldownMultiplier()));
+        if (scaled >= Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return Math.max(1, (int) scaled);
     }
 
     private static Vec3 normalizeForward(Vec3 forward) {
@@ -808,6 +821,8 @@ public final class SpellDispenserCastHelper {
         INSUFFICIENT_MANA,
         PRE_CAST,
         OWNER_MISSING,
+        SERVER_DISABLED,
+        SERVER_ALLOWLIST,
         EXCEPTION
     }
 
@@ -835,6 +850,12 @@ public final class SpellDispenserCastHelper {
             if (validation.failureReason() == SpellDispenserSpellValidator.FailureReason.EMPTY) {
                 return noScroll(validation);
             }
+            if (validation.failureReason() == SpellDispenserSpellValidator.FailureReason.SERVER_DISABLED) {
+                return serverDisabled(validation);
+            }
+            if (validation.failureReason() == SpellDispenserSpellValidator.FailureReason.NOT_ALLOWLISTED) {
+                return serverAllowlistBlocked(validation);
+            }
             var spellId = validation.spellData() == SpellData.EMPTY ? null : validation.spellData().getSpell().getSpellResource();
             return new CastResult(false, validation, spellId, false, 0, FailureType.INVALID_SPELL, 0, 0, 0, null);
         }
@@ -861,6 +882,16 @@ public final class SpellDispenserCastHelper {
 
         public static CastResult cooldownBlocked(SpellDispenserSpellValidator.ValidationResult validation) {
             return cooldownBlocked(validation, 0);
+        }
+
+        public static CastResult serverDisabled(SpellDispenserSpellValidator.ValidationResult validation) {
+            var spellId = validation.spellData() == SpellData.EMPTY ? null : validation.spellData().getSpell().getSpellResource();
+            return new CastResult(false, validation, spellId, false, 0, FailureType.SERVER_DISABLED, 0, 0, 0, null);
+        }
+
+        public static CastResult serverAllowlistBlocked(SpellDispenserSpellValidator.ValidationResult validation) {
+            var spellId = validation.spellData() == SpellData.EMPTY ? null : validation.spellData().getSpell().getSpellResource();
+            return new CastResult(false, validation, spellId, false, 0, FailureType.SERVER_ALLOWLIST, 0, 0, 0, null);
         }
 
         private static CastResult preCastRejected(
@@ -925,6 +956,8 @@ public final class SpellDispenserCastHelper {
                 case INSUFFICIENT_MANA -> "insufficient_mana:" + requiredMana + ":" + currentMana;
                 case PRE_CAST -> "pre_cast:" + resolveFailureSubjectKey() + ":" + resolveActionBarKey();
                 case OWNER_MISSING -> "owner_missing";
+                case SERVER_DISABLED -> "server_disabled";
+                case SERVER_ALLOWLIST -> "server_allowlist:" + resolveFailureSubjectKey();
                 case NONE, EXCEPTION -> "none";
             };
         }
@@ -967,6 +1000,13 @@ public final class SpellDispenserCastHelper {
                 }
                 case OWNER_MISSING -> messages.add(Component.translatable(
                         "chat." + ApprenticeCodex.MODID + ".spell_dispenser.cast_failed.reason.owner_missing"
+                ).withStyle(ChatFormatting.RED));
+                case SERVER_DISABLED -> messages.add(Component.translatable(
+                        "chat." + ApprenticeCodex.MODID + ".spell_dispenser.cast_failed.reason.server_disabled"
+                ).withStyle(ChatFormatting.RED));
+                case SERVER_ALLOWLIST -> messages.add(Component.translatable(
+                        "chat." + ApprenticeCodex.MODID + ".spell_dispenser.cast_failed.reason.server_allowlist",
+                        resolveFailureSubject(player)
                 ).withStyle(ChatFormatting.RED));
             }
             return messages;
