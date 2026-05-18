@@ -12,9 +12,11 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String EASY_MAGIC_MOD_ID = "easymagic";
     private static final String APOTHEOSIS_MOD_ID = "apotheosis";
     private static final String JEI_MOD_ID = "jei";
+    private static final String EPIC_FIGHT_MOD_ID = "epicfight";
     private static final String EASY_MAGIC_MIXIN = "jp.aquafactory.apprenticecodex.mixin.EasyMagicModEnchantmentMenuMixin";
     private static final String ARCANE_ANVIL_JEI_RECIPE_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.ArcaneAnvilJeiRecipeMixin";
+    private static final String EPIC_FIGHT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EpicFight";
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -38,6 +40,11 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
             // JEI未導入環境では対象クラス自体が存在しないため、optional compat は plugin 側で止める。
             var loadingModList = FMLLoader.getLoadingModList();
             return loadingModList != null && loadingModList.getModFileById(JEI_MOD_ID) != null;
+        }
+
+        if (mixinClassName.startsWith(EPIC_FIGHT_MIXIN_PREFIX)) {
+            var loadingModList = FMLLoader.getLoadingModList();
+            return loadingModList != null && loadingModList.getModFileById(EPIC_FIGHT_MOD_ID) != null;
         }
 
         return true;
