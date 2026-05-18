@@ -635,6 +635,20 @@ public final class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(scrollOffer.satisfiedBy(taggedScroll, new ItemStack(Items.EMERALD, 16)),
                     "Tagged scroll should satisfy the errand mage ink trade even when the saved cost stack has tags");
+
+            var taggedTarnishedCrown = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
+            taggedTarnishedCrown.getOrCreateTag().putString("apprenticecodex_test", "tagged");
+            var taggedTarnishedCrownCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TARNISHED_CROWN.get());
+            taggedTarnishedCrownCost.getOrCreateTag().putString("apprenticecodex_test", "legacy_cost");
+            var tarnishedCrownOffer = new MerchantOffer(
+                    taggedTarnishedCrownCost,
+                    new ItemStack(Items.EMERALD, 32),
+                    3,
+                    5,
+                    0.05F
+            );
+            helper.assertTrue(tarnishedCrownOffer.satisfiedBy(taggedTarnishedCrown, ItemStack.EMPTY),
+                    "Tagged Tarnished Crown should satisfy saved legacy errand mage buy trades");
         });
     }
     static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
@@ -10286,6 +10300,18 @@ public final class ApprenticeCodexGameTestScenarios {
 
     static void initialSpellContainerHelperSkipsUnavailablePresetSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            var unboundSpell = RegistryObject.<AbstractSpell, AbstractSpell>create(
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "missing_initial_spell_for_gametest"),
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.SPELL_REGISTRY_KEY,
+                    ApprenticeCodex.MODID
+            );
+            var unboundStack = new ItemStack(ItemRegistry.GRIMOIRE_MANIFEST.get());
+            InitialSpellContainerHelper.setInitialContainer(unboundStack, 1, true, false, unboundSpell, 1);
+            var unboundContainer = ISpellContainer.get(unboundStack);
+            helper.assertTrue(unboundContainer != null, "Initial helper should create a container for unbound RegistryObject spells");
+            helper.assertTrue(unboundContainer.getActiveSpellCount() == 0,
+                    "Initial helper should skip unbound RegistryObject preset spells");
+
             var stack = new ItemStack(ItemRegistry.GRIMOIRE_MANIFEST.get());
             InitialSpellContainerHelper.setInitialContainer(
                     stack,

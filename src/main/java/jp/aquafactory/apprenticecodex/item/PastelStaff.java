@@ -106,7 +106,7 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
         }
 
         var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
-        InitialSpellContainerHelper.addInitialSpellIfEnabled(spellContainer, SpellRegistry.PALETTE_SHIFT.get(), 1, 0, true);
+        InitialSpellContainerHelper.addInitialSpellIfEnabled(spellContainer, SpellRegistry.PALETTE_SHIFT, 1, 0, true);
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }
 
