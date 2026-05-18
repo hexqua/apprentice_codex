@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -100,12 +101,12 @@ public class PastelStaff extends StaffItem implements GeoItem, IPresetSpellConta
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty() || ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
         var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
-        spellContainer.addSpell(SpellRegistry.PALETTE_SHIFT.get(), 1, true);
+        InitialSpellContainerHelper.addInitialSpellIfEnabled(spellContainer, SpellRegistry.PALETTE_SHIFT.get(), 1, 0, true);
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }
 

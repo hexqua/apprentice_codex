@@ -273,6 +273,18 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multipurposeStaffrifleAdsFullAutoIntervalTicks();
     }
 
+    public static boolean isMultipurposeStaffrifleSpellDenied(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isMultipurposeStaffrifleSpellDenied(spellId);
+    }
+
+    public static GameTestConfigOverride useMultipurposeStaffrifleSpellDenylistOverrideForGameTest(
+            List<String> spellDenylist
+    ) {
+        var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
+        ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
+        return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
     }

@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
@@ -171,10 +172,16 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return;
         }
 
+        // createImbuedContainer は spellWheel を有効化するため、spell gun では明示的に無効のまま組み立てる.
         var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
         if (startsWithPresetSpell) {
-            // createImbuedContainer は spellWheel を有効化するため、spell gun では明示的に無効のまま組み立てる.
-            spellContainer.addSpellAtIndex(configuredSpell.get(), configuredSpellLevel, 0, true);
+            InitialSpellContainerHelper.addInitialSpellIfEnabled(
+                    spellContainer,
+                    configuredSpell.get(),
+                    configuredSpellLevel,
+                    0,
+                    true
+            );
         }
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }

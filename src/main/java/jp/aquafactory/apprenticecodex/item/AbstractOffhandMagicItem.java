@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -119,12 +120,19 @@ public abstract class AbstractOffhandMagicItem extends Item
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty() || ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
         if (startsWithPresetSpell) {
-            ISpellContainer.createImbuedContainer(configuredSpell.get(), configuredSpellLevel, itemStack);
+            InitialSpellContainerHelper.setInitialContainer(
+                    itemStack,
+                    1,
+                    true,
+                    false,
+                    configuredSpell.get(),
+                    configuredSpellLevel
+            );
             return;
         }
 

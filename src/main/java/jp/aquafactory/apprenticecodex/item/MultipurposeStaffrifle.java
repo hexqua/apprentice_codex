@@ -284,7 +284,7 @@ public final class MultipurposeStaffrifle extends Item
             return false;
         }
 
-        if (SpellGunSpellListManager.isDenylisted(spell)) {
+        if (isSpecialCastSpellDenied(spell)) {
             sendActionBarError(player, Component.translatable(
                     "ui.apprenticecodex.multipurpose_staffrifle.deny_list",
                     spell.getDisplayName(player)
@@ -344,6 +344,12 @@ public final class MultipurposeStaffrifle extends Item
 
     public Item getAmmoItem(ItemStack stack) {
         return ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
+    }
+
+    public static boolean isSpecialCastSpellDenied(@Nullable AbstractSpell spell) {
+        return SpellGunSpellListManager.isDenylisted(spell)
+                || (spell != null
+                && ApprenticeCodexServerConfig.isMultipurposeStaffrifleSpellDenied(spell.getSpellResource()));
     }
 
     public Item getDisplayedAmmoItem(ItemStack stack) {

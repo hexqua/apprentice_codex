@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -186,7 +187,13 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
 
         var spellContainer = ISpellContainer.create(1, spellWheelEnabled, false).mutableCopy();
         if (startsWithPresetSpell) {
-            spellContainer.addSpellAtIndex(configuredSpell.get(), configuredSpellLevel, 0, true);
+            InitialSpellContainerHelper.addInitialSpellIfEnabled(
+                    spellContainer,
+                    configuredSpell.get(),
+                    configuredSpellLevel,
+                    0,
+                    true
+            );
         }
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }
