@@ -22,6 +22,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -670,6 +671,7 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private static @NotNull List<RecipeSelection> buildSelectableRecipeGroups(RecipeManager recipeManager) {
         var sortedRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
+                .filter(ProcessingRecipeDenylist::isAllowed)
                 .sorted(Comparator
                         .comparingInt((RecipeHolder<SpellcasterWorkbenchRecipe> holder) -> holder.value().getPriority())
                         .thenComparing(holder -> itemKey(holder.value().getPrimaryResultTemplate()))

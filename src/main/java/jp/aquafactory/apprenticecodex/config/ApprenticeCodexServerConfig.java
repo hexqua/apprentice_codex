@@ -1,8 +1,16 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.List;
+
 public final class ApprenticeCodexServerConfig {
+    public interface GameTestConfigOverride extends AutoCloseable {
+        @Override
+        void close();
+    }
+
     public static final ModConfigSpec SPEC;
     private static final DamageMultiplierServerConfig DAMAGE_MULTIPLIER_CONFIG;
     private static final BlocksServerConfig BLOCKS_CONFIG;
@@ -10,6 +18,7 @@ public final class ApprenticeCodexServerConfig {
     private static final LootServerConfig LOOT_CONFIG;
     private static final SpellsServerConfig SPELLS_CONFIG;
     private static final WorldgenServerConfig WORLDGEN_CONFIG;
+    private static final ProcessingServerConfig PROCESSING_CONFIG;
     static {
         var builder = new ModConfigSpec.Builder();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
@@ -18,6 +27,7 @@ public final class ApprenticeCodexServerConfig {
         LOOT_CONFIG = LootServerConfig.define(builder);
         SPELLS_CONFIG = SpellsServerConfig.define(builder);
         WORLDGEN_CONFIG = WorldgenServerConfig.define(builder);
+        PROCESSING_CONFIG = ProcessingServerConfig.define(builder);
         SPEC = builder.build();
     }
 
@@ -26,6 +36,47 @@ public final class ApprenticeCodexServerConfig {
 
     public static float damageMultiplier(DamageMultiplierKey key) {
         return DAMAGE_MULTIPLIER_CONFIG.value(key);
+    }
+
+    public static boolean isSpellcasterWorkbenchRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isSpellcasterWorkbenchRecipeDenied(recipeId);
+    }
+
+    public static boolean isEssenceSmokerRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isEssenceSmokerRecipeDenied(recipeId);
+    }
+
+    public static boolean isGrindRunnerRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isGrindRunnerRecipeDenied(recipeId);
+    }
+
+    public static boolean isThermalProcessRecipeDenied(ResourceLocation recipeId) {
+        return PROCESSING_CONFIG.isThermalProcessRecipeDenied(recipeId);
+    }
+
+    public static GameTestConfigOverride useProcessingRecipeDenylistOverrideForGameTest(
+            List<String> spellcasterWorkbenchRecipeDenylist,
+            List<String> essenceSmokerRecipeDenylist,
+            List<String> grindRunnerRecipeDenylist,
+            List<String> thermalProcessRecipeDenylist
+    ) {
+        var previousSpellcasterWorkbenchRecipeDenylist = PROCESSING_CONFIG.spellcasterWorkbenchRecipeDenylist();
+        var previousEssenceSmokerRecipeDenylist = PROCESSING_CONFIG.essenceSmokerRecipeDenylist();
+        var previousGrindRunnerRecipeDenylist = PROCESSING_CONFIG.grindRunnerRecipeDenylist();
+        var previousThermalProcessRecipeDenylist = PROCESSING_CONFIG.thermalProcessRecipeDenylist();
+
+        PROCESSING_CONFIG.setRecipeDenylistsForGameTest(
+                spellcasterWorkbenchRecipeDenylist,
+                essenceSmokerRecipeDenylist,
+                grindRunnerRecipeDenylist,
+                thermalProcessRecipeDenylist
+        );
+        return () -> PROCESSING_CONFIG.setRecipeDenylistsForGameTest(
+                previousSpellcasterWorkbenchRecipeDenylist,
+                previousEssenceSmokerRecipeDenylist,
+                previousGrindRunnerRecipeDenylist,
+                previousThermalProcessRecipeDenylist
+        );
     }
 
     public static boolean limitArcaneCinderSpeedupToVanillaFurnaces() {
