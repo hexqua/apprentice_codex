@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
@@ -37,7 +38,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -149,6 +149,11 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
 
             playerMagicData.setAdditionalCastData(recastData.createCloseCastData());
             return true;
+        }
+
+        if (!ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(level.dimension().location())) {
+            sendDimensionNotAllowedMessage(entity);
+            return false;
         }
 
         var tunnelPlanResult = buildTunnelPlan(level, spellLevel, entity);
@@ -347,6 +352,14 @@ public class RiftHole extends AbstractSpell implements IClientBlockTargetingSpel
             var targetName = failedState == null ? Blocks.AIR.getName() : failedState.getBlock().getName();
             serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
                     Component.translatable("ui.apprenticecodex.cant_open_hole", targetName).withStyle(ChatFormatting.RED)
+            ));
+        }
+    }
+
+    private void sendDimensionNotAllowedMessage(LivingEntity entity) {
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.rift_hole.dimension_not_allowed").withStyle(ChatFormatting.RED)
             ));
         }
     }

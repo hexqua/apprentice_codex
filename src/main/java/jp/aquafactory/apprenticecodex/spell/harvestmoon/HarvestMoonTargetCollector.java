@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.harvestmoon;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -61,6 +62,11 @@ final class HarvestMoonTargetCollector {
     }
 
     private static HarvestMoonAction resolveAction(ServerLevel level, BlockPos pos, BlockState state, LongOpenHashSet visited) {
+        if (isDenylisted(state)) {
+            visited.add(pos.asLong());
+            return null;
+        }
+
         var block = state.getBlock();
 
         if ((block == Blocks.MELON || block == Blocks.PUMPKIN)
@@ -149,6 +155,9 @@ final class HarvestMoonTargetCollector {
             if (!columnKind.isColumnMember(currentState)) {
                 break;
             }
+            if (isDenylisted(currentState)) {
+                break;
+            }
             var immutable = current.immutable();
             columnMembers.add(immutable);
             if (columnKind.isHarvestTarget(currentState)) {
@@ -188,6 +197,10 @@ final class HarvestMoonTargetCollector {
                 if (!(neighborState.getBlock() instanceof ChorusPlantBlock) && !(neighborState.getBlock() instanceof ChorusFlowerBlock)) {
                     continue;
                 }
+                if (isDenylisted(neighborState)) {
+                    visited.add(neighbor.asLong());
+                    continue;
+                }
                 visited.add(neighbor.asLong());
                 queue.addLast(neighbor.immutable());
             }
@@ -224,5 +237,9 @@ final class HarvestMoonTargetCollector {
         var above = level.getBlockState(pos.above());
         var below = level.getBlockState(pos.below());
         return above.getBlock() != state.getBlock() && below.getBlock() == state.getBlock();
+    }
+
+    private static boolean isDenylisted(BlockState state) {
+        return state.is(TagRegistry.Blocks.HARVEST_MOON_DENYLIST);
     }
 }
