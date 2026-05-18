@@ -3178,15 +3178,6 @@ public final class ApprenticeCodexGameTestScenarios {
                 )
         ));
     }
-    static void catacombsLootIncludesScarletThirstBonusDrop(GameTestHelper helper) {
-        helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
-                helper,
-                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/coffin_loot"),
-                createChestLootParams(helper),
-                256,
-                List.of(ItemRegistry.SCARLET_THIRST.get())
-        ));
-    }
     static void nonLootableApprenticeSpellsAreExcludedFromDefaultSpellFilter(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var blockedSpells = getNonLootableApprenticeSpells();

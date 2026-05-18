@@ -10,8 +10,7 @@
     "apprenticecodex:add_apprentice_curios_to_mountain_tower",
     "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
     "apprenticecodex:add_apprentice_curios_to_catacombs_crypt",
-    "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
-    "apprenticecodex:add_scarlet_thirst_to_catacombs"
+    "apprenticecodex:add_apprentice_curios_to_catacombs_wall"
   ],
   "replace": false
 }
