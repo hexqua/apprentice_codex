@@ -39,6 +39,9 @@ public final class BlockTagGenerator extends BlockTagsProvider {
         // RiftHole でトンネル化させたくないブロックをデータパックから追加する。
         tag(TagRegistry.Blocks.RIFT_HOLE_TUNNEL_DENYLIST);
 
+        // HarvestMoon で収穫させたくないブロックをデータパックから追加する。
+        tag(TagRegistry.Blocks.HARVEST_MOON_DENYLIST);
+
         // 宝占いで探知対象にする候補。単一タグ化して全て「特殊な気配」として扱う。
         tag(TagRegistry.Blocks.TREASURE_DIVINATION_TARGETS)
                 .add(

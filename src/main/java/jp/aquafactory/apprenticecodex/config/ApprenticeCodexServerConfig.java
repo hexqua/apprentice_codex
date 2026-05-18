@@ -281,6 +281,31 @@ public final class ApprenticeCodexServerConfig {
         return SPELLS_CONFIG.autoMagnetDisableCollectManaCost();
     }
 
+    public static boolean isRiftHoleDimensionAllowed(ResourceLocation dimensionId) {
+        return SPELLS_CONFIG.isRiftHoleDimensionAllowed(dimensionId);
+    }
+
+    public static GameTestConfigOverride useRiftHoleConfigOverrideForGameTest(
+            List<String> dimensionDenylist,
+            boolean enableDimensionAllowlist,
+            List<String> dimensionAllowlist
+    ) {
+        var previousDimensionDenylist = SPELLS_CONFIG.riftHoleDimensionDenylist();
+        var previousEnableDimensionAllowlist = SPELLS_CONFIG.riftHoleEnableDimensionAllowlist();
+        var previousDimensionAllowlist = SPELLS_CONFIG.riftHoleDimensionAllowlist();
+
+        SPELLS_CONFIG.setRiftHoleConfigForGameTest(
+                dimensionDenylist,
+                enableDimensionAllowlist,
+                dimensionAllowlist
+        );
+        return () -> SPELLS_CONFIG.setRiftHoleConfigForGameTest(
+                previousDimensionDenylist,
+                previousEnableDimensionAllowlist,
+                previousDimensionAllowlist
+        );
+    }
+
     public static boolean enableErrandMageVillageHouseInjection() {
         return WORLDGEN_CONFIG.enableErrandMageVillageHouseInjection();
     }

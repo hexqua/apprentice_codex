@@ -1,19 +1,25 @@
 package jp.aquafactory.apprenticecodex.spell.earthforge;
 
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class EarthForgeJob {
+    private final @Nullable ServerPlayer placingPlayer;
     private final BlockPos center;
     private final Direction effectDirection;
     private final List<BlockPos> randomTargets = new ArrayList<>();
@@ -22,7 +28,9 @@ public class EarthForgeJob {
     private long nextPlaceGameTime;
     private boolean complete;
 
-    public EarthForgeJob(BlockPos center, List<BlockPos> placeablePositions, Direction effectDirection, long currentGameTime) {
+    public EarthForgeJob(@Nullable ServerPlayer placingPlayer, BlockPos center, List<BlockPos> placeablePositions,
+                         Direction effectDirection, long currentGameTime) {
+        this.placingPlayer = placingPlayer;
         this.center = center.immutable();
         this.effectDirection = effectDirection;
         centerPending = true;
@@ -82,7 +90,9 @@ public class EarthForgeJob {
         }
 
         var dirtState = Blocks.DIRT.defaultBlockState();
-        level.setBlockAndUpdate(pos, dirtState);
+        if (!tryPlaceDirt(level, pos)) {
+            return;
+        }
         level.playSound(
                 null,
                 pos,
@@ -92,6 +102,22 @@ public class EarthForgeJob {
                 1.0f
         );
         spawnPlaceParticles(level, pos, dirtState);
+    }
+
+    private boolean tryPlaceDirt(ServerLevel level, BlockPos pos) {
+        var player = placingPlayer;
+        if (player == null || player.isRemoved()) {
+            return level.setBlockAndUpdate(pos, Blocks.DIRT.defaultBlockState());
+        }
+
+        var result = BlockTools.useItemOnBlockByPlayerMainHand(
+                level,
+                player,
+                pos,
+                new ItemStack(Items.DIRT),
+                effectDirection.getOpposite()
+        );
+        return result.consumesAction() && level.getBlockState(pos).is(Blocks.DIRT);
     }
 
     private void spawnPlaceParticles(ServerLevel level, BlockPos pos, BlockState dirtState) {

@@ -631,6 +631,7 @@
   "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
   "ui.apprenticecodex.missing_spell_gun_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.cant_open_hole": "%sを対象に取るには不安定すぎる",
+  "ui.apprenticecodex.rift_hole.dimension_not_allowed": "このディメンションでは使用できない",
   "ui.apprenticecodex.spectral_wing.conflict": "魔力が干渉して翼を展開できない！",
   "ui.apprenticecodex.spectral_wing.underwater": "水中では翼を展開できない！",
   "ui.apprenticecodex.healing_bloom.no_fruit": "まだ実がついていない",

@@ -11480,6 +11480,61 @@ public final class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void riftHoleDimensionDenylistRejectsCurrentDimension(GameTestHelper helper) {
+        var currentDimensionId = helper.getLevel().dimension().location().toString();
+        try (var ignored = ApprenticeCodexServerConfig.useRiftHoleConfigOverrideForGameTest(
+                List.of(currentDimensionId),
+                false,
+                List.of()
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(helper.getLevel().dimension().location()),
+                    "RiftHole dimension denylist should reject the current dimension"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void riftHoleDimensionAllowlistRequiresCurrentDimension(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        try (var ignored = ApprenticeCodexServerConfig.useRiftHoleConfigOverrideForGameTest(
+                List.of(),
+                true,
+                List.of("minecraft:the_nether")
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(currentDimension),
+                    "RiftHole dimension allowlist should reject unlisted dimensions"
+            );
+        }
+        try (var ignored = ApprenticeCodexServerConfig.useRiftHoleConfigOverrideForGameTest(
+                List.of(),
+                true,
+                List.of(currentDimension.toString())
+        )) {
+            helper.assertTrue(
+                    ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(currentDimension),
+                    "RiftHole dimension allowlist should accept the current dimension"
+            );
+        }
+        helper.succeed();
+    }
+
+    static void riftHoleDimensionDenylistOverridesAllowlist(GameTestHelper helper) {
+        var currentDimension = helper.getLevel().dimension().location();
+        try (var ignored = ApprenticeCodexServerConfig.useRiftHoleConfigOverrideForGameTest(
+                List.of(currentDimension.toString()),
+                true,
+                List.of(currentDimension.toString())
+        )) {
+            helper.assertFalse(
+                    ApprenticeCodexServerConfig.isRiftHoleDimensionAllowed(currentDimension),
+                    "RiftHole dimension denylist should override the allowlist"
+            );
+        }
+        helper.succeed();
+    }
+
     static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
         var casterPos = new BlockPos(0, 3, 0);
         var matureCropPos = new BlockPos(3, 2, 0);

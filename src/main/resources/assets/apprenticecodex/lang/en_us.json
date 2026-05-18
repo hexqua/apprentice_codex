@@ -621,6 +621,7 @@
   "ui.apprenticecodex.now_smoke_processing": "Still needs time",
   "ui.apprenticecodex.missing_spell_gun_ammo": "Out of ammo!(Ammo:%1$s)",
   "ui.apprenticecodex.cant_open_hole": "Can't open hole on %s",
+  "ui.apprenticecodex.rift_hole.dimension_not_allowed": "Can't use Rift Hole in this dimension",
   "ui.apprenticecodex.spectral_wing.conflict": "Your mana interferes and the wings cannot unfold!",
   "ui.apprenticecodex.spectral_wing.underwater": "You cannot unfold the wings underwater!",
   "ui.apprenticecodex.healing_bloom.no_fruit": "No fruit has grown yet",

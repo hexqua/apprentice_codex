@@ -621,6 +621,7 @@
   "ui.apprenticecodex.now_smoke_processing": "还需要时间",
   "ui.apprenticecodex.missing_spell_gun_ammo": "弹药耗尽！(弹药：%1$s)",
   "ui.apprenticecodex.cant_open_hole": "无法在 %s 上开孔",
+  "ui.apprenticecodex.rift_hole.dimension_not_allowed": "无法在此维度使用裂隙通道",
   "ui.apprenticecodex.spectral_wing.conflict": "你的魔力产生干扰，翅膀无法展开！",
   "ui.apprenticecodex.spectral_wing.underwater": "无法在水下展开翅膀！",
   "ui.apprenticecodex.healing_bloom.no_fruit": "尚未结出果实",
