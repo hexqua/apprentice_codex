@@ -4,12 +4,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
+import java.util.Objects;
 
 final class ProcessingServerConfig {
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellcasterWorkbenchRecipeDenylist;
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> essenceSmokerRecipeDenylist;
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> grindRunnerRecipeDenylist;
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> thermalProcessRecipeDenylist;
+    private List<String> spellcasterWorkbenchRecipeDenylistOverride;
+    private List<String> essenceSmokerRecipeDenylistOverride;
+    private List<String> grindRunnerRecipeDenylistOverride;
+    private List<String> thermalProcessRecipeDenylistOverride;
 
     private ProcessingServerConfig(
             ForgeConfigSpec.ConfigValue<List<? extends String>> spellcasterWorkbenchRecipeDenylist,
@@ -50,19 +55,19 @@ final class ProcessingServerConfig {
     }
 
     boolean isSpellcasterWorkbenchRecipeDenied(ResourceLocation recipeId) {
-        return containsRecipeId(spellcasterWorkbenchRecipeDenylist, recipeId);
+        return containsRecipeId(spellcasterWorkbenchRecipeDenylist(), recipeId);
     }
 
     boolean isEssenceSmokerRecipeDenied(ResourceLocation recipeId) {
-        return containsRecipeId(essenceSmokerRecipeDenylist, recipeId);
+        return containsRecipeId(essenceSmokerRecipeDenylist(), recipeId);
     }
 
     boolean isGrindRunnerRecipeDenied(ResourceLocation recipeId) {
-        return containsRecipeId(grindRunnerRecipeDenylist, recipeId);
+        return containsRecipeId(grindRunnerRecipeDenylist(), recipeId);
     }
 
     boolean isThermalProcessRecipeDenied(ResourceLocation recipeId) {
-        return containsRecipeId(thermalProcessRecipeDenylist, recipeId);
+        return containsRecipeId(thermalProcessRecipeDenylist(), recipeId);
     }
 
     void setRecipeDenylistsForGameTest(
@@ -71,33 +76,34 @@ final class ProcessingServerConfig {
             List<String> grindRunnerRecipeDenylist,
             List<String> thermalProcessRecipeDenylist
     ) {
-        this.spellcasterWorkbenchRecipeDenylist.set(List.copyOf(spellcasterWorkbenchRecipeDenylist));
-        this.essenceSmokerRecipeDenylist.set(List.copyOf(essenceSmokerRecipeDenylist));
-        this.grindRunnerRecipeDenylist.set(List.copyOf(grindRunnerRecipeDenylist));
-        this.thermalProcessRecipeDenylist.set(List.copyOf(thermalProcessRecipeDenylist));
+        spellcasterWorkbenchRecipeDenylistOverride = List.copyOf(spellcasterWorkbenchRecipeDenylist);
+        essenceSmokerRecipeDenylistOverride = List.copyOf(essenceSmokerRecipeDenylist);
+        grindRunnerRecipeDenylistOverride = List.copyOf(grindRunnerRecipeDenylist);
+        thermalProcessRecipeDenylistOverride = List.copyOf(thermalProcessRecipeDenylist);
     }
 
     List<String> spellcasterWorkbenchRecipeDenylist() {
-        return stringList(spellcasterWorkbenchRecipeDenylist);
+        return Objects.requireNonNullElseGet(spellcasterWorkbenchRecipeDenylistOverride,
+                () -> stringList(spellcasterWorkbenchRecipeDenylist));
     }
 
     List<String> essenceSmokerRecipeDenylist() {
-        return stringList(essenceSmokerRecipeDenylist);
+        return Objects.requireNonNullElseGet(essenceSmokerRecipeDenylistOverride,
+                () -> stringList(essenceSmokerRecipeDenylist));
     }
 
     List<String> grindRunnerRecipeDenylist() {
-        return stringList(grindRunnerRecipeDenylist);
+        return Objects.requireNonNullElseGet(grindRunnerRecipeDenylistOverride,
+                () -> stringList(grindRunnerRecipeDenylist));
     }
 
     List<String> thermalProcessRecipeDenylist() {
-        return stringList(thermalProcessRecipeDenylist);
+        return Objects.requireNonNullElseGet(thermalProcessRecipeDenylistOverride,
+                () -> stringList(thermalProcessRecipeDenylist));
     }
 
-    private static boolean containsRecipeId(
-            ForgeConfigSpec.ConfigValue<List<? extends String>> configValue,
-            ResourceLocation recipeId
-    ) {
-        for (var configuredId : configValue.get()) {
+    private static boolean containsRecipeId(List<String> configuredIds, ResourceLocation recipeId) {
+        for (var configuredId : configuredIds) {
             if (recipeId.equals(ResourceLocation.tryParse(String.valueOf(configuredId)))) {
                 return true;
             }

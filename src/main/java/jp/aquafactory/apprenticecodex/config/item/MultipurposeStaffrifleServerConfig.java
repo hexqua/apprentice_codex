@@ -4,6 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
+import java.util.Objects;
 
 public final class MultipurposeStaffrifleServerConfig {
     private final ForgeConfigSpec.IntValue cooldownBypassThresholdTicks;
@@ -11,6 +12,7 @@ public final class MultipurposeStaffrifleServerConfig {
     private final ForgeConfigSpec.IntValue reducedCooldownMinimumTicks;
     private final ForgeConfigSpec.IntValue adsFullAutoIntervalTicks;
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
+    private List<String> spellDenylistOverride;
 
     private MultipurposeStaffrifleServerConfig(
             ForgeConfigSpec.IntValue cooldownBypassThresholdTicks,
@@ -74,7 +76,7 @@ public final class MultipurposeStaffrifleServerConfig {
         if (spellId == null) {
             return false;
         }
-        for (var configuredId : spellDenylist.get()) {
+        for (var configuredId : spellDenylist()) {
             if (spellId.equals(ResourceLocation.tryParse(String.valueOf(configuredId)))) {
                 return true;
             }
@@ -83,13 +85,13 @@ public final class MultipurposeStaffrifleServerConfig {
     }
 
     public List<String> spellDenylist() {
-        return spellDenylist.get().stream()
+        return Objects.requireNonNullElseGet(spellDenylistOverride, () -> spellDenylist.get().stream()
                 .map(String::valueOf)
-                .toList();
+                .toList());
     }
 
     public void setSpellDenylistForGameTest(List<String> spellDenylist) {
-        this.spellDenylist.set(List.copyOf(spellDenylist));
+        spellDenylistOverride = List.copyOf(spellDenylist);
     }
 
     private static boolean isSpellId(Object value) {

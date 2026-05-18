@@ -10,6 +10,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexCoreGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    private static final String PROCESSING_RECIPE_DENYLIST_CONFIG_BATCH = "processing_recipe_denylist_config";
 
     private ApprenticeCodexCoreGameTests() {
     }
@@ -59,7 +60,7 @@ public final class ApprenticeCodexCoreGameTests {
         ApprenticeCodexGameTestScenarios.customRecipeDataIsLoaded(helper);
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE, batch = PROCESSING_RECIPE_DENYLIST_CONFIG_BATCH)
     public static void processingRecipeDenylistsRejectConfiguredRecipeIds(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.processingRecipeDenylistsRejectConfiguredRecipeIds(helper);
     }
