@@ -9,13 +9,17 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -111,7 +115,7 @@ public class DemicreatorWings extends AbstractSpell {
 
         var recasts = playerMagicData.getPlayerRecasts();
         if (recasts.hasRecastForSpell(this)) {
-            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer
+            if (player instanceof ServerPlayer serverPlayer
                     && !DemicreatorWingsManager.hasActiveCore(serverPlayer)) {
                 var staleRecast = recasts.getRecastInstance(getSpellId());
                 if (staleRecast != null) {
@@ -123,13 +127,18 @@ public class DemicreatorWings extends AbstractSpell {
             }
         }
 
+        if (!level.isClientSide && !ApprenticeCodexServerConfig.isDemicreatorWingsDimensionAllowed(level.dimension().location())) {
+            sendDimensionNotAllowedMessage(player);
+            return false;
+        }
+
         playerMagicData.setAdditionalCastData(DemicreatorWingsCastData.openCast());
         return true;
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        if (entity instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+        if (entity instanceof ServerPlayer serverPlayer) {
             var castData = playerMagicData.getAdditionalCastData() instanceof DemicreatorWingsCastData data ? data : null;
             if (castData != null && castData.isCloseCast()) {
                 DemicreatorWingsManager.deactivate(serverPlayer, true);
@@ -158,6 +167,14 @@ public class DemicreatorWings extends AbstractSpell {
         }
 
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
+    }
+
+    private void sendDimensionNotAllowedMessage(Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.apprenticecodex.spell.dimension_not_allowed").withStyle(ChatFormatting.RED)
+            ));
+        }
     }
 
     private enum DemicreatorWingsMode {

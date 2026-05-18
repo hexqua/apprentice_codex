@@ -280,6 +280,56 @@ public final class ApprenticeCodexServerConfig {
         return SPELLS_CONFIG.autoMagnetDisableCollectManaCost();
     }
 
+    public static boolean isDemicreatorWingsDimensionAllowed(ResourceLocation dimensionId) {
+        return SPELLS_CONFIG.isDemicreatorWingsDimensionAllowed(dimensionId);
+    }
+
+    public static GameTestConfigOverride useDemicreatorWingsConfigOverrideForGameTest(
+            List<String> dimensionDenylist,
+            boolean enableDimensionAllowlist,
+            List<String> dimensionAllowlist
+    ) {
+        var previousDimensionDenylist = SPELLS_CONFIG.demicreatorWingsDimensionDenylist();
+        var previousEnableDimensionAllowlist = SPELLS_CONFIG.demicreatorWingsEnableDimensionAllowlist();
+        var previousDimensionAllowlist = SPELLS_CONFIG.demicreatorWingsDimensionAllowlist();
+
+        SPELLS_CONFIG.setDemicreatorWingsConfigForGameTest(
+                dimensionDenylist,
+                enableDimensionAllowlist,
+                dimensionAllowlist
+        );
+        return () -> SPELLS_CONFIG.setDemicreatorWingsConfigForGameTest(
+                previousDimensionDenylist,
+                previousEnableDimensionAllowlist,
+                previousDimensionAllowlist
+        );
+    }
+
+    public static boolean isRemoteEyeDimensionAllowed(ResourceLocation dimensionId) {
+        return SPELLS_CONFIG.isRemoteEyeDimensionAllowed(dimensionId);
+    }
+
+    public static GameTestConfigOverride useRemoteEyeConfigOverrideForGameTest(
+            List<String> dimensionDenylist,
+            boolean enableDimensionAllowlist,
+            List<String> dimensionAllowlist
+    ) {
+        var previousDimensionDenylist = SPELLS_CONFIG.remoteEyeDimensionDenylist();
+        var previousEnableDimensionAllowlist = SPELLS_CONFIG.remoteEyeEnableDimensionAllowlist();
+        var previousDimensionAllowlist = SPELLS_CONFIG.remoteEyeDimensionAllowlist();
+
+        SPELLS_CONFIG.setRemoteEyeConfigForGameTest(
+                dimensionDenylist,
+                enableDimensionAllowlist,
+                dimensionAllowlist
+        );
+        return () -> SPELLS_CONFIG.setRemoteEyeConfigForGameTest(
+                previousDimensionDenylist,
+                previousEnableDimensionAllowlist,
+                previousDimensionAllowlist
+        );
+    }
+
     public static boolean isRiftHoleDimensionAllowed(ResourceLocation dimensionId) {
         return SPELLS_CONFIG.isRiftHoleDimensionAllowed(dimensionId);
     }
