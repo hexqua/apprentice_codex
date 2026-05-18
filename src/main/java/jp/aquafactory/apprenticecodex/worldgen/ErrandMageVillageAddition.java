@@ -61,8 +61,15 @@ public final class ErrandMageVillageAddition {
         }
 
         // Processor は static 定数を直接使うと world 起動後の holder identity と食い違うため、動的 registry から取り直す。
-        Holder<StructureProcessorList> processors = processorListRegistry.getHolderOrThrow(ResourceKey.create(Registries.PROCESSOR_LIST, addition.processor()));
-        var piece = SinglePoolElement.legacy(addition.structure().toString(), processors)
+        var processorKey = ResourceKey.create(Registries.PROCESSOR_LIST, addition.processor());
+        var processors = processorListRegistry.getHolder(processorKey);
+        if (processors.isEmpty()) {
+            ApprenticeCodex.LOGGER.warn("Errand Mage village house processor list is missing: {}", addition.processor());
+            return;
+        }
+
+        Holder<StructureProcessorList> processorHolder = processors.get();
+        var piece = SinglePoolElement.legacy(addition.structure().toString(), processorHolder)
                 .apply(StructureTemplatePool.Projection.RIGID);
 
         var accessor = (StructureTemplatePoolAccessor) pool;
