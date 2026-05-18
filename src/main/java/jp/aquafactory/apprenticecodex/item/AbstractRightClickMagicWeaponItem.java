@@ -189,7 +189,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item implements 
         if (startsWithPresetSpell) {
             InitialSpellContainerHelper.addInitialSpellIfEnabled(
                     spellContainer,
-                    configuredSpell.get(),
+                    configuredSpell,
                     configuredSpellLevel,
                     0,
                     true

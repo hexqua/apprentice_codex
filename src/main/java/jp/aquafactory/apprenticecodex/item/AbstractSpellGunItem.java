@@ -177,7 +177,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (startsWithPresetSpell) {
             InitialSpellContainerHelper.addInitialSpellIfEnabled(
                     spellContainer,
-                    configuredSpell.get(),
+                    configuredSpell,
                     configuredSpellLevel,
                     0,
                     true
