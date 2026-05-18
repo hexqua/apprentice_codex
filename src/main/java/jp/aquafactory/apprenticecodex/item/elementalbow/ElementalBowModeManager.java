@@ -117,8 +117,17 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
         }
 
         var spell = SpellRegistry.getSpell(definition.spell());
-        if (spell == null) {
+        if (spell == null || spell == SpellRegistry.none()) {
             ApprenticeCodex.LOGGER.warn("Elemental Bow mode {} in {} was ignored because spell {} could not be resolved.", schoolId, resourceId, definition.spell());
+            return;
+        }
+        if (!spell.isEnabled()) {
+            ApprenticeCodex.LOGGER.info(
+                    "Elemental Bow mode {} in {} was ignored because spell {} is disabled.",
+                    schoolId,
+                    resourceId,
+                    definition.spell()
+            );
             return;
         }
 

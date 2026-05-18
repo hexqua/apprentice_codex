@@ -138,6 +138,7 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -9712,6 +9713,50 @@ public final class ApprenticeCodexGameTestScenarios {
                     "Multipurpose Staffrifle should not reduce longer cooldowns below the default minimum");
             helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 60) == 20 * 30,
                     "Multipurpose Staffrifle should subtract the default 30 seconds from long cooldowns");
+        });
+    }
+
+    static void multipurposeStaffrifleServerDenylistBlocksSpecialCastSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            helper.assertFalse(MultipurposeStaffrifle.isSpecialCastSpellDenied(spell),
+                    "Multipurpose Staffrifle should not deny Magic Missile by default");
+
+            try (var ignored = ApprenticeCodexServerConfig.useMultipurposeStaffrifleSpellDenylistOverrideForGameTest(
+                    List.of(spell.getSpellResource().toString())
+            )) {
+                helper.assertTrue(MultipurposeStaffrifle.isSpecialCastSpellDenied(spell),
+                        "Multipurpose Staffrifle server denylist should deny Magic Missile");
+            }
+
+            helper.assertFalse(MultipurposeStaffrifle.isSpecialCastSpellDenied(spell),
+                    "Multipurpose Staffrifle server denylist override should be restored");
+        });
+    }
+
+    static void initialSpellContainerHelperSkipsUnavailablePresetSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.GRIMOIRE_MANIFEST.get());
+            InitialSpellContainerHelper.setInitialContainer(
+                    stack,
+                    1,
+                    true,
+                    false,
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.none(),
+                    1
+            );
+            var spellContainer = ISpellContainer.get(stack);
+            helper.assertTrue(spellContainer != null, "Initial helper should still create an empty spell container");
+            helper.assertTrue(spellContainer.getActiveSpellCount() == 0,
+                    "Initial helper should skip unavailable preset spells");
+
+            var enabledStack = new ItemStack(ItemRegistry.GRIMOIRE_MANIFEST.get());
+            var spell = SpellRegistry.MANIFESTATION_GRIMOIRE.get();
+            InitialSpellContainerHelper.setInitialContainer(enabledStack, 1, true, false, spell, 1);
+            var enabledContainer = ISpellContainer.get(enabledStack);
+            helper.assertTrue(enabledContainer != null, "Initial helper should create enabled preset spell container");
+            assertSpellData(helper, enabledContainer, 0, spell, 1, true,
+                    "Initial helper should keep enabled preset spells locked");
         });
     }
 

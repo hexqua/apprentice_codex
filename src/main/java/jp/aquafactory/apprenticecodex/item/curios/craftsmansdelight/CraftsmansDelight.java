@@ -104,11 +104,17 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static void appendTargetSpellTooltips(List<Component> tooltips) {
         for (var spellEntry : TARGET_SPELLS) {
             var spell = spellEntry.get();
+            if (!spell.isEnabled()) {
+                continue;
+            }
             tooltips.add(Component.literal(" - ")
                     .append(spell.getDisplayName(null))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         }
         for (var spell : CraftsmansDelightSpellSupport.getExternalTargetSpells()) {
+            if (!spell.isEnabled()) {
+                continue;
+            }
             tooltips.add(Component.literal(" - ")
                     .append(spell.getDisplayName(null))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));

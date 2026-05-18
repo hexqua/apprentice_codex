@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -37,12 +38,12 @@ public class AlchemistsFlask extends AbstractPotionFlaskItem
 
     @Override
     public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || ISpellContainer.isSpellContainer(itemStack)) {
+        if (itemStack == null || itemStack.isEmpty() || ISpellContainer.isSpellContainer(itemStack)) {
             return;
         }
 
         var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
-        spellContainer.addSpellAtIndex(SpellRegistry.EXTRACT.get(), 1, 0, true);
+        InitialSpellContainerHelper.addInitialSpellIfEnabled(spellContainer, SpellRegistry.EXTRACT.get(), 1, 0, true);
         ISpellContainer.set(itemStack, spellContainer.toImmutable());
     }
 

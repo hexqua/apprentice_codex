@@ -10,7 +10,10 @@ import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
+
+import java.util.List;
 
 final class ItemsServerConfig {
     private final ArcaneCinderServerConfig arcaneCinderConfig;
@@ -194,6 +197,18 @@ final class ItemsServerConfig {
 
     int multipurposeStaffrifleAdsFullAutoIntervalTicks() {
         return multipurposeStaffrifleConfig.adsFullAutoIntervalTicks();
+    }
+
+    boolean isMultipurposeStaffrifleSpellDenied(ResourceLocation spellId) {
+        return multipurposeStaffrifleConfig.isSpellDenied(spellId);
+    }
+
+    List<String> multipurposeStaffrifleSpellDenylist() {
+        return multipurposeStaffrifleConfig.spellDenylist();
+    }
+
+    void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {
+        multipurposeStaffrifleConfig.setSpellDenylistForGameTest(spellDenylist);
     }
 }
 
