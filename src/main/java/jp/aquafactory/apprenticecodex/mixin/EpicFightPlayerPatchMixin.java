@@ -15,17 +15,6 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 
 @Mixin(value = PlayerPatch.class, remap = false)
 public abstract class EpicFightPlayerPatchMixin {
-    @Inject(method = "getAttackSpeed", at = @At("HEAD"), cancellable = true)
-    private void apprenticecodex$mirrorGauntletAttackSpeed(
-            InteractionHand hand,
-            CallbackInfoReturnable<Float> callback
-    ) {
-        var playerPatch = (PlayerPatch<?>) (Object) this;
-        if (EpicFightScrollcasterGauntletOffhandBridge.shouldMirrorMainhand(playerPatch, hand)) {
-            callback.setReturnValue(EpicFightScrollcasterGauntletOffhandBridge.getMirroredAttackSpeed(playerPatch));
-        }
-    }
-
     @Inject(method = "getDamageSource", at = @At("HEAD"), cancellable = true)
     private void apprenticecodex$mirrorGauntletDamageSource(
             AnimationManager.AnimationAccessor<? extends StaticAnimation> animation,

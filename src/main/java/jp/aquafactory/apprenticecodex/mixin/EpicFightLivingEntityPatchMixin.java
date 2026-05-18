@@ -23,6 +23,17 @@ public abstract class EpicFightLivingEntityPatchMixin {
         }
     }
 
+    @Inject(method = "getAttackSpeed", at = @At("HEAD"), cancellable = true)
+    private void apprenticecodex$mirrorGauntletAttackSpeed(
+            InteractionHand hand,
+            CallbackInfoReturnable<Float> callback
+    ) {
+        var entityPatch = (LivingEntityPatch<?>) (Object) this;
+        if (EpicFightScrollcasterGauntletOffhandBridge.shouldMirrorMainhand(entityPatch, hand)) {
+            callback.setReturnValue(EpicFightScrollcasterGauntletOffhandBridge.getMirroredAttackSpeed(entityPatch));
+        }
+    }
+
     @Inject(method = "getAdvancedHoldingItemStack", at = @At("HEAD"), cancellable = true)
     private void apprenticecodex$mirrorGauntletStack(
             InteractionHand hand,

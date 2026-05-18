@@ -5,8 +5,8 @@ import jp.aquafactory.apprenticecodex.item.ScrollcasterGauntlet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.api.animation.AnimationManager.AnimationAccessor;
@@ -81,11 +81,11 @@ public final class EpicFightScrollcasterGauntletOffhandBridge {
                 );
     }
 
-    public static float getMirroredAttackSpeed(PlayerPatch<?> playerPatch) {
-        var player = (Player) playerPatch.getOriginal();
-        var baseAttackSpeed = (float) player.getAttributeValue(Attributes.ATTACK_SPEED);
-        return playerPatch.getModifiedAttackSpeedOfItem(
-                playerPatch.getAdvancedHoldingItemCapability(InteractionHand.MAIN_HAND),
+    public static float getMirroredAttackSpeed(LivingEntityPatch<?> entityPatch) {
+        var livingEntity = (LivingEntity) entityPatch.getOriginal();
+        var baseAttackSpeed = (float) livingEntity.getAttributeValue(Attributes.ATTACK_SPEED);
+        return entityPatch.getModifiedAttackSpeedOfItem(
+                entityPatch.getAdvancedHoldingItemCapability(InteractionHand.MAIN_HAND),
                 baseAttackSpeed
         );
     }
