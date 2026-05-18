@@ -60,6 +60,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void processingRecipeDenylistsRejectConfiguredRecipeIds(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.processingRecipeDenylistsRejectConfiguredRecipeIds(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void serverBlocksAndEntitiesCanBeInstantiated(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.serverBlocksAndEntitiesCanBeInstantiated(helper);
     }

@@ -136,6 +136,7 @@ import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
@@ -181,6 +182,7 @@ import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -754,6 +756,66 @@ public final class ApprenticeCodexGameTestScenarios {
                     "No Spellcaster Workbench recipes were loaded");
         });
     }
+
+    static void processingRecipeDenylistsRejectConfiguredRecipeIds(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipeManager = helper.getLevel().getRecipeManager();
+            var spellcasterWorkbenchRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID, "spellcaster_workbench/basic_spellcaster_round");
+            var essenceSmokerRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID, "essence_smoker/infuse_coal_to_arcane_cinder");
+            var grindRunnerRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID, "grind_runner/bone_meal_from_bone");
+            var deniedBlastingRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    "minecraft", "iron_ingot_from_blasting_iron_ore");
+            var fallbackSmeltingRecipeId = ResourceLocation.fromNamespaceAndPath(
+                    "minecraft", "iron_ingot_from_smelting_iron_ore");
+
+            try (var ignored = ApprenticeCodexServerConfig.useProcessingRecipeDenylistOverrideForGameTest(
+                    List.of(spellcasterWorkbenchRecipeId.toString()),
+                    List.of(essenceSmokerRecipeId.toString()),
+                    List.of(grindRunnerRecipeId.toString()),
+                    List.of(deniedBlastingRecipeId.toString())
+            )) {
+                var spellcasterWorkbenchRecipe = recipeManager
+                        .getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
+                        .filter(recipe -> recipe.getId().equals(spellcasterWorkbenchRecipeId))
+                        .findFirst()
+                        .orElse(null);
+                helper.assertTrue(spellcasterWorkbenchRecipe != null, "Missing Spellcaster Workbench test recipe");
+                helper.assertFalse(ProcessingRecipeDenylist.isAllowed(spellcasterWorkbenchRecipe),
+                        "Spellcaster Workbench denylist did not reject configured recipe");
+
+                var essenceSmokerRecipe = recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).stream()
+                        .filter(recipe -> recipe.getId().equals(essenceSmokerRecipeId))
+                        .findFirst()
+                        .orElse(null);
+                helper.assertTrue(essenceSmokerRecipe != null, "Missing Essence Smoker test recipe");
+                helper.assertFalse(ProcessingRecipeDenylist.isAllowed(essenceSmokerRecipe),
+                        "Essence Smoker denylist did not reject configured recipe");
+
+                var grindRunnerRecipe = recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).stream()
+                        .filter(recipe -> recipe.getId().equals(grindRunnerRecipeId))
+                        .findFirst()
+                        .orElse(null);
+                helper.assertTrue(grindRunnerRecipe != null, "Missing Grind Runner test recipe");
+                helper.assertFalse(ProcessingRecipeDenylist.isAllowed(grindRunnerRecipe),
+                        "Grind Runner denylist did not reject configured recipe");
+
+                var ironOreInput = new SimpleContainer(new ItemStack(Items.IRON_ORE));
+                var thermalProcessRecipe = ProcessingRecipeDenylist.findThermalProcessRecipe(
+                        recipeManager, ironOreInput, helper.getLevel()
+                );
+                helper.assertTrue(thermalProcessRecipe.isPresent(),
+                        "Thermal Process denylist should fall back to an allowed cooking recipe");
+                helper.assertFalse(thermalProcessRecipe.get().getId().equals(deniedBlastingRecipeId),
+                        "Thermal Process selected a denied blasting recipe");
+                helper.assertTrue(thermalProcessRecipe.get().getId().equals(fallbackSmeltingRecipeId),
+                        "Thermal Process fallback recipe mismatch: " + thermalProcessRecipe.get().getId());
+            }
+        });
+    }
+
     static void spellcastersFlaskAcceptsAllVanillaPotionTypes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var normalPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());

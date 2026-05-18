@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
+import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
@@ -654,6 +655,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         var recipeManager = level.getRecipeManager();
         var input = new SimpleContainer(inputStack.copyWithCount(1));
         return recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).stream()
+                .filter(ProcessingRecipeDenylist::isAllowed)
                 .filter(recipe -> recipe.matches(input, level))
                 .findFirst();
     }

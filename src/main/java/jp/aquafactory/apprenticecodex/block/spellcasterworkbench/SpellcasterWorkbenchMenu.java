@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import jp.aquafactory.apprenticecodex.utility.ProcessingRecipeDenylist;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerPlayer;
@@ -666,7 +667,9 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     }
 
     private static @NotNull List<RecipeSelection> buildSelectableRecipeGroups(RecipeManager recipeManager) {
-        var sortedRecipes = new ArrayList<>(recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()));
+        var sortedRecipes = new ArrayList<>(recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()).stream()
+                .filter(ProcessingRecipeDenylist::isAllowed)
+                .toList());
         sortedRecipes.sort(Comparator
                 .comparingInt(SpellcasterWorkbenchRecipe::getPriority)
                 .thenComparing(recipe -> itemKey(recipe.getPrimaryResultTemplate()))
@@ -1216,7 +1219,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
 
     private static String itemKey(ItemStack stack) {
         var itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        var tagKey = stack.hasTag() ? stack.getTag().toString() : "";
+        String tagKey = null;
+        if (stack.getTag() != null) {
+            tagKey = stack.hasTag() ? stack.getTag().toString() : "";
+        }
         return (itemId == null ? "unknown" : itemId.toString()) + tagKey;
     }
 
