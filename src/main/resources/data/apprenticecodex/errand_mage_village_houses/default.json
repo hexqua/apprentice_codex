@@ -1,0 +1,34 @@
+{
+  "values": [
+    {
+      "pool": "minecraft:village/plains/houses",
+      "structure": "apprenticecodex:village/plains/errand_mage_house",
+      "processor": "minecraft:mossify_10_percent",
+      "weight": 3
+    },
+    {
+      "pool": "minecraft:village/desert/houses",
+      "structure": "apprenticecodex:village/desert/errand_mage_house",
+      "processor": "minecraft:empty",
+      "weight": 3
+    },
+    {
+      "pool": "minecraft:village/savanna/houses",
+      "structure": "apprenticecodex:village/savanna/errand_mage_house",
+      "processor": "minecraft:empty",
+      "weight": 3
+    },
+    {
+      "pool": "minecraft:village/snowy/houses",
+      "structure": "apprenticecodex:village/plains/errand_mage_house",
+      "processor": "minecraft:empty",
+      "weight": 3
+    },
+    {
+      "pool": "minecraft:village/taiga/houses",
+      "structure": "apprenticecodex:village/plains/errand_mage_house",
+      "processor": "minecraft:mossify_10_percent",
+      "weight": 3
+    }
+  ]
+}

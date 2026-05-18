@@ -1,0 +1,160 @@
+{
+  "values": [
+    {
+      "type": "buy",
+      "level": 1,
+      "costs": [
+        {
+          "item": "apprenticecodex:comfort_berries",
+          "count": 22
+        }
+      ],
+      "result": {
+        "item": "minecraft:emerald"
+      },
+      "max_uses": 16,
+      "xp": 2,
+      "price_multiplier": 0.05
+    },
+    {
+      "type": "buy",
+      "level": 1,
+      "costs": [
+        {
+          "item": "apprenticecodex:rapid_spellcaster_round",
+          "count": 32
+        }
+      ],
+      "result": {
+        "item": "minecraft:emerald"
+      },
+      "max_uses": 16,
+      "xp": 2,
+      "price_multiplier": 0.05
+    },
+    {
+      "type": "buy",
+      "level": 2,
+      "costs": [
+        {
+          "item": "irons_spellbooks:shriving_stone",
+          "count": 4
+        },
+        {
+          "item": "irons_spellbooks:divine_pearl",
+          "count": 3
+        }
+      ],
+      "result": {
+        "item": "minecraft:emerald"
+      },
+      "max_uses": 16,
+      "xp": 2,
+      "price_multiplier": 0.05
+    },
+    {
+      "type": "sell",
+      "level": 2,
+      "costs": [
+        {
+          "item": "minecraft:emerald"
+        }
+      ],
+      "result": {
+        "item": "apprenticecodex:basic_spellcaster_round",
+        "count": 8
+      },
+      "max_uses": 12,
+      "xp": 5,
+      "price_multiplier": 0.05
+    },
+    {
+      "type": "sell",
+      "level": 3,
+      "costs": [
+        {
+          "item": "minecraft:emerald",
+          "count": 7
+        }
+      ],
+      "result": {
+        "item": "irons_spellbooks:arcane_essence"
+      },
+      "max_uses": 12,
+      "xp": 5,
+      "price_multiplier": 0.05
+    },
+    {
+      "type": "sell",
+      "level": 3,
+      "costs": [
+        {
+          "item": "minecraft:emerald",
+          "count": 3
+        }
+      ],
+      "result": {
+        "item": "minecraft:potion",
+        "potion": "irons_spellbooks:instant_mana_one"
+      },
+      "max_uses": 12,
+      "xp": 5,
+      "price_multiplier": 0.05
+    },
+    {
+      "type": "sell",
+      "level": 4,
+      "costs": [
+        {
+          "item": "minecraft:emerald",
+          "count": 32
+        }
+      ],
+      "result": {
+        "item": "apprenticecodex:spellstained_arcane_ingot"
+      },
+      "max_uses": 12,
+      "xp": 5,
+      "price_multiplier": 0.05
+    },
+    {
+      "type": "sell",
+      "level": 5,
+      "costs": [
+        {
+          "item": "irons_spellbooks:scroll",
+          "ignore_nbt": true
+        }
+      ],
+      "cost_b": {
+        "item": "minecraft:emerald",
+        "count": 16
+      },
+      "result": {
+        "item": "irons_spellbooks:common_ink"
+      },
+      "max_uses": 3,
+      "xp": 5,
+      "price_multiplier": 0.05
+    },
+    {
+      "type": "sell",
+      "level": 5,
+      "costs": [
+        {
+          "item": "minecraft:emerald",
+          "count": 64
+        }
+      ],
+      "cost_b": {
+        "item": "minecraft:writable_book"
+      },
+      "result": {
+        "item": "apprenticecodex:isekai_travel_guidebook"
+      },
+      "max_uses": 3,
+      "xp": 5,
+      "price_multiplier": 0.05
+    }
+  ]
+}

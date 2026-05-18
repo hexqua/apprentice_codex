@@ -9,6 +9,7 @@ public final class ApprenticeCodexServerConfig {
     private static final ItemsServerConfig ITEMS_CONFIG;
     private static final LootServerConfig LOOT_CONFIG;
     private static final SpellsServerConfig SPELLS_CONFIG;
+    private static final WorldgenServerConfig WORLDGEN_CONFIG;
     static {
         var builder = new ModConfigSpec.Builder();
         DAMAGE_MULTIPLIER_CONFIG = DamageMultiplierServerConfig.define(builder, DamageMultiplierKey.values());
@@ -16,6 +17,7 @@ public final class ApprenticeCodexServerConfig {
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
         LOOT_CONFIG = LootServerConfig.define(builder);
         SPELLS_CONFIG = SpellsServerConfig.define(builder);
+        WORLDGEN_CONFIG = WorldgenServerConfig.define(builder);
         SPEC = builder.build();
     }
 
@@ -188,6 +190,10 @@ public final class ApprenticeCodexServerConfig {
 
     public static boolean autoMagnetDisableCollectManaCost() {
         return SPELLS_CONFIG.autoMagnetDisableCollectManaCost();
+    }
+
+    public static boolean enableErrandMageVillageHouseInjection() {
+        return WORLDGEN_CONFIG.enableErrandMageVillageHouseInjection();
     }
 }
 
